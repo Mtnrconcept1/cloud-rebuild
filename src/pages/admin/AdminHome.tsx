@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
+  BookOpen,
   Bike,
   Brain,
   BriefcaseBusiness,
@@ -58,6 +59,13 @@ const ADMIN_PLATFORM_CONFIG_LINK = {
 } as const;
 
 const ADMIN_TOOLS = [
+  {
+    title: "Guide administrateur",
+    description: "Manuel complet de TOK, index des fonctions et export PDF.",
+    icon: BookOpen,
+    href: "/admin/guide",
+    color: "text-orange-500",
+  },
   {
     title: "Restaurants",
     description: "Gérer les restaurants, activations et statuts.",

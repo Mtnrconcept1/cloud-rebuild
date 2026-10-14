@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "f7900ce3467c24b862ec4cd3b4a56d3599318f34058ec414cc19a265d5c7235d",
+ "sourceDigest": "3e48f25f4123011045cdcc49639a76f124913fa6114a3e5b62802e3c93cec288",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,24 +12,24 @@
   "documents": 203,
   "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3508,
+  "exportedSymbols": 3512,
   "featureFlags": 99,
-  "frontendRoutes": 135,
+  "frontendRoutes": 137,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 534,
-  "modules": 1540,
+  "modules": 1542,
   "pages": 129,
-  "pathLiterals": 693,
+  "pathLiterals": 697,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16523,
-  "repositoryFiles": 3072,
+  "records": 16534,
+  "repositoryFiles": 3074,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
-  "seoBuildRoutes": 42,
+  "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
   "workflows": 28
@@ -1785,8 +1785,28 @@
     "source": "src/App.tsx"
    },
    {
-    "path": "/dashboard/tok-connect",
+    "path": "/dashboard/guide",
     "line": 645,
+    "surface": "restaurant",
+    "element": "<DashboardRoute><GuideUtilisateur /></DashboardRoute>",
+    "components": [
+     "DashboardRoute",
+     "GuideUtilisateur"
+    ],
+    "pageSources": [
+     "src/pages/GuideUtilisateur.tsx"
+    ],
+    "guards": [
+     "DashboardRoute"
+    ],
+    "requiredRoles": [],
+    "featureGate": null,
+    "redirectTo": null,
+    "source": "src/App.tsx"
+   },
+   {
+    "path": "/dashboard/tok-connect",
+    "line": 646,
     "surface": "restaurant",
     "element": "<DashboardRoute><FeatureSwitch enabled={dashboardTokConnectEnabled} fallback=\"/dashboard\"><CommercialDemoSafeEffectsBoundary tool=\"tok-connect\"><DashboardTokConnect /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>",
     "components": [
@@ -1808,7 +1828,7 @@
    },
    {
     "path": "/courier",
-    "line": 646,
+    "line": 647,
     "surface": "courier",
     "element": "<ProtectedRoute requiredRole=\"courier\"><FeatureSwitch enabled={courierHomeEnabled}><CourierHome /></FeatureSwitch></ProtectedRoute>",
     "components": [
@@ -1831,7 +1851,7 @@
    },
    {
     "path": "/courier/jobs",
-    "line": 647,
+    "line": 648,
     "surface": "courier",
     "element": "<ProtectedRoute requiredRole=\"courier\"><FeatureSwitch enabled={courierJobsEnabled} fallback=\"/courier\"><CourierJobs /></FeatureSwitch></ProtectedRoute>",
     "components": [
@@ -1854,7 +1874,7 @@
    },
    {
     "path": "/courier/notifications",
-    "line": 648,
+    "line": 649,
     "surface": "courier",
     "element": "<ProtectedRoute requiredRole=\"courier\"><CourierNotifications /></ProtectedRoute>",
     "components": [
@@ -1876,7 +1896,7 @@
    },
    {
     "path": "/courier/earnings",
-    "line": 649,
+    "line": 650,
     "surface": "courier",
     "element": "<ProtectedRoute requiredRole=\"courier\"><FeatureSwitch enabled={courierEarningsEnabled} fallback=\"/courier\"><CourierEarnings /></FeatureSwitch></ProtectedRoute>",
     "components": [
@@ -1899,7 +1919,7 @@
    },
    {
     "path": "/courier/profile",
-    "line": 650,
+    "line": 651,
     "surface": "courier",
     "element": "<ProtectedRoute requiredRole=\"courier\"><FeatureSwitch enabled={courierProfileEnabled} fallback=\"/courier\"><CourierProfile /></FeatureSwitch></ProtectedRoute>",
     "components": [
@@ -1922,7 +1942,7 @@
    },
    {
     "path": "/admin",
-    "line": 651,
+    "line": 652,
     "surface": "admin",
     "element": "<AdminDashboardRoute />",
     "components": [
@@ -1937,7 +1957,7 @@
    },
    {
     "path": "/admin/platform",
-    "line": 652,
+    "line": 653,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminPlatformConfigEnabled} fallback=\"/admin\"><AdminPlatformConfig /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -1958,7 +1978,7 @@
    },
    {
     "path": "/admin/restaurants",
-    "line": 653,
+    "line": 654,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminRestaurantsEnabled} fallback=\"/admin\"><AdminRestaurants /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -1979,7 +1999,7 @@
    },
    {
     "path": "/admin/restaurants/google-business",
-    "line": 654,
+    "line": 655,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminRestaurantsEnabled} fallback=\"/admin\"><AdminGoogleBusiness /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2000,7 +2020,7 @@
    },
    {
     "path": "/admin/utilisateurs",
-    "line": 655,
+    "line": 656,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminUtilisateursEnabled} fallback=\"/admin\"><AdminUtilisateurs /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2021,7 +2041,7 @@
    },
    {
     "path": "/admin/avis",
-    "line": 656,
+    "line": 657,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminAvisEnabled} fallback=\"/admin\"><AdminAvis /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2042,7 +2062,7 @@
    },
    {
     "path": "/admin/catalog",
-    "line": 657,
+    "line": 658,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminCatalogEnabled} fallback=\"/admin\"><AdminCatalog /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2063,7 +2083,7 @@
    },
    {
     "path": "/admin/loyalty",
-    "line": 658,
+    "line": 659,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminLoyaltyEnabled} fallback=\"/admin\"><AdminLoyalty /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2084,7 +2104,7 @@
    },
    {
     "path": "/admin/drops",
-    "line": 659,
+    "line": 660,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminDropsEnabled} fallback=\"/admin\"><DropsManagement /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2105,7 +2125,7 @@
    },
    {
     "path": "/admin/notifications",
-    "line": 660,
+    "line": 661,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminNotificationsEnabled} fallback=\"/admin\"><AdminNotifications /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2126,7 +2146,7 @@
    },
    {
     "path": "/admin/actualites",
-    "line": 661,
+    "line": 662,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminActualitesEnabled} fallback=\"/admin\"><AdminActualites /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2147,7 +2167,7 @@
    },
    {
     "path": "/admin/crm",
-    "line": 662,
+    "line": 663,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminCrmEnabled} fallback=\"/admin\"><AdminCrm /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2168,7 +2188,7 @@
    },
    {
     "path": "/admin/audit",
-    "line": 663,
+    "line": 664,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminAuditEnabled} fallback=\"/admin\"><AdminAuditLogs /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2189,7 +2209,7 @@
    },
    {
     "path": "/admin/packs",
-    "line": 664,
+    "line": 665,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminPacksEnabled} fallback=\"/admin\"><AdminLaunchPacks /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2210,7 +2230,7 @@
    },
    {
     "path": "/admin/compta",
-    "line": 665,
+    "line": 666,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminComptaEnabled} fallback=\"/admin\"><AdminCompta /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2231,7 +2251,7 @@
    },
    {
     "path": "/admin/compta/entrees",
-    "line": 666,
+    "line": 667,
     "surface": "admin",
     "element": "<AdminProtectedRoute fallback=\"/admin/compta\"><FeatureSwitch enabled={adminComptaEnabled} fallback=\"/admin/compta\"><AdminComptaInflow /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2252,7 +2272,7 @@
    },
    {
     "path": "/admin/compta/sorties",
-    "line": 667,
+    "line": 668,
     "surface": "admin",
     "element": "<AdminProtectedRoute fallback=\"/admin/compta\"><FeatureSwitch enabled={adminComptaEnabled} fallback=\"/admin/compta\"><AdminComptaOutflow /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2273,7 +2293,7 @@
    },
    {
     "path": "/admin/compta/ia",
-    "line": 668,
+    "line": 669,
     "surface": "admin",
     "element": "<AdminProtectedRoute fallback=\"/admin/compta\"><FeatureSwitch enabled={adminComptaAiEnabled} fallback=\"/admin/compta\"><AdminComptaAi /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2294,7 +2314,7 @@
    },
    {
     "path": "/admin/commandes-reservations",
-    "line": 669,
+    "line": 670,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback=\"/admin\"><AdminOperationsCenter /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2315,7 +2335,7 @@
    },
    {
     "path": "/admin/sinistres",
-    "line": 670,
+    "line": 671,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback=\"/admin\"><AdminSinistres /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2336,7 +2356,7 @@
    },
    {
     "path": "/admin/support-resolution",
-    "line": 671,
+    "line": 672,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminSupportResolutionEnabled} fallback=\"/admin/sinistres\"><AdminSupportResolution /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2357,7 +2377,7 @@
    },
    {
     "path": "/admin/guardian",
-    "line": 672,
+    "line": 673,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminGuardianEnabled} fallback=\"/admin\"><AdminGuardian /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2378,7 +2398,7 @@
    },
    {
     "path": "/admin/ai-operations",
-    "line": 673,
+    "line": 674,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminAiOperationsEnabled} fallback=\"/admin\"><AdminAiOperations /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2398,8 +2418,28 @@
     "source": "src/App.tsx"
    },
    {
+    "path": "/admin/guide",
+    "line": 675,
+    "surface": "admin",
+    "element": "<AdminProtectedRoute><GuideUtilisateur /></AdminProtectedRoute>",
+    "components": [
+     "AdminProtectedRoute",
+     "GuideUtilisateur"
+    ],
+    "pageSources": [
+     "src/pages/GuideUtilisateur.tsx"
+    ],
+    "guards": [
+     "AdminProtectedRoute"
+    ],
+    "requiredRoles": [],
+    "featureGate": null,
+    "redirectTo": null,
+    "source": "src/App.tsx"
+   },
+   {
     "path": "/admin/tok-connect",
-    "line": 674,
+    "line": 676,
     "surface": "admin",
     "element": "<AdminProtectedRoute><FeatureSwitch enabled={adminTokConnectEnabled} fallback=\"/admin\"><AdminTokConnect /></FeatureSwitch></AdminProtectedRoute>",
     "components": [
@@ -2420,7 +2460,7 @@
    },
    {
     "path": "/contact",
-    "line": 675,
+    "line": 677,
     "surface": "public",
     "element": "<Contact />",
     "components": [
@@ -2437,7 +2477,7 @@
    },
    {
     "path": "/cgu",
-    "line": 676,
+    "line": 678,
     "surface": "public",
     "element": "<CGU />",
     "components": [
@@ -2454,7 +2494,7 @@
    },
    {
     "path": "/politique-confidentialite",
-    "line": 677,
+    "line": 679,
     "surface": "public",
     "element": "<PolitiqueConfidentialite />",
     "components": [
@@ -2471,7 +2511,7 @@
    },
    {
     "path": "/cookies",
-    "line": 678,
+    "line": 680,
     "surface": "public",
     "element": "<Cookies />",
     "components": [
@@ -2488,7 +2528,7 @@
    },
    {
     "path": "/a-propos",
-    "line": 679,
+    "line": 681,
     "surface": "public",
     "element": "<APropos />",
     "components": [
@@ -2505,7 +2545,7 @@
    },
    {
     "path": "/packs-restaurateur",
-    "line": 680,
+    "line": 682,
     "surface": "public",
     "element": "<PacksRestaurateur />",
     "components": [
@@ -2522,7 +2562,7 @@
    },
    {
     "path": "/conditions-restaurateurs",
-    "line": 681,
+    "line": 683,
     "surface": "public",
     "element": "<ConditionsRestaurateurs />",
     "components": [
@@ -2539,7 +2579,7 @@
    },
    {
     "path": "/restaurateurs/geneve",
-    "line": 682,
+    "line": 684,
     "surface": "public",
     "element": "<RestaurateursGeneve />",
     "components": [
@@ -2556,7 +2596,7 @@
    },
    {
     "path": "/restaurateurs/:city",
-    "line": 683,
+    "line": 685,
     "surface": "public",
     "element": "<RestaurateursGeneve />",
     "components": [
@@ -2573,7 +2613,7 @@
    },
    {
     "path": "/restaurateurs/google-business",
-    "line": 684,
+    "line": 686,
     "surface": "public",
     "element": "<RestaurateursGoogleBusiness />",
     "components": [
@@ -2590,7 +2630,7 @@
    },
    {
     "path": "/restaurateurs/alternative-commission-couvert",
-    "line": 685,
+    "line": 687,
     "surface": "public",
     "element": "<AlternativeCommissionCouvert />",
     "components": [
@@ -2607,7 +2647,7 @@
    },
    {
     "path": "/aide",
-    "line": 686,
+    "line": 688,
     "surface": "public",
     "element": "<Aide />",
     "components": [
@@ -2624,58 +2664,52 @@
    },
    {
     "path": "/guide",
-    "line": 687,
+    "line": 689,
     "surface": "public",
-    "element": "<GuideUtilisateur />",
+    "element": "<Navigate to=\"/aide\" replace />",
     "components": [
-     "GuideUtilisateur"
+     "Navigate"
     ],
-    "pageSources": [
-     "src/pages/GuideUtilisateur.tsx"
-    ],
+    "pageSources": [],
     "guards": [],
     "requiredRoles": [],
     "featureGate": null,
-    "redirectTo": null,
+    "redirectTo": "/aide",
     "source": "src/App.tsx"
    },
    {
     "path": "/guide/restaurateur",
-    "line": 688,
+    "line": 690,
     "surface": "public",
-    "element": "<GuideUtilisateur />",
+    "element": "<Navigate to=\"/aide\" replace />",
     "components": [
-     "GuideUtilisateur"
+     "Navigate"
     ],
-    "pageSources": [
-     "src/pages/GuideUtilisateur.tsx"
-    ],
+    "pageSources": [],
     "guards": [],
     "requiredRoles": [],
     "featureGate": null,
-    "redirectTo": null,
+    "redirectTo": "/aide",
     "source": "src/App.tsx"
    },
    {
     "path": "/guide/plateforme",
-    "line": 689,
+    "line": 691,
     "surface": "public",
-    "element": "<GuideUtilisateur />",
+    "element": "<Navigate to=\"/aide\" replace />",
     "components": [
-     "GuideUtilisateur"
+     "Navigate"
     ],
-    "pageSources": [
-     "src/pages/GuideUtilisateur.tsx"
-    ],
+    "pageSources": [],
     "guards": [],
     "requiredRoles": [],
     "featureGate": null,
-    "redirectTo": null,
+    "redirectTo": "/aide",
     "source": "src/App.tsx"
    },
    {
     "path": "*",
-    "line": 690,
+    "line": 692,
     "surface": "system",
     "element": "<NotFound />",
     "components": [
@@ -2692,7 +2726,7 @@
    },
    {
     "path": "/marketing/login",
-    "line": 730,
+    "line": 732,
     "surface": "marketing",
     "element": "<MarketingLogin />",
     "components": [
@@ -2709,7 +2743,7 @@
    },
    {
     "path": "/marketing",
-    "line": 731,
+    "line": 733,
     "surface": "marketing",
     "element": "( <MarketingProtectedRoute> <MarketingWorkspace /> </MarketingProtectedRoute> )",
     "components": [
@@ -2729,7 +2763,7 @@
    },
    {
     "path": "/marketing/*",
-    "line": 739,
+    "line": 741,
     "surface": "marketing",
     "element": "<Navigate to=\"/marketing\" replace />",
     "components": [
@@ -3249,15 +3283,14 @@
     "name": "Guide Utilisateur",
     "path": "src/pages/GuideUtilisateur.tsx",
     "routes": [
-     "/guide",
-     "/guide/restaurateur",
-     "/guide/plateforme"
+     "/dashboard/guide",
+     "/admin/guide"
     ],
     "mounted": true,
     "exports": [
      {
       "name": "default",
-      "line": 762,
+      "line": 746,
       "kind": "function"
      }
     ],
@@ -4021,7 +4054,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 289,
+      "line": 297,
       "kind": "function"
      }
     ],
@@ -10026,7 +10059,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1288
+     "line": 1234
     },
     {
      "route": "/actualites/:id",
@@ -10034,7 +10067,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1917
+     "line": 1863
     },
     {
      "route": "/restaurant/:id",
@@ -10042,7 +10075,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1348
+     "line": 1294
     },
     {
      "route": "/restaurants/:citySlug",
@@ -10050,7 +10083,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1697
+     "line": 1643
     },
     {
      "route": "/restaurants/:citySlug/:cuisineSlug",
@@ -10058,7 +10091,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1685
+     "line": 1631
     },
     {
      "route": "/restaurants/:citySlug/:districtSlug",
@@ -10082,7 +10115,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1345
+     "line": 1291
     },
     {
      "route": "/restaurants/:slug",
@@ -10154,7 +10187,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1225
+     "line": 1171
     },
     {
      "route": "/chefs-table",
@@ -10170,7 +10203,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1239
+     "line": 1185
     },
     {
      "route": "/contact",
@@ -10186,7 +10219,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1232
+     "line": 1178
     },
     {
      "route": "/creneaux-garantis",
@@ -10211,30 +10244,6 @@
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
      "line": 1018
-    },
-    {
-     "route": "/guide",
-     "kind": "static",
-     "generatedAtBuild": true,
-     "indexability": "data-dependent",
-     "path": "scripts/prerender-seo.mjs",
-     "line": 1171
-    },
-    {
-     "route": "/guide/plateforme",
-     "kind": "static",
-     "generatedAtBuild": true,
-     "indexability": "data-dependent",
-     "path": "scripts/prerender-seo.mjs",
-     "line": 1207
-    },
-    {
-     "route": "/guide/restaurateur",
-     "kind": "static",
-     "generatedAtBuild": true,
-     "indexability": "data-dependent",
-     "path": "scripts/prerender-seo.mjs",
-     "line": 1189
     },
     {
      "route": "/match-groupes",
@@ -10282,7 +10291,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1254
+     "line": 1200
     },
     {
      "route": "/recherche",
@@ -10338,7 +10347,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1246
+     "line": 1192
     },
     {
      "route": "/ventes-flash",
@@ -13503,27 +13512,27 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1287
+      "line": 1233
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1287
+      "line": 1233
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1293
+      "line": 1239
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1455
+      "line": 1401
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1456
+      "line": 1402
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 2258
+      "line": 2204
      },
      {
       "path": "scripts/prerender-stoppin-restaurants-bounded.mjs",
@@ -13595,11 +13604,11 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 699
+      "line": 701
      },
      {
       "path": "src/App.tsx",
-      "line": 700
+      "line": 702
      },
      {
       "path": "src/components/CourierDashboardLayout.tsx",
@@ -13607,7 +13616,7 @@
      },
      {
       "path": "src/components/DashboardLayout.tsx",
-      "line": 363
+      "line": 364
      },
      {
       "path": "src/components/MobileLogoIntro.tsx",
@@ -13675,11 +13684,11 @@
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 270
+      "line": 267
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
-      "line": 297
+      "line": 294
      },
      {
       "path": "src/lib/adminDomains.ts",
@@ -13867,11 +13876,7 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 147
-     },
-     {
-      "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 334
+      "line": 261
      },
      {
       "path": "src/pages/LocalRestaurants.tsx",
@@ -14047,19 +14052,19 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 92
-     },
-     {
-      "path": "src/test/route-wiring.test.ts",
       "line": 94
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 107
+      "line": 96
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 140
+      "line": 109
+     },
+     {
+      "path": "src/test/route-wiring.test.ts",
+      "line": 142
      },
      {
       "path": "src/test/seo-crawl-hardening.test.ts",
@@ -14100,6 +14105,10 @@
      {
       "path": "supabase/functions/_shared/auth.ts",
       "line": 501
+     },
+     {
+      "path": "supabase/functions/_shared/marketing-service-auth.ts",
+      "line": 48
      },
      {
       "path": "supabase/functions/_shared/tok-connect.ts",
@@ -14469,6 +14478,15 @@
     ]
    },
    {
+    "value": "/Outlines",
+    "sources": [
+     {
+      "path": "src/test/guide-pdf.test.ts",
+      "line": 17
+     }
+    ]
+   },
+   {
     "value": "/[^/]+",
     "sources": [
      {
@@ -14557,7 +14575,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 679
+      "line": 681
      },
      {
       "path": "src/components/Navbar.tsx",
@@ -14597,7 +14615,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 62
+      "line": 63
      },
      {
       "path": "supabase/functions/discover-thefork-official-sites/index.ts",
@@ -14618,7 +14636,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1381
+      "line": 1327
      },
      {
       "path": "src/App.tsx",
@@ -14696,15 +14714,15 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1371
+      "line": 1317
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1945
+      "line": 1891
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 2008
+      "line": 1954
      },
      {
       "path": "src/App.tsx",
@@ -14890,7 +14908,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1263
+      "line": 1209
      },
      {
       "path": "src/App.tsx",
@@ -14903,10 +14921,6 @@
      {
       "path": "src/App.tsx",
       "line": 389
-     },
-     {
-      "path": "src/App.tsx",
-      "line": 651
      },
      {
       "path": "src/App.tsx",
@@ -14966,7 +14980,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 669
+      "line": 666
      },
      {
       "path": "src/App.tsx",
@@ -14974,7 +14988,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 672
+      "line": 671
      },
      {
       "path": "src/App.tsx",
@@ -14983,6 +14997,10 @@
      {
       "path": "src/App.tsx",
       "line": 674
+     },
+     {
+      "path": "src/App.tsx",
+      "line": 676
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15073,6 +15091,14 @@
       "line": 240
      },
      {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 654
+     },
+     {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 662
+     },
+     {
       "path": "src/pages/WorkspaceChooser.tsx",
       "line": 80
      },
@@ -15134,15 +15160,15 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 76
+      "line": 77
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 33
+      "line": 48
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 36
+      "line": 51
      },
      {
       "path": "src/test/vercel-rewrites.test.ts",
@@ -15197,7 +15223,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 661
+      "line": 662
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15213,7 +15239,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 185
+      "line": 193
      }
     ]
    },
@@ -15222,7 +15248,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 673
+      "line": 674
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15238,7 +15264,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 209
+      "line": 217
      },
      {
       "path": "src/test/tok-ai-platform-plan.test.ts",
@@ -15251,7 +15277,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 663
+      "line": 664
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15271,11 +15297,11 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 201
+      "line": 209
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 819
+      "line": 827
      },
      {
       "path": "src/test/navigation.test.ts",
@@ -15305,7 +15331,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 656
+      "line": 657
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15325,7 +15351,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 145
+      "line": 153
      },
      {
       "path": "src/test/admin-domain-routing.test.ts",
@@ -15362,7 +15388,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 657
+      "line": 658
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15374,7 +15400,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 153
+      "line": 161
      }
     ]
    },
@@ -15383,7 +15409,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 669
+      "line": 670
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15419,7 +15445,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 97
+      "line": 105
      },
      {
       "path": "src/test/admin-mobile-navigation.test.tsx",
@@ -15493,14 +15519,6 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 665
-     },
-     {
-      "path": "src/App.tsx",
-      "line": 666
-     },
-     {
-      "path": "src/App.tsx",
       "line": 666
      },
      {
@@ -15518,6 +15536,14 @@
      {
       "path": "src/App.tsx",
       "line": 668
+     },
+     {
+      "path": "src/App.tsx",
+      "line": 669
+     },
+     {
+      "path": "src/App.tsx",
+      "line": 669
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15553,7 +15579,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 81
+      "line": 89
      }
     ]
    },
@@ -15571,7 +15597,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 666
+      "line": 667
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15608,7 +15634,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 668
+      "line": 669
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15620,7 +15646,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 89
+      "line": 97
      },
      {
       "path": "src/test/tok-ai-platform-plan.test.ts",
@@ -15633,7 +15659,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 667
+      "line": 668
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15670,7 +15696,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 662
+      "line": 663
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15682,7 +15708,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 193
+      "line": 201
      }
     ]
    },
@@ -15691,7 +15717,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 659
+      "line": 660
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15703,7 +15729,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 169
+      "line": 177
      }
     ]
    },
@@ -15712,7 +15738,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 672
+      "line": 673
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15736,7 +15762,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 225
+      "line": 233
      },
      {
       "path": "src/test/application-search-index.test.ts",
@@ -15744,7 +15770,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 78
+      "line": 80
      },
      {
       "path": "src/test/tok-intelligence-suite.test.ts",
@@ -15752,7 +15778,32 @@
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 25
+      "line": 40
+     }
+    ]
+   },
+   {
+    "value": "/admin/guide",
+    "sources": [
+     {
+      "path": "src/App.tsx",
+      "line": 675
+     },
+     {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 581
+     },
+     {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 749
+     },
+     {
+      "path": "src/pages/admin/AdminHome.tsx",
+      "line": 66
+     },
+     {
+      "path": "src/test/route-wiring.test.ts",
+      "line": 78
      }
     ]
    },
@@ -15761,7 +15812,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 658
+      "line": 659
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15773,7 +15824,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 161
+      "line": 169
      }
     ]
    },
@@ -15782,7 +15833,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 660
+      "line": 661
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15802,7 +15853,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 177
+      "line": 185
      },
      {
       "path": "src/pages/admin/AdminNotifications.tsx",
@@ -15823,7 +15874,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 664
+      "line": 665
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15835,7 +15886,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 241
+      "line": 249
      }
     ]
    },
@@ -15844,7 +15895,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 652
+      "line": 653
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15860,7 +15911,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 56
+      "line": 57
      },
      {
       "path": "src/test/admin-mobile-navigation.test.tsx",
@@ -15877,7 +15928,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 653
+      "line": 654
      },
      {
       "path": "src/components/admin/AdminDemoEntitiesDialog.tsx",
@@ -15913,7 +15964,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 65
+      "line": 73
      },
      {
       "path": "src/test/admin-mobile-navigation.test.tsx",
@@ -15934,7 +15985,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 654
+      "line": 655
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15946,7 +15997,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 73
+      "line": 81
      },
      {
       "path": "src/pages/admin/AdminRestaurants.tsx",
@@ -15967,11 +16018,11 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 670
+      "line": 671
      },
      {
       "path": "src/App.tsx",
-      "line": 671
+      "line": 672
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -15987,7 +16038,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 105
+      "line": 113
      },
      {
       "path": "src/test/notifications-sinistres-governance.test.ts",
@@ -16035,7 +16086,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 671
+      "line": 672
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -16047,11 +16098,11 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 217
+      "line": 225
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 77
+      "line": 79
      },
      {
       "path": "src/test/tok-intelligence-suite.test.ts",
@@ -16064,7 +16115,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 674
+      "line": 676
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -16084,7 +16135,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 233
+      "line": 241
      },
      {
       "path": "src/test/legal-public-surface-hardening.test.ts",
@@ -16113,7 +16164,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 655
+      "line": 656
      },
      {
       "path": "src/components/admin/AdminDemoEntitiesDialog.tsx",
@@ -16137,7 +16188,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 113
+      "line": 121
      }
     ]
    },
@@ -16150,7 +16201,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 129
+      "line": 137
      },
      {
       "path": "src/test/signup.test.ts",
@@ -16171,7 +16222,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 121
+      "line": 129
      }
     ]
    },
@@ -16184,7 +16235,7 @@
      },
      {
       "path": "src/pages/admin/AdminHome.tsx",
-      "line": 137
+      "line": 145
      },
      {
       "path": "src/test/admin-courier-validation.test.ts",
@@ -16210,7 +16261,19 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 686
+      "line": 688
+     },
+     {
+      "path": "src/App.tsx",
+      "line": 689
+     },
+     {
+      "path": "src/App.tsx",
+      "line": 690
+     },
+     {
+      "path": "src/App.tsx",
+      "line": 691
      },
      {
       "path": "src/components/Navbar.tsx",
@@ -16238,11 +16301,7 @@
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 151
-     },
-     {
-      "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 752
+      "line": 736
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -16254,7 +16313,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 70
+      "line": 71
      }
     ]
    },
@@ -16280,7 +16339,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1369
+      "line": 1315
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -16496,7 +16555,11 @@
      },
      {
       "path": "src/test/marketing-session-recovery.test.tsx",
-      "line": 57
+      "line": 59
+     },
+     {
+      "path": "src/test/marketing-session-recovery.test.tsx",
+      "line": 73
      }
     ]
    },
@@ -16576,6 +16639,10 @@
      {
       "path": "src/test/marketing-bff-client.test.ts",
       "line": 110
+     },
+     {
+      "path": "src/test/marketing-session-recovery.test.tsx",
+      "line": 60
      }
     ]
    },
@@ -16620,7 +16687,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1279
+      "line": 1225
      },
      {
       "path": "src/App.tsx",
@@ -17239,7 +17306,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1380
+      "line": 1326
      },
      {
       "path": "src/App.tsx",
@@ -17306,11 +17373,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1225
+      "line": 1171
      },
      {
       "path": "src/App.tsx",
-      "line": 676
+      "line": 678
      },
      {
       "path": "src/components/Navbar.tsx",
@@ -17390,7 +17457,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 59
+      "line": 60
      }
     ]
    },
@@ -17450,7 +17517,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1377
+      "line": 1323
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -17577,7 +17644,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 756
+      "line": 758
      },
      {
       "path": "src/components/ComingSoonGate.tsx",
@@ -17637,7 +17704,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 83
+      "line": 85
      }
     ]
    },
@@ -17676,7 +17743,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1271
+      "line": 1217
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -17829,7 +17896,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1270
+      "line": 1216
      },
      {
       "path": "src/App.tsx",
@@ -17982,7 +18049,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1266
+      "line": 1212
      },
      {
       "path": "src/App.tsx",
@@ -18253,7 +18320,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 79
+      "line": 81
      }
     ]
    },
@@ -18529,7 +18596,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 80
+      "line": 82
      }
     ]
    },
@@ -18602,7 +18669,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1274
+      "line": 1220
      },
      {
       "path": "src/App.tsx",
@@ -18627,11 +18694,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1239
+      "line": 1185
      },
      {
       "path": "src/App.tsx",
-      "line": 681
+      "line": 683
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -18695,7 +18762,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 64
+      "line": 65
      }
     ]
    },
@@ -18720,7 +18787,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 675
+      "line": 677
      },
      {
       "path": "src/components/CustomerDashboardLayout.tsx",
@@ -18776,7 +18843,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 58
+      "line": 59
      },
      {
       "path": "supabase/functions/discover-thefork-official-sites/index.ts",
@@ -18793,11 +18860,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1232
+      "line": 1178
      },
      {
       "path": "src/App.tsx",
-      "line": 678
+      "line": 680
      },
      {
       "path": "src/components/Navbar.tsx",
@@ -18861,7 +18928,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 60
+      "line": 61
      }
     ]
    },
@@ -18874,7 +18941,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1265
+      "line": 1211
      },
      {
       "path": "src/App.tsx",
@@ -18890,19 +18957,19 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 646
-     },
-     {
-      "path": "src/App.tsx",
       "line": 647
      },
      {
       "path": "src/App.tsx",
-      "line": 649
+      "line": 648
      },
      {
       "path": "src/App.tsx",
       "line": 650
+     },
+     {
+      "path": "src/App.tsx",
+      "line": 651
      },
      {
       "path": "src/components/CourierDashboardLayout.tsx",
@@ -19024,7 +19091,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 649
+      "line": 650
      },
      {
       "path": "src/components/CourierDashboardLayout.tsx",
@@ -19065,7 +19132,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 647
+      "line": 648
      },
      {
       "path": "src/components/CourierDashboardLayout.tsx",
@@ -19143,7 +19210,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 648
+      "line": 649
      },
      {
       "path": "src/components/CourierDashboardLayout.tsx",
@@ -19179,7 +19246,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 57
+      "line": 58
      }
     ]
    },
@@ -19192,7 +19259,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 650
+      "line": 651
      },
      {
       "path": "src/components/CourierDashboardLayout.tsx",
@@ -19229,7 +19296,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1372
+      "line": 1318
      },
      {
       "path": "src/App.tsx",
@@ -19278,7 +19345,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1264
+      "line": 1210
      },
      {
       "path": "src/App.tsx",
@@ -19390,7 +19457,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 645
+      "line": 646
      },
      {
       "path": "src/components/DashboardLayout.tsx",
@@ -19398,23 +19465,23 @@
      },
      {
       "path": "src/components/DashboardLayout.tsx",
-      "line": 138
+      "line": 139
      },
      {
       "path": "src/components/DashboardLayout.tsx",
-      "line": 231
+      "line": 232
      },
      {
       "path": "src/components/DashboardLayout.tsx",
-      "line": 363
+      "line": 364
      },
      {
       "path": "src/components/DashboardLayout.tsx",
-      "line": 363
+      "line": 364
      },
      {
       "path": "src/components/DashboardLayout.tsx",
-      "line": 594
+      "line": 595
      },
      {
       "path": "src/components/DashboardRoute.tsx",
@@ -19519,6 +19586,14 @@
      {
       "path": "src/pages/Auth.tsx",
       "line": 822
+     },
+     {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 654
+     },
+     {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 662
      },
      {
       "path": "src/pages/dashboard/DashboardHome.tsx",
@@ -19855,7 +19930,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 56
+      "line": 57
      },
      {
       "path": "src/test/tok-intelligence-suite.test.ts",
@@ -19936,7 +20011,7 @@
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 26
+      "line": 41
      },
      {
       "path": "supabase/functions/_shared/order-checkout.ts",
@@ -20269,6 +20344,39 @@
     ]
    },
    {
+    "value": "/dashboard/guide",
+    "sources": [
+     {
+      "path": "src/App.tsx",
+      "line": 645
+     },
+     {
+      "path": "src/components/DashboardLayout.tsx",
+      "line": 133
+     },
+     {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 581
+     },
+     {
+      "path": "src/pages/GuideUtilisateur.tsx",
+      "line": 748
+     },
+     {
+      "path": "src/pages/dashboard/useDashboardRestaurant.ts",
+      "line": 43
+     },
+     {
+      "path": "src/test/route-wiring.test.ts",
+      "line": 56
+     },
+     {
+      "path": "src/test/user-guide.test.ts",
+      "line": 32
+     }
+    ]
+   },
+   {
     "value": "/dashboard/menu",
     "sources": [
      {
@@ -20325,11 +20433,11 @@
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 32
+      "line": 47
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 85
+      "line": 100
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -20651,7 +20759,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 82
+      "line": 84
      }
     ]
    },
@@ -20921,7 +21029,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 645
+      "line": 646
      },
      {
       "path": "src/components/DashboardLayout.tsx",
@@ -21101,7 +21209,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1275
+      "line": 1221
      },
      {
       "path": "src/App.tsx",
@@ -21122,7 +21230,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1281
+      "line": 1227
      },
      {
       "path": "src/App.tsx",
@@ -21330,7 +21438,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1373
+      "line": 1319
      },
      {
       "path": "src/App.tsx",
@@ -21573,7 +21681,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1379
+      "line": 1325
      },
      {
       "path": "src/App.tsx",
@@ -21635,12 +21743,8 @@
     "value": "/guide",
     "sources": [
      {
-      "path": "scripts/prerender-seo.mjs",
-      "line": 1171
-     },
-     {
       "path": "src/App.tsx",
-      "line": 687
+      "line": 689
      },
      {
       "path": "src/components/Navbar.tsx",
@@ -21651,28 +21755,12 @@
       "line": 62
      },
      {
-      "path": "src/hooks/useSeoMeta.ts",
-      "line": 196
-     },
-     {
       "path": "src/pages/Aide.tsx",
       "line": 1262
      },
      {
-      "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 140
-     },
-     {
-      "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 673
-     },
-     {
-      "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 681
-     },
-     {
       "path": "src/test/route-wiring.test.ts",
-      "line": 71
+      "line": 72
      }
     ]
    },
@@ -21680,32 +21768,12 @@
     "value": "/guide/plateforme",
     "sources": [
      {
-      "path": "scripts/prerender-seo.mjs",
-      "line": 1207
-     },
-     {
       "path": "src/App.tsx",
-      "line": 689
-     },
-     {
-      "path": "src/hooks/useSeoMeta.ts",
-      "line": 198
-     },
-     {
-      "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 188
-     },
-     {
-      "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 654
-     },
-     {
-      "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 765
+      "line": 691
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 73
+      "line": 74
      }
     ]
    },
@@ -21713,40 +21781,16 @@
     "value": "/guide/restaurateur",
     "sources": [
      {
-      "path": "scripts/prerender-seo.mjs",
-      "line": 1189
-     },
-     {
       "path": "src/App.tsx",
-      "line": 688
-     },
-     {
-      "path": "src/data/userGuideContent.ts",
-      "line": 262
-     },
-     {
-      "path": "src/hooks/useSeoMeta.ts",
-      "line": 197
+      "line": 690
      },
      {
       "path": "src/pages/Aide.tsx",
       "line": 1238
      },
      {
-      "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 171
-     },
-     {
-      "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 654
-     },
-     {
-      "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 764
-     },
-     {
       "path": "src/test/route-wiring.test.ts",
-      "line": 72
+      "line": 73
      }
     ]
    },
@@ -24114,7 +24158,7 @@
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 81
+      "line": 96
      }
     ]
    },
@@ -24370,11 +24414,11 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 732
+      "line": 734
      },
      {
       "path": "src/App.tsx",
-      "line": 739
+      "line": 741
      },
      {
       "path": "src/data/userGuideContent.ts",
@@ -24470,11 +24514,11 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 739
+      "line": 741
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 75
+      "line": 76
      }
     ]
    },
@@ -24532,7 +24576,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 730
+      "line": 732
      },
      {
       "path": "src/components/marketing/MarketingProtectedRoute.tsx",
@@ -24548,11 +24592,11 @@
      },
      {
       "path": "src/marketing/MarketingSessionProvider.tsx",
-      "line": 328
+      "line": 331
      },
      {
       "path": "src/marketing/MarketingSessionProvider.tsx",
-      "line": 336
+      "line": 339
      },
      {
       "path": "src/marketing/marketingBffClient.ts",
@@ -24568,7 +24612,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 74
+      "line": 75
      }
     ]
    },
@@ -24606,7 +24650,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1374
+      "line": 1320
      },
      {
       "path": "src/App.tsx",
@@ -24668,7 +24712,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1268
+      "line": 1214
      },
      {
       "path": "src/App.tsx",
@@ -24718,7 +24762,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1276
+      "line": 1222
      },
      {
       "path": "src/App.tsx",
@@ -24808,7 +24852,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 69
+      "line": 70
      },
      {
       "path": "src/test/seo-growth.test.ts",
@@ -24821,7 +24865,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1273
+      "line": 1219
      },
      {
       "path": "src/App.tsx",
@@ -24963,7 +25007,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1376
+      "line": 1322
      },
      {
       "path": "src/App.tsx",
@@ -25028,7 +25072,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1375
+      "line": 1321
      },
      {
       "path": "src/App.tsx",
@@ -25086,7 +25130,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1269
+      "line": 1215
      },
      {
       "path": "src/App.tsx",
@@ -25224,7 +25268,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1280
+      "line": 1226
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -25335,7 +25379,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 680
+      "line": 682
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -25375,7 +25419,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 63
+      "line": 64
      }
     ]
    },
@@ -25388,7 +25432,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1278
+      "line": 1224
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -25536,11 +25580,11 @@
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 78
+      "line": 93
      },
      {
       "path": "src/test/user-guide.test.ts",
-      "line": 82
+      "line": 97
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -25595,7 +25639,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1277
+      "line": 1223
      },
      {
       "path": "src/App.tsx",
@@ -25648,11 +25692,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1254
+      "line": 1200
      },
      {
       "path": "src/App.tsx",
-      "line": 677
+      "line": 679
      },
      {
       "path": "src/components/Navbar.tsx",
@@ -25728,7 +25772,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 61
+      "line": 62
      }
     ]
    },
@@ -25772,7 +25816,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1267
+      "line": 1213
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -25911,7 +25955,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1282
+      "line": 1228
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -26016,11 +26060,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1712
+      "line": 1658
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1946
+      "line": 1892
      },
      {
       "path": "scripts/prerender-stoppin-restaurants.mjs",
@@ -26344,7 +26388,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1272
+      "line": 1218
      },
      {
       "path": "src/App.tsx",
@@ -26480,6 +26524,15 @@
      {
       "path": "src/lib/commercialDemoHostSecurity.ts",
       "line": 147
+     }
+    ]
+   },
+   {
+    "value": "/rest/v1/rpc/service_get_marketing_web_session",
+    "sources": [
+     {
+      "path": "supabase/functions/_shared/marketing-service-auth.ts",
+      "line": 53
      }
     ]
    },
@@ -26664,7 +26717,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 2009
+      "line": 1955
      },
      {
       "path": "src/components/marketing/views/MarketingOutreachView.tsx",
@@ -27507,7 +27560,7 @@
     "sources": [
      {
       "path": "src/App.tsx",
-      "line": 683
+      "line": 685
      },
      {
       "path": "src/data/userGuideContent.ts",
@@ -27515,7 +27568,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 66
+      "line": 67
      }
     ]
    },
@@ -27536,7 +27589,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 685
+      "line": 687
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -27592,7 +27645,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 68
+      "line": 69
      },
      {
       "path": "src/test/seo-growth.test.ts",
@@ -27617,7 +27670,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 682
+      "line": 684
      },
      {
       "path": "src/components/Navbar.tsx",
@@ -27693,7 +27746,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 65
+      "line": 66
      },
      {
       "path": "src/test/seo-growth.test.ts",
@@ -27718,7 +27771,7 @@
      },
      {
       "path": "src/App.tsx",
-      "line": 684
+      "line": 686
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -27778,7 +27831,7 @@
      },
      {
       "path": "src/test/route-wiring.test.ts",
-      "line": 67
+      "line": 68
      }
     ]
    },
@@ -28159,7 +28212,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1384
+      "line": 1330
      },
      {
       "path": "src/App.tsx",
@@ -28225,7 +28278,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1283
+      "line": 1229
      },
      {
       "path": "src/App.tsx",
@@ -28328,7 +28381,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1382
+      "line": 1328
      },
      {
       "path": "src/App.tsx",
@@ -28438,11 +28491,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1246
+      "line": 1192
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1383
+      "line": 1329
      },
      {
       "path": "src/App.tsx",
@@ -29087,7 +29140,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1370
+      "line": 1316
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -29206,7 +29259,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1378
+      "line": 1324
      },
      {
       "path": "src/App.tsx",
@@ -29832,21 +29885,20 @@
     "sources": [
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 497
+      "line": 424
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 510
+      "line": 437
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
-      "line": 516
+      "line": 443
      }
     ],
     "routes": [
-     "/guide",
-     "/guide/plateforme",
-     "/guide/restaurateur"
+     "/admin/guide",
+     "/dashboard/guide"
     ]
    },
    {
@@ -83440,7 +83492,7 @@
      "twint",
      "vercel"
     ],
-    "lineCount": 2313
+    "lineCount": 2259
    },
    {
     "path": "scripts/prerender-stoppin-restaurants-bounded.mjs",
@@ -84094,7 +84146,7 @@
      },
      {
       "name": "default",
-      "line": 800,
+      "line": 802,
       "kind": "default"
      }
     ],
@@ -84103,7 +84155,7 @@
      "google",
      "supabase"
     ],
-    "lineCount": 801
+    "lineCount": 803
    },
    {
     "path": "src/components/AddressAutocomplete.tsx",
@@ -84300,7 +84352,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 298,
+      "line": 299,
       "kind": "function"
      }
     ],
@@ -84308,7 +84360,7 @@
     "integrations": [
      "openai"
     ],
-    "lineCount": 610
+    "lineCount": 611
    },
    {
     "path": "src/components/DashboardRoute.tsx",
@@ -89331,7 +89383,7 @@
      },
      {
       "name": "isRestaurantGuideRoute",
-      "line": 265,
+      "line": 264,
       "kind": "function"
      }
     ],
@@ -89339,7 +89391,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 268
+    "lineCount": 267
    },
    {
     "path": "src/data/userGuideFeatureDetails.ts",
@@ -89747,17 +89799,17 @@
     "exports": [
      {
       "name": "ensureSeoMetadataForRoute",
-      "line": 249,
+      "line": 246,
       "kind": "function"
      },
      {
       "name": "buildCanonicalUrl",
-      "line": 269,
+      "line": 266,
       "kind": "function"
      },
      {
       "name": "useSeoMeta",
-      "line": 274,
+      "line": 271,
       "kind": "function"
      }
     ],
@@ -89765,7 +89817,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 369
+    "lineCount": 366
    },
    {
     "path": "src/hooks/useSessionStorageState.ts",
@@ -95219,6 +95271,34 @@
     "lineCount": 119
    },
    {
+    "path": "src/lib/guidePdf.ts",
+    "exports": [
+     {
+      "name": "GuidePdfSection",
+      "line": 2,
+      "kind": "typealias"
+     },
+     {
+      "name": "GuidePdfInput",
+      "line": 3,
+      "kind": "typealias"
+     },
+     {
+      "name": "buildGuidePdf",
+      "line": 38,
+      "kind": "function"
+     },
+     {
+      "name": "downloadGuidePdf",
+      "line": 126,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 137
+   },
+   {
     "path": "src/lib/helpChat.ts",
     "exports": [
      {
@@ -100181,7 +100261,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 365
+    "lineCount": 368
    },
    {
     "path": "src/marketing/autopilotClient.ts",
@@ -101489,7 +101569,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 762,
+      "line": 746,
       "kind": "function"
      }
     ],
@@ -101498,7 +101578,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 768
+    "lineCount": 752
    },
    {
     "path": "src/pages/Index.tsx",
@@ -102126,7 +102206,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 289,
+      "line": 297,
       "kind": "function"
      }
     ],
@@ -102135,7 +102215,7 @@
      "google",
      "supabase"
     ],
-    "lineCount": 868
+    "lineCount": 876
    },
    {
     "path": "src/pages/admin/AdminLaunchPacks.tsx",
@@ -103100,7 +103180,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1260
+    "lineCount": 1323
    },
    {
     "path": "src/pages/dashboard/DashboardRestaurant.tsx",
@@ -105530,6 +105610,13 @@
     "lineCount": 74
    },
    {
+    "path": "src/test/guide-pdf.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 37
+   },
+   {
     "path": "src/test/health-score-advisors.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -106333,14 +106420,14 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 76
+    "lineCount": 147
    },
    {
     "path": "src/test/marketing-session-recovery.test.tsx",
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 60
+    "lineCount": 76
    },
    {
     "path": "src/test/marketing-social-editorial.test.ts",
@@ -107466,7 +107553,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 92
+    "lineCount": 102
    },
    {
     "path": "src/test/restaurant-reservation-sidebar.test.ts",
@@ -107607,7 +107694,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 182
+    "lineCount": 184
    },
    {
     "path": "src/test/scale-readiness-guards.test.ts",
@@ -108575,7 +108662,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 117
+    "lineCount": 132
    },
    {
     "path": "src/test/vercel-rewrites.test.ts",
@@ -109927,17 +110014,18 @@
     "exports": [
      {
       "name": "authenticateMarketingRequest",
-      "line": 37,
+      "line": 78,
       "kind": "function"
      }
     ],
     "environmentNames": [
-     "SUPABASE_SECRET_KEYS"
+     "SUPABASE_SECRET_KEYS",
+     "SUPABASE_URL"
     ],
     "integrations": [
      "supabase"
     ],
-    "lineCount": 64
+    "lineCount": 105
    },
    {
     "path": "supabase/functions/_shared/marketing-social-editorial.ts",
@@ -120958,6 +121046,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/lib/guidePdf.ts",
+    "category": "application-library",
+    "extension": ".ts"
+   },
+   {
     "path": "src/lib/helpChat.ts",
     "category": "application-library",
     "extension": ".ts"
@@ -123459,6 +123552,11 @@
    },
    {
     "path": "src/test/guaranteed-delivery-cart.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/guide-pdf.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -130501,7 +130599,7 @@
    "id": "code-module:c3dee908e582",
    "type": "code-module",
    "title": "scripts/prerender-seo.mjs",
-   "description": "Module de 2313 lignes; exports: aucun export statique.",
+   "description": "Module de 2259 lignes; exports: aucun export statique.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1,
    "surface": null,
@@ -130526,7 +130624,7 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "7a7d99643f0b"
+   "detailRef": "acc1400a19d7"
   },
   {
    "id": "code-module:6c15664b5a20",
@@ -131064,7 +131162,7 @@
    "id": "code-module:fe5a8fc33137",
    "type": "code-module",
    "title": "src/App.tsx",
-   "description": "Module de 801 lignes; exports: AdminRouteFrame, default.",
+   "description": "Module de 803 lignes; exports: AdminRouteFrame, default.",
    "path": "src/App.tsx",
    "line": 1,
    "surface": null,
@@ -131074,7 +131172,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "f2feb57b9fee"
+   "detailRef": "d589d37e286a"
   },
   {
    "id": "code-module:c7eb9a2e181b",
@@ -131255,7 +131353,7 @@
    "id": "code-module:68dd5687bf0e",
    "type": "code-module",
    "title": "src/components/DashboardLayout.tsx",
-   "description": "Module de 610 lignes; exports: default.",
+   "description": "Module de 611 lignes; exports: default.",
    "path": "src/components/DashboardLayout.tsx",
    "line": 1,
    "surface": null,
@@ -131263,7 +131361,7 @@
     "default",
     "openai"
    ],
-   "detailRef": "ac5d8bb8a48a"
+   "detailRef": "9c065596db8b"
   },
   {
    "id": "code-module:39e3762d1539",
@@ -134833,7 +134931,7 @@
    "id": "code-module:ff8d58d620be",
    "type": "code-module",
    "title": "src/data/userGuideContent.ts",
-   "description": "Module de 268 lignes; exports: GuideChapter, GuideScreenshot, RESTAURANT_GUIDE_CHAPTERS, BUYER_GUIDE_CHAPTERS, GUIDE_SCREENSHOTS, SURFACE_LABELS, RESTAURANT_PUBLIC_ROUTES, isRestaurantGuideRoute.",
+   "description": "Module de 267 lignes; exports: GuideChapter, GuideScreenshot, RESTAURANT_GUIDE_CHAPTERS, BUYER_GUIDE_CHAPTERS, GUIDE_SCREENSHOTS, SURFACE_LABELS, RESTAURANT_PUBLIC_ROUTES, isRestaurantGuideRoute.",
    "path": "src/data/userGuideContent.ts",
    "line": 1,
    "surface": null,
@@ -134848,7 +134946,7 @@
     "google",
     "isRestaurantGuideRoute"
    ],
-   "detailRef": "a925074183fe"
+   "detailRef": "f928a8434be5"
   },
   {
    "id": "code-module:0f3e1684311e",
@@ -135109,7 +135207,7 @@
    "id": "code-module:bd769c2df9a6",
    "type": "code-module",
    "title": "src/hooks/useSeoMeta.ts",
-   "description": "Module de 369 lignes; exports: ensureSeoMetadataForRoute, buildCanonicalUrl, useSeoMeta.",
+   "description": "Module de 366 lignes; exports: ensureSeoMetadataForRoute, buildCanonicalUrl, useSeoMeta.",
    "path": "src/hooks/useSeoMeta.ts",
    "line": 1,
    "surface": null,
@@ -135119,7 +135217,7 @@
     "google",
     "useSeoMeta"
    ],
-   "detailRef": "4b0173a5635a"
+   "detailRef": "17e0bccf317d"
   },
   {
    "id": "code-module:5883d3da6c48",
@@ -137401,6 +137499,22 @@
    "detailRef": "a36ae31ca05b"
   },
   {
+   "id": "code-module:684a0dc8ed96",
+   "type": "code-module",
+   "title": "src/lib/guidePdf.ts",
+   "description": "Module de 137 lignes; exports: GuidePdfSection, GuidePdfInput, buildGuidePdf, downloadGuidePdf.",
+   "path": "src/lib/guidePdf.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "GuidePdfInput",
+    "GuidePdfSection",
+    "buildGuidePdf",
+    "downloadGuidePdf"
+   ],
+   "detailRef": "9a68059082f3"
+  },
+  {
    "id": "code-module:480cfda09b6a",
    "type": "code-module",
    "title": "src/lib/helpChat.ts",
@@ -139565,7 +139679,7 @@
    "id": "code-module:453d970374f8",
    "type": "code-module",
    "title": "src/marketing/MarketingSessionProvider.tsx",
-   "description": "Module de 365 lignes; exports: SessionSnapshot, normalizeMarketingSessionPayload, default.",
+   "description": "Module de 368 lignes; exports: SessionSnapshot, normalizeMarketingSessionPayload, default.",
    "path": "src/marketing/MarketingSessionProvider.tsx",
    "line": 1,
    "surface": null,
@@ -139574,7 +139688,7 @@
     "default",
     "normalizeMarketingSessionPayload"
    ],
-   "detailRef": "20ac515d55bc"
+   "detailRef": "b02371ecd6a2"
   },
   {
    "id": "code-module:25ec9bbc5f5d",
@@ -140289,7 +140403,7 @@
    "id": "code-module:c4d59f7cdd08",
    "type": "code-module",
    "title": "src/pages/GuideUtilisateur.tsx",
-   "description": "Module de 768 lignes; exports: default.",
+   "description": "Module de 752 lignes; exports: default.",
    "path": "src/pages/GuideUtilisateur.tsx",
    "line": 1,
    "surface": null,
@@ -140298,7 +140412,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "2a6ab5715020"
+   "detailRef": "5f7d8b911f3b"
   },
   {
    "id": "code-module:8d761926e269",
@@ -140892,7 +141006,7 @@
    "id": "code-module:fc6f262bc013",
    "type": "code-module",
    "title": "src/pages/admin/AdminHome.tsx",
-   "description": "Module de 868 lignes; exports: default.",
+   "description": "Module de 876 lignes; exports: default.",
    "path": "src/pages/admin/AdminHome.tsx",
    "line": 1,
    "surface": null,
@@ -140901,7 +141015,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "0f58bf9cdd0b"
+   "detailRef": "a8325dd61ccb"
   },
   {
    "id": "code-module:3056adaa5834",
@@ -141608,7 +141722,7 @@
    "id": "code-module:f39ec1769aae",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardReservations.tsx",
-   "description": "Module de 1260 lignes; exports: default.",
+   "description": "Module de 1323 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardReservations.tsx",
    "line": 1,
    "surface": null,
@@ -141617,7 +141731,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "1e9663419b6c"
+   "detailRef": "8b75e6b0edd0"
   },
   {
    "id": "code-module:6261c9a72668",
@@ -144864,6 +144978,17 @@
    "detailRef": "3cf3212ef81d"
   },
   {
+   "id": "code-module:52afc99981b6",
+   "type": "code-module",
+   "title": "src/test/guide-pdf.test.ts",
+   "description": "Module de 37 lignes; exports: aucun export statique.",
+   "path": "src/test/guide-pdf.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "403d2fe026f5"
+  },
+  {
    "id": "code-module:f6efd5ddfeff",
    "type": "code-module",
    "title": "src/test/health-score-advisors.test.ts",
@@ -146017,25 +146142,25 @@
    "id": "code-module:4223f26bf632",
    "type": "code-module",
    "title": "src/test/marketing-service-auth.test.ts",
-   "description": "Module de 76 lignes; exports: aucun export statique.",
+   "description": "Module de 147 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-service-auth.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "2502d0f4354c"
+   "detailRef": "ee02862bd3f1"
   },
   {
    "id": "code-module:35d405c0e261",
    "type": "code-module",
    "title": "src/test/marketing-session-recovery.test.tsx",
-   "description": "Module de 60 lignes; exports: aucun export statique.",
+   "description": "Module de 76 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-session-recovery.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "9219b1ebbcc5"
+   "detailRef": "dc6c144d215e"
   },
   {
    "id": "code-module:9ef61d768bcd",
@@ -147667,7 +147792,7 @@
    "id": "code-module:759e6d98d2f0",
    "type": "code-module",
    "title": "src/test/restaurant-reservation-commission-collection.test.ts",
-   "description": "Module de 92 lignes; exports: aucun export statique.",
+   "description": "Module de 102 lignes; exports: aucun export statique.",
    "path": "src/test/restaurant-reservation-commission-collection.test.ts",
    "line": 1,
    "surface": null,
@@ -147675,7 +147800,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "4ccc33afc7f9"
+   "detailRef": "567cad673188"
   },
   {
    "id": "code-module:d8b8a4d58cea",
@@ -147873,14 +147998,14 @@
    "id": "code-module:c0bdde6aa1b0",
    "type": "code-module",
    "title": "src/test/route-wiring.test.ts",
-   "description": "Module de 182 lignes; exports: aucun export statique.",
+   "description": "Module de 184 lignes; exports: aucun export statique.",
    "path": "src/test/route-wiring.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "41fd24b9ab6d"
+   "detailRef": "7577eb3e973d"
   },
   {
    "id": "code-module:79f716928cc6",
@@ -149282,14 +149407,14 @@
    "id": "code-module:da69732beead",
    "type": "code-module",
    "title": "src/test/user-guide.test.ts",
-   "description": "Module de 117 lignes; exports: aucun export statique.",
+   "description": "Module de 132 lignes; exports: aucun export statique.",
    "path": "src/test/user-guide.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "stripe"
    ],
-   "detailRef": "c1edb3b05f93"
+   "detailRef": "1fb2e7f9ab2b"
   },
   {
    "id": "code-module:3581bc9ee271",
@@ -149924,16 +150049,17 @@
    "id": "code-module:e887a3d462c8",
    "type": "code-module",
    "title": "supabase/functions/_shared/marketing-service-auth.ts",
-   "description": "Module de 64 lignes; exports: authenticateMarketingRequest.",
+   "description": "Module de 105 lignes; exports: authenticateMarketingRequest.",
    "path": "supabase/functions/_shared/marketing-service-auth.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "SUPABASE_SECRET_KEYS",
+    "SUPABASE_URL",
     "authenticateMarketingRequest",
     "supabase"
    ],
-   "detailRef": "12f3f167f750"
+   "detailRef": "0d82c0849991"
   },
   {
    "id": "code-module:32a3bad56cc4",
@@ -238883,7 +239009,7 @@
    "id": "environment-variable:a761a6cbaaec",
    "type": "environment-variable",
    "title": "SUPABASE_URL",
-   "description": "Nom de variable d’environnement référencé dans 37 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 38 module(s); aucune valeur n’est indexée.",
    "path": "scripts/harden-directory-restaurant-seo.mjs",
    "line": null,
    "surface": null,
@@ -238904,6 +239030,7 @@
     "src/test/marketing-bff-security.test.ts",
     "supabase/functions/_shared/commercial-demo-host.ts",
     "supabase/functions/_shared/delivery-dispatch.ts",
+    "supabase/functions/_shared/marketing-service-auth.ts",
     "supabase/functions/admin-demo-entities/index.ts",
     "supabase/functions/ai-support-resolution/index.ts",
     "supabase/functions/create-social-post-boost/index.ts",
@@ -238926,7 +239053,7 @@
     "supabase/functions/track-sponsored-event/index.ts",
     "vite.config.ts"
    ],
-   "detailRef": "21dcc7a83ad9"
+   "detailRef": "f622f8466176"
   },
   {
    "id": "environment-variable:b61dd74da707",
@@ -247997,6 +248124,32 @@
     "typealias"
    ],
    "detailRef": "2f87f5ae485c"
+  },
+  {
+   "id": "exported-symbol:7f857c4bc4a3",
+   "type": "exported-symbol",
+   "title": "GuidePdfInput",
+   "description": "Export typealias de src/lib/guidePdf.ts.",
+   "path": "src/lib/guidePdf.ts",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "17ff1679c15b"
+  },
+  {
+   "id": "exported-symbol:27e909557a40",
+   "type": "exported-symbol",
+   "title": "GuidePdfSection",
+   "description": "Export typealias de src/lib/guidePdf.ts.",
+   "path": "src/lib/guidePdf.ts",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "d2e74df558d6"
   },
   {
    "id": "exported-symbol:2436aed77581",
@@ -261463,18 +261616,18 @@
    "detailRef": "0527a99dde8d"
   },
   {
-   "id": "exported-symbol:62d0037b2f86",
+   "id": "exported-symbol:a6bb49efc907",
    "type": "exported-symbol",
    "title": "authenticateMarketingRequest",
    "description": "Export function de supabase/functions/_shared/marketing-service-auth.ts.",
    "path": "supabase/functions/_shared/marketing-service-auth.ts",
-   "line": 37,
+   "line": 78,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "8dec132cbc0f"
+   "detailRef": "a964d9a7ba8a"
   },
   {
    "id": "exported-symbol:298b422f5624",
@@ -261792,18 +261945,18 @@
    "detailRef": "9322fbf1561e"
   },
   {
-   "id": "exported-symbol:40b3225a9088",
+   "id": "exported-symbol:4a58b27b04a2",
    "type": "exported-symbol",
    "title": "buildCanonicalUrl",
    "description": "Export function de src/hooks/useSeoMeta.ts.",
    "path": "src/hooks/useSeoMeta.ts",
-   "line": 269,
+   "line": 266,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "073d2f9c6a4d"
+   "detailRef": "171fee0f3577"
   },
   {
    "id": "exported-symbol:7e5f8982e5a8",
@@ -262372,6 +262525,19 @@
     "function"
    ],
    "detailRef": "b62442f0dff0"
+  },
+  {
+   "id": "exported-symbol:e292043f704c",
+   "type": "exported-symbol",
+   "title": "buildGuidePdf",
+   "description": "Export function de src/lib/guidePdf.ts.",
+   "path": "src/lib/guidePdf.ts",
+   "line": 38,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "538f48147a10"
   },
   {
    "id": "exported-symbol:d22ff500c0c0",
@@ -265718,19 +265884,19 @@
    "detailRef": "114329ed48ff"
   },
   {
-   "id": "exported-symbol:88f7d281a3fa",
+   "id": "exported-symbol:ef81575fab2b",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export default de src/App.tsx.",
    "path": "src/App.tsx",
-   "line": 800,
+   "line": 802,
    "surface": null,
    "tags": [
     "default",
     "google",
     "supabase"
    ],
-   "detailRef": "126684fc3a92"
+   "detailRef": "fa19a8b83be1"
   },
   {
    "id": "exported-symbol:16afb42efa51",
@@ -265905,18 +266071,18 @@
    "detailRef": "d424eb5b0b77"
   },
   {
-   "id": "exported-symbol:4fb7d2cac35f",
+   "id": "exported-symbol:ab6649d61e9b",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/DashboardLayout.tsx.",
    "path": "src/components/DashboardLayout.tsx",
-   "line": 298,
+   "line": 299,
    "surface": null,
    "tags": [
     "function",
     "openai"
    ],
-   "detailRef": "e28ea7d9d7f1"
+   "detailRef": "2eddaf67d78b"
   },
   {
    "id": "exported-symbol:c7e564477337",
@@ -268447,19 +268613,19 @@
    "detailRef": "5d76487d5d73"
   },
   {
-   "id": "exported-symbol:a5839efa919f",
+   "id": "exported-symbol:93ac77ae1d8a",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/GuideUtilisateur.tsx.",
    "path": "src/pages/GuideUtilisateur.tsx",
-   "line": 762,
+   "line": 746,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "b5c87fab0a8c"
+   "detailRef": "5a70a4fb8993"
   },
   {
    "id": "exported-symbol:90d0b83c1d44",
@@ -269050,19 +269216,19 @@
    "detailRef": "6693dd6e3026"
   },
   {
-   "id": "exported-symbol:9a5461257135",
+   "id": "exported-symbol:2af30dfb7060",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/admin/AdminHome.tsx.",
    "path": "src/pages/admin/AdminHome.tsx",
-   "line": 289,
+   "line": 297,
    "surface": null,
    "tags": [
     "function",
     "google",
     "supabase"
    ],
-   "detailRef": "be45cffef340"
+   "detailRef": "1cb3b85274e8"
   },
   {
    "id": "exported-symbol:0c44c1642a5c",
@@ -270241,6 +270407,19 @@
    "detailRef": "7698d25cb7e7"
   },
   {
+   "id": "exported-symbol:577d04c7f100",
+   "type": "exported-symbol",
+   "title": "downloadGuidePdf",
+   "description": "Export function de src/lib/guidePdf.ts.",
+   "path": "src/lib/guidePdf.ts",
+   "line": 126,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "766bf474af04"
+  },
+  {
    "id": "exported-symbol:a7160dc9e3f7",
    "type": "exported-symbol",
    "title": "downloadImageWithWatermark",
@@ -270421,18 +270600,18 @@
    "detailRef": "937b50722027"
   },
   {
-   "id": "exported-symbol:5a68331e6a69",
+   "id": "exported-symbol:140bbb6081f5",
    "type": "exported-symbol",
    "title": "ensureSeoMetadataForRoute",
    "description": "Export function de src/hooks/useSeoMeta.ts.",
    "path": "src/hooks/useSeoMeta.ts",
-   "line": 249,
+   "line": 246,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "982717815424"
+   "detailRef": "ae604e82de92"
   },
   {
    "id": "exported-symbol:17ccb1edb7aa",
@@ -278757,18 +278936,18 @@
    "detailRef": "06ffebd6f2e4"
   },
   {
-   "id": "exported-symbol:cc31881823b2",
+   "id": "exported-symbol:9b9bea5d389f",
    "type": "exported-symbol",
    "title": "isRestaurantGuideRoute",
    "description": "Export function de src/data/userGuideContent.ts.",
    "path": "src/data/userGuideContent.ts",
-   "line": 265,
+   "line": 264,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "fe69ecc84a61"
+   "detailRef": "ad4a8c6b5ebe"
   },
   {
    "id": "exported-symbol:9630ed9f9348",
@@ -286976,18 +287155,18 @@
    "detailRef": "9ddca3b855be"
   },
   {
-   "id": "exported-symbol:e59f824fff35",
+   "id": "exported-symbol:d494706c98e7",
    "type": "exported-symbol",
    "title": "useSeoMeta",
    "description": "Export function de src/hooks/useSeoMeta.ts.",
    "path": "src/hooks/useSeoMeta.ts",
-   "line": 274,
+   "line": 271,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "2cb42af2a601"
+   "detailRef": "d22ffcaf2431"
   },
   {
    "id": "exported-symbol:32ce242dd9a6",
@@ -309327,6 +309506,20 @@
    "detailRef": "e96d38754891"
   },
   {
+   "id": "file:fdc5d5b9c2df",
+   "type": "file",
+   "title": "src/lib/guidePdf.ts",
+   "description": "Fichier du dépôt classé application-library.",
+   "path": "src/lib/guidePdf.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "application-library"
+   ],
+   "detailRef": "71527ad8d762"
+  },
+  {
    "id": "file:2a08ae5df06e",
    "type": "file",
    "title": "src/lib/helpChat.ts",
@@ -316339,6 +316532,20 @@
     "test"
    ],
    "detailRef": "8d06c8d70d45"
+  },
+  {
+   "id": "file:9b3ae55d0650",
+   "type": "file",
+   "title": "src/test/guide-pdf.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/guide-pdf.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "1fb943916353"
   },
   {
    "id": "file:a73d83eb5827",
@@ -332525,17 +332732,17 @@
    "detailRef": "dda6424591b3"
   },
   {
-   "id": "frontend-route:63e0b5a1d430",
+   "id": "frontend-route:1fcf7c5919c5",
    "type": "frontend-route",
    "title": "*",
    "description": "Route system rendue par NotFound.",
    "path": "src/App.tsx",
-   "line": 690,
+   "line": 692,
    "surface": "system",
    "tags": [
     "NotFound"
    ],
-   "detailRef": "030d95a2d464"
+   "detailRef": "08089a682e2b"
   },
   {
    "id": "frontend-route:ed892ada1cd6",
@@ -332552,17 +332759,17 @@
    "detailRef": "d94f4da6a719"
   },
   {
-   "id": "frontend-route:edaadd36098b",
+   "id": "frontend-route:c45454a0960b",
    "type": "frontend-route",
    "title": "/a-propos",
    "description": "Route public rendue par APropos.",
    "path": "src/App.tsx",
-   "line": 679,
+   "line": 681,
    "surface": "public",
    "tags": [
     "APropos"
    ],
-   "detailRef": "d7ab6358b532"
+   "detailRef": "9255452d3a63"
   },
   {
    "id": "frontend-route:e375aaa0d05e",
@@ -332611,12 +332818,12 @@
    "detailRef": "c32f33bed928"
   },
   {
-   "id": "frontend-route:0ad54712d5c1",
+   "id": "frontend-route:001b37665cee",
    "type": "frontend-route",
    "title": "/admin/actualites",
    "description": "Route admin rendue par AdminActualites, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 661,
+   "line": 662,
    "surface": "admin",
    "tags": [
     "AdminActualites",
@@ -332624,15 +332831,15 @@
     "FeatureSwitch",
     "adminActualitesEnabled"
    ],
-   "detailRef": "762bafae2ef8"
+   "detailRef": "bab78f7a502e"
   },
   {
-   "id": "frontend-route:728c57bdd3cc",
+   "id": "frontend-route:8ececc911f0a",
    "type": "frontend-route",
    "title": "/admin/ai-operations",
    "description": "Route admin rendue par AdminAiOperations, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 673,
+   "line": 674,
    "surface": "admin",
    "tags": [
     "AdminAiOperations",
@@ -332640,15 +332847,15 @@
     "FeatureSwitch",
     "adminAiOperationsEnabled"
    ],
-   "detailRef": "01ae343b8015"
+   "detailRef": "221352a7d8e1"
   },
   {
-   "id": "frontend-route:410b646d6857",
+   "id": "frontend-route:d0bff76526fb",
    "type": "frontend-route",
    "title": "/admin/audit",
    "description": "Route admin rendue par AdminAuditLogs, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 663,
+   "line": 664,
    "surface": "admin",
    "tags": [
     "AdminAuditLogs",
@@ -332656,15 +332863,15 @@
     "FeatureSwitch",
     "adminAuditEnabled"
    ],
-   "detailRef": "8446d7aa4764"
+   "detailRef": "0e58e3a6a672"
   },
   {
-   "id": "frontend-route:69947810b612",
+   "id": "frontend-route:f1ca523fc82d",
    "type": "frontend-route",
    "title": "/admin/avis",
    "description": "Route admin rendue par AdminAvis, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 656,
+   "line": 657,
    "surface": "admin",
    "tags": [
     "AdminAvis",
@@ -332672,15 +332879,15 @@
     "FeatureSwitch",
     "adminAvisEnabled"
    ],
-   "detailRef": "db89fcc8d75b"
+   "detailRef": "c10bb748a643"
   },
   {
-   "id": "frontend-route:f6984cdecd6d",
+   "id": "frontend-route:3658837275c7",
    "type": "frontend-route",
    "title": "/admin/catalog",
    "description": "Route admin rendue par AdminCatalog, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 657,
+   "line": 658,
    "surface": "admin",
    "tags": [
     "AdminCatalog",
@@ -332688,15 +332895,15 @@
     "FeatureSwitch",
     "adminCatalogEnabled"
    ],
-   "detailRef": "a793cf347571"
+   "detailRef": "dac5d01f02bb"
   },
   {
-   "id": "frontend-route:d88ee884841c",
+   "id": "frontend-route:269ca783d6d6",
    "type": "frontend-route",
    "title": "/admin/commandes-reservations",
    "description": "Route admin rendue par AdminOperationsCenter, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 669,
+   "line": 670,
    "surface": "admin",
    "tags": [
     "AdminOperationsCenter",
@@ -332704,15 +332911,15 @@
     "FeatureSwitch",
     "adminOperationsCenterEnabled"
    ],
-   "detailRef": "39a67647a7bf"
+   "detailRef": "f4ded9cf1980"
   },
   {
-   "id": "frontend-route:b6e66ce51614",
+   "id": "frontend-route:29fdc402745d",
    "type": "frontend-route",
    "title": "/admin/compta/entrees",
    "description": "Route admin rendue par AdminComptaInflow, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 666,
+   "line": 667,
    "surface": "admin",
    "tags": [
     "AdminComptaInflow",
@@ -332720,15 +332927,15 @@
     "FeatureSwitch",
     "adminComptaEnabled"
    ],
-   "detailRef": "fc38939c01e1"
+   "detailRef": "a8656f02b2d8"
   },
   {
-   "id": "frontend-route:a73698a39de9",
+   "id": "frontend-route:b7d4684882eb",
    "type": "frontend-route",
    "title": "/admin/compta/ia",
    "description": "Route admin rendue par AdminComptaAi, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 668,
+   "line": 669,
    "surface": "admin",
    "tags": [
     "AdminComptaAi",
@@ -332736,15 +332943,15 @@
     "FeatureSwitch",
     "adminComptaAiEnabled"
    ],
-   "detailRef": "59b469c5f169"
+   "detailRef": "63c18356e816"
   },
   {
-   "id": "frontend-route:d3aa778c853f",
+   "id": "frontend-route:18e9fea28650",
    "type": "frontend-route",
    "title": "/admin/compta/sorties",
    "description": "Route admin rendue par AdminComptaOutflow, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 667,
+   "line": 668,
    "surface": "admin",
    "tags": [
     "AdminComptaOutflow",
@@ -332752,15 +332959,15 @@
     "FeatureSwitch",
     "adminComptaEnabled"
    ],
-   "detailRef": "bcb39fa7ef6e"
+   "detailRef": "2ee5a0eb600a"
   },
   {
-   "id": "frontend-route:3a9da2433210",
+   "id": "frontend-route:6d5e9aa94612",
    "type": "frontend-route",
    "title": "/admin/compta",
    "description": "Route admin rendue par AdminCompta, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 665,
+   "line": 666,
    "surface": "admin",
    "tags": [
     "AdminCompta",
@@ -332768,15 +332975,15 @@
     "FeatureSwitch",
     "adminComptaEnabled"
    ],
-   "detailRef": "823aa9f1817d"
+   "detailRef": "cb59ef8fdb8e"
   },
   {
-   "id": "frontend-route:a39aa0d86182",
+   "id": "frontend-route:c59dfd49b3a0",
    "type": "frontend-route",
    "title": "/admin/crm",
    "description": "Route admin rendue par AdminCrm, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 662,
+   "line": 663,
    "surface": "admin",
    "tags": [
     "AdminCrm",
@@ -332784,15 +332991,15 @@
     "FeatureSwitch",
     "adminCrmEnabled"
    ],
-   "detailRef": "7781c2d10fb6"
+   "detailRef": "0940bfaccd0e"
   },
   {
-   "id": "frontend-route:db7900df651e",
+   "id": "frontend-route:59e6435f7380",
    "type": "frontend-route",
    "title": "/admin/drops",
    "description": "Route admin rendue par AdminProtectedRoute, DropsManagement, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 659,
+   "line": 660,
    "surface": "admin",
    "tags": [
     "AdminProtectedRoute",
@@ -332800,15 +333007,15 @@
     "FeatureSwitch",
     "adminDropsEnabled"
    ],
-   "detailRef": "c964a2353a3d"
+   "detailRef": "686d30a8f487"
   },
   {
-   "id": "frontend-route:1937087af5d8",
+   "id": "frontend-route:777a403d57d2",
    "type": "frontend-route",
    "title": "/admin/guardian",
    "description": "Route admin rendue par AdminGuardian, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 672,
+   "line": 673,
    "surface": "admin",
    "tags": [
     "AdminGuardian",
@@ -332816,15 +333023,29 @@
     "FeatureSwitch",
     "adminGuardianEnabled"
    ],
-   "detailRef": "f4265fb572fe"
+   "detailRef": "e2c9edf726cb"
   },
   {
-   "id": "frontend-route:1881763b0e39",
+   "id": "frontend-route:1a801a80038d",
+   "type": "frontend-route",
+   "title": "/admin/guide",
+   "description": "Route admin rendue par AdminProtectedRoute, GuideUtilisateur.",
+   "path": "src/App.tsx",
+   "line": 675,
+   "surface": "admin",
+   "tags": [
+    "AdminProtectedRoute",
+    "GuideUtilisateur"
+   ],
+   "detailRef": "63a4521e428c"
+  },
+  {
+   "id": "frontend-route:a7c2c0832a52",
    "type": "frontend-route",
    "title": "/admin/loyalty",
    "description": "Route admin rendue par AdminLoyalty, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 658,
+   "line": 659,
    "surface": "admin",
    "tags": [
     "AdminLoyalty",
@@ -332832,15 +333053,15 @@
     "FeatureSwitch",
     "adminLoyaltyEnabled"
    ],
-   "detailRef": "1718ce6df85c"
+   "detailRef": "3e1de9e0dd0e"
   },
   {
-   "id": "frontend-route:312f85418ddb",
+   "id": "frontend-route:b80650f261ef",
    "type": "frontend-route",
    "title": "/admin/notifications",
    "description": "Route admin rendue par AdminNotifications, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 660,
+   "line": 661,
    "surface": "admin",
    "tags": [
     "AdminNotifications",
@@ -332848,15 +333069,15 @@
     "FeatureSwitch",
     "adminNotificationsEnabled"
    ],
-   "detailRef": "f943ae49c7ea"
+   "detailRef": "240b26f7f664"
   },
   {
-   "id": "frontend-route:04fb868809e6",
+   "id": "frontend-route:06e9df8ce400",
    "type": "frontend-route",
    "title": "/admin/packs",
    "description": "Route admin rendue par AdminLaunchPacks, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 664,
+   "line": 665,
    "surface": "admin",
    "tags": [
     "AdminLaunchPacks",
@@ -332864,15 +333085,15 @@
     "FeatureSwitch",
     "adminPacksEnabled"
    ],
-   "detailRef": "d00d1127d4e8"
+   "detailRef": "7ac0289d0e7b"
   },
   {
-   "id": "frontend-route:27d5fa21ca81",
+   "id": "frontend-route:0bc2ee96fc98",
    "type": "frontend-route",
    "title": "/admin/platform",
    "description": "Route admin rendue par AdminPlatformConfig, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 652,
+   "line": 653,
    "surface": "admin",
    "tags": [
     "AdminPlatformConfig",
@@ -332880,15 +333101,15 @@
     "FeatureSwitch",
     "adminPlatformConfigEnabled"
    ],
-   "detailRef": "2beef5f363d7"
+   "detailRef": "22e2c786ea55"
   },
   {
-   "id": "frontend-route:d1fafaf2641e",
+   "id": "frontend-route:c9c897bf03c1",
    "type": "frontend-route",
    "title": "/admin/restaurants/google-business",
    "description": "Route admin rendue par AdminGoogleBusiness, AdminProtectedRoute, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 654,
+   "line": 655,
    "surface": "admin",
    "tags": [
     "AdminGoogleBusiness",
@@ -332896,15 +333117,15 @@
     "FeatureSwitch",
     "adminRestaurantsEnabled"
    ],
-   "detailRef": "db3992c2a4ee"
+   "detailRef": "b35f23237f5b"
   },
   {
-   "id": "frontend-route:05ae2344154a",
+   "id": "frontend-route:f94e7c468fb6",
    "type": "frontend-route",
    "title": "/admin/restaurants",
    "description": "Route admin rendue par AdminProtectedRoute, AdminRestaurants, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 653,
+   "line": 654,
    "surface": "admin",
    "tags": [
     "AdminProtectedRoute",
@@ -332912,15 +333133,15 @@
     "FeatureSwitch",
     "adminRestaurantsEnabled"
    ],
-   "detailRef": "8a6d7c5dbe86"
+   "detailRef": "a2221b194054"
   },
   {
-   "id": "frontend-route:c2c6cba854e5",
+   "id": "frontend-route:0bec3e53d925",
    "type": "frontend-route",
    "title": "/admin/sinistres",
    "description": "Route admin rendue par AdminProtectedRoute, AdminSinistres, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 670,
+   "line": 671,
    "surface": "admin",
    "tags": [
     "AdminProtectedRoute",
@@ -332928,15 +333149,15 @@
     "FeatureSwitch",
     "adminOperationsCenterEnabled"
    ],
-   "detailRef": "57d590eb60e1"
+   "detailRef": "514d014e8da2"
   },
   {
-   "id": "frontend-route:4c8d12c65d0c",
+   "id": "frontend-route:66e652595451",
    "type": "frontend-route",
    "title": "/admin/support-resolution",
    "description": "Route admin rendue par AdminProtectedRoute, AdminSupportResolution, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 671,
+   "line": 672,
    "surface": "admin",
    "tags": [
     "AdminProtectedRoute",
@@ -332944,15 +333165,15 @@
     "FeatureSwitch",
     "adminSupportResolutionEnabled"
    ],
-   "detailRef": "c19ce98bbffa"
+   "detailRef": "f556c43ac1fd"
   },
   {
-   "id": "frontend-route:1b9df5010984",
+   "id": "frontend-route:7423eb7166a0",
    "type": "frontend-route",
    "title": "/admin/tok-connect",
    "description": "Route admin rendue par AdminProtectedRoute, AdminTokConnect, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 674,
+   "line": 676,
    "surface": "admin",
    "tags": [
     "AdminProtectedRoute",
@@ -332960,15 +333181,15 @@
     "FeatureSwitch",
     "adminTokConnectEnabled"
    ],
-   "detailRef": "78515cdb9ed6"
+   "detailRef": "b11b963bb57f"
   },
   {
-   "id": "frontend-route:f0dbfa698f2e",
+   "id": "frontend-route:1f91f43372a0",
    "type": "frontend-route",
    "title": "/admin/utilisateurs",
    "description": "Route admin rendue par AdminProtectedRoute, AdminUtilisateurs, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 655,
+   "line": 656,
    "surface": "admin",
    "tags": [
     "AdminProtectedRoute",
@@ -332976,33 +333197,33 @@
     "FeatureSwitch",
     "adminUtilisateursEnabled"
    ],
-   "detailRef": "6af0caa59047"
+   "detailRef": "3c55ccd7766d"
   },
   {
-   "id": "frontend-route:7fcc8df714e1",
+   "id": "frontend-route:956c0d81b2da",
    "type": "frontend-route",
    "title": "/admin",
    "description": "Route admin rendue par AdminDashboardRoute.",
    "path": "src/App.tsx",
-   "line": 651,
+   "line": 652,
    "surface": "admin",
    "tags": [
     "AdminDashboardRoute"
    ],
-   "detailRef": "b0ad19483eef"
+   "detailRef": "ce34f6d1d2f6"
   },
   {
-   "id": "frontend-route:184a35f87cd3",
+   "id": "frontend-route:83d4d7f6fadb",
    "type": "frontend-route",
    "title": "/aide",
    "description": "Route public rendue par Aide.",
    "path": "src/App.tsx",
-   "line": 686,
+   "line": 688,
    "surface": "public",
    "tags": [
     "Aide"
    ],
-   "detailRef": "e8e8a14c1df1"
+   "detailRef": "23dd16999026"
   },
   {
    "id": "frontend-route:b9de607bcb1b",
@@ -333076,17 +333297,17 @@
    "detailRef": "bfc82b31e25d"
   },
   {
-   "id": "frontend-route:24be5a98d12b",
+   "id": "frontend-route:6809031ef71e",
    "type": "frontend-route",
    "title": "/cgu",
    "description": "Route public rendue par CGU.",
    "path": "src/App.tsx",
-   "line": 676,
+   "line": 678,
    "surface": "public",
    "tags": [
     "CGU"
    ],
-   "detailRef": "948b767ffc91"
+   "detailRef": "b8e5cbb0dc9c"
   },
   {
    "id": "frontend-route:b3294e68f351",
@@ -333260,51 +333481,51 @@
    "detailRef": "87182925679e"
   },
   {
-   "id": "frontend-route:fd8dc8c98a47",
+   "id": "frontend-route:120a5a0dd17a",
    "type": "frontend-route",
    "title": "/conditions-restaurateurs",
    "description": "Route public rendue par ConditionsRestaurateurs.",
    "path": "src/App.tsx",
-   "line": 681,
+   "line": 683,
    "surface": "public",
    "tags": [
     "ConditionsRestaurateurs"
    ],
-   "detailRef": "bc10fdc60e60"
+   "detailRef": "35b86016b4c5"
   },
   {
-   "id": "frontend-route:b8a76bcab0aa",
+   "id": "frontend-route:d16eeeffb614",
    "type": "frontend-route",
    "title": "/contact",
    "description": "Route public rendue par Contact.",
    "path": "src/App.tsx",
-   "line": 675,
+   "line": 677,
    "surface": "public",
    "tags": [
     "Contact"
    ],
-   "detailRef": "dc3b878b3d17"
+   "detailRef": "a0b497d4f0ba"
   },
   {
-   "id": "frontend-route:ed62967b0ad7",
+   "id": "frontend-route:a672580a2c63",
    "type": "frontend-route",
    "title": "/cookies",
    "description": "Route public rendue par Cookies.",
    "path": "src/App.tsx",
-   "line": 678,
+   "line": 680,
    "surface": "public",
    "tags": [
     "Cookies"
    ],
-   "detailRef": "77db6ded32f5"
+   "detailRef": "993995d4f251"
   },
   {
-   "id": "frontend-route:6e6b25c1560e",
+   "id": "frontend-route:b51a8ff30fd1",
    "type": "frontend-route",
    "title": "/courier/earnings",
    "description": "Route courier rendue par CourierEarnings, FeatureSwitch, ProtectedRoute.",
    "path": "src/App.tsx",
-   "line": 649,
+   "line": 650,
    "surface": "courier",
    "tags": [
     "CourierEarnings",
@@ -333313,15 +333534,15 @@
     "courier",
     "courierEarningsEnabled"
    ],
-   "detailRef": "b4ca2ed7371e"
+   "detailRef": "debab108cb0b"
   },
   {
-   "id": "frontend-route:49562575bee3",
+   "id": "frontend-route:e31e787511ea",
    "type": "frontend-route",
    "title": "/courier/jobs",
    "description": "Route courier rendue par CourierJobs, FeatureSwitch, ProtectedRoute.",
    "path": "src/App.tsx",
-   "line": 647,
+   "line": 648,
    "surface": "courier",
    "tags": [
     "CourierJobs",
@@ -333330,30 +333551,30 @@
     "courier",
     "courierJobsEnabled"
    ],
-   "detailRef": "f43caa374585"
+   "detailRef": "867b6ad438df"
   },
   {
-   "id": "frontend-route:8dd204084c0a",
+   "id": "frontend-route:9eeb7787a26e",
    "type": "frontend-route",
    "title": "/courier/notifications",
    "description": "Route courier rendue par CourierNotifications, ProtectedRoute.",
    "path": "src/App.tsx",
-   "line": 648,
+   "line": 649,
    "surface": "courier",
    "tags": [
     "CourierNotifications",
     "ProtectedRoute",
     "courier"
    ],
-   "detailRef": "d181cae29531"
+   "detailRef": "84d3f1bc74b3"
   },
   {
-   "id": "frontend-route:7659016c0411",
+   "id": "frontend-route:cd6aabb00b68",
    "type": "frontend-route",
    "title": "/courier/profile",
    "description": "Route courier rendue par CourierProfile, FeatureSwitch, ProtectedRoute.",
    "path": "src/App.tsx",
-   "line": 650,
+   "line": 651,
    "surface": "courier",
    "tags": [
     "CourierProfile",
@@ -333362,15 +333583,15 @@
     "courier",
     "courierProfileEnabled"
    ],
-   "detailRef": "40774c83fa26"
+   "detailRef": "ddcbbfe162cc"
   },
   {
-   "id": "frontend-route:7e26eacbd747",
+   "id": "frontend-route:1e3921e705ce",
    "type": "frontend-route",
    "title": "/courier",
    "description": "Route courier rendue par CourierHome, FeatureSwitch, ProtectedRoute.",
    "path": "src/App.tsx",
-   "line": 646,
+   "line": 647,
    "surface": "courier",
    "tags": [
     "CourierHome",
@@ -333379,7 +333600,7 @@
     "courier",
     "courierHomeEnabled"
    ],
-   "detailRef": "1d661255a428"
+   "detailRef": "66c980cf4599"
   },
   {
    "id": "frontend-route:7b23ae97d39d",
@@ -333639,6 +333860,20 @@
    "detailRef": "e9a9f5b3c673"
   },
   {
+   "id": "frontend-route:1137bf5ca4e5",
+   "type": "frontend-route",
+   "title": "/dashboard/guide",
+   "description": "Route restaurant rendue par DashboardRoute, GuideUtilisateur.",
+   "path": "src/App.tsx",
+   "line": 645,
+   "surface": "restaurant",
+   "tags": [
+    "DashboardRoute",
+    "GuideUtilisateur"
+   ],
+   "detailRef": "525238f79e94"
+  },
+  {
    "id": "frontend-route:2503817fabed",
    "type": "frontend-route",
    "title": "/dashboard/menu",
@@ -333875,12 +334110,12 @@
    "detailRef": "1f9a0472c0b7"
   },
   {
-   "id": "frontend-route:7570111b5b23",
+   "id": "frontend-route:e4be7d06a7dd",
    "type": "frontend-route",
    "title": "/dashboard/tok-connect",
    "description": "Route restaurant rendue par CommercialDemoSafeEffectsBoundary, DashboardRoute, DashboardTokConnect, FeatureSwitch.",
    "path": "src/App.tsx",
-   "line": 645,
+   "line": 646,
    "surface": "restaurant",
    "tags": [
     "CommercialDemoSafeEffectsBoundary",
@@ -333889,7 +334124,7 @@
     "FeatureSwitch",
     "dashboardTokConnectEnabled"
    ],
-   "detailRef": "c2b34349bfd4"
+   "detailRef": "cc5dc73d745b"
   },
   {
    "id": "frontend-route:c9e594a042b9",
@@ -333983,83 +334218,83 @@
    "detailRef": "078d9fe75874"
   },
   {
-   "id": "frontend-route:84481c5ddcdf",
+   "id": "frontend-route:e672e12edf5a",
    "type": "frontend-route",
    "title": "/guide/plateforme",
-   "description": "Route public rendue par GuideUtilisateur.",
+   "description": "Redirection vers /aide.",
+   "path": "src/App.tsx",
+   "line": 691,
+   "surface": "public",
+   "tags": [
+    "Navigate"
+   ],
+   "detailRef": "ad1a9a52d2f9"
+  },
+  {
+   "id": "frontend-route:69cfc4052f42",
+   "type": "frontend-route",
+   "title": "/guide/restaurateur",
+   "description": "Redirection vers /aide.",
+   "path": "src/App.tsx",
+   "line": 690,
+   "surface": "public",
+   "tags": [
+    "Navigate"
+   ],
+   "detailRef": "95a73d1944f5"
+  },
+  {
+   "id": "frontend-route:829919eda864",
+   "type": "frontend-route",
+   "title": "/guide",
+   "description": "Redirection vers /aide.",
    "path": "src/App.tsx",
    "line": 689,
    "surface": "public",
    "tags": [
-    "GuideUtilisateur"
+    "Navigate"
    ],
-   "detailRef": "952a40bb245e"
+   "detailRef": "d50486ad2ab5"
   },
   {
-   "id": "frontend-route:594ded2c634b",
-   "type": "frontend-route",
-   "title": "/guide/restaurateur",
-   "description": "Route public rendue par GuideUtilisateur.",
-   "path": "src/App.tsx",
-   "line": 688,
-   "surface": "public",
-   "tags": [
-    "GuideUtilisateur"
-   ],
-   "detailRef": "4a2a9382f135"
-  },
-  {
-   "id": "frontend-route:f2c6313964c5",
-   "type": "frontend-route",
-   "title": "/guide",
-   "description": "Route public rendue par GuideUtilisateur.",
-   "path": "src/App.tsx",
-   "line": 687,
-   "surface": "public",
-   "tags": [
-    "GuideUtilisateur"
-   ],
-   "detailRef": "259c7312fcd4"
-  },
-  {
-   "id": "frontend-route:7cfb549ddd0d",
+   "id": "frontend-route:994f6bc689e1",
    "type": "frontend-route",
    "title": "/marketing/*",
    "description": "Redirection vers /marketing.",
    "path": "src/App.tsx",
-   "line": 739,
+   "line": 741,
    "surface": "marketing",
    "tags": [
     "Navigate"
    ],
-   "detailRef": "7825864b97a6"
+   "detailRef": "cd991ff3cc7a"
   },
   {
-   "id": "frontend-route:4a3a869345b0",
+   "id": "frontend-route:1a1a7733c278",
    "type": "frontend-route",
    "title": "/marketing/login",
    "description": "Route marketing rendue par MarketingLogin.",
    "path": "src/App.tsx",
-   "line": 730,
+   "line": 732,
    "surface": "marketing",
    "tags": [
     "MarketingLogin"
    ],
-   "detailRef": "25edb82c5817"
+   "detailRef": "7d2e59493ef2"
   },
   {
-   "id": "frontend-route:deb5a85e5080",
+   "id": "frontend-route:26ec38d460f2",
    "type": "frontend-route",
    "title": "/marketing",
    "description": "Route marketing rendue par MarketingProtectedRoute, MarketingWorkspace.",
    "path": "src/App.tsx",
-   "line": 731,
+   "line": 733,
    "surface": "marketing",
    "tags": [
     "MarketingProtectedRoute",
     "MarketingWorkspace"
    ],
-   "detailRef": "7c1a824c12ed"
+   "detailRef": "d20e49ce870e"
   },
   {
    "id": "frontend-route:1e953be11720",
@@ -334198,17 +334433,17 @@
    "detailRef": "bd57d3ecabc7"
   },
   {
-   "id": "frontend-route:9ca135d8885e",
+   "id": "frontend-route:80318da1022c",
    "type": "frontend-route",
    "title": "/packs-restaurateur",
    "description": "Route public rendue par PacksRestaurateur.",
    "path": "src/App.tsx",
-   "line": 680,
+   "line": 682,
    "surface": "public",
    "tags": [
     "PacksRestaurateur"
    ],
-   "detailRef": "b01e2b761b02"
+   "detailRef": "95a6eab93905"
   },
   {
    "id": "frontend-route:c5a623cadc55",
@@ -334256,17 +334491,17 @@
    "detailRef": "b8b92c0a178c"
   },
   {
-   "id": "frontend-route:fb9954bc9f9a",
+   "id": "frontend-route:e43608f7d0f0",
    "type": "frontend-route",
    "title": "/politique-confidentialite",
    "description": "Route public rendue par PolitiqueConfidentialite.",
    "path": "src/App.tsx",
-   "line": 677,
+   "line": 679,
    "surface": "public",
    "tags": [
     "PolitiqueConfidentialite"
    ],
-   "detailRef": "3bddf51311a5"
+   "detailRef": "384c4468a238"
   },
   {
    "id": "frontend-route:749dbcbd6a18",
@@ -334413,56 +334648,56 @@
    "detailRef": "ee6342043bb9"
   },
   {
-   "id": "frontend-route:d2e733f3bcd4",
+   "id": "frontend-route:8f101e06b869",
    "type": "frontend-route",
    "title": "/restaurateurs/:city",
    "description": "Route public rendue par RestaurateursGeneve.",
    "path": "src/App.tsx",
-   "line": 683,
+   "line": 685,
    "surface": "public",
    "tags": [
     "RestaurateursGeneve"
    ],
-   "detailRef": "7d311ee72e34"
+   "detailRef": "a16e94f4772f"
   },
   {
-   "id": "frontend-route:52c96cfe656b",
+   "id": "frontend-route:998f22ac3253",
    "type": "frontend-route",
    "title": "/restaurateurs/alternative-commission-couvert",
    "description": "Route public rendue par AlternativeCommissionCouvert.",
    "path": "src/App.tsx",
-   "line": 685,
+   "line": 687,
    "surface": "public",
    "tags": [
     "AlternativeCommissionCouvert"
    ],
-   "detailRef": "21e9f1d4fe31"
+   "detailRef": "b1ac8bbdd7d5"
   },
   {
-   "id": "frontend-route:24c604d7ca17",
+   "id": "frontend-route:2c9c8b9b1a56",
    "type": "frontend-route",
    "title": "/restaurateurs/geneve",
    "description": "Route public rendue par RestaurateursGeneve.",
    "path": "src/App.tsx",
-   "line": 682,
+   "line": 684,
    "surface": "public",
    "tags": [
     "RestaurateursGeneve"
    ],
-   "detailRef": "f0270f078942"
+   "detailRef": "1fe898260cf2"
   },
   {
-   "id": "frontend-route:a5e9b0b746da",
+   "id": "frontend-route:5cc42e2df1b6",
    "type": "frontend-route",
    "title": "/restaurateurs/google-business",
    "description": "Route public rendue par RestaurateursGoogleBusiness.",
    "path": "src/App.tsx",
-   "line": 684,
+   "line": 686,
    "surface": "public",
    "tags": [
     "RestaurateursGoogleBusiness"
    ],
-   "detailRef": "52d5a5e58c16"
+   "detailRef": "8bdf9e16d7ed"
   },
   {
    "id": "frontend-route:d88857991b0c",
@@ -345660,7 +345895,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "e694375538e1"
+   "detailRef": "2bd54cc7a39b"
   },
   {
    "id": "page:136adbfc6317",
@@ -346716,18 +346951,17 @@
    "id": "page:5202f350c93f",
    "type": "page",
    "title": "Guide Utilisateur",
-   "description": "Page montée sur /guide, /guide/restaurateur, /guide/plateforme.",
+   "description": "Page montée sur /dashboard/guide, /admin/guide.",
    "path": "src/pages/GuideUtilisateur.tsx",
    "line": null,
    "surface": null,
    "tags": [
-    "/guide",
-    "/guide/plateforme",
-    "/guide/restaurateur",
+    "/admin/guide",
+    "/dashboard/guide",
     "google",
     "stripe"
    ],
-   "detailRef": "6a222abbe094"
+   "detailRef": "e80e77b30006"
   },
   {
    "id": "page:3182d74e0e4c",
@@ -347438,6 +347672,7 @@
     "src/test/tok-logo-calendar.test.ts",
     "src/test/vercel-rewrites.test.ts",
     "supabase/functions/_shared/auth.ts",
+    "supabase/functions/_shared/marketing-service-auth.ts",
     "supabase/functions/_shared/tok-connect.ts",
     "supabase/functions/_shared/transactional-emails.ts",
     "supabase/functions/aligro-catalog-sync/index.ts",
@@ -347457,7 +347692,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "3c817970bc03"
+   "detailRef": "fd4533495534"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -347569,6 +347804,19 @@
     "src/test/solidarity-section.test.tsx"
    ],
    "detailRef": "b0d480a22bf9"
+  },
+  {
+   "id": "path-literal:a95b4cccd933",
+   "type": "path-literal",
+   "title": "/Outlines",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/guide-pdf.test.ts",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "src/test/guide-pdf.test.ts"
+   ],
+   "detailRef": "84c758993fc8"
   },
   {
    "id": "path-literal:b056dd7e39b5",
@@ -347684,7 +347932,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "ad6379634561"
+   "detailRef": "d0af2fef1773"
   },
   {
    "id": "path-literal:b93cc2bbc5bc",
@@ -347721,7 +347969,7 @@
     "src/test/meal-subscription-cart.test.tsx",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "bdeda41eaa46"
+   "detailRef": "dcfd3f3b6b32"
   },
   {
    "id": "path-literal:a5b6aab3e61b",
@@ -347821,7 +348069,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "3a27fd57df30"
+   "detailRef": "da532b40a586"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -347866,12 +348114,12 @@
    "detailRef": "373aa15e79d0"
   },
   {
-   "id": "path-literal:0ad54712d5c1",
+   "id": "path-literal:001b37665cee",
    "type": "path-literal",
    "title": "/admin/actualites",
    "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 661,
+   "line": 662,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -347880,15 +348128,15 @@
     "src/lib/featureFlags.ts",
     "src/pages/admin/AdminHome.tsx"
    ],
-   "detailRef": "1b2e764cec84"
+   "detailRef": "0ac4c84bc696"
   },
   {
-   "id": "path-literal:728c57bdd3cc",
+   "id": "path-literal:8ececc911f0a",
    "type": "path-literal",
    "title": "/admin/ai-operations",
    "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 673,
+   "line": 674,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -347898,15 +348146,15 @@
     "src/pages/admin/AdminHome.tsx",
     "src/test/tok-ai-platform-plan.test.ts"
    ],
-   "detailRef": "ab96c7d9f296"
+   "detailRef": "644a5cb01ff6"
   },
   {
-   "id": "path-literal:410b646d6857",
+   "id": "path-literal:d0bff76526fb",
    "type": "path-literal",
    "title": "/admin/audit",
    "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 663,
+   "line": 664,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -347918,7 +348166,7 @@
     "src/test/navigation.test.ts",
     "src/test/notifications-sinistres-governance.test.ts"
    ],
-   "detailRef": "170c73246f66"
+   "detailRef": "caf70af9d7e0"
   },
   {
    "id": "path-literal:68d19a85e985",
@@ -347934,12 +348182,12 @@
    "detailRef": "0ba5527dc0c6"
   },
   {
-   "id": "path-literal:69947810b612",
+   "id": "path-literal:f1ca523fc82d",
    "type": "path-literal",
    "title": "/admin/avis",
    "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 656,
+   "line": 657,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -347950,15 +348198,15 @@
     "src/test/admin-domain-routing.test.ts",
     "src/test/dashboard-review-response-workflow.test.ts"
    ],
-   "detailRef": "2b3dd6b18e9e"
+   "detailRef": "87f5b19d4b4c"
   },
   {
-   "id": "path-literal:f6984cdecd6d",
+   "id": "path-literal:3658837275c7",
    "type": "path-literal",
    "title": "/admin/catalog",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 657,
+   "line": 658,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -347966,15 +348214,15 @@
     "src/lib/featureCatalog.ts",
     "src/pages/admin/AdminHome.tsx"
    ],
-   "detailRef": "24dc584a4fc3"
+   "detailRef": "d328d94bc6ed"
   },
   {
-   "id": "path-literal:d88ee884841c",
+   "id": "path-literal:269ca783d6d6",
    "type": "path-literal",
    "title": "/admin/commandes-reservations",
    "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 669,
+   "line": 670,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -347989,7 +348237,7 @@
     "src/test/feature-flags.test.ts",
     "src/test/notifications-sinistres-governance.test.ts"
    ],
-   "detailRef": "ebf2c3cf3155"
+   "detailRef": "35ca9dc9a39e"
   },
   {
    "id": "path-literal:1e75a2497da9",
@@ -348071,45 +348319,9 @@
    "detailRef": "285a6cf45e15"
   },
   {
-   "id": "path-literal:b6e66ce51614",
+   "id": "path-literal:29fdc402745d",
    "type": "path-literal",
    "title": "/admin/compta/entrees",
-   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/App.tsx",
-   "line": 666,
-   "surface": null,
-   "tags": [
-    "src/App.tsx",
-    "src/components/admin/AdminMobileNavigation.tsx",
-    "src/lib/featureCatalog.ts",
-    "src/pages/admin/AdminCompta.tsx",
-    "src/pages/admin/AdminComptaInflow.tsx",
-    "src/pages/admin/AdminComptaOutflow.tsx",
-    "src/test/feature-flags.test.ts"
-   ],
-   "detailRef": "55b1926d0f75"
-  },
-  {
-   "id": "path-literal:a73698a39de9",
-   "type": "path-literal",
-   "title": "/admin/compta/ia",
-   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/App.tsx",
-   "line": 668,
-   "surface": null,
-   "tags": [
-    "src/App.tsx",
-    "src/components/admin/AdminMobileNavigation.tsx",
-    "src/lib/featureCatalog.ts",
-    "src/pages/admin/AdminHome.tsx",
-    "src/test/tok-ai-platform-plan.test.ts"
-   ],
-   "detailRef": "fb00bba49ab4"
-  },
-  {
-   "id": "path-literal:d3aa778c853f",
-   "type": "path-literal",
-   "title": "/admin/compta/sorties",
    "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 667,
@@ -348123,15 +348335,51 @@
     "src/pages/admin/AdminComptaOutflow.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "34763cbc2578"
+   "detailRef": "bc14058a8180"
   },
   {
-   "id": "path-literal:3a9da2433210",
+   "id": "path-literal:b7d4684882eb",
+   "type": "path-literal",
+   "title": "/admin/compta/ia",
+   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/App.tsx",
+   "line": 669,
+   "surface": null,
+   "tags": [
+    "src/App.tsx",
+    "src/components/admin/AdminMobileNavigation.tsx",
+    "src/lib/featureCatalog.ts",
+    "src/pages/admin/AdminHome.tsx",
+    "src/test/tok-ai-platform-plan.test.ts"
+   ],
+   "detailRef": "e0e3cb3f98ef"
+  },
+  {
+   "id": "path-literal:18e9fea28650",
+   "type": "path-literal",
+   "title": "/admin/compta/sorties",
+   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/App.tsx",
+   "line": 668,
+   "surface": null,
+   "tags": [
+    "src/App.tsx",
+    "src/components/admin/AdminMobileNavigation.tsx",
+    "src/lib/featureCatalog.ts",
+    "src/pages/admin/AdminCompta.tsx",
+    "src/pages/admin/AdminComptaInflow.tsx",
+    "src/pages/admin/AdminComptaOutflow.tsx",
+    "src/test/feature-flags.test.ts"
+   ],
+   "detailRef": "a781c89079b0"
+  },
+  {
+   "id": "path-literal:6d5e9aa94612",
    "type": "path-literal",
    "title": "/admin/compta",
    "description": "Chemin référencé dans 16 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 665,
+   "line": 666,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348144,15 +348392,15 @@
     "src/pages/admin/AdminComptaOutflow.tsx",
     "src/pages/admin/AdminHome.tsx"
    ],
-   "detailRef": "d9241e04e7f9"
+   "detailRef": "ca2a1c1ed7c9"
   },
   {
-   "id": "path-literal:a39aa0d86182",
+   "id": "path-literal:c59dfd49b3a0",
    "type": "path-literal",
    "title": "/admin/crm",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 662,
+   "line": 663,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348160,15 +348408,15 @@
     "src/lib/featureCatalog.ts",
     "src/pages/admin/AdminHome.tsx"
    ],
-   "detailRef": "c42a45e8e718"
+   "detailRef": "066f97c48e26"
   },
   {
-   "id": "path-literal:db7900df651e",
+   "id": "path-literal:59e6435f7380",
    "type": "path-literal",
    "title": "/admin/drops",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 659,
+   "line": 660,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348176,15 +348424,15 @@
     "src/lib/featureCatalog.ts",
     "src/pages/admin/AdminHome.tsx"
    ],
-   "detailRef": "b8e32353a27a"
+   "detailRef": "f1f4d42f92e1"
   },
   {
-   "id": "path-literal:1937087af5d8",
+   "id": "path-literal:777a403d57d2",
    "type": "path-literal",
    "title": "/admin/guardian",
    "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 672,
+   "line": 673,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348198,15 +348446,31 @@
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/user-guide.test.ts"
    ],
-   "detailRef": "13dcc04e284a"
+   "detailRef": "457205b6201c"
   },
   {
-   "id": "path-literal:1881763b0e39",
+   "id": "path-literal:1a801a80038d",
+   "type": "path-literal",
+   "title": "/admin/guide",
+   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/App.tsx",
+   "line": 675,
+   "surface": null,
+   "tags": [
+    "src/App.tsx",
+    "src/pages/GuideUtilisateur.tsx",
+    "src/pages/admin/AdminHome.tsx",
+    "src/test/route-wiring.test.ts"
+   ],
+   "detailRef": "204d556552c4"
+  },
+  {
+   "id": "path-literal:a7c2c0832a52",
    "type": "path-literal",
    "title": "/admin/loyalty",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 658,
+   "line": 659,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348214,15 +348478,15 @@
     "src/lib/featureCatalog.ts",
     "src/pages/admin/AdminHome.tsx"
    ],
-   "detailRef": "19c616c3bd8a"
+   "detailRef": "0288b2fe7282"
   },
   {
-   "id": "path-literal:312f85418ddb",
+   "id": "path-literal:b80650f261ef",
    "type": "path-literal",
    "title": "/admin/notifications",
    "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 660,
+   "line": 661,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348234,15 +348498,15 @@
     "src/test/notifications-sinistres-governance.test.ts",
     "supabase/functions/contact-support/index.ts"
    ],
-   "detailRef": "56b67992ffb1"
+   "detailRef": "af31591b3480"
   },
   {
-   "id": "path-literal:04fb868809e6",
+   "id": "path-literal:06e9df8ce400",
    "type": "path-literal",
    "title": "/admin/packs",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 664,
+   "line": 665,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348250,15 +348514,15 @@
     "src/lib/featureCatalog.ts",
     "src/pages/admin/AdminHome.tsx"
    ],
-   "detailRef": "10642af82f72"
+   "detailRef": "c3857c9c64c2"
   },
   {
-   "id": "path-literal:27d5fa21ca81",
+   "id": "path-literal:0bc2ee96fc98",
    "type": "path-literal",
    "title": "/admin/platform",
    "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 652,
+   "line": 653,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348269,15 +348533,15 @@
     "src/test/admin-mobile-navigation.test.tsx",
     "src/test/feature-flags.test.ts"
    ],
-   "detailRef": "dc624dc28c66"
+   "detailRef": "7cd8c4971d67"
   },
   {
-   "id": "path-literal:d1fafaf2641e",
+   "id": "path-literal:c9c897bf03c1",
    "type": "path-literal",
    "title": "/admin/restaurants/google-business",
    "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 654,
+   "line": 655,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348287,15 +348551,15 @@
     "src/pages/admin/AdminRestaurants.tsx",
     "src/test/google-business-booking-phase1.test.ts"
    ],
-   "detailRef": "e7c234e4efea"
+   "detailRef": "3dea6287a00e"
   },
   {
-   "id": "path-literal:05ae2344154a",
+   "id": "path-literal:f94e7c468fb6",
    "type": "path-literal",
    "title": "/admin/restaurants",
    "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 653,
+   "line": 654,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348310,15 +348574,15 @@
     "src/test/auth-post-login-routing.test.ts",
     "src/test/back-navigation.test.ts"
    ],
-   "detailRef": "9ffc3f760739"
+   "detailRef": "a9ae3cba6ba4"
   },
   {
-   "id": "path-literal:c2c6cba854e5",
+   "id": "path-literal:0bec3e53d925",
    "type": "path-literal",
    "title": "/admin/sinistres",
    "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 670,
+   "line": 671,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348328,7 +348592,7 @@
     "src/pages/admin/AdminHome.tsx",
     "src/test/notifications-sinistres-governance.test.ts"
    ],
-   "detailRef": "0b70ea2d077a"
+   "detailRef": "b36ca8f14bd8"
   },
   {
    "id": "path-literal:480869796098",
@@ -348371,12 +348635,12 @@
    "detailRef": "9aae41db1d90"
   },
   {
-   "id": "path-literal:4c8d12c65d0c",
+   "id": "path-literal:66e652595451",
    "type": "path-literal",
    "title": "/admin/support-resolution",
    "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 671,
+   "line": 672,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348386,15 +348650,15 @@
     "src/test/route-wiring.test.ts",
     "src/test/tok-intelligence-suite.test.ts"
    ],
-   "detailRef": "1cfecdfeeac7"
+   "detailRef": "2b8b90217151"
   },
   {
-   "id": "path-literal:1b9df5010984",
+   "id": "path-literal:7423eb7166a0",
    "type": "path-literal",
    "title": "/admin/tok-connect",
    "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 674,
+   "line": 676,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348407,15 +348671,15 @@
     "src/test/tok-connect-legal-content.test.ts",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "b8f5de83ff33"
+   "detailRef": "0a1f782dc6b8"
   },
   {
-   "id": "path-literal:f0dbfa698f2e",
+   "id": "path-literal:1f91f43372a0",
    "type": "path-literal",
    "title": "/admin/utilisateurs",
    "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 655,
+   "line": 656,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -348425,7 +348689,7 @@
     "src/lib/featureCatalog.ts",
     "src/pages/admin/AdminHome.tsx"
    ],
-   "detailRef": "b8f5a37e050d"
+   "detailRef": "be729d5ee64e"
   },
   {
    "id": "path-literal:1acfbab35067",
@@ -348440,7 +348704,7 @@
     "src/pages/admin/AdminHome.tsx",
     "src/test/signup.test.ts"
    ],
-   "detailRef": "7b00ca628a72"
+   "detailRef": "09ed7d067895"
   },
   {
    "id": "path-literal:a322aa862261",
@@ -348455,7 +348719,7 @@
     "src/pages/admin/AdminCompta.tsx",
     "src/pages/admin/AdminHome.tsx"
    ],
-   "detailRef": "f9a50ba5a51e"
+   "detailRef": "c083d4e5a004"
   },
   {
    "id": "path-literal:e04c08d4f14b",
@@ -348470,13 +348734,13 @@
     "src/pages/admin/AdminHome.tsx",
     "src/test/admin-courier-validation.test.ts"
    ],
-   "detailRef": "53687b006a11"
+   "detailRef": "b05625c5d3af"
   },
   {
    "id": "path-literal:b68b25032a0b",
    "type": "path-literal",
    "title": "/admin",
-   "description": "Chemin référencé dans 69 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 71 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 167,
    "surface": null,
@@ -348500,6 +348764,7 @@
     "src/lib/notificationRouting.ts",
     "src/lib/roleAccess.ts",
     "src/pages/Auth.tsx",
+    "src/pages/GuideUtilisateur.tsx",
     "src/pages/WorkspaceChooser.tsx",
     "src/pages/admin/AdminLaunchPacks.tsx",
     "src/test/admin-domain-routing.test.ts",
@@ -348515,7 +348780,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "9f1d7750dc6f"
+   "detailRef": "e8a395d039af"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -348534,7 +348799,7 @@
    "id": "path-literal:72326e3872bb",
    "type": "path-literal",
    "title": "/aide",
-   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1082,
    "surface": null,
@@ -348551,7 +348816,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "c962a8752fe4"
+   "detailRef": "5fe429cbd03c"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -348595,7 +348860,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "a555bfce6131"
+   "detailRef": "01946bb351f3"
   },
   {
    "id": "path-literal:b8366dc7f0ad",
@@ -348735,7 +349000,7 @@
    "id": "path-literal:656b984b0c67",
    "type": "path-literal",
    "title": "/api/marketing/mfa/verify",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/marketing/marketingBffClient.ts",
    "line": 9,
    "surface": null,
@@ -348744,7 +349009,7 @@
     "src/test/marketing-bff-client.test.ts",
     "src/test/marketing-session-recovery.test.tsx"
    ],
-   "detailRef": "fc5e05099bbd"
+   "detailRef": "14e3ca815731"
   },
   {
    "id": "path-literal:58a720700b49",
@@ -348779,7 +349044,7 @@
    "id": "path-literal:fe2dadfb3854",
    "type": "path-literal",
    "title": "/api/marketing/session",
-   "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/stoppin-venue-seo.test.mjs",
    "line": 140,
    "surface": null,
@@ -348787,9 +349052,10 @@
     "scripts/stoppin-venue-seo.test.mjs",
     "src/marketing/marketingBffClient.ts",
     "src/test/application-search-index.test.ts",
-    "src/test/marketing-bff-client.test.ts"
+    "src/test/marketing-bff-client.test.ts",
+    "src/test/marketing-session-recovery.test.tsx"
    ],
-   "detailRef": "fb8f1e8fbc9e"
+   "detailRef": "313745030b3e"
   },
   {
    "id": "path-literal:4457ca298944",
@@ -349004,12 +349270,12 @@
    "detailRef": "33a99e29ad6a"
   },
   {
-   "id": "path-literal:41b6bbde7500",
+   "id": "path-literal:f57b02c91322",
    "type": "path-literal",
    "title": "/auth",
    "description": "Chemin référencé dans 54 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1279,
+   "line": 1225,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -349053,7 +349319,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "9d4cc4367131"
+   "detailRef": "57d2d096d305"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -349180,7 +349446,7 @@
     "src/lib/featureCatalog.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "57ccfe9b8edb"
+   "detailRef": "892777ad2a33"
   },
   {
    "id": "path-literal:32d025d623e0",
@@ -349210,12 +349476,12 @@
    "detailRef": "f1d4c749f877"
   },
   {
-   "id": "path-literal:28147ed6c1fc",
+   "id": "path-literal:d1896f287c8a",
    "type": "path-literal",
    "title": "/cgu",
    "description": "Chemin référencé dans 22 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1225,
+   "line": 1171,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -349238,7 +349504,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "9a10ee8dcab6"
+   "detailRef": "a71cef8a7947"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -349341,7 +349607,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "524a0bd36c82"
+   "detailRef": "f220fbd2adc3"
   },
   {
    "id": "path-literal:f58c14b4a509",
@@ -349364,7 +349630,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "5066804e080c"
+   "detailRef": "9f9459acde04"
   },
   {
    "id": "path-literal:e53adf57f6c1",
@@ -349512,26 +349778,26 @@
    "detailRef": "3f175106e2ff"
   },
   {
-   "id": "path-literal:eb8baf3a6f8c",
+   "id": "path-literal:2d7e72241d01",
    "type": "path-literal",
    "title": "/commande",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1271,
+   "line": 1217,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
     "src/hooks/useSeoMeta.ts"
    ],
-   "detailRef": "0d388389cd87"
+   "detailRef": "83dc1009b6c8"
   },
   {
-   "id": "path-literal:c54ae5a78313",
+   "id": "path-literal:638d24c7c03b",
    "type": "path-literal",
    "title": "/commandes",
    "description": "Chemin référencé dans 36 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1270,
+   "line": 1216,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -349557,7 +349823,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/courier-portal/index.ts"
    ],
-   "detailRef": "70192e7c7c36"
+   "detailRef": "c434e0f87531"
   },
   {
    "id": "path-literal:94650cd09917",
@@ -349605,7 +349871,7 @@
     "src/test/commercial-prospection.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "2e5907c23a21"
+   "detailRef": "f1ef9a24cb86"
   },
   {
    "id": "path-literal:04407c59ee27",
@@ -349783,7 +350049,7 @@
     "src/test/notifications-sinistres-governance.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "ee96edecec5c"
+   "detailRef": "b61765002900"
   },
   {
    "id": "path-literal:e74909072ee9",
@@ -349856,7 +350122,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "5528ae3a2410"
+   "detailRef": "87ef399e481d"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -349885,12 +350151,12 @@
    "detailRef": "266cc42a4cac"
   },
   {
-   "id": "path-literal:4d3a2b3a00d4",
+   "id": "path-literal:cf973755cfab",
    "type": "path-literal",
    "title": "/compte",
    "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1274,
+   "line": 1220,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -349899,15 +350165,15 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "f7ed7123f904"
+   "detailRef": "892e3e8d2419"
   },
   {
-   "id": "path-literal:8b8b044b1bc0",
+   "id": "path-literal:ee9c34d7d537",
    "type": "path-literal",
    "title": "/conditions-restaurateurs",
    "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1239,
+   "line": 1185,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -349925,7 +350191,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "14cd61831276"
+   "detailRef": "3b1ad16ea269"
   },
   {
    "id": "path-literal:2a26b0d45a67",
@@ -349954,15 +350220,15 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "ae955082493c"
+   "detailRef": "1cfccbbe41f9"
   },
   {
-   "id": "path-literal:8c3e160fbc5f",
+   "id": "path-literal:5c1c55111e98",
    "type": "path-literal",
    "title": "/cookies",
    "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1232,
+   "line": 1178,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -349981,7 +350247,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "f97768460f7b"
+   "detailRef": "cca365a19914"
   },
   {
    "id": "path-literal:38c09027fcdd",
@@ -350014,7 +350280,7 @@
     "src/lib/featureCatalog.ts",
     "src/pages/courier/CourierHome.tsx"
    ],
-   "detailRef": "7f730e97b1c1"
+   "detailRef": "4a98389f8688"
   },
   {
    "id": "path-literal:88fe69e9872e",
@@ -350038,7 +350304,7 @@
     "src/test/navigation.test.ts",
     "supabase/functions/dispatch-order/index.ts"
    ],
-   "detailRef": "5a7272f1f68d"
+   "detailRef": "2e6ab5338bf1"
   },
   {
    "id": "path-literal:b442b5bc4279",
@@ -350072,7 +350338,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "d06704ddb9ca"
+   "detailRef": "fcf7c7767989"
   },
   {
    "id": "path-literal:d0efab390f88",
@@ -350089,7 +350355,7 @@
     "src/lib/featureCatalog.ts",
     "src/pages/courier/CourierHome.tsx"
    ],
-   "detailRef": "e5ff14ae21b9"
+   "detailRef": "c18c68475bad"
   },
   {
    "id": "path-literal:a7bb9de03d1b",
@@ -350122,7 +350388,7 @@
     "src/test/role-access.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "22f9003e2f26"
+   "detailRef": "55f339db0e5f"
   },
   {
    "id": "path-literal:53f7ddd4b372",
@@ -350144,7 +350410,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "4ed84b32a22a"
+   "detailRef": "567d3511245e"
   },
   {
    "id": "path-literal:bd23adecbb6a",
@@ -350298,7 +350564,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/tok-intelligence-suite.test.ts"
    ],
-   "detailRef": "f434510434ad"
+   "detailRef": "a09af92bda28"
   },
   {
    "id": "path-literal:695a8e850161",
@@ -350329,7 +350595,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "b6393e474031"
+   "detailRef": "4ecc63ea234e"
   },
   {
    "id": "path-literal:8eb4289e6510",
@@ -350530,6 +350796,24 @@
    "detailRef": "9f171d8ef006"
   },
   {
+   "id": "path-literal:1137bf5ca4e5",
+   "type": "path-literal",
+   "title": "/dashboard/guide",
+   "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/App.tsx",
+   "line": 645,
+   "surface": null,
+   "tags": [
+    "src/App.tsx",
+    "src/components/DashboardLayout.tsx",
+    "src/pages/GuideUtilisateur.tsx",
+    "src/pages/dashboard/useDashboardRestaurant.ts",
+    "src/test/route-wiring.test.ts",
+    "src/test/user-guide.test.ts"
+   ],
+   "detailRef": "323b11185a27"
+  },
+  {
    "id": "path-literal:2503817fabed",
    "type": "path-literal",
    "title": "/dashboard/menu",
@@ -350549,7 +350833,7 @@
     "src/test/user-guide.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "be62f1ef2cb4"
+   "detailRef": "7d666935eee6"
   },
   {
    "id": "path-literal:a625ca0f9d33",
@@ -350709,7 +350993,7 @@
     "src/App.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "362c3d2ae595"
+   "detailRef": "6e7882d63f7f"
   },
   {
    "id": "path-literal:2dcf57909156",
@@ -350882,12 +351166,12 @@
    "detailRef": "7189208c9206"
   },
   {
-   "id": "path-literal:7570111b5b23",
+   "id": "path-literal:e4be7d06a7dd",
    "type": "path-literal",
    "title": "/dashboard/tok-connect",
    "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 645,
+   "line": 646,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -350898,7 +351182,7 @@
     "src/test/tok-connect-frontend.test.ts",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "0b9b2067324f"
+   "detailRef": "05d27a46f618"
   },
   {
    "id": "path-literal:c9e594a042b9",
@@ -350923,7 +351207,7 @@
    "id": "path-literal:a83de8cf5f54",
    "type": "path-literal",
    "title": "/dashboard",
-   "description": "Chemin référencé dans 81 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 83 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 169,
    "surface": null,
@@ -350952,6 +351236,7 @@
     "src/lib/publicFeatureMatrix.ts",
     "src/lib/roleAccess.ts",
     "src/pages/Auth.tsx",
+    "src/pages/GuideUtilisateur.tsx",
     "src/pages/dashboard/DashboardHome.tsx",
     "src/pages/dashboard/useDashboardRestaurant.ts",
     "src/test/auth-post-login-routing.test.ts",
@@ -350964,7 +351249,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "a34ca6eeae4d"
+   "detailRef": "8d44dfd88d2a"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -351100,12 +351385,12 @@
    "detailRef": "04049bbf740b"
   },
   {
-   "id": "path-literal:b6e69a26489d",
+   "id": "path-literal:f76ae63d200b",
    "type": "path-literal",
    "title": "/espace-client",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1275,
+   "line": 1221,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -351113,15 +351398,15 @@
     "src/hooks/useSeoMeta.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "4977ca945ab0"
+   "detailRef": "1ad0c94052ef"
   },
   {
-   "id": "path-literal:1eff1dc40e73",
+   "id": "path-literal:7a50cf3ee0ea",
    "type": "path-literal",
    "title": "/espaces",
    "description": "Chemin référencé dans 28 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1281,
+   "line": 1227,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -351140,7 +351425,7 @@
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "16261cb3d048"
+   "detailRef": "2736248a9d82"
   },
   {
    "id": "path-literal:61b7c747d86f",
@@ -351255,7 +351540,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "86d80667e37b"
+   "detailRef": "b161479d3288"
   },
   {
    "id": "path-literal:b657e0a461f5",
@@ -351469,7 +351754,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "7cefc6f06809"
+   "detailRef": "1311c04f62a2"
   },
   {
    "id": "path-literal:404146eb3855",
@@ -351498,60 +351783,50 @@
    "detailRef": "1b9888857341"
   },
   {
-   "id": "path-literal:36414c692b31",
+   "id": "path-literal:e672e12edf5a",
    "type": "path-literal",
    "title": "/guide/plateforme",
-   "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "scripts/prerender-seo.mjs",
-   "line": 1207,
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/App.tsx",
+   "line": 691,
    "surface": null,
    "tags": [
-    "scripts/prerender-seo.mjs",
     "src/App.tsx",
-    "src/hooks/useSeoMeta.ts",
-    "src/pages/GuideUtilisateur.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "8ed9cc5e27e3"
+   "detailRef": "9f773ef4f27d"
   },
   {
-   "id": "path-literal:b3fde50ddf48",
+   "id": "path-literal:69cfc4052f42",
    "type": "path-literal",
    "title": "/guide/restaurateur",
-   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "scripts/prerender-seo.mjs",
-   "line": 1189,
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/App.tsx",
+   "line": 690,
    "surface": null,
    "tags": [
-    "scripts/prerender-seo.mjs",
     "src/App.tsx",
-    "src/data/userGuideContent.ts",
-    "src/hooks/useSeoMeta.ts",
     "src/pages/Aide.tsx",
-    "src/pages/GuideUtilisateur.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "6f9d20a3ee2f"
+   "detailRef": "ae1fed0fdb0f"
   },
   {
-   "id": "path-literal:0951e3962fc3",
+   "id": "path-literal:829919eda864",
    "type": "path-literal",
    "title": "/guide",
-   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "scripts/prerender-seo.mjs",
-   "line": 1171,
+   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/App.tsx",
+   "line": 689,
    "surface": null,
    "tags": [
-    "scripts/prerender-seo.mjs",
     "src/App.tsx",
     "src/components/Navbar.tsx",
     "src/components/home/FooterSection.tsx",
-    "src/hooks/useSeoMeta.ts",
     "src/pages/Aide.tsx",
-    "src/pages/GuideUtilisateur.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "ed166b397387"
+   "detailRef": "cd6d18e3f93b"
   },
   {
    "id": "path-literal:ff548aad270f",
@@ -354127,7 +354402,7 @@
     "src/data/userGuideFeatureDetails.ts",
     "src/test/user-guide.test.ts"
    ],
-   "detailRef": "b45baa3e1da1"
+   "detailRef": "e18e59273635"
   },
   {
    "id": "path-literal:bb4bec1292ec",
@@ -354316,18 +354591,18 @@
    "detailRef": "016a1e17e358"
   },
   {
-   "id": "path-literal:7cfb549ddd0d",
+   "id": "path-literal:994f6bc689e1",
    "type": "path-literal",
    "title": "/marketing/*",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 739,
+   "line": 741,
    "surface": null,
    "tags": [
     "src/App.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "a9f9159f4a2a"
+   "detailRef": "f96f987751d9"
   },
   {
    "id": "path-literal:8107a6c80114",
@@ -354409,12 +354684,12 @@
    "detailRef": "9f2d9d880533"
   },
   {
-   "id": "path-literal:4a3a869345b0",
+   "id": "path-literal:1a1a7733c278",
    "type": "path-literal",
    "title": "/marketing/login",
    "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 730,
+   "line": 732,
    "surface": null,
    "tags": [
     "src/App.tsx",
@@ -354427,7 +354702,7 @@
     "src/test/marketing-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "9d33f8166d7f"
+   "detailRef": "c4306488a067"
   },
   {
    "id": "path-literal:782adb141974",
@@ -354451,7 +354726,7 @@
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "c03ca82d9801"
+   "detailRef": "c28a15a0f33a"
   },
   {
    "id": "path-literal:c76dba69accc",
@@ -354488,7 +354763,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "a049b96e6e75"
+   "detailRef": "6452dd6a7745"
   },
   {
    "id": "path-literal:12650914bbf4",
@@ -354504,12 +354779,12 @@
    "detailRef": "783c54f9181a"
   },
   {
-   "id": "path-literal:0e3f4e0fd929",
+   "id": "path-literal:ec7aec2e0d53",
    "type": "path-literal",
    "title": "/memoire-tok",
    "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1268,
+   "line": 1214,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -354520,7 +354795,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/tok-intelligence-suite.test.ts"
    ],
-   "detailRef": "adde476a97cb"
+   "detailRef": "856333602d0a"
   },
   {
    "id": "path-literal:b3fdc1d0bbb5",
@@ -354538,12 +354813,12 @@
    "detailRef": "2bfba95a083d"
   },
   {
-   "id": "path-literal:660d06dc94f5",
+   "id": "path-literal:70051accee4e",
    "type": "path-literal",
    "title": "/mes-avis",
    "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1276,
+   "line": 1222,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -354555,7 +354830,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "e993317a7f7b"
+   "detailRef": "5d586ebbf2bb"
   },
   {
    "id": "path-literal:4465530a888e",
@@ -354578,7 +354853,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "bdbdab4da3e6"
+   "detailRef": "73f4c47b9d25"
   },
   {
    "id": "path-literal:0bc97f93cc32",
@@ -354594,12 +354869,12 @@
    "detailRef": "3981fb733c44"
   },
   {
-   "id": "path-literal:334a41c99038",
+   "id": "path-literal:f84f8cfa54be",
    "type": "path-literal",
    "title": "/mon-espace",
    "description": "Chemin référencé dans 31 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1273,
+   "line": 1219,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -354620,7 +354895,7 @@
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "4c3dcf17c7f1"
+   "detailRef": "ad2dab2f0e97"
   },
   {
    "id": "path-literal:2613fe6a401b",
@@ -354659,7 +354934,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "e6233dd186af"
+   "detailRef": "72ea0b5f2a20"
   },
   {
    "id": "path-literal:f2c4f5685f12",
@@ -354682,7 +354957,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "7635d0b70039"
+   "detailRef": "3398c7cb93f2"
   },
   {
    "id": "path-literal:c940e29d8563",
@@ -354698,12 +354973,12 @@
    "detailRef": "776d2e7e0e1e"
   },
   {
-   "id": "path-literal:96c29e1f0cae",
+   "id": "path-literal:76ee62ad8c06",
    "type": "path-literal",
    "title": "/notifications",
    "description": "Chemin référencé dans 30 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1269,
+   "line": 1215,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -354727,7 +355002,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "878a306be39a"
+   "detailRef": "ee790b9ab04d"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -354772,18 +355047,18 @@
    "detailRef": "5a2cce06bdbb"
   },
   {
-   "id": "path-literal:996e06c3e5d7",
+   "id": "path-literal:09d6810c2c29",
    "type": "path-literal",
    "title": "/oauth",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1280,
+   "line": 1226,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
     "src/hooks/useSeoMeta.ts"
    ],
-   "detailRef": "3fd4889ed852"
+   "detailRef": "60f8876af22a"
   },
   {
    "id": "path-literal:ca0e954d32f0",
@@ -354862,7 +355137,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "42da94a45e27"
+   "detailRef": "f49364100b98"
   },
   {
    "id": "path-literal:f15ac1b71119",
@@ -354907,7 +355182,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "589a8bf59741"
+   "detailRef": "c3f545cc869d"
   },
   {
    "id": "path-literal:4c5c6c2d0994",
@@ -354940,12 +355215,12 @@
    "detailRef": "5a33b21e384a"
   },
   {
-   "id": "path-literal:954f9d790089",
+   "id": "path-literal:2798a1bddf86",
    "type": "path-literal",
    "title": "/points-cadeau",
    "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1277,
+   "line": 1223,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -354961,15 +355236,15 @@
     "src/test/feature-flags.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "213045164e28"
+   "detailRef": "ef1c50a3e7f7"
   },
   {
-   "id": "path-literal:1c51bd257ceb",
+   "id": "path-literal:23d3361eb9c0",
    "type": "path-literal",
    "title": "/politique-confidentialite",
    "description": "Chemin référencé dans 21 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1254,
+   "line": 1200,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -354992,7 +355267,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "9089418b7160"
+   "detailRef": "686d1dadd0f0"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -355035,12 +355310,12 @@
    "detailRef": "7832484941d3"
   },
   {
-   "id": "path-literal:53069046e7a1",
+   "id": "path-literal:a199e5e323eb",
    "type": "path-literal",
    "title": "/profil",
    "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1267,
+   "line": 1213,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -355057,7 +355332,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "b687dda2acc4"
+   "detailRef": "9576b544eac7"
   },
   {
    "id": "path-literal:2bbc09f21875",
@@ -355186,18 +355461,18 @@
    "detailRef": "32a59a15cf18"
   },
   {
-   "id": "path-literal:a0f7a877f456",
+   "id": "path-literal:f811d1009c70",
    "type": "path-literal",
    "title": "/r",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1282,
+   "line": 1228,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
     "src/hooks/useSeoMeta.ts"
    ],
-   "detailRef": "2fd7624068ca"
+   "detailRef": "529ec0f93e0b"
   },
   {
    "id": "path-literal:c9ee52bce6c8",
@@ -355268,7 +355543,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "fa4d4dff48e2"
+   "detailRef": "ebf1d8c58daa"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -355362,12 +355637,12 @@
    "detailRef": "5b42127db828"
   },
   {
-   "id": "path-literal:04578fe40b80",
+   "id": "path-literal:21dc55e01368",
    "type": "path-literal",
    "title": "/reservations",
    "description": "Chemin référencé dans 25 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1272,
+   "line": 1218,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -355391,7 +355666,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "9c311c56c3f6"
+   "detailRef": "4def8b2ebf8b"
   },
   {
    "id": "path-literal:0af02260597a",
@@ -355434,6 +355709,19 @@
     "src/lib/commercialDemoHostSecurity.ts"
    ],
    "detailRef": "1252f2a4f973"
+  },
+  {
+   "id": "path-literal:5cb9ddc40f0e",
+   "type": "path-literal",
+   "title": "/rest/v1/rpc/service_get_marketing_web_session",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "supabase/functions/_shared/marketing-service-auth.ts",
+   "line": 53,
+   "surface": null,
+   "tags": [
+    "supabase/functions/_shared/marketing-service-auth.ts"
+   ],
+   "detailRef": "59cebc45297e"
   },
   {
    "id": "path-literal:36917b9fd325",
@@ -356480,19 +356768,19 @@
    "detailRef": "e58a4d69c856"
   },
   {
-   "id": "path-literal:f598e473f66a",
+   "id": "path-literal:0d50fcfb5f85",
    "type": "path-literal",
    "title": "/restaurants",
    "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 2009,
+   "line": 1955,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
     "src/components/marketing/views/MarketingOutreachView.tsx",
     "src/marketing/marketingClient.ts"
    ],
-   "detailRef": "d0282be0e68b"
+   "detailRef": "4e6b41741673"
   },
   {
    "id": "path-literal:38729e52638a",
@@ -356508,19 +356796,19 @@
    "detailRef": "4aff253aa511"
   },
   {
-   "id": "path-literal:d2e733f3bcd4",
+   "id": "path-literal:8f101e06b869",
    "type": "path-literal",
    "title": "/restaurateurs/:city",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
-   "line": 683,
+   "line": 685,
    "surface": null,
    "tags": [
     "src/App.tsx",
     "src/data/userGuideContent.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "9ebc647c32b9"
+   "detailRef": "ea50b8de9e91"
   },
   {
    "id": "path-literal:28ec8b0caf24",
@@ -356547,7 +356835,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "6e33e3204ef2"
+   "detailRef": "d4a1e31f7789"
   },
   {
    "id": "path-literal:784b13bf4e15",
@@ -356577,7 +356865,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "08b3053a8296"
+   "detailRef": "04e4546603ce"
   },
   {
    "id": "path-literal:ddcd2bd824da",
@@ -356605,7 +356893,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "800b277479e5"
+   "detailRef": "e73f3da050ef"
   },
   {
    "id": "path-literal:e0d8149df64e",
@@ -357008,12 +357296,12 @@
    "detailRef": "7d890fa5701e"
   },
   {
-   "id": "path-literal:118f54afd7e3",
+   "id": "path-literal:cf5146ff218d",
    "type": "path-literal",
    "title": "/tok-connect/developer",
    "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1283,
+   "line": 1229,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -357027,7 +357315,7 @@
     "src/test/tok-connect.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "8a116a7d6929"
+   "detailRef": "64b22b58688e"
   },
   {
    "id": "path-literal:b9bb0d26f2ee",
@@ -357065,7 +357353,7 @@
     "src/pages/TokConnect.tsx",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "d112a1a16aa1"
+   "detailRef": "a97fa758b9f3"
   },
   {
    "id": "path-literal:9b50a6f5fb1d",
@@ -357098,7 +357386,7 @@
     "src/test/navbar-action-stability.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "4bcb3a5f98e9"
+   "detailRef": "8086ba7d2755"
   },
   {
    "id": "path-literal:d01a3ea49721",
@@ -357114,12 +357402,12 @@
    "detailRef": "10227fc6d719"
   },
   {
-   "id": "path-literal:8ee866bd9422",
+   "id": "path-literal:3b5b09acab41",
    "type": "path-literal",
    "title": "/tok-pulse",
    "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1246,
+   "line": 1192,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -357131,7 +357419,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "247f2fcc8ff4"
+   "detailRef": "8e243bdf3588"
   },
   {
    "id": "path-literal:5480e7250f74",
@@ -357778,7 +358066,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "b791c48d13f5"
+   "detailRef": "fcc7ecd2e3f7"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -357833,7 +358121,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "8d727ba09e74"
+   "detailRef": "e375f73c0e37"
   },
   {
    "id": "path-literal:93c6bbab763a",
@@ -365543,17 +365831,17 @@
    "detailRef": "d5645c5b8401"
   },
   {
-   "id": "query-parameter:9ddff0bd2cfc",
+   "id": "query-parameter:40a24a6e4521",
    "type": "query-parameter",
    "title": "fonction",
    "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
    "path": "src/pages/GuideUtilisateur.tsx",
-   "line": 497,
+   "line": 424,
    "surface": null,
    "tags": [
     "src/pages/GuideUtilisateur.tsx"
    ],
-   "detailRef": "b7bfc7ebee02"
+   "detailRef": "f592f24b2772"
   },
   {
    "id": "query-parameter:364e188ebea8",
@@ -368115,19 +368403,19 @@
    "detailRef": "2b13968addb3"
   },
   {
-   "id": "seo-build-route:eb4d1f581339",
+   "id": "seo-build-route:0c6d6c52a34d",
    "type": "seo-build-route",
    "title": "/:param1",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1288,
+   "line": 1234,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "b9244505d2d3"
+   "detailRef": "0f191a809037"
   },
   {
    "id": "seo-build-route:6b0d9584df00",
@@ -368175,19 +368463,19 @@
    "detailRef": "6a438b987385"
   },
   {
-   "id": "seo-build-route:032d8ced98bd",
+   "id": "seo-build-route:b001b05dfb66",
    "type": "seo-build-route",
    "title": "/actualites/:id",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1917,
+   "line": 1863,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "c48bbe4daa84"
+   "detailRef": "490faafef140"
   },
   {
    "id": "seo-build-route:7800634c065f",
@@ -368250,19 +368538,19 @@
    "detailRef": "a47ab9f21bb4"
   },
   {
-   "id": "seo-build-route:28147ed6c1fc",
+   "id": "seo-build-route:d1896f287c8a",
    "type": "seo-build-route",
    "title": "/cgu",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1225,
+   "line": 1171,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "f5935f32fbba"
+   "detailRef": "e8163c149ddb"
   },
   {
    "id": "seo-build-route:d7b2a9564c6c",
@@ -368280,19 +368568,19 @@
    "detailRef": "f487a553fea5"
   },
   {
-   "id": "seo-build-route:8b8b044b1bc0",
+   "id": "seo-build-route:ee9c34d7d537",
    "type": "seo-build-route",
    "title": "/conditions-restaurateurs",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1239,
+   "line": 1185,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "7f7a0d7112d6"
+   "detailRef": "c0a84322dd08"
   },
   {
    "id": "seo-build-route:87c83ca2af69",
@@ -368310,19 +368598,19 @@
    "detailRef": "495a3f6210ab"
   },
   {
-   "id": "seo-build-route:8c3e160fbc5f",
+   "id": "seo-build-route:5c1c55111e98",
    "type": "seo-build-route",
    "title": "/cookies",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1232,
+   "line": 1178,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "294d34709cf7"
+   "detailRef": "c926d17faa8f"
   },
   {
    "id": "seo-build-route:53f7ddd4b372",
@@ -368368,51 +368656,6 @@
     "static"
    ],
    "detailRef": "57f4abf05840"
-  },
-  {
-   "id": "seo-build-route:36414c692b31",
-   "type": "seo-build-route",
-   "title": "/guide/plateforme",
-   "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
-   "path": "scripts/prerender-seo.mjs",
-   "line": 1207,
-   "surface": null,
-   "tags": [
-    "data-dependent",
-    "prerender",
-    "static"
-   ],
-   "detailRef": "aae0922f80da"
-  },
-  {
-   "id": "seo-build-route:b3fde50ddf48",
-   "type": "seo-build-route",
-   "title": "/guide/restaurateur",
-   "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
-   "path": "scripts/prerender-seo.mjs",
-   "line": 1189,
-   "surface": null,
-   "tags": [
-    "data-dependent",
-    "prerender",
-    "static"
-   ],
-   "detailRef": "af3ba3a13c2b"
-  },
-  {
-   "id": "seo-build-route:0951e3962fc3",
-   "type": "seo-build-route",
-   "title": "/guide",
-   "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
-   "path": "scripts/prerender-seo.mjs",
-   "line": 1171,
-   "surface": null,
-   "tags": [
-    "data-dependent",
-    "prerender",
-    "static"
-   ],
-   "detailRef": "c59de009cad6"
   },
   {
    "id": "seo-build-route:0260b3e54fb9",
@@ -368490,19 +368733,19 @@
    "detailRef": "bed8928949e5"
   },
   {
-   "id": "seo-build-route:1c51bd257ceb",
+   "id": "seo-build-route:23d3361eb9c0",
    "type": "seo-build-route",
    "title": "/politique-confidentialite",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1254,
+   "line": 1200,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "80cbfc88660b"
+   "detailRef": "a86e88e4efbc"
   },
   {
    "id": "seo-build-route:1a00cd50d8d2",
@@ -368520,34 +368763,34 @@
    "detailRef": "53d8196df72e"
   },
   {
-   "id": "seo-build-route:07ffe884d613",
+   "id": "seo-build-route:45841585f5cc",
    "type": "seo-build-route",
    "title": "/restaurant/:id",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1348,
+   "line": 1294,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "995bed8cf048"
+   "detailRef": "6b80c2c64160"
   },
   {
-   "id": "seo-build-route:2a4a82437f8e",
+   "id": "seo-build-route:9272b677e8e1",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug/:cuisineSlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1685,
+   "line": 1631,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "ed7b01cf3288"
+   "detailRef": "f906f93dbe3f"
   },
   {
    "id": "seo-build-route:340a6801ba1a",
@@ -368580,34 +368823,34 @@
    "detailRef": "c38120c4290c"
   },
   {
-   "id": "seo-build-route:786253a88259",
+   "id": "seo-build-route:02fd2eb68a38",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug/r/:restaurantSlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1345,
+   "line": 1291,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "ef218ae53139"
+   "detailRef": "f9d5109c38cf"
   },
   {
-   "id": "seo-build-route:818b097ca7aa",
+   "id": "seo-build-route:da108bf4939a",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1697,
+   "line": 1643,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "14649f132cbb"
+   "detailRef": "9faa847db19c"
   },
   {
    "id": "seo-build-route:081f9fd6c483",
@@ -368700,19 +368943,19 @@
    "detailRef": "b9c8be4e27e5"
   },
   {
-   "id": "seo-build-route:8ee866bd9422",
+   "id": "seo-build-route:3b5b09acab41",
    "type": "seo-build-route",
    "title": "/tok-pulse",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1246,
+   "line": 1192,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "4f07cfaef2f0"
+   "detailRef": "eb9411ef076d"
   },
   {
    "id": "seo-build-route:a99c7b3ae0eb",

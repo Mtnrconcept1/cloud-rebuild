@@ -72,4 +72,75 @@ describe("marketing service API key authentication", () => {
     await expect(authenticateMarketingRequest(request({ Authorization: `Bearer ${known}` }))).rejects.toMatchObject({ status: 401 });
     expect(createAdmin).not.toHaveBeenCalled();
   });
+  it("authenticates an active rotated project key despite a stale Edge key snapshot", async () => {
+    const rotated = "sb_secret_rotated-real-project-key";
+    configured = JSON.stringify({ default: "sb_secret_previous-project-key" });
+    vi.stubGlobal("Deno", { env: { get: (name: string) =>
+      name === "SUPABASE_SECRET_KEYS" ? configured
+      : name === "SUPABASE_URL" ? "https://wwcrtyoueexyxkkikaos.supabase.co" : undefined,
+    } });
+    const probe = vi.fn().mockResolvedValue(new Response("null", {
+      status: 200, headers: { "content-type": "application/json; charset=utf-8" },
+    }));
+    vi.stubGlobal("fetch", probe);
+
+    await expect(authenticateMarketingRequest(request({ apikey: rotated }))).resolves.toMatchObject({
+      adminClient, authMode: "service_role", isServiceRole: true, userId: null,
+    });
+    expect(createAdmin).toHaveBeenCalledOnce();
+    expect(fallback).not.toHaveBeenCalled();
+    expect(probe).toHaveBeenCalledOnce();
+    const [url, init] = probe.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("https://wwcrtyoueexyxkkikaos.supabase.co/rest/v1/rpc/service_get_marketing_web_session");
+    expect(init.method).toBe("POST");
+    expect(init.headers).toMatchObject({ apikey: rotated, "Content-Type": "application/json" });
+    expect(init.headers).not.toHaveProperty("Authorization");
+    expect(JSON.parse(String(init.body))).toEqual({
+      p_sid_hash: "0".repeat(64), p_csrf_hash: null, p_touch: false,
+    });
+  });
+
+  it.each([
+    { status: 401, contentType: "application/json", body: '{"message":"Unauthorized"}' },
+    { status: 403, contentType: "application/json", body: '{"message":"Forbidden"}' },
+    { status: 500, contentType: "application/json", body: '{"message":"Unavailable"}' },
+    { status: 200, contentType: "text/html", body: "null" },
+    { status: 200, contentType: "application/json", body: '{"session":"unexpected"}' },
+  ])("rejects a rotated key when the service privilege probe replies $status $contentType", async ({ status, contentType, body }) => {
+    vi.stubGlobal("Deno", { env: { get: (name: string) =>
+      name === "SUPABASE_SECRET_KEYS" ? configured
+      : name === "SUPABASE_URL" ? "https://wwcrtyoueexyxkkikaos.supabase.co" : undefined,
+    } });
+    const probe = vi.fn().mockResolvedValue(new Response(body, {
+      status, headers: { "content-type": contentType },
+    }));
+    vi.stubGlobal("fetch", probe);
+    await expect(authenticateMarketingRequest(request({ apikey: "sb_secret_unrecognized-project-key" })))
+      .rejects.toMatchObject({ status: 401 });
+    expect(createAdmin).not.toHaveBeenCalled();
+    expect(probe).toHaveBeenCalledOnce();
+  });
+
+  it("fails closed on network errors and refuses to probe non-Supabase hosts", async () => {
+    const probe = vi.fn().mockRejectedValue(new Error("network down"));
+    vi.stubGlobal("fetch", probe);
+    vi.stubGlobal("Deno", { env: { get: (name: string) =>
+      name === "SUPABASE_SECRET_KEYS" ? configured
+      : name === "SUPABASE_URL" ? "https://wwcrtyoueexyxkkikaos.supabase.co" : undefined,
+    } });
+    await expect(authenticateMarketingRequest(request({ apikey: "sb_secret_rotated-project-key" })))
+      .rejects.toMatchObject({ status: 401 });
+    expect(createAdmin).not.toHaveBeenCalled();
+    expect(probe).toHaveBeenCalledOnce();
+
+    probe.mockClear();
+    vi.stubGlobal("Deno", { env: { get: (name: string) =>
+      name === "SUPABASE_SECRET_KEYS" ? configured
+      : name === "SUPABASE_URL" ? "https://attacker.example.com" : undefined,
+    } });
+    await expect(authenticateMarketingRequest(request({ apikey: "sb_secret_rotated-project-key" })))
+      .rejects.toMatchObject({ status: 401 });
+    expect(probe).not.toHaveBeenCalled();
+  });
+
 });

@@ -44,13 +44,29 @@ describe("marketing MFA recovery", () => {
     expect(result.current.error).toContain(message);
   });
 
-  it("rechecks the session after successful MFA without resubmitting a consumed challenge", async () => {
+  it("enters the secured workspace on the first valid MFA submission without an extra session request", async () => {
+    const { result } = await startChallenge();
+    const expiresAt = new Date(Date.now() + 60_000).toISOString();
+    request.mockResolvedValueOnce({
+      status: "authenticated",
+      session: { authenticated: true, admin: true, aal: "aal2", expiresAt },
+    });
+
+    await act(async () => { expect(await result.current.verifyTotp("123456")).toBe(true); });
+    expect(result.current.status).toBe("authenticated");
+    expect(result.current.expiresAt).toBe(expiresAt);
+    expect(result.current.error).toBeNull();
+    expect(request.mock.calls.filter(([path]) => path === "/api/marketing/mfa/verify")).toHaveLength(1);
+    expect(request.mock.calls.filter(([path]) => path === "/api/marketing/session")).toHaveLength(1);
+  });
+
+  it("fails closed on a malformed MFA success response, then recovers without consuming the code again", async () => {
     const { result } = await startChallenge();
     request.mockResolvedValueOnce({ status: "authenticated" });
-    request.mockRejectedValueOnce(new MarketingBffError("unavailable", 503));
-    await act(async () => { await result.current.verifyTotp("123456"); });
+    await act(async () => { expect(await result.current.verifyTotp("123456")).toBe(false); });
     expect(result.current.status).toBe("error");
     expect(result.current.error).toContain("vérifier la session");
+
     request.mockResolvedValueOnce({ authenticated: true, expiresAt: new Date(Date.now() + 60_000).toISOString() });
     await act(async () => { await result.current.refreshSession(); });
     expect(result.current.status).toBe("authenticated");

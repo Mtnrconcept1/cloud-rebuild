@@ -268,16 +268,19 @@ export default function MarketingSessionProvider({ children }: { children: React
     setError(null);
     let mfaVerified = false;
     try {
-      await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.mfaVerify, {
+      const payload = await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.mfaVerify, {
         method: "POST",
         body: { code: normalizedCode },
         redirectOnUnauthorized: false,
       });
       mfaVerified = true;
-      const snapshot = await requestSession();
+      // MFA verification already finalizes the privileged server session and
+      // sets its HttpOnly cookie. A second immediate GET can race with the
+      // session transition and falsely show an error after a valid TOTP.
+      const snapshot = normalizeMarketingSessionPayload(payload);
       if (sessionGeneration.current !== generation) return false;
       if (snapshot.status !== "authenticated") {
-        throw new MarketingBffError(MFA_ERROR, 401, "authentication_required");
+        throw new MarketingBffError(SESSION_ERROR, 502);
       }
       applySnapshot(snapshot);
       return true;

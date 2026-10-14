@@ -130,6 +130,7 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: "/dashboard/notifications", label: "Notifications", icon: Bell },
       { to: "/dashboard/support", label: "Aide et support", icon: CircleHelp, feature: "dashboard-support" },
+      { to: "/dashboard/guide", label: "Guide d’utilisation", icon: BookOpen },
     ],
   },
 ];

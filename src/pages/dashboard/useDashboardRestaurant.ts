@@ -40,7 +40,7 @@ export function canAccessRestaurantDashboardRoute(input: {
   onboardingConfigurationUnlocked: boolean;
   disabledFeatures?: ReadonlySet<string>;
 }) {
-  if (!input.dashboardAccessLocked || input.pathname === "/dashboard")
+  if (!input.dashboardAccessLocked || input.pathname === "/dashboard" || input.pathname === "/dashboard/guide")
     return true;
   const route = RESTAURANT_ONBOARDING_ROUTE_CATALOG.find(
     ({ path }) =>
