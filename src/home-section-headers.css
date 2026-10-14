@@ -202,16 +202,21 @@
     border-radius: 23px;
   }
 
-  /* A 4:1 mobile card is too short for the eyebrow, wrapped title and CTA.
-   * Let photo banners grow with their copy while keeping the entire image
-   * uncropped and a 16px safety inset around interactive content. */
+  /* On mobile, the native 4:1 image letterboxes inside a tall text card.
+   * A modest, left-biased crop fills that gap while retaining the photo's
+   * built-in light area behind the copy. The card still grows with its text. */
   [data-section-showcase-header][data-image-kind="photo"] {
     aspect-ratio: auto;
-    min-height: 180px;
+    min-height: 136px;
+  }
+
+  [data-section-showcase-header][data-image-kind="photo"] .tok-section-header__image {
+    object-fit: cover;
+    object-position: 28% center;
   }
 
   [data-section-showcase-header][data-image-kind="photo"] .tok-section-header__content {
-    padding: 1rem .75rem 1rem 1rem;
+    padding: .75rem .5rem .75rem .875rem;
   }
 
   [data-section-showcase-header] .tok-section-header__content {
