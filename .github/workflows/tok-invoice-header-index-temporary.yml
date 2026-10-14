@@ -1,0 +1,45 @@
+name: Temporary regenerate TOK application reference for invoice header PR
+
+on:
+  push:
+    branches:
+      - fix/invoice-header-text-overlap-20261014
+    paths:
+      - .github/workflows/tok-invoice-header-index-temporary.yml
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/invoice-header-text-overlap-20261014
+          fetch-depth: 50
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.12.0'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Regenerate and remove temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main --depth=50
+          git merge --no-edit origin/main
+          git rm .github/workflows/tok-invoice-header-index-temporary.yml
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+          git add -u -- docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --stat
+          git commit -m "docs: refresh TOK application index for invoice header fix"
+          git push origin HEAD:refs/heads/fix/invoice-header-text-overlap-20261014
