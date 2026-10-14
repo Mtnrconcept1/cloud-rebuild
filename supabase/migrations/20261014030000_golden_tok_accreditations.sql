@@ -226,7 +226,7 @@ BEGIN
   END IF;
 
   IF v_image IS NOT NULL THEN
-    IF v_image !~ '^https://[a-z0-9-]+\\.supabase\\.co/storage/v1/object/public/restaurant-images/' THEN
+    IF v_image !~ '^https://[a-z0-9-]+\.supabase\.co/storage/v1/object/public/restaurant-images/' THEN
       RAISE EXCEPTION 'Image TOK publique uniquement';
     END IF;
     v_storage_path := split_part(v_image, '/storage/v1/object/public/restaurant-images/', 2);
