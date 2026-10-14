@@ -73,6 +73,8 @@ const sections = [
     title: "8. Facturation, reversements et taxes",
     body: [
       "Les factures et relevés distinguent les abonnements, réservations, commissions, remboursements, avoirs et autres prestations payantes applicables au restaurant.",
+      "Le consentement séparé au prélèvement par carte autorise TOK à débiter automatiquement, via Stripe, le montant de l'abonnement à la première activité client puis aux échéances du plan, ainsi que CHF 5 par table réellement honorée. L'IBAN destiné aux versements n'autorise aucun prélèvement. Les paiements non réussis restent visibles comme impayés, et les remboursements/contestations donnent lieu à des corrections comptables traçables.",
+
       "Les montants sont ventilés selon les règles fiscales applicables. Le restaurateur demeure responsable de la qualification fiscale de ses propres ventes et de ses obligations comptables et fiscales.",
       "Les reversements dépendent des transactions effectivement encaissées, des remboursements, contestations et exigences du prestataire de paiement. TOK peut suspendre un reversement en cas de contrôle, fraude présumée ou exigence réglementaire du prestataire.",
     ],

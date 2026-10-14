@@ -344,6 +344,33 @@ function LiveDashboardReservations() {
   );
   const reservationsError = isCommercialDemoRestaurant ? null : productionReservationsQuery.error;
 
+  // Auto-arrival is only an assumption until the restaurateur explicitly
+  // validates the guest's presence. Never collect a CHF 5 fee solely
+  // because the reservation clock has advanced.
+  const autoArrivalReviewQuery = useQuery({
+    queryKey: ["restaurant-auto-arrival-review-commissions", effectiveSelectedId],
+    enabled: Boolean(effectiveSelectedId && !isCommercialDemoRestaurant),
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await (supabase as any)
+        .from("reservation_commission_collections")
+        .select("reservation_id")
+        .eq("restaurant_id", effectiveSelectedId!)
+        .eq("state", "review_required")
+        .limit(300);
+      if (error) {
+        // The finance migration is intentionally deployed separately
+        // behind its disabled-by-default production feature switch.
+        if (["42P01", "PGRST205"].includes(String(error.code || ""))) return [];
+        throw new Error(error.message || "Chargement des arrivées à vérifier impossible");
+      }
+      return (data || []).map((row: { reservation_id: string }) => row.reservation_id);
+    },
+  });
+  const autoArrivalReviewIds = useMemo(
+    () => new Set(autoArrivalReviewQuery.data || []),
+    [autoArrivalReviewQuery.data],
+  );
+
   useEffect(() => {
     if (!reservationTarget) return;
     const target = reservations.find((reservation) => reservation.id === reservationTarget);
@@ -427,6 +454,31 @@ function LiveDashboardReservations() {
     },
   });
 
+
+  const confirmAutoArrivalMutation = useMutation({
+    mutationFn: async (reservationId: string) => {
+      if (isCommercialDemoRestaurant) throw new Error("Validation indisponible en démonstration");
+      const { data, error } = await (supabase as any).rpc(
+        "confirm_auto_arrived_reservation_commission",
+        { p_reservation_id: reservationId },
+      );
+      if (error) throw new Error(error.message || "Confirmation impossible");
+      if (data !== true) throw new Error("Cette arrivée ne nécessite plus de confirmation");
+      return reservationId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["restaurant-auto-arrival-review-commissions", effectiveSelectedId],
+      });
+      toast({
+        title: "Présence réelle confirmée",
+        description: "La facture de CHF 5 est préparée. Le prélèvement suit les autorisations et contrôles Stripe.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Confirmation impossible", description: error.message, variant: "destructive" });
+    },
+  });
 
   const cancelMutation = useMutation({
     mutationFn: async ({
@@ -884,6 +936,17 @@ function LiveDashboardReservations() {
                             <UserCheck className="mr-1 h-4 w-4" />
                             Arrivée
                           </Button>
+                          {autoArrivalReviewIds.has(reservation.id) ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={confirmAutoArrivalMutation.isPending}
+                              onClick={() => confirmAutoArrivalMutation.mutate(reservation.id)}
+                            >
+                              <UserCheck className="mr-1 h-4 w-4" />
+                              Confirmer la présence réelle — frais TOK 5 CHF
+                            </Button>
+                          ) : null}
                           <Button
                             size="sm"
                             onClick={() => updateStatusMutation.mutate({ id: reservation.id, status: "confirmed" })}

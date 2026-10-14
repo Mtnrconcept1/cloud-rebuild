@@ -236,6 +236,8 @@ function signRestaurantContract() {
 
 function acceptLegalTerms() {
   fireEvent.click(screen.getByLabelText(/J'accepte les CGU/i));
+  const commissionConsent = screen.queryByLabelText(/J'autorise le prélèvement automatique/i);
+  if (commissionConsent) fireEvent.click(commissionConsent);
   fireEvent.click(
     screen.getByRole("button", { name: "Accepter et continuer" }),
   );
@@ -673,7 +675,9 @@ describe("Auth signup form", () => {
             onboarding_payment_status: "payment_method_required",
             legal_terms_accepted: true,
             privacy_policy_accepted: true,
-            contract_version: "TOK-CH-RP-2026-08-v7",
+            contract_version: "TOK-CH-RP-2026-10-v8",
+            commission_auto_debit_consent_version: "v1",
+            commission_auto_debit_consent_accepted: true,
             contract_signer_name: "Marie Dupont, gérante",
             contract_signature_data_url: expect.stringContaining(
               "data:image/png;base64,",

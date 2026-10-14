@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "298dcb92a3a717ca98d3e2c0a47d7b1024fdbac8d56333f8af6d6e4e0921080d",
+ "sourceDigest": "66f4f75ce49f4eeaad4b58d4cab2f55d29fae29bcb79c0bf8017ddb0ae56d409",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2758,
+  "databaseObjects": 2767,
   "documents": 203,
-  "edgeFunctions": 116,
+  "edgeFunctions": 115,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3515,
+  "exportedSymbols": 3512,
   "featureFlags": 99,
   "frontendRoutes": 137,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 534,
-  "modules": 1546,
+  "modules": 1542,
   "pages": 129,
   "pathLiterals": 697,
   "publicAssets": 502,
   "publicEntries": 527,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16541,
-  "repositoryFiles": 3078,
+  "records": 16534,
+  "repositoryFiles": 3074,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -2930,7 +2930,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 865,
+      "line": 873,
       "kind": "function"
      }
     ],
@@ -3150,7 +3150,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 140,
+      "line": 142,
       "kind": "function"
      }
     ],
@@ -4290,7 +4290,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 35,
+      "line": 32,
       "kind": "function"
      }
     ],
@@ -4945,7 +4945,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 1514,
+      "line": 1513,
       "kind": "function"
      }
     ],
@@ -7355,7 +7355,7 @@
     "endpoint": "/functions/v1/apple-storekit-webhook",
     "path": "supabase/functions/apple-storekit-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 278,
+    "configLine": 275,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -7483,7 +7483,7 @@
     "endpoint": "/functions/v1/cloudprinter-webhook",
     "path": "supabase/functions/cloudprinter-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 290,
+    "configLine": 287,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8109,30 +8109,6 @@
     "sourcePresent": true
    },
    {
-    "name": "golden-tok-membership",
-    "endpoint": "/functions/v1/golden-tok-membership",
-    "path": "supabase/functions/golden-tok-membership/index.ts",
-    "configPath": "supabase/config.toml",
-    "configLine": 215,
-    "verifyJwt": false,
-    "methods": [
-     "POST"
-    ],
-    "actions": [
-     "cancel",
-     "resume",
-     "string"
-    ],
-    "environmentNames": [
-     "GOLDEN_TOK_STRIPE_PRICE_ID"
-    ],
-    "integrations": [
-     "stripe"
-    ],
-    "configured": true,
-    "sourcePresent": true
-   },
-   {
     "name": "google-actions-center",
     "endpoint": "/functions/v1/google-actions-center",
     "path": "supabase/functions/google-actions-center/index.ts",
@@ -8227,7 +8203,7 @@
     "endpoint": "/functions/v1/marketing-orchestrator",
     "path": "supabase/functions/marketing-orchestrator/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 281,
+    "configLine": 278,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8254,7 +8230,7 @@
     "endpoint": "/functions/v1/marketing-provider-webhook",
     "path": "supabase/functions/marketing-provider-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 284,
+    "configLine": 281,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8270,7 +8246,7 @@
     "endpoint": "/functions/v1/marketing-unsubscribe",
     "path": "supabase/functions/marketing-unsubscribe/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 287,
+    "configLine": 284,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -8287,7 +8263,7 @@
     "endpoint": "/functions/v1/menu-image-import",
     "path": "supabase/functions/menu-image-import/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 218,
+    "configLine": 215,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8384,7 +8360,7 @@
     "endpoint": "/functions/v1/print-admin",
     "path": "supabase/functions/print-admin/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 293,
+    "configLine": 290,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8410,7 +8386,7 @@
     "endpoint": "/functions/v1/print-catalog",
     "path": "supabase/functions/print-catalog/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 296,
+    "configLine": 293,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8434,7 +8410,7 @@
     "endpoint": "/functions/v1/print-checkout",
     "path": "supabase/functions/print-checkout/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 299,
+    "configLine": 296,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8457,7 +8433,7 @@
     "endpoint": "/functions/v1/print-export",
     "path": "supabase/functions/print-export/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 305,
+    "configLine": 302,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8475,7 +8451,7 @@
     "endpoint": "/functions/v1/print-orchestrator",
     "path": "supabase/functions/print-orchestrator/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 308,
+    "configLine": 305,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8498,7 +8474,7 @@
     "endpoint": "/functions/v1/print-order-action",
     "path": "supabase/functions/print-order-action/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 311,
+    "configLine": 308,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8521,7 +8497,7 @@
     "endpoint": "/functions/v1/print-quote",
     "path": "supabase/functions/print-quote/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 314,
+    "configLine": 311,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8537,7 +8513,7 @@
     "endpoint": "/functions/v1/print-reconcile",
     "path": "supabase/functions/print-reconcile/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 317,
+    "configLine": 314,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8553,7 +8529,7 @@
     "endpoint": "/functions/v1/print-sandbox-complete",
     "path": "supabase/functions/print-sandbox-complete/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 302,
+    "configLine": 299,
     "verifyJwt": false,
     "methods": [
      "GET"
@@ -8634,7 +8610,7 @@
     "endpoint": "/functions/v1/provision-commercial-demo-logins",
     "path": "supabase/functions/provision-commercial-demo-logins/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 357,
+    "configLine": 354,
     "verifyJwt": true,
     "methods": [
      "OPTIONS"
@@ -8676,7 +8652,7 @@
     "endpoint": "/functions/v1/reconcile-match-group-authorizations",
     "path": "supabase/functions/reconcile-match-group-authorizations/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 221,
+    "configLine": 218,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8694,7 +8670,7 @@
     "endpoint": "/functions/v1/reconcile-paid-order-checkouts",
     "path": "supabase/functions/reconcile-paid-order-checkouts/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 224,
+    "configLine": 221,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8712,7 +8688,7 @@
     "endpoint": "/functions/v1/restaurant-advisor",
     "path": "supabase/functions/restaurant-advisor/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 227,
+    "configLine": 224,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8731,7 +8707,7 @@
     "endpoint": "/functions/v1/restaurant-media-governance",
     "path": "supabase/functions/restaurant-media-governance/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 233,
+    "configLine": 230,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8752,7 +8728,7 @@
     "endpoint": "/functions/v1/restaurant-order-status",
     "path": "supabase/functions/restaurant-order-status/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 230,
+    "configLine": 227,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8768,7 +8744,7 @@
     "endpoint": "/functions/v1/scrape-restaurants",
     "path": "supabase/functions/scrape-restaurants/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 236,
+    "configLine": 233,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8788,7 +8764,7 @@
     "endpoint": "/functions/v1/send-email",
     "path": "supabase/functions/send-email/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 239,
+    "configLine": 236,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8815,7 +8791,7 @@
     "endpoint": "/functions/v1/send-push",
     "path": "supabase/functions/send-push/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 242,
+    "configLine": 239,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8838,7 +8814,7 @@
     "endpoint": "/functions/v1/settle-developer-statement",
     "path": "supabase/functions/settle-developer-statement/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 260,
+    "configLine": 257,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8856,7 +8832,7 @@
     "endpoint": "/functions/v1/stripe-connect-onboard",
     "path": "supabase/functions/stripe-connect-onboard/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 245,
+    "configLine": 242,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8874,7 +8850,7 @@
     "endpoint": "/functions/v1/stripe-connect-status",
     "path": "supabase/functions/stripe-connect-status/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 248,
+    "configLine": 245,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8911,7 +8887,7 @@
     "endpoint": "/functions/v1/stripe-subscription-reconcile",
     "path": "supabase/functions/stripe-subscription-reconcile/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 257,
+    "configLine": 254,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8930,7 +8906,7 @@
     "endpoint": "/functions/v1/stripe-webhook",
     "path": "supabase/functions/stripe-webhook/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 251,
+    "configLine": 248,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -8949,7 +8925,7 @@
     "endpoint": "/functions/v1/stripe-worker",
     "path": "supabase/functions/stripe-worker/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 254,
+    "configLine": 251,
     "verifyJwt": false,
     "methods": [
      "OPTIONS",
@@ -8971,7 +8947,7 @@
     "endpoint": "/functions/v1/submit-signup-application",
     "path": "supabase/functions/submit-signup-application/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 272,
+    "configLine": 269,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -8987,7 +8963,7 @@
     "endpoint": "/functions/v1/sync-apple-storekit",
     "path": "supabase/functions/sync-apple-storekit/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 275,
+    "configLine": 272,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9003,7 +8979,7 @@
     "endpoint": "/functions/v1/tok-connect-admin",
     "path": "supabase/functions/tok-connect-admin/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 335,
+    "configLine": 332,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9025,7 +9001,7 @@
     "endpoint": "/functions/v1/tok-connect-api",
     "path": "supabase/functions/tok-connect-api/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 323,
+    "configLine": 320,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9042,7 +9018,7 @@
     "endpoint": "/functions/v1/tok-connect-app-bridge",
     "path": "supabase/functions/tok-connect-app-bridge/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 341,
+    "configLine": 338,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9071,7 +9047,7 @@
     "endpoint": "/functions/v1/tok-connect-chatgpt",
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 344,
+    "configLine": 341,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9096,7 +9072,7 @@
     "endpoint": "/functions/v1/tok-connect-commercial-bridge",
     "path": "supabase/functions/tok-connect-commercial-bridge/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 347,
+    "configLine": 344,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9123,7 +9099,7 @@
     "endpoint": "/functions/v1/tok-connect-full-app-mcp",
     "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 329,
+    "configLine": 326,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9148,7 +9124,7 @@
     "endpoint": "/functions/v1/tok-connect-mcp",
     "path": "supabase/functions/tok-connect-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 326,
+    "configLine": 323,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9173,7 +9149,7 @@
     "endpoint": "/functions/v1/tok-connect-oauth",
     "path": "supabase/functions/tok-connect-oauth/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 320,
+    "configLine": 317,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9194,7 +9170,7 @@
     "endpoint": "/functions/v1/tok-connect-portal",
     "path": "supabase/functions/tok-connect-portal/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 332,
+    "configLine": 329,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9230,7 +9206,7 @@
     "endpoint": "/functions/v1/tok-connect-remote-mcp",
     "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 350,
+    "configLine": 347,
     "verifyJwt": false,
     "methods": [
      "GET",
@@ -9254,7 +9230,7 @@
     "endpoint": "/functions/v1/tok-connect-webhook-dispatch",
     "path": "supabase/functions/tok-connect-webhook-dispatch/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 338,
+    "configLine": 335,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9272,7 +9248,7 @@
     "endpoint": "/functions/v1/tok-pulse-widget",
     "path": "supabase/functions/tok-pulse-widget/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 353,
+    "configLine": 350,
     "verifyJwt": false,
     "methods": [
      "GET"
@@ -9293,7 +9269,7 @@
     "endpoint": "/functions/v1/track-analytics",
     "path": "supabase/functions/track-analytics/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 263,
+    "configLine": 260,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9315,7 +9291,7 @@
     "endpoint": "/functions/v1/track-sponsored-event",
     "path": "supabase/functions/track-sponsored-event/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 266,
+    "configLine": 263,
     "verifyJwt": false,
     "methods": [
      "POST"
@@ -9337,7 +9313,7 @@
     "endpoint": "/functions/v1/validate-order",
     "path": "supabase/functions/validate-order/index.ts",
     "configPath": "supabase/config.toml",
-    "configLine": 269,
+    "configLine": 266,
     "verifyJwt": false,
     "methods": [
      "ANY"
@@ -13880,15 +13856,15 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 225
+      "line": 226
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1111
+      "line": 1120
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2325
+      "line": 2346
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -15112,7 +15088,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 239
+      "line": 240
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
@@ -16827,11 +16803,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 899
+      "line": 907
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2215
+      "line": 2236
      },
      {
       "path": "src/pages/ChefsTable.tsx",
@@ -16883,7 +16859,7 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 887
+      "line": 891
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -16985,7 +16961,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 880
+      "line": 888
      },
      {
       "path": "src/test/auth-redirect-security.test.ts",
@@ -17060,7 +17036,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 899
+      "line": 907
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -17195,11 +17171,11 @@
     "sources": [
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 523
+      "line": 525
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 947
+      "line": 951
      }
     ]
    },
@@ -17239,55 +17215,55 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 306
+      "line": 308
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 320
+      "line": 322
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 338
+      "line": 340
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 352
+      "line": 354
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 367
+      "line": 369
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 389
+      "line": 391
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 416
+      "line": 418
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 434
+      "line": 436
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 486
+      "line": 488
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 500
+      "line": 502
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 533
+      "line": 535
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 962
+      "line": 966
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 987
+      "line": 991
      }
     ]
    },
@@ -17296,19 +17272,19 @@
     "sources": [
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 609
+      "line": 611
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 741
+      "line": 745
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 885
+      "line": 889
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 1007
+      "line": 1011
      }
     ]
    },
@@ -17449,7 +17425,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3104
+      "line": 3125
      },
      {
       "path": "src/pages/CGU.tsx",
@@ -17692,7 +17668,7 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 889
+      "line": 893
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -18197,7 +18173,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 253
+      "line": 254
      },
      {
       "path": "src/pages/WorkspaceChooser.tsx",
@@ -18758,7 +18734,7 @@
      },
      {
       "path": "src/pages/ConditionsRestaurateurs.tsx",
-      "line": 144
+      "line": 146
      },
      {
       "path": "src/pages/Cookies.tsx",
@@ -19069,7 +19045,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 246
+      "line": 247
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -19605,11 +19581,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 232
+      "line": 233
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 814
+      "line": 822
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
@@ -19689,7 +19665,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2083
+      "line": 1993
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -19921,7 +19897,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1725
+      "line": 1635
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -20526,11 +20502,11 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1849
+      "line": 1759
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2222
+      "line": 2132
      }
     ]
    },
@@ -20634,7 +20610,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2363
+      "line": 2273
      }
     ]
    },
@@ -21322,7 +21298,7 @@
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
-      "line": 888
+      "line": 892
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -25270,7 +25246,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2733
+      "line": 2743
      }
     ]
    },
@@ -25760,7 +25736,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3112
+      "line": 3133
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -29610,15 +29586,15 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 906
+      "line": 914
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1126
+      "line": 1135
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1127
+      "line": 1136
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -29653,7 +29629,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 921
+      "line": 929
      }
     ],
     "routes": [
@@ -29817,7 +29793,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2342
+      "line": 2363
      }
     ],
     "routes": [
@@ -30230,11 +30206,11 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 948
+      "line": 956
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1003
+      "line": 1012
      },
      {
       "path": "public/manifest.json",
@@ -30578,7 +30554,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1109
+      "line": 1118
      }
     ],
     "routes": [
@@ -30776,7 +30752,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 923
+      "line": 931
      }
     ],
     "routes": [
@@ -30932,7 +30908,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 917
+      "line": 925
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -31081,7 +31057,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 285
+      "line": 286
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -31524,7 +31500,6 @@
      "src/components/commercial/CommercialDemoActorWorkspace.tsx",
      "src/components/commercial/CommercialMultiSpaceDemo.tsx",
      "src/components/dashboard/CommercialDemoScenario.tsx",
-     "src/components/dashboard/GoldenTokPanel.tsx",
      "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
      "src/data/userGuideFeatureDetails.ts",
      "src/hooks/useAdminLaunchPacks.ts",
@@ -31618,7 +31593,6 @@
      "src/test/feature-flags.test.ts",
      "src/test/financial-health.test.ts",
      "src/test/git-auto-sync-scripts.test.ts",
-     "src/test/golden-tok-accreditation.test.ts",
      "src/test/incident-intelligence-routing.test.ts",
      "src/test/ios-commerce-policy.test.ts",
      "src/test/ios-storekit-subscription-management.test.ts",
@@ -31643,6 +31617,7 @@
      "src/test/restaurant-billing-account.test.ts",
      "src/test/restaurant-onboarding-payments.test.ts",
      "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
+     "src/test/restaurant-reservation-commission-collection.test.ts",
      "src/test/restaurant-stripe-adjustments.test.ts",
      "src/test/restaurateur-onboarding-reliability.test.ts",
      "src/test/scale-readiness-guards.test.ts",
@@ -31702,7 +31677,6 @@
      "supabase/functions/create-chefs-table-reservation/index.ts",
      "supabase/functions/create-reservation/index.ts",
      "supabase/functions/create-zero-attente-reservation/index.ts",
-     "supabase/functions/golden-tok-membership/index.ts",
      "supabase/functions/google-actions-center/index.ts",
      "supabase/functions/manage-restaurant-subscription/index.ts",
      "supabase/functions/manage-tok-one-subscription/index.ts",
@@ -31807,8 +31781,6 @@
      "src/components/admin/AdminMobileNavigation.tsx",
      "src/components/admin/AdminRealRestaurantAssignment.tsx",
      "src/components/admin/AdminUrgentActions.tsx",
-     "src/components/admin/GoldenTokReviewPanel.tsx",
-     "src/components/admin/RestaurantSearchSelect.tsx",
      "src/components/auth/AccountPasswordForm.tsx",
      "src/components/campaigns/CampaignInternalTestSummary.tsx",
      "src/components/cart/CartSuggestionsStep.tsx",
@@ -31821,7 +31793,6 @@
      "src/components/dashboard/AiStyleReferencePicker.tsx",
      "src/components/dashboard/DailyDishAiPanel.tsx",
      "src/components/dashboard/DirectReservationChannelsCard.tsx",
-     "src/components/dashboard/GoldenTokPanel.tsx",
      "src/components/dashboard/TokAiMarketingStudio.tsx",
      "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
      "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
@@ -32129,7 +32100,6 @@
      "src/test/generate-campaign-ai-optimization.test.ts",
      "src/test/generate-campaign-copy.test.ts",
      "src/test/git-auto-sync-scripts.test.ts",
-     "src/test/golden-tok-accreditation.test.ts",
      "src/test/google-actions-center-outbox.test.ts",
      "src/test/google-actions-center-readiness.test.ts",
      "src/test/google-business-booking-phase1.test.ts",
@@ -32263,6 +32233,7 @@
      "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
      "src/test/restaurant-promotions-governance.test.ts",
      "src/test/restaurant-public-data-consistency.test.ts",
+     "src/test/restaurant-reservation-commission-collection.test.ts",
      "src/test/restaurant-search-preview.test.tsx",
      "src/test/restaurant-slug-seo.test.ts",
      "src/test/restaurant-special-offer-governance.test.ts",
@@ -35726,10 +35697,10 @@
     "objectCount": 1
    },
    {
-    "name": "20261014030000 Golden Tok Accreditations",
-    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-    "lineCount": 286,
-    "objectCount": 8
+    "name": "20261014010000 Recurring Restaurant Reservation Commissions",
+    "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+    "lineCount": 549,
+    "objectCount": 16
    }
   ],
   "databaseObjects": [
@@ -35977,6 +35948,16 @@
    },
    {
     "type": "function",
+    "name": "private_finance.open_reservation_commission_invoice",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 52
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "private_finance.payment_attempt_json",
     "sources": [
      {
@@ -36184,6 +36165,16 @@
      {
       "path": "supabase/migrations/20260717220000_deferred_subscription_commission_lifecycle.sql",
       "line": 1430
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private_finance.stage_reservation_commission",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 127
      }
     ]
    },
@@ -37213,16 +37204,6 @@
    },
    {
     "type": "function",
-    "name": "public.admin_review_golden_tok_accreditation",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 90
-     }
-    ]
-   },
-   {
-    "type": "function",
     "name": "public.admin_review_signup_application",
     "sources": [
      {
@@ -37760,16 +37741,6 @@
      {
       "path": "supabase/migrations/20260423232011_fix_apply_checkout_benefits_redeem_conflict.sql",
       "line": 1
-     }
-    ]
-   },
-   {
-    "type": "function",
-    "name": "public.apply_golden_tok_accreditation",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 41
      }
     ]
    },
@@ -38691,6 +38662,16 @@
    },
    {
     "type": "function",
+    "name": "public.claim_restaurant_commission_collections",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 201
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.claim_restaurant_daily_dish_run",
     "sources": [
      {
@@ -39247,6 +39228,16 @@
    },
    {
     "type": "function",
+    "name": "public.confirm_auto_arrived_reservation_commission",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 179
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.confirm_fair_growth_module_activation",
     "sources": [
      {
@@ -39776,6 +39767,16 @@
      {
       "path": "supabase/migrations/20260715060000_payment_integrity_state_machine.sql",
       "line": 718
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.fail_restaurant_commission_collection",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 440
      }
     ]
    },
@@ -40822,16 +40823,6 @@
      {
       "path": "supabase/migrations/20260605180050_wire_miamz_business_logic.sql",
       "line": 288
-     }
-    ]
-   },
-   {
-    "type": "function",
-    "name": "public.golden_tok_restaurant_is_paid",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 137
      }
     ]
    },
@@ -42609,6 +42600,16 @@
    },
    {
     "type": "function",
+    "name": "public.record_restaurant_commission_payment",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 269
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.record_restaurant_onboarding_payment_method_ready",
     "sources": [
      {
@@ -42724,6 +42725,16 @@
      {
       "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
       "line": 4781
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.record_tok_bank_payout",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 488
      }
     ]
    },
@@ -43309,16 +43320,6 @@
    },
    {
     "type": "function",
-    "name": "public.restaurant_save_golden_tok_drop",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 172
-     }
-    ]
-   },
-   {
-    "type": "function",
     "name": "public.restaurant_set_cover_media",
     "sources": [
      {
@@ -43455,6 +43456,16 @@
    },
    {
     "type": "function",
+    "name": "public.restore_restaurant_commission_dispute",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 386
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.restore_special_offer_stock",
     "sources": [
      {
@@ -43470,6 +43481,16 @@
      {
       "path": "supabase/migrations/20260728090000_fair_growth_module_lifecycle.sql",
       "line": 122
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.reverse_restaurant_commission_payment",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 329
      }
     ]
    },
@@ -45789,16 +45810,6 @@
    },
    {
     "type": "index",
-    "name": "golden_tok_accreditations_review_idx",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 28
-     }
-    ]
-   },
-   {
-    "type": "index",
     "name": "google_actions_center_bookings_google_id_idx",
     "sources": [
      {
@@ -47868,6 +47879,26 @@
      {
       "path": "supabase/migrations/20261012130000_reservation_card_guarantees.sql",
       "line": 88
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "idx_reservation_commission_collections_claim",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 30
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "idx_reservation_commission_collections_restaurant",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 33
      }
     ]
    },
@@ -53176,10 +53207,6 @@
      {
       "path": "supabase/migrations/20260604023000_admin_chef_table_drop_governance.sql",
       "line": 15
-     },
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 158
      }
     ]
    },
@@ -54805,16 +54832,6 @@
    },
    {
     "type": "policy",
-    "name": "public.golden_tok_accreditations.golden_tok_accreditations_owner_or_admin_read",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 37
-     }
-    ]
-   },
-   {
-    "type": "policy",
     "name": "public.google_actions_center_bookings.google_actions_center_bookings_service_role_all",
     "sources": [
      {
@@ -56308,6 +56325,16 @@
      {
       "path": "supabase/migrations/20260310100000_courier_infrastructure.sql",
       "line": 631
+     }
+    ]
+   },
+   {
+    "type": "policy",
+    "name": "public.reservation_commission_collections.restaurant_commission_read_own",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 40
      }
     ]
    },
@@ -58811,6 +58838,16 @@
    },
    {
     "type": "policy",
+    "name": "public.tok_bank_payout_reconciliations.tok_bank_payouts_admin_only",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 484
+     }
+    ]
+   },
+   {
+    "type": "policy",
     "name": "public.tok_connect_access_tokens.tok_connect_access_tokens_admin_select",
     "sources": [
      {
@@ -61203,16 +61240,6 @@
    },
    {
     "type": "table",
-    "name": "public.golden_tok_accreditations",
-    "sources": [
-     {
-      "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-      "line": 3
-     }
-    ]
-   },
-   {
-    "type": "table",
     "name": "public.google_actions_center_bookings",
     "sources": [
      {
@@ -62267,6 +62294,16 @@
    },
    {
     "type": "table",
+    "name": "public.reservation_commission_collections",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 7
+     }
+    ]
+   },
+   {
+    "type": "table",
     "name": "public.reservation_fee_adjustments",
     "sources": [
      {
@@ -63316,6 +63353,16 @@
      {
       "path": "supabase/migrations/20260915183715_thefork_deploy_probe.sql",
       "line": 1
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "name": "public.tok_bank_payout_reconciliations",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 467
      }
     ]
    },
@@ -65586,6 +65633,16 @@
      {
       "path": "supabase/migrations/20260522030000_social_feed_restaurateurs.sql",
       "line": 583
+     }
+    ]
+   },
+   {
+    "type": "trigger",
+    "name": "stage_reservation_commission_after_honoring",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+      "line": 172
      }
     ]
    },
@@ -84962,36 +85019,6 @@
     "lineCount": 477
    },
    {
-    "path": "src/components/admin/GoldenTokReviewPanel.tsx",
-    "exports": [
-     {
-      "name": "default",
-      "line": 17,
-      "kind": "function"
-     }
-    ],
-    "environmentNames": [],
-    "integrations": [
-     "supabase"
-    ],
-    "lineCount": 86
-   },
-   {
-    "path": "src/components/admin/RestaurantSearchSelect.tsx",
-    "exports": [
-     {
-      "name": "default",
-      "line": 18,
-      "kind": "function"
-     }
-    ],
-    "environmentNames": [],
-    "integrations": [
-     "supabase"
-    ],
-    "lineCount": 152
-   },
-   {
     "path": "src/components/admin/TokConnectCatalogControls.tsx",
     "exports": [
      {
@@ -85660,22 +85687,6 @@
      "supabase"
     ],
     "lineCount": 104
-   },
-   {
-    "path": "src/components/dashboard/GoldenTokPanel.tsx",
-    "exports": [
-     {
-      "name": "default",
-      "line": 36,
-      "kind": "function"
-     }
-    ],
-    "environmentNames": [],
-    "integrations": [
-     "stripe",
-     "supabase"
-    ],
-    "lineCount": 242
    },
    {
     "path": "src/components/dashboard/GoogleBusinessBookingCard.tsx",
@@ -90527,42 +90538,42 @@
      },
      {
       "name": "humanizeIdentifier",
-      "line": 466,
+      "line": 465,
       "kind": "function"
      },
      {
       "name": "describeAuditFunction",
-      "line": 478,
+      "line": 477,
       "kind": "function"
      },
      {
       "name": "describeAuditAction",
-      "line": 485,
+      "line": 484,
       "kind": "function"
      },
      {
       "name": "describeAuditEntity",
-      "line": 493,
+      "line": 492,
       "kind": "function"
      },
      {
       "name": "describeAuditActor",
-      "line": 500,
+      "line": 499,
       "kind": "function"
      },
      {
       "name": "explainAuditError",
-      "line": 508,
+      "line": 507,
       "kind": "function"
      },
      {
       "name": "describeAuditLog",
-      "line": 629,
+      "line": 628,
       "kind": "function"
      },
      {
       "name": "summarizeAuditLog",
-      "line": 633,
+      "line": 632,
       "kind": "function"
      }
     ],
@@ -90571,7 +90582,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 635
+    "lineCount": 634
    },
    {
     "path": "src/lib/adminComptaActions.ts",
@@ -97321,23 +97332,23 @@
      },
      {
       "name": "savePrivilegedSignupRecoveryDraft",
-      "line": 114,
+      "line": 115,
       "kind": "function"
      },
      {
       "name": "loadPrivilegedSignupRecoveryDraft",
-      "line": 155,
+      "line": 156,
       "kind": "function"
      },
      {
       "name": "removePrivilegedSignupRecoveryDraft",
-      "line": 189,
+      "line": 190,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 202
+    "lineCount": 203
    },
    {
     "path": "src/lib/progressiveReservationOffers.ts",
@@ -98142,32 +98153,32 @@
      },
      {
       "name": "getRestaurantPartnerContractPlainText",
-      "line": 127,
+      "line": 130,
       "kind": "function"
      },
      {
       "name": "TOK_CONTRACT_LEGAL_INFORMATION",
-      "line": 146,
+      "line": 149,
       "kind": "variable"
      },
      {
       "name": "RestaurantPartnerContractHtmlInput",
-      "line": 156,
+      "line": 159,
       "kind": "typealias"
      },
      {
       "name": "buildRestaurantPartnerContractHashPayload",
-      "line": 234,
+      "line": 237,
       "kind": "function"
      },
      {
       "name": "generateRestaurantPartnerContractSha256",
-      "line": 254,
+      "line": 257,
       "kind": "function"
      },
      {
       "name": "generateSignedRestaurantPartnerContractHtml",
-      "line": 265,
+      "line": 268,
       "kind": "function"
      }
     ],
@@ -98176,7 +98187,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 381
+    "lineCount": 384
    },
    {
     "path": "src/lib/restaurantSlugs.ts",
@@ -101259,7 +101270,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 865,
+      "line": 873,
       "kind": "function"
      }
     ],
@@ -101270,7 +101281,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3366
+    "lineCount": 3408
    },
    {
     "path": "src/pages/BudgetAuto.tsx",
@@ -101443,7 +101454,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 140,
+      "line": 142,
       "kind": "function"
      }
     ],
@@ -101452,7 +101463,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 185
+    "lineCount": 187
    },
    {
     "path": "src/pages/Contact.tsx",
@@ -102396,7 +102407,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 35,
+      "line": 32,
       "kind": "function"
      }
     ],
@@ -102404,7 +102415,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 397
+    "lineCount": 394
    },
    {
     "path": "src/pages/admin/adminComptaShared.ts",
@@ -102992,7 +103003,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 1514,
+      "line": 1513,
       "kind": "function"
      }
     ],
@@ -103000,7 +103011,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 2037
+    "lineCount": 2032
    },
    {
     "path": "src/pages/dashboard/DashboardHome.tsx",
@@ -103169,7 +103180,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1260
+    "lineCount": 1323
    },
    {
     "path": "src/pages/dashboard/DashboardRestaurant.tsx",
@@ -104060,7 +104071,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1022
+    "lineCount": 1026
    },
    {
     "path": "src/test/authenticated-security-audit-hardening.test.ts",
@@ -104271,7 +104282,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 79
+    "lineCount": 77
    },
    {
     "path": "src/test/client-checkout-session-guards.test.ts",
@@ -105526,16 +105537,6 @@
      "supabase"
     ],
     "lineCount": 49
-   },
-   {
-    "path": "src/test/golden-tok-accreditation.test.ts",
-    "exports": [],
-    "environmentNames": [],
-    "integrations": [
-     "stripe",
-     "supabase"
-    ],
-    "lineCount": 78
    },
    {
     "path": "src/test/golden-tok-shell-logo.test.ts",
@@ -107500,7 +107501,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 344
+    "lineCount": 374
    },
    {
     "path": "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
@@ -107543,6 +107544,16 @@
      "supabase"
     ],
     "lineCount": 55
+   },
+   {
+    "path": "src/test/restaurant-reservation-commission-collection.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 123
    },
    {
     "path": "src/test/restaurant-reservation-sidebar.test.ts",
@@ -109353,7 +109364,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3242,
+      "line": 3266,
       "kind": "function"
      }
     ],
@@ -109365,7 +109376,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3247
+    "lineCount": 3271
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -112669,7 +112680,7 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 2774
+    "lineCount": 2763
    },
    {
     "path": "supabase/functions/create-chefs-table-reservation/index.ts",
@@ -112970,17 +112981,6 @@
      "supabase"
     ],
     "lineCount": 114
-   },
-   {
-    "path": "supabase/functions/golden-tok-membership/index.ts",
-    "exports": [],
-    "environmentNames": [
-     "GOLDEN_TOK_STRIPE_PRICE_ID"
-    ],
-    "integrations": [
-     "stripe"
-    ],
-    "lineCount": 202
    },
    {
     "path": "supabase/functions/google-actions-center-sync/index.ts",
@@ -113429,7 +113429,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3318
+    "lineCount": 3365
    },
    {
     "path": "supabase/functions/stripe-worker/index.ts",
@@ -113441,7 +113441,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 526
+    "lineCount": 752
    },
    {
     "path": "supabase/functions/submit-signup-application/index.ts",
@@ -119371,16 +119371,6 @@
     "extension": ".tsx"
    },
    {
-    "path": "src/components/admin/GoldenTokReviewPanel.tsx",
-    "category": "frontend-component",
-    "extension": ".tsx"
-   },
-   {
-    "path": "src/components/admin/RestaurantSearchSelect.tsx",
-    "category": "frontend-component",
-    "extension": ".tsx"
-   },
-   {
     "path": "src/components/admin/TokConnectCatalogControls.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
@@ -119587,11 +119577,6 @@
    },
    {
     "path": "src/components/dashboard/DirectReservationChannelsCard.tsx",
-    "category": "frontend-component",
-    "extension": ".tsx"
-   },
-   {
-    "path": "src/components/dashboard/GoldenTokPanel.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
    },
@@ -123531,11 +123516,6 @@
     "extension": ".ts"
    },
    {
-    "path": "src/test/golden-tok-accreditation.test.ts",
-    "category": "test",
-    "extension": ".ts"
-   },
-   {
     "path": "src/test/golden-tok-shell-logo.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -124677,6 +124657,11 @@
    },
    {
     "path": "src/test/restaurant-public-data-consistency.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/restaurant-reservation-commission-collection.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -126057,11 +126042,6 @@
    },
    {
     "path": "supabase/functions/generate-invoices/index.ts",
-    "category": "edge-function-source",
-    "extension": ".ts"
-   },
-   {
-    "path": "supabase/functions/golden-tok-membership/index.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -129046,7 +129026,7 @@
     "extension": ".sql"
    },
    {
-    "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+    "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -131960,34 +131940,6 @@
    "detailRef": "debbbc5334df"
   },
   {
-   "id": "code-module:5310d052381e",
-   "type": "code-module",
-   "title": "src/components/admin/GoldenTokReviewPanel.tsx",
-   "description": "Module de 86 lignes; exports: default.",
-   "path": "src/components/admin/GoldenTokReviewPanel.tsx",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "default",
-    "supabase"
-   ],
-   "detailRef": "9aa40c4f5c19"
-  },
-  {
-   "id": "code-module:f86897d507d9",
-   "type": "code-module",
-   "title": "src/components/admin/RestaurantSearchSelect.tsx",
-   "description": "Module de 152 lignes; exports: default.",
-   "path": "src/components/admin/RestaurantSearchSelect.tsx",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "default",
-    "supabase"
-   ],
-   "detailRef": "0216bc19c682"
-  },
-  {
    "id": "code-module:0c5529e62dd1",
    "type": "code-module",
    "title": "src/components/admin/TokConnectCatalogControls.tsx",
@@ -132570,21 +132522,6 @@
     "supabase"
    ],
    "detailRef": "158d16ae35f6"
-  },
-  {
-   "id": "code-module:d64510a012d9",
-   "type": "code-module",
-   "title": "src/components/dashboard/GoldenTokPanel.tsx",
-   "description": "Module de 242 lignes; exports: default.",
-   "path": "src/components/dashboard/GoldenTokPanel.tsx",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "default",
-    "stripe",
-    "supabase"
-   ],
-   "detailRef": "910c47511686"
   },
   {
    "id": "code-module:4421e58603e6",
@@ -135576,7 +135513,7 @@
    "id": "code-module:49057d39b311",
    "type": "code-module",
    "title": "src/lib/admin/auditLogNarrative.ts",
-   "description": "Module de 635 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
+   "description": "Module de 634 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
    "path": "src/lib/admin/auditLogNarrative.ts",
    "line": 1,
    "surface": null,
@@ -135597,7 +135534,7 @@
     "stripe",
     "summarizeAuditLog"
    ],
-   "detailRef": "a0bd7b89f563"
+   "detailRef": "80560d668c23"
   },
   {
    "id": "code-module:011d1dc10823",
@@ -138479,7 +138416,7 @@
    "id": "code-module:cc3c7fdb6abb",
    "type": "code-module",
    "title": "src/lib/privilegedSignupRecovery.ts",
-   "description": "Module de 202 lignes; exports: PrivilegedSignupRecoveryRole, PrivilegedSignupRecoveryForm, PrivilegedSignupRecoveryDraft, savePrivilegedSignupRecoveryDraft, loadPrivilegedSignupRecoveryDraft, removePrivilegedSignupRecoveryDraft.",
+   "description": "Module de 203 lignes; exports: PrivilegedSignupRecoveryRole, PrivilegedSignupRecoveryForm, PrivilegedSignupRecoveryDraft, savePrivilegedSignupRecoveryDraft, loadPrivilegedSignupRecoveryDraft, removePrivilegedSignupRecoveryDraft.",
    "path": "src/lib/privilegedSignupRecovery.ts",
    "line": 1,
    "surface": null,
@@ -138491,7 +138428,7 @@
     "removePrivilegedSignupRecoveryDraft",
     "savePrivilegedSignupRecoveryDraft"
    ],
-   "detailRef": "aaf89760b519"
+   "detailRef": "7b48f2b6a8c1"
   },
   {
    "id": "code-module:993919fc41c8",
@@ -138882,7 +138819,7 @@
    "id": "code-module:ff9ded7977ef",
    "type": "code-module",
    "title": "src/lib/restaurantPartnerContract.ts",
-   "description": "Module de 381 lignes; exports: RESTAURANT_PARTNER_CONTRACT_VERSION, RESTAURANT_PARTNER_CONTRACT_TITLE, RESTAURANT_PARTNER_CONTRACT_SECTIONS, getRestaurantPartnerContractPlainText, TOK_CONTRACT_LEGAL_INFORMATION, RestaurantPartnerContractHtmlInput, buildRestaurantPartnerContractHashPayload, generateRestaurantPartnerContractSha256, generateSignedRestaurantPartnerContractHtml.",
+   "description": "Module de 384 lignes; exports: RESTAURANT_PARTNER_CONTRACT_VERSION, RESTAURANT_PARTNER_CONTRACT_TITLE, RESTAURANT_PARTNER_CONTRACT_SECTIONS, getRestaurantPartnerContractPlainText, TOK_CONTRACT_LEGAL_INFORMATION, RestaurantPartnerContractHtmlInput, buildRestaurantPartnerContractHashPayload, generateRestaurantPartnerContractSha256, generateSignedRestaurantPartnerContractHtml.",
    "path": "src/lib/restaurantPartnerContract.ts",
    "line": 1,
    "surface": null,
@@ -138899,7 +138836,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "4eaa53c929d0"
+   "detailRef": "f0f82b91b6c2"
   },
   {
    "id": "code-module:853d55988923",
@@ -140185,7 +140122,7 @@
    "id": "code-module:bf93db106c70",
    "type": "code-module",
    "title": "src/pages/Auth.tsx",
-   "description": "Module de 3366 lignes; exports: default.",
+   "description": "Module de 3408 lignes; exports: default.",
    "path": "src/pages/Auth.tsx",
    "line": 1,
    "surface": null,
@@ -140196,7 +140133,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "722e8b9dfb82"
+   "detailRef": "7fb0f7104d4e"
   },
   {
    "id": "code-module:7a28b76c58b7",
@@ -140356,7 +140293,7 @@
    "id": "code-module:aa1581062def",
    "type": "code-module",
    "title": "src/pages/ConditionsRestaurateurs.tsx",
-   "description": "Module de 185 lignes; exports: default.",
+   "description": "Module de 187 lignes; exports: default.",
    "path": "src/pages/ConditionsRestaurateurs.tsx",
    "line": 1,
    "surface": null,
@@ -140365,7 +140302,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "e970056088b4"
+   "detailRef": "a2061893c142"
   },
   {
    "id": "code-module:f5a2fc13880f",
@@ -141255,7 +141192,7 @@
    "id": "code-module:075e623eff2f",
    "type": "code-module",
    "title": "src/pages/admin/DropsManagement.tsx",
-   "description": "Module de 397 lignes; exports: default.",
+   "description": "Module de 394 lignes; exports: default.",
    "path": "src/pages/admin/DropsManagement.tsx",
    "line": 1,
    "surface": null,
@@ -141263,7 +141200,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "ea1af8607218"
+   "detailRef": "899b22665fff"
   },
   {
    "id": "code-module:c3bf08e13b06",
@@ -141627,7 +141564,7 @@
    "id": "code-module:b7e50e95ad4a",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardFormules.tsx",
-   "description": "Module de 2037 lignes; exports: default.",
+   "description": "Module de 2032 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardFormules.tsx",
    "line": 1,
    "surface": null,
@@ -141635,7 +141572,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "912ada77485e"
+   "detailRef": "9153a1c92996"
   },
   {
    "id": "code-module:54b4a16faa4d",
@@ -141785,7 +141722,7 @@
    "id": "code-module:f39ec1769aae",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardReservations.tsx",
-   "description": "Module de 1260 lignes; exports: default.",
+   "description": "Module de 1323 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardReservations.tsx",
    "line": 1,
    "surface": null,
@@ -141794,7 +141731,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "1e9663419b6c"
+   "detailRef": "8b75e6b0edd0"
   },
   {
    "id": "code-module:6261c9a72668",
@@ -142790,7 +142727,7 @@
    "id": "code-module:4322e22c03e6",
    "type": "code-module",
    "title": "src/test/auth-signup-form.test.tsx",
-   "description": "Module de 1022 lignes; exports: aucun export statique.",
+   "description": "Module de 1026 lignes; exports: aucun export statique.",
    "path": "src/test/auth-signup-form.test.tsx",
    "line": 1,
    "surface": null,
@@ -142800,7 +142737,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "cb2530fa8530"
+   "detailRef": "0410b145d29b"
   },
   {
    "id": "code-module:65a61c431414",
@@ -143103,14 +143040,14 @@
    "id": "code-module:9d85656bda0b",
    "type": "code-module",
    "title": "src/test/chef-table-vip-miamz-access.test.ts",
-   "description": "Module de 79 lignes; exports: aucun export statique.",
+   "description": "Module de 77 lignes; exports: aucun export statique.",
    "path": "src/test/chef-table-vip-miamz-access.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "ee02bf43f885"
+   "detailRef": "55232de689b2"
   },
   {
    "id": "code-module:a1207c4a8469",
@@ -144936,20 +144873,6 @@
     "supabase"
    ],
    "detailRef": "09a378bbe7b5"
-  },
-  {
-   "id": "code-module:a8512244ead0",
-   "type": "code-module",
-   "title": "src/test/golden-tok-accreditation.test.ts",
-   "description": "Module de 78 lignes; exports: aucun export statique.",
-   "path": "src/test/golden-tok-accreditation.test.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "stripe",
-    "supabase"
-   ],
-   "detailRef": "7f4a1279ac67"
   },
   {
    "id": "code-module:af90a689e08c",
@@ -147793,7 +147716,7 @@
    "id": "code-module:9ddedad5946b",
    "type": "code-module",
    "title": "src/test/restaurant-onboarding-payments.test.ts",
-   "description": "Module de 344 lignes; exports: aucun export statique.",
+   "description": "Module de 374 lignes; exports: aucun export statique.",
    "path": "src/test/restaurant-onboarding-payments.test.ts",
    "line": 1,
    "surface": null,
@@ -147801,7 +147724,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "8ea0055394d0"
+   "detailRef": "0ca2453a075e"
   },
   {
    "id": "code-module:67fd19374082",
@@ -147864,6 +147787,20 @@
     "supabase"
    ],
    "detailRef": "8270ccbd9469"
+  },
+  {
+   "id": "code-module:759e6d98d2f0",
+   "type": "code-module",
+   "title": "src/test/restaurant-reservation-commission-collection.test.ts",
+   "description": "Module de 123 lignes; exports: aucun export statique.",
+   "path": "src/test/restaurant-reservation-commission-collection.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "f6e7b12fd780"
   },
   {
    "id": "code-module:d8b8a4d58cea",
@@ -149806,7 +149743,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3247 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3271 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -149820,7 +149757,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "2d2af81d755d"
+   "detailRef": "70f6b665f6a6"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -151602,7 +151539,7 @@
    "id": "code-module:ee34f3a570c0",
    "type": "code-module",
    "title": "supabase/functions/create-checkout/index.ts",
-   "description": "Module de 2774 lignes; exports: aucun export statique.",
+   "description": "Module de 2763 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-checkout/index.ts",
    "line": 1,
    "surface": null,
@@ -151610,7 +151547,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "2488affeec24"
+   "detailRef": "5b485ee86df3"
   },
   {
    "id": "code-module:4160ab4db106",
@@ -151932,20 +151869,6 @@
     "supabase"
    ],
    "detailRef": "0ad291ee9dc5"
-  },
-  {
-   "id": "code-module:26fbb02a49f5",
-   "type": "code-module",
-   "title": "supabase/functions/golden-tok-membership/index.ts",
-   "description": "Module de 202 lignes; exports: aucun export statique.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "GOLDEN_TOK_STRIPE_PRICE_ID",
-    "stripe"
-   ],
-   "detailRef": "1f1a37eeafea"
   },
   {
    "id": "code-module:8fab026bf061",
@@ -152519,7 +152442,7 @@
    "id": "code-module:9ac355dfd729",
    "type": "code-module",
    "title": "supabase/functions/stripe-webhook/index.ts",
-   "description": "Module de 3318 lignes; exports: aucun export statique.",
+   "description": "Module de 3365 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-webhook/index.ts",
    "line": 1,
    "surface": null,
@@ -152527,13 +152450,13 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "090c4e72547f"
+   "detailRef": "04cb53c41982"
   },
   {
    "id": "code-module:f3fa7c18e7bc",
    "type": "code-module",
    "title": "supabase/functions/stripe-worker/index.ts",
-   "description": "Module de 526 lignes; exports: aucun export statique.",
+   "description": "Module de 752 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-worker/index.ts",
    "line": 1,
    "surface": null,
@@ -152542,7 +152465,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "879ce3e2a8f7"
+   "detailRef": "fc85eee6b40b"
   },
   {
    "id": "code-module:869f513f0867",
@@ -159080,21 +159003,6 @@
    "detailRef": "c4b8a58e3be2"
   },
   {
-   "id": "database-object:e7fc2c8f7a33",
-   "type": "database-object",
-   "title": "golden_tok_accreditations_review_idx",
-   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 28,
-   "surface": null,
-   "tags": [
-    "index",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "108fef3b3578"
-  },
-  {
    "id": "database-object:4b229ea8da74",
    "type": "database-object",
    "title": "google_actions_center_bookings_google_id_idx",
@@ -162348,6 +162256,36 @@
     "supabase"
    ],
    "detailRef": "401621453cbe"
+  },
+  {
+   "id": "database-object:690071aef5d3",
+   "type": "database-object",
+   "title": "idx_reservation_commission_collections_claim",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "91c4ee16b16a"
+  },
+  {
+   "id": "database-object:7bc7e6a67142",
+   "type": "database-object",
+   "title": "idx_reservation_commission_collections_restaurant",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "504daa3af89f"
   },
   {
    "id": "database-object:e7658d75ce38",
@@ -166955,6 +166893,21 @@
    "detailRef": "f9a78f4da08c"
   },
   {
+   "id": "database-object:f8be29ddd366",
+   "type": "database-object",
+   "title": "private_finance.open_reservation_commission_invoice",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 52,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "be7333a47baf"
+  },
+  {
    "id": "database-object:68751466cb4f",
    "type": "database-object",
    "title": "private_finance.payment_attempt_json",
@@ -167253,6 +167206,21 @@
     "supabase"
    ],
    "detailRef": "969644b5a1ff"
+  },
+  {
+   "id": "database-object:17e4fbb6ab51",
+   "type": "database-object",
+   "title": "private_finance.stage_reservation_commission",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 127,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "488cb44e5559"
   },
   {
    "id": "database-object:c69b63982aa5",
@@ -169415,21 +169383,6 @@
    "detailRef": "f063775a61f4"
   },
   {
-   "id": "database-object:adecdf40ae7b",
-   "type": "database-object",
-   "title": "public.admin_review_golden_tok_accreditation",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 90,
-   "surface": null,
-   "tags": [
-    "function",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "d190daa49271"
-  },
-  {
    "id": "database-object:c55b17e9ddc2",
    "type": "database-object",
    "title": "public.admin_review_signup_application",
@@ -170763,21 +170716,6 @@
     "supabase"
    ],
    "detailRef": "c41ee496941e"
-  },
-  {
-   "id": "database-object:e353c65c4465",
-   "type": "database-object",
-   "title": "public.apply_golden_tok_accreditation",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 41,
-   "surface": null,
-   "tags": [
-    "function",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "52dffa76f2b6"
   },
   {
    "id": "database-object:a4b2e9751ccf",
@@ -172220,19 +172158,19 @@
    "detailRef": "2a962f96dec8"
   },
   {
-   "id": "database-object:d1efee135c12",
+   "id": "database-object:29f23374b60f",
    "type": "database-object",
    "title": "public.chef_table_drops.chef_table_drops_public_select",
-   "description": "Objet PostgreSQL de type policy; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 158,
+   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20260604023000_admin_chef_table_drop_governance.sql",
+   "line": 15,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "4328b7c670f8"
+   "detailRef": "384a8a6d8797"
   },
   {
    "id": "database-object:665714e4a707",
@@ -172473,6 +172411,21 @@
     "supabase"
    ],
    "detailRef": "2a7f41d7344e"
+  },
+  {
+   "id": "database-object:2a0620bd61be",
+   "type": "database-object",
+   "title": "public.claim_restaurant_commission_collections",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 201,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "5357183e54d8"
   },
   {
    "id": "database-object:231f20fedcf4",
@@ -174228,6 +174181,21 @@
     "supabase"
    ],
    "detailRef": "c0dd1f3babdd"
+  },
+  {
+   "id": "database-object:e892b090c1c9",
+   "type": "database-object",
+   "title": "public.confirm_auto_arrived_reservation_commission",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 179,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "ea431f6f9187"
   },
   {
    "id": "database-object:3787c3058f09",
@@ -176585,6 +176553,21 @@
    "detailRef": "ec1098b966a7"
   },
   {
+   "id": "database-object:79608a5de37a",
+   "type": "database-object",
+   "title": "public.fail_restaurant_commission_collection",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 440,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "924157e1a7b7"
+  },
+  {
    "id": "database-object:1431efcb6dc9",
    "type": "database-object",
    "title": "public.fail_restaurant_subscription_activation_job",
@@ -178263,51 +178246,6 @@
     "table"
    ],
    "detailRef": "7102e6ecd2c1"
-  },
-  {
-   "id": "database-object:db08b7fff9c2",
-   "type": "database-object",
-   "title": "public.golden_tok_accreditations.golden_tok_accreditations_owner_or_admin_read",
-   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 37,
-   "surface": null,
-   "tags": [
-    "policy",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "3de508393715"
-  },
-  {
-   "id": "database-object:765dd627774a",
-   "type": "database-object",
-   "title": "public.golden_tok_accreditations",
-   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 3,
-   "surface": null,
-   "tags": [
-    "postgresql",
-    "supabase",
-    "table"
-   ],
-   "detailRef": "38fed4650257"
-  },
-  {
-   "id": "database-object:35acdaefce0c",
-   "type": "database-object",
-   "title": "public.golden_tok_restaurant_is_paid",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 137,
-   "surface": null,
-   "tags": [
-    "function",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "9e1a02641c89"
   },
   {
    "id": "database-object:e6526496acf5",
@@ -184010,6 +183948,21 @@
    "detailRef": "1fd387af00ea"
   },
   {
+   "id": "database-object:35d9d75623e1",
+   "type": "database-object",
+   "title": "public.record_restaurant_commission_payment",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 269,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "7145fb69c43d"
+  },
+  {
    "id": "database-object:cb4f75cc6ab2",
    "type": "database-object",
    "title": "public.record_restaurant_onboarding_payment_method_ready",
@@ -184158,6 +184111,21 @@
     "supabase"
    ],
    "detailRef": "bf38cb5f40a0"
+  },
+  {
+   "id": "database-object:df33a0b3b779",
+   "type": "database-object",
+   "title": "public.record_tok_bank_payout",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 488,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "af04b26f5e19"
   },
   {
    "id": "database-object:1f5556012743",
@@ -184563,6 +184531,36 @@
     "table"
    ],
    "detailRef": "2d5b9996df3c"
+  },
+  {
+   "id": "database-object:3df9081d7395",
+   "type": "database-object",
+   "title": "public.reservation_commission_collections.restaurant_commission_read_own",
+   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "policy",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "42b0b92376eb"
+  },
+  {
+   "id": "database-object:2692a197b648",
+   "type": "database-object",
+   "title": "public.reservation_commission_collections",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 7,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "6cabb44c6387"
   },
   {
    "id": "database-object:3a8114980772",
@@ -187460,21 +187458,6 @@
    "detailRef": "49089b338b83"
   },
   {
-   "id": "database-object:021db6b7e4f6",
-   "type": "database-object",
-   "title": "public.restaurant_save_golden_tok_drop",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
-   "line": 172,
-   "surface": null,
-   "tags": [
-    "function",
-    "postgresql",
-    "supabase"
-   ],
-   "detailRef": "fc713a698fca"
-  },
-  {
    "id": "database-object:34fad0876655",
    "type": "database-object",
    "title": "public.restaurant_service_areas.Require auth for restaurant_service_areas",
@@ -188135,6 +188118,21 @@
    "detailRef": "78c5e2c95b75"
   },
   {
+   "id": "database-object:750db47cf40a",
+   "type": "database-object",
+   "title": "public.restore_restaurant_commission_dispute",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 386,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "7d4c525f8cfa"
+  },
+  {
    "id": "database-object:12460cdb5a82",
    "type": "database-object",
    "title": "public.restore_special_offer_stock",
@@ -188163,6 +188161,21 @@
     "supabase"
    ],
    "detailRef": "44ce09fa13c8"
+  },
+  {
+   "id": "database-object:be0225c1cc1b",
+   "type": "database-object",
+   "title": "public.reverse_restaurant_commission_payment",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 329,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "9bff5226e3eb"
   },
   {
    "id": "database-object:09e56bddaae9",
@@ -191268,6 +191281,36 @@
     "supabase"
    ],
    "detailRef": "edb45826c211"
+  },
+  {
+   "id": "database-object:35e68a458b73",
+   "type": "database-object",
+   "title": "public.tok_bank_payout_reconciliations.tok_bank_payouts_admin_only",
+   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 484,
+   "surface": null,
+   "tags": [
+    "policy",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "3bf222a01b2f"
+  },
+  {
+   "id": "database-object:e905d041386f",
+   "type": "database-object",
+   "title": "public.tok_bank_payout_reconciliations",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 467,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "ffe249279c3d"
   },
   {
    "id": "database-object:dec39df17eac",
@@ -196113,6 +196156,21 @@
     "trigger"
    ],
    "detailRef": "c7452ef50205"
+  },
+  {
+   "id": "database-object:dc31be6e554c",
+   "type": "database-object",
+   "title": "stage_reservation_commission_after_honoring",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
+   "line": 172,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "4ecc7737ae6d"
   },
   {
    "id": "database-object:f1276b77ab44",
@@ -233460,20 +233518,6 @@
    "detailRef": "88310ef4328f"
   },
   {
-   "id": "edge-action:b273f0b7774d",
-   "type": "edge-action",
-   "title": "cancel",
-   "description": "Action statiquement détectée dans la fonction Edge golden-tok-membership.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "/functions/v1/golden-tok-membership",
-    "golden-tok-membership"
-   ],
-   "detailRef": "897dad724075"
-  },
-  {
    "id": "edge-action:21259ee89a93",
    "type": "edge-action",
    "title": "cancel",
@@ -234552,20 +234596,6 @@
    "detailRef": "9d2367a4e3a2"
   },
   {
-   "id": "edge-action:5c0782c32017",
-   "type": "edge-action",
-   "title": "resume",
-   "description": "Action statiquement détectée dans la fonction Edge golden-tok-membership.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "/functions/v1/golden-tok-membership",
-    "golden-tok-membership"
-   ],
-   "detailRef": "b3b28706625e"
-  },
-  {
    "id": "edge-action:bcb4bcbc3d68",
    "type": "edge-action",
    "title": "resume",
@@ -234830,20 +234860,6 @@
     "crm-mfa-recovery"
    ],
    "detailRef": "3a2cf531e8d8"
-  },
-  {
-   "id": "edge-action:f082bd475d6b",
-   "type": "edge-action",
-   "title": "string",
-   "description": "Action statiquement détectée dans la fonction Edge golden-tok-membership.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "/functions/v1/golden-tok-membership",
-    "golden-tok-membership"
-   ],
-   "detailRef": "c3dd85e63839"
   },
   {
    "id": "edge-action:4cf72f9b4dd7",
@@ -235438,7 +235454,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "9a6e9c51eb28"
+   "detailRef": "fbc8015d5a82"
   },
   {
    "id": "edge-function:8e9e04a29952",
@@ -235539,7 +235555,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "a1470e8c5dd4"
+   "detailRef": "9cb597bf16e6"
   },
   {
    "id": "edge-function:7a772e15f6d3",
@@ -236023,24 +236039,6 @@
    "detailRef": "110f38bc6316"
   },
   {
-   "id": "edge-function:a4c0d8e6ce0d",
-   "type": "edge-function",
-   "title": "golden-tok-membership",
-   "description": "Fonction Edge POST; JWT config=false.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": 1,
-   "surface": null,
-   "tags": [
-    "GOLDEN_TOK_STRIPE_PRICE_ID",
-    "POST",
-    "cancel",
-    "resume",
-    "string",
-    "stripe"
-   ],
-   "detailRef": "b56323547684"
-  },
-  {
    "id": "edge-function:05af66aa208e",
    "type": "edge-function",
    "title": "google-actions-center-sync",
@@ -236130,7 +236128,7 @@
     "run_item",
     "supabase"
    ],
-   "detailRef": "2b2188ba85f6"
+   "detailRef": "74f0a2a1d70f"
   },
   {
    "id": "edge-function:ea04d0a7dc94",
@@ -236143,7 +236141,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "95a3076e3c43"
+   "detailRef": "1c86c2b87d44"
   },
   {
    "id": "edge-function:766b313fa071",
@@ -236157,7 +236155,7 @@
     "GET",
     "POST"
    ],
-   "detailRef": "0774e1af4aea"
+   "detailRef": "2d1373480796"
   },
   {
    "id": "edge-function:b0143386fc19",
@@ -236171,7 +236169,7 @@
     "POST",
     "openai"
    ],
-   "detailRef": "7532cd3c057a"
+   "detailRef": "22cc1be6c7c4"
   },
   {
    "id": "edge-function:636bb88e8d73",
@@ -236255,7 +236253,7 @@
     "settings",
     "update_settings"
    ],
-   "detailRef": "64f5bbd10a92"
+   "detailRef": "50e1a39ef740"
   },
   {
    "id": "edge-function:6744b1da8833",
@@ -236275,7 +236273,7 @@
     "map",
     "sync"
    ],
-   "detailRef": "34ed6cfc6df3"
+   "detailRef": "4a15a5633716"
   },
   {
    "id": "edge-function:4202905f7b82",
@@ -236293,7 +236291,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "322e63f67e26"
+   "detailRef": "ebc34f883194"
   },
   {
    "id": "edge-function:895f528e4b5c",
@@ -236307,7 +236305,7 @@
     "POST",
     "approve"
    ],
-   "detailRef": "931b0f243738"
+   "detailRef": "16e8dbaadcac"
   },
   {
    "id": "edge-function:2d7ec7a7fbe0",
@@ -236324,7 +236322,7 @@
     "stop",
     "stripe"
    ],
-   "detailRef": "5efae4bd3678"
+   "detailRef": "e459e7d65818"
   },
   {
    "id": "edge-function:00482f3f0a8a",
@@ -236342,7 +236340,7 @@
     "reorder",
     "stripe"
    ],
-   "detailRef": "2d445bc0ceb3"
+   "detailRef": "5ac9fe4de6ed"
   },
   {
    "id": "edge-function:d4675b82f334",
@@ -236355,7 +236353,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "d9b9179af16d"
+   "detailRef": "6504c23f6a98"
   },
   {
    "id": "edge-function:93cadf906a52",
@@ -236368,7 +236366,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "df4b6cce4844"
+   "detailRef": "06bd5d4a7653"
   },
   {
    "id": "edge-function:12f5ed65e97d",
@@ -236384,7 +236382,7 @@
     "SITE_URL",
     "stripe"
    ],
-   "detailRef": "84160259f933"
+   "detailRef": "8263c27251e9"
   },
   {
    "id": "edge-function:c64ea182a555",
@@ -236445,7 +236443,7 @@
     "OPTIONS",
     "supabase"
    ],
-   "detailRef": "acb9a778c274"
+   "detailRef": "ab1f62d20122"
   },
   {
    "id": "edge-function:ee5743deb4a2",
@@ -236478,7 +236476,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "5afeb8bb05e8"
+   "detailRef": "52937e1b58c1"
   },
   {
    "id": "edge-function:c069d76c1b37",
@@ -236492,7 +236490,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "0fe164066b6d"
+   "detailRef": "e3cc7dd2d2df"
   },
   {
    "id": "edge-function:8f850940a2c6",
@@ -236507,7 +236505,7 @@
     "openai",
     "stripe"
    ],
-   "detailRef": "19795cf5855c"
+   "detailRef": "9933cf6d0bdb"
   },
   {
    "id": "edge-function:d9d1b11c432b",
@@ -236523,7 +236521,7 @@
     "add_ai_creation_to_gallery",
     "string"
    ],
-   "detailRef": "420a3e03b960"
+   "detailRef": "7aefa9b3709c"
   },
   {
    "id": "edge-function:44ed8631d43d",
@@ -236536,7 +236534,7 @@
    "tags": [
     "ANY"
    ],
-   "detailRef": "6b8f29de7c32"
+   "detailRef": "68cce03ae8b0"
   },
   {
    "id": "edge-function:4a0e241783e5",
@@ -236551,7 +236549,7 @@
     "POST",
     "supabase"
    ],
-   "detailRef": "9f6e26c2e977"
+   "detailRef": "642eb2130847"
   },
   {
    "id": "edge-function:482e409f0108",
@@ -236573,7 +236571,7 @@
     "resend",
     "supabase"
    ],
-   "detailRef": "e9c9276d8ce0"
+   "detailRef": "fd2e786aba82"
   },
   {
    "id": "edge-function:63a0488de187",
@@ -236591,7 +236589,7 @@
     "google",
     "supabase"
    ],
-   "detailRef": "eb47c9fea318"
+   "detailRef": "7f03f0febd53"
   },
   {
    "id": "edge-function:4b955302ab67",
@@ -236605,7 +236603,7 @@
     "ANY",
     "stripe"
    ],
-   "detailRef": "65308dd667c6"
+   "detailRef": "c0fef5b8153c"
   },
   {
    "id": "edge-function:96edd241b1ec",
@@ -236619,7 +236617,7 @@
     "POST",
     "stripe"
    ],
-   "detailRef": "c84039a66512"
+   "detailRef": "b8802a844c0a"
   },
   {
    "id": "edge-function:8e0ac9e090fa",
@@ -236633,7 +236631,7 @@
     "POST",
     "stripe"
    ],
-   "detailRef": "c01f3259c54f"
+   "detailRef": "6e1386a9f1db"
   },
   {
    "id": "edge-function:72765419a956",
@@ -236663,7 +236661,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "f65476abeba3"
+   "detailRef": "8470e509b365"
   },
   {
    "id": "edge-function:f46a6de88d5a",
@@ -236678,7 +236676,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "8734b26e099b"
+   "detailRef": "a8ca6f66eccc"
   },
   {
    "id": "edge-function:955e7c78a21a",
@@ -236695,7 +236693,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "24709be978ce"
+   "detailRef": "14074843fc63"
   },
   {
    "id": "edge-function:6955272728a1",
@@ -236708,7 +236706,7 @@
    "tags": [
     "ANY"
    ],
-   "detailRef": "11c4324f636b"
+   "detailRef": "b864b8027297"
   },
   {
    "id": "edge-function:debd98d4a448",
@@ -236721,7 +236719,7 @@
    "tags": [
     "POST"
    ],
-   "detailRef": "8e21957d2cde"
+   "detailRef": "99988f262bca"
   },
   {
    "id": "edge-function:8e71119bbca0",
@@ -236738,7 +236736,7 @@
     "set-restaurant-mcp-access",
     "supabase"
    ],
-   "detailRef": "e88e4a1b3f8e"
+   "detailRef": "2ce3eca7bdcc"
   },
   {
    "id": "edge-function:d39678843030",
@@ -236752,7 +236750,7 @@
     "GET",
     "POST"
    ],
-   "detailRef": "a9b74bfcaa37"
+   "detailRef": "46389a08e99d"
   },
   {
    "id": "edge-function:06314d9483f8",
@@ -236775,7 +236773,7 @@
     "supabase",
     "update"
    ],
-   "detailRef": "28b00a138d8f"
+   "detailRef": "240721ae9494"
   },
   {
    "id": "edge-function:4ae45b142614",
@@ -236795,7 +236793,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "00ba46f4f201"
+   "detailRef": "e008e028b2d3"
   },
   {
    "id": "edge-function:c9c1a5f4268f",
@@ -236816,7 +236814,7 @@
     "rpc",
     "supabase"
    ],
-   "detailRef": "797f525a217b"
+   "detailRef": "b88005664649"
   },
   {
    "id": "edge-function:f38098ad6d58",
@@ -236836,7 +236834,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "1480378ad7a6"
+   "detailRef": "375f4ea46d3d"
   },
   {
    "id": "edge-function:c07dbf75dc6d",
@@ -236856,7 +236854,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "f486d47a9d7c"
+   "detailRef": "83237706adc8"
   },
   {
    "id": "edge-function:4576e3c0c057",
@@ -236872,7 +236870,7 @@
     "SUPABASE_SERVICE_ROLE_KEY",
     "supabase"
    ],
-   "detailRef": "868c97b84951"
+   "detailRef": "6fe2e3d8f234"
   },
   {
    "id": "edge-function:19db644bfd2f",
@@ -236902,7 +236900,7 @@
     "update-grant-status",
     "upsert-restaurant-grant"
    ],
-   "detailRef": "d28d68941b3f"
+   "detailRef": "bed7fd805d6e"
   },
   {
    "id": "edge-function:2b5564847db9",
@@ -236921,7 +236919,7 @@
     "TOK_CONNECT_PUBLIC_ORIGIN",
     "supabase"
    ],
-   "detailRef": "012f12c653be"
+   "detailRef": "0207fed13b34"
   },
   {
    "id": "edge-function:18e2720fac44",
@@ -236935,7 +236933,7 @@
     "POST",
     "supabase"
    ],
-   "detailRef": "243f687bc39f"
+   "detailRef": "d75cf04208fa"
   },
   {
    "id": "edge-function:c49d4f8a4fa9",
@@ -236951,7 +236949,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "409232f8e4a9"
+   "detailRef": "042006f82b3e"
   },
   {
    "id": "edge-function:c25351474d05",
@@ -236968,7 +236966,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "8165dab00a8f"
+   "detailRef": "96382bea3e3a"
   },
   {
    "id": "edge-function:4dcfc3d7fc50",
@@ -236985,7 +236983,7 @@
     "SUPABASE_URL",
     "supabase"
    ],
-   "detailRef": "d64c75826e6d"
+   "detailRef": "568d201b3f0a"
   },
   {
    "id": "edge-function:dd31c294fa37",
@@ -237002,7 +237000,7 @@
     "SITE_URL",
     "stripe"
    ],
-   "detailRef": "0f85f138ace0"
+   "detailRef": "fb9994f80379"
   },
   {
    "id": "edge-function:4bdac8cea73e",
@@ -237812,19 +237810,6 @@
     "scripts/ci-change-plan.mjs"
    ],
    "detailRef": "c79f937126a4"
-  },
-  {
-   "id": "environment-variable:3666f2d4e955",
-   "type": "environment-variable",
-   "title": "GOLDEN_TOK_STRIPE_PRICE_ID",
-   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    "supabase/functions/golden-tok-membership/index.ts"
-   ],
-   "detailRef": "9f281f980561"
   },
   {
    "id": "environment-variable:3ce4aba8f4bf",
@@ -255508,19 +255493,19 @@
    "detailRef": "1022e0697b7c"
   },
   {
-   "id": "exported-symbol:04203b537ce9",
+   "id": "exported-symbol:6254be3042e3",
    "type": "exported-symbol",
    "title": "RestaurantPartnerContractHtmlInput",
    "description": "Export typealias de src/lib/restaurantPartnerContract.ts.",
    "path": "src/lib/restaurantPartnerContract.ts",
-   "line": 156,
+   "line": 159,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "typealias"
    ],
-   "detailRef": "98f86862a3d2"
+   "detailRef": "c19761ad7fe2"
   },
   {
    "id": "exported-symbol:208f05fad018",
@@ -258494,19 +258479,19 @@
    "detailRef": "bec1d78400e2"
   },
   {
-   "id": "exported-symbol:6e2bb7fe3a05",
+   "id": "exported-symbol:67f792895d8d",
    "type": "exported-symbol",
    "title": "TOK_CONTRACT_LEGAL_INFORMATION",
    "description": "Export variable de src/lib/restaurantPartnerContract.ts.",
    "path": "src/lib/restaurantPartnerContract.ts",
-   "line": 146,
+   "line": 149,
    "surface": null,
    "tags": [
     "google",
     "stripe",
     "variable"
    ],
-   "detailRef": "ba112d17f245"
+   "detailRef": "a2c6cbd53f9e"
   },
   {
    "id": "exported-symbol:ab21d8f0e2b4",
@@ -262999,19 +262984,19 @@
    "detailRef": "fad13d297e5c"
   },
   {
-   "id": "exported-symbol:a56c16b93684",
+   "id": "exported-symbol:effd7f023272",
    "type": "exported-symbol",
    "title": "buildRestaurantPartnerContractHashPayload",
    "description": "Export function de src/lib/restaurantPartnerContract.ts.",
    "path": "src/lib/restaurantPartnerContract.ts",
-   "line": 234,
+   "line": 237,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "8aa503d81295"
+   "detailRef": "a765045f62fa"
   },
   {
    "id": "exported-symbol:743ab6c5f3fe",
@@ -266636,34 +266621,6 @@
    "detailRef": "c31d75e6188a"
   },
   {
-   "id": "exported-symbol:dc5e38b714c7",
-   "type": "exported-symbol",
-   "title": "default",
-   "description": "Export function de src/components/admin/GoldenTokReviewPanel.tsx.",
-   "path": "src/components/admin/GoldenTokReviewPanel.tsx",
-   "line": 17,
-   "surface": null,
-   "tags": [
-    "function",
-    "supabase"
-   ],
-   "detailRef": "f6ad11948f69"
-  },
-  {
-   "id": "exported-symbol:acbe79ec3eac",
-   "type": "exported-symbol",
-   "title": "default",
-   "description": "Export function de src/components/admin/RestaurantSearchSelect.tsx.",
-   "path": "src/components/admin/RestaurantSearchSelect.tsx",
-   "line": 18,
-   "surface": null,
-   "tags": [
-    "function",
-    "supabase"
-   ],
-   "detailRef": "64c0644642e8"
-  },
-  {
    "id": "exported-symbol:282af76f3648",
    "type": "exported-symbol",
    "title": "default",
@@ -267175,21 +267132,6 @@
     "supabase"
    ],
    "detailRef": "700e13046dca"
-  },
-  {
-   "id": "exported-symbol:3b6fb60e1aee",
-   "type": "exported-symbol",
-   "title": "default",
-   "description": "Export function de src/components/dashboard/GoldenTokPanel.tsx.",
-   "path": "src/components/dashboard/GoldenTokPanel.tsx",
-   "line": 36,
-   "surface": null,
-   "tags": [
-    "function",
-    "stripe",
-    "supabase"
-   ],
-   "detailRef": "447b1b1db7fc"
   },
   {
    "id": "exported-symbol:efe615403574",
@@ -268391,12 +268333,12 @@
    "detailRef": "f6ad11948f69"
   },
   {
-   "id": "exported-symbol:eabd35491cf8",
+   "id": "exported-symbol:bb4502235476",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/Auth.tsx.",
    "path": "src/pages/Auth.tsx",
-   "line": 865,
+   "line": 873,
    "surface": null,
    "tags": [
     "function",
@@ -268405,7 +268347,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "aaddf455b8ae"
+   "detailRef": "38072ec0e7ef"
   },
   {
    "id": "exported-symbol:c06480596608",
@@ -268561,19 +268503,19 @@
    "detailRef": "29128a23f0cc"
   },
   {
-   "id": "exported-symbol:ab12e8d94337",
+   "id": "exported-symbol:549b1cef318f",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/ConditionsRestaurateurs.tsx.",
    "path": "src/pages/ConditionsRestaurateurs.tsx",
-   "line": 140,
+   "line": 142,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "9da2805b3436"
+   "detailRef": "a7934e408fe3"
   },
   {
    "id": "exported-symbol:15e59323ae1b",
@@ -269459,18 +269401,18 @@
    "detailRef": "fefbe03afd0e"
   },
   {
-   "id": "exported-symbol:391539f72471",
+   "id": "exported-symbol:6312156dc196",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/admin/DropsManagement.tsx.",
    "path": "src/pages/admin/DropsManagement.tsx",
-   "line": 35,
+   "line": 32,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "700e13046dca"
+   "detailRef": "57689e50b20d"
   },
   {
    "id": "exported-symbol:7893b673717e",
@@ -269736,18 +269678,18 @@
    "detailRef": "6ea47572b244"
   },
   {
-   "id": "exported-symbol:09689b44b699",
+   "id": "exported-symbol:1f5e9ad68f1f",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardFormules.tsx.",
    "path": "src/pages/dashboard/DashboardFormules.tsx",
-   "line": 1514,
+   "line": 1513,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "2d0b0bbbb7d5"
+   "detailRef": "a6a5b02a4a5d"
   },
   {
    "id": "exported-symbol:f84397792633",
@@ -270137,79 +270079,79 @@
    "detailRef": "35cf2f09a4fb"
   },
   {
-   "id": "exported-symbol:4daf504b7ba1",
+   "id": "exported-symbol:46b7333dd8a6",
    "type": "exported-symbol",
    "title": "describeAuditAction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 485,
+   "line": 484,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "510398973d96"
+   "detailRef": "b90b791bbf96"
   },
   {
-   "id": "exported-symbol:f9ea46bb7ff0",
+   "id": "exported-symbol:1acaec08b34c",
    "type": "exported-symbol",
    "title": "describeAuditActor",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 500,
+   "line": 499,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "5109f4f581ae"
+   "detailRef": "65133d2ecc6c"
   },
   {
-   "id": "exported-symbol:dd26294f1247",
+   "id": "exported-symbol:4881f83de976",
    "type": "exported-symbol",
    "title": "describeAuditEntity",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 493,
+   "line": 492,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "f95415aa1aad"
+   "detailRef": "5958429935e9"
   },
   {
-   "id": "exported-symbol:7007080de2b5",
+   "id": "exported-symbol:3815337bdd04",
    "type": "exported-symbol",
    "title": "describeAuditFunction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 478,
+   "line": 477,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "04cb48327718"
+   "detailRef": "1cbf0a76d25f"
   },
   {
-   "id": "exported-symbol:46b299d550e9",
+   "id": "exported-symbol:46caaafe2225",
    "type": "exported-symbol",
    "title": "describeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 629,
+   "line": 628,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "aeeb9e430cd7"
+   "detailRef": "b0766893ca10"
   },
   {
    "id": "exported-symbol:10f1bf567ca4",
@@ -270873,19 +270815,19 @@
    "detailRef": "8b413b2a22c5"
   },
   {
-   "id": "exported-symbol:9f92ba8eb29f",
+   "id": "exported-symbol:d0803f3bff75",
    "type": "exported-symbol",
    "title": "explainAuditError",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 508,
+   "line": 507,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "235177c0bbb9"
+   "detailRef": "b50a1667e564"
   },
   {
    "id": "exported-symbol:94c395b452eb",
@@ -272224,34 +272166,34 @@
    "detailRef": "4ecd69ad3d38"
   },
   {
-   "id": "exported-symbol:9f3bd97f5ea0",
+   "id": "exported-symbol:1f7c7b57ce44",
    "type": "exported-symbol",
    "title": "generateRestaurantPartnerContractSha256",
    "description": "Export function de src/lib/restaurantPartnerContract.ts.",
    "path": "src/lib/restaurantPartnerContract.ts",
-   "line": 254,
+   "line": 257,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "924c262f1aa8"
+   "detailRef": "7140225eedad"
   },
   {
-   "id": "exported-symbol:490dfee99626",
+   "id": "exported-symbol:7f251075da67",
    "type": "exported-symbol",
    "title": "generateSignedRestaurantPartnerContractHtml",
    "description": "Export function de src/lib/restaurantPartnerContract.ts.",
    "path": "src/lib/restaurantPartnerContract.ts",
-   "line": 265,
+   "line": 268,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "43445e9cec6d"
+   "detailRef": "6477d436794b"
   },
   {
    "id": "exported-symbol:b3d0ef8e532e",
@@ -275824,19 +275766,19 @@
    "detailRef": "3a99d542a24e"
   },
   {
-   "id": "exported-symbol:fcfbda9595c2",
+   "id": "exported-symbol:64e55cf038f9",
    "type": "exported-symbol",
    "title": "getRestaurantPartnerContractPlainText",
    "description": "Export function de src/lib/restaurantPartnerContract.ts.",
    "path": "src/lib/restaurantPartnerContract.ts",
-   "line": 127,
+   "line": 130,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "99384fad1154"
+   "detailRef": "6005cff35045"
   },
   {
    "id": "exported-symbol:468926bbc018",
@@ -277325,19 +277267,19 @@
    "detailRef": "dc9f63bb72e6"
   },
   {
-   "id": "exported-symbol:d855de964287",
+   "id": "exported-symbol:3e5a7e4a9827",
    "type": "exported-symbol",
    "title": "humanizeIdentifier",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 466,
+   "line": 465,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "cd201f4dc125"
+   "detailRef": "ee689cf56868"
   },
   {
    "id": "exported-symbol:cd0c65e7c41c",
@@ -279803,17 +279745,17 @@
    "detailRef": "d2310ef4f74d"
   },
   {
-   "id": "exported-symbol:0109dc7d6916",
+   "id": "exported-symbol:05a0f887eb13",
    "type": "exported-symbol",
    "title": "loadPrivilegedSignupRecoveryDraft",
    "description": "Export function de src/lib/privilegedSignupRecovery.ts.",
    "path": "src/lib/privilegedSignupRecovery.ts",
-   "line": 155,
+   "line": 156,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "030eab57dc46"
+   "detailRef": "649afe81ab63"
   },
   {
    "id": "exported-symbol:001af3fffcac",
@@ -279830,12 +279772,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:d735acd96578",
+   "id": "exported-symbol:12f0ca04df38",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3242,
+   "line": 3266,
    "surface": null,
    "tags": [
     "firebase",
@@ -279845,7 +279787,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "d7f85c7341c8"
+   "detailRef": "aaeff010da28"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -282909,17 +282851,17 @@
    "detailRef": "2e6e350bd586"
   },
   {
-   "id": "exported-symbol:9941da69b38e",
+   "id": "exported-symbol:764f6177fd11",
    "type": "exported-symbol",
    "title": "removePrivilegedSignupRecoveryDraft",
    "description": "Export function de src/lib/privilegedSignupRecovery.ts.",
    "path": "src/lib/privilegedSignupRecovery.ts",
-   "line": 189,
+   "line": 190,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "fc82c5508de8"
+   "detailRef": "d99142edbbbf"
   },
   {
    "id": "exported-symbol:d7212d77f6b4",
@@ -284218,17 +284160,17 @@
    "detailRef": "dc27aa9428e2"
   },
   {
-   "id": "exported-symbol:cfadec0c802b",
+   "id": "exported-symbol:dc5d12adcfdb",
    "type": "exported-symbol",
    "title": "savePrivilegedSignupRecoveryDraft",
    "description": "Export function de src/lib/privilegedSignupRecovery.ts.",
    "path": "src/lib/privilegedSignupRecovery.ts",
-   "line": 114,
+   "line": 115,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "a99d588d51f5"
+   "detailRef": "b8f2e253ad3a"
   },
   {
    "id": "exported-symbol:6528d79ba4c4",
@@ -285312,19 +285254,19 @@
    "detailRef": "596a9a69ebd0"
   },
   {
-   "id": "exported-symbol:54e0678701fe",
+   "id": "exported-symbol:396e55fc54b1",
    "type": "exported-symbol",
    "title": "summarizeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 633,
+   "line": 632,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "a5e4fc639601"
+   "detailRef": "6f938fcbd0dd"
   },
   {
    "id": "exported-symbol:25e70f45a5b2",
@@ -304874,34 +304816,6 @@
    "detailRef": "78119aa064a9"
   },
   {
-   "id": "file:c8b48f003e0e",
-   "type": "file",
-   "title": "src/components/admin/GoldenTokReviewPanel.tsx",
-   "description": "Fichier du dépôt classé frontend-component.",
-   "path": "src/components/admin/GoldenTokReviewPanel.tsx",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".tsx",
-    "frontend-component"
-   ],
-   "detailRef": "3f4268b2e911"
-  },
-  {
-   "id": "file:86b6dfbe5b48",
-   "type": "file",
-   "title": "src/components/admin/RestaurantSearchSelect.tsx",
-   "description": "Fichier du dépôt classé frontend-component.",
-   "path": "src/components/admin/RestaurantSearchSelect.tsx",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".tsx",
-    "frontend-component"
-   ],
-   "detailRef": "4aa3920952fb"
-  },
-  {
    "id": "file:0f1b4d12a4a2",
    "type": "file",
    "title": "src/components/admin/TokConnectCatalogControls.tsx",
@@ -305488,20 +305402,6 @@
     "frontend-component"
    ],
    "detailRef": "204338c8f085"
-  },
-  {
-   "id": "file:222d6c08a651",
-   "type": "file",
-   "title": "src/components/dashboard/GoldenTokPanel.tsx",
-   "description": "Fichier du dépôt classé frontend-component.",
-   "path": "src/components/dashboard/GoldenTokPanel.tsx",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".tsx",
-    "frontend-component"
-   ],
-   "detailRef": "cbe67b71c6a5"
   },
   {
    "id": "file:db6a227c5e3c",
@@ -316522,20 +316422,6 @@
    "detailRef": "f2b7ecd4677e"
   },
   {
-   "id": "file:d4bc542424fb",
-   "type": "file",
-   "title": "src/test/golden-tok-accreditation.test.ts",
-   "description": "Fichier du dépôt classé test.",
-   "path": "src/test/golden-tok-accreditation.test.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "test"
-   ],
-   "detailRef": "f0a9bea36287"
-  },
-  {
    "id": "file:13a495a5209c",
    "type": "file",
    "title": "src/test/golden-tok-shell-logo.test.ts",
@@ -319740,6 +319626,20 @@
     "test"
    ],
    "detailRef": "778c7f6f8921"
+  },
+  {
+   "id": "file:bd91d52eb65b",
+   "type": "file",
+   "title": "src/test/restaurant-reservation-commission-collection.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/restaurant-reservation-commission-collection.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "5eec11dc54cb"
   },
   {
    "id": "file:95c490098416",
@@ -323604,20 +323504,6 @@
     "edge-function-source"
    ],
    "detailRef": "44c44b512b03"
-  },
-  {
-   "id": "file:533c68322d81",
-   "type": "file",
-   "title": "supabase/functions/golden-tok-membership/index.ts",
-   "description": "Fichier du dépôt classé edge-function-source.",
-   "path": "supabase/functions/golden-tok-membership/index.ts",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".ts",
-    "edge-function-source"
-   ],
-   "detailRef": "4449bed831bc"
   },
   {
    "id": "file:4cebd107709c",
@@ -331964,18 +331850,18 @@
    "detailRef": "1ca1b5fde1d8"
   },
   {
-   "id": "file:721d7897f967",
+   "id": "file:941f5383cb9e",
    "type": "file",
-   "title": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "title": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
    "description": "Fichier du dépôt classé database-migration.",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
    "line": null,
    "surface": null,
    "tags": [
     ".sql",
     "database-migration"
    ],
-   "detailRef": "88e6fa2f809a"
+   "detailRef": "50ae2d603b54"
   },
   {
    "id": "file:e79b29a1c0b4",
@@ -335687,7 +335573,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 229 module(s).",
+   "description": "Intégration externe détectée dans 227 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -335714,7 +335600,6 @@
     "src/components/commercial/CommercialDemoActorWorkspace.tsx",
     "src/components/commercial/CommercialMultiSpaceDemo.tsx",
     "src/components/dashboard/CommercialDemoScenario.tsx",
-    "src/components/dashboard/GoldenTokPanel.tsx",
     "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
     "src/data/userGuideFeatureDetails.ts",
     "src/hooks/useAdminLaunchPacks.ts",
@@ -335808,7 +335693,6 @@
     "src/test/feature-flags.test.ts",
     "src/test/financial-health.test.ts",
     "src/test/git-auto-sync-scripts.test.ts",
-    "src/test/golden-tok-accreditation.test.ts",
     "src/test/incident-intelligence-routing.test.ts",
     "src/test/ios-commerce-policy.test.ts",
     "src/test/ios-storekit-subscription-management.test.ts",
@@ -335833,6 +335717,7 @@
     "src/test/restaurant-billing-account.test.ts",
     "src/test/restaurant-onboarding-payments.test.ts",
     "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
+    "src/test/restaurant-reservation-commission-collection.test.ts",
     "src/test/restaurant-stripe-adjustments.test.ts",
     "src/test/restaurateur-onboarding-reliability.test.ts",
     "src/test/scale-readiness-guards.test.ts",
@@ -335893,7 +335778,6 @@
     "supabase/functions/create-chefs-table-reservation/index.ts",
     "supabase/functions/create-reservation/index.ts",
     "supabase/functions/create-zero-attente-reservation/index.ts",
-    "supabase/functions/golden-tok-membership/index.ts",
     "supabase/functions/google-actions-center/index.ts",
     "supabase/functions/manage-restaurant-subscription/index.ts",
     "supabase/functions/manage-tok-one-subscription/index.ts",
@@ -335923,13 +335807,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "8ea39cd59fe6"
+   "detailRef": "228efe3044d2"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 691 module(s).",
+   "description": "Intégration externe détectée dans 688 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -336005,8 +335889,6 @@
     "src/components/admin/AdminMobileNavigation.tsx",
     "src/components/admin/AdminRealRestaurantAssignment.tsx",
     "src/components/admin/AdminUrgentActions.tsx",
-    "src/components/admin/GoldenTokReviewPanel.tsx",
-    "src/components/admin/RestaurantSearchSelect.tsx",
     "src/components/auth/AccountPasswordForm.tsx",
     "src/components/campaigns/CampaignInternalTestSummary.tsx",
     "src/components/cart/CartSuggestionsStep.tsx",
@@ -336019,7 +335901,6 @@
     "src/components/dashboard/AiStyleReferencePicker.tsx",
     "src/components/dashboard/DailyDishAiPanel.tsx",
     "src/components/dashboard/DirectReservationChannelsCard.tsx",
-    "src/components/dashboard/GoldenTokPanel.tsx",
     "src/components/dashboard/TokAiMarketingStudio.tsx",
     "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
     "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
@@ -336327,7 +336208,6 @@
     "src/test/generate-campaign-ai-optimization.test.ts",
     "src/test/generate-campaign-copy.test.ts",
     "src/test/git-auto-sync-scripts.test.ts",
-    "src/test/golden-tok-accreditation.test.ts",
     "src/test/google-actions-center-outbox.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "src/test/google-business-booking-phase1.test.ts",
@@ -336461,6 +336341,7 @@
     "src/test/restaurant-paid-tok-purchases-invoices.test.ts",
     "src/test/restaurant-promotions-governance.test.ts",
     "src/test/restaurant-public-data-consistency.test.ts",
+    "src/test/restaurant-reservation-commission-collection.test.ts",
     "src/test/restaurant-search-preview.test.tsx",
     "src/test/restaurant-slug-seo.test.ts",
     "src/test/restaurant-special-offer-governance.test.ts",
@@ -336627,7 +336508,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "44bd158e6ab8"
+   "detailRef": "e25dbda26e93"
   },
   {
    "id": "integration:c20910a79a78",
@@ -344773,18 +344654,18 @@
    "detailRef": "79d8499d3352"
   },
   {
-   "id": "migration:c2be902a5892",
+   "id": "migration:9e4fd59ea4e9",
    "type": "migration",
-   "title": "20261014030000 Golden Tok Accreditations",
-   "description": "Migration SQL de 286 lignes, 8 objets CREATE détectés.",
-   "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
+   "title": "20261014010000 Recurring Restaurant Reservation Commissions",
+   "description": "Migration SQL de 549 lignes, 16 objets CREATE détectés.",
+   "path": "supabase/migrations/20261014010000_recurring_restaurant_reservation_commissions.sql",
    "line": 1,
    "surface": null,
    "tags": [
     "postgresql",
     "supabase"
    ],
-   "detailRef": "dfcb2acecca7"
+   "detailRef": "b98150b2ca16"
   },
   {
    "id": "package-script:5bd6dc98483a",
@@ -346258,7 +346139,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "d3d73b7e22de"
+   "detailRef": "d65b2370f894"
   },
   {
    "id": "page:7f83ca0b2fd1",
@@ -346426,7 +346307,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "57b90d345874"
+   "detailRef": "f40c7da5d1d0"
   },
   {
    "id": "page:82401339cd0f",
@@ -346776,7 +346657,7 @@
     "/dashboard/formules",
     "supabase"
    ],
-   "detailRef": "05dadbfa3c04"
+   "detailRef": "e6bbfba54462"
   },
   {
    "id": "page:122f9911f8cc",
@@ -347022,7 +346903,7 @@
     "/admin/drops",
     "supabase"
    ],
-   "detailRef": "70e0d9f99c5a"
+   "detailRef": "c41eb3a4ad55"
   },
   {
    "id": "page:bcdecca0a509",
@@ -347811,7 +347692,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "73eb2634099a"
+   "detailRef": "fd4533495534"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -348899,7 +348780,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "2ed4786397f5"
+   "detailRef": "e8a395d039af"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -349276,7 +349157,7 @@
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "0f51fd6a37f0"
+   "detailRef": "f4ec533d6e57"
   },
   {
    "id": "path-literal:7e02e7d7b2d4",
@@ -349321,7 +349202,7 @@
     "src/pages/Auth.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "14b0caaa9e58"
+   "detailRef": "c70f5d2f53e4"
   },
   {
    "id": "path-literal:0e40cdcc0a96",
@@ -349438,7 +349319,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "49f5ac33bb82"
+   "detailRef": "57d2d096d305"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -349454,17 +349335,17 @@
    "detailRef": "8130f837ff8f"
   },
   {
-   "id": "path-literal:5e6ef4a2312f",
+   "id": "path-literal:d2ef34298bae",
    "type": "path-literal",
    "title": "/auth?confirmed=1",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/auth-signup-form.test.tsx",
-   "line": 523,
+   "line": 525,
    "surface": null,
    "tags": [
     "src/test/auth-signup-form.test.tsx"
    ],
-   "detailRef": "33e066e3ea88"
+   "detailRef": "7d4819616e48"
   },
   {
    "id": "path-literal:7afea8315dad",
@@ -349517,20 +349398,20 @@
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx"
    ],
-   "detailRef": "8958e02aca0d"
+   "detailRef": "ffe2e28b409a"
   },
   {
-   "id": "path-literal:3c153c14003c",
+   "id": "path-literal:340c7838ffd8",
    "type": "path-literal",
    "title": "/auth?type=restaurateur",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/auth-signup-form.test.tsx",
-   "line": 609,
+   "line": 611,
    "surface": null,
    "tags": [
     "src/test/auth-signup-form.test.tsx"
    ],
-   "detailRef": "06a517a01469"
+   "detailRef": "e6208920308d"
   },
   {
    "id": "path-literal:d822148ab793",
@@ -349623,7 +349504,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "93028a15c571"
+   "detailRef": "a71cef8a7947"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -349749,7 +349630,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "52e5e1ffa049"
+   "detailRef": "9f9459acde04"
   },
   {
    "id": "path-literal:e53adf57f6c1",
@@ -350241,7 +350122,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "087b1f747989"
+   "detailRef": "87ef399e481d"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -350310,7 +350191,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "2a5b8e48faaf"
+   "detailRef": "3b1ad16ea269"
   },
   {
    "id": "path-literal:2a26b0d45a67",
@@ -350507,7 +350388,7 @@
     "src/test/role-access.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "b81828ebf154"
+   "detailRef": "55f339db0e5f"
   },
   {
    "id": "path-literal:53f7ddd4b372",
@@ -350665,7 +350546,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "55200cac124b"
+   "detailRef": "1c810a7b6489"
   },
   {
    "id": "path-literal:b6abce7fd060",
@@ -350978,7 +350859,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "9ef305f93703"
+   "detailRef": "74a94d49402c"
   },
   {
    "id": "path-literal:916ad1246b1e",
@@ -351045,7 +350926,7 @@
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "cecdef5fa4b6"
+   "detailRef": "9327966f38f4"
   },
   {
    "id": "path-literal:d7fb77c2dbf9",
@@ -351368,7 +351249,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "2be5bbbc2759"
+   "detailRef": "8d44dfd88d2a"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -351544,7 +351425,7 @@
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "8c5cd167706a"
+   "detailRef": "2736248a9d82"
   },
   {
    "id": "path-literal:61b7c747d86f",
@@ -355121,7 +355002,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "1d94261de729"
+   "detailRef": "ee790b9ab04d"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -355386,7 +355267,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "aff9310bb026"
+   "detailRef": "686d1dadd0f0"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -365708,18 +365589,18 @@
    "detailRef": "337f3422ef70"
   },
   {
-   "id": "query-parameter:c88f989a1f26",
+   "id": "query-parameter:97d452f8be66",
    "type": "query-parameter",
    "title": "commercialReferral",
    "description": "Paramètre d’URL détecté dans 4 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 906,
+   "line": 914,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "6f430e6b8cea"
+   "detailRef": "67572e0af262"
   },
   {
    "id": "query-parameter:e58a726e4a9a",
@@ -365745,7 +365626,7 @@
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "68ca789e853b"
+   "detailRef": "dbc9f9be270f"
   },
   {
    "id": "query-parameter:6f48ee40f004",
@@ -365845,17 +365726,17 @@
    "detailRef": "b8e891e32777"
   },
   {
-   "id": "query-parameter:bae83c455f36",
+   "id": "query-parameter:33f14ab3ce4b",
    "type": "query-parameter",
    "title": "domain",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 2342,
+   "line": 2363,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "a7da9c56ee7c"
+   "detailRef": "0e92a9c80839"
   },
   {
    "id": "query-parameter:4b8ca1ad9f1a",
@@ -366219,18 +366100,18 @@
    "detailRef": "7416fc2814b7"
   },
   {
-   "id": "query-parameter:113d269f19f7",
+   "id": "query-parameter:f22dd6fd43de",
    "type": "query-parameter",
    "title": "mode",
    "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 948,
+   "line": 956,
    "surface": null,
    "tags": [
     "public/manifest.json",
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "f8d89f042823"
+   "detailRef": "a6ba12717fca"
   },
   {
    "id": "query-parameter:13ab169c3958",
@@ -366507,17 +366388,17 @@
    "detailRef": "253a489c0969"
   },
   {
-   "id": "query-parameter:757af4b148dd",
+   "id": "query-parameter:376847886a9d",
    "type": "query-parameter",
    "title": "redirect",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 1109,
+   "line": 1118,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "89680d4ef903"
+   "detailRef": "c78c60051fb9"
   },
   {
    "id": "query-parameter:9c0596468b12",
@@ -366682,7 +366563,7 @@
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "0ed0a0bcf305"
+   "detailRef": "ee42be6c1daa"
   },
   {
    "id": "query-parameter:9cbcceee78f6",
@@ -366786,18 +366667,18 @@
    "detailRef": "650d497360f1"
   },
   {
-   "id": "query-parameter:293b5f23a696",
+   "id": "query-parameter:9f8bbf615203",
    "type": "query-parameter",
    "title": "subscriptionPlan",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 917,
+   "line": 925,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "1163ce1d0ec5"
+   "detailRef": "dd00552c2d86"
   },
   {
    "id": "query-parameter:acdea8095242",
@@ -366898,18 +366779,18 @@
    "detailRef": "aea9f02e4c0f"
   },
   {
-   "id": "query-parameter:7e0bc57e0111",
+   "id": "query-parameter:cb61dfa6916c",
    "type": "query-parameter",
    "title": "type",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 285,
+   "line": 286,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "5d19f59b15f7"
+   "detailRef": "674f3f6850d6"
   },
   {
    "id": "query-parameter:e08518f4679d",

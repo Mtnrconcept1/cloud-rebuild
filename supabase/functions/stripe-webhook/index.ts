@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "npm:stripe@18.5.0";
+import Stripe from "npm:stripe@22.3.2";
 import { getEnv, writeAuditLog } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { finalizeChefsTableCheckout } from "../_shared/chefs-table.ts";
@@ -2515,8 +2515,62 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case "payout.created":
+      case "payout.updated":
+      case "payout.paid":
+      case "payout.failed":
+      case "payout.canceled": {
+        // This is the TOK PLATFORM payout. Connected-account payouts are not
+        // company bank receipts. No Connect transfer is created here.
+        if (!event.livemode || (event as Stripe.Event & { account?: string }).account) {
+          break;
+        }
+        const payout = event.data.object as Stripe.Payout;
+        if (payout.currency !== "chf" || !Number.isSafeInteger(payout.amount)
+          || payout.amount <= 0) {
+          throw new Error("TOK_BANK_PAYOUT_IDENTITY_MISMATCH");
+        }
+        const destination = typeof payout.destination === "string"
+          ? payout.destination : payout.destination?.id || null;
+        const arrivalDate = Number(payout.arrival_date);
+        const { error: payoutError } = await supabaseAdmin.rpc("record_tok_bank_payout", {
+          p_stripe_payout_id: payout.id,
+          p_amount_cents: payout.amount,
+          p_currency: payout.currency,
+          p_status: payout.status,
+          p_destination_id: destination,
+          p_arrival_date: Number.isFinite(arrivalDate) && arrivalDate > 0
+            ? new Date(arrivalDate * 1000).toISOString() : null,
+          p_error_code: payout.failure_code || null,
+        });
+        if (payoutError) throw new Error(
+          "TOK_BANK_PAYOUT_RECONCILE_FAILED:" + payoutError.message
+        );
+        break;
+      }
+
       case "payment_intent.succeeded": {
         const intent = event.data.object as Stripe.PaymentIntent;
+        if (intent.metadata?.tok_purpose === "reservation_commission") {
+          if (!event.livemode || intent.currency !== "chf" ||
+              intent.amount !== 500 || !intent.metadata.commission_id ||
+              !intent.metadata.restaurant_id || !intent.metadata.reservation_id) {
+            throw new Error("RESERVATION_COMMISSION_STRIPE_IDENTITY_MISMATCH");
+          }
+          const { error: commissionError } = await supabaseAdmin.rpc(
+            "record_restaurant_commission_payment", {
+              p_collection_id: intent.metadata.commission_id,
+              p_payment_intent_id: intent.id,
+              p_stripe_status: intent.status,
+              p_stripe_mode: "live",
+              p_error_code: null,
+            },
+          );
+          if (commissionError) throw new Error(
+            "RESERVATION_COMMISSION_PAYMENT_RECONCILE_FAILED:" + commissionError.message
+          );
+          break;
+        }
         if (intent.metadata?.tok_purpose === "reservation_cancellation_fee") {
           if (!event.livemode || intent.currency !== "chf" || !intent.metadata?.fee_id) {
             throw new Error("CANCELLATION_FEE_WEBHOOK_INTEGRITY_FAILED");
@@ -2537,6 +2591,25 @@ Deno.serve(async (req) => {
 
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        if (paymentIntent.metadata?.tok_purpose === "reservation_commission") {
+          if (!event.livemode || paymentIntent.currency !== "chf" ||
+              paymentIntent.amount !== 500 || !paymentIntent.metadata.commission_id) {
+            throw new Error("RESERVATION_COMMISSION_STRIPE_IDENTITY_MISMATCH");
+          }
+          const { error: commissionError } = await supabaseAdmin.rpc(
+            "record_restaurant_commission_payment", {
+              p_collection_id: paymentIntent.metadata.commission_id,
+              p_payment_intent_id: paymentIntent.id,
+              p_stripe_status: paymentIntent.status,
+              p_stripe_mode: "live",
+              p_error_code: paymentIntent.last_payment_error?.code || "payment_failed",
+            },
+          );
+          if (commissionError) throw new Error(
+            "RESERVATION_COMMISSION_FAILURE_RECONCILE_FAILED:" + commissionError.message
+          );
+          break;
+        }
         if (paymentIntent.metadata?.tok_purpose === "reservation_cancellation_fee") {
           if (!event.livemode || paymentIntent.currency !== "chf" || !paymentIntent.metadata?.fee_id) {
             throw new Error("CANCELLATION_FEE_WEBHOOK_INTEGRITY_FAILED");
@@ -2608,6 +2681,33 @@ Deno.serve(async (req) => {
 
       case "charge.refunded": {
         const charge = event.data.object as Stripe.Charge;
+        if (charge.metadata?.tok_purpose === "reservation_commission") {
+          const pi = typeof charge.payment_intent === "string"
+            ? charge.payment_intent : charge.payment_intent?.id;
+          if (!event.livemode || charge.currency !== "chf" ||
+              charge.amount !== 500 || !pi) {
+            throw new Error("RESERVATION_COMMISSION_REFUND_INTEGRITY_FAILED");
+          }
+          if ((charge.amount_refunded || 0) >= 500) {
+            const { data: reversalApplied, error: reversalError } = await supabaseAdmin.rpc(
+              "reverse_restaurant_commission_payment", {
+                p_payment_intent_id: pi,
+                p_reason: "refund",
+                p_stripe_mode: "live",
+              },
+            );
+            if (reversalError || reversalApplied !== true) throw new Error(
+              "RESERVATION_COMMISSION_REFUND_RECONCILE_FAILED:" + (reversalError?.message || "payment_intent_not_yet_linked")
+            );
+          } else {
+            // Partial refunds need allocation across revenue/VAT/developer
+            // share. Never mark the entire invoice refunded.
+            log.warn("reservation_commission_partial_refund_review", {
+              paymentIntentId: pi, refundedCents: charge.amount_refunded,
+            });
+          }
+          break;
+        }
         const paymentIntentId = typeof charge.payment_intent === "string" ? charge.payment_intent : null;
         if (!paymentIntentId) break;
 
@@ -2765,6 +2865,43 @@ Deno.serve(async (req) => {
       case "charge.dispute.funds_withdrawn":
       case "charge.dispute.funds_reinstated": {
         const dispute = event.data.object as Stripe.Dispute;
+        const chargeId = typeof dispute.charge === "string" ? dispute.charge : dispute.charge?.id;
+        if (chargeId) {
+          const disputedCharge = await stripe.charges.retrieve(chargeId);
+          if (disputedCharge.metadata?.tok_purpose === "reservation_commission") {
+            const paymentIntentId = typeof disputedCharge.payment_intent === "string"
+              ? disputedCharge.payment_intent : disputedCharge.payment_intent?.id;
+            if (!event.livemode || !paymentIntentId ||
+                disputedCharge.currency !== "chf" || disputedCharge.amount !== 500) {
+              throw new Error("RESERVATION_COMMISSION_DISPUTE_INTEGRITY_FAILED");
+            }
+            if (event.type === "charge.dispute.funds_reinstated") {
+              const { data: restoreApplied, error: restoreError } = await supabaseAdmin.rpc(
+                "restore_restaurant_commission_dispute", {
+                  p_payment_intent_id: paymentIntentId,
+                  p_stripe_mode: "live",
+                },
+              );
+              if (restoreError || restoreApplied !== true) throw new Error(
+                "RESERVATION_COMMISSION_REINSTATEMENT_FAILED:" + (restoreError?.message || "payment_intent_not_yet_linked")
+              );
+            } else if (event.type !== "charge.dispute.closed" || dispute.status !== "won") {
+              const { data: reversalApplied, error: reversalError } = await supabaseAdmin.rpc(
+                "reverse_restaurant_commission_payment", {
+                  p_payment_intent_id: paymentIntentId,
+                  p_reason: "dispute",
+                  p_stripe_mode: "live",
+                },
+              );
+              if (reversalError || reversalApplied !== true) throw new Error(
+                "RESERVATION_COMMISSION_DISPUTE_RECONCILE_FAILED:" + (reversalError?.message || "payment_intent_not_yet_linked")
+              );
+            }
+            // Won disputes are not silently recognized as new cash. Only
+            // the actual reinstatement event restores the accounting.
+            break;
+          }
+        }
         const action: "opened" | "won" | "lost" = event.type === "charge.dispute.funds_reinstated"
           ? "won"
           : event.type === "charge.dispute.closed"
