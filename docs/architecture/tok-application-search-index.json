@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "bca12d0e6058be534b11f67274441ea66a43504059aabb1f2b383023d441dd9c",
+ "sourceDigest": "16104223d34f5cfefdb5db74f2965961fd6e006132b1be6fef8030bde213e890",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,7 +12,7 @@
   "documents": 204,
   "edgeFunctions": 116,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3526,
+  "exportedSymbols": 3525,
   "featureFlags": 99,
   "frontendRoutes": 138,
   "integrations": 11,
@@ -25,7 +25,7 @@
   "publicEntries": 589,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 16854,
+  "records": 16853,
   "repositoryFiles": 3167,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -86815,13 +86815,8 @@
     "path": "src/components/admin/RestaurantSearchSelect.tsx",
     "exports": [
      {
-      "name": "RestaurantOption",
-      "line": 12,
-      "kind": "typealias"
-     },
-     {
       "name": "default",
-      "line": 27,
+      "line": 25,
       "kind": "function"
      }
     ],
@@ -86829,7 +86824,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 195
+    "lineCount": 157
    },
    {
     "path": "src/components/admin/TokConnectCatalogControls.tsx",
@@ -134465,16 +134460,15 @@
    "id": "code-module:f86897d507d9",
    "type": "code-module",
    "title": "src/components/admin/RestaurantSearchSelect.tsx",
-   "description": "Module de 195 lignes; exports: RestaurantOption, default.",
+   "description": "Module de 157 lignes; exports: default.",
    "path": "src/components/admin/RestaurantSearchSelect.tsx",
    "line": 1,
    "surface": null,
    "tags": [
-    "RestaurantOption",
     "default",
     "supabase"
    ],
-   "detailRef": "ce9021fd9073"
+   "detailRef": "9607e88aeb17"
   },
   {
    "id": "code-module:0c5529e62dd1",
@@ -259355,20 +259349,6 @@
    "detailRef": "417fe66c208f"
   },
   {
-   "id": "exported-symbol:f7198d749d5b",
-   "type": "exported-symbol",
-   "title": "RestaurantOption",
-   "description": "Export typealias de src/components/admin/RestaurantSearchSelect.tsx.",
-   "path": "src/components/admin/RestaurantSearchSelect.tsx",
-   "line": 12,
-   "surface": null,
-   "tags": [
-    "supabase",
-    "typealias"
-   ],
-   "detailRef": "761c142a990b"
-  },
-  {
    "id": "exported-symbol:2f7f1350fa5b",
    "type": "exported-symbol",
    "title": "RestaurantOrderRow",
@@ -270574,18 +270554,18 @@
    "detailRef": "f6ad11948f69"
   },
   {
-   "id": "exported-symbol:303b815b6f82",
+   "id": "exported-symbol:8f655f194f34",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/admin/RestaurantSearchSelect.tsx.",
    "path": "src/components/admin/RestaurantSearchSelect.tsx",
-   "line": 27,
+   "line": 25,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "8f286ff17dd0"
+   "detailRef": "6da5c9801321"
   },
   {
    "id": "exported-symbol:282af76f3648",
