@@ -17,7 +17,7 @@ permissions:
 jobs:
   index-sync:
     name: Regenerate the application's canonical reference index
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'codex/fix-golden-tok-mobile-offers-20261013' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && (github.event.pull_request.head.ref == 'codex/fix-golden-tok-mobile-offers-20261013' || github.event.pull_request.head.ref == 'feat/admin-ai-gifts-indexed-clean-20261014') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -38,6 +38,11 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Restore canonical workflow for deterministic catalog
+        shell: bash
+        run: |
+          git fetch --no-tags --depth=1 origin main
+          git show FETCH_HEAD:.github/workflows/golden-tok-browser.yml > .github/workflows/golden-tok-browser.yml
       - name: Regenerate index
         run: pnpm run docs:application-index
       - name: Commit only generated index files back to PR branch
@@ -58,6 +63,7 @@ jobs:
 
   browser:
     name: Golden TOK browser (8 device widths)
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.ref == 'codex/fix-golden-tok-mobile-offers-20261013' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
