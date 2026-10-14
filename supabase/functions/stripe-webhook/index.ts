@@ -1513,6 +1513,96 @@ Deno.serve(async (req) => {
     }
     stripe = eventStripeRuntime.stripe;
 
+    // Dedicated, fail-closed stream for La Tok d'Or accreditation. These
+    // subscriptions must never be mistaken for TOK One or the ordinary
+    // restaurant plan, nor paid out to a restaurant.
+    const goldenTokEvent = checkoutKind === "golden-tok-accreditation"
+      && (
+        event.type.startsWith("checkout.session.")
+        || event.type.startsWith("customer.subscription.")
+        || event.type.startsWith("invoice.")
+      );
+    if (goldenTokEvent) {
+      let goldenSubscriptionId: string | null = null;
+      if (event.type.startsWith("checkout.session.")) {
+        goldenSubscriptionId = readStripeObjectId(stripeObject.subscription);
+        if (!goldenSubscriptionId) throw new Error("GOLDEN_TOK_CHECKOUT_SUBSCRIPTION_MISSING");
+      } else if (event.type.startsWith("customer.subscription.")) {
+        goldenSubscriptionId = String(stripeObject.id || "") || null;
+      } else {
+        goldenSubscriptionId = readStripeObjectId(
+          stripeObject.parent?.subscription_details?.subscription
+          || stripeObject.subscription,
+        );
+      }
+      if (!goldenSubscriptionId) throw new Error("GOLDEN_TOK_SUBSCRIPTION_MISSING");
+      if (!event.livemode) throw new Error("GOLDEN_TOK_LIVE_MODE_REQUIRED");
+
+      // Always fetch the current Stripe state: delayed or duplicated events
+      // cannot reactivate a revoked subscription.
+      const subscription = await stripe.subscriptions.retrieve(goldenSubscriptionId);
+      const goldenRestaurantId = String(subscription.metadata?.restaurant_id || "");
+      if (subscription.metadata?.checkout_kind !== "golden-tok-accreditation"
+          || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(goldenRestaurantId)) {
+        throw new Error("GOLDEN_TOK_UNTRUSTED_SUBSCRIPTION_METADATA");
+      }
+      const { data: accreditation, error: accreditationError } = await supabaseAdmin
+        .from("golden_tok_accreditations")
+        .select("restaurant_id, stripe_subscription_id, stripe_checkout_session_id")
+        .eq("restaurant_id", goldenRestaurantId)
+        .maybeSingle();
+      if (accreditationError || !accreditation) {
+        throw new Error("GOLDEN_TOK_ACCREDITATION_NOT_FOUND");
+      }
+      if (accreditation.stripe_subscription_id
+          && accreditation.stripe_subscription_id !== subscription.id) {
+        throw new Error("GOLDEN_TOK_MULTIPLE_SUBSCRIPTIONS_REQUIRE_MANUAL_REVIEW");
+      }
+      if (event.type.startsWith("checkout.session.") &&
+          accreditation.stripe_checkout_session_id &&
+          accreditation.stripe_checkout_session_id !== String(stripeObject.id)) {
+        throw new Error("GOLDEN_TOK_CHECKOUT_SESSION_MISMATCH");
+      }
+      const periodEndSeconds = subscription.items?.data?.[0]?.current_period_end
+        ?? (subscription as unknown as { current_period_end?: number }).current_period_end;
+      const periodEnd = typeof periodEndSeconds === "number" && periodEndSeconds > 0
+        ? new Date(periodEndSeconds * 1000).toISOString()
+        : null;
+      if (!periodEnd && subscription.status === "active") {
+        throw new Error("GOLDEN_TOK_ACTIVE_PERIOD_END_MISSING");
+      }
+
+      const { error: goldenTokSyncError } = await supabaseAdmin
+        .from("golden_tok_accreditations")
+        .update({
+          stripe_subscription_id: subscription.id,
+          stripe_customer_id: readStripeObjectId(subscription.customer),
+          stripe_mode: "live",
+          subscription_status: subscription.status,
+          current_period_end: periodEnd,
+          cancel_at_period_end: subscription.cancel_at_period_end,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("restaurant_id", goldenRestaurantId);
+      if (goldenTokSyncError) throw new Error(`GOLDEN_TOK_SYNC_FAILED:${goldenTokSyncError.message}`);
+
+      await writeAuditLog({
+        adminClient: supabaseAdmin,
+        actor: { roles: ["service_role"], isServiceRole: true },
+        request: req,
+        functionName: "stripe-webhook",
+        action: "sync_golden_tok_accreditation",
+        status: "success",
+        targetEntityType: "golden_tok_accreditation",
+        targetEntityId: goldenRestaurantId,
+        metadata: { stripe_subscription_id: subscription.id, event_type: event.type, subscription_status: subscription.status },
+      });
+      await markStripeWebhookEventSucceeded({ adminClient: supabaseAdmin, event, lockToken: eventLockToken });
+      return new Response(JSON.stringify({ received: true, golden_tok: true }), {
+        status: 200, headers: { "Content-Type": "application/json" },
+      });
+    }
+
     let currentSubscriptionEvent: Stripe.Subscription | null = null;
 
     switch (event.type) {
