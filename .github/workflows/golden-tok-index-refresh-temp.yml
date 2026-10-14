@@ -1,0 +1,43 @@
+name: Golden TOK final inventory synchronization
+on:
+  push:
+    branches:
+      - feat/golden-tok-accreditation-search-upload-20261014
+    paths:
+      - .github/workflows/golden-tok-index-refresh-temp.yml
+permissions:
+  contents: write
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/feat/golden-tok-accreditation-search-upload-20261014'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: feat/golden-tok-accreditation-search-upload-20261014
+          persist-credentials: true
+      - name: Prepare pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Stage workflow removal first
+        run: git rm -f .github/workflows/golden-tok-index-refresh-temp.yml
+      - name: Regenerate final canonical metadata
+        run: |
+          pnpm run generate:error-code-map
+          pnpm run docs:application-index
+          pnpm run docs:application-index:check
+      - name: Commit and remove temporary action
+        run: |
+          set -euo pipefail
+          git add -- supabase/functions/_shared/error-code-map.ts docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(index): reconcile Golden TOK canonical registries"
+          git push origin HEAD:refs/heads/feat/golden-tok-accreditation-search-upload-20261014
