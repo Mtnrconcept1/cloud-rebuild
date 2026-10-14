@@ -1,8 +1,8 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "c04046108ef7f26f2c4cdc66530ce9a7919fba999f9f023dbe0d89e487972e62",
-  "routeCount": 140,
+  "sourceDigest": "0f0e1b00a8b30721a5ae89a260887c83ab7987bc1fdca14bd4f8d6fb7baa802c",
+  "routeCount": 138,
   "toolCount": 116
 } as const;
 
@@ -1008,17 +1008,6 @@ export const TOK_USER_GUIDE_ROUTES = [
     "redirectTo": null
   },
   {
-    "path": "/dashboard/equipe",
-    "surface": "restaurant",
-    "components": [
-      "DashboardRoute",
-      "DashboardWorkforce"
-    ],
-    "requiredRoles": [],
-    "featureGate": null,
-    "redirectTo": null
-  },
-  {
     "path": "/dashboard/plan-salle",
     "surface": "restaurant",
     "components": [
@@ -1165,17 +1154,6 @@ export const TOK_USER_GUIDE_ROUTES = [
     ],
     "requiredRoles": [],
     "featureGate": "adminRestaurantsEnabled",
-    "redirectTo": null
-  },
-  {
-    "path": "/admin/equipe",
-    "surface": "admin",
-    "components": [
-      "AdminProtectedRoute",
-      "AdminWorkforce"
-    ],
-    "requiredRoles": [],
-    "featureGate": null,
     "redirectTo": null
   },
   {

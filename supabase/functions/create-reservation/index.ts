@@ -91,6 +91,7 @@ function featureLabel(feature: string, metadata: Record<string, unknown>) {
   if (feature === "promo-formule") return formula || "Formule";
   if (feature === "zero-attente") return "Zéro Attente";
   if (feature === "chefs_table") return "La Tok d’Or";
+  if (metadata.reservation_purpose === "drinks") return "Table sans restauration";
   return "Réservation classique";
 }
 
@@ -211,6 +212,32 @@ Deno.serve(async (req) => {
     if (!Number.isFinite(partySize) || partySize < 1 || partySize > 50) {
       throw new HttpError(400, "party_size invalide");
     }
+
+    // Never trust a client's meal selection for a bar-only service period.
+    const { data: restaurantService, error: restaurantServiceError } = await actor.adminClient
+      .from("restaurants")
+      .select("opening_hours")
+      .eq("id", restaurantId)
+      .maybeSingle();
+    if (restaurantServiceError) throw new HttpError(503, "Configuration du service indisponible.");
+    if (!restaurantService) throw new HttpError(404, "Restaurant introuvable.");
+
+    const openingHours = isRecord(restaurantService.opening_hours) ? restaurantService.opening_hours : {};
+    const periods = isRecord(openingHours.service_settings) ? openingHours.service_settings : openingHours;
+    const period = Number(time.slice(0, 2)) < 16 ? "lunch" : "dinner";
+    const settings = isRecord(periods[period]) ? periods[period] : {};
+    const tableOnlyBooking = settings.table_only_booking === true;
+    if (tableOnlyBooking && (
+      requestedFeature !== "classique"
+      || progressiveOfferId !== null
+      || metadata.formula_id != null
+      || metadata.formula_applied != null
+      || metadata.progressive_offer_id != null
+      || metadata.progressive_offer_name != null
+    )) {
+      throw new HttpError(409, "Ce créneau accepte uniquement les réservations de tables sans restauration.");
+    }
+    metadata.reservation_purpose = tableOnlyBooking ? "drinks" : "dining";
 
     if (requestedAcquisitionSource) {
       if (requestedAcquisitionSource === "google") {
