@@ -395,3 +395,14 @@ CREATE POLICY tok_workforce_clock_events_manager
 
 REVOKE ALL ON FUNCTION public.tok_workforce_can_schedule(uuid) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.tok_workforce_can_schedule(uuid) TO authenticated;
+
+
+CREATE POLICY tok_workforce_requests_manager_insert
+ ON public.tok_workforce_requests FOR INSERT TO authenticated
+ WITH CHECK(public.tok_workforce_can_schedule(restaurant_id)
+   AND status='pending' AND reviewed_by IS NULL AND reviewed_at IS NULL);
+
+CREATE POLICY tok_workforce_exchanges_manager_insert
+ ON public.tok_workforce_exchanges FOR INSERT TO authenticated
+ WITH CHECK(public.tok_workforce_can_schedule(restaurant_id)
+   AND status='pending' AND reviewed_by IS NULL AND reviewed_at IS NULL);
