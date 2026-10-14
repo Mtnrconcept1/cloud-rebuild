@@ -8,7 +8,7 @@ const dashboard = readFileSync(resolve(process.cwd(), "src/pages/dashboard/Dashb
 
 describe("table-only service reservations", () => {
   it("skips meal offers and preorders when drinks-only is configured", () => {
-    expect(dialog).toContain('tableOnlyBooking ? ["datetime", "confirm"]');
+    expect(dialog).toMatch(/tableOnlyBooking\s*\?\s*\["datetime", "confirm"\]/);
     expect(dialog).toContain('!tableOnlyBooking && selectedPromo?.kind === "formula"');
     expect(dialog).toContain('!tableOnlyBooking && selectedPromo?.kind === "progressive"');
     expect(dialog).toContain('setStep(tableOnlyBooking ? "datetime" : "promo")');
