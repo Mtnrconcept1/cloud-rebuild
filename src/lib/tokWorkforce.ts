@@ -3,10 +3,10 @@ export type WorkforceEmployee = { id:string; restaurant_id:string; first_name:st
 export type WorkforceShift = { id:string; restaurant_id:string; employee_id:string; shift_date:string; start_time:string; end_time:string; break_minutes:number; status:"planned"|"confirmed"|"completed"|"cancelled"; notes:string|null };
 export type WorkforceEntry = { id:string; restaurant_id:string; employee_id:string; entry_date:string; start_time:string; end_time:string; break_minutes:number; notes:string|null; is_night_work:boolean; is_sunday_work:boolean };
 export type WorkforceAbsence = { id:string; restaurant_id:string; employee_id:string; absence_type:"vacation"|"sick"|"holiday"|"other"; start_date:string; end_date:string; days_count:number; notes:string|null };
-export type WorkforceRequest = { id:string; restaurant_id:string; employee_id:string; request_type:"vacation"|"correction"|"schedule"|"other"; description:string; status:"pending"|"approved"|"rejected" };
+export type WorkforceRequest = { id:string; restaurant_id:string; employee_id:string; request_type:"vacation"|"correction"|"schedule"|"other"; description:string; requested_start_date?:string|null; requested_end_date?:string|null; requested_days?:number|null; status:"pending"|"approved"|"rejected" };
 export type WorkforceExchange = { id:string; restaurant_id:string; requester_id:string; requester_shift_id:string; target_employee_id:string; target_shift_id:string|null; target_accepted_at?:string|null; status:"pending"|"approved"|"rejected"|"cancelled" };
 export type WorkforceSettings = { restaurant_id:string; enabled:boolean; canton:string; max_weekly_hours:number; min_vacation_days:number };
-export type WorkforceValidation = { id:string; restaurant_id:string; time_entry_id:string; signed_name:string; signed_at:string };
+export type WorkforceValidation = { id:string; restaurant_id:string; time_entry_id:string; signed_name:string; signed_at:string; signature_data?:string|null };
 
 export function employeeName(employee: Pick<WorkforceEmployee,"first_name"|"last_name"> | undefined): string {
   return employee ? employee.first_name+" "+employee.last_name : "Collaborateur inconnu";
