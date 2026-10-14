@@ -10,6 +10,7 @@ on:
       - develop
       - "release/**"
       - "hotfix/**"
+      - "fix/tok-restaurant-first-charge-20261014"
   schedule:
     - cron: "23 2 * * *"
   workflow_dispatch:
@@ -24,14 +25,15 @@ concurrency:
 jobs:
   once_reconcile_tok_finance_branch:
     name: One-shot billing branch reconciliation
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/tok-restaurant-first-charge-20261014' }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/fix/tok-restaurant-first-charge-20261014') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/tok-restaurant-first-charge-20261014') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: true
       - uses: pnpm/action-setup@v4
@@ -78,6 +80,7 @@ jobs:
           git diff --cached --check
           git commit -m 'merge(finance): integrate current main and refresh derived docs'
           git push origin HEAD:refs/heads/fix/tok-restaurant-first-charge-20261014
+          gh workflow run ci.yml --ref fix/tok-restaurant-first-charge-20261014
 
   validation:
     uses: ./.github/workflows/_validation.yml
