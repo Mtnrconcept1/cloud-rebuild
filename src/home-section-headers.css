@@ -22,15 +22,17 @@
   box-shadow: 0 9px 29px rgba(77, 37, 20, .06);
 }
 
-/* The original editorial photographs are 4:1 panoramas. Display them in
- * a right-hand viewport close to that ratio instead of using `cover` on
- * the much wider banner (which zoomed the photograph behind the copy). */
+/* Photographic headers and their native 4:1 assets share a ratio: the
+ * original cream-to-photo transition spans the full card without cropping. */
+[data-section-showcase-header][data-image-kind="photo"] {
+  aspect-ratio: 4 / 1;
+}
+
 [data-section-showcase-header] .tok-section-header__visual {
   position: absolute;
   z-index: 0;
-  inset-block: 0;
-  inset-inline-end: 0;
-  width: 60%;
+  inset: 0;
+  width: 100%;
   height: 100%;
   pointer-events: none;
   overflow: hidden;
@@ -42,7 +44,7 @@
   height: 100%;
   max-width: none;
   object-fit: cover;
-  object-position: right center;
+  object-position: center;
 }
 
 /* Keep the former full-width treatment for non-photographic illustrations. */
@@ -356,6 +358,37 @@
   .dark [data-section-showcase-header].tok-section-header--home-rail [data-section-action-row] a:focus-visible {
     background: transparent;
     color: hsl(var(--primary));
+  }
+}
+
+
+/* Preserve the full panoramic artwork on narrow screens. A 4:1 image
+ * cannot legibly hold a heading and CTA at 375px, so show that same
+ * uncropped 4:1 image first, followed by the existing accessible copy. */
+@media (max-width: 639px) {
+  [data-section-showcase-header][data-image-kind="photo"],
+  [data-section-showcase-header][data-image-kind="photo"].tok-section-header--home-rail {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    aspect-ratio: auto;
+  }
+
+  [data-section-showcase-header][data-image-kind="photo"] .tok-section-header__visual,
+  [data-section-showcase-header][data-image-kind="photo"].tok-section-header--home-rail .tok-section-header__visual {
+    display: block;
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    flex: none;
+    aspect-ratio: 4 / 1;
+  }
+
+  [data-section-showcase-header][data-image-kind="photo"] .tok-section-header__content {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
   }
 }
 
