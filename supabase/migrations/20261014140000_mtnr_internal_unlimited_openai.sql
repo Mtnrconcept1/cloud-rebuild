@@ -61,6 +61,62 @@ $$;
 REVOKE ALL ON FUNCTION private_finance.has_internal_unlimited_openai_grant(uuid, uuid)
   FROM PUBLIC, anon, authenticated, service_role;
 
+-- Keep actual purchased and weekly trial credits independent from subsidized
+-- OpenAI generations. Only usage by the verified owner AFTER grant creation
+-- is excluded; historical charges and all other users remain fully billable.
+CREATE OR REPLACE VIEW private_finance.chargeable_ai_usage_logs
+  WITH (security_barrier = true)
+AS
+SELECT logged.*
+FROM public.ai_usage_logs logged
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM private_finance.internal_unlimited_openai_grants grant_row
+  JOIN public.restaurants r
+    ON r.id = grant_row.restaurant_id AND r.owner_id = grant_row.user_id
+  WHERE grant_row.enabled
+    AND grant_row.user_id = logged.user_id
+    AND grant_row.restaurant_id = logged.restaurant_id
+    AND logged.created_at >= grant_row.granted_at
+);
+
+REVOKE ALL ON private_finance.chargeable_ai_usage_logs
+  FROM PUBLIC, anon, authenticated, service_role;
+
+-- Patch only the two existing wallet readers that bill AI log entries.
+-- Require the exact known count of references: if upstream SQL changes,
+-- the migration aborts rather than silently altering incorrect functions.
+DO $
+DECLARE
+  v_signature text;
+  v_expected_count integer;
+  v_source text;
+  v_actual_count integer;
+  v_needle constant text := 'FROM public.ai_usage_logs';
+BEGIN
+  FOR v_signature, v_expected_count IN
+    SELECT 'public.get_restaurant_credit_usage_before_fair_growth(uuid,timestamptz,timestamptz)', 2
+    UNION ALL
+    SELECT 'private_finance.get_restaurant_preactivation_credit_usage(uuid,timestamptz,boolean,timestamptz)', 1
+  LOOP
+    IF to_regprocedure(v_signature) IS NULL THEN
+      RAISE EXCEPTION 'Missing credit-wallet reader: %', v_signature;
+    END IF;
+    v_source := pg_get_functiondef(to_regprocedure(v_signature));
+    v_actual_count := (
+      length(v_source) - length(replace(v_source, v_needle, ''))
+    ) / length(v_needle);
+    IF v_actual_count <> v_expected_count THEN
+      RAISE EXCEPTION 'Unexpected TOK wallet references in %: expected %, got %',
+        v_signature, v_expected_count, v_actual_count;
+    END IF;
+    EXECUTE replace(
+      v_source, v_needle, 'FROM private_finance.chargeable_ai_usage_logs'
+    );
+  END LOOP;
+END;
+$;
+
 -- Preserve the current Fair Growth / 15-per-week wallet implementation exactly.
 -- The wrapper changes only the AI-facing balance, not actual purchased-credit data.
 DO $$
