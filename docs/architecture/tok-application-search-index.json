@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "09121ac532c2dc1e2488eb94d5dbec402cb38b2c5e0e745d28bddecbf38f99b0",
+ "sourceDigest": "047aa4dd74d2c0d2f3b27ca23a75edef3c151d783c2011f7469e8559ae890056",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -14799,7 +14799,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 76
+      "line": 77
      },
      {
       "path": "src/test/mobile-association-hosting.test.ts",
@@ -16315,7 +16315,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 164
+      "line": 165
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -17085,7 +17085,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 72
+      "line": 73
      }
     ]
    },
@@ -17208,7 +17208,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 138
+      "line": 139
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
@@ -19059,7 +19059,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 98
+      "line": 99
      }
     ]
    },
@@ -22502,7 +22502,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 79
+      "line": 80
      },
      {
       "path": "workers/image-ai-worker/index.js",
@@ -25646,7 +25646,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 71
+      "line": 72
      },
      {
       "path": "src/test/feature-flags.test.ts",
@@ -26198,7 +26198,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 103
+      "line": 104
      }
     ]
    },
@@ -27215,7 +27215,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 79
+      "line": 80
      },
      {
       "path": "src/test/image-metadata-ai.test.ts",
@@ -30021,7 +30021,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 82
+      "line": 83
      },
      {
       "path": "src/test/tok-connect-edge-functions.test.ts",
@@ -30142,7 +30142,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 87
+      "line": 88
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -30172,11 +30172,11 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 174
+      "line": 175
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 179
+      "line": 180
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -93102,42 +93102,42 @@
      },
      {
       "name": "humanizeIdentifier",
-      "line": 466,
+      "line": 467,
       "kind": "function"
      },
      {
       "name": "describeAuditFunction",
-      "line": 478,
+      "line": 479,
       "kind": "function"
      },
      {
       "name": "describeAuditAction",
-      "line": 485,
+      "line": 486,
       "kind": "function"
      },
      {
       "name": "describeAuditEntity",
-      "line": 493,
+      "line": 494,
       "kind": "function"
      },
      {
       "name": "describeAuditActor",
-      "line": 500,
+      "line": 501,
       "kind": "function"
      },
      {
       "name": "explainAuditError",
-      "line": 508,
+      "line": 509,
       "kind": "function"
      },
      {
       "name": "describeAuditLog",
-      "line": 629,
+      "line": 630,
       "kind": "function"
      },
      {
       "name": "summarizeAuditLog",
-      "line": 633,
+      "line": 634,
       "kind": "function"
      }
     ],
@@ -93146,7 +93146,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 635
+    "lineCount": 636
    },
    {
     "path": "src/lib/adminComptaActions.ts",
@@ -106742,7 +106742,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 192
+    "lineCount": 193
    },
    {
     "path": "src/test/audit-hardening-20260711.test.ts",
@@ -139264,7 +139264,7 @@
    "id": "code-module:49057d39b311",
    "type": "code-module",
    "title": "src/lib/admin/auditLogNarrative.ts",
-   "description": "Module de 635 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
+   "description": "Module de 636 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
    "path": "src/lib/admin/auditLogNarrative.ts",
    "line": 1,
    "surface": null,
@@ -139285,7 +139285,7 @@
     "stripe",
     "summarizeAuditLog"
    ],
-   "detailRef": "a0bd7b89f563"
+   "detailRef": "b24d48ce1742"
   },
   {
    "id": "code-module:011d1dc10823",
@@ -146474,7 +146474,7 @@
    "id": "code-module:99cbe1539462",
    "type": "code-module",
    "title": "src/test/application-search-index.test.ts",
-   "description": "Module de 192 lignes; exports: aucun export statique.",
+   "description": "Module de 193 lignes; exports: aucun export statique.",
    "path": "src/test/application-search-index.test.ts",
    "line": 1,
    "surface": null,
@@ -146484,7 +146484,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "06213517729e"
+   "detailRef": "61210c27c95c"
   },
   {
    "id": "code-module:f6d47cf3df51",
@@ -276289,79 +276289,79 @@
    "detailRef": "35cf2f09a4fb"
   },
   {
-   "id": "exported-symbol:4daf504b7ba1",
+   "id": "exported-symbol:24d162ceeaf4",
    "type": "exported-symbol",
    "title": "describeAuditAction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 485,
+   "line": 486,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "510398973d96"
+   "detailRef": "7587624c32f7"
   },
   {
-   "id": "exported-symbol:f9ea46bb7ff0",
+   "id": "exported-symbol:dcbed5b9f009",
    "type": "exported-symbol",
    "title": "describeAuditActor",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 500,
+   "line": 501,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "5109f4f581ae"
+   "detailRef": "6a038e607fd0"
   },
   {
-   "id": "exported-symbol:dd26294f1247",
+   "id": "exported-symbol:ca1432f8fa35",
    "type": "exported-symbol",
    "title": "describeAuditEntity",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 493,
+   "line": 494,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "f95415aa1aad"
+   "detailRef": "cc6617e2c59a"
   },
   {
-   "id": "exported-symbol:7007080de2b5",
+   "id": "exported-symbol:968f3fd2770f",
    "type": "exported-symbol",
    "title": "describeAuditFunction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 478,
+   "line": 479,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "04cb48327718"
+   "detailRef": "e7621b425c1f"
   },
   {
-   "id": "exported-symbol:46b299d550e9",
+   "id": "exported-symbol:3e5edb52cb45",
    "type": "exported-symbol",
    "title": "describeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 629,
+   "line": 630,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "aeeb9e430cd7"
+   "detailRef": "f2baa696b5a6"
   },
   {
    "id": "exported-symbol:10f1bf567ca4",
@@ -277039,19 +277039,19 @@
    "detailRef": "8b413b2a22c5"
   },
   {
-   "id": "exported-symbol:9f92ba8eb29f",
+   "id": "exported-symbol:e18394cb688f",
    "type": "exported-symbol",
    "title": "explainAuditError",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 508,
+   "line": 509,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "235177c0bbb9"
+   "detailRef": "1602042aad06"
   },
   {
    "id": "exported-symbol:94c395b452eb",
@@ -283511,19 +283511,19 @@
    "detailRef": "dc9f63bb72e6"
   },
   {
-   "id": "exported-symbol:d855de964287",
+   "id": "exported-symbol:d406e0030653",
    "type": "exported-symbol",
    "title": "humanizeIdentifier",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 466,
+   "line": 467,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "cd201f4dc125"
+   "detailRef": "7a9b7eb29fb6"
   },
   {
    "id": "exported-symbol:cd0c65e7c41c",
@@ -291582,19 +291582,19 @@
    "detailRef": "596a9a69ebd0"
   },
   {
-   "id": "exported-symbol:54e0678701fe",
+   "id": "exported-symbol:127d7672a8d3",
    "type": "exported-symbol",
    "title": "summarizeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 633,
+   "line": 634,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "a5e4fc639601"
+   "detailRef": "81aac020fc32"
   },
   {
    "id": "exported-symbol:25e70f45a5b2",
@@ -356035,19 +356035,19 @@
    "detailRef": "85882b5af230"
   },
   {
-   "id": "path-literal:26d954e476a5",
+   "id": "path-literal:1bf87fcf793d",
    "type": "path-literal",
    "title": "/.well-known/apple-app-site-association",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 76,
+   "line": 77,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/mobile-association-hosting.test.ts",
     "src/test/production-preflight-hardening.test.ts"
    ],
-   "detailRef": "cbec62b9fb9a"
+   "detailRef": "ae0377e38cc9"
   },
   {
    "id": "path-literal:552e0fdf1ace",
@@ -357016,7 +357016,7 @@
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/user-guide.test.ts"
    ],
-   "detailRef": "ce7b6384ab1a"
+   "detailRef": "0907220f1a43"
   },
   {
    "id": "path-literal:0b0219bc6bcb",
@@ -357542,7 +357542,7 @@
     "src/marketing/marketingBffClient.ts",
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "cad071be23e5"
+   "detailRef": "01df1d56344a"
   },
   {
    "id": "path-literal:57e613573c20",
@@ -357642,7 +357642,7 @@
     "src/test/marketing-bff-client.test.ts",
     "src/test/marketing-session-recovery.test.tsx"
    ],
-   "detailRef": "ea0b9445b27f"
+   "detailRef": "3572d25cad98"
   },
   {
    "id": "path-literal:4457ca298944",
@@ -358511,7 +358511,7 @@
     "scripts/application-index-core.mjs",
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "bbad7ff9715c"
+   "detailRef": "a720c55c4373"
   },
   {
    "id": "path-literal:cf29ad085917",
@@ -360432,18 +360432,18 @@
    "detailRef": "1738c8998ed8"
   },
   {
-   "id": "path-literal:780a8f6e2e11",
+   "id": "path-literal:558586bfb7f5",
    "type": "path-literal",
    "title": "/healthz",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 79,
+   "line": 80,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "519aa8237f80"
+   "detailRef": "1b9056f72452"
   },
   {
    "id": "path-literal:fded681262f2",
@@ -363977,7 +363977,7 @@
     "src/test/marketing-subdomain-integration.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "519f59c5e139"
+   "detailRef": "73c64fc0aba9"
   },
   {
    "id": "path-literal:c76dba69accc",
@@ -364149,17 +364149,17 @@
    "detailRef": "1c0985794b62"
   },
   {
-   "id": "path-literal:5cb37b41d959",
+   "id": "path-literal:069bb71d5cca",
    "type": "path-literal",
    "title": "/mon-espace?source=pwa-shortcut",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 103,
+   "line": 104,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "d613ec85944c"
+   "detailRef": "f205a6c9137c"
   },
   {
    "id": "path-literal:6c3ccf718b08",
@@ -364726,19 +364726,19 @@
    "detailRef": "529ec0f93e0b"
   },
   {
-   "id": "path-literal:11f3ccaa0b25",
+   "id": "path-literal:472573f65d19",
    "type": "path-literal",
    "title": "/readyz",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 79,
+   "line": 80,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/image-metadata-ai.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "237b4969fa70"
+   "detailRef": "e40468b9f8bc"
   },
   {
    "id": "path-literal:f7a8242103a1",
@@ -367023,7 +367023,7 @@
     "src/test/tok-connect.test.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "a6d34bb01bf6"
+   "detailRef": "c06391b5ec4f"
   },
   {
    "id": "path-literal:9615b9840a62",
@@ -367095,19 +367095,19 @@
    "detailRef": "2e706e56bb24"
   },
   {
-   "id": "path-literal:6476b87b7464",
+   "id": "path-literal:b48430f6a3bd",
    "type": "path-literal",
    "title": "/v3/CreateBooking/",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 87,
+   "line": 88,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "fe0c3328a6f8"
+   "detailRef": "fc0b311def8f"
   },
   {
    "id": "path-literal:3f16cef6b097",
@@ -367124,19 +367124,19 @@
    "detailRef": "ef8d28954ebc"
   },
   {
-   "id": "path-literal:0680a7e5e873",
+   "id": "path-literal:5a311bba1312",
    "type": "path-literal",
    "title": "/v3/HealthCheck/",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 174,
+   "line": 175,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "f8f8c3764f5e"
+   "detailRef": "18022bd0f885"
   },
   {
    "id": "path-literal:66439908047a",
