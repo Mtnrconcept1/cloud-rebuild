@@ -1,0 +1,70 @@
+name: TOK Worldwide Hero Assets Import
+on:
+  push:
+    branches: [codex/tok-world-location-20261014]
+    paths:
+      - .github/workflows/_tok-world-assets-import.yml
+permissions:
+  contents: write
+  actions: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: codex/tok-world-location-20261014
+          fetch-depth: 10
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Apply tested frontend patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'TOK CI Assistant'
+          git config user.email 'tok-ci-assistant@users.noreply.github.com'
+          base64 -d .tok-world-location.patch.gz.b64 | gzip -d > /tmp/tok-world.patch
+          echo '442aafdd54fd0defdeb82091d887484a4b115f16a8aa9b44a574d3b4c4d66b91  /tmp/tok-world.patch' | sha256sum -c -
+          git apply --check /tmp/tok-world.patch
+          git apply /tmp/tok-world.patch
+      - name: Download and verify the 88 official release WebP files
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 'https://github.com/Mtnrconcept1/cloud-rebuild/releases/download/tok-world-visuals-v/TOK_Collection_Monde_Tous_Pays_WEBP.zip' -o /tmp/tok-world.zip
+          unzip -tq /tmp/tok-world.zip
+          mkdir -p public/images/world
+          unzip -oq /tmp/tok-world.zip -d public/images/world
+          actual="$(find public/images/world -type f -name '*.webp' | wc -l | tr -d ' ')"
+          test "$actual" = "88"
+          if find public/images/world -type f ! -name '*.webp' | grep -q .; then echo "::error::Unexpected file type"; exit 1; fi
+          echo "Successfully imported $actual WebP images"
+      - name: Reconcile reference index and validate application
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+          VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+          pnpm install --frozen-lockfile
+          git rm -f .tok-world-location.patch.gz.b64 .github/workflows/_tok-world-assets-import.yml
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+          pnpm exec vitest run src/test/world-hero-images.test.ts src/test/home-hero-search.test.tsx src/test/home-canton-hero.test.ts --mode production
+          pnpm lint
+          pnpm typecheck
+          pnpm build:prod
+          git add -A -- public/images/world src/lib/worldHeroImages.ts src/test/world-hero-images.test.ts src/components/home/HeroSection.tsx src/components/home/HeroSection.css src/pages/Index.tsx src/test/home-hero-search.test.tsx index.html vercel.json docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git commit -m "feat(home): worldwide location imagery with 88 release WebP assets"
+          git push origin HEAD:refs/heads/codex/tok-world-location-20261014
+      - name: Run full GitHub CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run ci.yml --ref codex/tok-world-location-20261014
