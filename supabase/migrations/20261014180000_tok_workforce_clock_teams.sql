@@ -372,3 +372,49 @@ REVOKE ALL ON FUNCTION public.tok_workforce_team_directory(uuid),
  public.tok_workforce_respond_exchange(uuid,boolean,text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.tok_workforce_team_directory(uuid),
  public.tok_workforce_respond_exchange(uuid,boolean,text) TO authenticated;
+
+
+-- A leave request and its resulting absence are one reviewed transaction.
+ALTER TABLE public.tok_workforce_requests
+ ADD COLUMN requested_start_date date,
+ ADD COLUMN requested_end_date date,
+ ADD COLUMN requested_days numeric(5,1),
+ ADD CONSTRAINT tok_workforce_request_period CHECK (
+  (requested_start_date IS NULL AND requested_end_date IS NULL AND requested_days IS NULL)
+  OR (requested_start_date IS NOT NULL AND requested_end_date IS NOT NULL AND requested_days IS NOT NULL
+   AND requested_end_date >= requested_start_date AND requested_days > 0
+   AND requested_days <= LEAST(366,(requested_end_date-requested_start_date+1)))
+ );
+
+CREATE FUNCTION public.tok_workforce_review_request(p_request_id uuid,p_approve boolean)
+RETURNS void LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
+AS $$
+DECLARE v_request public.tok_workforce_requests%ROWTYPE;
+BEGIN
+ SELECT * INTO v_request FROM public.tok_workforce_requests WHERE id=p_request_id FOR UPDATE;
+ IF v_request.id IS NULL OR NOT public.tok_workforce_can_manage(v_request.restaurant_id)
+   THEN RAISE EXCEPTION 'Request unavailable or unauthorized'; END IF;
+ IF v_request.status <> 'pending' THEN RAISE EXCEPTION 'Request already reviewed'; END IF;
+ IF p_approve AND v_request.request_type='vacation' THEN
+   IF v_request.requested_start_date IS NULL OR v_request.requested_end_date IS NULL OR v_request.requested_days IS NULL
+     THEN RAISE EXCEPTION 'Vacation dates required'; END IF;
+   IF EXISTS(SELECT 1 FROM public.tok_workforce_absences a
+     WHERE a.restaurant_id=v_request.restaurant_id AND a.employee_id=v_request.employee_id
+       AND a.absence_type='vacation' AND a.start_date<=v_request.requested_end_date
+       AND a.end_date>=v_request.requested_start_date)
+     THEN RAISE EXCEPTION 'Overlapping approved vacation'; END IF;
+   INSERT INTO public.tok_workforce_absences
+     (restaurant_id,employee_id,absence_type,start_date,end_date,days_count,notes)
+   VALUES (v_request.restaurant_id,v_request.employee_id,'vacation',
+     v_request.requested_start_date,v_request.requested_end_date,v_request.requested_days,
+     'Congé approuvé depuis TOK Équipe');
+ END IF;
+ UPDATE public.tok_workforce_requests
+   SET status=CASE WHEN p_approve THEN 'approved' ELSE 'rejected' END,
+       reviewed_by=auth.uid(),reviewed_at=now(),updated_at=now()
+   WHERE id=p_request_id;
+END $$;
+
+REVOKE UPDATE, DELETE ON public.tok_workforce_requests FROM authenticated;
+REVOKE ALL ON FUNCTION public.tok_workforce_review_request(uuid,boolean) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.tok_workforce_review_request(uuid,boolean) TO authenticated;
