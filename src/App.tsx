@@ -161,6 +161,7 @@ const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
 const AdminPlatformConfig = lazy(() => import("./pages/admin/AdminPlatformConfig"));
 const AdminLaunchPacks = lazy(() => import("./pages/admin/AdminLaunchPacks"));
 const AdminCompta = lazy(() => import("./pages/admin/AdminCompta"));
+const AdminPrintOrders = lazy(() => import("./pages/admin/AdminPrintOrders"));
 const AdminComptaInflow = lazy(() => import("./pages/admin/AdminComptaInflow"));
 const AdminComptaOutflow = lazy(() => import("./pages/admin/AdminComptaOutflow"));
 const AdminComptaAi = lazy(() => import("./pages/admin/AdminComptaAi"));
@@ -664,6 +665,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/admin/audit" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAuditEnabled} fallback="/admin"><AdminAuditLogs /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/packs" element={<AdminProtectedRoute><FeatureSwitch enabled={adminPacksEnabled} fallback="/admin"><AdminLaunchPacks /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/compta" element={<AdminProtectedRoute><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin"><AdminCompta /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/tok-printer" element={<AdminProtectedRoute><AdminPrintOrders /></AdminProtectedRoute>} />
           <Route path="/admin/compta/entrees" element={<AdminProtectedRoute fallback="/admin/compta"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaInflow /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/compta/sorties" element={<AdminProtectedRoute fallback="/admin/compta"><FeatureSwitch enabled={adminComptaEnabled} fallback="/admin/compta"><AdminComptaOutflow /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/compta/ia" element={<AdminProtectedRoute fallback="/admin/compta"><FeatureSwitch enabled={adminComptaAiEnabled} fallback="/admin/compta"><AdminComptaAi /></FeatureSwitch></AdminProtectedRoute>} />

@@ -25,6 +25,7 @@ import {
   Users,
   UtensilsCrossed,
   Calculator,
+  Printer,
   CalendarDays,
   CheckCircle2,
   CircleAlert,
@@ -89,6 +90,13 @@ const ADMIN_TOOLS = [
     href: "/admin/compta",
     feature: "admin-compta",
     color: "text-emerald-500",
+  },
+  {
+    title: "TOK Printer",
+    description: "Suivre les impressions, les commandes et les incidents de production.",
+    icon: Printer,
+    href: "/admin/tok-printer",
+    color: "text-orange-500",
   },
   {
     title: "IA comptable",
