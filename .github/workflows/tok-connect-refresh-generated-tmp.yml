@@ -1,0 +1,36 @@
+name: Temporary TOK Connect generated artifacts refresh
+on:
+  push:
+    branches: [codex/tok-connect-client-transactions-20261015]
+    paths: [.github/workflows/tok-connect-refresh-generated-tmp.yml]
+permissions:
+  contents: write
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/codex/tok-connect-client-transactions-20261015'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+      - run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Remove temporary workflow before generating
+        run: git rm -- .github/workflows/tok-connect-refresh-generated-tmp.yml
+      - name: Refresh error code map
+        run: pnpm run generate:error-code-map
+      - name: Refresh canonical application index
+        run: pnpm run docs:application-index
+      - name: Commit only generated files and remove this workflow
+        run: |
+          set -euo pipefail
+          git add -- supabase/functions/_shared/error-code-map.ts docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(tok-connect): sync generated error codes and architecture reference"
+          git push origin "HEAD:refs/heads/codex/tok-connect-client-transactions-20261015"
