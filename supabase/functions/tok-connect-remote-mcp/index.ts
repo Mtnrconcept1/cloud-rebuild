@@ -196,7 +196,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META, ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] }, "openai/visibility": "private" },
   },
   {
     name: "tok_my_reservations",
@@ -232,7 +232,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META, ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] }, "openai/visibility": "private" },
   },
 ] as const;
 const TOK_CLIENT_TOOL_NAMES = new Set(TOK_CLIENT_TOOLS.map((tool) => tool.name));
