@@ -245,6 +245,16 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
 .tags{display:flex;flex-wrap:wrap;gap:5px}
 .detail-actions{display:flex;flex-wrap:wrap;gap:8px}
 .detail-actions .btn{flex:1 1 auto;min-width:150px}
+.tok-booking{margin-top:14px}
+.booking-fields{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
+.booking-field{display:flex;flex:1 1 150px;flex-direction:column;gap:4px;font-size:12px;font-weight:700}
+.booking-field input{width:100%;max-width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:inherit}
+.booking-guarantee{display:flex;gap:9px;align-items:flex-start;font-size:12px;margin-top:10px}
+.booking-guarantee input{margin-top:4px;accent-color:var(--tok-orange)}
+.booking-message{font-size:12px;color:var(--text-2);line-height:1.5;margin:8px 0}
+.booking-error{font-size:12px;color:#a82820;background:rgba(206,45,28,.1);border-radius:9px;padding:9px;line-height:1.45;margin:10px 0}
+.tok-booking .btn{margin:5px 6px 4px 0}
+.tok-booking .slot[aria-pressed="true"]{background:var(--tok-orange);color:white;border-color:var(--tok-orange)}
 
 /* ---------- états ---------- */
 .skeleton{border-radius:var(--radius);background:var(--skeleton);background-size:220% 100%;
@@ -289,7 +299,12 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     details: {},
     loadingId: null,
     errorId: null,
-    fullscreen: false
+    fullscreen: false,
+    booking: null,
+    historyItems: [],
+    historyLoading: false,
+    historyError: null,
+    cancelTarget: null
   };
 
   /* ---------- petit constructeur DOM (aucune injection HTML) ---------- */
@@ -302,6 +317,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         if (key === 'text') { el.textContent = String(value); return; }
         if (key === 'class') { el.className = String(value); return; }
         if (key === 'onClick') { el.addEventListener('click', value); return; }
+        if (key === 'onChange') { el.addEventListener('change', value); return; }
         if (key === 'onError') { el.addEventListener('error', value); return; }
         el.setAttribute(key, value === true ? '' : String(value));
       });
@@ -527,6 +543,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         h('p', { text: payload.subtitle || 'Restaurants TOK classés par note' })
       ]),
       h('div', { class: 'hero-side' }, [
+        h('button', { class: 'btn', type: 'button', onClick: loadCustomerHistory }, 'Mes tables'),
         h('span', { class: 'pill live' }, [h('span', { class: 'dot' }), h('span', { text: cards.length + (cards.length > 1 ? ' tables' : ' table') })]),
         h('button', {
           class: 'icon-btn', type: 'button', title: 'Agrandir', 'aria-label': 'Agrandir la sélection',
@@ -670,6 +687,281 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     return text + ' ' + (currency || 'CHF');
   }
 
+  /* ---------- réservation cliente native (jamais de paiement non vérifié) ---------- */
+  function tokToolPayload(raw) {
+    var value = raw && raw.structuredContent ? raw.structuredContent
+      : raw && raw.result && raw.result.structuredContent ? raw.result.structuredContent : raw;
+    if (value && value.structuredContent) value = value.structuredContent;
+    if (!value || typeof value !== 'object') throw new Error('Réponse TOK invalide.');
+    if (value.ok === false || value.isError === true) {
+      var err = value.error || {};
+      var nested = value.data && value.data.error ? value.data.error : {};
+      throw new Error(String(err.message || nested.message || value.data && value.data.error_message
+        || value.data && value.data.error_code || 'Cette action a été refusée par TOK.'));
+    }
+    if (value.data && typeof value.data === 'object') {
+      if (value.data.ok === false || value.data.error_code) {
+        throw new Error(String(value.data.error_message || value.data.error_code || 'Action TOK refusée.'));
+      }
+      return value.data;
+    }
+    return value;
+  }
+
+  function invokeTokTool(name, args) {
+    var call = hostCall('callTool');
+    if (!call) return Promise.reject(new Error('Ouvrez TOK Connect dans ChatGPT pour utiliser cette action.'));
+    return Promise.resolve().then(function () { return call(name, args); }).then(tokToolPayload);
+  }
+
+  function tokIdempotencyKey() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return 'tok-widget-' + crypto.randomUUID();
+    }
+    return 'tok-widget-' + String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+  }
+
+  function startBooking(detail, slot) {
+    if (!detail || !detail.id) return;
+    var current = state.booking;
+    var date = detail.availability && detail.availability.date || state.payload && state.payload.date || '';
+    state.booking = {
+      restaurantId: detail.id, name: detail.name,
+      date: date, time: slot && slot.time || '',
+      partySize: Math.max(1, Math.min(20, Number(state.payload && state.payload.party_size) || 2)),
+      slots: detail.availability && Array.isArray(detail.availability.slots) ? detail.availability.slots : [],
+      step: 'draft', quote: null, quoteLoading: false, loadingSlots: false,
+      quoteError: null, guaranteeAccepted: false, error: null, result: null, idempotencyKey: null
+    };
+    if (current && current.restaurantId === detail.id && current.date === date && current.time === (slot && slot.time || '')) {
+      state.booking.partySize = current.partySize;
+    }
+    render();
+    loadBookingQuote();
+    if (!state.booking.slots.length && date) loadBookingSlots(detail);
+  }
+
+  function loadBookingQuote() {
+    var booking = state.booking;
+    if (!booking || booking.quoteLoading) return;
+    booking.quoteLoading = true; booking.quoteError = null; booking.quote = null;
+    var capturedSize = booking.partySize;
+    render();
+    invokeTokTool('tok_quote_reservation', { party_size: capturedSize }).then(function (quote) {
+      if (state.booking === booking && booking.partySize === capturedSize) booking.quote = quote;
+    }).catch(function (error) {
+      if (state.booking === booking && booking.partySize === capturedSize)
+        booking.quoteError = String(error.message || error);
+    }).finally(function () {
+      if (state.booking === booking) { booking.quoteLoading = false; render(); }
+    });
+  }
+
+  function loadBookingSlots(detail) {
+    var booking = state.booking;
+    if (!booking || booking.loadingSlots || !booking.date) return;
+    booking.loadingSlots = true; booking.error = null;
+    var date = booking.date;
+    var size = booking.partySize;
+    render();
+    invokeTokTool('get_real_time_availability', {
+      restaurant_id: detail.id, date: date, party_size: size
+    }).then(function (response) {
+      if (state.booking !== booking || booking.date !== date || booking.partySize !== size) return;
+      var raw = Array.isArray(response.slots) ? response.slots : [];
+      booking.slots = raw.map(function (slot) {
+        return {
+          time: String(slot.slot_time || slot.time || '').slice(0, 5),
+          available: slot.available !== false && slot.remaining_tables !== 0 && slot.remaining !== 0,
+          remaining: slot.remaining_tables != null ? slot.remaining_tables : slot.remaining
+        };
+      }).filter(function (slot) { return /^\d{2}:\d{2}$/.test(slot.time); });
+    }).catch(function (error) {
+      if (state.booking === booking) booking.error = String(error.message || error);
+    }).finally(function () {
+      if (state.booking === booking) { booking.loadingSlots = false; render(); }
+    });
+  }
+
+  function safePaymentUrl(value) {
+    try {
+      var url = new URL(String(value || ''));
+      if (url.protocol !== 'https:') return null;
+      if (['checkout.stripe.com', 'www.thetok.ch', 'thetok.ch'].indexOf(url.hostname) < 0) return null;
+      return url.toString();
+    } catch (error) { return null; }
+  }
+
+  function confirmBooking() {
+    var booking = state.booking;
+    if (!booking || booking.step !== 'draft' || !booking.quote || !booking.date || !booking.time
+      || !/^\d{4}-\d{2}-\d{2}$/.test(booking.date) || !/^\d{2}:\d{2}$/.test(booking.time)) return;
+    if (booking.quote.required && !booking.guaranteeAccepted) {
+      booking.error = 'Acceptez les conditions de garantie bancaire avant de continuer.';
+      render(); return;
+    }
+    booking.error = null; booking.step = 'processing';
+    if (!booking.idempotencyKey) booking.idempotencyKey = tokIdempotencyKey();
+    render();
+    invokeTokTool('tok_book_table', {
+      restaurant_id: booking.restaurantId,
+      date: booking.date, time: booking.time, party_size: booking.partySize,
+      guarantee_accepted: booking.guaranteeAccepted === true,
+      confirmed_by_user: true, idempotency_key: booking.idempotencyKey
+    }).then(function (response) {
+      if (state.booking !== booking) return;
+      if (response.requires_card_guarantee && safePaymentUrl(response.checkout_url)) {
+        booking.step = 'guarantee'; booking.result = { url: safePaymentUrl(response.checkout_url) };
+      } else if (response.reservation_id || response.reservationId) {
+        booking.step = 'confirmed';
+        booking.result = { id: String(response.reservation_id || response.reservationId) };
+      } else {
+        throw new Error('TOK n’a pas confirmé la réservation : vérifiez votre historique avant de réessayer.');
+      }
+    }).catch(function (error) {
+      if (state.booking === booking) {
+        booking.step = 'draft';
+        booking.error = String(error.message || error);
+      }
+    }).finally(function () { if (state.booking === booking) render(); });
+  }
+
+  function bookingPanel(detail) {
+    var booking = state.booking;
+    if (!booking || booking.restaurantId !== detail.id) return null;
+    var inputs = [];
+    if (booking.step === 'confirmed') {
+      return h('section', { class: 'panel tok-booking' }, [
+        h('h3', { text: 'Réservation confirmée par TOK' }),
+        h('p', { class: 'booking-message', text: 'Votre réservation est enregistrée. Référence : ' + booking.result.id }),
+        h('button', { class: 'btn', type: 'button', onClick: function () { loadCustomerHistory(); } }, 'Mes réservations')
+      ]);
+    }
+    if (booking.step === 'guarantee') {
+      return h('section', { class: 'panel tok-booking' }, [
+        h('h3', { text: 'Empreinte bancaire à finaliser' }),
+        h('p', { class: 'booking-message', text: 'La table n’est pas encore confirmée. Terminez la garantie bancaire via le paiement sécurisé TOK, puis vérifiez le statut de votre réservation.' }),
+        h('button', { class: 'btn primary', type: 'button',
+          onClick: function () { openLink(booking.result.url); }
+        }, 'Continuer sur Stripe'),
+        h('button', { class: 'btn', type: 'button', onClick: loadCustomerHistory }, 'Vérifier mes réservations')
+      ]);
+    }
+    inputs.push(h('div', { class: 'booking-fields' }, [
+      h('label', { class: 'booking-field' }, [
+        h('span', { text: 'Date de réservation' }),
+        h('input', { type: 'date', value: booking.date, onChange: function (event) {
+          booking.date = event.target.value; booking.time = ''; booking.slots = []; booking.idempotencyKey = null;
+          render();
+        } })
+      ]),
+      h('label', { class: 'booking-field' }, [
+        h('span', { text: 'Convives' }),
+        h('input', { type: 'number', min: '1', max: '20', step: '1', value: booking.partySize,
+          onChange: function (event) {
+            var next = Number(event.target.value);
+            if (!Number.isInteger(next) || next < 1 || next > 20) return;
+            booking.partySize = next; booking.slots = []; booking.time = ''; booking.quote = null;
+            booking.idempotencyKey = null; booking.guaranteeAccepted = false;
+            render(); loadBookingQuote();
+          }
+        })
+      ])
+    ]));
+    inputs.push(h('button', { class: 'btn', type: 'button', disabled: booking.loadingSlots || !booking.date,
+      onClick: function () { loadBookingSlots(detail); }
+    }, booking.loadingSlots ? 'Vérification…' : 'Actualiser les créneaux'));
+    var slots = Array.isArray(booking.slots) ? booking.slots : [];
+    if (slots.length) inputs.push(h('div', { class: 'slots' }, slots.map(function (slot) {
+      return h('button', {
+        class: 'slot', type: 'button',
+        disabled: slot.available === false,
+        'aria-pressed': booking.time === slot.time ? 'true' : 'false',
+        onClick: function () { booking.time = slot.time; booking.idempotencyKey = null; render(); }
+      }, slot.time);
+    })));
+    else inputs.push(h('p', { class: 'booking-message', text: 'Choisissez une date, puis vérifiez les créneaux disponibles.' }));
+    if (booking.date && booking.time) inputs.push(h('p', { class: 'booking-message',
+      text: booking.partySize + ' personne(s) · ' + formatDate(booking.date) + ' · ' + booking.time
+    }));
+    if (booking.quoteLoading) inputs.push(h('p', { class: 'booking-message', text: 'Vérification de la garantie bancaire…' }));
+    if (booking.quoteError) inputs.push(h('p', { class: 'booking-error', text: booking.quoteError }));
+    if (booking.quote && booking.quote.required) {
+      var fee = Number(booking.quote.fee_amount_cents || 0) / 100;
+      inputs.push(h('label', { class: 'booking-guarantee' }, [
+        h('input', { type: 'checkbox', checked: booking.guaranteeAccepted,
+          onChange: function (event) {
+            booking.guaranteeAccepted = event.target.checked; booking.idempotencyKey = null;
+          }
+        }),
+        h('span', { text: 'J’accepte l’empreinte bancaire et les conditions d’annulation TOK (montant annoncé : ' + formatPrice(fee, 'CHF') + ').' })
+      ]));
+    }
+    if (booking.error) inputs.push(h('p', { class: 'booking-error', role: 'alert', text: booking.error }));
+    inputs.push(h('button', { class: 'btn primary', type: 'button',
+      disabled: booking.step === 'processing' || !booking.quote || !booking.time || !booking.date
+        || (booking.quote.required && !booking.guaranteeAccepted),
+      onClick: confirmBooking
+    }, booking.step === 'processing' ? 'Confirmation TOK en cours…' : 'Confirmer cette réservation'));
+    inputs.push(h('p', { class: 'booking-message', text: 'Le serveur TOK revérifie la disponibilité. Une garantie bancaire éventuelle ne confirme la réservation qu’après sa finalisation.' }));
+    return h('section', { class: 'panel tok-booking' }, [h('h3', { text: 'Réserver chez ' + booking.name })].concat(inputs));
+  }
+
+  function loadCustomerHistory() {
+    state.view = 'history'; state.historyLoading = true; state.historyError = null;
+    state.cancelTarget = null; render();
+    invokeTokTool('tok_my_reservations', { limit: 10 }).then(function (response) {
+      state.historyItems = Array.isArray(response.items) ? response.items : [];
+    }).catch(function (error) {
+      state.historyError = String(error.message || error);
+    }).finally(function () { state.historyLoading = false; render(); });
+  }
+
+  function cancelCustomerBooking(item) {
+    if (!item || state.cancelTarget !== item.id) return;
+    state.historyLoading = true; state.historyError = null;
+    render();
+    invokeTokTool('tok_cancel_my_reservation', {
+      reservation_id: item.id, confirmed_by_user: true,
+      idempotency_key: tokIdempotencyKey()
+    }).then(function () {
+      loadCustomerHistory();
+    }).catch(function (error) {
+      state.historyError = String(error.message || error);
+      state.cancelTarget = null;
+      state.historyLoading = false; render();
+    });
+  }
+
+  function renderHistory() {
+    var children = [
+      h('button', { class: 'back', type: 'button', onClick: closeDetail }, [svg(ICON_BACK, 14), h('span', { text: 'Retour aux restaurants' })]),
+      h('h2', { text: 'Mes réservations TOK' })
+    ];
+    if (state.historyLoading) children.push(h('p', { class: 'booking-message', text: 'Chargement…' }));
+    if (state.historyError) children.push(h('p', { class: 'booking-error', role: 'alert', text: state.historyError }));
+    if (!state.historyLoading && !state.historyItems.length) {
+      children.push(h('p', { class: 'booking-message', text: 'Aucune réservation visible sur votre compte TOK.' }));
+    }
+    state.historyItems.forEach(function (item) {
+      var canCancel = String(item.feature || 'classique') === 'classique' && item.status !== 'cancelled';
+      var rows = [
+        h('h3', { text: formatDate(item.date) + ' · ' + String(item.time || '').slice(0,5) }),
+        h('p', { class: 'booking-message', text: 'Statut : ' + item.status + ' · ' + item.party_size + ' convive(s)' }),
+        h('p', { class: 'booking-message', text: 'Référence : ' + item.id })
+      ];
+      if (canCancel && state.cancelTarget !== item.id) rows.push(h('button', {
+        class: 'btn', type: 'button', onClick: function () { state.cancelTarget = item.id; render(); }
+      }, 'Demander l’annulation'));
+      else if (canCancel) rows.push(h('div', { class: 'detail-actions' }, [
+        h('button', { class: 'btn primary', type: 'button', onClick: function () { cancelCustomerBooking(item); } }, 'Confirmer l’annulation'),
+        h('button', { class: 'btn', type: 'button', onClick: function () { state.cancelTarget = null; render(); } }, 'Conserver ma table')
+      ]));
+      children.push(h('section', { class: 'panel tok-booking' }, rows));
+    });
+    return h('div', { class: 'detail' }, children);
+  }
+
   function availabilityPanel(detail) {
     var availability = detail.availability || {};
     var slots = Array.isArray(availability.slots) ? availability.slots : [];
@@ -682,9 +974,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
           type: 'button',
           'data-available': slot.available === false ? 'false' : 'true',
           title: slot.remaining !== null && slot.remaining !== undefined ? slot.remaining + ' table(s) restante(s)' : undefined,
-          onClick: function () {
-            askModel('Prépare une réservation TOK chez ' + detail.name + ' le ' + (formatDate(availability.date) || 'prochain service disponible') + ' à ' + slot.time + '. Demande-moi confirmation avant de réserver.');
-          }
+          onClick: function () { startBooking(detail, slot); }
         }, slot.time);
       }))
     ]);
@@ -734,13 +1024,16 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       actions.push(h('button', {
         class: 'btn primary', type: 'button',
         onClick: function () {
-          askModel('Réserve une table chez ' + detail.name + (detail.city ? ' à ' + detail.city : '') + ' via TOK. Propose-moi les créneaux puis demande ma confirmation explicite avant de valider.');
+          startBooking(detail, null);
         }
       }, 'Réserver une table'));
     }
     if (detail.url) {
-      actions.push(h('button', { class: 'btn', type: 'button', onClick: function () { openLink(detail.url); } }, 'Ouvrir la fiche TOK'));
+      actions.push(h('button', { class: 'btn', type: 'button', onClick: function () { openLink(detail.url); } }, 'Commander sur TOK'));
     }
+    actions.push(h('button', { class: 'btn', type: 'button',
+      onClick: function () { openLink('https://www.thetok.ch/zero-attente?restaurant_id=' + encodeURIComponent(detail.id)); }
+    }, 'Zéro Attente sur TOK'));
     if (detail.map_url) {
       actions.push(h('button', { class: 'btn ghost', type: 'button', onClick: function () { openLink(detail.map_url); } }, 'Itinéraire'));
     }
@@ -756,6 +1049,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         h('div', { class: 'kv' }, h('span', { class: 'v', text: detail.description }))
       ]) : null,
       h('div', { class: 'detail-grid' }, [infoPanel(detail), hoursPanel(detail), availabilityPanel(detail), menuPanel(detail), tagsPanel(detail)].filter(Boolean)),
+      bookingPanel(detail),
       actions.length ? h('div', { class: 'detail-actions' }, actions) : null
     ]);
   }
@@ -827,6 +1121,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
   }
 
   function closeDetail() {
+    state.booking = null;
     state.view = 'list';
     state.selectedId = null;
     state.errorId = null;
@@ -840,6 +1135,11 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
   function render() {
     var payload = state.payload;
     root.textContent = '';
+
+    if (state.view === 'history') {
+      root.appendChild(renderHistory());
+      return;
+    }
 
     if (!payload) {
       root.appendChild(h('div', { class: 'empty' }, [
