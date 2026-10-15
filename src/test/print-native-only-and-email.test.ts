@@ -59,6 +59,9 @@ describe("TheTok Print payment-confirmed merchant documents", () => {
     const sandbox = source("supabase/functions/print-sandbox-complete/index.ts");
     expect(sql).toContain("ux_email_queue_print_order_email_key");
     expect(sql).toContain("ON CONFLICT DO NOTHING");
+    expect(sql).toContain("print_email_retry_attempts");
+    expect(sql).toContain("print_email_retry_after");
+    expect(sql).toContain("queued_email.status = 'failed'");
     expect(sql).toContain("payment_status = 'paid'");
     expect(sql).toContain("u.email_confirmed_at IS NOT NULL");
     expect(sql).toContain("print_order_items");
