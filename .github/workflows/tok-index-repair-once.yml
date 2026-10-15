@@ -1,0 +1,34 @@
+name: TOK index repair one-shot
+on:
+  push:
+    branches: [codex/tok-social-three-hour-cadence-20261015]
+    paths: [.github/workflows/tok-index-repair-once.yml]
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Stage removal before source inventory
+        run: git rm .github/workflows/tok-index-repair-once.yml
+      - run: pnpm docs:application-index
+      - name: Validate exact expected outputs
+        run: pnpm docs:application-index:check
+      - name: Commit generated indexes on dedicated branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git commit -m 'fix(marketing): regenerate stable application index'
+          git push origin HEAD:codex/tok-social-three-hour-cadence-20261015
