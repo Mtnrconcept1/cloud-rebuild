@@ -68,6 +68,14 @@ export function getActiveMarketingOutputTarget() {
   return outputSessionSnapshot.target;
 }
 
+export function isNativePrintRatioCompatible(target: MarketingOutputTarget) {
+  if (target.destination !== "print") return true;
+  const nativeRatio = target.nativeWidthPx / target.nativeHeightPx;
+  const printRatio = target.widthPx / target.heightPx;
+  return Number.isFinite(nativeRatio) && Number.isFinite(printRatio)
+    && nativeRatio > 0 && printRatio > 0 && Math.abs(nativeRatio / printRatio - 1) <= 0.001;
+}
+
 export function applyMarketingOutputTargetToImageRequest<T extends TokImageGenerationRequest>(
   request: T,
 ): T {
@@ -80,6 +88,12 @@ export function applyMarketingOutputTargetToImageRequest<T extends TokImageGener
     target.nativeHeightPx,
     target,
   );
+  // The image model's fixed native aspect ratio must match the Cloudprinter
+  // physical raster including bleed. Never bill AI credits for a source that
+  // would later require destructive cover cropping at print export.
+  if (target.destination === "print" && !isNativePrintRatioCompatible(target)) {
+    throw new Error("MARKETING_PRINT_NATIVE_RATIO_UNSUPPORTED_NO_CROP");
+  }
   if (target.destination === "print" && expectedPlan.upscaleFactor > MAX_PRINT_UPSCALE_FACTOR) {
     throw new Error("MARKETING_OUTPUT_UPSCALE_BLOCKED");
   }
@@ -96,7 +110,9 @@ export function applyMarketingOutputTargetToImageRequest<T extends TokImageGener
     "CIBLE FINALE PRIORITAIRE POUR LA COMPOSITION :",
     `${target.label}, ratio ${target.ratioLabel}, fichier final ${target.widthPx}×${target.heightPx} px.`,
     printInstruction,
-    "Le modèle produit son bucket natif ; composer le sujet, le texte et les éléments critiques pour supporter un recadrage cover centré vers ce ratio final, sans élément essentiel au bord.",
+    target.destination === "print"
+      ? "Le modèle doit produire le ratio physique exact, fond perdu compris, sans aucun recadrage, étirement ou calque ajouté après génération ; les éléments importants restent loin de la découpe."
+      : "Le modèle produit son bucket natif ; composer le sujet, le texte et les éléments critiques pour supporter un recadrage cover centré vers ce ratio final, sans élément essentiel au bord.",
   ].filter(Boolean).join(" ");
 
   return {
