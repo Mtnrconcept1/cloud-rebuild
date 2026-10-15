@@ -565,6 +565,10 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       h('div', { class: 'hero-side' }, [
         h('button', { class: 'btn', type: 'button', onClick: loadCustomerHistory }, 'Mes tables'),
         h('button', { class: 'btn', type: 'button', onClick: loadMyOrders }, 'Mes commandes'),
+        state.cart && state.cart.attemptId ? h('button', {
+          class: 'btn', type: 'button',
+          onClick: function () { state.view = 'detail'; state.selectedId = state.cart.restaurantId; render(); }
+        }, 'Paiement à vérifier') : null,
         h('span', { class: 'pill live' }, [h('span', { class: 'dot' }), h('span', { text: cards.length + (cards.length > 1 ? ' tables' : ' table') })]),
         h('button', {
           class: 'icon-btn', type: 'button', title: 'Agrandir', 'aria-label': 'Agrandir la sélection',
@@ -1117,10 +1121,13 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     invokeTokTool('tok_customer_payment_status', { payment_attempt_id: cart.attemptId })
       .then(function (status) {
         if (state.cart !== cart) return;
-        cart.checkoutUrl = safePaymentUrl(status.checkout_url) || cart.checkoutUrl;
-        cart.message = status.paid
-          ? 'Stripe a finalisé la tentative. Vérifiez la commande ou la réservation dans TOK.'
-          : 'Paiement non encore finalisé. Vous pouvez reprendre votre session Stripe.';
+        cart.checkoutUrl = status.paid ? null : safePaymentUrl(status.checkout_url) || cart.checkoutUrl;
+        cart.paymentFinalized = status.paid === true && status.state === 'finalized';
+        cart.message = cart.paymentFinalized
+          ? 'Paiement traité par TOK. Vérifiez votre commande ou réservation avant de commander à nouveau.'
+          : status.paid
+            ? 'Paiement reçu. TOK finalise la commande ou réservation ; ne repassez pas de paiement.'
+            : 'Paiement non encore finalisé. Vous pouvez reprendre votre session Stripe.';
       }).catch(function (error) {
         if (state.cart === cart) cart.error = String(error.message || error);
       }).finally(function () { if (state.cart === cart) render(); });
@@ -1276,6 +1283,12 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       nodes.push(h('button', { class: 'btn', type: 'button',
         onClick: checkCartPayment
       }, 'Vérifier le paiement'));
+      if (cart.paymentFinalized) nodes.push(h('button', { class: 'btn', type: 'button',
+        onClick: function () {
+          if (!cart.paymentFinalized) return;
+          state.cart = null; persist(); render();
+        }
+      }, 'Terminer ce paiement'));
       nodes.push(h('button', { class: 'btn', type: 'button', disabled: cart.cancelLoading,
         onClick: cancelCartPayment
       }, cart.cancelConfirmed ? 'Confirmer l’annulation de Stripe' : 'Annuler cette tentative de paiement'));
@@ -1509,7 +1522,9 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     if (!/^[0-9a-f-]{36}$/i.test(id)) return;
     var detail = findCard(id) || (state.payload && state.payload.detail && state.payload.detail.id === id
       ? state.payload.detail : null);
-    if (!detail) return;
+    // The latest restaurant selection can differ from the interrupted
+    // payment's restaurant. Keep the attempt recoverable even in that case.
+    if (!detail) detail = { id: id, name: 'Restaurant TOK' };
     var items = {};
     if (snapshot.items && typeof snapshot.items === 'object' && !Array.isArray(snapshot.items)) {
       Object.keys(snapshot.items).slice(0, 24).forEach(function (key) {
