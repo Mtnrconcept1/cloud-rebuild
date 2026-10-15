@@ -1697,6 +1697,23 @@ Deno.serve(async (req) => {
       totalBeforeDiscountCents - discountCents,
     );
 
+    // ChatGPT's widget may display a server quote before the customer agrees
+    // to pay. A concurrent price/promotion change must never silently increase
+    // or reduce that consented amount. This guard only compares server-computed
+    // Stripe totals; it never trusts a browser-supplied price as authority.
+    if (
+      CLIENT_STRIPE_CHECKOUT_KINDS.has(effectiveKind) &&
+      order_metadata?.tok_connect_expected_total_cents !== undefined
+    ) {
+      const expected = order_metadata.tok_connect_expected_total_cents;
+      if (typeof expected !== "number" || !Number.isSafeInteger(expected) || expected < 0) {
+        throw new HttpError(400, "TOK_CONNECT_EXPECTED_TOTAL_INVALID");
+      }
+      if (expected !== finalCheckoutTotalCents) {
+        throw new HttpError(409, "TOK_CONNECT_PRICE_CHANGED_REQUOTE_REQUIRED");
+      }
+    }
+
     if (normalizedPaymentMethod === "twint") {
       if (isSubscriptionLifecycleCheckout) {
         throw new HttpError(
