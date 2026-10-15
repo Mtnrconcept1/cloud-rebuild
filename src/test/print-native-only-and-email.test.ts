@@ -13,7 +13,7 @@ describe("TheTok Print native-image output", () => {
     expect(composer).not.toContain('kind: "title"');
     expect(composer).not.toContain('kind: "price"');
     expect(composer).toContain("createMarketingPrintDocument");
-    expect(composer).toContain("Retouche");
+    expect(composer).toContain("retouche de l'image par prompt");
   });
 
   it("rejects any added text, logo, or QR at the authoritative server renderer", () => {
