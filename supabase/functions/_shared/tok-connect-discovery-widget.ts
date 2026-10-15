@@ -891,7 +891,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       inputs.push(h('label', { class: 'booking-guarantee' }, [
         h('input', { type: 'checkbox', checked: booking.guaranteeAccepted,
           onChange: function (event) {
-            booking.guaranteeAccepted = event.target.checked; booking.idempotencyKey = null;
+            booking.guaranteeAccepted = event.target.checked; booking.idempotencyKey = null; render();
           }
         }),
         h('span', { text: 'J’accepte l’empreinte bancaire et les conditions d’annulation TOK (montant annoncé : ' + formatPrice(fee, 'CHF') + ').' })
