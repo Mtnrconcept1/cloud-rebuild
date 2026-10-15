@@ -26,6 +26,37 @@ describe("campagne guidée", () => {
     expect(campaignEndDate("2026-10-14", 4, "daily")).toBe("2026-10-17");
     expect(campaignEndDate("2026-10-14", 3, "weekly")).toBe("2026-10-28");
   });
+  it("prérègle la rotation de toutes les fonctionnalités TOK sur les deux réseaux, sans publication directe", async () => {
+    const generate = setup();
+    fireEvent.click(screen.getByRole("button", { name: /Rotation TOK · lot 1/ }));
+    expect(screen.getByRole("checkbox", { name: /Studio marketing IA/ })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /Réservations à 5 CHF par table/ })).toBeChecked();
+    expect(screen.getByLabelText("Fréquence")).toHaveValue("every_three_hours");
+    expect(screen.getByText("12 publications · 6 visuels à générer")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer et générer la campagne" }));
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(1));
+    const request = generate.mock.calls[0][0];
+    expect(request.channels).toEqual(["instagram", "facebook"]);
+    expect(request.campaignOptions.templateIds).toHaveLength(20);
+    expect(request.campaignOptions).toMatchObject({ postCount: 6, cadence: "every_three_hours",
+      formatsByChannel: { instagram: ["1:1"], facebook: ["1:1"] } });
+    expect(request).not.toHaveProperty("approved");
+  });
+  it("prépare les deux dernières heures de la journée en second lot", async () => {
+    const generate = setup();
+    fireEvent.click(screen.getByRole("button", { name: /Rotation TOK · lot 2/ }));
+    expect(screen.getByText("4 publications · 2 visuels à générer")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer et générer la campagne" }));
+    await waitFor(() => expect(generate).toHaveBeenCalledTimes(1));
+    const request = generate.mock.calls[0][0];
+    expect(request.channels).toEqual(["instagram", "facebook"]);
+    expect(request.campaignOptions).toMatchObject({ postCount: 2, cadence: "every_three_hours" });
+    expect(request.campaignOptions.templateIds).toHaveLength(20);
+    const startLocalHour = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Zurich", hour: "2-digit", hourCycle: "h23" })
+      .format(new Date(request.startsAt));
+    expect(startLocalHour).toBe("18");
+    expect(Date.parse(request.endsAt) - Date.parse(request.startsAt)).toBe(4 * 3_600_000);
+  });
   it("conserve les deux thèmes et les fréquences ajoutés sur main", async () => {
     const generate = setup();
     fireEvent.click(screen.getByRole("checkbox", { name: /Dernière minute/ }));

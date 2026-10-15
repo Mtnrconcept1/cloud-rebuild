@@ -104,6 +104,28 @@ describe("guided campaign server contract", () => {
     const parsed = parseCampaignOptions(options(), channels)!;
     expect(() => buildCampaignSlots(parsed, channels, "2027-03-27T01:30:00Z")).toThrow("campaign_local_time_unavailable");
   });
+  it("schedules six unique posts per network in three-hour Swiss local intervals", () => {
+    const parsed = parseCampaignOptions({ ...options(), postCount: 6, cadence: "every_three_hours",
+      formatsByChannel: { instagram: ["1:1"], facebook: ["1:1"] } }, channels)!;
+    expect(campaignOptionCounts(parsed)).toEqual({ itemCount: 12, visualCount: 6 });
+    const slots = buildCampaignSlots(parsed, channels, "2026-10-24T06:00:00Z");
+    expect(slots.filter((slot) => slot.channel === "instagram").map((slot) => slot.scheduledAt)).toEqual([
+      "2026-10-24T06:00:00.000Z", "2026-10-24T09:00:00.000Z",
+      "2026-10-24T12:00:00.000Z", "2026-10-24T15:00:00.000Z",
+      "2026-10-24T18:00:00.000Z", "2026-10-24T21:00:00.000Z",
+    ]);
+    expect(slots.filter((slot) => slot.channel === "facebook").map((slot) => slot.scheduledAt)).toEqual(
+      slots.filter((slot) => slot.channel === "instagram").map((slot) => slot.scheduledAt),
+    );
+    // Autumn transition retains the wall-clock schedule rather than drifting by an hour.
+    const dst = buildCampaignSlots(parsed, channels, "2026-10-24T16:00:00Z");
+    expect(dst[6].scheduledAt).toBe("2026-10-25T02:00:00.000Z");
+  });
+  it("fails closed if a three-hour slot lands in the missing spring DST hour", () => {
+    const parsed = parseCampaignOptions({ ...options(), postCount: 3, cadence: "every_three_hours",
+      formatsByChannel: { instagram: ["1:1"], facebook: ["1:1"] } }, channels)!;
+    expect(() => buildCampaignSlots(parsed, channels, "2027-03-27T19:00:00Z")).toThrow("campaign_local_time_unavailable");
+  });
   it("preserves twice-weekly and fortnightly schedules from the earlier builder", () => {
     const fortnightly = parseCampaignOptions({ ...options(), cadence: "biweekly" }, channels)!;
     expect(buildCampaignSlots(fortnightly, channels, "2026-11-01T09:00:00Z")[4].scheduledAt).toBe("2026-11-15T09:00:00.000Z");

@@ -12,7 +12,7 @@ import { CAMPAIGN_TEMPLATES } from "../../../supabase/functions/_shared/marketin
 const NETWORKS = [["instagram", "Instagram"], ["facebook", "Facebook"], ["linkedin", "LinkedIn"], ["tok_news", "Actualités TOK"]] as const;
 const FORMATS = [["1:1", "Carré"], ["4:5", "Portrait"], ["9:16", "Vertical"], ["16:9", "Paysage"]] as const;
 type Format = typeof FORMATS[number][0];
-type Cadence = "daily" | "every_other_day" | "twice_weekly" | "weekly" | "biweekly";
+type Cadence = "every_three_hours" | "daily" | "every_other_day" | "twice_weekly" | "weekly" | "biweekly";
 export type CampaignGenerationRequest = {
   objective: string;
   audienceHint: string;
@@ -69,7 +69,12 @@ export function MarketingCampaignBuilder({ snapshot, pending, disabled, onGenera
     const [date, time] = start.split("T");
     const lastDate = new Date(`${date}T12:00:00Z`);
     lastDate.setUTCDate(lastDate.getUTCDate() + lastOffset);
-    const lastIso = marketingZurichLocalDateTimeToIso(`${lastDate.toISOString().slice(0, 10)}T${time}`);
+    // Treat the date input as a Swiss wall-clock schedule, never as a UTC recurrence.
+    // Conversion rejects skipped/ambiguous local hours at daylight-saving changes.
+    const localThreeHourlyEnd = new Date(Date.parse(`${start}:00Z`) + 3 * lastIndex * 3_600_000).toISOString().slice(0, 16);
+    const lastIso = marketingZurichLocalDateTimeToIso(cadence === "every_three_hours"
+      ? localThreeHourlyEnd
+      : `${lastDate.toISOString().slice(0, 10)}T${time}`);
     if (!lastIso) return setError("Le calendrier contient une heure invalide. Choisissez un autre horaire.");
     await onGenerate({
       objective: `Créer une campagne TOK sur les thèmes : ${CAMPAIGN_TEMPLATES.filter(({ id }) => templates.includes(id)).map(({ label }) => label).join(", ")}. Présenter uniquement des avantages vérifiables, sans inventer de promotions, de prix ni de disponibilités.`,
@@ -81,7 +86,10 @@ export function MarketingCampaignBuilder({ snapshot, pending, disabled, onGenera
   };
 
   return <Card>
-    <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><Sparkles className="h-5 w-5" />Créer une campagne avec des modèles</CardTitle><p className="text-sm text-muted-foreground">Cochez vos critères. TOK prépare les textes, les visuels et le calendrier à relire.</p></CardHeader>
+    <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><Sparkles className="h-5 w-5" />Créer une campagne avec des modèles</CardTitle><p className="text-sm text-muted-foreground">Cochez vos critères. TOK prépare les textes, les visuels et le calendrier à relire.</p><div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" disabled={pending || disabled} onClick={() => { setTemplates(CAMPAIGN_TEMPLATES.map(({ id }) => id)); setCount("6"); setCadence("every_three_hours"); setFormats({ instagram: ["1:1"], facebook: ["1:1"] }); setStart(`${marketingZurichDateKey(new Date(Date.now() + 86400000))}T00:00`); setError(""); }}>Rotation TOK · lot 1 (00–15 h)</Button>
+          <Button type="button" variant="outline" disabled={pending || disabled} onClick={() => { setTemplates(CAMPAIGN_TEMPLATES.map(({ id }) => id)); setCount("2"); setCadence("every_three_hours"); setFormats({ instagram: ["1:1"], facebook: ["1:1"] }); setStart(`${marketingZurichDateKey(new Date(Date.now() + 86400000))}T18:00`); setError(""); }}>Rotation TOK · lot 2 (18–21 h)</Button>
+        </div></CardHeader>
     <CardContent className="space-y-6">
       <fieldset disabled={pending || disabled} className="space-y-6">
         <fieldset><legend className="mb-3 font-medium">1. Quels thèmes souhaitez-vous mettre en avant ?</legend>
@@ -94,7 +102,7 @@ export function MarketingCampaignBuilder({ snapshot, pending, disabled, onGenera
         <fieldset><legend className="mb-3 font-medium">2. Combien de posts et à quel rythme ?</legend>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2"><Label htmlFor="builder-count">Posts par réseau et format</Label><Input id="builder-count" type="number" min={1} max={6} step={1} value={count} onChange={(event) => setCount(event.target.value)} /></div>
-            <div className="space-y-2"><Label htmlFor="builder-cadence">Fréquence</Label><select id="builder-cadence" className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={cadence} onChange={(event) => setCadence(event.target.value as Cadence)}><option value="daily">Tous les jours</option><option value="every_other_day">Tous les 2 jours</option><option value="twice_weekly">2 fois par semaine</option><option value="weekly">Toutes les semaines</option><option value="biweekly">Toutes les 2 semaines</option></select></div>
+            <div className="space-y-2"><Label htmlFor="builder-cadence">Fréquence</Label><select id="builder-cadence" className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={cadence} onChange={(event) => setCadence(event.target.value as Cadence)}><option value="every_three_hours">Toutes les 3 heures</option><option value="daily">Tous les jours</option><option value="every_other_day">Tous les 2 jours</option><option value="twice_weekly">2 fois par semaine</option><option value="weekly">Toutes les semaines</option><option value="biweekly">Toutes les 2 semaines</option></select></div>
             <div className="min-w-0 space-y-2"><Label htmlFor="builder-start">Début · heure de Genève</Label><Input id="builder-start" className="min-w-0" type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} /></div>
           </div>
         </fieldset>
@@ -113,7 +121,7 @@ export function MarketingCampaignBuilder({ snapshot, pending, disabled, onGenera
         </fieldset>
         <div className="space-y-2"><Label htmlFor="builder-audience">Audience ou précisions (facultatif)</Label><Input id="builder-audience" maxLength={500} value={audience} onChange={(event) => setAudience(event.target.value)} placeholder="Ex. : clients à Genève, ton chaleureux" /></div>
       </fieldset>
-      <div className="rounded-xl bg-slate-50 p-4 text-sm" aria-live="polite"><p className="font-semibold">{validCount ? total : 0} publications · {validCount ? visuals : 0} visuels à générer</p><p className="mt-1 text-slate-600">Un même post est décliné sur chaque réseau et chaque format cochés. Les réseaux partagent le visuel d’un même post au même format.</p><p className="mt-1 text-xs text-slate-500">Par génération : jusqu’à 6 visuels distincts et 12 publications. Aucune diffusion avant votre approbation.</p></div>
+      <div className="rounded-xl bg-slate-50 p-4 text-sm" aria-live="polite"><p className="font-semibold">{validCount ? total : 0} publications · {validCount ? visuals : 0} visuels à générer</p><p className="mt-1 text-slate-600">Un même post est décliné sur chaque réseau et chaque format cochés. Pour 8 posts par réseau chaque jour, créez deux lots successifs (6 puis 2), avec leurs visuels distincts. Les réseaux partagent le visuel d’un même post au même format.</p><p className="mt-1 text-xs text-slate-500">Par génération : jusqu’à 6 visuels distincts et 12 publications. Aucune diffusion avant votre approbation.</p></div>
       {error || limitError ? <Alert variant="destructive"><AlertDescription>{error || limitError}</AlertDescription></Alert> : null}
       <Button type="button" onClick={submit} disabled={pending || disabled || Boolean(limitError)}>{pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}{pending ? "Préparation des textes et visuels…" : "Envoyer et générer la campagne"}</Button>
     </CardContent>

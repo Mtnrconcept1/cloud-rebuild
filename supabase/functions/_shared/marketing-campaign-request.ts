@@ -5,7 +5,7 @@ export const CAMPAIGN_FORMAT_SIZES = {
   "1:1": "1024x1024", "4:5": "1024x1280", "9:16": "720x1280", "16:9": "1280x720",
 } as const;
 export type CampaignFormat = keyof typeof CAMPAIGN_FORMAT_SIZES;
-export const CAMPAIGN_CADENCE_DAYS = { daily: 1, every_other_day: 2, twice_weekly: 3.5, weekly: 7, biweekly: 14 } as const;
+export const CAMPAIGN_CADENCE_DAYS = { every_three_hours: 1 / 8, daily: 1, every_other_day: 2, twice_weekly: 3.5, weekly: 7, biweekly: 14 } as const;
 export const GUIDED_CAMPAIGN_CHANNELS = ["instagram", "facebook", "linkedin", "tok_news", "google_business"] as const;
 export const MAX_CAMPAIGN_VARIANTS = 12;
 export const MAX_CAMPAIGN_VISUALS = 6;
@@ -72,6 +72,8 @@ export function buildCampaignSlots(options: CampaignOptions, channels: readonly 
   const start = Date.parse(startsAt);
   if (!Number.isFinite(start)) fail("campaign_start_invalid");
   return Array.from({ length: options.postCount }, (_, postIndex) => ({
-    postIndex, scheduledAt: addZurichDays(start, Math.floor(postIndex * CAMPAIGN_CADENCE_DAYS[options.cadence])),
+    postIndex, scheduledAt: addZurichDays(start, options.cadence === "every_three_hours"
+      ? postIndex / 8
+      : Math.floor(postIndex * CAMPAIGN_CADENCE_DAYS[options.cadence])),
   })).flatMap((post) => channels.flatMap((channel) => options.formatsByChannel[channel].map((format) => ({ ...post, channel, format }))));
 }
