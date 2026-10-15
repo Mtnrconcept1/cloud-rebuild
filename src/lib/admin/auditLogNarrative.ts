@@ -58,6 +58,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "confirm-match-group-authorization": "la confirmation d’une autorisation de paiement groupée",
   "ops-incident-native-scan": "la détection automatique des incidents techniques",
   "ops-incident-control": "le pilotage des incidents et des réparations assistées",
+  "ops-admin-approval": "la validation renforcée des plans de correction Guardian et leur préparation sur une branche isolée",
   "daily-dish-ai": "la génération des plats du jour par IA",
   "aligro-catalog-sync": "la mise à jour hebdomadaire du catalogue de prix Aligro",
   "google-actions-center-sync": "l’envoi des mises à jour de disponibilité et de réservation à Google",

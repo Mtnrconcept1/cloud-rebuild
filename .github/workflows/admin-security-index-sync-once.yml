@@ -1,0 +1,53 @@
+# One-time, branch-only index regeneration for the administrator security centre.
+# The job deletes this workflow in its own output commit before indexing.
+name: Security centre index regeneration
+on:
+  push:
+    branches:
+      - codex/admin-security-center-guardian-approval-20261015
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: ${{ github.repository == 'Mtnrconcept1/cloud-rebuild' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out dedicated branch without persisting credentials
+        uses: actions/checkout@v4
+        with:
+          ref: codex/admin-security-center-guardian-approval-20261015
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Remove one-time workflow before generating canonical digest
+        run: git rm -- .github/workflows/admin-security-index-sync-once.yml
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - name: Install without package scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Generate canonical references and error code map
+        run: |
+          pnpm run docs:application-index
+          pnpm run generate:error-code-map
+      - name: Commit only generated references and delete this one-time workflow
+        run: |
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts supabase/functions/_shared/error-code-map.ts
+          git diff --cached --stat
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(security): regenerate canonical references and error map"
+      - name: Push only the dedicated branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          auth="$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin "HEAD:refs/heads/codex/admin-security-center-guardian-approval-20261015"
