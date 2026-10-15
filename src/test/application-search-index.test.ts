@@ -59,7 +59,8 @@ describe("application search index", () => {
     expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/admin/equipe")).toBe(true);
     expect(index.catalogs.featureFlags).toHaveLength(99);
     expect(index.catalogs.apiRoutes).toHaveLength(9);
-    expect(index.catalogs.edgeFunctions).toHaveLength(116);
+    expect(index.catalogs.edgeFunctions).toHaveLength(117);
+    expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "ai-restaurant-editor")).toBe(true);
     expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "golden-tok-membership")).toBe(true);
     expect(index.catalogs.edgeHttpRoutes).toHaveLength(20);
     expect(index.catalogs.marketingOperations).toHaveLength(37);

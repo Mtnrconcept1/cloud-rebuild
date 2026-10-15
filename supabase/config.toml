@@ -41,6 +41,9 @@ verify_jwt = false
 [functions.ai-restaurant-agent]
 verify_jwt = false
 
+[functions.ai-restaurant-editor]
+verify_jwt = false
+
 [functions.ai-social-post-copy]
 verify_jwt = false
 

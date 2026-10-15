@@ -66,6 +66,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "ai-client-support": "l’assistance IA côté client",
   "ai-client-chat": "la conversation IA côté client",
   "ai-restaurant-agent": "l’assistant IA du restaurateur",
+  "ai-restaurant-editor": "la préparation et la validation des modifications IA du restaurant",
   "ai-restaurant-tools": "les outils IA du restaurateur",
   "ai-admin-support": "l’assistance IA côté administration",
   "ai-admin-dashboard-chat": "l’assistant IA du tableau de bord admin",

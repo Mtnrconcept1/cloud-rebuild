@@ -3,6 +3,7 @@ import {
   BarChart3,
   Bot,
   Camera,
+  PencilLine,
   History,
   Megaphone,
   RotateCcw,
@@ -15,6 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import ReactMarkdown, { defaultUrlTransform, type UrlTransform } from "react-markdown";
+import { useQueryClient } from "@tanstack/react-query";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardIllustrationMedia from "@/components/dashboard/DashboardIllustrationMedia";
@@ -42,9 +44,12 @@ import {
   createRestaurantAdvisorConversation,
   getRestaurantAdvisorConversations,
   runRestaurantAgent,
+  proposeRestaurantEdit,
+  applyRestaurantEdit,
   streamRestaurantAdvisor,
   type RestaurantAgentAction,
   type RestaurantAdvisorConversation,
+  type RestaurantEditProposal,
 } from "@/lib/ai/tokAiClient";
 import {
   requestAiCreationNotificationPermission,
@@ -416,6 +421,10 @@ export default function DashboardAdvisor() {
   const isCommercialDemo = Boolean(demoAiRuntime);
   const { selectedId, restaurants } = useDashboardRestaurant();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [editMode, setEditMode] = useState(false);
+  const [pendingEdit, setPendingEdit] = useState<RestaurantEditProposal | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<{ taskId: string; assetId: string; url: string } | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -438,6 +447,7 @@ export default function DashboardAdvisor() {
     ? { id: selectedId, name: restaurants.find((item) => item.id === selectedId)?.name || "Mon restaurant" }
     : null;
   const restaurantId = restaurant?.id;
+  useEffect(() => { setPendingEdit(null); setPhotoPreview(null); }, [restaurantId]);
   // A visual stored while the tab was away is re-attached instead of being lost.
   useAiCreationRecovery(restaurantId);
   const advisorHistoryStorageScope = demoAiRuntime
@@ -671,6 +681,34 @@ export default function DashboardAdvisor() {
     setInput("");
     setIsLoading(true);
 
+    // Editing is always a separate, explicit two-step action. Natural-language edit
+    // requests open a review card, never execute a write merely by sending a message.
+    const requestsEdit = /\b(modifi\w*|chang\w*|mets?\b|mettre\b|ajout\w*|corrig\w*|supprim\w*|remplac\w*|renomm\w*|g[ée]n[èe]r\w*|cr[ée]\w*|photograph\w*)/i.test(messageText);
+    if (!isCommercialDemo && (editMode || requestsEdit)) {
+      setPendingEdit(null);
+      setPhotoPreview(null);
+      try {
+        const proposal = await proposeRestaurantEdit({ restaurantId: restaurant.id, prompt: messageText });
+        if (!mountedRef.current) return;
+        setPendingEdit(proposal);
+        const assistantMsg: Message = {
+          role: "assistant",
+          content: "Modification proposée pour **" + proposal.subject_name + "** : " + proposal.title
+            + ". Vérifiez le changement ci-dessous avant de le confirmer. Aucune donnée n'a encore été modifiée.",
+        };
+        const completed = [...newMessages, assistantMsg];
+        setMessages(completed);
+        setHistoryEntries(saveAdvisorHistoryEntry(advisorHistoryStorageScope, restaurant.id, completed));
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Modification indisponible";
+        toast({ title: "Modification non préparée", description: errorMessage, variant: "destructive" });
+        setMessages((current) => current.filter((message) => message !== userMsg));
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     try {
       const assistantReply = await streamChat(newMessages);
       if (assistantReply.trim()) {
@@ -713,6 +751,64 @@ export default function DashboardAdvisor() {
         return prev;
       });
     } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConfirmEdit = async () => {
+    const proposal = pendingEdit;
+    if (!proposal || !restaurant || proposal.restaurantId !== restaurant.id || isLoading || isCommercialDemo) return;
+    setIsLoading(true);
+    setActiveTool(proposal.target === "dish_photo" ? "Génération de la photo" : "Modification du restaurant");
+    try {
+      let assetId: string | undefined;
+      if (proposal.target === "dish_photo" && (!photoPreview || photoPreview.taskId !== proposal.taskId)) {
+        void requestAiCreationNotificationPermission();
+        const { promise } = startTokImageCreationJob({
+          restaurantId: restaurant.id,
+          tool: "menu_photo",
+          title: proposal.title,
+          request: {
+            restaurantId: restaurant.id,
+            dishName: proposal.subject_name,
+            prompt: proposal.value,
+            assetType: "menu_visual",
+            generateImage: true,
+            imageOnly: true,
+            variantCount: 1,
+          },
+        });
+        const generated = await promise;
+        if (!generated.assetId || !generated.gallery_image_url) {
+          throw new Error("La photo n'a pas pu être enregistrée dans la galerie du restaurant.");
+        }
+        setPhotoPreview({ taskId: proposal.taskId, assetId: generated.assetId, url: generated.gallery_image_url });
+        toast({ title: "Photo générée", description: "Vérifiez le visuel, puis confirmez son association au plat." });
+        return;
+      }
+      if (proposal.target === "dish_photo") assetId = photoPreview?.assetId;
+      await applyRestaurantEdit({ restaurantId: restaurant.id, taskId: proposal.taskId, assetId });
+      if (!mountedRef.current) return;
+      setPendingEdit(null);
+      setPhotoPreview(null);
+      void queryClient.invalidateQueries();
+      setMessages((current) => {
+        const updated = [...current, {
+          role: "assistant" as const,
+          content: "Modification enregistrée dans **" + proposal.subject_name + "**. Le dashboard va afficher les nouvelles données.",
+        }];
+        setHistoryEntries(saveAdvisorHistoryEntry(advisorHistoryStorageScope, restaurant.id, updated));
+        return updated;
+      });
+      toast({ title: "Modification enregistrée", description: proposal.title });
+    } catch (error) {
+      toast({
+        title: "La modification n'a pas été appliquée",
+        description: error instanceof Error ? error.message : "Erreur inconnue",
+        variant: "destructive",
+      });
+    } finally {
+      setActiveTool(null);
       setIsLoading(false);
     }
   };
@@ -935,6 +1031,8 @@ export default function DashboardAdvisor() {
     setInput("");
     setActiveTool(null);
     setActiveConversationId(null);
+    setPendingEdit(null);
+    setPhotoPreview(null);
     setPreparationTool(null);
     setSelectedPhotoIds([]);
     setSelectedDishIds([]);
@@ -947,6 +1045,8 @@ export default function DashboardAdvisor() {
     setHistoryOpen(false);
     setActiveTool(null);
     setActiveConversationId(entry.backendConversationId || null);
+    setPendingEdit(null);
+    setPhotoPreview(null);
     setPreparationTool(null);
     setSelectedPhotoIds([]);
     setSelectedDishIds([]);
@@ -1016,6 +1116,12 @@ export default function DashboardAdvisor() {
             </div>
           </div>
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
+            <Button type="button" variant={editMode ? "default" : "outline"} size="sm"
+              disabled={isCommercialDemo} onClick={() => setEditMode((value) => !value)}
+              className="min-w-0 flex-[1_1_10rem] gap-1.5 sm:flex-none">
+              <PencilLine className="h-3.5 w-3.5" />
+              {editMode ? "Édition activée" : "Modifier mon restaurant"}
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setHistoryOpen((open) => !open)} className="min-w-0 flex-[1_1_10rem] gap-1.5 sm:flex-none">
               <History className="h-3.5 w-3.5" />
               Historique
@@ -1167,6 +1273,31 @@ export default function DashboardAdvisor() {
           <div ref={messagesEndRef} />
         </div>
 
+        {pendingEdit && pendingEdit.restaurantId === restaurant.id && (
+          <Card className="mb-3 max-h-80 shrink-0 space-y-2 overflow-y-auto border-primary/50 bg-primary/5 p-3">
+            <p className="text-sm font-semibold">Modification à confirmer — {pendingEdit.subject_name}</p>
+            <p className="text-xs text-muted-foreground">{pendingEdit.summary}</p>
+            <p className="text-xs"><strong>Champ :</strong> {pendingEdit.field}</p>
+            <p className="text-xs break-words"><strong>Actuellement :</strong> {String(pendingEdit.previous_value ?? "Non renseigné")}</p>
+            <p className="text-xs break-words"><strong>Proposé :</strong> {pendingEdit.target === "dish_photo" ? "Nouvelle photographie culinaire générée par IA" : pendingEdit.value}</p>
+            {pendingEdit.target === "dish_photo" && (
+              <>
+                <p className="text-xs text-muted-foreground">La génération d'image consommera des crédits IA. Vous pourrez vérifier le résultat avant de l'associer au plat.</p>
+                {photoPreview?.taskId === pendingEdit.taskId && (
+                  <img src={photoPreview.url} alt={"Prévisualisation IA du plat " + pendingEdit.subject_name} className="max-h-44 w-auto rounded-lg object-contain" />
+                )}
+              </>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" size="sm" disabled={isLoading} onClick={() => void handleConfirmEdit()}>
+                {pendingEdit.target === "dish_photo" ? (photoPreview?.taskId === pendingEdit.taskId ? "Associer cette photo au plat" : "Générer une photo") : "Confirmer la modification"}
+              </Button>
+              <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => { setPendingEdit(null); setPhotoPreview(null); }}>
+                Annuler
+              </Button>
+            </div>
+          </Card>
+        )}
         <div className="shrink-0 border-t pt-4">
           <div className="flex items-end gap-2">
             <Textarea
@@ -1175,7 +1306,7 @@ export default function DashboardAdvisor() {
               onChange={(event) => setInput(event.target.value)}
               maxLength={4000}
               onKeyDown={handleKeyDown}
-              placeholder="Posez une question sur vos performances..."
+              placeholder={editMode ? "Demandez une modification du profil, du menu ou une photo de plat..." : "Posez une question ou demandez une modification de votre restaurant..."}
               className="max-h-32 min-h-[48px] resize-none"
               rows={1}
               disabled={isLoading}
