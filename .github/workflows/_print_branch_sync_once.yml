@@ -1,0 +1,41 @@
+name: One-time print branch generated contracts sync
+on:
+  push:
+    branches:
+      - fix/cloudprinter-print-native-safety-20261015
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - name: Install project dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Remove this one-time branch-only action before generating indexes
+        run: rm .github/workflows/_print_branch_sync_once.yml
+      - name: Regenerate repository application search index and incident error-map
+        run: |
+          pnpm docs:application-index
+          pnpm run generate:error-code-map
+      - name: Commit generated files on dedicated branch only
+        run: |
+          git config user.name "tok-ci-contract-sync"
+          git config user.email "tok-ci-contract-sync@users.noreply.github.com"
+          git add -A .github/workflows/_print_branch_sync_once.yml docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts supabase/functions/_shared/error-code-map.ts
+          if git diff --cached --quiet; then
+            echo "No generated changes."
+            exit 0
+          fi
+          git commit -m "chore(print): refresh generated application and incident indexes"
+          git push origin HEAD:fix/cloudprinter-print-native-safety-20261015
