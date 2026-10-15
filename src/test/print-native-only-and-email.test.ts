@@ -19,7 +19,7 @@ describe("TheTok Print native-image output", () => {
   it("rejects any added text, logo, or QR at the authoritative server renderer", () => {
     const pdf = source("supabase/functions/_shared/print/pdf.ts");
     expect(pdf).toContain("PRINT_NATIVE_IMAGE_ONLY");
-    expect(pdf).toContain("Array.isArray(record.texts) && record.texts.length > 0");
+    expect(pdf).toContain("record.texts != null && (!Array.isArray(record.texts) || record.texts.length !== 0)");
     expect(pdf).not.toContain("page.drawText(");
     expect(pdf).not.toContain("QRCode.create");
     expect(pdf).toContain("page.drawImage(background, { x: 0, y: 0");
