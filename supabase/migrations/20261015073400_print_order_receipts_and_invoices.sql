@@ -69,7 +69,7 @@ BEGIN
 
   SELECT pa.mode INTO v_mode
   FROM public.payment_attempts pa WHERE pa.id = v_order.payment_attempt_id;
-  v_sandbox := v_mode = 'test' AND v_order.customer_amount_cents = 0;
+  v_sandbox := COALESCE(v_mode = 'test', false);
 
   SELECT count(*)::integer,
     string_agg(
@@ -106,7 +106,7 @@ BEGIN
   v_shipping_html := private_finance.tok_invoice_html_escape(v_shipping);
   v_shipping_level := coalesce(nullif(v_order.selected_shipping->>'shipping_level', ''),
     nullif(v_order.selected_shipping->>'shipping_option', ''), 'Standard');
-  v_total_cents := v_order.customer_amount_cents;
+  v_total_cents := CASE WHEN v_sandbox THEN 0 ELSE v_order.customer_amount_cents END;
   -- Swiss domestic advertising prints are normally charged at the standard 8.1% rate.
   -- Customer total is tax-inclusive; never copy Cloudprinter wholesale VAT into a retail invoice.
   v_net_cents := round(v_total_cents::numeric / 1.081)::integer;
