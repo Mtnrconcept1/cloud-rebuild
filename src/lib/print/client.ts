@@ -76,7 +76,7 @@ export async function createPrintExport(input: {
   return invokePrint<PrintExportResult>("print-export", { action: "create", ...input });
 }
 
-export async function approvePrintExport(input: { restaurantId: string; exportId: string }) {
+export async function approvePrintExport(input: { restaurantId: string; exportId: string; safeAreaAcknowledged: boolean }) {
   return invokePrint<PrintExportResult>("print-export", { action: "approve", ...input });
 }
 
