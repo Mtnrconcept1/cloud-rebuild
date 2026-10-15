@@ -247,11 +247,6 @@ export default function PrintComposerDialog({
   const [catalog, setCatalog] = useState<PrintCatalogProduct[]>([]);
   const [selectedAssetId, setSelectedAssetId] = useState("");
   const [selectedVariantId, setSelectedVariantId] = useState("");
-  const [title, setTitle] = useState("Votre offre du moment");
-  const [subtitle, setSubtitle] = useState("");
-  const [price, setPrice] = useState("");
-  const [cta, setCta] = useState("Réservez maintenant");
-  const [qrUrl, setQrUrl] = useState("");
   const [quantity, setQuantity] = useState(250);
   const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
   const [exportId, setExportId] = useState<string | null>(null);
@@ -331,18 +326,12 @@ export default function PrintComposerDialog({
     setApproved(false);
     setQuote(null);
     setPreparedDocument(null);
-  }, [selectedAssetId, title, subtitle, price, cta, qrUrl]);
+  }, [selectedAssetId]);
 
   const document = useMemo<MarketingPrintDocument | null>(() => {
     if (!selectedAsset || !selectedVariant) return null;
-    const texts = [
-      { id: "title", kind: "title" as const, text: title, x: 0.09, y: 0.10, width: 0.82, height: 0.16, align: "center" as const, fontSizeMm: 8, weight: "bold" as const, color: "#ffffff" },
-      ...(subtitle.trim() ? [{ id: "subtitle", kind: "subtitle" as const, text: subtitle.trim(), x: 0.12, y: 0.29, width: 0.76, height: 0.10, align: "center" as const, fontSizeMm: 4.5, weight: "bold" as const, color: "#ffffff" }] : []),
-      ...(price.trim() ? [{ id: "price", kind: "price" as const, text: price.trim(), x: 0.17, y: 0.55, width: 0.40, height: 0.12, align: "left" as const, fontSizeMm: 8, weight: "bold" as const, color: "#ffffff" }] : []),
-      ...(cta.trim() ? [{ id: "cta", kind: "cta" as const, text: cta.trim(), x: 0.12, y: 0.76, width: qrUrl.trim() ? 0.50 : 0.76, height: 0.10, align: "left" as const, fontSizeMm: 4.5, weight: "bold" as const, color: "#ffffff" }] : []),
-    ];
     return createMarketingPrintDocument({
-      title: title || selectedAsset.name,
+      title: selectedAsset.name,
       background: {
         url: selectedAsset.url,
         mimeType: selectedAsset.mimeType,
@@ -350,12 +339,10 @@ export default function PrintComposerDialog({
         heightPx: selectedAsset.heightPx,
       },
       sourceGenerationId: selectedAsset.sourceGenerationId || selectedAsset.id,
-      texts,
-      qr: qrUrl.trim() ? { value: qrUrl.trim(), x: 0.70, y: 0.70, size: 0.18 } : null,
       orientation: selectedVariant.widthMm === selectedVariant.heightMm
         ? "square" : selectedVariant.widthMm > selectedVariant.heightMm ? "landscape" : "portrait",
     });
-  }, [selectedAsset, selectedVariant, title, subtitle, price, cta, qrUrl]);
+  }, [selectedAsset, selectedVariant]);
 
   const renderingPlan = useMemo(() => {
     if (!selectedAsset || !selectedVariant || !selectedProduct) return null;
@@ -554,13 +541,9 @@ export default function PrintComposerDialog({
                 </div>
               ) : null}
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div><Label>Titre</Label><Input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={80} /></div>
-                <div><Label>Prix / accroche courte</Label><Input value={price} onChange={(event) => setPrice(event.target.value)} placeholder="CHF 39.–" maxLength={40} /></div>
-              </div>
-              <div><Label>Sous-titre</Label><Input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} maxLength={120} /></div>
-              <div><Label>Appel à l’action</Label><Input value={cta} onChange={(event) => setCta(event.target.value)} maxLength={80} /></div>
-              <div><Label>QR code (optionnel)</Label><Input value={qrUrl} onChange={(event) => setQrUrl(event.target.value)} placeholder="https://www.thetok.ch/..." /></div>
+              <p className="rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm leading-6 text-orange-950">
+                Le visuel imprimé est exclusivement l'image créée par IA. Aucun titre, prix, QR code ou logo n'est ajouté au moment de l'impression. Pour modifier un élément, retournez dans le Studio Marketing et demandez une retouche de l'image par prompt avant de préparer un nouveau BAT.
+              </p>
               <div>
                 <Label>Quantité</Label>
                 <Input
