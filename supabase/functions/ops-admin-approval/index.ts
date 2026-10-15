@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
     const baseSha = await mainSha();
     const token = randomToken();
     const tokenHash = await hashSha256(token);
-    const { data: approved, error: approveError } = await actor.adminClient.rpc("ops_approve_incident_admin", {
+    const { error: approveError } = await actor.adminClient.rpc("ops_approve_incident_admin", {
       p_incident_id: incidentId,
       p_expected_evidence_hash: expectedHash,
       p_expected_plan: proposedPlan,
