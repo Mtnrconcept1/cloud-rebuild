@@ -154,6 +154,12 @@ const APP_BRIDGE_TOOLS = [
  * They run through TOK's existing authenticated business functions, never the
  * partner-B2B reservation API (which uses unrelated partner/client UUIDs).
  */
+const TOK_CLIENT_WIDGET_META = {
+  ui: { resourceUri: "ui://tok-connect/restaurant-discovery-v1.html", visibility: ["model", "app"] },
+  "openai/widgetAccessible": true,
+  "openai/outputTemplate": "ui://tok-connect/restaurant-discovery-v1.html",
+} as const;
+
 const TOK_CLIENT_TOOLS = [
   {
     name: "tok_quote_reservation",
@@ -167,7 +173,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
   },
   {
     name: "tok_book_table",
@@ -190,7 +196,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
   },
   {
     name: "tok_my_reservations",
@@ -199,7 +205,7 @@ const TOK_CLIENT_TOOLS = [
     securitySchemes: OAUTH_SECURITY,
     inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20 } }, additionalProperties: false },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
   },
   {
     name: "tok_my_orders",
@@ -208,7 +214,7 @@ const TOK_CLIENT_TOOLS = [
     securitySchemes: OAUTH_SECURITY,
     inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20 } }, additionalProperties: false },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
   },
   {
     name: "tok_cancel_my_reservation",
@@ -226,7 +232,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
   },
 ] as const;
 const TOK_CLIENT_TOOL_NAMES = new Set(TOK_CLIENT_TOOLS.map((tool) => tool.name));
@@ -238,8 +244,8 @@ function assertTokClientArgs(name: string, args: JsonRecord) {
       throw new McpProtocolError(-32602, "tok_party_size_invalid", 400);
   }
   if (name === "tok_book_table") {
-    if (!isUuid(String(args.restaurant_id || "")) || !/^\\d{4}-\\d{2}-\\d{2}$/.test(String(args.date || ""))
-      || !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(String(args.time || "")))
+    if (!isUuid(String(args.restaurant_id || "")) || !/^\d{4}-\d{2}-\d{2}$/.test(String(args.date || ""))
+      || !/^([01]\d|2[0-3]):[0-5]\d$/.test(String(args.time || "")))
       throw new McpProtocolError(-32602, "tok_reservation_fields_invalid", 400);
     if (args.notes !== undefined && (typeof args.notes !== "string" || args.notes.length > 1000))
       throw new McpProtocolError(-32602, "tok_reservation_notes_invalid", 400);
