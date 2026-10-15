@@ -86,7 +86,7 @@ export function MarketingCampaignBuilder({ snapshot, pending, disabled, onGenera
   };
 
   return <Card>
-    <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><Sparkles className="h-5 w-5" />Créer une campagne avec des modèles</CardTitle><p className="text-sm text-muted-foreground">Cochez vos critères. TOK prépare les textes, les visuels et le calendrier à relire.</p><Button type="button" variant="outline" disabled={pending || disabled} onClick={() => { setTemplates(CAMPAIGN_TEMPLATES.map(({ id }) => id)); setCount("6"); setCadence("every_three_hours"); setFormats({ instagram: ["1:1"], facebook: ["1:1"] }); setError(""); }}>Rotation TOK · tous les thèmes · 3 h</Button></CardHeader>
+    <CardHeader><CardTitle className="flex items-center gap-2 text-lg"><Sparkles className="h-5 w-5" />Créer une campagne avec des modèles</CardTitle><p className="text-sm text-muted-foreground">Cochez vos critères. TOK prépare les textes, les visuels et le calendrier à relire.</p><Button type="button" variant="outline" disabled={pending || disabled} onClick={() => { setTemplates(CAMPAIGN_TEMPLATES.map(({ id }) => id)); setCount("6"); setCadence("every_three_hours"); setFormats({ instagram: ["1:1"], facebook: ["1:1"] }); setStart(`${marketingZurichDateKey(new Date(Date.now() + 86400000))}T00:00`); setError(""); }}>Rotation TOK · tous les thèmes · 3 h</Button></CardHeader>
     <CardContent className="space-y-6">
       <fieldset disabled={pending || disabled} className="space-y-6">
         <fieldset><legend className="mb-3 font-medium">1. Quels thèmes souhaitez-vous mettre en avant ?</legend>
