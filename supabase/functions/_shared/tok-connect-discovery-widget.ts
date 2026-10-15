@@ -564,6 +564,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       ]),
       h('div', { class: 'hero-side' }, [
         h('button', { class: 'btn', type: 'button', onClick: loadCustomerHistory }, 'Mes tables'),
+        h('button', { class: 'btn', type: 'button', onClick: loadMyOrders }, 'Mes commandes'),
         h('span', { class: 'pill live' }, [h('span', { class: 'dot' }), h('span', { text: cards.length + (cards.length > 1 ? ' tables' : ' table') })]),
         h('button', {
           class: 'icon-btn', type: 'button', title: 'Agrandir', 'aria-label': 'Agrandir la sélection',
@@ -993,6 +994,11 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
 
   function startCart(detail, mode) {
     if (!detail || !detail.id) return;
+    if (state.cart && state.cart.restaurantId === detail.id && !state.cart.attemptId) {
+      state.cart.journey = mode;
+      cartChanged(state.cart);
+      return;
+    }
     // An ambiguous checkout may already be payable. Never overwrite its
     // idempotency key by opening a new cart, even at another restaurant.
     if (state.cart && state.cart.attemptId) {
@@ -1497,6 +1503,56 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     if (isFinite(height) && height > 0) root.style.minHeight = Math.max(180, height - 32) + 'px';
   }
 
+  function restoreTokCart(snapshot) {
+    if (state.cart || !snapshot || typeof snapshot !== 'object') return;
+    var id = String(snapshot.restaurantId || '');
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return;
+    var detail = findCard(id) || (state.payload && state.payload.detail && state.payload.detail.id === id
+      ? state.payload.detail : null);
+    if (!detail) return;
+    var items = {};
+    if (snapshot.items && typeof snapshot.items === 'object' && !Array.isArray(snapshot.items)) {
+      Object.keys(snapshot.items).slice(0, 24).forEach(function (key) {
+        var amount = snapshot.items[key];
+        if (/^[0-9a-f-]{36}$/i.test(key) && Number.isInteger(amount) && amount > 0 && amount <= 20) {
+          items[key] = amount;
+        }
+      });
+    }
+    var attemptId = typeof snapshot.attemptId === 'string'
+      && /^[0-9a-f-]{36}$/i.test(snapshot.attemptId) ? snapshot.attemptId : null;
+    state.cart = {
+      restaurantId: id, journey: snapshot.journey === 'zero-attente' ? 'zero-attente' : 'takeaway',
+      date: /^\d{4}-\d{2}-\d{2}$/.test(snapshot.date || '') ? snapshot.date : tokTodayInZurich(),
+      time: /^([01]\d|2[0-3]):[0-5]\d$/.test(snapshot.time || '') ? snapshot.time : '',
+      partySize: Number.isInteger(snapshot.partySize) && snapshot.partySize >= 1 && snapshot.partySize <= 20
+        ? snapshot.partySize : 2,
+      paymentMethod: snapshot.paymentMethod === 'twint' ? 'twint' : 'card',
+      items: items, menu: [], notes: '', quote: null, quoteLoading: false,
+      menuLoading: true, stage: attemptId ? 'pending' : 'draft',
+      attemptId: attemptId, checkoutUrl: null,
+      message: attemptId
+        ? 'Tentative de paiement restaurée. Vérifiez son statut ou annulez-la avant de modifier le panier.'
+        : 'Panier restauré. Actualisez le devis avant de payer.',
+      error: null
+    };
+    state.details[id] = Object.assign({}, detail, { kind: 'restaurant_detail' });
+    state.selectedId = id;
+    state.view = 'detail';
+    var restored = state.cart;
+    invokeTokTool('get_restaurant_menu', { restaurant_id: id, limit: 100 }).then(function (result) {
+      if (state.cart !== restored) return;
+      restored.menu = (Array.isArray(result.items) ? result.items : []).filter(function (item) {
+        return item && typeof item.id === 'string' && /^[0-9a-f-]{36}$/i.test(item.id)
+          && item.is_available !== false && isFinite(Number(item.price));
+      }).slice(0, 100);
+    }).catch(function (error) {
+      if (state.cart === restored) restored.error = String(error.message || error);
+    }).finally(function () {
+      if (state.cart === restored) { restored.menuLoading = false; render(); }
+    });
+  }
+
   function ingest(globals) {
     if (!globals || typeof globals !== 'object') return;
     if (globals.theme) applyTheme(globals.theme);
@@ -1518,9 +1574,13 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     }
 
     var widgetState = globals.widgetState;
-    if (widgetState && typeof widgetState === 'object' && !next) {
+    if (widgetState && typeof widgetState === 'object') {
       if (widgetState.filter) state.filter = widgetState.filter;
-      if (widgetState.view === 'detail' && widgetState.selectedId && findCard(widgetState.selectedId)) {
+      // A reload must never forget an existing payable Stripe attempt. Its
+      // stable UUID is restored in a locked state; no implicit payment calls.
+      if (!state.cart && widgetState.cart) restoreTokCart(widgetState.cart);
+      if (!state.cart && !next && widgetState.view === 'detail'
+        && widgetState.selectedId && findCard(widgetState.selectedId)) {
         state.view = 'detail';
         state.selectedId = widgetState.selectedId;
       }
