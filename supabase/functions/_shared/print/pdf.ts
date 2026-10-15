@@ -109,7 +109,7 @@ function buildServerPreflight(document: ServerPrintDocument, spec: ServerPrintPr
   // never silently crop a differently shaped uploaded image into the PDF.
   const sourceRatio = document.background.widthPx / document.background.heightPx;
   const targetRatio = mediaWidthMm / mediaHeightMm;
-  if (Math.abs(sourceRatio / targetRatio - 1) > 0.005) {
+  if (Math.abs(sourceRatio / targetRatio - 1) > 0.001) {
     blocking.push({ code: "background_format_mismatch", message: "Le format du visuel ne correspond pas au format d’impression." });
   }
   const dpiX = document.background.widthPx / (mediaWidthMm / 25.4);
@@ -125,21 +125,6 @@ function buildServerPreflight(document: ServerPrintDocument, spec: ServerPrintPr
     effectiveResolutionDpi: { x: dpiX, y: dpiY },
     ready: blocking.length === 0,
   };
-}
-
-function drawImageCover(page: any, image: any, pageWidth: number, pageHeight: number) {
-  const sourceRatio = image.width / image.height;
-  const targetRatio = pageWidth / pageHeight;
-  let width = pageWidth;
-  let height = pageHeight;
-  if (sourceRatio > targetRatio) width = height * sourceRatio;
-  else height = width / sourceRatio;
-  page.drawImage(image, {
-    x: (pageWidth - width) / 2,
-    y: (pageHeight - height) / 2,
-    width,
-    height,
-  });
 }
 
 export async function buildPrintPdf(input: {
@@ -173,7 +158,9 @@ export async function buildPrintPdf(input: {
   const safe = input.spec.safeMarginMm * MM_TO_PT;
   page.setArtBox(bleed + safe, bleed + safe, Math.max(1, trimWidth - 2 * safe), Math.max(1, trimHeight - 2 * safe));
 
-  drawImageCover(page, background, mediaWidth, mediaHeight);
+  // The image already includes the full bleed. Avoid any secondary cover crop
+  // that could cut native text or logos situated near the edge.
+  page.drawImage(background, { x: 0, y: 0, width: mediaWidth, height: mediaHeight });
 
   pdf.setTitle(document.title);
   pdf.setProducer("TheTok Print Engine");
