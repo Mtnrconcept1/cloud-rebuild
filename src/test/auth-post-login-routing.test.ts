@@ -18,6 +18,19 @@ describe("post-auth workspace routing", () => {
     }
   });
 
+  it("resumes real OAuth consent even when client onboarding is gated before launch", () => {
+    const consentTarget = "/oauth/consent?authorization_id=authorization-123";
+    expect(getPostAuthTargetForRole("client", consentTarget, { launchEnabled: true }))
+      .toBe(consentTarget);
+    expect(getPostAuthTargetForRole("client", null, { launchEnabled: true }))
+      .toBe("/coming-soon");
+    expect(getPostAuthTargetForRole(
+      "client",
+      "https://attacker.example/oauth/consent?authorization_id=abc",
+      { launchEnabled: true },
+    )).toBe("/coming-soon");
+  });
+
   it("does not accept invalid or cross-origin consent continuations", () => {
     expect(getPostAuthTargetForRole("admin", "/oauth/consent")).toBe("/espaces");
     expect(getPostAuthTargetForRole(

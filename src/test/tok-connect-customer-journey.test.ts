@@ -78,7 +78,10 @@ function setupWidget(options: { quoteRequiresGuarantee?: boolean; bookingDenied?
 
 describe("TOK Connect customer MCP security", () => {
   it("only publishes named client writes while generic admin/RPC/payment tools remain closed", () => {
-    expect(remote).toContain('const TOK_CLIENT_MUTATION_NAMES = new Set(["tok_book_table", "tok_cancel_my_reservation"])');
+    expect(remote).toContain('const TOK_CLIENT_MUTATION_NAMES = new Set([');
+    for (const toolName of ["tok_book_table", "tok_cancel_my_reservation", "tok_checkout_customer_cart", "tok_cancel_cart_payment_attempt"]) {
+      expect(remote).toContain('"'+toolName+'"');
+    }
     expect(remote).toContain("TOK_CLIENT_MUTATION_NAMES.has");
     expect(remote).toContain("PUBLIC_MCP_READ_ONLY_ERROR");
     expect(remote).toContain("tok_quote_reservation");
@@ -89,7 +92,7 @@ describe("TOK Connect customer MCP security", () => {
   });
 
   it("requires app-only user interaction for booking and cancelling instead of exposing writes to the model", () => {
-    for (const name of ["tok_book_table", "tok_cancel_my_reservation"]) {
+    for (const name of ["tok_book_table", "tok_cancel_my_reservation", "tok_checkout_customer_cart", "tok_cancel_cart_payment_attempt"]) {
       const start = remote.indexOf('name: "' + name + '"');
       expect(start).toBeGreaterThan(-1);
       const end = remote.indexOf("},\n  {", start);
