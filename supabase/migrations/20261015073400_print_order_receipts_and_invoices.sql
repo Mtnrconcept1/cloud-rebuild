@@ -39,6 +39,7 @@ DECLARE
   v_html text;
   v_text text;
   v_inserted integer;
+  v_retried integer := 0;
   v_queued integer := 0;
   v_link text;
 BEGIN
@@ -200,7 +201,32 @@ BEGIN
   GET DIAGNOSTICS v_inserted = ROW_COUNT;
   v_queued := v_queued + v_inserted;
 
-  RETURN jsonb_build_object('queued', v_queued, 'duplicate', v_queued = 0,
+  -- Resend can be temporarily unavailable. The scheduled print orchestrator
+  -- may requeue only THESE print emails, with capped exponential backoff.
+  -- Other transactional mail and successfully sent documents are never touched.
+  UPDATE public.email_queue AS queued_email
+  SET status = 'queued',
+      error = NULL,
+      metadata = queued_email.metadata || jsonb_build_object(
+        'print_email_retry_attempts',
+        COALESCE((queued_email.metadata->>'print_email_retry_attempts')::integer, 0) + 1,
+        'print_email_retry_after',
+        (now() + make_interval(mins => LEAST(240,
+          (5 * power(2, COALESCE((queued_email.metadata->>'print_email_retry_attempts')::integer, 0)))::integer
+        )))::text
+      )
+  WHERE queued_email.metadata->>'print_order_id' = v_order.id::text
+    AND queued_email.metadata ? 'print_order_email_key'
+    AND queued_email.status = 'failed'
+    AND queued_email.sent_at IS NULL
+    AND queued_email.created_at > now() - interval '30 days'
+    AND COALESCE((queued_email.metadata->>'print_email_retry_attempts')::integer, 0) < 5
+    AND (queued_email.metadata->>'print_email_retry_after' IS NULL
+      OR (queued_email.metadata->>'print_email_retry_after')::timestamptz <= now());
+  GET DIAGNOSTICS v_retried = ROW_COUNT;
+
+  RETURN jsonb_build_object('queued', v_queued, 'retried', v_retried,
+    'duplicate', v_queued = 0 AND v_retried = 0,
     'order_id', v_order.id, 'test_mode', v_sandbox, 'invoice_number', v_invoice_number);
 END
 $print_email$;
