@@ -56,7 +56,8 @@ describe("Zéro Attente fully covered by MIAMZ", () => {
     const webhook = read("supabase/functions/stripe-webhook/index.ts");
     const recovery = read("supabase/functions/create-zero-attente-reservation/index.ts");
     const status = read("supabase/functions/payment-attempt-status/index.ts");
-    expect(checkout).toContain('sessionParams.payment_method_collection = "if_required"');
+    expect(checkout).not.toContain('sessionParams.payment_method_collection = "if_required"');
+    expect(checkout).toContain('sessionParams.payment_method_collection = "always"');
     expect(checkout).toContain('!(effectiveKind === "zero-attente" && finalCheckoutTotalCents === 0)');
     expect(checkout).toContain("Math.round(pointsDiscountTotal * 100)");
     expect(webhook).toContain("isCompletedNoCostZeroAttenteSession(session)");
