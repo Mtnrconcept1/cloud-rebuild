@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "1b192de4359e18dbc08c5190ea382204e0a8085fbc5534ca341205711212f934",
+ "sourceDigest": "c02bfffc86b5b7e27963a1cb66ee2239c2d4ccd5003b3d2feb4ec7d502b7e68d",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -17118,7 +17118,7 @@
      },
      {
       "path": "src/test/marketing-campaign-builder.test.tsx",
-      "line": 65
+      "line": 80
      },
      {
       "path": "src/test/marketing-source-discovery.test.tsx",
@@ -89790,7 +89790,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 127
+    "lineCount": 130
    },
    {
     "path": "src/components/marketing/MarketingHostBoundary.tsx",
@@ -109477,7 +109477,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 131
+    "lineCount": 146
    },
    {
     "path": "src/test/marketing-campaign-gallery.test.tsx",
@@ -137652,7 +137652,7 @@
    "id": "code-module:dfb8017be363",
    "type": "code-module",
    "title": "src/components/marketing/MarketingCampaignBuilder.tsx",
-   "description": "Module de 127 lignes; exports: CampaignGenerationRequest, MarketingCampaignBuilder.",
+   "description": "Module de 130 lignes; exports: CampaignGenerationRequest, MarketingCampaignBuilder.",
    "path": "src/components/marketing/MarketingCampaignBuilder.tsx",
    "line": 1,
    "surface": null,
@@ -137661,7 +137661,7 @@
     "MarketingCampaignBuilder",
     "supabase"
    ],
-   "detailRef": "bf79495ad7e3"
+   "detailRef": "df3dc704e9e3"
   },
   {
    "id": "code-module:e855fba5a372",
@@ -150348,14 +150348,14 @@
    "id": "code-module:ba62251e5408",
    "type": "code-module",
    "title": "src/test/marketing-campaign-builder.test.tsx",
-   "description": "Module de 131 lignes; exports: aucun export statique.",
+   "description": "Module de 146 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-campaign-builder.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "8f2408b20023"
+   "detailRef": "e17f354cf940"
   },
   {
    "id": "code-module:c5e50558b55f",
@@ -359048,7 +359048,7 @@
     "src/test/marketing-campaign-builder.test.tsx",
     "src/test/marketing-source-discovery.test.tsx"
    ],
-   "detailRef": "cca0b37fe897"
+   "detailRef": "2a12937f6d04"
   },
   {
    "id": "path-literal:107cc0a99bd5",
