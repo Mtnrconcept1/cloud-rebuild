@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `c02bfffc86b5b7e27963a1cb66ee2239c2d4ccd5003b3d2feb4ec7d502b7e68d`
+- Empreinte SHA-256 des sources indexées : `5e84fba4a13aa1ecfd1e9f950565d2d2793360df49012b8430ac820be9c0f1b7`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -6273,7 +6273,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Restaurant Image Truth Backfill | backfill | [.github/workflows/restaurant-image-truth-backfill.yml](../../.github/workflows/restaurant-image-truth-backfill.yml) |
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
-| Temporary TOK application index refresh | refresh | [.github/workflows/tok-index-refresh-temporary.yml](../../.github/workflows/tok-index-refresh-temporary.yml) |
+| Tok Index Refresh Temporary | — | [.github/workflows/tok-index-refresh-temporary.yml](../../.github/workflows/tok-index-refresh-temporary.yml) |
 | TOK Workforce PostgreSQL Integration | migration-and-tenant-isolation | [.github/workflows/tok-workforce-postgres.yml](../../.github/workflows/tok-workforce-postgres.yml) |
 
 ### Dépendances

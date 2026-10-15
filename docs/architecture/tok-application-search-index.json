@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "c02bfffc86b5b7e27963a1cb66ee2239c2d4ccd5003b3d2feb4ec7d502b7e68d",
+ "sourceDigest": "5e84fba4a13aa1ecfd1e9f950565d2d2793360df49012b8430ac820be9c0f1b7",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -73205,11 +73205,9 @@
     ]
    },
    {
-    "name": "Temporary TOK application index refresh",
+    "name": "Tok Index Refresh Temporary",
     "path": ".github/workflows/tok-index-refresh-temporary.yml",
-    "jobs": [
-     "refresh"
-    ]
+    "jobs": []
    },
    {
     "name": "TOK Workforce PostgreSQL Integration",
@@ -381583,17 +381581,15 @@
    "detailRef": "56102a87e1c5"
   },
   {
-   "id": "workflow:275dd5791321",
+   "id": "workflow:ef81cf6ece3b",
    "type": "workflow",
-   "title": "Temporary TOK application index refresh",
-   "description": "Workflow GitHub Actions; jobs: refresh.",
+   "title": "Tok Index Refresh Temporary",
+   "description": "Workflow GitHub Actions; jobs: définition dynamique.",
    "path": ".github/workflows/tok-index-refresh-temporary.yml",
    "line": null,
    "surface": null,
-   "tags": [
-    "refresh"
-   ],
-   "detailRef": "8c7fff5ab356"
+   "tags": [],
+   "detailRef": "fc59ad56edce"
   },
   {
    "id": "workflow:449ccb0fe621",
