@@ -521,10 +521,25 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
   assertRoles(actor, ["client"]);
   if (!actor.userId) throw new HttpError(401, "tok_connect_user_required");
   const action = String(body.action || "");
-  if (action === "status") {
+  if (action === "status" || action === "cancel_attempt") {
     const id = String(body.payment_attempt_id || "");
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
       throw new HttpError(400, "tok_cart_payment_attempt_invalid");
+    }
+    if (action === "cancel_attempt") {
+      // Explicit cancellation is required; a request can be indeterminate if
+      // Stripe and the database race. Never release an attempt on a 202.
+      if (body.confirmed_by_user !== true) {
+        throw new HttpError(409, "tok_cart_cancel_confirmation_required");
+      }
+      const outcome = await postCustomerTokFunction(req, "cancel-payment-attempt", {
+        payment_attempt_id: id, reason: "customer_cancelled_tok_connect_widget",
+      });
+      const fullyCancelled = outcome.cancelled === true && outcome.state === "cancelled";
+      return { statusCode: 200, payload: {
+        ok: true, action: "cancel_attempt", payment_attempt_id: id,
+        cancelled: fullyCancelled, state: outcome.state || "indeterminate",
+      } };
     }
     const status = await postCustomerTokFunction(req, "payment-attempt-status", {
       payment_attempt_id: id,
