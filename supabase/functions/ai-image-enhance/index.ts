@@ -1490,9 +1490,10 @@ Deno.serve(async (req) => {
     if (marketingAssetMode && body.marketingOutputFormat != null && !marketingOutputFormat) {
       throw new HttpError(400, "Format de sortie invalide");
     }
+    let printSafeMarginMm = 3;
     if (marketingOutputFormat?.destination === "print") {
       const { data: variant, error } = await actor.adminClient.from("print_provider_products")
-        .select("id, width_mm, height_mm, bleed_mm, printable_sides, specifications, print_products!inner(category, active)")
+        .select("id, width_mm, height_mm, bleed_mm, safe_margin_mm, printable_sides, specifications, print_products!inner(category, active)")
         .eq("id", marketingOutputFormat.providerProductId).eq("active", true)
         .eq("print_products.active", true)
         .not("print_product_id", "is", null).maybeSingle();
@@ -1501,6 +1502,7 @@ Deno.serve(async (req) => {
         providerProductId: variant.id, widthMm: Number(variant.width_mm),
         heightMm: Number(variant.height_mm), bleedMm: Number(variant.bleed_mm),
       })) throw new HttpError(409, "Format d’impression indisponible ou modifié");
+      printSafeMarginMm = Math.max(3, Number(variant.safe_margin_mm) || 3);
     }
     const rawPrompt = sanitizeText(body.prompt || body.objective || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT);
     const prompt = marketingAssetMode
@@ -1592,7 +1594,14 @@ Deno.serve(async (req) => {
         "- Ne pas deduire une marque depuis le nom du compte restaurant; seules les images jointes et le brief courant font autorite.",
         "- Ne pas inventer de logo, de nom de marque, de chef, de personnage, de plat ou de mascotte absent des references actives et du brief courant.",
         "- Le texte principal doit être très grand, contrasté et lisible.",
+        ...(marketingOutputFormat?.destination === "print" ? [
+          `- FORMAT PHYSIQUE OBLIGATOIRE : image complète de ${marketingOutputFormat.widthMm} × ${marketingOutputFormat.heightMm} mm au format fini, plus ${marketingOutputFormat.bleedMm} mm de fond perdu sur CHACUN des quatre bords.`,
+          `- ZONE DE SECURITE IMPERATIVE : tous les textes, prix, montants, noms, logos, visages, appels à l'action et QR codes utiles sont intégrés par le modèle DANS L'IMAGE et entièrement placés à plus de ${marketingOutputFormat.bleedMm + printSafeMarginMm} mm des quatre bords du raster (fond perdu + marge intérieure, avant coupe). Prévoir une tolérance supplémentaire généreuse.`,
+          "- Les textures, aplats, couleurs et photos de fond débordent jusqu'au bord du fond perdu. Jamais de texte ou d'information importante dans le fond perdu, sur la ligne de coupe, ou entre la coupe et la marge de sécurité.",
+          "- Créer une image unique à plat, sans repères de coupe ni guides imprimés dans l'image. Ne jamais compter sur une superposition ultérieure pour écrire ou positionner des éléments.",
+        ] : []),
         "- Le rendu doit ressembler à une publicité professionnelle terminée pour la marque du restaurateur, prête pour validation.",
+        ...(sourceImageUrl ? ["- MODE RETOUCHE : éditer le visuel source fourni en conservant sa composition, son identité, ses textes et ses éléments de marque sauf modification demandée explicitement. Corriger les éléments proches des bords pour les replacer en sécurité sans les supprimer."] : []),
         "- Ne pas utiliser l'identité visuelle de la plateforme sauf si les références actives fournies par le restaurateur sont elles-mêmes des visuels de cette plateforme.",
       ].join("\n").slice(0, 7000)
       : sourceImageUrl
@@ -1619,7 +1628,9 @@ Deno.serve(async (req) => {
     if (marketingAssetMode && referenceImageUrls.length) {
       const editResult = await callOpenAIImageEditWithReferencesAndRecovery({
         prompt: finalPrompt,
-        imageUrls: referenceImageUrls,
+        // During retouch, the first image is the merchant's generated original.
+        // Brand references remain available without replacing the artwork.
+        imageUrls: sourceImageUrl ? [sourceImageUrl, ...referenceImageUrls] : referenceImageUrls,
         n: variantCount,
         options: imageOptions,
         fallbackPrompt: appendGenerationSeedToPrompt(buildMarketingReferenceFallbackPrompt({
