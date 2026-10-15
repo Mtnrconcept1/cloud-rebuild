@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `1610a7e6c2c4597b71c5a3f77edcd26f6be441e15d8e5cf9824ed4fea295fbcb`
+- Empreinte SHA-256 des sources indexées : `76076cef81aef49bfeffecbb1ca450a0967a9caaa2363d02cd32fe99b1919acb`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,7 +45,7 @@
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 17101 |
+| records | 17102 |
 | repositoryFiles | 3220 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -6551,7 +6551,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Local Git Auto Sync | 4 | [docs/runbooks/local-git-auto-sync.md:1](../../docs/runbooks/local-git-auto-sync.md#L1) |
 | Hébergement des associations mobiles | 3 | [docs/runbooks/mobile-association-hosting.md:1](../../docs/runbooks/mobile-association-hosting.md#L1) |
 | Runbook release production securisee | 8 | [docs/runbooks/production-release-readiness.md:1](../../docs/runbooks/production-release-readiness.md#L1) |
-| Runbook Stripe et reconciliation financiere | 8 | [docs/runbooks/stripe-financial-ops.md:1](../../docs/runbooks/stripe-financial-ops.md#L1) |
+| Runbook Stripe et reconciliation financiere | 9 | [docs/runbooks/stripe-financial-ops.md:1](../../docs/runbooks/stripe-financial-ops.md#L1) |
 | Versement développeur sans Stripe Connect : PostFinance | 4 | [docs/runbooks/tok-developer-bank-payouts.md:1](../../docs/runbooks/tok-developer-bank-payouts.md#L1) |
 | Protection SEO et anti-scraping de TOK | 10 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
 | Tok audit readiness — plan 10/10 | 5 | [docs/security/audit-readiness-10-10.md:1](../../docs/security/audit-readiness-10-10.md#L1) |

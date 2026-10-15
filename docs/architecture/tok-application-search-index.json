@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "1610a7e6c2c4597b71c5a3f77edcd26f6be441e15d8e5cf9824ed4fea295fbcb",
+ "sourceDigest": "76076cef81aef49bfeffecbb1ca450a0967a9caaa2363d02cd32fe99b1919acb",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -25,7 +25,7 @@
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 17101,
+  "records": 17102,
   "repositoryFiles": 3220,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -78766,6 +78766,11 @@
       "level": 2,
       "title": "Incidents",
       "line": 58
+     },
+     {
+      "level": 2,
+      "title": "Débits de solde Stripe indépendants (Climate, Billing)",
+      "line": 64
      }
     ]
    },
@@ -215697,6 +215702,20 @@
    "detailRef": "92d853f54e34"
   },
   {
+   "id": "document-section:36383015f336",
+   "type": "document-section",
+   "title": "Débits de solde Stripe indépendants (Climate, Billing)",
+   "description": "Section de Runbook Stripe et reconciliation financiere.",
+   "path": "docs/runbooks/stripe-financial-ops.md",
+   "line": 64,
+   "surface": null,
+   "tags": [
+    "Runbook Stripe et reconciliation financiere",
+    "h2"
+   ],
+   "detailRef": "46f7596045dd"
+  },
+  {
    "id": "document-section:2c3703b5f485",
    "type": "document-section",
    "title": "Décision produit retenue",
@@ -238824,13 +238843,14 @@
    "id": "document:d036b96c91d0",
    "type": "document",
    "title": "Runbook Stripe et reconciliation financiere",
-   "description": "Document Markdown avec 8 section(s).",
+   "description": "Document Markdown avec 9 section(s).",
    "path": "docs/runbooks/stripe-financial-ops.md",
    "line": 1,
    "surface": null,
    "tags": [
     "Activation Stripe Connect",
     "Configuration live",
+    "Débits de solde Stripe indépendants (Climate, Billing)",
     "Incidents",
     "Objectif",
     "Reconciliation quotidienne",
@@ -238838,7 +238858,7 @@
     "Runbook Stripe et reconciliation financiere",
     "Versement Stripe Connect au developpeur"
    ],
-   "detailRef": "7977291a6cf0"
+   "detailRef": "9c0fd1020069"
   },
   {
    "id": "document:06417f30bcaf",
