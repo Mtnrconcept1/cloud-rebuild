@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import GuardianApprovalPanel from "@/components/admin/GuardianApprovalPanel";
 import {
   analyzeGuardianIncident,
   getGuardianOverview,
@@ -32,7 +33,7 @@ import {
 } from "@/lib/tokIntelligence";
 
 const DEFAULT_GUARDIAN_ANALYSIS_PROMPT =
-  "Établis la cause probable à partir des preuves, le patch minimal, les tests, le rollback et les conditions de vérification.";
+  "Explique en français simple la panne, sa cause probable, les preuves, son impact, le plan de réparation réversible et les tests. N’exécute aucune action.";
 
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
@@ -94,7 +95,7 @@ function verificationForIncident(
   ) || null;
 }
 
-export default function AdminGuardian() {
+export default function AdminGuardian({ embedded = false }: { embedded?: boolean } = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -103,6 +104,7 @@ export default function AdminGuardian() {
 );
   const [functionName, setFunctionName] = useState("");
   const selectedIncidentId = searchParams.get("incident");
+  const searchFunction = (searchParams.get("function") || "").trim().toLowerCase().slice(0, 100);
 
   const overviewQuery = useQuery({
     queryKey: ["guardian-overview"],
@@ -110,7 +112,10 @@ export default function AdminGuardian() {
     refetchInterval: 30_000,
   });
 
-  const incidents = overviewQuery.data?.incidents || [];
+  const incidents = (overviewQuery.data?.incidents || []).filter((incident) =>
+    !searchFunction || [incident.title, incident.summary, incident.source]
+      .some((value) => value.toLowerCase().includes(searchFunction)),
+  );
   const selectedIncident =
     incidents.find((incident) => incident.id === selectedIncidentId) ||
     incidents[0] ||
@@ -224,7 +229,7 @@ export default function AdminGuardian() {
 
   return (
     <div className="container space-y-6 py-6">
-      <div className="rounded-3xl border bg-gradient-to-br from-slate-50 via-background to-blue-50 p-6 shadow-sm dark:from-slate-950/40 dark:to-blue-950/15">
+      {!embedded ? <div className="rounded-3xl border bg-gradient-to-br from-slate-50 via-background to-blue-50 p-6 shadow-sm dark:from-slate-950/40 dark:to-blue-950/15">
         <div className="flex items-center gap-2 text-sm font-semibold text-primary">
           <Shield className="h-4 w-4" />
           TOK Guardian
@@ -237,13 +242,19 @@ export default function AdminGuardian() {
           preuves, prépare un plan réversible et contrôle le retour à la
           normale, sans jamais fusionner ni déployer automatiquement.
         </p>
-      </div>
+      </div> : null}
 
+      {overviewQuery.isError ? (
+        <div role="alert" className="rounded-xl border border-destructive/40 p-4 text-sm text-destructive">
+          Guardian ne parvient pas à lire les incidents. L'absence de données ne signifie pas que la plateforme fonctionne correctement.
+          <Button variant="outline" size="sm" onClick={() => void overviewQuery.refetch()}>Réessayer</Button>
+        </div>
+      ) : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Incidents actifs</p>
-            <p className="mt-2 text-3xl font-bold">{incidents.length}</p>
+            <p className="mt-2 text-3xl font-bold">{overviewQuery.data?.incidents.length ?? "—"}</p>
           </CardContent>
         </Card>
         <Card>
@@ -272,7 +283,7 @@ export default function AdminGuardian() {
         </Card>
       </div>
 
-      {activeFailures.length ? (
+      {overviewQuery.isError ? null : activeFailures.length ? (
         <Card className="border-red-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -322,6 +333,11 @@ export default function AdminGuardian() {
         <Card className="h-fit xl:sticky xl:top-24">
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>File d’incidents</CardTitle>
+            {searchFunction ? <Button type="button" variant="ghost" size="sm" onClick={() => setSearchParams((current) => {
+              const next = new URLSearchParams(current);
+              next.delete("function");
+              return next;
+            })}>Effacer filtre : {searchFunction}</Button> : null}
             <Button
               size="icon"
               variant="ghost"
@@ -448,6 +464,7 @@ export default function AdminGuardian() {
                 </CardContent>
               </Card>
 
+              <GuardianApprovalPanel key={selectedIncident.id} incident={selectedIncident} onRefresh={refresh} />
               <Card>
                 <CardHeader>
                   <CardTitle>Analyse fondée sur les preuves</CardTitle>

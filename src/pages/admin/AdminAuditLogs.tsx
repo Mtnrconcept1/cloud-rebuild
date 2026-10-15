@@ -45,7 +45,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
 import { getSupabase } from "@/integrations/supabase/client";
 import { describeAuditLog, type AuditNarrative } from "@/lib/admin/auditLogNarrative";
 
@@ -156,6 +155,7 @@ type AdminDetail = {
   recommendation?: string;
   destination?: string | null;
   destinationLabel?: string;
+  guardianTarget?: string;
 };
 
 type SecurityAbuseReport = {
@@ -542,6 +542,9 @@ function buildAuditDetail(log: AuditEntry): AdminDetail {
       : getCategoryFallbackRecommendation(log) || narrative.recommendation,
     destination: getAuditDestination(log),
     destinationLabel: "Voir la zone concernée",
+    guardianTarget: log.source === "edge" && log.status === "failure" && /^[a-z0-9-]{3,100}$/i.test(log.functionName)
+      ? `/admin/security-center?view=guardian&function=${encodeURIComponent(log.functionName)}`
+      : undefined,
   };
 }
 
@@ -635,6 +638,11 @@ function AdminDetailDialog({
               </pre>
             </div>
           ) : null}
+          {detail?.guardianTarget ? (
+            <Button type="button" variant="outline" className="w-full" onClick={() => onNavigate(detail.guardianTarget!)}>
+              Comprendre et préparer une correction avec Guardian IA
+            </Button>
+          ) : null}
           {detail?.destination ? (
             <Button type="button" className="w-full" onClick={() => onNavigate(detail.destination!)}>
               {detail.destinationLabel || "Ouvrir la zone concernée"}
@@ -646,7 +654,7 @@ function AdminDetailDialog({
   );
 }
 
-export default function AdminAuditLogs() {
+export default function AdminAuditLogs({ embedded = false }: { embedded?: boolean } = {}) {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<AuditSource>("all");
@@ -938,7 +946,7 @@ export default function AdminAuditLogs() {
 
   return (
     <div className="container py-8 space-y-6">
-      <DashboardPageHero
+      {!embedded ? (<DashboardPageHero
         badge="Sécurité admin"
         title="Audit et santé production"
         description="Historique des logs Edge et data avec filtres par horaire, type, statut, fonction, acteur, cible et recherche globale."
@@ -951,7 +959,7 @@ export default function AdminAuditLogs() {
           { label: "Logs filtrés", value: stats.filtered, icon: Search },
           { label: "Sécurité", value: stats.securityCritical, icon: AlertTriangle },
         ]}
-      />
+      />) : null}
 
       <Card className={healthStatus === "critical" ? "border-destructive/40" : healthStatus === "watch" ? "border-amber-500/35" : undefined}>
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -1249,7 +1257,6 @@ export default function AdminAuditLogs() {
             <div className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => void refetchLogs()} disabled={isLoading}><RefreshCw className="h-4 w-4" />Rafraîchir</Button>
               <Button type="button" variant="ghost" size="sm" onClick={resetFilters} disabled={!hasActiveFilters}>Réinitialiser les filtres</Button>
-              <AdminLogResetButton className="gap-2" />
             </div>
           </div>
         </CardHeader>

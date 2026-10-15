@@ -764,7 +764,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
   description: "Expose l'analyse IA de santé, sécurité et incidents de la plateforme.",
   defaultEnabled: true,
   group: "admin_tools",
-  routeTargets: ["/admin/guardian"],
+  routeTargets: ["/admin/guardian", "/admin/security-center"],
   critical: true,
 },
   {
@@ -881,7 +881,7 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     description: "Expose les journaux d'audit et les exécutions Edge.",
     defaultEnabled: true,
     group: "admin_tools",
-    routeTargets: ["/admin/audit"],
+    routeTargets: ["/admin/audit", "/admin/security-center"],
   },
   {
     name: "admin-packs",

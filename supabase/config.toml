@@ -182,6 +182,9 @@ verify_jwt = false
 [functions.notification-dispatch]
 verify_jwt = false
 
+[functions.ops-admin-approval]
+verify_jwt = false
+
 [functions.ops-incident-control]
 verify_jwt = false
 

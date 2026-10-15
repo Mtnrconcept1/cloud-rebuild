@@ -155,7 +155,8 @@ describe("TOK Intelligence Suite", () => {
     expect(restaurantNavigation).toContain("Campaign Studio IA");
     expect(customerNavigation).toContain("Ma mémoire TOK");
     expect(adminNavigation).toContain("Résolution IA");
-    expect(adminNavigation).toContain("TOK Guardian");
+    expect(adminNavigation).toContain("Centre de sécurité");
+    expect(app).toContain("/admin/security-center");
 
     for (const functionName of [
       "ai-campaign-studio",

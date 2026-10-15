@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Activity, AlertTriangle, Brain, CheckCircle2, Clock, FileDown, ShieldAlert, Ticket, Zap } from "lucide-react";
 
-import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { Badge } from "@/components/ui/badge";
@@ -138,11 +137,6 @@ export default function AdminAiOperations() {
             <Badge variant="outline">Actions recommandées</Badge>
             {result ? (
               <>
-                <AdminLogResetButton
-                  variant="outline"
-                  className="gap-2"
-                  onResetSuccess={clearDraft}
-                />
                 <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => exportAdminAiOperationsReport(result, action)}>
                   <FileDown className="h-4 w-4" />
                   Export rapport IA

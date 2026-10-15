@@ -149,7 +149,7 @@ describe("TOK admin and feature-flag resilience", () => {
 
     expect(adminHome).toContain('href: "/admin/support-resolution"');
     expect(adminHome).toContain('feature: "admin-support-resolution"');
-    expect(adminHome).toContain('href: "/admin/guardian"');
+    expect(adminHome).toContain('href: "/admin/security-center?view=guardian"');
     expect(adminHome).toContain('feature: "admin-guardian"');
     expect(adminHome).toContain('href: "/admin/tok-connect"');
     expect(adminHome).toContain('feature: "admin-tok-connect"');

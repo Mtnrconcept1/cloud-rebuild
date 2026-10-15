@@ -101,10 +101,9 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
   {
     title: "Gouvernance",
     items: [
-      { to: "/admin/audit", label: "Audit et securite", icon: Shield, feature: "admin-audit" },
+      { to: "/admin/security-center", label: "Centre de sécurité", icon: Shield, feature: "admin-audit" },
       { to: "/admin/platform", label: "Configuration plateforme", icon: Settings2, feature: "admin-platform-config" },
       { to: "/admin/ai-operations", label: "Operations IA", icon: Brain, feature: "ai_admin_monitoring" },
-      { to: "/admin/guardian", label: "TOK Guardian", icon: ShieldAlert, feature: "admin-guardian" },
       { to: "/admin/tok-connect", label: "TOK Connect", icon: Network, feature: "tok-connect" },
       { to: "/admin/packs", label: "Abonnements restaurateur", icon: Crown, feature: "admin-packs" },
     ],
