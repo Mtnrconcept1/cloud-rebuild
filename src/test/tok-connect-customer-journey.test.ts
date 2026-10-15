@@ -128,7 +128,7 @@ describe("TOK Connect transactional widget", () => {
         confirmed_by_user: true,
       });
       expect(String(bookingCall?.args.idempotency_key)).toMatch(/^tok-widget-/);
-      expect(widget.dom.window.document.body.textContent).toContain("Réservation confirmée par TOK");
+      expect(widget.dom.window.document.querySelector("#root")?.textContent).toContain("Réservation confirmée par TOK");
     } finally {
       widget.dom.window.close();
     }
@@ -153,8 +153,8 @@ describe("TOK Connect transactional widget", () => {
       }
       widget.click("Confirmer cette réservation");
       await widget.settle();
-      expect(widget.dom.window.document.body.textContent).toContain("Créneau indisponible");
-      expect(widget.dom.window.document.body.textContent).not.toContain("Réservation confirmée par TOK");
+      expect(widget.dom.window.document.querySelector("#root")?.textContent).toContain("Créneau indisponible");
+      expect(widget.dom.window.document.querySelector("#root")?.textContent).not.toContain("Réservation confirmée par TOK");
     } finally {
       widget.dom.window.close();
     }
