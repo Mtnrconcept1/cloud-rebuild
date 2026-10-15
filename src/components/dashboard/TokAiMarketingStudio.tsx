@@ -1198,6 +1198,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
   const [uploadingKind, setUploadingKind] = useState<MarketingAssetKind | null>(null);
   const [deletingResourceId, setDeletingResourceId] = useState<string | null>(null);
   const [marketingImageResult, setMarketingImageResult] = useState<MarketingImageResult | null>(null);
+  const [retouchSourceUrl, setRetouchSourceUrl] = useState<string | null>(null);
   useEffect(() => { onSelectedCreationChange?.(marketingImageResult); }, [marketingImageResult, onSelectedCreationChange]);
   const [demoGenerationHistory, setDemoGenerationHistory] = useState<CommercialDemoVisualHistoryItem[]>([]);
   const [demoHistoryLoading, setDemoHistoryLoading] = useState(false);
@@ -1309,10 +1310,11 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
     );
   }, [resources]);
 
-  const invalidateMarketingGeneration = () => {
+  const invalidateMarketingGeneration = (keepRetouchSource = false) => {
     generationRequestRef.current += 1;
     setLoading(false);
     setMarketingImageResult(null);
+    if (!keepRetouchSource) setRetouchSourceUrl(null);
   };
 
   const updateGenerationSeed = (value: string) => {
@@ -1392,7 +1394,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
   }, [activeTool]);
 
   const updatePrompt = (value: string) => {
-    invalidateMarketingGeneration();
+    invalidateMarketingGeneration(true);
     setPrompt(value);
   };
 
@@ -1414,6 +1416,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
     generationRequestRef.current += 1;
     setLoading(false);
     setMarketingImageResult(null);
+    setRetouchSourceUrl(null);
     setStyleReference(null);
 
     async function loadMarketingAssets() {
@@ -1739,6 +1742,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
       const generationRequest = {
         restaurantId,
         prompt: imagePrompt,
+        sourceImageUrl: retouchSourceUrl || undefined,
         referenceImageUrls: generationResources.map((resource) => resource.mediaUrl),
         referenceMediaIds: generationResourceIds,
         dishName: activeToolConfig.title,
@@ -1780,6 +1784,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
         ].slice(0, 20));
       }
       setCreditError(null);
+      setRetouchSourceUrl(null);
       toast({
         title: "Image marketing générée",
         description: isCommercialDemo
@@ -2209,11 +2214,19 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                         <p className="text-xs text-muted-foreground">Seed: {marketingImageResult.generation_seed}</p>
                       ) : null}
                     </div>
-                    <Button type="button" variant="outline" size="sm" asChild>
-                      <a href={generatedMarketingImageUrl} target="_blank" rel="noreferrer">
-                        Ouvrir l'image
-                      </a>
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {!isCommercialDemo ? (
+                        <Button type="button" size="sm" variant="outline" disabled={loading} onClick={() => {
+                          setRetouchSourceUrl(generatedMarketingImageUrl);
+                          setPrompt("");
+                        }}>
+                          Retoucher cette image par prompt
+                        </Button>
+                      ) : null}
+                      <Button type="button" variant="outline" size="sm" asChild>
+                        <a href={generatedMarketingImageUrl} target="_blank" rel="noreferrer">Ouvrir l'image</a>
+                      </Button>
+                    </div>
                   </div>
                   <div className="bg-slate-950/5 p-3">
                     <img
@@ -2222,6 +2235,14 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                       className="mx-auto max-h-[520px] w-full rounded-xl object-contain"
                     />
                   </div>
+                </div>
+              ) : null}
+
+              {activeStep === 3 && retouchSourceUrl && !isCommercialDemo ? (
+                <div className="rounded-2xl border border-orange-300 bg-orange-50 p-3 text-sm text-orange-950">
+                  <p className="font-semibold">Retouche de l'image sélectionnée</p>
+                  <p className="mt-1">Décrivez les corrections dans le champ de prompt ci-dessus puis lancez la génération. Le modèle recevra l'image d'origine et conservera son identité visuelle. Aucun calque ni texte n'est ajouté après génération.</p>
+                  <Button type="button" size="sm" variant="outline" className="mt-2" onClick={() => setRetouchSourceUrl(null)}>Annuler la retouche</Button>
                 </div>
               ) : null}
 
@@ -2247,7 +2268,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                     ? "Génération de l'image..."
                     : isCommercialDemo
                       ? "Générer avec OpenAI · crédits Démo illimités"
-                      : `Générer l'image marketing (${outputPricing.photoCredits} cr.)`}
+                      : `${retouchSourceUrl ? "Retoucher le visuel" : "Générer l'image marketing"} (${outputPricing.photoCredits} cr.)`}
                 </Button>
                 <p className="min-w-0 break-words text-xs leading-5 text-muted-foreground">
                   {isCommercialDemo
