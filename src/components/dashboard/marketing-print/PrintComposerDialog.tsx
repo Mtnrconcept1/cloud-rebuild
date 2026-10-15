@@ -594,7 +594,7 @@ export default function PrintComposerDialog({
                   <Checkbox id="print-safe-area-confirmed" checked={safeAreaAcknowledged}
                     onCheckedChange={(checked) => setSafeAreaAcknowledged(checked === true)} />
                   <Label htmlFor="print-safe-area-confirmed" className="cursor-pointer leading-6">
-                    J'ai vérifié le BAT à taille réelle : tous les textes, prix, logos, visages et QR codes
+                    J'ai contrôlé les repères de coupe et de sécurité du BAT : tous les textes, prix, logos, visages et QR codes
                     sont intégrés au visuel et restent entièrement à l'intérieur de la zone verte,
                     sans risque de coupe.
                   </Label>
