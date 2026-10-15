@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "785631e7d5457f02ff5e0ece7437f7736f01d73b9445dc53c5ccf12871520ae6",
+ "sourceDigest": "b1d7de488b693c20981207f8ab59fa0320f97ab9132fb8402e250236cab682d5",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18313,7 +18313,7 @@
      },
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 34
+      "line": 42
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -18322,6 +18322,14 @@
      {
       "path": "src/lib/launchGate.ts",
       "line": 24
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 26
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 31
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -18842,7 +18850,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 33
+      "line": 46
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -20274,7 +20282,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 31
+      "line": 44
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -22130,11 +22138,11 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 22
+      "line": 35
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 26
+      "line": 39
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -26642,7 +26650,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 22
+      "line": 35
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -26656,6 +26664,10 @@
      {
       "path": "src/test/auth-post-login-routing.test.ts",
       "line": 15
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 22
      }
     ]
    },
@@ -94702,7 +94714,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 43
+    "lineCount": 47
    },
    {
     "path": "src/lib/authRedirect.ts",
@@ -107412,7 +107424,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 36
+    "lineCount": 49
    },
    {
     "path": "src/test/auth-provider.test.tsx",
@@ -140518,14 +140530,14 @@
    "id": "code-module:f357467a3e58",
    "type": "code-module",
    "title": "src/lib/authPostLogin.ts",
-   "description": "Module de 43 lignes; exports: getPostAuthTargetForRole.",
+   "description": "Module de 47 lignes; exports: getPostAuthTargetForRole.",
    "path": "src/lib/authPostLogin.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "getPostAuthTargetForRole"
    ],
-   "detailRef": "be2c8461ef77"
+   "detailRef": "5c5c53ffa880"
   },
   {
    "id": "code-module:6fd34c3ed57c",
@@ -147434,12 +147446,12 @@
    "id": "code-module:7acfd51fa7f6",
    "type": "code-module",
    "title": "src/test/auth-post-login-routing.test.ts",
-   "description": "Module de 36 lignes; exports: aucun export statique.",
+   "description": "Module de 49 lignes; exports: aucun export statique.",
    "path": "src/test/auth-post-login-routing.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "6393ad2e75db"
+   "detailRef": "28c6b0d032db"
   },
   {
    "id": "code-module:eabb9d9ec28c",
@@ -360284,7 +360296,7 @@
    "id": "path-literal:9066dfc2ff8e",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 536,
    "surface": null,
@@ -360294,6 +360306,7 @@
     "src/lib/authPostLogin.ts",
     "src/lib/featureCatalog.ts",
     "src/lib/launchGate.ts",
+    "src/test/auth-post-login-routing.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
     "src/test/coming-soon-signup-page.test.tsx",
@@ -360301,7 +360314,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "84a5f7fc4426"
+   "detailRef": "c452e4885874"
   },
   {
    "id": "path-literal:e53adf57f6c1",
@@ -360793,7 +360806,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "43a54c2fd4fb"
+   "detailRef": "7d9c04510663"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -361936,7 +361949,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "2a3f9cca0298"
+   "detailRef": "3af67ea679e7"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -362146,7 +362159,7 @@
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "e6b73cb55cb5"
+   "detailRef": "bf29efeb4126"
   },
   {
    "id": "path-literal:61b7c747d86f",
@@ -366401,20 +366414,20 @@
     "src/test/auth-post-login-routing.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "395375b05268"
+   "detailRef": "28ec885156cf"
   },
   {
    "id": "path-literal:88954cab6189",
    "type": "path-literal",
    "title": "/oauth/consent?authorization_id=authorization-123",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/auth-post-login-routing.test.ts",
    "line": 15,
    "surface": null,
    "tags": [
     "src/test/auth-post-login-routing.test.ts"
    ],
-   "detailRef": "5a2cce06bdbb"
+   "detailRef": "4b038bd73d94"
   },
   {
    "id": "path-literal:09d6810c2c29",
