@@ -1,9 +1,9 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "f1c4c4933e2bd38506712502193577b9cdedebc095bcc95cca719548c7d45268",
-  "routeCount": 142,
-  "toolCount": 117
+  "sourceDigest": "614cec31480b20d37c086c6a86e034cd8b33116eed748e56022f60e8e93b358f",
+  "routeCount": 143,
+  "toolCount": 118
 } as const;
 
 export const TOK_USER_GUIDE_ROUTES = [
@@ -1440,6 +1440,18 @@ export const TOK_USER_GUIDE_ROUTES = [
     "redirectTo": null
   },
   {
+    "path": "/admin/security-center",
+    "surface": "admin",
+    "components": [
+      "AdminProtectedRoute",
+      "AdminSecurityCenter",
+      "FeatureSwitch"
+    ],
+    "requiredRoles": [],
+    "featureGate": "adminAuditEnabled && adminGuardianEnabled",
+    "redirectTo": null
+  },
+  {
     "path": "/admin/ai-operations",
     "surface": "admin",
     "components": [
@@ -2500,6 +2512,15 @@ export const TOK_USER_GUIDE_TOOLS = [
     "endpoint": "/functions/v1/notification-dispatch",
     "methods": [
       "ANY"
+    ],
+    "actions": [],
+    "integrations": []
+  },
+  {
+    "name": "ops-admin-approval",
+    "endpoint": "/functions/v1/ops-admin-approval",
+    "methods": [
+      "POST"
     ],
     "actions": [],
     "integrations": []
