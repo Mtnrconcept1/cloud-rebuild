@@ -528,6 +528,13 @@ export default function PrintComposerDialog({
                 <p className="text-xs text-muted-foreground">Format et orientation verrouillés sur la création générée.</p>
               </div>
 
+              {selectedAsset && selectedVariant && !renderingPlan ? (
+                <div className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+                  Le ratio natif de ce visuel ne correspond pas à celui du support, fond perdu compris.
+                  Pour protéger vos textes et logos, TOK refuse toute recoupe automatique : demandez
+                  une génération native dans le format exact, ou choisissez un support compatible.
+                </div>
+              ) : null}
               {renderingPlan && selectedVariant ? (
                 <div className={renderingPlan.blocked
                   ? "rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100"
@@ -601,7 +608,7 @@ export default function PrintComposerDialog({
                 </div>
               ) : null}
               <div className="flex flex-wrap gap-2">
-                {!exportId ? <Button disabled={!preflight?.ready || Boolean(renderingPlan?.blocked) || working !== null} onClick={() => void createExport()}>{working === "export" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Préparer le raster & générer le BAT</Button> : null}
+                {!exportId ? <Button disabled={!renderingPlan || !preflight?.ready || Boolean(renderingPlan.blocked) || working !== null} onClick={() => void createExport()}>{working === "export" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Préparer le raster & générer le BAT</Button> : null}
                 {exportId && !approved ? <Button disabled={working !== null || !safeAreaAcknowledged} onClick={() => void approve()}>{working === "approve" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}J’approuve ce BAT</Button> : null}
                 {approved && !quote ? <Button disabled={working !== null} onClick={() => void quoteOrder()}>{working === "quote" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}Calculer le prix livré</Button> : null}
                 {quote ? <Button disabled={working !== null} onClick={() => void checkout()}>{working === "checkout" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}Payer {formatMoney(quote.customerAmountCents, quote.customerCurrency)}</Button> : null}
