@@ -76,9 +76,8 @@ function validateDocument(input: unknown): ServerPrintDocument {
   const record = asRecord(input);
   // Compatibility fields may be present as empty values, but overlays are
   // categorically forbidden in print exports: every mark belongs to the native image.
-  if ((Array.isArray(record.texts) && record.texts.length > 0)
-    || (record.qr != null && Object.keys(asRecord(record.qr)).length > 0)
-    || (record.logo != null && Object.keys(asRecord(record.logo)).length > 0)) {
+  if ((record.texts != null && (!Array.isArray(record.texts) || record.texts.length !== 0))
+    || record.qr != null || record.logo != null) {
     throw new HttpError(400, "PRINT_NATIVE_IMAGE_ONLY");
   }
   const background = asRecord(record.background);
