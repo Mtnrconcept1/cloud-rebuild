@@ -24,7 +24,7 @@ const INTERNAL_MCP_PROTOCOL_VERSION = "2025-11-25";
 const CLAUDE_ORIGIN = "https://claude.ai";
 const OAUTH_SECURITY = [{ type: "oauth2", scopes: OIDC_SCOPES }];
 const REMOTE_SERVER_INFO = { name: "TOK Connect Remote MCP", version: "5.3.0" } as const;
-const REMOTE_INSTRUCTIONS = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. The public endpoint is read-only for broad ChatGPT compatibility. When the user asks for restaurants, a shortlist or a selection of places to eat - including compound requests such as '3 pizzerias and 2 sushi restaurants in Geneva' - call discover_restaurants and pass their request verbatim in `request`: it opens the TOK restaurant module with ranked, clickable cards, so answer with a short sentence instead of repeating the list. get_restaurant_details opens one venue's full card. Authenticated reads still run under the user's JWT and RLS. Real writes, payments, refunds, publications and admin actions remain available only through guarded TOK backends and are not published by this public MCP surface. The commercial role remains isolated behind its guarded backend. Service-role, scheduler-only and webhook-only operations are never exposed.";
+const REMOTE_INSTRUCTIONS = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. The public endpoint offers read-only discovery plus a narrow set of customer-confirmed bookings and cancellations. When the user asks for restaurants, a shortlist or a selection of places to eat - including compound requests such as '3 pizzerias and 2 sushi restaurants in Geneva' - call discover_restaurants and pass their request verbatim in `request`: it opens the TOK restaurant module with ranked, clickable cards, so answer with a short sentence instead of repeating the list. get_restaurant_details opens one venue's full card. Authenticated reads still run under the user's JWT and RLS. Real writes, payments, refunds, publications and admin actions remain available only through guarded TOK backends and are not published by this public MCP surface. The commercial role remains isolated behind its guarded backend. Service-role, scheduler-only and webhook-only operations are never exposed.";
 const MODERN_CACHEABLE_METHODS = new Set([
   "tools/list",
   "prompts/list",
@@ -148,7 +148,120 @@ const APP_BRIDGE_TOOLS = [
   },
 ];
 
-const APP_BRIDGE_TOOL_NAMES = new Set(APP_BRIDGE_TOOLS.map((tool) => tool.name));
+
+/**
+ * Public ChatGPT actions are deliberately narrower than tok_invoke_capability.
+ * They run through TOK's existing authenticated business functions, never the
+ * partner-B2B reservation API (which uses unrelated partner/client UUIDs).
+ */
+const TOK_CLIENT_WIDGET_META = {
+  ui: { resourceUri: "ui://tok-connect/restaurant-discovery-v1.html", visibility: ["model", "app"] },
+  "openai/widgetAccessible": true,
+  "openai/outputTemplate": "ui://tok-connect/restaurant-discovery-v1.html",
+} as const;
+
+const TOK_CLIENT_TOOLS = [
+  {
+    name: "tok_quote_reservation",
+    title: "Vérifier les conditions de réservation TOK",
+    description: "Read card guarantee requirements for the authenticated customer before asking them to confirm a table.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: {
+      type: "object",
+      required: ["party_size"],
+      properties: { party_size: { type: "integer", minimum: 1, maximum: 20 } },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
+  },
+  {
+    name: "tok_book_table",
+    title: "Réserver une table chez TOK",
+    description: "Create a real classic table booking for the authenticated TOK customer after their explicit approval. The TOK backend rechecks availability and any card guarantee; a possible checkout URL is not a confirmed booking.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: {
+      type: "object",
+      required: ["restaurant_id", "date", "time", "party_size", "confirmed_by_user", "idempotency_key"],
+      properties: {
+        restaurant_id: { type: "string", format: "uuid" },
+        date: { type: "string", format: "date" },
+        time: { type: "string", pattern: "^([01]\\d|2[0-3]):[0-5]\\d$" },
+        party_size: { type: "integer", minimum: 1, maximum: 20 },
+        notes: { type: "string", maxLength: 1000 },
+        guarantee_accepted: { type: "boolean" },
+        confirmed_by_user: { type: "boolean", const: true },
+        idempotency_key: { type: "string", minLength: 8, maxLength: 120, pattern: "^[A-Za-z0-9:_-]+$" },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META, ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] }, "openai/visibility": "private" },
+  },
+  {
+    name: "tok_my_reservations",
+    title: "Mes réservations TOK",
+    description: "Read only the authenticated customer's own recent reservations, never restaurant or admin account data.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20 } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
+  },
+  {
+    name: "tok_my_orders",
+    title: "Mes commandes TOK",
+    description: "Read only the authenticated customer's own recent orders and their payment status.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20 } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
+  },
+  {
+    name: "tok_cancel_my_reservation",
+    title: "Annuler ma réservation classique TOK",
+    description: "Cancel an owned, unpaid classic reservation after explicit confirmation. Paid reservations require the dedicated TOK support/refund flow.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: {
+      type: "object",
+      required: ["reservation_id", "confirmed_by_user", "idempotency_key"],
+      properties: {
+        reservation_id: { type: "string", format: "uuid" },
+        confirmed_by_user: { type: "boolean", const: true },
+        idempotency_key: { type: "string", minLength: 8, maxLength: 120, pattern: "^[A-Za-z0-9:_-]+$" },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META, ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] }, "openai/visibility": "private" },
+  },
+] as const;
+const TOK_CLIENT_TOOL_NAMES = new Set(TOK_CLIENT_TOOLS.map((tool) => tool.name));
+const TOK_CLIENT_MUTATION_NAMES = new Set(["tok_book_table", "tok_cancel_my_reservation"]);
+
+function assertTokClientArgs(name: string, args: JsonRecord) {
+  if (name === "tok_quote_reservation" || name === "tok_book_table") {
+    if (typeof args.party_size !== "number" || !Number.isInteger(args.party_size) || args.party_size < 1 || args.party_size > 20)
+      throw new McpProtocolError(-32602, "tok_party_size_invalid", 400);
+  }
+  if (name === "tok_book_table") {
+    if (!isUuid(String(args.restaurant_id || "")) || !/^\d{4}-\d{2}-\d{2}$/.test(String(args.date || ""))
+      || !/^([01]\d|2[0-3]):[0-5]\d$/.test(String(args.time || "")))
+      throw new McpProtocolError(-32602, "tok_reservation_fields_invalid", 400);
+    if (args.notes !== undefined && (typeof args.notes !== "string" || args.notes.length > 1000))
+      throw new McpProtocolError(-32602, "tok_reservation_notes_invalid", 400);
+  }
+  if (name === "tok_cancel_my_reservation" && !isUuid(String(args.reservation_id || "")))
+    throw new McpProtocolError(-32602, "tok_reservation_id_invalid", 400);
+  if (TOK_CLIENT_MUTATION_NAMES.has(name)) {
+    if (args.confirmed_by_user !== true || !/^[A-Za-z0-9:_-]{8,120}$/.test(String(args.idempotency_key || "")))
+      throw new McpProtocolError(-32602, "tok_explicit_confirmation_and_idempotency_required", 400);
+  }
+}
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
+const APP_BRIDGE_TOOL_NAMES = new Set([...APP_BRIDGE_TOOLS.map((tool) => tool.name), ...TOK_CLIENT_TOOL_NAMES]);
 const PUBLIC_READ_ONLY_TOOL_NAMES = new Set<string>();
 
 function isReadOnlyTool(tool: unknown) {
@@ -164,8 +277,16 @@ function filterPublicReadOnlyTools(payload: unknown) {
   if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
   const upstreamTools = Array.isArray((result as JsonRecord).tools) ? (result as JsonRecord).tools as unknown[] : [];
   const seen = new Set(upstreamTools.map((tool) => tool && typeof tool === "object" ? String((tool as JsonRecord).name || "") : ""));
-  const additions = APP_BRIDGE_TOOLS.filter((tool) => isReadOnlyTool(tool) && !seen.has(tool.name));
-  const tools = [...upstreamTools, ...additions].filter(isReadOnlyTool);
+  const additions = [...APP_BRIDGE_TOOLS.filter(isReadOnlyTool), ...TOK_CLIENT_TOOLS]
+    .filter((tool) => !seen.has(tool.name));
+  // Explicitly named client writes only. All generic RPC, admin, payment and
+  // restaurant tools remain undiscoverable and blocked by default.
+  const tools = [...upstreamTools, ...additions].filter((tool) => (
+    isReadOnlyTool(tool) || (
+      Boolean(tool && typeof tool === "object")
+      && TOK_CLIENT_MUTATION_NAMES.has(String((tool as JsonRecord).name || ""))
+    )
+  ));
 
   PUBLIC_READ_ONLY_TOOL_NAMES.clear();
   for (const tool of tools) {
@@ -319,19 +440,43 @@ async function resolvePublicReadOnlyToolNames(req: Request) {
   }
 
   if (PUBLIC_READ_ONLY_TOOL_NAMES.size === 0) {
-    for (const tool of APP_BRIDGE_TOOLS) {
-      if (isReadOnlyTool(tool)) PUBLIC_READ_ONLY_TOOL_NAMES.add(tool.name);
+    for (const tool of [...APP_BRIDGE_TOOLS, ...TOK_CLIENT_TOOLS]) {
+      if (isReadOnlyTool(tool) || TOK_CLIENT_MUTATION_NAMES.has(tool.name))
+        PUBLIC_READ_ONLY_TOOL_NAMES.add(tool.name);
     }
   }
   return new Set(PUBLIC_READ_ONLY_TOOL_NAMES);
 }
 
 function authToolResult(message = "Connexion TOK requise pour cette action.") {
-  const challenge = `Bearer resource_metadata="${RESOURCE_METADATA_URL}"`;
+  const challenge = `Bearer resource_metadata="${RESOURCE_METADATA_URL}", scope="${OIDC_SCOPES.join(" ")}"`;
   return { content: [{ type: "text", text: message }], isError: true, _meta: { "mcp/www_authenticate": [challenge] } };
 }
 
 function bridgeToolBody(name: string, args: JsonRecord) {
+  if (TOK_CLIENT_TOOL_NAMES.has(name as typeof TOK_CLIENT_TOOLS[number]["name"])) {
+    assertTokClientArgs(name, args);
+    if (name === "tok_quote_reservation") {
+      return { mode: "edge", capability: "reservations.classic.quote", method: "POST",
+        payload: { action: "quote", party_size: args.party_size } };
+    }
+    if (name === "tok_book_table") {
+      return { mode: "edge", capability: "reservations.classic.create", method: "POST",
+        confirmed_by_user: true, idempotency_key: args.idempotency_key,
+        payload: {
+          action: "create", feature: "classique",
+          restaurant_id: args.restaurant_id, date: args.date, time: args.time, party_size: args.party_size,
+          notes: args.notes || null, guarantee_accepted: args.guarantee_accepted === true,
+        } };
+    }
+    if (name === "tok_cancel_my_reservation") {
+      return { mode: "rpc", rpc_name: "cancel_reservation_by_customer",
+        args: { p_reservation_id: args.reservation_id },
+        confirmed_by_user: true, idempotency_key: args.idempotency_key };
+    }
+    return { mode: "customer_history", kind: name === "tok_my_reservations" ? "reservations" : "orders",
+      limit: args.limit };
+  }
   if (name === "tok_list_capabilities") return { mode: "edge", action: "list" };
   if (name === "tok_invoke_capability") return {
     mode: "edge", capability: args.capability, method: args.method, payload: args.payload || {},

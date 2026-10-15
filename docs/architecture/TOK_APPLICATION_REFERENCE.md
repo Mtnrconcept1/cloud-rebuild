@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f1c4c4933e2bd38506712502193577b9cdedebc095bcc95cca719548c7d45268`
+- Empreinte SHA-256 des sources indexées : `c3b4a30cca8b8062a22f5252dc43e1b5612dbc32dcb85befe9c3eb6b55b4a48f`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 544 |
-| modules | 1587 |
+| modules | 1588 |
 | pages | 132 |
-| pathLiterals | 751 |
+| pathLiterals | 752 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 17082 |
-| repositoryFiles | 3215 |
+| records | 17085 |
+| repositoryFiles | 3216 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -577,7 +577,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | tok-connect-mcp | [supabase/functions/tok-connect-mcp/index.ts:1](../../supabase/functions/tok-connect-mcp/index.ts#L1) | oui ([supabase/config.toml:329](../../supabase/config.toml#L329)) | false | GET, POST | — | google, openai, stripe, supabase, vercel |
 | tok-connect-oauth | [supabase/functions/tok-connect-oauth/index.ts:1](../../supabase/functions/tok-connect-oauth/index.ts#L1) | oui ([supabase/config.toml:323](../../supabase/config.toml#L323)) | false | GET, POST | — | supabase |
 | tok-connect-portal | [supabase/functions/tok-connect-portal/index.ts:1](../../supabase/functions/tok-connect-portal/index.ts#L1) | oui ([supabase/config.toml:335](../../supabase/config.toml#L335)) | false | POST | approve-agent-run, approve-partner, create-sandbox-client, create-webhook-endpoint, mcp-connection-status, overview, reject-agent-run, revoke-client, revoke-partner, rotate-client-secret, send-webhook-test, suspend-partner, update-client-policy, update-grant-status, upsert-restaurant-grant | supabase |
-| tok-connect-remote-mcp | [supabase/functions/tok-connect-remote-mcp/index.ts:1](../../supabase/functions/tok-connect-remote-mcp/index.ts#L1) | oui ([supabase/config.toml:353](../../supabase/config.toml#L353)) | false | GET, POST | — | supabase |
+| tok-connect-remote-mcp | [supabase/functions/tok-connect-remote-mcp/index.ts:1](../../supabase/functions/tok-connect-remote-mcp/index.ts#L1) | oui ([supabase/config.toml:353](../../supabase/config.toml#L353)) | false | GET, POST | — | openai, supabase |
 | tok-connect-webhook-dispatch | [supabase/functions/tok-connect-webhook-dispatch/index.ts:1](../../supabase/functions/tok-connect-webhook-dispatch/index.ts#L1) | oui ([supabase/config.toml:341](../../supabase/config.toml#L341)) | false | POST | — | supabase |
 | tok-pulse-widget | [supabase/functions/tok-pulse-widget/index.ts:1](../../supabase/functions/tok-pulse-widget/index.ts#L1) | oui ([supabase/config.toml:356](../../supabase/config.toml#L356)) | false | GET | — | supabase |
 | track-analytics | [supabase/functions/track-analytics/index.ts:1](../../supabase/functions/track-analytics/index.ts#L1) | oui ([supabase/config.toml:266](../../supabase/config.toml#L266)) | false | POST | — | supabase |
@@ -1258,6 +1258,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /Outlines | 2 | [src/test/guide-pdf.test.ts:19](../../src/test/guide-pdf.test.ts#L19) |
 | /[^/]+ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /^[0-9a-f-]{36}$/i.test(deliveryId) | 1 | [src/test/marketing-one-click-unsubscribe.test.ts:69](../../src/test/marketing-one-click-unsubscribe.test.ts#L69) |
+| /^\d{4}-\d{2}-\d{2}$/ | 1 | [src/test/tok-connect-customer-journey.test.ts:121](../../src/test/tok-connect-customer-journey.test.ts#L121) |
 | /__campaign-layout | 2 | [scripts/check-campaign-layout.mjs:59](../../scripts/check-campaign-layout.mjs#L59) |
 | /__campaign-layout-test.tsx | 1 | [scripts/check-campaign-layout.mjs:12](../../scripts/check-campaign-layout.mjs#L12) |
 | /__commercial-map | 2 | [scripts/check-commercial-map.mjs:42](../../scripts/check-commercial-map.mjs#L42) |
@@ -6385,12 +6386,12 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 118 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 120 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 122 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 243 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 707 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 244 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 708 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6411,7 +6412,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 626 |
+| test | 627 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -9280,7 +9281,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (626)</summary>
+<details><summary>test (627)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9873,6 +9874,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-app-bridge.test.ts`
 - `src/test/tok-connect-chatgpt-finalization.test.ts`
 - `src/test/tok-connect-commercial-bridge.test.ts`
+- `src/test/tok-connect-customer-journey.test.ts`
 - `src/test/tok-connect-discovery.test.ts`
 - `src/test/tok-connect-edge-functions.test.ts`
 - `src/test/tok-connect-frontend.test.ts`

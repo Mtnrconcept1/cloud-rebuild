@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "f1c4c4933e2bd38506712502193577b9cdedebc095bcc95cca719548c7d45268",
+ "sourceDigest": "c3b4a30cca8b8062a22f5252dc43e1b5612dbc32dcb85befe9c3eb6b55b4a48f",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 544,
-  "modules": 1587,
+  "modules": 1588,
   "pages": 132,
-  "pathLiterals": 751,
+  "pathLiterals": 752,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 17082,
-  "repositoryFiles": 3215,
+  "records": 17085,
+  "repositoryFiles": 3216,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -9417,6 +9417,7 @@
      "TOK_CONNECT_PUBLIC_ORIGIN"
     ],
     "integrations": [
+     "openai",
      "supabase"
     ],
     "configured": true,
@@ -15097,6 +15098,15 @@
      {
       "path": "src/test/marketing-one-click-unsubscribe.test.ts",
       "line": 69
+     }
+    ]
+   },
+   {
+    "value": "/^\\d{4}-\\d{2}-\\d{2}$/",
+    "sources": [
+     {
+      "path": "src/test/tok-connect-customer-journey.test.ts",
+      "line": 121
      }
     ]
    },
@@ -32357,7 +32367,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
-      "line": 425
+      "line": 570
      }
     ],
     "routes": []
@@ -32700,6 +32710,7 @@
      "src/test/tok-ai-platform-plan.test.ts",
      "src/test/tok-ai-tools.test.ts",
      "src/test/tok-connect-chatgpt-finalization.test.ts",
+     "src/test/tok-connect-customer-journey.test.ts",
      "src/test/tok-connect-discovery.test.ts",
      "src/test/tok-connect-edge-functions.test.ts",
      "src/test/tok-connect-full-app-mcp.test.ts",
@@ -32745,6 +32756,7 @@
      "supabase/functions/tok-connect-chatgpt/index.ts",
      "supabase/functions/tok-connect-full-app-mcp/index.ts",
      "supabase/functions/tok-connect-mcp/index.ts",
+     "supabase/functions/tok-connect-remote-mcp/index.ts",
      "workers/image-ai-worker/config.test.mjs",
      "workers/image-ai-worker/windows-setup.test.mjs"
     ]
@@ -33004,6 +33016,7 @@
      "supabase/functions/_shared/restaurant-subscription-billing.ts",
      "supabase/functions/_shared/stripe-client.ts",
      "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+     "supabase/functions/_shared/tok-connect-discovery-widget.ts",
      "supabase/functions/_shared/tok-one.ts",
      "supabase/functions/_shared/zero-attente.ts",
      "supabase/functions/_shared/zero-cost-checkout.ts",
@@ -33662,6 +33675,7 @@
      "src/test/tok-connect-app-bridge.test.ts",
      "src/test/tok-connect-chatgpt-finalization.test.ts",
      "src/test/tok-connect-commercial-bridge.test.ts",
+     "src/test/tok-connect-customer-journey.test.ts",
      "src/test/tok-connect-discovery.test.ts",
      "src/test/tok-connect-edge-functions.test.ts",
      "src/test/tok-connect-frontend.test.ts",
@@ -111931,6 +111945,16 @@
     "lineCount": 46
    },
    {
+    "path": "src/test/tok-connect-customer-journey.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 175
+   },
+   {
     "path": "src/test/tok-connect-discovery.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -112844,7 +112868,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3266,
+      "line": 3304,
       "kind": "function"
      }
     ],
@@ -112856,7 +112880,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3271
+    "lineCount": 3309
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -115135,17 +115159,17 @@
      },
      {
       "name": "buildTokDiscoveryResourceDescriptor",
-      "line": 939,
+      "line": 1239,
       "kind": "function"
      },
      {
       "name": "buildTokDiscoveryResourceContents",
-      "line": 968,
+      "line": 1268,
       "kind": "function"
      },
      {
       "name": "buildTokDiscoveryToolMeta",
-      "line": 979,
+      "line": 1279,
       "kind": "function"
      }
     ],
@@ -115153,10 +115177,11 @@
     "integrations": [
      "google",
      "openai",
+     "stripe",
      "supabase",
      "vercel"
     ],
-    "lineCount": 989
+    "lineCount": 1289
    },
    {
     "path": "supabase/functions/_shared/tok-connect-discovery.ts",
@@ -117063,7 +117088,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 433
+    "lineCount": 487
    },
    {
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
@@ -117167,9 +117192,10 @@
      "TOK_CONNECT_PUBLIC_ORIGIN"
     ],
     "integrations": [
+     "openai",
      "supabase"
     ],
-    "lineCount": 461
+    "lineCount": 606
    },
    {
     "path": "supabase/functions/tok-connect-webhook-dispatch/index.ts",
@@ -129337,6 +129363,11 @@
    },
    {
     "path": "src/test/tok-connect-commercial-bridge.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-customer-journey.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -153932,6 +153963,20 @@
    "detailRef": "12aed0cede5c"
   },
   {
+   "id": "code-module:1d42874808ef",
+   "type": "code-module",
+   "title": "src/test/tok-connect-customer-journey.test.ts",
+   "description": "Module de 175 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-customer-journey.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "1f8d70b1e451"
+  },
+  {
    "id": "code-module:5ba8bcabdf99",
    "type": "code-module",
    "title": "src/test/tok-connect-discovery.test.ts",
@@ -154568,7 +154613,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3271 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3309 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -154582,7 +154627,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "70f6b665f6a6"
+   "detailRef": "731cc94c5bce"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -155669,7 +155714,7 @@
    "id": "code-module:38f3af390908",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "description": "Module de 989 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
+   "description": "Module de 1289 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
    "line": 1,
    "surface": null,
@@ -155682,10 +155727,11 @@
     "buildTokDiscoveryToolMeta",
     "google",
     "openai",
+    "stripe",
     "supabase",
     "vercel"
    ],
-   "detailRef": "333ed6a95f54"
+   "detailRef": "b365288a78d5"
   },
   {
    "id": "code-module:bd4199664d50",
@@ -157417,7 +157463,7 @@
    "id": "code-module:5f5eb07543f1",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-app-bridge/index.ts",
-   "description": "Module de 433 lignes; exports: aucun export statique.",
+   "description": "Module de 487 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-app-bridge/index.ts",
    "line": 1,
    "surface": null,
@@ -157428,7 +157474,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ec602cb04409"
+   "detailRef": "3519035b20ad"
   },
   {
    "id": "code-module:4266f84831a7",
@@ -157534,7 +157580,7 @@
    "id": "code-module:a6d1c05c1a13",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-remote-mcp/index.ts",
-   "description": "Module de 461 lignes; exports: aucun export statique.",
+   "description": "Module de 606 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
    "line": 1,
    "surface": null,
@@ -157543,9 +157589,10 @@
     "SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_URL",
     "TOK_CONNECT_PUBLIC_ORIGIN",
+    "openai",
     "supabase"
    ],
-   "detailRef": "ee36e00e15f9"
+   "detailRef": "5d069dc154e0"
   },
   {
    "id": "code-module:61c89ba4dc3b",
@@ -243981,9 +244028,10 @@
     "SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_URL",
     "TOK_CONNECT_PUBLIC_ORIGIN",
+    "openai",
     "supabase"
    ],
-   "detailRef": "065a1037313f"
+   "detailRef": "42277f77114f"
   },
   {
    "id": "edge-function:18e2720fac44",
@@ -265787,6 +265835,7 @@
    "tags": [
     "google",
     "openai",
+    "stripe",
     "supabase",
     "variable",
     "vercel"
@@ -265804,6 +265853,7 @@
    "tags": [
     "google",
     "openai",
+    "stripe",
     "supabase",
     "variable",
     "vercel"
@@ -265821,6 +265871,7 @@
    "tags": [
     "google",
     "openai",
+    "stripe",
     "supabase",
     "variable",
     "vercel"
@@ -270737,55 +270788,58 @@
    "detailRef": "82f9e612ba62"
   },
   {
-   "id": "exported-symbol:b70c9de27495",
+   "id": "exported-symbol:f683c3d922c3",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryResourceContents",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 968,
+   "line": 1268,
    "surface": null,
    "tags": [
     "function",
     "google",
     "openai",
+    "stripe",
     "supabase",
     "vercel"
    ],
-   "detailRef": "1178a6ed4122"
+   "detailRef": "c86a3c25720e"
   },
   {
-   "id": "exported-symbol:ee1f593c58f2",
+   "id": "exported-symbol:1b433ced7bbf",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryResourceDescriptor",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 939,
+   "line": 1239,
    "surface": null,
    "tags": [
     "function",
     "google",
     "openai",
+    "stripe",
     "supabase",
     "vercel"
    ],
-   "detailRef": "98f64c846d63"
+   "detailRef": "331edb25e5f0"
   },
   {
-   "id": "exported-symbol:e47a709c449e",
+   "id": "exported-symbol:6fe777bfd24d",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryToolMeta",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 979,
+   "line": 1279,
    "surface": null,
    "tags": [
     "function",
     "google",
     "openai",
+    "stripe",
     "supabase",
     "vercel"
    ],
-   "detailRef": "355dc1381a5f"
+   "detailRef": "2281fe8dcba3"
   },
   {
    "id": "exported-symbol:c48bb56c3e9c",
@@ -287445,12 +287499,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:12f0ca04df38",
+   "id": "exported-symbol:987c0b7d5a69",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3266,
+   "line": 3304,
    "surface": null,
    "tags": [
     "firebase",
@@ -287460,7 +287514,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "aaeff010da28"
+   "detailRef": "5e319583be16"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -330801,6 +330855,20 @@
    "detailRef": "3a00fa9409d8"
   },
   {
+   "id": "file:c0eeb9dae073",
+   "type": "file",
+   "title": "src/test/tok-connect-customer-journey.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-customer-journey.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "7549122ac0a0"
+  },
+  {
    "id": "file:cf69bd35eb0e",
    "type": "file",
    "title": "src/test/tok-connect-discovery.test.ts",
@@ -345371,7 +345439,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 120 module(s).",
+   "description": "Intégration externe détectée dans 122 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -345450,6 +345518,7 @@
     "src/test/tok-ai-platform-plan.test.ts",
     "src/test/tok-ai-tools.test.ts",
     "src/test/tok-connect-chatgpt-finalization.test.ts",
+    "src/test/tok-connect-customer-journey.test.ts",
     "src/test/tok-connect-discovery.test.ts",
     "src/test/tok-connect-edge-functions.test.ts",
     "src/test/tok-connect-full-app-mcp.test.ts",
@@ -345495,10 +345564,11 @@
     "supabase/functions/tok-connect-chatgpt/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts",
+    "supabase/functions/tok-connect-remote-mcp/index.ts",
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "8d672b46ceb5"
+   "detailRef": "f12b3fccfdc2"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -345587,7 +345657,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 243 module(s).",
+   "description": "Intégration externe détectée dans 244 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -345786,6 +345856,7 @@
     "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "supabase/functions/_shared/stripe-client.ts",
     "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+    "supabase/functions/_shared/tok-connect-discovery-widget.ts",
     "supabase/functions/_shared/tok-one.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/_shared/zero-cost-checkout.ts",
@@ -345837,13 +345908,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "a1b3515ca479"
+   "detailRef": "93d1fc503e90"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 707 module(s).",
+   "description": "Intégration externe détectée dans 708 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -346451,6 +346522,7 @@
     "src/test/tok-connect-app-bridge.test.ts",
     "src/test/tok-connect-chatgpt-finalization.test.ts",
     "src/test/tok-connect-commercial-bridge.test.ts",
+    "src/test/tok-connect-customer-journey.test.ts",
     "src/test/tok-connect-discovery.test.ts",
     "src/test/tok-connect-edge-functions.test.ts",
     "src/test/tok-connect-frontend.test.ts",
@@ -346557,7 +346629,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "26d8b15062f4"
+   "detailRef": "06f07d281255"
   },
   {
    "id": "integration:c20910a79a78",
@@ -358075,6 +358147,19 @@
     "src/test/marketing-one-click-unsubscribe.test.ts"
    ],
    "detailRef": "4decf6922e9b"
+  },
+  {
+   "id": "path-literal:342f261b036d",
+   "type": "path-literal",
+   "title": "/^\\d{4}-\\d{2}-\\d{2}$/",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/tok-connect-customer-journey.test.ts",
+   "line": 121,
+   "surface": null,
+   "tags": [
+    "src/test/tok-connect-customer-journey.test.ts"
+   ],
+   "detailRef": "d6fe795f6edc"
   },
   {
    "id": "path-literal:52d7c05491fb",
@@ -378820,7 +378905,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/tok-connect-remote-mcp/index.ts"
    ],
-   "detailRef": "d8a6afabda43"
+   "detailRef": "7fa3ff418ddb"
   },
   {
    "id": "query-parameter:53f1f1bd6ea8",
