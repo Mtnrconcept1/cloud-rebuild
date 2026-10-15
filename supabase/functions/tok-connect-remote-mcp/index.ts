@@ -217,6 +217,93 @@ const TOK_CLIENT_TOOLS = [
     _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
   },
   {
+    name: "tok_quote_customer_cart",
+    title: "Vérifier le prix d'une commande TOK",
+    description: "Preview an authenticated TOK customer's restaurant cart with authoritative server prices and available service options. No payment or order is created.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: {
+      type: "object",
+      required: ["restaurant_id", "journey", "items", "date", "time"],
+      properties: {
+        restaurant_id: { type: "string", format: "uuid" },
+        journey: { type: "string", enum: ["takeaway", "zero-attente"] },
+        items: {
+          type: "array", minItems: 1, maxItems: 24,
+          items: {
+            type: "object", required: ["menu_item_id", "quantity"],
+            properties: {
+              menu_item_id: { type: "string", format: "uuid" },
+              quantity: { type: "integer", minimum: 1, maximum: 20 },
+            },
+            additionalProperties: false,
+          },
+        },
+        date: { type: "string", format: "date" },
+        time: { type: "string", pattern: "^([01]\\d|2[0-3]):[0-5]\\d$" },
+        party_size: { type: "integer", minimum: 1, maximum: 20 },
+        payment_method: { type: "string", enum: ["card", "twint"] },
+        notes: { type: "string", maxLength: 500 },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
+  },
+  {
+    name: "tok_checkout_customer_cart",
+    title: "Confirmer et payer une commande TOK",
+    description: "Start the existing idempotent TOK Stripe Checkout only after a customer explicitly confirms a recent server-priced cart. This never confirms an order before payment/webhook processing.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: {
+      type: "object",
+      required: ["restaurant_id", "journey", "items", "date", "time", "expected_total_cents", "payment_attempt_id", "idempotency_key", "confirmed_by_user"],
+      properties: {
+        restaurant_id: { type: "string", format: "uuid" },
+        journey: { type: "string", enum: ["takeaway", "zero-attente"] },
+        items: {
+          type: "array", minItems: 1, maxItems: 24,
+          items: {
+            type: "object", required: ["menu_item_id", "quantity"],
+            properties: {
+              menu_item_id: { type: "string", format: "uuid" },
+              quantity: { type: "integer", minimum: 1, maximum: 20 },
+            },
+            additionalProperties: false,
+          },
+        },
+        date: { type: "string", format: "date" },
+        time: { type: "string", pattern: "^([01]\\d|2[0-3]):[0-5]\\d$" },
+        party_size: { type: "integer", minimum: 1, maximum: 20 },
+        payment_method: { type: "string", enum: ["card", "twint"] },
+        notes: { type: "string", maxLength: 500 },
+        expected_total_cents: { type: "integer", minimum: 0, maximum: 1000000 },
+        payment_attempt_id: { type: "string", format: "uuid" },
+        idempotency_key: { type: "string", minLength: 8, maxLength: 120 },
+        confirmed_by_user: { type: "boolean", const: true },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META,
+      ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] },
+      "openai/visibility": "private" },
+  },
+  {
+    name: "tok_customer_payment_status",
+    title: "Vérifier le paiement de ma commande TOK",
+    description: "Read the status of the authenticated customer's own Stripe payment attempt; never interpret an open checkout as a paid order.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: {
+      type: "object", required: ["payment_attempt_id"],
+      properties: { payment_attempt_id: { type: "string", format: "uuid" } },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META,
+      ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] },
+      "openai/visibility": "private" },
+  },
+  {
     name: "tok_cancel_my_reservation",
     title: "Annuler ma réservation classique TOK",
     description: "Cancel an owned, unpaid classic reservation after explicit confirmation. Paid reservations require the dedicated TOK support/refund flow.",
@@ -236,7 +323,7 @@ const TOK_CLIENT_TOOLS = [
   },
 ] as const;
 const TOK_CLIENT_TOOL_NAMES = new Set(TOK_CLIENT_TOOLS.map((tool) => tool.name));
-const TOK_CLIENT_MUTATION_NAMES = new Set(["tok_book_table", "tok_cancel_my_reservation"]);
+const TOK_CLIENT_MUTATION_NAMES = new Set(["tok_book_table", "tok_cancel_my_reservation", "tok_checkout_customer_cart"]);
 
 function assertTokClientArgs(name: string, args: JsonRecord) {
   if (name === "tok_quote_reservation" || name === "tok_book_table") {
@@ -456,6 +543,23 @@ function authToolResult(message = "Connexion TOK requise pour cette action.") {
 function bridgeToolBody(name: string, args: JsonRecord) {
   if (TOK_CLIENT_TOOL_NAMES.has(name as typeof TOK_CLIENT_TOOLS[number]["name"])) {
     assertTokClientArgs(name, args);
+    if (name === "tok_quote_customer_cart" || name === "tok_checkout_customer_cart") {
+      return {
+        mode: "customer_commerce",
+        action: name === "tok_quote_customer_cart" ? "quote" : "checkout",
+        restaurant_id: args.restaurant_id, journey: args.journey,
+        items: args.items, date: args.date, time: args.time,
+        party_size: args.party_size, payment_method: args.payment_method,
+        notes: args.notes, expected_total_cents: args.expected_total_cents,
+        payment_attempt_id: args.payment_attempt_id,
+        idempotency_key: args.idempotency_key,
+        confirmed_by_user: args.confirmed_by_user,
+      };
+    }
+    if (name === "tok_customer_payment_status") {
+      return { mode: "customer_commerce", action: "status",
+        payment_attempt_id: args.payment_attempt_id };
+    }
     if (name === "tok_quote_reservation") {
       return { mode: "edge", capability: "reservations.classic.quote", method: "POST",
         payload: { action: "quote", party_size: args.party_size } };
