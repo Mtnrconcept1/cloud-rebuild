@@ -2,13 +2,13 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "f1c4c4933e2bd38506712502193577b9cdedebc095bcc95cca719548c7d45268",
+ "sourceDigest": "bc4fd3fc2be55090d350405e398b6fd657785fd2d3a18e5e03367995cd35a5f8",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2893,
+  "databaseObjects": 2895,
   "documents": 205,
   "edgeFunctions": 117,
   "edgeHttpRoutes": 20,
@@ -17,22 +17,22 @@
   "frontendRoutes": 142,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 544,
-  "modules": 1587,
+  "migrations": 545,
+  "modules": 1588,
   "pages": 132,
   "pathLiterals": 751,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 17082,
-  "repositoryFiles": 3215,
+  "records": 17090,
+  "repositoryFiles": 3218,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 29
+  "workflows": 30
  },
  "catalogs": {
   "frontendRoutes": [
@@ -21185,7 +21185,7 @@
      },
      {
       "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
-      "line": 2238
+      "line": 2259
      },
      {
       "path": "src/components/dashboard/TokAiPhotoStudioV2.tsx",
@@ -29471,7 +29471,7 @@
     "sources": [
      {
       "path": "supabase/functions/_shared/print/pdf.ts",
-      "line": 84
+      "line": 52
      }
     ]
    },
@@ -33547,6 +33547,7 @@
      "src/test/print-catalog-admin-pagination.test.tsx",
      "src/test/print-composer-source-format.test.tsx",
      "src/test/print-export-source-format.test.ts",
+     "src/test/print-native-only-and-email.test.ts",
      "src/test/print-orchestrator-runtime.test.ts",
      "src/test/print-pdf-dimensions.test.ts",
      "src/test/print-source-format.test.ts",
@@ -37129,6 +37130,12 @@
     "path": "supabase/migrations/20261014180000_tok_workforce_clock_teams.sql",
     "lineCount": 439,
     "objectCount": 34
+   },
+   {
+    "name": "20261015073400 Print Order Receipts And Invoices",
+    "path": "supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql",
+    "lineCount": 238,
+    "objectCount": 2
    }
   ],
   "databaseObjects": [
@@ -43951,6 +43958,16 @@
      {
       "path": "supabase/migrations/20260907011600_notification_delivery_reliability.sql",
       "line": 179
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.queue_print_order_emails",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql",
+      "line": 9
      }
     ]
    },
@@ -53455,6 +53472,16 @@
      {
       "path": "supabase/migrations/20260717023000_stripe_developer_share_transfers.sql",
       "line": 88
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "ux_email_queue_print_order_email_key",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql",
+      "line": 5
      }
     ]
    },
@@ -73004,6 +73031,11 @@
   },
   "workflows": [
    {
+    "name": " Print Branch Sync Once",
+    "path": ".github/workflows/_print_branch_sync_once.yml",
+    "jobs": []
+   },
+   {
     "name": "Reusable validation",
     "path": ".github/workflows/_validation.yml",
     "jobs": [
@@ -88645,7 +88677,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 2396
+    "lineCount": 2417
    },
    {
     "path": "src/components/dashboard/TokAiMarketingStudioPrintShell.tsx",
@@ -88721,7 +88753,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 231,
+      "line": 232,
       "kind": "function"
      }
     ],
@@ -88730,7 +88762,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 617
+    "lineCount": 624
    },
    {
     "path": "src/components/dashboard/marketing-print/PrintOrderDetails.tsx",
@@ -88769,7 +88801,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 111
+    "lineCount": 84
    },
    {
     "path": "src/components/dashboard/performance/PerformanceAlerts.tsx",
@@ -98952,13 +98984,13 @@
      },
      {
       "name": "downloadMarketingOutput",
-      "line": 116,
+      "line": 125,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 138
+    "lineCount": 147
    },
    {
     "path": "src/lib/marketing/outputGeometry.ts",
@@ -100490,7 +100522,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 46
+    "lineCount": 63
    },
    {
     "path": "src/lib/privilegedSignupRecovery.ts",
@@ -109739,7 +109771,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 111
+    "lineCount": 120
    },
    {
     "path": "src/test/marketing-prospect-coordinates.test.ts",
@@ -110329,6 +110361,15 @@
      "supabase"
     ],
     "lineCount": 53
+   },
+   {
+    "path": "src/test/print-native-only-and-email.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 79
    },
    {
     "path": "src/test/print-orchestrator-runtime.test.ts",
@@ -114407,12 +114448,12 @@
     "exports": [
      {
       "name": "ServerPrintProductSpec",
-      "line": 32,
+      "line": 16,
       "kind": "typealias"
      },
      {
       "name": "buildPrintPdf",
-      "line": 244,
+      "line": 129,
       "kind": "function"
      }
     ],
@@ -114420,7 +114461,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 331
+    "lineCount": 184
    },
    {
     "path": "supabase/functions/_shared/print/pricing.ts",
@@ -115881,7 +115922,7 @@
     "integrations": [
      "openai"
     ],
-    "lineCount": 1955
+    "lineCount": 1966
    },
    {
     "path": "supabase/functions/ai-marketing-agent/index.ts",
@@ -116673,7 +116714,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 248
+    "lineCount": 249
    },
    {
     "path": "supabase/functions/print-orchestrator/index.ts",
@@ -116684,7 +116725,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 341
+    "lineCount": 371
    },
    {
     "path": "supabase/functions/print-order-action/index.ts",
@@ -116719,7 +116760,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 230
+    "lineCount": 247
    },
    {
     "path": "supabase/functions/process-refund/index.ts",
@@ -117893,6 +117934,11 @@
    {
     "path": ".github/dependabot.yml",
     "category": "repository-file",
+    "extension": ".yml"
+   },
+   {
+    "path": ".github/workflows/_print_branch_sync_once.yml",
+    "category": "ci-workflow",
     "extension": ".yml"
    },
    {
@@ -128426,6 +128472,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/print-native-only-and-email.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/print-orchestrator-runtime.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -133261,6 +133312,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/actualites_billing_identity_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -136871,7 +136927,7 @@
    "id": "code-module:53871c488863",
    "type": "code-module",
    "title": "src/components/dashboard/TokAiMarketingStudio.tsx",
-   "description": "Module de 2396 lignes; exports: default.",
+   "description": "Module de 2417 lignes; exports: default.",
    "path": "src/components/dashboard/TokAiMarketingStudio.tsx",
    "line": 1,
    "surface": null,
@@ -136880,7 +136936,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "61e886f4d96c"
+   "detailRef": "2cc5ff509c05"
   },
   {
    "id": "code-module:debf63304b0a",
@@ -136953,7 +137009,7 @@
    "id": "code-module:deb783cb0fb3",
    "type": "code-module",
    "title": "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
-   "description": "Module de 617 lignes; exports: default.",
+   "description": "Module de 624 lignes; exports: default.",
    "path": "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
    "line": 1,
    "surface": null,
@@ -136962,7 +137018,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "4f9eec101784"
+   "detailRef": "9ed0f5654cfa"
   },
   {
    "id": "code-module:11242b236a44",
@@ -136994,14 +137050,14 @@
    "id": "code-module:63a2c8477dc8",
    "type": "code-module",
    "title": "src/components/dashboard/marketing-print/PrintProof.tsx",
-   "description": "Module de 111 lignes; exports: default.",
+   "description": "Module de 84 lignes; exports: default.",
    "path": "src/components/dashboard/marketing-print/PrintProof.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "460daf449fc1"
+   "detailRef": "f8d2234d6a6d"
   },
   {
    "id": "code-module:b323b958c69f",
@@ -142241,7 +142297,7 @@
    "id": "code-module:73b83aafb8bf",
    "type": "code-module",
    "title": "src/lib/marketing/imageOutput.ts",
-   "description": "Module de 138 lignes; exports: MarketingOutputMimeType, assertMarketingOutputDimensions, marketingOutputFileName, renderMarketingOutputBlob, downloadMarketingOutput.",
+   "description": "Module de 147 lignes; exports: MarketingOutputMimeType, assertMarketingOutputDimensions, marketingOutputFileName, renderMarketingOutputBlob, downloadMarketingOutput.",
    "path": "src/lib/marketing/imageOutput.ts",
    "line": 1,
    "surface": null,
@@ -142252,7 +142308,7 @@
     "marketingOutputFileName",
     "renderMarketingOutputBlob"
    ],
-   "detailRef": "ed9a83bc7d67"
+   "detailRef": "d19f56793346"
   },
   {
    "id": "code-module:1cb06392f944",
@@ -142919,7 +142975,7 @@
    "id": "code-module:5321954d8f9c",
    "type": "code-module",
    "title": "src/lib/print/rendering.ts",
-   "description": "Module de 46 lignes; exports: PrintRenderingProduct, buildPrintRenderingPlan.",
+   "description": "Module de 63 lignes; exports: PrintRenderingProduct, buildPrintRenderingPlan.",
    "path": "src/lib/print/rendering.ts",
    "line": 1,
    "surface": null,
@@ -142927,7 +142983,7 @@
     "PrintRenderingProduct",
     "buildPrintRenderingPlan"
    ],
-   "detailRef": "e2136abc8fa7"
+   "detailRef": "e2bfb4700c6e"
   },
   {
    "id": "code-module:cc3c7fdb6abb",
@@ -150741,12 +150797,12 @@
    "id": "code-module:113c9db85990",
    "type": "code-module",
    "title": "src/test/marketing-print-rendering.test.ts",
-   "description": "Module de 111 lignes; exports: aucun export statique.",
+   "description": "Module de 120 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-print-rendering.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "f28ace619ca1"
+   "detailRef": "3a4a3c6364d4"
   },
   {
    "id": "code-module:e9285a13ef5c",
@@ -151606,6 +151662,19 @@
     "supabase"
    ],
    "detailRef": "1e7972af5413"
+  },
+  {
+   "id": "code-module:f9d0aab53039",
+   "type": "code-module",
+   "title": "src/test/print-native-only-and-email.test.ts",
+   "description": "Module de 79 lignes; exports: aucun export statique.",
+   "path": "src/test/print-native-only-and-email.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "a0a72a940da2"
   },
   {
    "id": "code-module:6e80bb22127f",
@@ -155308,7 +155377,7 @@
    "id": "code-module:13ccd5a22488",
    "type": "code-module",
    "title": "supabase/functions/_shared/print/pdf.ts",
-   "description": "Module de 331 lignes; exports: ServerPrintProductSpec, buildPrintPdf.",
+   "description": "Module de 184 lignes; exports: ServerPrintProductSpec, buildPrintPdf.",
    "path": "supabase/functions/_shared/print/pdf.ts",
    "line": 1,
    "surface": null,
@@ -155317,7 +155386,7 @@
     "buildPrintPdf",
     "supabase"
    ],
-   "detailRef": "2aacaeea9cad"
+   "detailRef": "aec6b1694054"
   },
   {
    "id": "code-module:3ffb208bf4b8",
@@ -156036,7 +156105,7 @@
    "id": "code-module:95b5e7da0880",
    "type": "code-module",
    "title": "supabase/functions/ai-image-enhance/index.ts",
-   "description": "Module de 1955 lignes; exports: aucun export statique.",
+   "description": "Module de 1966 lignes; exports: aucun export statique.",
    "path": "supabase/functions/ai-image-enhance/index.ts",
    "line": 1,
    "surface": null,
@@ -156046,7 +156115,7 @@
     "TOK_MARKETING_REFERENCE_BUCKET",
     "openai"
    ],
-   "detailRef": "aa14a2c80136"
+   "detailRef": "cb9494594c60"
   },
   {
    "id": "code-module:2d59c9951508",
@@ -156963,18 +157032,18 @@
    "id": "code-module:0a6a33db8df1",
    "type": "code-module",
    "title": "supabase/functions/print-export/index.ts",
-   "description": "Module de 248 lignes; exports: aucun export statique.",
+   "description": "Module de 249 lignes; exports: aucun export statique.",
    "path": "supabase/functions/print-export/index.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "2e4ee6ae0d6a"
+   "detailRef": "558d68d14d49"
   },
   {
    "id": "code-module:c715d62e836a",
    "type": "code-module",
    "title": "supabase/functions/print-orchestrator/index.ts",
-   "description": "Module de 341 lignes; exports: aucun export statique.",
+   "description": "Module de 371 lignes; exports: aucun export statique.",
    "path": "supabase/functions/print-orchestrator/index.ts",
    "line": 1,
    "surface": null,
@@ -156982,7 +157051,7 @@
     "PRINT_SUPPORT_EMAIL",
     "stripe"
    ],
-   "detailRef": "751824bcb3d9"
+   "detailRef": "e2d6b46066c5"
   },
   {
    "id": "code-module:0f8a1d786357",
@@ -157023,7 +157092,7 @@
    "id": "code-module:f3a300467fa4",
    "type": "code-module",
    "title": "supabase/functions/print-sandbox-complete/index.ts",
-   "description": "Module de 230 lignes; exports: aucun export statique.",
+   "description": "Module de 247 lignes; exports: aucun export statique.",
    "path": "supabase/functions/print-sandbox-complete/index.ts",
    "line": 1,
    "surface": null,
@@ -157032,7 +157101,7 @@
     "SITE_URL",
     "stripe"
    ],
-   "detailRef": "c06c8f76ec4e"
+   "detailRef": "4358d33d8c4d"
   },
   {
    "id": "code-module:5ec37313c59b",
@@ -188964,6 +189033,21 @@
    "detailRef": "1cdc29db7cbe"
   },
   {
+   "id": "database-object:b3ab8c9a7008",
+   "type": "database-object",
+   "title": "public.queue_print_order_emails",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "c4b1fc8a3d84"
+  },
+  {
    "id": "database-object:578c00c16d71",
    "type": "database-object",
    "title": "public.queue_reservation_card_cancellation_fee",
@@ -204607,6 +204691,21 @@
     "supabase"
    ],
    "detailRef": "1acce1018106"
+  },
+  {
+   "id": "database-object:b41232ae4151",
+   "type": "database-object",
+   "title": "ux_email_queue_print_order_email_key",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "6408f5d96c6b"
   },
   {
    "id": "database-object:51a675723f20",
@@ -263841,18 +263940,18 @@
    "detailRef": "1d4088b9aaa3"
   },
   {
-   "id": "exported-symbol:fe53f5ca5c07",
+   "id": "exported-symbol:d9d6e4e278c5",
    "type": "exported-symbol",
    "title": "ServerPrintProductSpec",
    "description": "Export typealias de supabase/functions/_shared/print/pdf.ts.",
    "path": "supabase/functions/_shared/print/pdf.ts",
-   "line": 32,
+   "line": 16,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "d6d6aa658d55"
+   "detailRef": "37678a84edcb"
   },
   {
    "id": "exported-symbol:fc0097217e92",
@@ -270218,18 +270317,18 @@
    "detailRef": "33db73c047c3"
   },
   {
-   "id": "exported-symbol:67460405bb2b",
+   "id": "exported-symbol:27794692d08e",
    "type": "exported-symbol",
    "title": "buildPrintPdf",
    "description": "Export function de supabase/functions/_shared/print/pdf.ts.",
    "path": "supabase/functions/_shared/print/pdf.ts",
-   "line": 244,
+   "line": 129,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "41ae874f33f3"
+   "detailRef": "b4d6fad0bfb4"
   },
   {
    "id": "exported-symbol:26e696690e66",
@@ -274685,19 +274784,19 @@
    "detailRef": "a4f2d7044586"
   },
   {
-   "id": "exported-symbol:d4ea2b889dbd",
+   "id": "exported-symbol:afc5535049ee",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/dashboard/marketing-print/PrintComposerDialog.tsx.",
    "path": "src/components/dashboard/marketing-print/PrintComposerDialog.tsx",
-   "line": 231,
+   "line": 232,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "b3f06a76b77b"
+   "detailRef": "2bc1e9032efd"
   },
   {
    "id": "exported-symbol:30a02995f704",
@@ -278071,17 +278170,17 @@
    "detailRef": "307ccf59568e"
   },
   {
-   "id": "exported-symbol:5bf735149e1b",
+   "id": "exported-symbol:4a1d5dc02ab5",
    "type": "exported-symbol",
    "title": "downloadMarketingOutput",
    "description": "Export function de src/lib/marketing/imageOutput.ts.",
    "path": "src/lib/marketing/imageOutput.ts",
-   "line": 116,
+   "line": 125,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "83cfcaafcee4"
+   "detailRef": "7060c291dc98"
   },
   {
    "id": "exported-symbol:d4ca7bd30f0a",
@@ -298753,6 +298852,20 @@
     "repository-file"
    ],
    "detailRef": "ce4d60cf7b25"
+  },
+  {
+   "id": "file:5e700bbe4877",
+   "type": "file",
+   "title": ".github/workflows/_print_branch_sync_once.yml",
+   "description": "Fichier du dépôt classé ci-workflow.",
+   "path": ".github/workflows/_print_branch_sync_once.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".yml",
+    "ci-workflow"
+   ],
+   "detailRef": "8f7c50bc487d"
   },
   {
    "id": "file:007e12d373d0",
@@ -328239,6 +328352,20 @@
    "detailRef": "95fb5b8c56a0"
   },
   {
+   "id": "file:df6d16a0a4de",
+   "type": "file",
+   "title": "src/test/print-native-only-and-email.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/print-native-only-and-email.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "21680009f6b6"
+  },
+  {
    "id": "file:387b7d501ae3",
    "type": "file",
    "title": "src/test/print-orchestrator-runtime.test.ts",
@@ -341777,6 +341904,20 @@
    "detailRef": "efadd0f670ea"
   },
   {
+   "id": "file:63d9cd46be78",
+   "type": "file",
+   "title": "supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "1154043b4b3d"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -345843,7 +345984,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 707 module(s).",
+   "description": "Intégration externe détectée dans 708 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -346336,6 +346477,7 @@
     "src/test/print-catalog-admin-pagination.test.tsx",
     "src/test/print-composer-source-format.test.tsx",
     "src/test/print-export-source-format.test.ts",
+    "src/test/print-native-only-and-email.test.ts",
     "src/test/print-orchestrator-runtime.test.ts",
     "src/test/print-pdf-dimensions.test.ts",
     "src/test/print-source-format.test.ts",
@@ -346557,7 +346699,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "26d8b15062f4"
+   "detailRef": "c92106674ea0"
   },
   {
    "id": "integration:c20910a79a78",
@@ -354857,6 +354999,20 @@
    "detailRef": "483bb5911edd"
   },
   {
+   "id": "migration:27003dbf19af",
+   "type": "migration",
+   "title": "20261015073400 Print Order Receipts And Invoices",
+   "description": "Migration SQL de 238 lignes, 2 objets CREATE détectés.",
+   "path": "supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "8e240d46b2ba"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -361140,7 +361296,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "5a6c3ac857db"
+   "detailRef": "a0fa3ce2bb71"
   },
   {
    "id": "path-literal:8e90d21ef2e8",
@@ -368129,17 +368285,17 @@
    "detailRef": "378ddb37f80b"
   },
   {
-   "id": "path-literal:bcc325b16e0f",
+   "id": "path-literal:001fa8b3a6f0",
    "type": "path-literal",
    "title": "/storage/v1/object/",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/_shared/print/pdf.ts",
-   "line": 84,
+   "line": 52,
    "surface": null,
    "tags": [
     "supabase/functions/_shared/print/pdf.ts"
    ],
-   "detailRef": "06686fad6221"
+   "detailRef": "eeeda1d5b71b"
   },
   {
    "id": "path-literal:9c02de38990d",
@@ -381350,6 +381506,17 @@
     "image-ai-worker"
    ],
    "detailRef": "3d2d48cf2e6f"
+  },
+  {
+   "id": "workflow:dd6d3b1505cd",
+   "type": "workflow",
+   "title": " Print Branch Sync Once",
+   "description": "Workflow GitHub Actions; jobs: définition dynamique.",
+   "path": ".github/workflows/_print_branch_sync_once.yml",
+   "line": null,
+   "surface": null,
+   "tags": [],
+   "detailRef": "8191951162d1"
   },
   {
    "id": "workflow:5181ebb2d66a",

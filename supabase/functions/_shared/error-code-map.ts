@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 405 error codes mapped from supabase/functions/**.
+// 406 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -1180,7 +1180,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_generation_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1527
+      "line": 1529
     }
   ],
   "image_id_required": [
@@ -1996,59 +1996,59 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "print_asset_format_unsupported": [
     {
       "file": "supabase/functions/_shared/print/pdf.ts",
-      "line": 102
+      "line": 70
     }
   ],
   "print_asset_https_required": [
     {
       "file": "supabase/functions/_shared/print/pdf.ts",
-      "line": 75
+      "line": 43
     }
   ],
   "print_asset_must_be_persisted": [
     {
       "file": "supabase/functions/_shared/print/pdf.ts",
-      "line": 85
+      "line": 53
     }
   ],
   "print_asset_too_large": [
     {
       "file": "supabase/functions/_shared/print/pdf.ts",
-      "line": 95
+      "line": 63
     },
     {
       "file": "supabase/functions/_shared/print/pdf.ts",
-      "line": 98
+      "line": 66
     }
   ],
   "print_asset_unavailable": [
     {
       "file": "supabase/functions/_shared/print/pdf.ts",
-      "line": 93
+      "line": 61
     }
   ],
   "print_asset_url_invalid": [
     {
       "file": "supabase/functions/_shared/print/pdf.ts",
-      "line": 73
+      "line": 41
     }
   ],
   "print_background_required": [
     {
       "file": "supabase/functions/_shared/print/pdf.ts",
-      "line": 138
+      "line": 95
     }
   ],
   "print_job_limit_invalid": [
     {
       "file": "supabase/functions/print-orchestrator/index.ts",
-      "line": 276
+      "line": 305
     }
   ],
   "print_job_outcome_not_persisted": [
     {
       "file": "supabase/functions/print-orchestrator/index.ts",
-      "line": 308
+      "line": 338
     }
   ],
   "print_mapping_geometry_mismatch": [
@@ -2071,34 +2071,34 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 255
     }
   ],
+  "print_native_image_only": [
+    {
+      "file": "supabase/functions/_shared/print/pdf.ts",
+      "line": 81
+    }
+  ],
   "print_order_not_paid": [
     {
       "file": "supabase/functions/print-orchestrator/index.ts",
-      "line": 167
+      "line": 196
     }
   ],
   "print_order_transition_not_persisted": [
     {
       "file": "supabase/functions/print-orchestrator/index.ts",
-      "line": 130
+      "line": 159
     }
   ],
   "print_preflight_failed": [
     {
       "file": "supabase/functions/_shared/print/pdf.ts",
-      "line": 259
+      "line": 144
     }
   ],
   "print_provider_price_invalid": [
     {
       "file": "supabase/functions/_shared/print/pricing.ts",
       "line": 5
-    }
-  ],
-  "print_qr_invalid": [
-    {
-      "file": "supabase/functions/_shared/print/pdf.ts",
-      "line": 143
     }
   ],
   "print_quote_currency_unsupported": [
@@ -2108,7 +2108,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/print-orchestrator/index.ts",
-      "line": 79
+      "line": 108
     },
     {
       "file": "supabase/functions/print-quote/index.ts",
@@ -2117,6 +2117,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/print-quote/index.ts",
       "line": 116
+    }
+  ],
+  "print_safe_area_ack_required": [
+    {
+      "file": "supabase/functions/print-export/index.ts",
+      "line": 74
     }
   ],
   "print_sandbox_mode_required": [
@@ -2164,19 +2170,19 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "print_submission_lease_or_state_lost": [
     {
       "file": "supabase/functions/print-orchestrator/index.ts",
-      "line": 237
+      "line": 266
     }
   ],
   "print_submission_paused": [
     {
       "file": "supabase/functions/print-orchestrator/index.ts",
-      "line": 242
+      "line": 271
     }
   ],
   "print_submission_reconciliation_required": [
     {
       "file": "supabase/functions/print-orchestrator/index.ts",
-      "line": 243
+      "line": 272
     }
   ],
   "prompt_required": [
@@ -2508,7 +2514,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1526
+      "line": 1528
     },
     {
       "file": "supabase/functions/ai-restaurant-agent/index.ts",
@@ -2660,7 +2666,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "supabase_url_invalid": [
     {
       "file": "supabase/functions/_shared/print/pdf.ts",
-      "line": 82
+      "line": 50
     }
   ],
   "supabase_url_not_configured": [
