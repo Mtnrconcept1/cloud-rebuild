@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f1c4c4933e2bd38506712502193577b9cdedebc095bcc95cca719548c7d45268`
+- Empreinte SHA-256 des sources indexées : `1610a7e6c2c4597b71c5a3f77edcd26f6be441e15d8e5cf9824ed4fea295fbcb`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -26,27 +26,27 @@
 | Famille | Total |
 | --- | --- |
 | apiRoutes | 9 |
-| cronJobs | 34 |
+| cronJobs | 35 |
 | databaseContract | 228 |
-| databaseObjects | 2893 |
+| databaseObjects | 2895 |
 | documents | 205 |
 | edgeFunctions | 117 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3574 |
+| exportedSymbols | 3579 |
 | featureFlags | 99 |
 | frontendRoutes | 142 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 544 |
-| modules | 1587 |
+| migrations | 547 |
+| modules | 1589 |
 | pages | 132 |
 | pathLiterals | 751 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 17082 |
-| repositoryFiles | 3215 |
+| records | 17101 |
+| repositoryFiles | 3220 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -565,7 +565,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | stripe-setup | [supabase/functions/stripe-setup/index.ts:1](../../supabase/functions/stripe-setup/index.ts#L1) | non | null | OPTIONS | — | stripe, supabase |
 | stripe-subscription-reconcile | [supabase/functions/stripe-subscription-reconcile/index.ts:1](../../supabase/functions/stripe-subscription-reconcile/index.ts#L1) | oui ([supabase/config.toml:260](../../supabase/config.toml#L260)) | false | POST | — | stripe, supabase |
 | stripe-webhook | [supabase/functions/stripe-webhook/index.ts:1](../../supabase/functions/stripe-webhook/index.ts#L1) | oui ([supabase/config.toml:254](../../supabase/config.toml#L254)) | false | POST | — | stripe, supabase |
-| stripe-worker | [supabase/functions/stripe-worker/index.ts:1](../../supabase/functions/stripe-worker/index.ts#L1) | oui ([supabase/config.toml:257](../../supabase/config.toml#L257)) | false | OPTIONS, POST | — | stripe, supabase |
+| stripe-worker | [supabase/functions/stripe-worker/index.ts:1](../../supabase/functions/stripe-worker/index.ts#L1) | oui ([supabase/config.toml:257](../../supabase/config.toml#L257)) | false | OPTIONS, POST | reconcile-platform-fees | stripe, supabase |
 | submit-signup-application | [supabase/functions/submit-signup-application/index.ts:1](../../supabase/functions/submit-signup-application/index.ts#L1) | oui ([supabase/config.toml:275](../../supabase/config.toml#L275)) | false | ANY | — | — |
 | sync-apple-storekit | [supabase/functions/sync-apple-storekit/index.ts:1](../../supabase/functions/sync-apple-storekit/index.ts#L1) | oui ([supabase/config.toml:278](../../supabase/config.toml#L278)) | false | POST | — | — |
 | tok-connect-admin | [supabase/functions/tok-connect-admin/index.ts:1](../../supabase/functions/tok-connect-admin/index.ts#L1) | oui ([supabase/config.toml:338](../../supabase/config.toml#L338)) | false | POST | admin-overview, admin-restaurants, set-restaurant-mcp-access | supabase |
@@ -2400,7 +2400,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (787)</summary>
+<details><summary>function (788)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2995,6 +2995,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.record_social_feed_event` (5 définition(s))
 - `public.record_social_feed_event_v2` (1 définition(s))
 - `public.record_stripe_connect_fee_ledger` (1 définition(s))
+- `public.record_stripe_platform_balance_debit` (1 définition(s))
 - `public.record_stripe_tax_fee_ledger` (2 définition(s))
 - `public.record_tok_bank_payout` (1 définition(s))
 - `public.recount_progressive_offer_reservations` (1 définition(s))
@@ -3192,7 +3193,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (684)</summary>
+<details><summary>index (685)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3865,6 +3866,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `ux_payment_transactions_succeeded_charge_session_kind` (1 définition(s))
 - `ux_payment_transactions_succeeded_order_charge_session` (1 définition(s))
 - `ux_payment_transactions_succeeded_reservation_charge_session` (1 définition(s))
+- `ux_platform_cost_entries_stripe_balance_transaction` (1 définition(s))
 - `ux_platform_cost_entries_stripe_refund` (1 définition(s))
 - `ux_platform_revenue_entries_checkout_source` (1 définition(s))
 - `ux_platform_revenue_entries_stripe_invoice_source` (1 définition(s))
@@ -5597,6 +5599,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | tok-reconcile-match-group-authorizations | */5 * * * * | [supabase/migrations/20260712060000_fix_production_security_alerts.sql:234](../../supabase/migrations/20260712060000_fix_production_security_alerts.sql#L234) |
 | tok-reconcile-paid-order-checkouts | */5 * * * * | [supabase/migrations/20260712060000_fix_production_security_alerts.sql:219](../../supabase/migrations/20260712060000_fix_production_security_alerts.sql#L219) |
 | tok-reservation-cancellation-fees | 42 * * * * | [supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql:27](../../supabase/migrations/20261012203000_schedule_reservation_cancellation_fee_collection.sql#L27) |
+| tok-stripe-platform-balance-fees | 37 5 * * * | [supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql:20](../../supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql#L20) |
 | tok-stripe-subscription-reconcile | 17 * * * * | [supabase/migrations/20260903084500_security_audit_p0_remediation.sql:33](../../supabase/migrations/20260903084500_security_audit_p0_remediation.sql#L33) |
 | tok-sync-social-post-promotions | */5 * * * * | [supabase/migrations/20260726020000_harden_demo_gdpr_and_social_cron.sql:274](../../supabase/migrations/20260726020000_harden_demo_gdpr_and_social_cron.sql#L274) |
 | tok-thefork-image-recovery | * * * * * | [supabase/migrations/20260918032409_recover_stale_thefork_image_worker_leases.sql:216](../../supabase/migrations/20260918032409_recover_stale_thefork_image_worker_leases.sql#L216) |
@@ -6164,6 +6167,9 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261014153000 Admin Ai Gifts Fast Restaurants | 636 | 21 | [supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql:1](../../supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql#L1) |
 | 20261014165500 Tok Workforce Restaurants | 312 | 49 | [supabase/migrations/20261014165500_tok_workforce_restaurants.sql:1](../../supabase/migrations/20261014165500_tok_workforce_restaurants.sql#L1) |
 | 20261014180000 Tok Workforce Clock Teams | 439 | 34 | [supabase/migrations/20261014180000_tok_workforce_clock_teams.sql:1](../../supabase/migrations/20261014180000_tok_workforce_clock_teams.sql#L1) |
+| 20261015072500 Stripe Platform Balance Debits | 143 | 2 | [supabase/migrations/20261015072500_stripe_platform_balance_debits.sql:1](../../supabase/migrations/20261015072500_stripe_platform_balance_debits.sql#L1) |
+| 20261015073000 Schedule Stripe Balance Fees | 44 | 0 | [supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql:1](../../supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql#L1) |
+| 20261015073500 Expire Failed Free Zero Attente Attempts | 39 | 0 | [supabase/migrations/20261015073500_expire_failed_free_zero_attente_attempts.sql:1](../../supabase/migrations/20261015073500_expire_failed_free_zero_attente_attempts.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6389,8 +6395,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 243 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 707 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 245 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 708 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6403,7 +6409,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 210 |
 | automation-script | 66 |
 | documentation | 6 |
-| edge-function-source | 197 |
+| edge-function-source | 198 |
 | frontend-component | 271 |
 | frontend-hook | 24 |
 | frontend-page | 132 |
@@ -6411,7 +6417,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 626 |
+| test | 627 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -7018,7 +7024,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (544)</summary>
+<details><summary>database-migration (547)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7564,6 +7570,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql`
 - `supabase/migrations/20261014165500_tok_workforce_restaurants.sql`
 - `supabase/migrations/20261014180000_tok_workforce_clock_teams.sql`
+- `supabase/migrations/20261015072500_stripe_platform_balance_debits.sql`
+- `supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql`
+- `supabase/migrations/20261015073500_expire_failed_free_zero_attente_attempts.sql`
 
 </details>
 
@@ -7730,7 +7739,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (197)</summary>
+<details><summary>edge-function-source (198)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7798,6 +7807,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/safe-public-fetch.ts`
 - `supabase/functions/_shared/stripe-client.ts`
 - `supabase/functions/_shared/stripe-paid-invoice-payment.ts`
+- `supabase/functions/_shared/stripe-platform-balance-fees.ts`
 - `supabase/functions/_shared/tok-connect-auth.ts`
 - `supabase/functions/_shared/tok-connect-discovery-widget.ts`
 - `supabase/functions/_shared/tok-connect-discovery.ts`
@@ -9280,7 +9290,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (626)</summary>
+<details><summary>test (627)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9839,6 +9849,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/stoppin-venue-dedupe.test.ts`
 - `src/test/stripe-developer-share-routing.test.ts`
 - `src/test/stripe-paid-invoice-payment.test.ts`
+- `src/test/stripe-platform-balance-fees.test.ts`
 - `src/test/stripe-return.test.ts`
 - `src/test/stripe-security-hardening.test.ts`
 - `src/test/studio-canvas.test.tsx`
