@@ -176,6 +176,7 @@ const AdminCrm = lazy(() => import("./pages/admin/AdminCrm"));
 const AdminSinistres = lazy(() => import("./pages/admin/AdminSinistres"));
 const AdminSupportResolution = lazy(() => import("./pages/admin/AdminSupportResolution"));
 const AdminGuardian = lazy(() => import("./pages/admin/AdminGuardian"));
+const AdminSecurityCenter = lazy(() => import("./pages/admin/AdminSecurityCenter"));
 const AdminTokConnect = lazy(() => import("./pages/admin/AdminTokConnect"));
 const MarketingLogin = lazy(() => import("./pages/marketing/MarketingLogin"));
 const MarketingWorkspace = lazy(() => import("./pages/marketing/MarketingWorkspace"));
@@ -681,6 +682,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/admin/sinistres" element={<AdminProtectedRoute><FeatureSwitch enabled={adminOperationsCenterEnabled} fallback="/admin"><AdminSinistres /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/support-resolution" element={<AdminProtectedRoute><FeatureSwitch enabled={adminSupportResolutionEnabled} fallback="/admin/sinistres"><AdminSupportResolution /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/guardian" element={<AdminProtectedRoute><FeatureSwitch enabled={adminGuardianEnabled} fallback="/admin"><AdminGuardian /></FeatureSwitch></AdminProtectedRoute>} />
+          <Route path="/admin/security-center" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAuditEnabled && adminGuardianEnabled} fallback="/admin"><AdminSecurityCenter /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/ai-operations" element={<AdminProtectedRoute><FeatureSwitch enabled={adminAiOperationsEnabled} fallback="/admin"><AdminAiOperations /></FeatureSwitch></AdminProtectedRoute>} />
           <Route path="/admin/guide" element={<AdminProtectedRoute><GuideUtilisateur /></AdminProtectedRoute>} />
           <Route path="/admin/tok-connect" element={<AdminProtectedRoute><FeatureSwitch enabled={adminTokConnectEnabled} fallback="/admin"><AdminTokConnect /></FeatureSwitch></AdminProtectedRoute>} />

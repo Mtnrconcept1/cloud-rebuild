@@ -38,7 +38,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
-import AdminLogResetButton from "@/components/admin/AdminLogResetButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
@@ -219,10 +218,10 @@ const ADMIN_TOOLS = [
     color: "text-emerald-500",
   },
   {
-    title: "Audit et sécurité",
-    description: "Surveiller les exécutions Edge et les mutations sensibles.",
+    title: "Centre de sécurité",
+    description: "Supervision, preuves et réparation assistée avec approbation humaine.",
     icon: Shield,
-    href: "/admin/audit",
+    href: "/admin/security-center",
     feature: "admin-audit",
     color: "text-amber-500",
   },
@@ -246,7 +245,7 @@ const ADMIN_TOOLS = [
   title: "Guardian IA",
   description: "Superviser les signaux de sécurité, santé et incidents de la plateforme.",
   icon: ShieldAlert,
-  href: "/admin/guardian",
+  href: "/admin/security-center?view=guardian",
   feature: "admin-guardian",
   color: "text-red-500",
 },
@@ -839,8 +838,7 @@ export default function AdminHome() {
                 <CardTitle>Journal d'audit</CardTitle>
               </div>
               <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-                <AdminLogResetButton className="justify-center gap-2" />
-                <Button variant="ghost" size="sm" className="self-stretch sm:self-auto" onClick={() => navigate("/admin/audit")}>
+                <Button variant="ghost" size="sm" className="self-stretch sm:self-auto" onClick={() => navigate("/admin/security-center?view=audit")}>
                   Voir tout
                 </Button>
               </div>

@@ -321,6 +321,9 @@ export type OpsIncidentSummary = {
   github_pr_number: number | null;
   github_pr_url: string | null;
   failure_reason: string | null;
+  repair_plan?: Record<string, unknown> | null;
+  approval_expires_at?: string | null;
+  confidence?: number | null;
   evidence_hash?: string | null;
   repairability?: string | null;
   analysis_source?: string | null;
@@ -384,4 +387,19 @@ export function verifyGuardianIncident(input: {
     verification: GuardianVerificationRecord;
     checks: Record<string, unknown>;
   }>("ai-guardian", { action: "verify", ...input });
+}
+
+/** Approve only the exact canonical plan already persisted on the incident. */
+export function approveGuardianRepair(input: {
+  incidentId: string;
+  expectedEvidenceHash: string;
+  expectedPlan: Record<string, unknown>;
+  confirmation: "APPROUVER";
+}) {
+  return invokeTokIntelligence<{
+    ok: boolean;
+    decision: string;
+    incidentId: string;
+    codexDispatched: boolean;
+  }>("ops-admin-approval", input);
 }
