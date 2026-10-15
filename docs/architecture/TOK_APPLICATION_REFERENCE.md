@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `edbd6586f27cba278edfc369eb18ef91004a2610cb4c542778d18996903ae791`
+- Empreinte SHA-256 des sources indexées : `1b192de4359e18dbc08c5190ea382204e0a8085fbc5534ca341205711212f934`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,14 +45,14 @@
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 17074 |
-| repositoryFiles | 3213 |
+| records | 17076 |
+| repositoryFiles | 3214 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 29 |
+| workflows | 30 |
 
 ## État distant observé
 
@@ -6273,6 +6273,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Restaurant Image Truth Backfill | backfill | [.github/workflows/restaurant-image-truth-backfill.yml](../../.github/workflows/restaurant-image-truth-backfill.yml) |
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
+| Temporary TOK application index refresh | refresh | [.github/workflows/tok-index-refresh-temporary.yml](../../.github/workflows/tok-index-refresh-temporary.yml) |
 | TOK Workforce PostgreSQL Integration | migration-and-tenant-isolation | [.github/workflows/tok-workforce-postgres.yml](../../.github/workflows/tok-workforce-postgres.yml) |
 
 ### Dépendances
@@ -6983,7 +6984,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (29)</summary>
+<details><summary>ci-workflow (30)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -7013,6 +7014,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/restaurant-image-truth-backfill.yml`
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
+- `.github/workflows/tok-index-refresh-temporary.yml`
 - `.github/workflows/tok-workforce-postgres.yml`
 
 </details>
