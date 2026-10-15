@@ -11,7 +11,7 @@ import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { sha256Base64Url } from "../_shared/tok-connect.ts";
 
 type JsonRecord = Record<string, unknown>;
-type BridgeMode = "edge" | "rpc" | "data";
+type BridgeMode = "edge" | "rpc" | "data" | "customer_history";
 type DataOperation = "select" | "insert" | "update" | "delete";
 type FilterOperator = "eq" | "neq" | "is" | "in";
 type BridgeFilter = { column: string; operator?: FilterOperator; value: unknown };
@@ -47,6 +47,7 @@ const EDGE_CAPABILITIES: Record<string, EdgeCapability> = {
   "payment.attempt.status": { functionName: "payment-attempt-status", roles: [], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "payments", description: "Lire l'état d'une tentative de paiement appartenant à l'utilisateur." },
   "payment.attempt.cancel": { functionName: "cancel-payment-attempt", roles: [], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "payments", description: "Annuler une tentative de paiement appartenant à l'utilisateur." },
   "reservations.classic.create": { functionName: "create-reservation", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "reservations", description: "Créer une réservation classique réelle." },
+  "reservations.classic.quote": { functionName: "create-reservation", roles: ["client"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "reservations", description: "Consulter la garantie bancaire applicable avant confirmation." },
   "reservations.zero_attente.create": { functionName: "create-zero-attente-reservation", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "reservations", description: "Créer une réservation Zéro Attente réelle." },
   "reservations.golden_tok.create": { functionName: "create-chefs-table-reservation", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "reservations", description: "Créer une réservation La Tok d'Or réelle." },
   "subscription.tok_one.manage": { functionName: "manage-tok-one-subscription", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "subscriptions", description: "Gérer l'abonnement client TOK One." },
@@ -263,19 +264,26 @@ async function invokeEdge(req: Request, actor: RequestActor, body: JsonRecord) {
   const text = (await response.text()).slice(0, MAX_RESPONSE_CHARS);
   let downstream: unknown = text;
   try { downstream = text ? JSON.parse(text) : null; } catch { /* keep text */ }
+  // A business rejection can be returned with HTTP 200 by older TOK handlers.
+  // Never translate it into a confirmed transaction in ChatGPT.
+  const rejected = isRecord(downstream) && (
+    downstream.ok === false || downstream.error_code != null || downstream.error != null
+  );
+  const statusCode = response.ok && !rejected ? 200 : response.ok ? 422 : response.status;
   const result: JsonRecord = {
-    ok: response.ok,
+    ok: statusCode === 200,
     mode: "edge",
     capability: capabilityName,
     downstream_status: response.status,
     data: downstream,
     replayed: false,
   };
-  if (idempotencyKey) await completeIdempotency(actor, idempotencyKey, result, response.status);
-  return { statusCode: response.ok ? 200 : response.status, payload: result };
+  if (idempotencyKey) await completeIdempotency(actor, idempotencyKey, result, statusCode);
+  return { statusCode, payload: result };
 }
 
 function rpcRole(name: string) {
+  if (name === "cancel_reservation_by_customer") return ["client"];
   if (name.startsWith("admin_")) return ["admin"];
   if (name.startsWith("restaurant_")) return ["restaurateur", "admin"];
   throw new HttpError(403, "tok_connect_rpc_not_allowlisted");
@@ -292,11 +300,34 @@ async function invokeRpc(actor: RequestActor, body: JsonRecord) {
   const decision = await claimIdempotency(actor, idempotencyKey, `rpc:${rpcName}`, requestHash);
   if (decision.replay) return { statusCode: decision.statusCode, payload: { ...decision.responseBody, replayed: true } };
   if (!actor.userClient) throw new HttpError(401, "tok_connect_user_client_required");
+  // Only ordinary unpaid table reservations may be cancelled through this
+  // self-service MCP path. Paid flows retain TOK's specialized refund workflow.
+  if (rpcName === "cancel_reservation_by_customer") {
+    const reservationId = typeof args.p_reservation_id === "string" ? args.p_reservation_id : "";
+    if (!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(reservationId)) throw new HttpError(400, "reservation_id_invalid");
+    const { data: reservation, error: reservationError } = await actor.userClient
+      .from("reservations")
+      .select("id,feature,total_amount")
+      .eq("id", reservationId)
+      .eq("user_id", actor.userId)
+      .maybeSingle();
+    if (reservationError) throw new HttpError(500, "reservation_lookup_failed");
+    if (!reservation) throw new HttpError(404, "reservation_not_found");
+    if (["zero-attente", "chefs_table"].includes(String(reservation.feature || "").toLowerCase())
+      || Number(reservation.total_amount || 0) > 0) {
+      throw new HttpError(409, "paid_reservation_requires_tok_support");
+    }
+  }
   const { data, error } = await actor.userClient.rpc(rpcName, args);
   const result: JsonRecord = error
     ? { ok: false, mode: "rpc", rpc_name: rpcName, error: { code: error.code, message: error.message }, replayed: false }
     : { ok: true, mode: "rpc", rpc_name: rpcName, data, replayed: false };
-  const statusCode = error ? 400 : 200;
+  // Customer cancellation RPCs return { ok: false } with HTTP 200 when
+  // refused (late cancellation, wrong owner, invalid state). Surface that.
+  const deniedCancellation = rpcName === "cancel_reservation_by_customer"
+    && Array.isArray(data) && isRecord(data[0]) && data[0].ok === false;
+  const statusCode = error ? 400 : deniedCancellation ? 409 : 200;
+  if (deniedCancellation) result.ok = false;
   await completeIdempotency(actor, idempotencyKey, result, statusCode);
   return { statusCode, payload: result };
 }
@@ -367,6 +398,26 @@ async function invokeData(actor: RequestActor, body: JsonRecord) {
   return { statusCode, payload: result };
 }
 
+async function invokeCustomerHistory(actor: RequestActor, body: JsonRecord) {
+  if (!actor.userClient || !actor.userId) throw new HttpError(401, "tok_connect_user_required");
+  const kind = body.kind === "orders" ? "orders" : body.kind === "reservations" ? "reservations" : null;
+  if (!kind) throw new HttpError(400, "tok_connect_customer_history_kind_invalid");
+  const limit = Math.max(1, Math.min(20, Math.floor(Number(body.limit) || 10)));
+  const fields = kind === "reservations"
+    ? "id,restaurant_id,date,time,party_size,status,feature,created_at"
+    : "id,restaurant_id,status,payment_status,total_amount,created_at";
+  // The explicit user filter is essential even if the OAuth identity also
+  // has an administrator or restaurant role, and userClient still applies RLS.
+  const { data, error } = await actor.userClient
+    .from(kind)
+    .select(fields)
+    .eq("user_id", actor.userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new HttpError(500, "tok_connect_customer_history_unavailable");
+  return { statusCode: 200, payload: { ok: true, kind, items: data || [] } };
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   if (!isRequestOriginAllowed(req)) return new Response(null, { status: 403, headers: corsHeaders });
@@ -400,6 +451,9 @@ Deno.serve(async (req) => {
     } else if (mode === "data") {
       auditAction = `data:${String(body.table || "unknown")}:${String(body.operation || "select")}`;
       result = await invokeData(actor, body);
+    } else if (mode === "customer_history") {
+      auditAction = `customer_history:${String(body.kind || "unknown")}`;
+      result = await invokeCustomerHistory(actor, body);
     } else {
       throw new HttpError(400, "tok_connect_bridge_mode_invalid");
     }
