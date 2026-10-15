@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -251,6 +252,7 @@ export default function PrintComposerDialog({
   const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
   const [exportId, setExportId] = useState<string | null>(null);
   const [approved, setApproved] = useState(false);
+  const [safeAreaAcknowledged, setSafeAreaAcknowledged] = useState(false);
   const [quote, setQuote] = useState<PrintQuoteResult | null>(null);
   const [preparedDocument, setPreparedDocument] = useState<MarketingPrintDocument | null>(null);
   const [working, setWorking] = useState<"export" | "approve" | "quote" | "checkout" | null>(null);
@@ -270,6 +272,7 @@ export default function PrintComposerDialog({
     setAssets([]);
     setExportId(null);
     setApproved(false);
+    setSafeAreaAcknowledged(false);
     setQuote(null);
     setPreparedDocument(null);
     Promise.all([
@@ -319,6 +322,7 @@ export default function PrintComposerDialog({
     setApproved(false);
     setQuote(null);
     setPreparedDocument(null);
+    setSafeAreaAcknowledged(false);
   }, [selectedVariantId, selectedVariant]);
 
   useEffect(() => {
@@ -326,6 +330,7 @@ export default function PrintComposerDialog({
     setApproved(false);
     setQuote(null);
     setPreparedDocument(null);
+    setSafeAreaAcknowledged(false);
   }, [selectedAssetId]);
 
   const document = useMemo<MarketingPrintDocument | null>(() => {
@@ -414,6 +419,7 @@ export default function PrintComposerDialog({
       setPreparedDocument(exactDocument);
       setExportId(result.exportId);
       setApproved(false);
+      setSafeAreaAcknowledged(false);
       setQuote(null);
       uploadedPath = null;
       toast({
@@ -431,10 +437,10 @@ export default function PrintComposerDialog({
   }
 
   async function approve() {
-    if (!exportId) return;
+    if (!exportId || !safeAreaAcknowledged) return;
     setWorking("approve");
     try {
-      await approvePrintExport({ restaurantId, exportId });
+      await approvePrintExport({ restaurantId, exportId, safeAreaAcknowledged });
       setApproved(true);
       toast({ title: "BAT approuvé", description: "Cette version est maintenant verrouillée pour l’impression." });
     } catch (error) {
@@ -583,9 +589,20 @@ export default function PrintComposerDialog({
 
             <div className="space-y-4">
               {(preparedDocument || plannedDocument) && selectedVariant ? <PrintProof document={(preparedDocument || plannedDocument)!} product={selectedVariant} approved={approved} /> : null}
+              {exportId && !approved ? (
+                <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm">
+                  <Checkbox id="print-safe-area-confirmed" checked={safeAreaAcknowledged}
+                    onCheckedChange={(checked) => setSafeAreaAcknowledged(checked === true)} />
+                  <Label htmlFor="print-safe-area-confirmed" className="cursor-pointer leading-6">
+                    J'ai vérifié le BAT à taille réelle : tous les textes, prix, logos, visages et QR codes
+                    sont intégrés au visuel et restent entièrement à l'intérieur de la zone verte,
+                    sans risque de coupe.
+                  </Label>
+                </div>
+              ) : null}
               <div className="flex flex-wrap gap-2">
                 {!exportId ? <Button disabled={!preflight?.ready || Boolean(renderingPlan?.blocked) || working !== null} onClick={() => void createExport()}>{working === "export" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Préparer le raster & générer le BAT</Button> : null}
-                {exportId && !approved ? <Button disabled={working !== null} onClick={() => void approve()}>{working === "approve" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}J’approuve ce BAT</Button> : null}
+                {exportId && !approved ? <Button disabled={working !== null || !safeAreaAcknowledged} onClick={() => void approve()}>{working === "approve" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}J’approuve ce BAT</Button> : null}
                 {approved && !quote ? <Button disabled={working !== null} onClick={() => void quoteOrder()}>{working === "quote" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}Calculer le prix livré</Button> : null}
                 {quote ? <Button disabled={working !== null} onClick={() => void checkout()}>{working === "checkout" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}Payer {formatMoney(quote.customerAmountCents, quote.customerCurrency)}</Button> : null}
               </div>
