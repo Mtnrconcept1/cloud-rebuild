@@ -99,13 +99,14 @@ describe("TOK Connect secured customer commerce contract", () => {
   });
 });
 
-function widgetHarness(options: { reject?: boolean } = {}) {
+function widgetHarness(options: { reject?: boolean; restoredCart?: unknown; differentSearch?: boolean; paidFinalized?: boolean } = {}) {
   const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
   const links: string[] = [];
   const selection = {
     kind: "restaurant_selection", title: "TOK Genève", query: "restaurant à Genève",
     date, party_size: 2, groups: [], notes: [],
-    restaurants: [{ id: restaurantId, name: "Chez TOK", city: "Genève",
+    restaurants: [{ id: options.differentSearch ? "9d15e984-fd28-401c-8bf7-fc5fd085b9b1" : restaurantId,
+      name: "Chez TOK", city: "Genève",
       supports_reservation: true, supports_dinein: true, supports_pickup: true }],
   };
   const detail = {
@@ -113,7 +114,8 @@ function widgetHarness(options: { reject?: boolean } = {}) {
     availability: { date, slots: [{ time: "19:00", available: true }] },
   };
   const host = {
-    toolOutput: selection, theme: "light", setWidgetState: () => undefined,
+    toolOutput: selection, theme: "light", widgetState: options.restoredCart ? { cart: options.restoredCart } : null,
+    setWidgetState: () => undefined,
     requestDisplayMode: () => undefined,
     openExternal: ({ href }: { href: string }) => { links.push(href); },
     callTool: async (name: string, args: Record<string, unknown>) => {
@@ -138,6 +140,14 @@ function widgetHarness(options: { reject?: boolean } = {}) {
           payment_status: "pending",
         } };
       }
+      if (name === "tok_customer_payment_status") return { structuredContent: {
+        ok: true, state: options.paidFinalized ? "finalized" : "session_bound",
+        paid: Boolean(options.paidFinalized), checkout_url: options.paidFinalized
+          ? null : "https://checkout.stripe.com/c/pay/cs_test_123",
+      } };
+      if (name === "tok_cancel_cart_payment_attempt") return { structuredContent: {
+        ok: true, state: "cancelled", cancelled: true,
+      } };
       if (name === "tok_my_orders") return { structuredContent: { ok: true, items: [] } };
       throw new Error("Unexpected tool " + name);
     },
@@ -207,4 +217,73 @@ describe("TOK customer cart embedded widget", () => {
       ui.dom.window.close();
     }
   });
+
+  it("restores a payable attempt even if a different restaurant is now in search results", async () => {
+    const ui = widgetHarness({
+      differentSearch: true,
+      restoredCart: {
+        restaurantId, journey: "zero-attente", date, time: "19:00",
+        partySize: 2, paymentMethod: "card",
+        items: { [itemId]: 1 }, attemptId, stage: "processing",
+      },
+    });
+    try {
+      await ui.wait();
+      expect(ui.dom.window.document.querySelector("#root")?.textContent).toContain("Tentative de paiement restaurée");
+      ui.press("Vérifier le paiement"); await ui.wait();
+      expect(ui.calls.some((call) => call.name === "tok_customer_payment_status")).toBe(true);
+      expect(ui.calls.some((call) => call.name === "tok_checkout_customer_cart")).toBe(false);
+      expect(ui.dom.window.document.querySelector("#root")?.textContent).not.toContain("Confirmer et payer sur Stripe");
+      // A lost reply is resolved through status, not a new attempt UUID.
+      expect(ui.links).toHaveLength(0);
+    } finally {
+      ui.dom.window.close();
+    }
+  });
+
+  it("unlocks a paid attempt only after authoritative finalization and a separate user action", async () => {
+    const ui = widgetHarness({
+      paidFinalized: true,
+      restoredCart: {
+        restaurantId, journey: "takeaway", date, time: "19:00",
+        partySize: 1, paymentMethod: "card", items: { [itemId]: 1 },
+        attemptId, stage: "pending",
+      },
+    });
+    try {
+      await ui.wait();
+      ui.press("Vérifier le paiement"); await ui.wait();
+      expect(ui.dom.window.document.querySelector("#root")?.textContent).toContain("Paiement traité par TOK");
+      expect(ui.dom.window.document.querySelector("#root")?.textContent).toContain("Terminer ce paiement");
+      ui.press("Terminer ce paiement"); await ui.wait();
+      expect(ui.dom.window.document.querySelector("#root")?.textContent).not.toContain("Vérifier le paiement");
+    } finally {
+      ui.dom.window.close();
+    }
+  });
+
+  it("requires a second click and an owned Stripe cancellation before releasing a pending cart", async () => {
+    const ui = widgetHarness({
+      restoredCart: {
+        restaurantId, journey: "takeaway", date, time: "19:00",
+        partySize: 1, paymentMethod: "card", items: { [itemId]: 1 },
+        attemptId, stage: "pending",
+      },
+    });
+    try {
+      await ui.wait();
+      ui.press("Annuler cette tentative de paiement"); await ui.wait();
+      expect(ui.calls.some((call) => call.name === "tok_cancel_cart_payment_attempt")).toBe(false);
+      ui.press("Confirmer l’annulation de Stripe"); await ui.wait();
+      const operation = ui.calls.find((call) => call.name === "tok_cancel_cart_payment_attempt");
+      expect(operation?.args).toMatchObject({
+        payment_attempt_id: attemptId, confirmed_by_user: true,
+        idempotency_key: "tok-cancel:" + attemptId,
+      });
+      expect(ui.dom.window.document.querySelector("#root")?.textContent).toContain("Tentative annulée par TOK");
+    } finally {
+      ui.dom.window.close();
+    }
+  });
+
 });
