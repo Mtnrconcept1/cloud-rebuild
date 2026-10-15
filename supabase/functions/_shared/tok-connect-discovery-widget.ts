@@ -775,7 +775,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
           available: slot.available !== false && slot.remaining_tables !== 0 && slot.remaining !== 0,
           remaining: slot.remaining_tables != null ? slot.remaining_tables : slot.remaining
         };
-      }).filter(function (slot) { return /^\d{2}:\d{2}$/.test(slot.time); });
+      }).filter(function (slot) { return /^\\d{2}:\\d{2}$/.test(slot.time); });
     }).catch(function (error) {
       if (state.booking === booking) booking.error = String(error.message || error);
     }).finally(function () {
@@ -795,7 +795,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
   function confirmBooking() {
     var booking = state.booking;
     if (!booking || booking.step !== 'draft' || !booking.quote || !booking.date || !booking.time
-      || !/^\d{4}-\d{2}-\d{2}$/.test(booking.date) || !/^\d{2}:\d{2}$/.test(booking.time)) return;
+      || !/^\\d{4}-\\d{2}-\\d{2}$/.test(booking.date) || !/^\\d{2}:\\d{2}$/.test(booking.time)) return;
     if (booking.quote.required && !booking.guaranteeAccepted) {
       booking.error = 'Acceptez les conditions de garantie bancaire avant de continuer.';
       render(); return;
