@@ -20,6 +20,8 @@ jobs:
           node-version: '22'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Remove temporary workflow from final branch
+        run: git rm -- .github/workflows/tok-connect-index-sync-tmp.yml
       - run: pnpm run docs:application-index
       - name: Commit generated index only to this branch
         run: |
