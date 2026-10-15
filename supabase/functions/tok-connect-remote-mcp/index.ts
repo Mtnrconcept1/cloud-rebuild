@@ -582,6 +582,7 @@ function bridgeToolBody(name: string, args: JsonRecord) {
     if (name === "tok_cancel_cart_payment_attempt") {
       return { mode: "customer_commerce", action: "cancel_attempt",
         payment_attempt_id: args.payment_attempt_id,
+        idempotency_key: args.idempotency_key,
         confirmed_by_user: args.confirmed_by_user };
     }
     if (name === "tok_quote_reservation") {
