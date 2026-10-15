@@ -532,6 +532,9 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
       if (body.confirmed_by_user !== true) {
         throw new HttpError(409, "tok_cart_cancel_confirmation_required");
       }
+      if (body.idempotency_key !== "tok-cancel:" + id) {
+        throw new HttpError(400, "tok_cart_cancel_idempotency_invalid");
+      }
       const outcome = await postCustomerTokFunction(req, "cancel-payment-attempt", {
         payment_attempt_id: id, reason: "customer_cancelled_tok_connect_widget",
       });
