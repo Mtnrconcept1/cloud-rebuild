@@ -1523,8 +1523,8 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       && /^[0-9a-f-]{36}$/i.test(snapshot.attemptId) ? snapshot.attemptId : null;
     state.cart = {
       restaurantId: id, journey: snapshot.journey === 'zero-attente' ? 'zero-attente' : 'takeaway',
-      date: /^\d{4}-\d{2}-\d{2}$/.test(snapshot.date || '') ? snapshot.date : tokTodayInZurich(),
-      time: /^([01]\d|2[0-3]):[0-5]\d$/.test(snapshot.time || '') ? snapshot.time : '',
+      date: /^\\d{4}-\\d{2}-\\d{2}$/.test(snapshot.date || '') ? snapshot.date : tokTodayInZurich(),
+      time: /^([01]\\d|2[0-3]):[0-5]\\d$/.test(snapshot.time || '') ? snapshot.time : '',
       partySize: Number.isInteger(snapshot.partySize) && snapshot.partySize >= 1 && snapshot.partySize <= 20
         ? snapshot.partySize : 2,
       paymentMethod: snapshot.paymentMethod === 'twint' ? 'twint' : 'card',
