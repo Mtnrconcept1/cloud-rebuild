@@ -12,6 +12,10 @@ import { resolveRestaurantSubscriptionCatalogPrice } from "../_shared/restaurant
 import { getStripeRuntimeForCheckoutKind, getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
 import { getEffectiveFeatureFlagSet } from "../_shared/feature-flags.ts";
 import {
+  reconcilePlatformBalanceDebits,
+  TOK_PLATFORM_STRIPE_ACCOUNT_ID,
+} from "../_shared/stripe-platform-balance-fees.ts";
+import {
   FAIR_GROWTH_ANNUAL_MONTHS_CHARGED,
   getRestaurantSubscriptionStripeInterval,
   isFairGrowthAnnualBillingEnabled,
@@ -601,6 +605,7 @@ Deno.serve(async (req) => {
 
   const log = makeLogger("stripe-worker");
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+  let activeAction = "process-subscription-activations";
 
   try {
     actor = await authenticateRequest(req, {
@@ -618,6 +623,38 @@ Deno.serve(async (req) => {
       payload = {};
     }
     const action = String(payload.action || "process-subscription-activations");
+    activeAction = action;
+    if (action === "reconcile-platform-fees") {
+      // The same service-role-only worker already runs via Vault-backed pg_cron.
+      // Read Stripe's authoritative balance, never accept amounts from the
+      // request body and never operate in Test mode.
+      const runtime = getStripeRuntimeForCheckoutKind("order");
+      if (runtime.mode !== "live") {
+        throw new HttpError(503, "STRIPE_PLATFORM_LIVE_RUNTIME_REQUIRED");
+      }
+      const account = await runtime.stripe.accounts.retrieve();
+      if (account.id !== TOK_PLATFORM_STRIPE_ACCOUNT_ID) {
+        throw new HttpError(503, "STRIPE_PLATFORM_ACCOUNT_ID_MISMATCH");
+      }
+      const reconciliation = await reconcilePlatformBalanceDebits({
+        stripe: runtime.stripe,
+        adminClient: actor.adminClient,
+        verifiedAccountId: account.id,
+        days: 30,
+      });
+      await writeAuditLog({
+        adminClient: actor.adminClient,
+        actor,
+        request: req,
+        functionName: "stripe-worker",
+        action: "reconcile_platform_balance_fees",
+        status: "success",
+        targetEntityType: "stripe_account",
+        targetEntityId: account.id,
+        metadata: reconciliation,
+      });
+      return jsonResponse({ ok: true, ...reconciliation }, 200, CORS_HEADERS);
+    }
     if (action !== "process-subscription-activations") {
       throw new HttpError(400, "Action stripe-worker inconnue");
     }
@@ -724,7 +761,9 @@ Deno.serve(async (req) => {
         actor,
         request: req,
         functionName: "stripe-worker",
-        action: "process_restaurant_subscription_activations",
+        action: activeAction === "reconcile-platform-fees"
+          ? "reconcile_platform_balance_fees"
+          : "process_restaurant_subscription_activations",
         status: "failure",
         errorMessage: error instanceof Error ? error.message : "unknown",
       });

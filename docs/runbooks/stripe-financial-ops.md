@@ -61,3 +61,10 @@ Exemples de controle:
 - Remboursement partiel: conserver le montant rembourse, le reste a rembourser et la raison dans les colonnes de refund.
 - Ecart facture restaurant: suspendre la facture, corriger les lignes sources, regenerer la facture et journaliser l'action admin.
 
+## Débits de solde Stripe indépendants (Climate, Billing)
+
+L'action authentifiée `reconcile-platform-fees` du worker Stripe rapproche quotidiennement les transactions autonomes de type `stripe_fee` et `contribution` du compte TOK live, avec un délai de sécurité d'une heure. Les frais déjà rattachés aux charges n'y entrent pas. La migration `20261015072500_stripe_platform_balance_debits.sql` enregistre deux écritures équilibrées par identifiant `txn_...`, et une dépense `platform_cost_entries` au coût réel `-net` (par exemple 48 + 4 = 52 centimes pour Billing, sans doublon). La tâche `tok-stripe-platform-balance-fees` est programmée à 05 h 37 UTC via Vault et n'est active qu'après déploiement backend.
+
+Le correctif Zéro Attente à 0 CHF supprime le paramètre Checkout incompatible en mode paiement ponctuel. Les tentatives du 13 octobre échouées avant création de session sont uniquement annulées pour permettre un nouvel essai ; ni débit MIAMZ ni confirmation de réservation ne découle de cette annulation.
+
+En cas d'incident : désactiver le cron, restaurer le worker précédent et conserver le registre append-only ; toute rectification comptable doit passer par une contre-passation explicite.

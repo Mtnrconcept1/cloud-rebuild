@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "f1c4c4933e2bd38506712502193577b9cdedebc095bcc95cca719548c7d45268",
+ "sourceDigest": "76076cef81aef49bfeffecbb1ca450a0967a9caaa2363d02cd32fe99b1919acb",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
-  "cronJobs": 34,
+  "cronJobs": 35,
   "databaseContract": 228,
-  "databaseObjects": 2893,
+  "databaseObjects": 2895,
   "documents": 205,
   "edgeFunctions": 117,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3574,
+  "exportedSymbols": 3579,
   "featureFlags": 99,
   "frontendRoutes": 142,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 544,
-  "modules": 1587,
+  "migrations": 547,
+  "modules": 1589,
   "pages": 132,
   "pathLiterals": 751,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 17082,
-  "repositoryFiles": 3215,
+  "records": 17102,
+  "repositoryFiles": 3220,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -9128,7 +9128,9 @@
      "OPTIONS",
      "POST"
     ],
-    "actions": [],
+    "actions": [
+     "reconcile-platform-fees"
+    ],
     "environmentNames": [
      "SUPABASE_URL"
     ],
@@ -32970,6 +32972,7 @@
      "src/test/security-url-helpers.test.ts",
      "src/test/stripe-developer-share-routing.test.ts",
      "src/test/stripe-paid-invoice-payment.test.ts",
+     "src/test/stripe-platform-balance-fees.test.ts",
      "src/test/stripe-return.test.ts",
      "src/test/stripe-security-hardening.test.ts",
      "src/test/super-admin-sensitive-rls.test.ts",
@@ -33004,6 +33007,7 @@
      "supabase/functions/_shared/restaurant-subscription-billing.ts",
      "supabase/functions/_shared/stripe-client.ts",
      "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+     "supabase/functions/_shared/stripe-platform-balance-fees.ts",
      "supabase/functions/_shared/tok-one.ts",
      "supabase/functions/_shared/zero-attente.ts",
      "supabase/functions/_shared/zero-cost-checkout.ts",
@@ -33634,6 +33638,7 @@
      "src/test/sponsored-event-signing.test.ts",
      "src/test/stripe-developer-share-routing.test.ts",
      "src/test/stripe-paid-invoice-payment.test.ts",
+     "src/test/stripe-platform-balance-fees.test.ts",
      "src/test/stripe-security-hardening.test.ts",
      "src/test/submitSignupValidation.test.ts",
      "src/test/subscription-dispatch.test.ts",
@@ -37129,6 +37134,24 @@
     "path": "supabase/migrations/20261014180000_tok_workforce_clock_teams.sql",
     "lineCount": 439,
     "objectCount": 34
+   },
+   {
+    "name": "20261015072500 Stripe Platform Balance Debits",
+    "path": "supabase/migrations/20261015072500_stripe_platform_balance_debits.sql",
+    "lineCount": 143,
+    "objectCount": 2
+   },
+   {
+    "name": "20261015073000 Schedule Stripe Balance Fees",
+    "path": "supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql",
+    "lineCount": 44,
+    "objectCount": 0
+   },
+   {
+    "name": "20261015073500 Expire Failed Free Zero Attente Attempts",
+    "path": "supabase/migrations/20261015073500_expire_failed_free_zero_attente_attempts.sql",
+    "lineCount": 39,
+    "objectCount": 0
    }
   ],
   "databaseObjects": [
@@ -44359,6 +44382,16 @@
      {
       "path": "supabase/migrations/20260718022910_fair_growth_business_model.sql",
       "line": 5011
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.record_stripe_platform_balance_debit",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261015072500_stripe_platform_balance_debits.sql",
+      "line": 11
      }
     ]
    },
@@ -53609,6 +53642,16 @@
      {
       "path": "supabase/migrations/20260602120000_scale_readiness_indexes.sql",
       "line": 55
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "ux_platform_cost_entries_stripe_balance_transaction",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261015072500_stripe_platform_balance_debits.sql",
+      "line": 5
      }
     ]
    },
@@ -71010,6 +71053,18 @@
     ]
    },
    {
+    "name": "tok-stripe-platform-balance-fees",
+    "schedules": [
+     "37 5 * * *"
+    ],
+    "sources": [
+     {
+      "path": "supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql",
+      "line": 20
+     }
+    ]
+   },
+   {
     "name": "tok-stripe-subscription-reconcile",
     "schedules": [
      "17 * * * *"
@@ -78711,6 +78766,11 @@
       "level": 2,
       "title": "Incidents",
       "line": 58
+     },
+     {
+      "level": 2,
+      "title": "Débits de solde Stripe indépendants (Climate, Billing)",
+      "line": 64
      }
     ]
    },
@@ -111616,6 +111676,16 @@
     "lineCount": 47
    },
    {
+    "path": "src/test/stripe-platform-balance-fees.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 154
+   },
+   {
     "path": "src/test/stripe-return.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -112175,7 +112245,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 67
+    "lineCount": 68
    },
    {
     "path": "src/test/zero-attente-reservation-context.test.ts",
@@ -115071,6 +115141,41 @@
     "lineCount": 40
    },
    {
+    "path": "supabase/functions/_shared/stripe-platform-balance-fees.ts",
+    "exports": [
+     {
+      "name": "TOK_PLATFORM_STRIPE_ACCOUNT_ID",
+      "line": 6,
+      "kind": "variable"
+     },
+     {
+      "name": "StripeStandaloneBalanceDebit",
+      "line": 8,
+      "kind": "typealias"
+     },
+     {
+      "name": "PlatformBalanceDebitJournal",
+      "line": 19,
+      "kind": "typealias"
+     },
+     {
+      "name": "classifyPlatformBalanceDebit",
+      "line": 31,
+      "kind": "function"
+     },
+     {
+      "name": "reconcilePlatformBalanceDebits",
+      "line": 95,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe"
+    ],
+    "lineCount": 168
+   },
+   {
     "path": "supabase/functions/_shared/tok-connect-auth.ts",
     "exports": [
      {
@@ -116204,7 +116309,7 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 2774
+    "lineCount": 2776
    },
    {
     "path": "supabase/functions/create-chefs-table-reservation/index.ts",
@@ -116976,7 +117081,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 738
+    "lineCount": 777
    },
    {
     "path": "supabase/functions/submit-signup-application/index.ts",
@@ -129171,6 +129276,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/stripe-platform-balance-fees.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/stripe-return.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -129877,6 +129987,11 @@
    },
    {
     "path": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/stripe-platform-balance-fees.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -133257,6 +133372,21 @@
    },
    {
     "path": "supabase/migrations/20261014180000_tok_workforce_clock_teams.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261015072500_stripe_platform_balance_debits.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261015073500_expire_failed_free_zero_attente_attempts.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -153483,6 +153613,20 @@
    "detailRef": "53a13ff90fc9"
   },
   {
+   "id": "code-module:c24b7f12cbf9",
+   "type": "code-module",
+   "title": "src/test/stripe-platform-balance-fees.test.ts",
+   "description": "Module de 154 lignes; exports: aucun export statique.",
+   "path": "src/test/stripe-platform-balance-fees.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "aa67bd2f8f33"
+  },
+  {
    "id": "code-module:cfe1245370df",
    "type": "code-module",
    "title": "src/test/stripe-return.test.ts",
@@ -154276,7 +154420,7 @@
    "id": "code-module:ea374d1aaaa8",
    "type": "code-module",
    "title": "src/test/zero-attente-free-miamz.test.ts",
-   "description": "Module de 67 lignes; exports: aucun export statique.",
+   "description": "Module de 68 lignes; exports: aucun export statique.",
    "path": "src/test/zero-attente-free-miamz.test.ts",
    "line": 1,
    "surface": null,
@@ -154284,7 +154428,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ef2d0f1e3dcd"
+   "detailRef": "9b9d94c2e3f4"
   },
   {
    "id": "code-module:b349b2edeaa4",
@@ -155646,6 +155790,24 @@
    "detailRef": "887406e703a1"
   },
   {
+   "id": "code-module:580bfa77a702",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/stripe-platform-balance-fees.ts",
+   "description": "Module de 168 lignes; exports: TOK_PLATFORM_STRIPE_ACCOUNT_ID, StripeStandaloneBalanceDebit, PlatformBalanceDebitJournal, classifyPlatformBalanceDebit, reconcilePlatformBalanceDebits.",
+   "path": "supabase/functions/_shared/stripe-platform-balance-fees.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "PlatformBalanceDebitJournal",
+    "StripeStandaloneBalanceDebit",
+    "TOK_PLATFORM_STRIPE_ACCOUNT_ID",
+    "classifyPlatformBalanceDebit",
+    "reconcilePlatformBalanceDebits",
+    "stripe"
+   ],
+   "detailRef": "6d652c8a6fa4"
+  },
+  {
    "id": "code-module:b79df7c0068c",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-auth.ts",
@@ -156406,7 +156568,7 @@
    "id": "code-module:ee34f3a570c0",
    "type": "code-module",
    "title": "supabase/functions/create-checkout/index.ts",
-   "description": "Module de 2774 lignes; exports: aucun export statique.",
+   "description": "Module de 2776 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-checkout/index.ts",
    "line": 1,
    "surface": null,
@@ -156414,7 +156576,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "2488affeec24"
+   "detailRef": "88851fafc22f"
   },
   {
    "id": "code-module:4160ab4db106",
@@ -157337,7 +157499,7 @@
    "id": "code-module:f3fa7c18e7bc",
    "type": "code-module",
    "title": "supabase/functions/stripe-worker/index.ts",
-   "description": "Module de 738 lignes; exports: aucun export statique.",
+   "description": "Module de 777 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-worker/index.ts",
    "line": 1,
    "surface": null,
@@ -157346,7 +157508,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "dbccf0da206a"
+   "detailRef": "c7c566bb0e6a"
   },
   {
    "id": "code-module:869f513f0867",
@@ -158290,6 +158452,20 @@
     "pg_cron"
    ],
    "detailRef": "c2abb82e0e08"
+  },
+  {
+   "id": "cron-job:41311cd48434",
+   "type": "cron-job",
+   "title": "tok-stripe-platform-balance-fees",
+   "description": "Tâche pg_cron versionnée; planification(s): 37 5 * * *.",
+   "path": "supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql",
+   "line": 20,
+   "surface": null,
+   "tags": [
+    "37 5 * * *",
+    "pg_cron"
+   ],
+   "detailRef": "7ba947588aaf"
   },
   {
    "id": "cron-job:d434352150eb",
@@ -189474,6 +189650,21 @@
    "detailRef": "57a295026a5b"
   },
   {
+   "id": "database-object:ebb6ca5a9bdd",
+   "type": "database-object",
+   "title": "public.record_stripe_platform_balance_debit",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261015072500_stripe_platform_balance_debits.sql",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "f9f1d06d33c7"
+  },
+  {
    "id": "database-object:593752f7b15f",
    "type": "database-object",
    "title": "public.record_stripe_tax_fee_ledger",
@@ -204834,6 +205025,21 @@
    "detailRef": "7b9c6b6840fd"
   },
   {
+   "id": "database-object:ea60c4305bd5",
+   "type": "database-object",
+   "title": "ux_platform_cost_entries_stripe_balance_transaction",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261015072500_stripe_platform_balance_debits.sql",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "94d750e4bf95"
+  },
+  {
    "id": "database-object:6d260cbc3150",
    "type": "database-object",
    "title": "ux_platform_cost_entries_stripe_refund",
@@ -215494,6 +215700,20 @@
     "h3"
    ],
    "detailRef": "92d853f54e34"
+  },
+  {
+   "id": "document-section:36383015f336",
+   "type": "document-section",
+   "title": "Débits de solde Stripe indépendants (Climate, Billing)",
+   "description": "Section de Runbook Stripe et reconciliation financiere.",
+   "path": "docs/runbooks/stripe-financial-ops.md",
+   "line": 64,
+   "surface": null,
+   "tags": [
+    "Runbook Stripe et reconciliation financiere",
+    "h2"
+   ],
+   "detailRef": "46f7596045dd"
   },
   {
    "id": "document-section:2c3703b5f485",
@@ -238623,13 +238843,14 @@
    "id": "document:d036b96c91d0",
    "type": "document",
    "title": "Runbook Stripe et reconciliation financiere",
-   "description": "Document Markdown avec 8 section(s).",
+   "description": "Document Markdown avec 9 section(s).",
    "path": "docs/runbooks/stripe-financial-ops.md",
    "line": 1,
    "surface": null,
    "tags": [
     "Activation Stripe Connect",
     "Configuration live",
+    "Débits de solde Stripe indépendants (Climate, Billing)",
     "Incidents",
     "Objectif",
     "Reconciliation quotidienne",
@@ -238637,7 +238858,7 @@
     "Runbook Stripe et reconciliation financiere",
     "Versement Stripe Connect au developpeur"
    ],
-   "detailRef": "7977291a6cf0"
+   "detailRef": "9c0fd1020069"
   },
   {
    "id": "document:06417f30bcaf",
@@ -241416,6 +241637,20 @@
    "detailRef": "7dad7d18f759"
   },
   {
+   "id": "edge-action:777db322559b",
+   "type": "edge-action",
+   "title": "reconcile-platform-fees",
+   "description": "Action statiquement détectée dans la fonction Edge stripe-worker.",
+   "path": "supabase/functions/stripe-worker/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/stripe-worker",
+    "stripe-worker"
+   ],
+   "detailRef": "debb156883e9"
+  },
+  {
    "id": "edge-action:6bb59b593404",
    "type": "edge-action",
    "title": "reconcile",
@@ -243754,10 +243989,11 @@
     "OPTIONS",
     "POST",
     "SUPABASE_URL",
+    "reconcile-platform-fees",
     "stripe",
     "supabase"
    ],
-   "detailRef": "be39491a7448"
+   "detailRef": "3910da46ca72"
   },
   {
    "id": "edge-function:6955272728a1",
@@ -260513,6 +260749,20 @@
    "detailRef": "66440597b578"
   },
   {
+   "id": "exported-symbol:5a855a4c1de8",
+   "type": "exported-symbol",
+   "title": "PlatformBalanceDebitJournal",
+   "description": "Export typealias de supabase/functions/_shared/stripe-platform-balance-fees.ts.",
+   "path": "supabase/functions/_shared/stripe-platform-balance-fees.ts",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "82ef897e1bf6"
+  },
+  {
    "id": "exported-symbol:7be23abab26b",
    "type": "exported-symbol",
    "title": "PlatformFinanceMonthlySnapshot",
@@ -265270,6 +265520,20 @@
    "detailRef": "21e38b7ff3c7"
   },
   {
+   "id": "exported-symbol:9007c71eb93f",
+   "type": "exported-symbol",
+   "title": "StripeStandaloneBalanceDebit",
+   "description": "Export typealias de supabase/functions/_shared/stripe-platform-balance-fees.ts.",
+   "path": "supabase/functions/_shared/stripe-platform-balance-fees.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "30cc004ca816"
+  },
+  {
    "id": "exported-symbol:3f3cefcc7702",
    "type": "exported-symbol",
    "title": "StripeWebhookSigningSecret",
@@ -266201,6 +266465,20 @@
     "variable"
    ],
    "detailRef": "a346c0b46282"
+  },
+  {
+   "id": "exported-symbol:61dcb9e2a633",
+   "type": "exported-symbol",
+   "title": "TOK_PLATFORM_STRIPE_ACCOUNT_ID",
+   "description": "Export variable de supabase/functions/_shared/stripe-platform-balance-fees.ts.",
+   "path": "supabase/functions/_shared/stripe-platform-balance-fees.ts",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "variable"
+   ],
+   "detailRef": "d2814f685432"
   },
   {
    "id": "exported-symbol:5773a6d540e7",
@@ -271714,6 +271992,20 @@
     "function"
    ],
    "detailRef": "1e02036484c1"
+  },
+  {
+   "id": "exported-symbol:a96dc7f9956a",
+   "type": "exported-symbol",
+   "title": "classifyPlatformBalanceDebit",
+   "description": "Export function de supabase/functions/_shared/stripe-platform-balance-fees.ts.",
+   "path": "supabase/functions/_shared/stripe-platform-balance-fees.ts",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe"
+   ],
+   "detailRef": "77f02d5375d4"
   },
   {
    "id": "exported-symbol:81c204ca4598",
@@ -290173,6 +290465,20 @@
     "function"
    ],
    "detailRef": "9232b8d517e9"
+  },
+  {
+   "id": "exported-symbol:0a4a09c02a70",
+   "type": "exported-symbol",
+   "title": "reconcilePlatformBalanceDebits",
+   "description": "Export function de supabase/functions/_shared/stripe-platform-balance-fees.ts.",
+   "path": "supabase/functions/_shared/stripe-platform-balance-fees.ts",
+   "line": 95,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe"
+   ],
+   "detailRef": "8df343084c2d"
   },
   {
    "id": "exported-symbol:0657350dc742",
@@ -330325,6 +330631,20 @@
    "detailRef": "b827cca0bca6"
   },
   {
+   "id": "file:c528aee925ac",
+   "type": "file",
+   "title": "src/test/stripe-platform-balance-fees.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/stripe-platform-balance-fees.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "6992736bcbfb"
+  },
+  {
    "id": "file:87c4568c876c",
    "type": "file",
    "title": "src/test/stripe-return.test.ts",
@@ -332311,6 +332631,20 @@
     "edge-function-source"
    ],
    "detailRef": "360b4a69e24a"
+  },
+  {
+   "id": "file:bf2b62f09cc4",
+   "type": "file",
+   "title": "supabase/functions/_shared/stripe-platform-balance-fees.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/stripe-platform-balance-fees.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "ef0c49b0a2a3"
   },
   {
    "id": "file:1d8640341532",
@@ -341777,6 +342111,48 @@
    "detailRef": "efadd0f670ea"
   },
   {
+   "id": "file:976c97bade72",
+   "type": "file",
+   "title": "supabase/migrations/20261015072500_stripe_platform_balance_debits.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261015072500_stripe_platform_balance_debits.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "d7a054d16cdc"
+  },
+  {
+   "id": "file:18adb2445c62",
+   "type": "file",
+   "title": "supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "8a56b5750923"
+  },
+  {
+   "id": "file:b9b410dee042",
+   "type": "file",
+   "title": "supabase/migrations/20261015073500_expire_failed_free_zero_attente_attempts.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261015073500_expire_failed_free_zero_attente_attempts.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "a9c68356a865"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -345587,7 +345963,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 243 module(s).",
+   "description": "Intégration externe détectée dans 245 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -345751,6 +346127,7 @@
     "src/test/security-url-helpers.test.ts",
     "src/test/stripe-developer-share-routing.test.ts",
     "src/test/stripe-paid-invoice-payment.test.ts",
+    "src/test/stripe-platform-balance-fees.test.ts",
     "src/test/stripe-return.test.ts",
     "src/test/stripe-security-hardening.test.ts",
     "src/test/super-admin-sensitive-rls.test.ts",
@@ -345786,6 +346163,7 @@
     "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "supabase/functions/_shared/stripe-client.ts",
     "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+    "supabase/functions/_shared/stripe-platform-balance-fees.ts",
     "supabase/functions/_shared/tok-one.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/_shared/zero-cost-checkout.ts",
@@ -345837,13 +346215,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "a1b3515ca479"
+   "detailRef": "2bd4ef73b51b"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 707 module(s).",
+   "description": "Intégration externe détectée dans 708 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -346423,6 +346801,7 @@
     "src/test/sponsored-event-signing.test.ts",
     "src/test/stripe-developer-share-routing.test.ts",
     "src/test/stripe-paid-invoice-payment.test.ts",
+    "src/test/stripe-platform-balance-fees.test.ts",
     "src/test/stripe-security-hardening.test.ts",
     "src/test/submitSignupValidation.test.ts",
     "src/test/subscription-dispatch.test.ts",
@@ -346557,7 +346936,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "26d8b15062f4"
+   "detailRef": "0ff074ca4a5f"
   },
   {
    "id": "integration:c20910a79a78",
@@ -354855,6 +355234,48 @@
     "supabase"
    ],
    "detailRef": "483bb5911edd"
+  },
+  {
+   "id": "migration:9d089fa0b24c",
+   "type": "migration",
+   "title": "20261015072500 Stripe Platform Balance Debits",
+   "description": "Migration SQL de 143 lignes, 2 objets CREATE détectés.",
+   "path": "supabase/migrations/20261015072500_stripe_platform_balance_debits.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "61df687fb773"
+  },
+  {
+   "id": "migration:5bfb74f35242",
+   "type": "migration",
+   "title": "20261015073000 Schedule Stripe Balance Fees",
+   "description": "Migration SQL de 44 lignes, 0 objets CREATE détectés.",
+   "path": "supabase/migrations/20261015073000_schedule_stripe_balance_fees.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "8b1ffce3a92d"
+  },
+  {
+   "id": "migration:3bc903eda6da",
+   "type": "migration",
+   "title": "20261015073500 Expire Failed Free Zero Attente Attempts",
+   "description": "Migration SQL de 39 lignes, 0 objets CREATE détectés.",
+   "path": "supabase/migrations/20261015073500_expire_failed_free_zero_attente_attempts.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "f9a26f7a990b"
   },
   {
    "id": "package-script:5bd6dc98483a",
