@@ -33,7 +33,7 @@ export type PrintRenderingMetadata = {
   sourceWidthPx: number;
   sourceHeightPx: number;
   upscaleFactor: number;
-  cropMode: "cover";
+  cropMode: "none";
   strategy: "high_quality_resample";
 };
 
