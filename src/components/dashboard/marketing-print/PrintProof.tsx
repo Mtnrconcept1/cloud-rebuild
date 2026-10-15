@@ -12,78 +12,51 @@ export default function PrintProof({
   approved?: boolean;
 }) {
   const preflight = runPrintPreflight(document, product);
-  const bleed = product.bleedMm / Math.max(product.widthMm, product.heightMm) * 100;
-  const safe = product.safeMarginMm / Math.max(product.widthMm, product.heightMm) * 100;
+  const mediaWidthMm = product.widthMm + 2 * product.bleedMm;
+  const mediaHeightMm = product.heightMm + 2 * product.bleedMm;
+  const trimX = 100 * product.bleedMm / mediaWidthMm;
+  const trimY = 100 * product.bleedMm / mediaHeightMm;
+  const safeX = 100 * (product.bleedMm + product.safeMarginMm) / mediaWidthMm;
+  const safeY = 100 * (product.bleedMm + product.safeMarginMm) / mediaHeightMm;
 
   return (
     <div className="space-y-4" data-testid="marketing-print-proof">
       <div
         className="relative mx-auto overflow-hidden rounded-2xl border bg-muted shadow-sm"
-        style={{
-          aspectRatio: `${product.widthMm} / ${product.heightMm}`,
-          maxHeight: "62vh",
-        }}
+        style={{ aspectRatio: `${mediaWidthMm} / ${mediaHeightMm}`, maxHeight: "62vh" }}
       >
         <img
           src={document.background.url}
           alt={document.title}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-fill"
         />
-        <div className="pointer-events-none absolute inset-0 bg-black/5" />
         <div
-          className="pointer-events-none absolute border border-dashed border-red-500/80"
-          style={{ inset: `${Math.max(0.5, bleed)}%` }}
+          className="pointer-events-none absolute border-2 border-dashed border-red-500"
+          style={{ left: `${trimX}%`, right: `${trimX}%`, top: `${trimY}%`, bottom: `${trimY}%` }}
           aria-label="Ligne de coupe"
         />
         <div
-          className="pointer-events-none absolute border border-dashed border-emerald-500/80"
-          style={{ inset: `${Math.max(2, safe)}%` }}
+          className="pointer-events-none absolute border-2 border-dashed border-emerald-500"
+          style={{ left: `${safeX}%`, right: `${safeX}%`, top: `${safeY}%`, bottom: `${safeY}%` }}
           aria-label="Zone de sécurité"
         />
-        {(document.texts || []).map((text) => (
-          <div
-            key={text.id}
-            className={`absolute flex overflow-hidden ${text.weight === "bold" ? "font-bold" : "font-medium"}`}
-            style={{
-              left: `${text.x * 100}%`,
-              top: `${text.y * 100}%`,
-              width: `${text.width * 100}%`,
-              height: `${text.height * 100}%`,
-              color: text.color || "#ffffff",
-              justifyContent: text.align === "center" ? "center" : text.align === "right" ? "flex-end" : "flex-start",
-              textAlign: text.align || "left",
-              alignItems: "center",
-              fontSize: `${Math.max(12, (text.fontSizeMm || 4) * 3.2)}px`,
-              lineHeight: 1.05,
-              textShadow: "0 2px 10px rgba(0,0,0,.55)",
-            }}
-          >
-            {text.text}
-          </div>
-        ))}
-        {document.qr ? (
-          <div
-            className="absolute grid place-items-center rounded bg-white/95 p-1 text-center text-[8px] font-bold text-black"
-            style={{
-              left: `${document.qr.x * 100}%`,
-              top: `${document.qr.y * 100}%`,
-              width: `${document.qr.size * 100}%`,
-              aspectRatio: "1",
-            }}
-          >
-            QR
-          </div>
-        ) : null}
       </div>
+
+      <p className="text-sm leading-6 text-muted-foreground">
+        Ligne rouge : coupe finale. Zone verte : limite intérieure de sécurité.
+        Les fonds et textures peuvent atteindre le bord du fond perdu, mais vérifiez visuellement
+        que chaque texte, prix, logo, visage et QR code intégré à l'image reste entièrement
+        à l'intérieur de la zone verte. Ce contrôle humain est indispensable avant d'approuver le BAT.
+      </p>
 
       <div className="grid gap-2 text-xs sm:grid-cols-3">
         <div className="rounded-xl border bg-background p-3">
-          <span className="font-semibold">Format</span>
+          <span className="font-semibold">Format fini</span>
           <p className="text-muted-foreground">{product.widthMm} × {product.heightMm} mm</p>
         </div>
         <div className="rounded-xl border bg-background p-3">
-          <span className="font-semibold">Fond perdu</span>
-          <p className="text-muted-foreground">{product.bleedMm} mm</p>
+          <span className="font-semibold">Fond perdu / zone de sécurité</span>
+          <p className="text-muted-foreground">{product.bleedMm} mm / {product.safeMarginMm} mm</p>
         </div>
         <div className="rounded-xl border bg-background p-3">
           <span className="font-semibold">Résolution effective</span>
@@ -102,7 +75,7 @@ export default function PrintProof({
         </div>
       ) : (
         <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm font-medium text-emerald-700 dark:text-emerald-300">
-          <CheckCircle2 className="h-4 w-4" /> {approved ? "BAT approuvé — fichier verrouillé pour impression." : "Préflight réussi — le BAT peut être approuvé."}
+          <CheckCircle2 className="h-4 w-4" /> {approved ? "BAT approuvé — fichier verrouillé pour impression." : "Contrôles techniques réussis — vérifiez les marges visuellement avant approbation."}
         </div>
       )}
     </div>
