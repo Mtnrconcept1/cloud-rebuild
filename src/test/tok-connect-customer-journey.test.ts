@@ -88,6 +88,18 @@ describe("TOK Connect customer MCP security", () => {
     expect(remote).toContain('confirmed_by_user: true, idempotency_key: args.idempotency_key');
   });
 
+  it("requires app-only user interaction for booking and cancelling instead of exposing writes to the model", () => {
+    for (const name of ["tok_book_table", "tok_cancel_my_reservation"]) {
+      const start = remote.indexOf('name: "' + name + '"');
+      expect(start).toBeGreaterThan(-1);
+      const end = remote.indexOf("},\n  {", start);
+      const definition = remote.slice(start, end > start ? end : undefined);
+      expect(definition).toContain('visibility: ["app"]');
+      expect(definition).toContain('"openai/visibility": "private"');
+      expect(definition).toContain("...TOK_CLIENT_WIDGET_META");
+    }
+  });
+
   it("enforces the user identity, existing business guarantee and ownership rather than partner UUIDs", () => {
     expect(bridge).toContain("authenticateRequest(req, { allowServiceRole: false })");
     expect(bridge).toContain('functionName: "create-reservation"');
