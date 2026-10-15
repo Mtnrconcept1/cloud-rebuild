@@ -39,7 +39,7 @@ describe("Marketing print raster preparation", () => {
   it("derives target pixels from provider bleed rather than a global 3mm constant", () => {
     const current = product({ category: "business_card", widthMm: 85, heightMm: 55, bleedMm: 5 });
     const plan = buildPrintRenderingPlan({
-      asset: { widthPx: 1536, heightPx: 1024 },
+      asset: { widthPx: 1123, heightPx: 768 },
       product: current,
       variant: current.variants[0],
     });
@@ -52,7 +52,7 @@ describe("Marketing print raster preparation", () => {
   it("uses 150 DPI for posters and records the real source dimensions", () => {
     const current = product({ category: "poster", marketingToolId: "poster", widthMm: 297, heightMm: 420, bleedMm: 3 });
     const plan = buildPrintRenderingPlan({
-      asset: { widthPx: 1024, heightPx: 1536 },
+      asset: { widthPx: 1790, heightPx: 2516 },
       product: current,
       variant: current.variants[0],
     });
@@ -62,9 +62,9 @@ describe("Marketing print raster preparation", () => {
       targetWidthPx: 1790,
       targetHeightPx: 2516,
       targetDpi: 150,
-      sourceWidthPx: 1024,
-      sourceHeightPx: 1536,
-      cropMode: "cover",
+      sourceWidthPx: 1790,
+      sourceHeightPx: 2516,
+      cropMode: "none",
       strategy: "high_quality_resample",
     });
   });
@@ -82,7 +82,7 @@ describe("Marketing print raster preparation", () => {
       },
     });
     const plan = buildPrintRenderingPlan({
-      asset: { widthPx: 1536, heightPx: 1024 },
+      asset: { widthPx: 3567, heightPx: 2552 },
       product: current,
       variant: current.variants[0],
     });
@@ -96,15 +96,24 @@ describe("Marketing print raster preparation", () => {
     expect(plan.target).toMatchObject({ widthPx: 3567, heightPx: 2552, targetDpi: 300 });
   });
 
-  it("blocks a target requiring more than the x2.5 crop-aware upscale ceiling", () => {
+  it("blocks a target requiring more than the x2.5 proportional upscale ceiling", () => {
     const current = product({ category: "restaurant_menu", widthMm: 240, heightMm: 350, bleedMm: 3 });
     const plan = buildPrintRenderingPlan({
-      asset: { widthPx: 1024, heightPx: 1536 },
+      asset: { widthPx: 246, heightPx: 356 },
       product: current,
       variant: current.variants[0],
     });
 
     expect(plan.rendering.upscaleFactor).toBeGreaterThan(2.5);
     expect(plan.blocked).toBe(true);
+  });
+
+  it("rejects generated images whose native ratio would require trimming artwork", () => {
+    const current = product({ category: "flyer", widthMm: 148, heightMm: 210, bleedMm: 3 });
+    expect(() => buildPrintRenderingPlan({
+      asset: { widthPx: 1024, heightPx: 1536 },
+      product: current,
+      variant: current.variants[0],
+    })).toThrow("PRINT_NATIVE_IMAGE_RATIO_MISMATCH_REGENERATE_WITH_TARGET_FORMAT");
   });
 });
