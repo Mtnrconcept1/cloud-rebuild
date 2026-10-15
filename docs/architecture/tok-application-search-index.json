@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "c3b4a30cca8b8062a22f5252dc43e1b5612dbc32dcb85befe9c3eb6b55b4a48f",
+ "sourceDigest": "785631e7d5457f02ff5e0ece7437f7736f01d73b9445dc53c5ccf12871520ae6",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 205,
   "edgeFunctions": 117,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3574,
+  "exportedSymbols": 3581,
   "featureFlags": 99,
   "frontendRoutes": 142,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 544,
-  "modules": 1588,
+  "modules": 1590,
   "pages": 132,
   "pathLiterals": 752,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 108,
-  "records": 17085,
-  "repositoryFiles": 3216,
+  "records": 17099,
+  "repositoryFiles": 3218,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -9222,9 +9222,12 @@
      "POST"
     ],
     "actions": [
+     "cancel_attempt",
+     "checkout",
      "insert",
      "list",
      "select",
+     "status",
      "update"
     ],
     "environmentNames": [
@@ -9418,7 +9421,9 @@
     ],
     "integrations": [
      "openai",
-     "supabase"
+     "stripe",
+     "supabase",
+     "twint"
     ],
     "configured": true,
     "sourcePresent": true
@@ -15106,7 +15111,7 @@
     "sources": [
      {
       "path": "src/test/tok-connect-customer-journey.test.ts",
-      "line": 121
+      "line": 124
      }
     ]
    },
@@ -22393,6 +22398,10 @@
      {
       "path": "src/test/marketing-agent-bff.test.ts",
       "line": 145
+     },
+     {
+      "path": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 423
      }
     ]
    },
@@ -32367,7 +32376,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
-      "line": 570
+      "line": 699
      }
     ],
     "routes": []
@@ -32710,6 +32719,7 @@
      "src/test/tok-ai-platform-plan.test.ts",
      "src/test/tok-ai-tools.test.ts",
      "src/test/tok-connect-chatgpt-finalization.test.ts",
+     "src/test/tok-connect-customer-commerce.test.ts",
      "src/test/tok-connect-customer-journey.test.ts",
      "src/test/tok-connect-discovery.test.ts",
      "src/test/tok-connect-edge-functions.test.ts",
@@ -32988,6 +32998,7 @@
      "src/test/tok-ai-tools.test.ts",
      "src/test/tok-canonical-subscription-invoice.test.ts",
      "src/test/tok-connect-app-bridge.test.ts",
+     "src/test/tok-connect-customer-commerce.test.ts",
      "src/test/tok-one-stripe-test-mode.test.ts",
      "src/test/tok-stripe-price-catalog.test.ts",
      "src/test/user-facing-errors.test.ts",
@@ -33016,6 +33027,7 @@
      "supabase/functions/_shared/restaurant-subscription-billing.ts",
      "supabase/functions/_shared/stripe-client.ts",
      "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+     "supabase/functions/_shared/tok-connect-customer-commerce.ts",
      "supabase/functions/_shared/tok-connect-discovery-widget.ts",
      "supabase/functions/_shared/tok-one.ts",
      "supabase/functions/_shared/zero-attente.ts",
@@ -33066,6 +33078,7 @@
      "supabase/functions/tok-connect-app-bridge/index.ts",
      "supabase/functions/tok-connect-full-app-mcp/index.ts",
      "supabase/functions/tok-connect-mcp/index.ts",
+     "supabase/functions/tok-connect-remote-mcp/index.ts",
      "supabase/functions/validate-order/index.ts"
     ]
    },
@@ -33675,6 +33688,7 @@
      "src/test/tok-connect-app-bridge.test.ts",
      "src/test/tok-connect-chatgpt-finalization.test.ts",
      "src/test/tok-connect-commercial-bridge.test.ts",
+     "src/test/tok-connect-customer-commerce.test.ts",
      "src/test/tok-connect-customer-journey.test.ts",
      "src/test/tok-connect-discovery.test.ts",
      "src/test/tok-connect-edge-functions.test.ts",
@@ -33805,10 +33819,13 @@
      "src/test/feature-flags.test.ts",
      "src/test/feature-visibility.test.ts",
      "supabase/functions/_shared/feature-flags.ts",
+     "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+     "supabase/functions/_shared/tok-connect-discovery-widget.ts",
      "supabase/functions/_shared/zero-attente.ts",
      "supabase/functions/campaign-portal/index.ts",
      "supabase/functions/create-checkout/index.ts",
-     "supabase/functions/create-zero-attente-reservation/index.ts"
+     "supabase/functions/create-zero-attente-reservation/index.ts",
+     "supabase/functions/tok-connect-remote-mcp/index.ts"
     ]
    },
    {
@@ -111945,6 +111962,17 @@
     "lineCount": 46
    },
    {
+    "path": "src/test/tok-connect-customer-commerce.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 290
+   },
+   {
     "path": "src/test/tok-connect-customer-journey.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -111952,7 +111980,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 175
+    "lineCount": 178
    },
    {
     "path": "src/test/tok-connect-discovery.test.ts",
@@ -112868,7 +112896,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3304,
+      "line": 3418,
       "kind": "function"
      }
     ],
@@ -112880,7 +112908,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3309
+    "lineCount": 3423
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -115140,6 +115168,52 @@
     "lineCount": 468
    },
    {
+    "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+    "exports": [
+     {
+      "name": "TokCustomerJourney",
+      "line": 8,
+      "kind": "typealias"
+     },
+     {
+      "name": "TokCustomerCartItem",
+      "line": 9,
+      "kind": "typealias"
+     },
+     {
+      "name": "TokCustomerCartInput",
+      "line": 10,
+      "kind": "typealias"
+     },
+     {
+      "name": "TokCustomerCommerceError",
+      "line": 30,
+      "kind": "class"
+     },
+     {
+      "name": "normalizeTokCustomerCart",
+      "line": 55,
+      "kind": "function"
+     },
+     {
+      "name": "assertTokCartAmountUnchanged",
+      "line": 140,
+      "kind": "function"
+     },
+     {
+      "name": "safeTokCommerceCheckoutUrl",
+      "line": 146,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "twint"
+    ],
+    "lineCount": 156
+   },
+   {
     "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
     "exports": [
      {
@@ -115159,17 +115233,17 @@
      },
      {
       "name": "buildTokDiscoveryResourceDescriptor",
-      "line": 1239,
+      "line": 1640,
       "kind": "function"
      },
      {
       "name": "buildTokDiscoveryResourceContents",
-      "line": 1268,
+      "line": 1669,
       "kind": "function"
      },
      {
       "name": "buildTokDiscoveryToolMeta",
-      "line": 1279,
+      "line": 1680,
       "kind": "function"
      }
     ],
@@ -115179,9 +115253,10 @@
      "openai",
      "stripe",
      "supabase",
+     "twint",
      "vercel"
     ],
-    "lineCount": 1289
+    "lineCount": 1690
    },
    {
     "path": "supabase/functions/_shared/tok-connect-discovery.ts",
@@ -116229,7 +116304,7 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 2774
+    "lineCount": 2791
    },
    {
     "path": "supabase/functions/create-chefs-table-reservation/index.ts",
@@ -117088,7 +117163,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 487
+    "lineCount": 763
    },
    {
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
@@ -117193,9 +117268,11 @@
     ],
     "integrations": [
      "openai",
-     "supabase"
+     "stripe",
+     "supabase",
+     "twint"
     ],
-    "lineCount": 606
+    "lineCount": 735
    },
    {
     "path": "supabase/functions/tok-connect-webhook-dispatch/index.ts",
@@ -129367,6 +129444,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-connect-customer-commerce.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/tok-connect-customer-journey.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -129913,6 +129995,11 @@
    },
    {
     "path": "supabase/functions/_shared/tok-connect-auth.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -153963,10 +154050,25 @@
    "detailRef": "12aed0cede5c"
   },
   {
+   "id": "code-module:9b165d402e85",
+   "type": "code-module",
+   "title": "src/test/tok-connect-customer-commerce.test.ts",
+   "description": "Module de 290 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-customer-commerce.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "c702a4a05194"
+  },
+  {
    "id": "code-module:1d42874808ef",
    "type": "code-module",
    "title": "src/test/tok-connect-customer-journey.test.ts",
-   "description": "Module de 175 lignes; exports: aucun export statique.",
+   "description": "Module de 178 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-customer-journey.test.ts",
    "line": 1,
    "surface": null,
@@ -153974,7 +154076,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "1f8d70b1e451"
+   "detailRef": "991bf98de18f"
   },
   {
    "id": "code-module:5ba8bcabdf99",
@@ -154613,7 +154715,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3309 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3423 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -154627,7 +154729,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "731cc94c5bce"
+   "detailRef": "faab8d8cba68"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -155711,10 +155813,31 @@
    "detailRef": "488040556204"
   },
   {
+   "id": "code-module:079f909ea9f2",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "description": "Module de 156 lignes; exports: TokCustomerJourney, TokCustomerCartItem, TokCustomerCartInput, TokCustomerCommerceError, normalizeTokCustomerCart, assertTokCartAmountUnchanged, safeTokCommerceCheckoutUrl.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TokCustomerCartInput",
+    "TokCustomerCartItem",
+    "TokCustomerCommerceError",
+    "TokCustomerJourney",
+    "assertTokCartAmountUnchanged",
+    "normalizeTokCustomerCart",
+    "safeTokCommerceCheckoutUrl",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "eb10f3a487de"
+  },
+  {
    "id": "code-module:38f3af390908",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "description": "Module de 1289 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
+   "description": "Module de 1690 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
    "line": 1,
    "surface": null,
@@ -155729,9 +155852,10 @@
     "openai",
     "stripe",
     "supabase",
+    "twint",
     "vercel"
    ],
-   "detailRef": "b365288a78d5"
+   "detailRef": "2c0b3e8c49ee"
   },
   {
    "id": "code-module:bd4199664d50",
@@ -156452,7 +156576,7 @@
    "id": "code-module:ee34f3a570c0",
    "type": "code-module",
    "title": "supabase/functions/create-checkout/index.ts",
-   "description": "Module de 2774 lignes; exports: aucun export statique.",
+   "description": "Module de 2791 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-checkout/index.ts",
    "line": 1,
    "surface": null,
@@ -156460,7 +156584,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "2488affeec24"
+   "detailRef": "00f7aaaa8e90"
   },
   {
    "id": "code-module:4160ab4db106",
@@ -157463,7 +157587,7 @@
    "id": "code-module:5f5eb07543f1",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-app-bridge/index.ts",
-   "description": "Module de 487 lignes; exports: aucun export statique.",
+   "description": "Module de 763 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-app-bridge/index.ts",
    "line": 1,
    "surface": null,
@@ -157474,7 +157598,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "3519035b20ad"
+   "detailRef": "6be738ac7d1d"
   },
   {
    "id": "code-module:4266f84831a7",
@@ -157580,7 +157704,7 @@
    "id": "code-module:a6d1c05c1a13",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-remote-mcp/index.ts",
-   "description": "Module de 606 lignes; exports: aucun export statique.",
+   "description": "Module de 735 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
    "line": 1,
    "surface": null,
@@ -157590,9 +157714,11 @@
     "SUPABASE_URL",
     "TOK_CONNECT_PUBLIC_ORIGIN",
     "openai",
-    "supabase"
+    "stripe",
+    "supabase",
+    "twint"
    ],
-   "detailRef": "5d069dc154e0"
+   "detailRef": "6d4d5c00030b"
   },
   {
    "id": "code-module:61c89ba4dc3b",
@@ -240609,6 +240735,20 @@
    "detailRef": "f063e5a19bc1"
   },
   {
+   "id": "edge-action:5a22666330a4",
+   "type": "edge-action",
+   "title": "cancel_attempt",
+   "description": "Action statiquement détectée dans la fonction Edge tok-connect-app-bridge.",
+   "path": "supabase/functions/tok-connect-app-bridge/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/tok-connect-app-bridge",
+    "tok-connect-app-bridge"
+   ],
+   "detailRef": "0a48af2b1c9d"
+  },
+  {
    "id": "edge-action:f8cd8dc0c73c",
    "type": "edge-action",
    "title": "change_plan",
@@ -240649,6 +240789,20 @@
     "marketing-orchestrator"
    ],
    "detailRef": "7cfb3d2fa511"
+  },
+  {
+   "id": "edge-action:4bb238ecd780",
+   "type": "edge-action",
+   "title": "checkout",
+   "description": "Action statiquement détectée dans la fonction Edge tok-connect-app-bridge.",
+   "path": "supabase/functions/tok-connect-app-bridge/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/tok-connect-app-bridge",
+    "tok-connect-app-bridge"
+   ],
+   "detailRef": "8305a5f74e98"
   },
   {
    "id": "edge-action:877da3346f2c",
@@ -241895,6 +242049,20 @@
     "daily-dish-ai"
    ],
    "detailRef": "a30f25a73085"
+  },
+  {
+   "id": "edge-action:c1ac8a9e29f3",
+   "type": "edge-action",
+   "title": "status",
+   "description": "Action statiquement détectée dans la fonction Edge tok-connect-app-bridge.",
+   "path": "supabase/functions/tok-connect-app-bridge/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/tok-connect-app-bridge",
+    "tok-connect-app-bridge"
+   ],
+   "detailRef": "b3fb60c43e66"
   },
   {
    "id": "edge-action:eaf2505260d3",
@@ -243877,14 +244045,17 @@
     "SUPABASE_ANON_KEY",
     "SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_URL",
+    "cancel_attempt",
+    "checkout",
     "insert",
     "list",
     "select",
+    "status",
     "stripe",
     "supabase",
     "update"
    ],
-   "detailRef": "c61ab2989d68"
+   "detailRef": "23bc0aebda57"
   },
   {
    "id": "edge-function:4ae45b142614",
@@ -244029,9 +244200,11 @@
     "SUPABASE_URL",
     "TOK_CONNECT_PUBLIC_ORIGIN",
     "openai",
-    "supabase"
+    "stripe",
+    "supabase",
+    "twint"
    ],
-   "detailRef": "42277f77114f"
+   "detailRef": "1a909763cdc5"
   },
   {
    "id": "edge-function:18e2720fac44",
@@ -265837,6 +266010,7 @@
     "openai",
     "stripe",
     "supabase",
+    "twint",
     "variable",
     "vercel"
    ],
@@ -265855,6 +266029,7 @@
     "openai",
     "stripe",
     "supabase",
+    "twint",
     "variable",
     "vercel"
    ],
@@ -265873,6 +266048,7 @@
     "openai",
     "stripe",
     "supabase",
+    "twint",
     "variable",
     "vercel"
    ],
@@ -267200,6 +267376,66 @@
     "typealias"
    ],
    "detailRef": "6494975dbff4"
+  },
+  {
+   "id": "exported-symbol:f562f1b9cb84",
+   "type": "exported-symbol",
+   "title": "TokCustomerCartInput",
+   "description": "Export typealias de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "twint",
+    "typealias"
+   ],
+   "detailRef": "067966bf993e"
+  },
+  {
+   "id": "exported-symbol:8eaf715ea04c",
+   "type": "exported-symbol",
+   "title": "TokCustomerCartItem",
+   "description": "Export typealias de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "twint",
+    "typealias"
+   ],
+   "detailRef": "7f936c8d91ab"
+  },
+  {
+   "id": "exported-symbol:06800dd6c431",
+   "type": "exported-symbol",
+   "title": "TokCustomerCommerceError",
+   "description": "Export class de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "class",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "dd738ee20d38"
+  },
+  {
+   "id": "exported-symbol:a1644dcc594c",
+   "type": "exported-symbol",
+   "title": "TokCustomerJourney",
+   "description": "Export typealias de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "twint",
+    "typealias"
+   ],
+   "detailRef": "82d77d85b8f8"
   },
   {
    "id": "exported-symbol:a3d217bcf82b",
@@ -268919,6 +269155,21 @@
     "function"
    ],
    "detailRef": "26e846f0cd81"
+  },
+  {
+   "id": "exported-symbol:ac86d3d08d1a",
+   "type": "exported-symbol",
+   "title": "assertTokCartAmountUnchanged",
+   "description": "Export function de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 140,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "af6766c915b4"
   },
   {
    "id": "exported-symbol:7821919afaa1",
@@ -270788,12 +271039,12 @@
    "detailRef": "82f9e612ba62"
   },
   {
-   "id": "exported-symbol:f683c3d922c3",
+   "id": "exported-symbol:2eac3f1cf650",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryResourceContents",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 1268,
+   "line": 1669,
    "surface": null,
    "tags": [
     "function",
@@ -270801,17 +271052,18 @@
     "openai",
     "stripe",
     "supabase",
+    "twint",
     "vercel"
    ],
-   "detailRef": "c86a3c25720e"
+   "detailRef": "0340d92d8728"
   },
   {
-   "id": "exported-symbol:1b433ced7bbf",
+   "id": "exported-symbol:0b1ff3aef598",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryResourceDescriptor",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 1239,
+   "line": 1640,
    "surface": null,
    "tags": [
     "function",
@@ -270819,17 +271071,18 @@
     "openai",
     "stripe",
     "supabase",
+    "twint",
     "vercel"
    ],
-   "detailRef": "331edb25e5f0"
+   "detailRef": "5172320a24b3"
   },
   {
-   "id": "exported-symbol:6fe777bfd24d",
+   "id": "exported-symbol:11468eac7f5a",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryToolMeta",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 1279,
+   "line": 1680,
    "surface": null,
    "tags": [
     "function",
@@ -270837,9 +271090,10 @@
     "openai",
     "stripe",
     "supabase",
+    "twint",
     "vercel"
    ],
-   "detailRef": "2281fe8dcba3"
+   "detailRef": "1dfd4dca4456"
   },
   {
    "id": "exported-symbol:c48bb56c3e9c",
@@ -287499,12 +287753,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:987c0b7d5a69",
+   "id": "exported-symbol:01850f587574",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3304,
+   "line": 3418,
    "surface": null,
    "tags": [
     "firebase",
@@ -287514,7 +287768,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "5e319583be16"
+   "detailRef": "da7f7557d364"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -289094,6 +289348,21 @@
     "function"
    ],
    "detailRef": "07d2a17d6dc9"
+  },
+  {
+   "id": "exported-symbol:5e8a7a194bb2",
+   "type": "exported-symbol",
+   "title": "normalizeTokCustomerCart",
+   "description": "Export function de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 55,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "49500ba7a492"
   },
   {
    "id": "exported-symbol:5214b0eeca56",
@@ -291743,6 +292012,21 @@
     "function"
    ],
    "detailRef": "1fd7b4cdde6c"
+  },
+  {
+   "id": "exported-symbol:88434068f65e",
+   "type": "exported-symbol",
+   "title": "safeTokCommerceCheckoutUrl",
+   "description": "Export function de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 146,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "535e27cd7afa"
   },
   {
    "id": "exported-symbol:b094beb5e72f",
@@ -330855,6 +331139,20 @@
    "detailRef": "3a00fa9409d8"
   },
   {
+   "id": "file:2f034f67e1cc",
+   "type": "file",
+   "title": "src/test/tok-connect-customer-commerce.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-customer-commerce.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "99cb7fb46aa1"
+  },
+  {
    "id": "file:c0eeb9dae073",
    "type": "file",
    "title": "src/test/tok-connect-customer-journey.test.ts",
@@ -332393,6 +332691,20 @@
     "edge-function-source"
    ],
    "detailRef": "f32ce0e53c87"
+  },
+  {
+   "id": "file:7095c28cb762",
+   "type": "file",
+   "title": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "e8320baff696"
   },
   {
    "id": "file:a6bdab98b46e",
@@ -345439,7 +345751,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 122 module(s).",
+   "description": "Intégration externe détectée dans 123 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -345518,6 +345830,7 @@
     "src/test/tok-ai-platform-plan.test.ts",
     "src/test/tok-ai-tools.test.ts",
     "src/test/tok-connect-chatgpt-finalization.test.ts",
+    "src/test/tok-connect-customer-commerce.test.ts",
     "src/test/tok-connect-customer-journey.test.ts",
     "src/test/tok-connect-discovery.test.ts",
     "src/test/tok-connect-edge-functions.test.ts",
@@ -345568,7 +345881,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f12b3fccfdc2"
+   "detailRef": "b9fb38c4bfbc"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -345657,7 +345970,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 244 module(s).",
+   "description": "Intégration externe détectée dans 247 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -345827,6 +346140,7 @@
     "src/test/tok-ai-tools.test.ts",
     "src/test/tok-canonical-subscription-invoice.test.ts",
     "src/test/tok-connect-app-bridge.test.ts",
+    "src/test/tok-connect-customer-commerce.test.ts",
     "src/test/tok-one-stripe-test-mode.test.ts",
     "src/test/tok-stripe-price-catalog.test.ts",
     "src/test/user-facing-errors.test.ts",
@@ -345856,6 +346170,7 @@
     "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "supabase/functions/_shared/stripe-client.ts",
     "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+    "supabase/functions/_shared/tok-connect-customer-commerce.ts",
     "supabase/functions/_shared/tok-connect-discovery-widget.ts",
     "supabase/functions/_shared/tok-one.ts",
     "supabase/functions/_shared/zero-attente.ts",
@@ -345906,15 +346221,16 @@
     "supabase/functions/tok-connect-app-bridge/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts",
+    "supabase/functions/tok-connect-remote-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "93d1fc503e90"
+   "detailRef": "fc058473fcff"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 708 module(s).",
+   "description": "Intégration externe détectée dans 709 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -346522,6 +346838,7 @@
     "src/test/tok-connect-app-bridge.test.ts",
     "src/test/tok-connect-chatgpt-finalization.test.ts",
     "src/test/tok-connect-commercial-bridge.test.ts",
+    "src/test/tok-connect-customer-commerce.test.ts",
     "src/test/tok-connect-customer-journey.test.ts",
     "src/test/tok-connect-discovery.test.ts",
     "src/test/tok-connect-edge-functions.test.ts",
@@ -346629,13 +346946,13 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "06f07d281255"
+   "detailRef": "2b1387eb92f9"
   },
   {
    "id": "integration:c20910a79a78",
    "type": "integration",
    "title": "Twint",
-   "description": "Intégration externe détectée dans 24 module(s).",
+   "description": "Intégration externe détectée dans 27 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -346660,13 +346977,16 @@
     "src/test/feature-flags.test.ts",
     "src/test/feature-visibility.test.ts",
     "supabase/functions/_shared/feature-flags.ts",
+    "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+    "supabase/functions/_shared/tok-connect-discovery-widget.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/campaign-portal/index.ts",
     "supabase/functions/create-checkout/index.ts",
     "supabase/functions/create-zero-attente-reservation/index.ts",
+    "supabase/functions/tok-connect-remote-mcp/index.ts",
     "twint"
    ],
-   "detailRef": "9bbf89f37712"
+   "detailRef": "c46ef3c07afb"
   },
   {
    "id": "integration:077d0104684d",
@@ -358149,17 +358469,17 @@
    "detailRef": "4decf6922e9b"
   },
   {
-   "id": "path-literal:342f261b036d",
+   "id": "path-literal:47db0051fd3b",
    "type": "path-literal",
    "title": "/^\\d{4}-\\d{2}-\\d{2}$/",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/tok-connect-customer-journey.test.ts",
-   "line": 121,
+   "line": 124,
    "surface": null,
    "tags": [
     "src/test/tok-connect-customer-journey.test.ts"
    ],
-   "detailRef": "d6fe795f6edc"
+   "detailRef": "8b8df7f627ea"
   },
   {
    "id": "path-literal:52d7c05491fb",
@@ -361992,7 +362312,7 @@
    "id": "path-literal:86a5c723657e",
    "type": "path-literal",
    "title": "/functions/v1/",
-   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/lib/commercialDemoEffects.ts",
    "line": 27,
    "surface": null,
@@ -362000,9 +362320,10 @@
     "src/lib/commercialDemoEffects.ts",
     "src/lib/commercialDemoHostSecurity.ts",
     "src/lib/iosCommerceFetch.ts",
-    "src/test/marketing-agent-bff.test.ts"
+    "src/test/marketing-agent-bff.test.ts",
+    "supabase/functions/tok-connect-app-bridge/index.ts"
    ],
-   "detailRef": "6a0c20e33a3f"
+   "detailRef": "99aa235cf02c"
   },
   {
    "id": "path-literal:4d3338389c80",
@@ -378905,7 +379226,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/tok-connect-remote-mcp/index.ts"
    ],
-   "detailRef": "7fa3ff418ddb"
+   "detailRef": "2e1df0dc3e48"
   },
   {
    "id": "query-parameter:53f1f1bd6ea8",
