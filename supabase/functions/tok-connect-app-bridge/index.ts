@@ -9,9 +9,17 @@ import {
 import { buildCorsHeaders, handleCorsPreflight, isRequestOriginAllowed } from "../_shared/cors.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { sha256Base64Url } from "../_shared/tok-connect.ts";
+import { buildVerifiedOrderPricing, isClientCheckoutRestaurantEligible } from "../_shared/order-pricing.ts";
+import {
+  normalizeTokCustomerCart,
+  assertTokCartAmountUnchanged,
+  safeTokCommerceCheckoutUrl,
+  TokCustomerCommerceError,
+  type TokCustomerCartInput,
+} from "../_shared/tok-connect-customer-commerce.ts";
 
 type JsonRecord = Record<string, unknown>;
-type BridgeMode = "edge" | "rpc" | "data" | "customer_history";
+type BridgeMode = "edge" | "rpc" | "data" | "customer_history" | "customer_commerce";
 type DataOperation = "select" | "insert" | "update" | "delete";
 type FilterOperator = "eq" | "neq" | "is" | "in";
 type BridgeFilter = { column: string; operator?: FilterOperator; value: unknown };
@@ -398,6 +406,253 @@ async function invokeData(actor: RequestActor, body: JsonRecord) {
   return { statusCode, payload: result };
 }
 
+
+/**
+ * First-party customer-commerce façade. Only identifiers, quantities and
+ * service preferences arrive from ChatGPT. All prices/discounts and capacity
+ * are checked by TOK. Stripe never receives totals computed in the widget.
+ */
+async function postCustomerTokFunction(req: Request, name: string, payload: JsonRecord) {
+  const authorization = req.headers.get("authorization") || "";
+  if (!/^Bearer\s+\S+$/i.test(authorization)) throw new HttpError(401, "tok_connect_login_required");
+  const headers = new Headers({
+    authorization, accept: "application/json", "content-type": "application/json",
+  });
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
+  if (anonKey) headers.set("apikey", anonKey);
+  const response = await fetch(SUPABASE_URL + "/functions/v1/" + name, {
+    method: "POST", headers, body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => null) as JsonRecord | null;
+  if (!response.ok || !isRecord(data) || data.error || data.ok === false) {
+    throw new HttpError(response.ok ? 422 : response.status,
+      typeof data?.error === "string" ? data.error
+        : typeof data?.error_message === "string" ? data.error_message
+        : "tok_connect_downstream_" + name.replace(/[^a-z-]/g, ""));
+  }
+  return data;
+}
+
+async function priceCustomerCart(actor: RequestActor, input: TokCustomerCartInput) {
+  if (!actor.userId) throw new HttpError(401, "tok_connect_user_required");
+  const { data: restaurant, error: restaurantError } = await actor.adminClient
+    .from("restaurants")
+    .select("id,name,is_active,status,is_demo")
+    .eq("id", input.restaurant_id)
+    .maybeSingle();
+  if (restaurantError) throw new HttpError(503, "tok_cart_restaurant_unavailable");
+  if (!isClientCheckoutRestaurantEligible(restaurant)) {
+    throw new HttpError(409, "tok_cart_restaurant_not_open_for_checkout");
+  }
+
+  const metadata: JsonRecord = {
+    payment_method: input.payment_method,
+    ...(input.journey === "zero-attente"
+      ? { arrival_date: input.date, arrival_time: input.time, party_size: input.party_size }
+      : { pickup_date: input.date, pickup_time: input.time }),
+  };
+  let pricing: Awaited<ReturnType<typeof buildVerifiedOrderPricing>>;
+  try {
+    pricing = await buildVerifiedOrderPricing({
+      adminClient: actor.adminClient,
+      userId: actor.userId,
+      restaurantId: input.restaurant_id,
+      items: input.items.map((item) => ({
+        menu_item_id: item.menu_item_id, quantity: item.quantity,
+        // These placeholders are ignored by the authoritative menu lookup.
+        unit_price: 0, metadata: {},
+      })),
+      deliveryFee: 0, metadata,
+      context: input.journey === "zero-attente" ? "zero-attente" : "cart",
+      reservationDate: input.date, reservationTime: input.time,
+    });
+  } catch {
+    throw new HttpError(409, "tok_cart_menu_or_service_unavailable");
+  }
+
+  if (input.journey === "zero-attente") {
+    const { data: rawSlots, error: slotError } = await actor.adminClient.rpc(
+      "get_restaurant_reservation_slot_availability",
+      { p_restaurant_id: input.restaurant_id, p_date: input.date },
+    );
+    if (slotError) throw new HttpError(503, "tok_cart_availability_unavailable");
+    const slots = Array.isArray(rawSlots) ? rawSlots : [];
+    const hasSlot = slots.some((slot) => {
+      if (!isRecord(slot)) return false;
+      const time = String(slot.slot_time || slot.time || "").slice(0, 5);
+      return time === input.time && slot.available !== false &&
+        (slot.remaining_tables == null || Number(slot.remaining_tables) > 0);
+    });
+    if (!hasSlot) throw new HttpError(409, "tok_cart_table_not_available");
+  }
+
+  const totalCents = Math.round(pricing.total * 100);
+  if (!Number.isSafeInteger(totalCents) || totalCents < 0 || totalCents > 1_000_000) {
+    throw new HttpError(400, "tok_cart_total_out_of_range");
+  }
+  const items = pricing.validatedItems.map((item) => ({
+    menu_item_id: item.menuItemId, restaurant_id: input.restaurant_id,
+    name: item.name, price: item.unitPrice, quantity: item.quantity,
+    restaurant_name: String(restaurant.name || ""),
+    metadata: {},
+  }));
+  return {
+    pricing,
+    items,
+    customer_quote: {
+      restaurant_id: input.restaurant_id, restaurant_name: String(restaurant.name || ""),
+      journey: input.journey, date: input.date, time: input.time,
+      party_size: input.party_size, payment_method: input.payment_method,
+      currency: "CHF", subtotal_cents: Math.round(pricing.subtotal * 100),
+      discount_cents: Math.round(pricing.discountAmount * 100),
+      total_cents: totalCents,
+      items: items.map((item) => ({
+        menu_item_id: item.menu_item_id, name: item.name, quantity: item.quantity,
+        unit_amount_cents: Math.round(item.price * 100),
+      })),
+      checked_at: new Date().toISOString(),
+      // A quote is a preview, never a promise of remaining inventory.
+      requires_confirmation: true, checkout_created: false,
+    },
+  };
+}
+
+async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: JsonRecord) {
+  assertRoles(actor, ["client"]);
+  if (!actor.userId) throw new HttpError(401, "tok_connect_user_required");
+  const action = String(body.action || "");
+  if (action === "status") {
+    const id = String(body.payment_attempt_id || "");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+      throw new HttpError(400, "tok_cart_payment_attempt_invalid");
+    }
+    const status = await postCustomerTokFunction(req, "payment-attempt-status", {
+      payment_attempt_id: id,
+    });
+    const url = safeTokCommerceCheckoutUrl(status.url);
+    return {
+      statusCode: 200,
+      payload: { ok: true, action: "status", payment_attempt_id: id,
+        state: status.state || status.status || null,
+        checkout_url: url, paid: status.payment_status === "paid" || status.state === "finalized" },
+    };
+  }
+  if (action !== "quote" && action !== "checkout") {
+    throw new HttpError(400, "tok_cart_action_invalid");
+  }
+  const checkout = action === "checkout";
+  const input = normalizeTokCustomerCart(body, { checkout });
+  const { pricing, items, customer_quote } = await priceCustomerCart(actor, input);
+
+  const orderMetadata: JsonRecord = {
+    restaurant_id: input.restaurant_id,
+    checkout_kind: input.journey === "zero-attente" ? "zero-attente" : "order",
+    payment_method: input.payment_method,
+    pre_discount_subtotal: pricing.subtotal,
+    authoritative_total: pricing.total,
+    formula_applied: pricing.formulaName,
+    formula_discount: pricing.formulaDiscount,
+    formula_discount_amount: pricing.formulaDiscount,
+    formula_discount_percent: pricing.formulaDiscountPercent,
+    promotion_discount_amount: pricing.promoDiscount,
+    promotion_applied: pricing.promoName,
+    tok_one_discount_amount: pricing.tokOneDiscount,
+    tok_one_discount_percent: pricing.tokOneDiscountPercent,
+    points_to_redeem: 0,
+    points_discount_amount: 0,
+    delivery_fee: 0,
+    ...(input.journey === "zero-attente"
+      ? { arrival_date: input.date, arrival_time: input.time, party_size: input.party_size }
+      : { pickup_date: input.date, pickup_time: input.time }),
+  };
+
+  // The ordinary take-away service also validates restaurant kitchen capacity
+  // with the existing business endpoint; this preview cannot write an order.
+  const orderPayload: JsonRecord = {
+    restaurant_id: input.restaurant_id,
+    delivery_address: "",
+    delivery_fee: 0,
+    total_amount: pricing.total,
+    notes: input.notes,
+    items: items.map((item) => ({
+      menu_item_id: item.menu_item_id, restaurant_id: item.restaurant_id,
+      quantity: item.quantity, unit_price: item.price,
+      total_price: item.price * item.quantity, metadata: {},
+    })),
+    metadata: orderMetadata,
+  };
+  if (input.journey === "takeaway") {
+    const preview = await postCustomerTokFunction(req, "validate-order", {
+      ...orderPayload, preview_only: true,
+    });
+    if (Math.round(Number(preview.verified_total) * 100) !== customer_quote.total_cents) {
+      throw new HttpError(409, "tok_cart_price_changed_refresh_quote");
+    }
+  }
+
+  if (!checkout) {
+    return { statusCode: 200, payload: {
+      ok: true, action: "quote", quote: customer_quote,
+    } };
+  }
+  // No business mutation until the customer has approved a fresh server total.
+  assertTokCartAmountUnchanged(customer_quote.total_cents, input.expected_total_cents!);
+  if (input.journey === "takeaway" && customer_quote.total_cents === 0) {
+    throw new HttpError(409, "tok_cart_free_takeaway_requires_tok");
+  }
+  const paymentAttemptId = input.payment_attempt_id!;
+  const orderReference = (input.journey === "zero-attente" ? "ZA-" : "CMD-")
+    + paymentAttemptId.slice(0, 13).toUpperCase();
+  Object.assign(orderMetadata, {
+    payment_attempt_id: paymentAttemptId,
+    checkout_group_id: paymentAttemptId,
+    order_reference: orderReference,
+    tok_connect_expected_total_cents: customer_quote.total_cents,
+  });
+
+  let preparedOrderId: string | null = null;
+  if (input.journey === "takeaway") {
+    const prepared = await postCustomerTokFunction(req, "validate-order", {
+      ...orderPayload,
+      checkout_id: paymentAttemptId,
+      metadata: {
+        ...orderMetadata, checkout_session_state: "pending",
+        requires_stripe_checkout: true,
+      },
+    });
+    if (Math.round(Number(prepared.verified_total) * 100) !== customer_quote.total_cents) {
+      throw new HttpError(409, "tok_cart_price_changed_refresh_quote");
+    }
+    preparedOrderId = typeof prepared.order_id === "string" ? prepared.order_id : null;
+    if (!preparedOrderId) throw new HttpError(503, "tok_cart_pending_order_missing");
+    orderMetadata.primary_order_id = preparedOrderId;
+    orderMetadata.checkout_session_state = "pending";
+  }
+
+  const kind = input.journey === "zero-attente" ? "zero-attente" : "order";
+  const fixedReturnUrl = input.journey === "zero-attente"
+    ? "https://www.thetok.ch/zero-attente"
+    : "https://www.thetok.ch/commande/confirmation";
+  const downstream = await postCustomerTokFunction(req, "create-checkout", {
+    payment_attempt_id: paymentAttemptId,
+    checkout_kind: kind,
+    payment_method: input.payment_method,
+    return_url: fixedReturnUrl,
+    items,
+    order_metadata: orderMetadata,
+  });
+  const checkoutUrl = safeTokCommerceCheckoutUrl(downstream.url);
+  if (!checkoutUrl) {
+    throw new HttpError(503, "tok_cart_checkout_url_unavailable");
+  }
+  return { statusCode: 200, payload: {
+    ok: true, action: "checkout", checkout_url: checkoutUrl,
+    checkout_kind: kind, payment_attempt_id: paymentAttemptId,
+    order_id: preparedOrderId, total_cents: customer_quote.total_cents,
+    currency: "CHF", payment_status: "pending", reservation_confirmed: false,
+  } };
+}
+
 async function invokeCustomerHistory(actor: RequestActor, body: JsonRecord) {
   if (!actor.userClient || !actor.userId) throw new HttpError(401, "tok_connect_user_required");
   const kind = body.kind === "orders" ? "orders" : body.kind === "reservations" ? "reservations" : null;
@@ -454,6 +709,9 @@ Deno.serve(async (req) => {
     } else if (mode === "customer_history") {
       auditAction = `customer_history:${String(body.kind || "unknown")}`;
       result = await invokeCustomerHistory(actor, body);
+    } else if (mode === "customer_commerce") {
+      auditAction = "customer_commerce:" + String(body.action || "unknown");
+      result = await invokeCustomerCommerce(req, actor, body);
     } else {
       throw new HttpError(400, "tok_connect_bridge_mode_invalid");
     }
@@ -469,7 +727,7 @@ Deno.serve(async (req) => {
     });
     return jsonResponse(result.payload, result.statusCode, corsHeaders);
   } catch (error) {
-    const statusCode = error instanceof HttpError ? error.status : 500;
+    const statusCode = error instanceof HttpError || error instanceof TokCustomerCommerceError ? error.status : 500;
     const message = error instanceof Error ? error.message : "tok_connect_app_bridge_error";
     if (actor) await writeAuditLog({
       adminClient: actor.adminClient,
