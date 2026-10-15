@@ -80,6 +80,15 @@ export async function renderMarketingOutputBlob(input: {
   if (!sourceWidth || !sourceHeight) throw new Error("MARKETING_OUTPUT_SOURCE_DIMENSIONS_MISSING");
 
   const plan = calculateMarketingOutputPlan(sourceWidth, sourceHeight, input.target);
+  if (input.target.destination === "print") {
+    const sourceRatio = sourceWidth / sourceHeight;
+    const expectedRatio = targetDimensions.widthPx / targetDimensions.heightPx;
+    // Print media must never silently crop a logo or text from the AI raster.
+    // Only a proportional scale with pixel-rounding tolerance is permitted.
+    if (Math.abs(sourceRatio / expectedRatio - 1) > 0.001) {
+      throw new Error("PRINT_NATIVE_IMAGE_RATIO_MISMATCH_REGENERATE_WITH_TARGET_FORMAT");
+    }
+  }
   const canvas = document.createElement("canvas");
   canvas.width = targetDimensions.widthPx;
   canvas.height = targetDimensions.heightPx;
@@ -89,10 +98,10 @@ export async function renderMarketingOutputBlob(input: {
   context.imageSmoothingQuality = "high";
   context.drawImage(
     image,
-    plan.crop.sourceX,
-    plan.crop.sourceY,
-    plan.crop.sourceWidth,
-    plan.crop.sourceHeight,
+    input.target.destination === "print" ? 0 : plan.crop.sourceX,
+    input.target.destination === "print" ? 0 : plan.crop.sourceY,
+    input.target.destination === "print" ? sourceWidth : plan.crop.sourceWidth,
+    input.target.destination === "print" ? sourceHeight : plan.crop.sourceHeight,
     0,
     0,
     targetDimensions.widthPx,

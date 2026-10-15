@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f1c4c4933e2bd38506712502193577b9cdedebc095bcc95cca719548c7d45268`
+- Empreinte SHA-256 des sources indexées : `bc4fd3fc2be55090d350405e398b6fd657785fd2d3a18e5e03367995cd35a5f8`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,7 +28,7 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2893 |
+| databaseObjects | 2895 |
 | documents | 205 |
 | edgeFunctions | 117 |
 | edgeHttpRoutes | 20 |
@@ -37,22 +37,22 @@
 | frontendRoutes | 142 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 544 |
-| modules | 1587 |
+| migrations | 545 |
+| modules | 1588 |
 | pages | 132 |
 | pathLiterals | 751 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 108 |
-| records | 17082 |
-| repositoryFiles | 3215 |
+| records | 17090 |
+| repositoryFiles | 3218 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 29 |
+| workflows | 30 |
 
 ## État distant observé
 
@@ -1924,7 +1924,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /src/pages/CommercialProspection.tsx | 1 | [scripts/check-commercial-map.mjs:37](../../scripts/check-commercial-map.mjs#L37) |
 | /src/pages/dashboard/DashboardCampagnes.tsx | 1 | [scripts/check-campaign-layout.mjs:54](../../scripts/check-campaign-layout.mjs#L54) |
 | /storage/v1/object | 2 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:104](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L104) |
-| /storage/v1/object/ | 1 | [supabase/functions/_shared/print/pdf.ts:84](../../supabase/functions/_shared/print/pdf.ts#L84) |
+| /storage/v1/object/ | 1 | [supabase/functions/_shared/print/pdf.ts:52](../../supabase/functions/_shared/print/pdf.ts#L52) |
 | /storage/v1/object/public/ | 2 | [src/lib/optimizedImages.ts:27](../../src/lib/optimizedImages.ts#L27) |
 | /storage/v1/object/sign/commercial-demo-ai/ | 1 | [src/pages/dashboard/DashboardPhotos.tsx:87](../../src/pages/dashboard/DashboardPhotos.tsx#L87) |
 | /storage/v1/render/image/public/ | 1 | [src/lib/optimizedImages.ts:35](../../src/lib/optimizedImages.ts#L35) |
@@ -2400,7 +2400,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (787)</summary>
+<details><summary>function (788)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2965,6 +2965,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.publish_restaurant_daily_dish` (2 définition(s))
 - `public.queue_directory_image_candidate` (1 définition(s))
 - `public.queue_notification_deliveries` (3 définition(s))
+- `public.queue_print_order_emails` (1 définition(s))
 - `public.queue_reservation_card_cancellation_fee` (1 définition(s))
 - `public.queue_restaurant_image_discovery_after_name_verification` (2 définition(s))
 - `public.queue_tok_paid_invoice_email` (1 définition(s))
@@ -3192,7 +3193,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (684)</summary>
+<details><summary>index (685)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3850,6 +3851,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `ux_developer_stripe_transfers_idempotency` (1 définition(s))
 - `ux_developer_stripe_transfers_statement_mode` (1 définition(s))
 - `ux_developer_stripe_transfers_stripe_id` (1 définition(s))
+- `ux_email_queue_print_order_email_key` (1 définition(s))
 - `ux_email_queue_tok_paid_invoice` (1 définition(s))
 - `ux_financial_ledger_mode_payment_intent_asset` (1 définition(s))
 - `ux_financial_ledger_source_account_direction` (2 définition(s))
@@ -6164,6 +6166,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261014153000 Admin Ai Gifts Fast Restaurants | 636 | 21 | [supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql:1](../../supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql#L1) |
 | 20261014165500 Tok Workforce Restaurants | 312 | 49 | [supabase/migrations/20261014165500_tok_workforce_restaurants.sql:1](../../supabase/migrations/20261014165500_tok_workforce_restaurants.sql#L1) |
 | 20261014180000 Tok Workforce Clock Teams | 439 | 34 | [supabase/migrations/20261014180000_tok_workforce_clock_teams.sql:1](../../supabase/migrations/20261014180000_tok_workforce_clock_teams.sql#L1) |
+| 20261015073400 Print Order Receipts And Invoices | 238 | 2 | [supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql:1](../../supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6246,6 +6249,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 
 | Workflow | Jobs | Source |
 | --- | --- | --- |
+| Print Branch Sync Once | — | [.github/workflows/_print_branch_sync_once.yml](../../.github/workflows/_print_branch_sync_once.yml) |
 | Reusable validation | critical_tests, full_tests, plan, quality, related_tests, validate, windows_worker_tests, worker_tests | [.github/workflows/_validation.yml](../../.github/workflows/_validation.yml) |
 | Actualites billing PostgreSQL replay | replay | [.github/workflows/actualites-billing-postgres.yml](../../.github/workflows/actualites-billing-postgres.yml) |
 | App Store Build 3 Trigger | dispatch | [.github/workflows/app-store-build3-trigger.yml](../../.github/workflows/app-store-build3-trigger.yml) |
@@ -6390,7 +6394,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 243 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 707 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 708 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6411,7 +6415,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 626 |
+| test | 627 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6984,8 +6988,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (29)</summary>
+<details><summary>ci-workflow (30)</summary>
 
+- `.github/workflows/_print_branch_sync_once.yml`
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
 - `.github/workflows/app-store-build3-trigger.yml`
@@ -7018,7 +7023,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (544)</summary>
+<details><summary>database-migration (545)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7564,6 +7569,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261014153000_admin_ai_gifts_fast_restaurants.sql`
 - `supabase/migrations/20261014165500_tok_workforce_restaurants.sql`
 - `supabase/migrations/20261014180000_tok_workforce_clock_teams.sql`
+- `supabase/migrations/20261015073400_print_order_receipts_and_invoices.sql`
 
 </details>
 
@@ -9280,7 +9286,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (626)</summary>
+<details><summary>test (627)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9692,6 +9698,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/print-catalog-admin-pagination.test.tsx`
 - `src/test/print-composer-source-format.test.tsx`
 - `src/test/print-export-source-format.test.ts`
+- `src/test/print-native-only-and-email.test.ts`
 - `src/test/print-orchestrator-runtime.test.ts`
 - `src/test/print-pdf-dimensions.test.ts`
 - `src/test/print-source-format.test.ts`

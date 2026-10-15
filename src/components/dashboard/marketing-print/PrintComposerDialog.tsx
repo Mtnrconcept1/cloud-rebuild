@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -247,15 +248,11 @@ export default function PrintComposerDialog({
   const [catalog, setCatalog] = useState<PrintCatalogProduct[]>([]);
   const [selectedAssetId, setSelectedAssetId] = useState("");
   const [selectedVariantId, setSelectedVariantId] = useState("");
-  const [title, setTitle] = useState("Votre offre du moment");
-  const [subtitle, setSubtitle] = useState("");
-  const [price, setPrice] = useState("");
-  const [cta, setCta] = useState("Réservez maintenant");
-  const [qrUrl, setQrUrl] = useState("");
   const [quantity, setQuantity] = useState(250);
   const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
   const [exportId, setExportId] = useState<string | null>(null);
   const [approved, setApproved] = useState(false);
+  const [safeAreaAcknowledged, setSafeAreaAcknowledged] = useState(false);
   const [quote, setQuote] = useState<PrintQuoteResult | null>(null);
   const [preparedDocument, setPreparedDocument] = useState<MarketingPrintDocument | null>(null);
   const [working, setWorking] = useState<"export" | "approve" | "quote" | "checkout" | null>(null);
@@ -275,6 +272,7 @@ export default function PrintComposerDialog({
     setAssets([]);
     setExportId(null);
     setApproved(false);
+    setSafeAreaAcknowledged(false);
     setQuote(null);
     setPreparedDocument(null);
     Promise.all([
@@ -324,6 +322,7 @@ export default function PrintComposerDialog({
     setApproved(false);
     setQuote(null);
     setPreparedDocument(null);
+    setSafeAreaAcknowledged(false);
   }, [selectedVariantId, selectedVariant]);
 
   useEffect(() => {
@@ -331,18 +330,13 @@ export default function PrintComposerDialog({
     setApproved(false);
     setQuote(null);
     setPreparedDocument(null);
-  }, [selectedAssetId, title, subtitle, price, cta, qrUrl]);
+    setSafeAreaAcknowledged(false);
+  }, [selectedAssetId]);
 
   const document = useMemo<MarketingPrintDocument | null>(() => {
     if (!selectedAsset || !selectedVariant) return null;
-    const texts = [
-      { id: "title", kind: "title" as const, text: title, x: 0.09, y: 0.10, width: 0.82, height: 0.16, align: "center" as const, fontSizeMm: 8, weight: "bold" as const, color: "#ffffff" },
-      ...(subtitle.trim() ? [{ id: "subtitle", kind: "subtitle" as const, text: subtitle.trim(), x: 0.12, y: 0.29, width: 0.76, height: 0.10, align: "center" as const, fontSizeMm: 4.5, weight: "bold" as const, color: "#ffffff" }] : []),
-      ...(price.trim() ? [{ id: "price", kind: "price" as const, text: price.trim(), x: 0.17, y: 0.55, width: 0.40, height: 0.12, align: "left" as const, fontSizeMm: 8, weight: "bold" as const, color: "#ffffff" }] : []),
-      ...(cta.trim() ? [{ id: "cta", kind: "cta" as const, text: cta.trim(), x: 0.12, y: 0.76, width: qrUrl.trim() ? 0.50 : 0.76, height: 0.10, align: "left" as const, fontSizeMm: 4.5, weight: "bold" as const, color: "#ffffff" }] : []),
-    ];
     return createMarketingPrintDocument({
-      title: title || selectedAsset.name,
+      title: selectedAsset.name,
       background: {
         url: selectedAsset.url,
         mimeType: selectedAsset.mimeType,
@@ -350,12 +344,10 @@ export default function PrintComposerDialog({
         heightPx: selectedAsset.heightPx,
       },
       sourceGenerationId: selectedAsset.sourceGenerationId || selectedAsset.id,
-      texts,
-      qr: qrUrl.trim() ? { value: qrUrl.trim(), x: 0.70, y: 0.70, size: 0.18 } : null,
       orientation: selectedVariant.widthMm === selectedVariant.heightMm
         ? "square" : selectedVariant.widthMm > selectedVariant.heightMm ? "landscape" : "portrait",
     });
-  }, [selectedAsset, selectedVariant, title, subtitle, price, cta, qrUrl]);
+  }, [selectedAsset, selectedVariant]);
 
   const renderingPlan = useMemo(() => {
     if (!selectedAsset || !selectedVariant || !selectedProduct) return null;
@@ -427,6 +419,7 @@ export default function PrintComposerDialog({
       setPreparedDocument(exactDocument);
       setExportId(result.exportId);
       setApproved(false);
+      setSafeAreaAcknowledged(false);
       setQuote(null);
       uploadedPath = null;
       toast({
@@ -444,10 +437,10 @@ export default function PrintComposerDialog({
   }
 
   async function approve() {
-    if (!exportId) return;
+    if (!exportId || !safeAreaAcknowledged) return;
     setWorking("approve");
     try {
-      await approvePrintExport({ restaurantId, exportId });
+      await approvePrintExport({ restaurantId, exportId, safeAreaAcknowledged });
       setApproved(true);
       toast({ title: "BAT approuvé", description: "Cette version est maintenant verrouillée pour l’impression." });
     } catch (error) {
@@ -535,6 +528,13 @@ export default function PrintComposerDialog({
                 <p className="text-xs text-muted-foreground">Format et orientation verrouillés sur la création générée.</p>
               </div>
 
+              {selectedAsset && selectedVariant && !renderingPlan ? (
+                <div className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+                  Le ratio natif de ce visuel ne correspond pas à celui du support, fond perdu compris.
+                  Pour protéger vos textes et logos, TOK refuse toute recoupe automatique : demandez
+                  une génération native dans le format exact, ou choisissez un support compatible.
+                </div>
+              ) : null}
               {renderingPlan && selectedVariant ? (
                 <div className={renderingPlan.blocked
                   ? "rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100"
@@ -554,13 +554,9 @@ export default function PrintComposerDialog({
                 </div>
               ) : null}
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div><Label>Titre</Label><Input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={80} /></div>
-                <div><Label>Prix / accroche courte</Label><Input value={price} onChange={(event) => setPrice(event.target.value)} placeholder="CHF 39.–" maxLength={40} /></div>
-              </div>
-              <div><Label>Sous-titre</Label><Input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} maxLength={120} /></div>
-              <div><Label>Appel à l’action</Label><Input value={cta} onChange={(event) => setCta(event.target.value)} maxLength={80} /></div>
-              <div><Label>QR code (optionnel)</Label><Input value={qrUrl} onChange={(event) => setQrUrl(event.target.value)} placeholder="https://www.thetok.ch/..." /></div>
+              <p className="rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm leading-6 text-orange-950">
+                Le visuel imprimé est exclusivement l'image créée par IA. Aucun titre, prix, QR code ou logo n'est ajouté au moment de l'impression. Pour modifier un élément, retournez dans le Studio Marketing et demandez une retouche de l'image par prompt avant de préparer un nouveau BAT.
+              </p>
               <div>
                 <Label>Quantité</Label>
                 <Input
@@ -600,9 +596,20 @@ export default function PrintComposerDialog({
 
             <div className="space-y-4">
               {(preparedDocument || plannedDocument) && selectedVariant ? <PrintProof document={(preparedDocument || plannedDocument)!} product={selectedVariant} approved={approved} /> : null}
+              {exportId && !approved ? (
+                <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm">
+                  <Checkbox id="print-safe-area-confirmed" checked={safeAreaAcknowledged}
+                    onCheckedChange={(checked) => setSafeAreaAcknowledged(checked === true)} />
+                  <Label htmlFor="print-safe-area-confirmed" className="cursor-pointer leading-6">
+                    J'ai contrôlé les repères de coupe et de sécurité du BAT : tous les textes, prix, logos, visages et QR codes
+                    sont intégrés au visuel et restent entièrement à l'intérieur de la zone verte,
+                    sans risque de coupe.
+                  </Label>
+                </div>
+              ) : null}
               <div className="flex flex-wrap gap-2">
-                {!exportId ? <Button disabled={!preflight?.ready || Boolean(renderingPlan?.blocked) || working !== null} onClick={() => void createExport()}>{working === "export" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Préparer le raster & générer le BAT</Button> : null}
-                {exportId && !approved ? <Button disabled={working !== null} onClick={() => void approve()}>{working === "approve" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}J’approuve ce BAT</Button> : null}
+                {!exportId ? <Button disabled={!renderingPlan || !preflight?.ready || Boolean(renderingPlan.blocked) || working !== null} onClick={() => void createExport()}>{working === "export" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Préparer le raster & générer le BAT</Button> : null}
+                {exportId && !approved ? <Button disabled={working !== null || !safeAreaAcknowledged} onClick={() => void approve()}>{working === "approve" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}J’approuve ce BAT</Button> : null}
                 {approved && !quote ? <Button disabled={working !== null} onClick={() => void quoteOrder()}>{working === "quote" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}Calculer le prix livré</Button> : null}
                 {quote ? <Button disabled={working !== null} onClick={() => void checkout()}>{working === "checkout" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}Payer {formatMoney(quote.customerAmountCents, quote.customerCurrency)}</Button> : null}
               </div>

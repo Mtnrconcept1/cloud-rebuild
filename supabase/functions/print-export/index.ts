@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
     if (action === "approve") {
       await assertProductionFlowAllowed(actor, "approbation BAT impression");
       const exportId = requireUuid(body.exportId, "exportId");
+      if (body.safeAreaAcknowledged !== true) throw new HttpError(400, "PRINT_SAFE_AREA_ACK_REQUIRED");
       const { data: existing, error: existingError } = await adminClient
         .from("print_exports")
         .select("id, restaurant_id, status, production_storage_path, preflight")
@@ -105,7 +106,7 @@ Deno.serve(async (req) => {
         status: "success",
         targetEntityType: "print_exports",
         targetEntityId: exportId,
-        metadata: { restaurant_id: restaurantId },
+        metadata: { restaurant_id: restaurantId, visual_safe_area_acknowledged: true },
       });
       return jsonResponse({
         exportId: approved.id,

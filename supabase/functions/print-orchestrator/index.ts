@@ -19,6 +19,35 @@ function backoffIso(attempt: number) {
   return new Date(Date.now() + seconds * 1000).toISOString();
 }
 
+// Best effort transactional outbox. A mail-provider or queue failure must
+// never roll back the payment nor delay Cloudprinter fulfillment.
+async function queueRecentPaidPrintEmails(adminClient: any, limit: number) {
+  const { data: orders, error } = await adminClient.from("print_orders")
+    .select("id")
+    .eq("payment_status", "paid")
+    .order("paid_at", { ascending: false })
+    .limit(Math.min(50, Math.max(1, limit)));
+  if (error) {
+    console.error("[print-orchestrator] email_queue_scan_failed", error.message);
+    return 0;
+  }
+  let queued = 0;
+  for (const order of orders || []) {
+    const { data, error: queueError } = await adminClient.rpc("queue_print_order_emails", {
+      p_order_id: order.id,
+    });
+    if (queueError) {
+      console.error("[print-orchestrator] print_order_email_queue_failed", {
+        orderId: order.id,
+        code: queueError.code || "unknown",
+      });
+      continue;
+    }
+    queued += Number(data?.queued || 0);
+  }
+  return queued;
+}
+
 async function reconcileFinalizedPayments(adminClient: any, limit: number) {
   const { data: orders, error } = await adminClient
     .from("print_orders")
@@ -277,6 +306,7 @@ Deno.serve(async (req) => {
     }
 
     const finalizedPayments = await reconcileFinalizedPayments(adminClient, Math.min(50, limit * 5));
+    const queuedMerchantEmails = await queueRecentPaidPrintEmails(adminClient, Math.min(50, limit * 5));
     const results: unknown[] = [];
     const workerId = `print-orchestrator:${crypto.randomUUID()}`;
     // Reserve only work that starts immediately: later jobs cannot lose their
@@ -319,9 +349,9 @@ Deno.serve(async (req) => {
       action: "run",
       status: "success",
       targetEntityType: "print_fulfillment_jobs",
-      metadata: { finalized_payments: finalizedPayments, claimed_jobs: results.length },
+      metadata: { finalized_payments: finalizedPayments, queued_merchant_emails: queuedMerchantEmails, claimed_jobs: results.length },
     });
-    return jsonResponse({ ok: true, finalizedPayments, results }, 200, cors);
+    return jsonResponse({ ok: true, finalizedPayments, queuedMerchantEmails, results }, 200, cors);
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message.replace(/[\r\n]+/g, " ").slice(0, 500) : "Erreur orchestrateur impression";

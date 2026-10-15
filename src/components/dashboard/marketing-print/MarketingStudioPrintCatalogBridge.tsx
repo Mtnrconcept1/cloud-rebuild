@@ -12,6 +12,7 @@ import {
   getMarketingOutputSessionSnapshot,
   setMarketingOutputSession,
   subscribeMarketingOutputSession,
+  isNativePrintRatioCompatible,
 } from "@/lib/marketing/outputSession";
 
 type Props = {
@@ -193,7 +194,8 @@ export default function MarketingStudioPrintCatalogBridge({
       {printMode ? printSupportTargets.map((target) => {
         const selected = outputSession.target?.id === target.id;
         const plan = calculateMarketingOutputPlan(target.nativeWidthPx, target.nativeHeightPx, target);
-        const blocked = plan.upscaleFactor > MAX_PRINT_UPSCALE_FACTOR;
+        const incompatibleRatio = !isNativePrintRatioCompatible(target);
+        const blocked = plan.upscaleFactor > MAX_PRINT_UPSCALE_FACTOR || incompatibleRatio;
         return (
           <button
             key={target.id}
@@ -213,7 +215,7 @@ export default function MarketingStudioPrintCatalogBridge({
               <span>
                 <span className="block text-base font-bold text-foreground">{target.label}</span>
                 <span className="mt-1 block text-xs leading-5 text-muted-foreground">{printTargetDescription(target)}</span>
-                {blocked ? <span className="mt-1 block text-[11px] font-semibold text-red-600">Résolution source insuffisante</span> : null}
+                {blocked ? <span className="mt-1 block text-[11px] font-semibold text-red-600">{incompatibleRatio ? "Format natif IA incompatible sans recadrage" : "Résolution source insuffisante"}</span> : null}
               </span>
             </div>
           </button>

@@ -23,6 +23,7 @@ import {
   getMarketingOutputSessionSnapshot,
   setMarketingOutputSession,
   subscribeMarketingOutputSession,
+  isNativePrintRatioCompatible,
 } from "@/lib/marketing/outputSession";
 import { getPrintGenerationCatalog } from "@/lib/print/client";
 import { cn } from "@/lib/utils";
@@ -71,7 +72,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
   const expectedPlan = selectedTarget
     ? calculateMarketingOutputPlan(selectedTarget.nativeWidthPx, selectedTarget.nativeHeightPx, selectedTarget)
     : null;
-  const printBlocked = selectedTarget?.destination === "print" && expectedPlan?.quality === "upscale_blocked";
+  const printBlocked = selectedTarget?.destination === "print" && (expectedPlan?.quality === "upscale_blocked" || !isNativePrintRatioCompatible(selectedTarget));
 
   useEffect(() => subscribeAiCreationRecords(setRecords), []);
 
@@ -83,7 +84,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
       destination,
       targets: availableTargets,
       target: nextTarget && !(nextTarget.destination === "print"
-        && calculateMarketingOutputPlan(nextTarget.nativeWidthPx, nextTarget.nativeHeightPx, nextTarget).quality === "upscale_blocked")
+        && (calculateMarketingOutputPlan(nextTarget.nativeWidthPx, nextTarget.nativeHeightPx, nextTarget).quality === "upscale_blocked" || !isNativePrintRatioCompatible(nextTarget)))
         ? nextTarget
         : null,
     });
@@ -121,7 +122,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
     setMarketingOutputSession({
       destination,
       targets: availableTargets,
-      target: target.destination === "print" && plan.quality === "upscale_blocked" ? null : target,
+      target: target.destination === "print" && (plan.quality === "upscale_blocked" || !isNativePrintRatioCompatible(target)) ? null : target,
     });
     setDownloadError(null);
   };

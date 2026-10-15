@@ -163,6 +163,21 @@ Deno.serve(async (req) => {
       if (finalizeOrderError) throw finalizeOrderError;
     }
 
+    // The zero-amount sandbox transaction is complete and verified at this
+    // point. Queue the same detailed documents as a live paid order, but
+    // explicitly label the invoice as a test with no fiscal value.
+    let merchantEmailsQueued = 0;
+    let merchantEmailError: string | null = null;
+    try {
+      const { data, error } = await adminClient.rpc("queue_print_order_emails", {
+        p_order_id: order.id,
+      });
+      if (error) throw error;
+      merchantEmailsQueued = Number(data?.queued || 0);
+    } catch (error) {
+      merchantEmailError = error instanceof Error ? error.message.slice(0, 250) : "email_outbox_unavailable";
+    }
+
     let orchestratorTriggered = false;
     let orchestratorError: string | null = null;
     try {
@@ -191,6 +206,8 @@ Deno.serve(async (req) => {
         stripe_mode: "test",
         amount_cents: 0,
         no_financial_ledger: true,
+        merchant_emails_queued: merchantEmailsQueued,
+        merchant_email_error: merchantEmailError,
         orchestrator_triggered: orchestratorTriggered,
         orchestrator_error: orchestratorError,
       },

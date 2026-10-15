@@ -13,25 +13,25 @@ const root = process.cwd();
 const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 const printTarget: MarketingOutputTarget = {
-  id: "print:flyer-a6",
+  id: "print:card-square",
   destination: "print",
-  label: "Flyer A6",
+  label: "Carte carrée",
   group: "Impression Cloudprinter",
-  widthPx: 1311,
-  heightPx: 1819,
-  ratioLabel: "105:148",
-  nativeFormat: "portrait",
+  widthPx: 720,
+  heightPx: 720,
+  ratioLabel: "1:1",
+  nativeFormat: "square",
   nativeWidthPx: 1024,
-  nativeHeightPx: 1536,
+  nativeHeightPx: 1024,
   targetDpi: 300,
   print: {
     productId: "flyer-a6",
     providerProductId: "provider-a6",
-    providerReference: "card_flat_105x148_mm_single_fc_tnr",
+    providerReference: "card_flat_55x55_mm_single_fc_tnr",
     marketingToolId: "flyer",
     category: "flyer",
-    widthMm: 105,
-    heightMm: 148,
+    widthMm: 55,
+    heightMm: 55,
     bleedMm: 3,
     safeMarginMm: 5,
     foldedWidthMm: null,
@@ -71,12 +71,32 @@ describe("Marketing Studio Cloudprinter destination", () => {
     expect(digitalRequest.prompt).not.toContain("AUCUN texte");
   });
 
+  it("rejects a real A6 aspect that the fixed native image model cannot fill without cropping", () => {
+    const unsupported: MarketingOutputTarget = {
+      ...printTarget,
+      id: "print:flyer-a6",
+      widthPx: 1311,
+      heightPx: 1819,
+      nativeFormat: "portrait",
+      nativeWidthPx: 1024,
+      nativeHeightPx: 1536,
+      print: { ...printTarget.print!, widthMm: 105, heightMm: 148, bleedMm: 3 },
+    };
+    setMarketingOutputSession({ destination: "print", targets: [unsupported], target: unsupported });
+    expect(() => applyMarketingOutputTargetToImageRequest({
+      restaurantId: "restaurant-demo",
+      prompt: "Promotion A6",
+      format: "portrait",
+      marketingAssetMode: true,
+    })).toThrow("MARKETING_PRINT_NATIVE_RATIO_UNSUPPORTED_NO_CROP");
+  });
+
   it("publishes the provider-backed target list so the Studio can replace generic print supports", () => {
     setMarketingOutputSession({ destination: "print", targets: [printTarget], target: printTarget });
     expect(getMarketingOutputSessionSnapshot()).toMatchObject({
       destination: "print",
-      target: { id: "print:flyer-a6" },
-      targets: [{ id: "print:flyer-a6" }],
+      target: { id: "print:card-square" },
+      targets: [{ id: "print:card-square" }],
     });
   });
 
