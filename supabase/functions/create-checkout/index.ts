@@ -2195,10 +2195,12 @@ Deno.serve(async (req) => {
     if (!isRestaurantOnboardingSetup) {
       sessionParams.line_items = lineItems;
     }
-    if (effectiveKind === "zero-attente" && finalCheckoutTotalCents === 0) {
-      // Stripe Checkout can complete a 100%-discounted order without a card.
-      sessionParams.payment_method_collection = "if_required";
-    }
+    // For fully discounted one-time Zero Attente checkouts, Stripe determines
+    // whether a payment method is required from the final total. Do not set
+    // payment_method_collection for payment mode: production Stripe rejected
+    // that override as requiring recurring prices. The server-verified coupon
+    // remains sealed in this attempt and the completed no-cost Session must
+    // still pass isCompletedNoCostZeroAttenteSession before confirmation.
 
     // Checkout payments capture immediately. Match Group is the only manual
     // capture flow and is handled by authorize-match-group-order.
