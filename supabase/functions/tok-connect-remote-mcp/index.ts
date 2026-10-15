@@ -304,6 +304,25 @@ const TOK_CLIENT_TOOLS = [
       "openai/visibility": "private" },
   },
   {
+    name: "tok_cancel_cart_payment_attempt",
+    title: "Annuler une tentative de paiement TOK",
+    description: "Expire the customer's own unpaid Stripe Checkout and release any reserved capacity after explicit confirmation; an indeterminate cancellation does not release the widget cart.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: {
+      type: "object", required: ["payment_attempt_id", "confirmed_by_user", "idempotency_key"],
+      properties: {
+        payment_attempt_id: { type: "string", format: "uuid" },
+        confirmed_by_user: { type: "boolean", const: true },
+        idempotency_key: { type: "string", minLength: 8, maxLength: 120 },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META,
+      ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] },
+      "openai/visibility": "private" },
+  },
+  {
     name: "tok_cancel_my_reservation",
     title: "Annuler ma réservation classique TOK",
     description: "Cancel an owned, unpaid classic reservation after explicit confirmation. Paid reservations require the dedicated TOK support/refund flow.",
@@ -323,7 +342,7 @@ const TOK_CLIENT_TOOLS = [
   },
 ] as const;
 const TOK_CLIENT_TOOL_NAMES = new Set(TOK_CLIENT_TOOLS.map((tool) => tool.name));
-const TOK_CLIENT_MUTATION_NAMES = new Set(["tok_book_table", "tok_cancel_my_reservation", "tok_checkout_customer_cart"]);
+const TOK_CLIENT_MUTATION_NAMES = new Set(["tok_book_table", "tok_cancel_my_reservation", "tok_checkout_customer_cart", "tok_cancel_cart_payment_attempt"]);
 
 function assertTokClientArgs(name: string, args: JsonRecord) {
   if (name === "tok_quote_reservation" || name === "tok_book_table") {
@@ -559,6 +578,11 @@ function bridgeToolBody(name: string, args: JsonRecord) {
     if (name === "tok_customer_payment_status") {
       return { mode: "customer_commerce", action: "status",
         payment_attempt_id: args.payment_attempt_id };
+    }
+    if (name === "tok_cancel_cart_payment_attempt") {
+      return { mode: "customer_commerce", action: "cancel_attempt",
+        payment_attempt_id: args.payment_attempt_id,
+        confirmed_by_user: args.confirmed_by_user };
     }
     if (name === "tok_quote_reservation") {
       return { mode: "edge", capability: "reservations.classic.quote", method: "POST",
