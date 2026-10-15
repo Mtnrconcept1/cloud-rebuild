@@ -993,7 +993,15 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
 
   function startCart(detail, mode) {
     if (!detail || !detail.id) return;
-    if (state.cart && state.cart.restaurantId === detail.id && state.cart.stage === 'pending') {
+    // An ambiguous checkout may already be payable. Never overwrite its
+    // idempotency key by opening a new cart, even at another restaurant.
+    if (state.cart && state.cart.attemptId) {
+      state.view = 'detail'; state.selectedId = state.cart.restaurantId;
+      var existingCard = findCard(state.cart.restaurantId);
+      if (existingCard && !state.details[existingCard.id]) {
+        state.details[existingCard.id] = Object.assign({}, existingCard, { kind: 'restaurant_detail', partial: true });
+      }
+      state.cart.error = 'Terminez ou annulez votre tentative Stripe avant de commencer une autre commande.';
       render(); return;
     }
     state.cart = {
@@ -1023,7 +1031,9 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     });
   }
 
-  function cartEditable(cart) { return cart.stage !== 'processing' && cart.stage !== 'pending'; }
+  function cartEditable(cart) {
+    return !cart.attemptId && cart.stage !== 'processing' && cart.stage !== 'pending';
+  }
   function cartChanged(cart) {
     if (!cartEditable(cart)) return;
     cart.quote = null; cart.attemptId = null; cart.checkoutUrl = null;
@@ -1086,10 +1096,11 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     }).catch(function (error) {
       if (state.cart !== cart) return;
       cart.error = String(error.message || error);
-      cart.stage = 'draft';
-      if (/PRICE_CHANGED|price_changed|requote/i.test(cart.error)) {
-        cart.attemptId = null; cart.quote = null;
-      }
+      // Stripe may have created a session despite a lost response.
+      // Keep the operation UUID frozen until status or cancellation proves
+      // it safe to start a different payment.
+      cart.stage = 'pending';
+      cart.message = 'État de paiement incertain. Vérifiez ou annulez cette tentative avant toute nouvelle commande.';
       persist();
     }).finally(function () { if (state.cart === cart) render(); });
   }
@@ -1107,6 +1118,35 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       }).catch(function (error) {
         if (state.cart === cart) cart.error = String(error.message || error);
       }).finally(function () { if (state.cart === cart) render(); });
+  }
+
+  function cancelCartPayment() {
+    var cart = state.cart;
+    if (!cart || !cart.attemptId) return;
+    if (!cart.cancelConfirmed) {
+      cart.cancelConfirmed = true; render(); return;
+    }
+    if (cart.cancelLoading) return;
+    cart.cancelLoading = true; cart.error = null; render();
+    invokeTokTool('tok_cancel_cart_payment_attempt', {
+      payment_attempt_id: cart.attemptId,
+      confirmed_by_user: true,
+      idempotency_key: 'tok-cancel:' + cart.attemptId
+    }).then(function (result) {
+      if (state.cart !== cart) return;
+      if (result.cancelled === true && result.state === 'cancelled') {
+        cart.attemptId = null; cart.checkoutUrl = null; cart.quote = null;
+        cart.stage = 'draft'; cart.message = 'Tentative annulée par TOK. Vous pouvez modifier le panier et demander un nouveau devis.';
+        cart.cancelConfirmed = false;
+      } else {
+        cart.message = 'Annulation en cours de vérification : le panier reste verrouillé.';
+      }
+      persist();
+    }).catch(function (error) {
+      if (state.cart === cart) cart.error = String(error.message || error);
+    }).finally(function () {
+      if (state.cart === cart) { cart.cancelLoading = false; render(); }
+    });
   }
 
   function loadMyOrders() {
@@ -1226,9 +1266,14 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     if (cart.checkoutUrl) nodes.push(h('button', { class: 'btn primary', type: 'button',
       onClick: function () { openLink(cart.checkoutUrl); }
     }, 'Reprendre le paiement Stripe'));
-    if (cart.attemptId) nodes.push(h('button', { class: 'btn', type: 'button',
-      onClick: checkCartPayment
-    }, 'Vérifier le paiement'));
+    if (cart.attemptId) {
+      nodes.push(h('button', { class: 'btn', type: 'button',
+        onClick: checkCartPayment
+      }, 'Vérifier le paiement'));
+      nodes.push(h('button', { class: 'btn', type: 'button', disabled: cart.cancelLoading,
+        onClick: cancelCartPayment
+      }, cart.cancelConfirmed ? 'Confirmer l’annulation de Stripe' : 'Annuler cette tentative de paiement'));
+    }
     nodes.push(h('button', { class: 'btn', type: 'button', onClick: loadMyOrders }, 'Mes commandes'));
     nodes.push(h('p', { class: 'tok-cart-alert',
       text: 'Seule la confirmation serveur TOK après paiement valide une commande ou une réservation. Aucune donnée bancaire ne transite par le widget.' }));
