@@ -240,7 +240,7 @@ const TOK_CLIENT_MUTATION_NAMES = new Set(["tok_book_table", "tok_cancel_my_rese
 
 function assertTokClientArgs(name: string, args: JsonRecord) {
   if (name === "tok_quote_reservation" || name === "tok_book_table") {
-    if (!Number.isInteger(args.party_size) || Number(args.party_size) < 1 || Number(args.party_size) > 20)
+    if (typeof args.party_size !== "number" || !Number.isInteger(args.party_size) || args.party_size < 1 || args.party_size > 20)
       throw new McpProtocolError(-32602, "tok_party_size_invalid", 400);
   }
   if (name === "tok_book_table") {
