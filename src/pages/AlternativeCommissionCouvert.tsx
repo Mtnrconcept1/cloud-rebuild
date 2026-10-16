@@ -257,8 +257,9 @@ export default function AlternativeCommissionCouvert() {
           </div>
 
           <div className="grid gap-3 rounded-lg border border-white/14 bg-white/12 p-5 shadow-2xl backdrop-blur-md">
-            <MetricDark label="Tables réellement servies" value={simulation.honoredTables.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
-            <MetricDark label="Personnes réellement servies" value={simulation.honoredCovers.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
+            <p className="text-sm leading-6 text-white/80">Exemple modifiable ci-dessous : {tablesPerMonth} réservations prévues par mois, {noShowRate} % d'annulations ou d'absences.</p>
+            <MetricDark label="Tables servies estimées" value={simulation.honoredTables.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
+            <MetricDark label="Personnes servies estimées" value={simulation.honoredCovers.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
             <MetricDark label="Coût au couvert" value={formatChf(simulation.perCoverCost)} />
             <MetricDark label={simulation.difference >= 0 ? "Coût en moins avec TOK / mois" : "Coût en plus avec TOK / mois"} value={formatChf(Math.abs(simulation.difference))} accent />
           </div>
@@ -333,8 +334,8 @@ export default function AlternativeCommissionCouvert() {
             </div>
 
             <div className="grid gap-3 rounded-lg bg-slate-950 p-4 text-white">
-              <MetricDark label="1. Tables réellement servies" value={simulation.honoredTables.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
-              <MetricDark label="2. Personnes réellement servies" value={simulation.honoredCovers.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
+              <MetricDark label="1. Tables servies estimées" value={simulation.honoredTables.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
+              <MetricDark label="2. Personnes servies estimées" value={simulation.honoredCovers.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
               <MetricDark label="3. Modèle au couvert" value={formatChf(simulation.perCoverCost)} />
               <MetricDark label={"4. TOK · " + simulation.planName} value={formatChf(simulation.tokEstimatedCost)} />
               <MetricDark label="Forfait TOK / table servie" value={simulation.effectiveFeePerTable.toLocaleString("fr-CH", { maximumFractionDigits: 2 }) + " CHF"} />
@@ -368,7 +369,7 @@ export default function AlternativeCommissionCouvert() {
       </section>
 
       <section id="regles" className="scroll-mt-28 bg-slate-50 px-4 py-16 md:px-8 lg:px-12">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2">
+        <div className="mx-auto grid max-w-7xl gap-8">
           <div className="space-y-4">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Comparatif modèle économique</p>
             <h2 className="text-3xl font-black">Modèle au couvert vs tarif fixe par table.</h2>

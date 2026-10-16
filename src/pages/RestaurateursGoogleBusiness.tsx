@@ -322,7 +322,7 @@ export default function RestaurateursGoogleBusiness() {
       </section>
 
       <section className="px-4 py-16 md:px-8 lg:px-12">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.78fr_1.22fr]">
+        <div className="mx-auto grid max-w-7xl gap-8">
           <div className="space-y-4">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Votre lien de réservation</p>
             <h2 className="text-3xl font-black md:text-4xl">Le bon lien dépend de votre situation actuelle.</h2>

@@ -282,7 +282,7 @@ export default function RestaurateursGeneve() {
   return (
     <main className="bg-background text-foreground">
       <section
-        className="relative isolate flex min-h-[78vh] items-end overflow-hidden bg-slate-950 px-4 pb-12 pt-16 text-white md:px-8 lg:px-12"
+        className="relative isolate flex items-end overflow-hidden bg-slate-950 px-4 pb-12 pt-16 text-white md:px-8 lg:px-12"
         style={{
           backgroundImage:
             "linear-gradient(90deg, rgba(5,7,15,0.9), rgba(5,7,15,0.62), rgba(5,7,15,0.12)), url('/fond3.png')",
@@ -415,7 +415,7 @@ export default function RestaurateursGeneve() {
       </section>
 
       <section className="px-4 py-16 md:px-8 lg:px-12">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+        <div className="mx-auto grid max-w-7xl gap-8">
           <div className="space-y-4">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Lecture simple</p>
             <h2 className="text-3xl font-black md:text-4xl">Ce que TOK regroupe pour un restaurant genevois.</h2>

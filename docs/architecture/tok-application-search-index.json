@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "f159533aa77220ad5d07e868d5f59f76f20c4e8bab36e2a2144264ecf67fdd3f",
+ "sourceDigest": "9a1533374bc969e8c89c3d1e17836e2534d00a21cfdade9c325a94b31bd321e8",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -19597,7 +19597,7 @@
      },
      {
       "path": "src/pages/AlternativeCommissionCouvert.tsx",
-      "line": 431
+      "line": 432
      },
      {
       "path": "src/pages/ClientDashboardHome.tsx",
@@ -26890,7 +26890,7 @@
      },
      {
       "path": "src/pages/AlternativeCommissionCouvert.tsx",
-      "line": 273
+      "line": 274
      },
      {
       "path": "src/pages/RestaurateursGeneve.tsx",
@@ -29299,7 +29299,7 @@
      },
      {
       "path": "src/pages/AlternativeCommissionCouvert.tsx",
-      "line": 442
+      "line": 443
      },
      {
       "path": "src/pages/PacksRestaurateur.tsx",
@@ -104864,7 +104864,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 507
+    "lineCount": 508
    },
    {
     "path": "src/pages/AntiGaspi.tsx",
@@ -145166,7 +145166,7 @@
    "id": "code-module:00419f7d2122",
    "type": "code-module",
    "title": "src/pages/AlternativeCommissionCouvert.tsx",
-   "description": "Module de 507 lignes; exports: default.",
+   "description": "Module de 508 lignes; exports: default.",
    "path": "src/pages/AlternativeCommissionCouvert.tsx",
    "line": 1,
    "surface": null,
@@ -145174,7 +145174,7 @@
     "default",
     "google"
    ],
-   "detailRef": "e93f52b68f56"
+   "detailRef": "ea7ff900ed50"
   },
   {
    "id": "code-module:186364e50d24",
@@ -361579,7 +361579,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "e0374c226adb"
+   "detailRef": "36321d1dccd0"
   },
   {
    "id": "path-literal:c15f4bc06f54",
@@ -367209,7 +367209,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "a5868738b769"
+   "detailRef": "dcbf5c87b931"
   },
   {
    "id": "path-literal:f15ac1b71119",
@@ -368980,7 +368980,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "ab04a2c0f249"
+   "detailRef": "c6fdeda3bd12"
   },
   {
    "id": "path-literal:e0d8149df64e",
