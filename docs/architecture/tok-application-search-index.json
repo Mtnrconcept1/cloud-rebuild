@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b74bbea82a2ead90d34b68b2aa4e9275835cb9bf4249556e96ad24b6b72ffa42",
+ "sourceDigest": "9d563187c74eb4d082d0885497661b41e1b607904831a941b49f10d816e4ae2a",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2894,
-  "documents": 205,
+  "databaseObjects": 2896,
+  "documents": 206,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3577,
+  "exportedSymbols": 3585,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 545,
-  "modules": 1591,
+  "migrations": 546,
+  "modules": 1597,
   "pages": 133,
-  "pathLiterals": 754,
+  "pathLiterals": 755,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 109,
-  "records": 17103,
-  "repositoryFiles": 3220,
+  "records": 17137,
+  "repositoryFiles": 3228,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -9279,9 +9279,12 @@
      "POST"
     ],
     "actions": [
+     "cancel_attempt",
+     "checkout",
      "insert",
      "list",
      "select",
+     "status",
      "update"
     ],
     "environmentNames": [
@@ -9474,7 +9477,10 @@
      "TOK_CONNECT_PUBLIC_ORIGIN"
     ],
     "integrations": [
-     "supabase"
+     "openai",
+     "stripe",
+     "supabase",
+     "twint"
     ],
     "configured": true,
     "sourcePresent": true
@@ -14732,6 +14738,10 @@
       "line": 31
      },
      {
+      "path": "src/test/tok-connect-commerce-handler.test.ts",
+      "line": 30
+     },
+     {
       "path": "src/test/tok-logo-calendar.test.ts",
       "line": 32
      },
@@ -15154,6 +15164,15 @@
      {
       "path": "src/test/marketing-one-click-unsubscribe.test.ts",
       "line": 69
+     }
+    ]
+   },
+   {
+    "value": "/^\\d{4}-\\d{2}-\\d{2}$/",
+    "sources": [
+     {
+      "path": "src/test/tok-connect-customer-journey.test.ts",
+      "line": 144
      }
     ]
    },
@@ -18402,7 +18421,7 @@
      },
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 34
+      "line": 42
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -18411,6 +18430,14 @@
      {
       "path": "src/lib/launchGate.ts",
       "line": 24
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 26
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 31
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -18931,7 +18958,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 33
+      "line": 46
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -20363,7 +20390,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 31
+      "line": 44
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -22109,7 +22136,7 @@
      },
      {
       "path": "src/components/workforce/WorkforceClockOverview.tsx",
-      "line": 31
+      "line": 55
      },
      {
       "path": "src/pages/WorkspaceChooser.tsx",
@@ -22219,11 +22246,11 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 22
+      "line": 35
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 26
+      "line": 39
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -22487,6 +22514,10 @@
      {
       "path": "src/test/marketing-agent-bff.test.ts",
       "line": 145
+     },
+     {
+      "path": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 439
      }
     ]
    },
@@ -26727,7 +26758,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 22
+      "line": 35
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -26741,6 +26772,10 @@
      {
       "path": "src/test/auth-post-login-routing.test.ts",
       "line": 15
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 22
      }
     ]
    },
@@ -32473,7 +32508,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
-      "line": 425
+      "line": 699
      }
     ],
     "routes": []
@@ -32821,6 +32856,8 @@
      "src/test/tok-ai-platform-plan.test.ts",
      "src/test/tok-ai-tools.test.ts",
      "src/test/tok-connect-chatgpt-finalization.test.ts",
+     "src/test/tok-connect-customer-commerce.test.ts",
+     "src/test/tok-connect-customer-journey.test.ts",
      "src/test/tok-connect-discovery.test.ts",
      "src/test/tok-connect-edge-functions.test.ts",
      "src/test/tok-connect-full-app-mcp.test.ts",
@@ -32866,6 +32903,7 @@
      "supabase/functions/tok-connect-chatgpt/index.ts",
      "supabase/functions/tok-connect-full-app-mcp/index.ts",
      "supabase/functions/tok-connect-mcp/index.ts",
+     "supabase/functions/tok-connect-remote-mcp/index.ts",
      "workers/image-ai-worker/config.test.mjs",
      "workers/image-ai-worker/windows-setup.test.mjs"
     ]
@@ -33097,6 +33135,8 @@
      "src/test/tok-ai-tools.test.ts",
      "src/test/tok-canonical-subscription-invoice.test.ts",
      "src/test/tok-connect-app-bridge.test.ts",
+     "src/test/tok-connect-commerce-handler.test.ts",
+     "src/test/tok-connect-customer-commerce.test.ts",
      "src/test/tok-one-stripe-test-mode.test.ts",
      "src/test/tok-stripe-price-catalog.test.ts",
      "src/test/user-facing-errors.test.ts",
@@ -33125,6 +33165,8 @@
      "supabase/functions/_shared/restaurant-subscription-billing.ts",
      "supabase/functions/_shared/stripe-client.ts",
      "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+     "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+     "supabase/functions/_shared/tok-connect-discovery-widget.ts",
      "supabase/functions/_shared/tok-one.ts",
      "supabase/functions/_shared/zero-attente.ts",
      "supabase/functions/_shared/zero-cost-checkout.ts",
@@ -33174,6 +33216,7 @@
      "supabase/functions/tok-connect-app-bridge/index.ts",
      "supabase/functions/tok-connect-full-app-mcp/index.ts",
      "supabase/functions/tok-connect-mcp/index.ts",
+     "supabase/functions/tok-connect-remote-mcp/index.ts",
      "supabase/functions/validate-order/index.ts"
     ]
    },
@@ -33784,7 +33827,10 @@
      "src/test/tok-connect-admin-schema-contract.test.ts",
      "src/test/tok-connect-app-bridge.test.ts",
      "src/test/tok-connect-chatgpt-finalization.test.ts",
+     "src/test/tok-connect-commerce-handler.test.ts",
      "src/test/tok-connect-commercial-bridge.test.ts",
+     "src/test/tok-connect-customer-commerce.test.ts",
+     "src/test/tok-connect-customer-journey.test.ts",
      "src/test/tok-connect-discovery.test.ts",
      "src/test/tok-connect-edge-functions.test.ts",
      "src/test/tok-connect-frontend.test.ts",
@@ -33800,6 +33846,7 @@
      "src/test/tok-stripe-price-catalog.test.ts",
      "src/test/tokWorkforceClock.test.ts",
      "src/test/tokWorkforceMigration.test.ts",
+     "src/test/tokWorkforceRows.test.tsx",
      "src/test/transactional-email-templates.test.ts",
      "src/test/user-facing-errors.test.ts",
      "src/test/vercel-rewrites.test.ts",
@@ -33914,10 +33961,13 @@
      "src/test/feature-flags.test.ts",
      "src/test/feature-visibility.test.ts",
      "supabase/functions/_shared/feature-flags.ts",
+     "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+     "supabase/functions/_shared/tok-connect-discovery-widget.ts",
      "supabase/functions/_shared/zero-attente.ts",
      "supabase/functions/campaign-portal/index.ts",
      "supabase/functions/create-checkout/index.ts",
-     "supabase/functions/create-zero-attente-reservation/index.ts"
+     "supabase/functions/create-zero-attente-reservation/index.ts",
+     "supabase/functions/tok-connect-remote-mcp/index.ts"
     ]
    },
    {
@@ -37257,6 +37307,12 @@
     "name": "20261015090000 Admin Security Guardian Approval Guardrails",
     "path": "supabase/migrations/20261015090000_admin_security_guardian_approval_guardrails.sql",
     "lineCount": 124,
+    "objectCount": 2
+   },
+   {
+    "name": "20261016201212 Tok Workforce Clock Reconciliation",
+    "path": "supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql",
+    "lineCount": 45,
     "objectCount": 2
    }
   ],
@@ -46253,6 +46309,16 @@
    },
    {
     "type": "function",
+    "name": "public.tok_workforce_reconcile_clock",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql",
+      "line": 9
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.tok_workforce_respond_exchange",
     "sources": [
      {
@@ -53314,6 +53380,16 @@
      {
       "path": "supabase/migrations/20261014180000_tok_workforce_clock_teams.sql",
       "line": 22
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "tok_workforce_clock_entry_once",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql",
+      "line": 6
      }
     ]
    },
@@ -75559,6 +75635,32 @@
     ]
    },
    {
+    "path": "docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md",
+    "title": "TOK Connect et TOK Équipe — livraison du 16 octobre 2026",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK Connect et TOK Équipe — livraison du 16 octobre 2026",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Périmètre",
+      "line": 3
+     },
+     {
+      "level": 2,
+      "title": "Risque et contrôles",
+      "line": 30
+     },
+     {
+      "level": 2,
+      "title": "Déploiement et retour arrière",
+      "line": 56
+     }
+    ]
+   },
+   {
     "path": "docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md",
     "title": "État d’exécution TOK observé le 3 octobre 2026",
     "headings": [
@@ -92382,20 +92484,20 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 46
+    "lineCount": 48
    },
    {
     "path": "src/components/workforce/WorkforceClockOverview.tsx",
     "exports": [
      {
       "name": "default",
-      "line": 11,
+      "line": 15,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 45
+    "lineCount": 79
    },
    {
     "path": "src/components/workforce/WorkforceEmployees.tsx",
@@ -92408,7 +92510,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 88
+    "lineCount": 104
    },
    {
     "path": "src/components/workforce/WorkforceExchanges.tsx",
@@ -92434,7 +92536,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 97
+    "lineCount": 98
    },
    {
     "path": "src/components/workforce/WorkforcePersonalExchanges.tsx",
@@ -92473,7 +92575,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 76
+    "lineCount": 83
    },
    {
     "path": "src/components/workforce/WorkforceRequests.tsx",
@@ -93390,67 +93492,67 @@
     "exports": [
      {
       "name": "workforceDb",
-      "line": 11,
-      "kind": "variable"
-     },
-     {
-      "name": "workforceKey",
       "line": 12,
       "kind": "variable"
      },
      {
+      "name": "workforceKey",
+      "line": 13,
+      "kind": "variable"
+     },
+     {
       "name": "useWorkforceSettings",
-      "line": 14,
+      "line": 15,
       "kind": "function"
      },
      {
       "name": "useWorkforceRows",
-      "line": 29,
+      "line": 31,
       "kind": "function"
      },
      {
       "name": "useWorkforceEmployees",
-      "line": 48,
+      "line": 62,
       "kind": "function"
      },
      {
       "name": "useWorkforceShifts",
-      "line": 51,
+      "line": 65,
       "kind": "function"
      },
      {
       "name": "useWorkforceEntries",
-      "line": 54,
+      "line": 68,
       "kind": "function"
      },
      {
       "name": "useWorkforceEntriesInRange",
-      "line": 57,
+      "line": 71,
       "kind": "function"
      },
      {
       "name": "useWorkforceValidations",
-      "line": 60,
+      "line": 74,
       "kind": "function"
      },
      {
       "name": "useWorkforceAbsences",
-      "line": 63,
+      "line": 77,
       "kind": "function"
      },
      {
       "name": "useWorkforceRequests",
-      "line": 66,
+      "line": 80,
       "kind": "function"
      },
      {
       "name": "useWorkforceExchanges",
-      "line": 69,
+      "line": 83,
       "kind": "function"
      },
      {
       "name": "useWorkforceRefresh",
-      "line": 72,
+      "line": 86,
       "kind": "function"
      }
     ],
@@ -93458,7 +93560,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 76
+    "lineCount": 90
    },
    {
     "path": "src/integrations/supabase/authStorage.ts",
@@ -94827,7 +94929,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 43
+    "lineCount": 47
    },
    {
     "path": "src/lib/authRedirect.ts",
@@ -103471,13 +103573,18 @@
       "name": "csvCell",
       "line": 38,
       "kind": "function"
+     },
+     {
+      "name": "entryWorkedHours",
+      "line": 44,
+      "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [
      "supabase"
     ],
-    "lineCount": 42
+    "lineCount": 57
    },
    {
     "path": "src/lib/tokWorkforceCantons.ts",
@@ -107566,7 +107673,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 36
+    "lineCount": 49
    },
    {
     "path": "src/test/auth-provider.test.tsx",
@@ -112107,6 +112214,16 @@
     "lineCount": 66
    },
    {
+    "path": "src/test/tok-connect-commerce-handler.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 83
+   },
+   {
     "path": "src/test/tok-connect-commercial-bridge.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -112114,6 +112231,27 @@
      "supabase"
     ],
     "lineCount": 46
+   },
+   {
+    "path": "src/test/tok-connect-customer-commerce.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 315
+   },
+   {
+    "path": "src/test/tok-connect-customer-journey.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 198
    },
    {
     "path": "src/test/tok-connect-discovery.test.ts",
@@ -112274,7 +112412,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 49
+    "lineCount": 62
    },
    {
     "path": "src/test/tokWorkforceClock.test.ts",
@@ -112293,6 +112431,22 @@
      "supabase"
     ],
     "lineCount": 44
+   },
+   {
+    "path": "src/test/tokWorkforceReports.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 49
+   },
+   {
+    "path": "src/test/tokWorkforceRows.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 47
    },
    {
     "path": "src/test/transactional-email-templates.test.ts",
@@ -113029,7 +113183,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3380,
+      "line": 3542,
       "kind": "function"
      }
     ],
@@ -113041,7 +113195,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3385
+    "lineCount": 3547
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -115301,6 +115455,52 @@
     "lineCount": 468
    },
    {
+    "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+    "exports": [
+     {
+      "name": "TokCustomerJourney",
+      "line": 8,
+      "kind": "typealias"
+     },
+     {
+      "name": "TokCustomerCartItem",
+      "line": 9,
+      "kind": "typealias"
+     },
+     {
+      "name": "TokCustomerCartInput",
+      "line": 10,
+      "kind": "typealias"
+     },
+     {
+      "name": "TokCustomerCommerceError",
+      "line": 30,
+      "kind": "class"
+     },
+     {
+      "name": "normalizeTokCustomerCart",
+      "line": 55,
+      "kind": "function"
+     },
+     {
+      "name": "assertTokCartAmountUnchanged",
+      "line": 145,
+      "kind": "function"
+     },
+     {
+      "name": "safeTokCommerceCheckoutUrl",
+      "line": 151,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "twint"
+    ],
+    "lineCount": 161
+   },
+   {
     "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
     "exports": [
      {
@@ -115320,17 +115520,17 @@
      },
      {
       "name": "buildTokDiscoveryResourceDescriptor",
-      "line": 939,
+      "line": 1680,
       "kind": "function"
      },
      {
       "name": "buildTokDiscoveryResourceContents",
-      "line": 968,
+      "line": 1709,
       "kind": "function"
      },
      {
       "name": "buildTokDiscoveryToolMeta",
-      "line": 979,
+      "line": 1720,
       "kind": "function"
      }
     ],
@@ -115338,10 +115538,12 @@
     "integrations": [
      "google",
      "openai",
+     "stripe",
      "supabase",
+     "twint",
      "vercel"
     ],
-    "lineCount": 989
+    "lineCount": 1730
    },
    {
     "path": "supabase/functions/_shared/tok-connect-discovery.ts",
@@ -116389,7 +116591,7 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 2774
+    "lineCount": 2791
    },
    {
     "path": "supabase/functions/create-chefs-table-reservation/index.ts",
@@ -117255,7 +117457,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 433
+    "lineCount": 812
    },
    {
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
@@ -117359,9 +117561,12 @@
      "TOK_CONNECT_PUBLIC_ORIGIN"
     ],
     "integrations": [
-     "supabase"
+     "openai",
+     "stripe",
+     "supabase",
+     "twint"
     ],
-    "lineCount": 461
+    "lineCount": 735
    },
    {
     "path": "supabase/functions/tok-connect-webhook-dispatch/index.ts",
@@ -118724,6 +118929,11 @@
    },
    {
     "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -129543,7 +129753,22 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-connect-commerce-handler.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/tok-connect-commercial-bridge.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-customer-commerce.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-customer-journey.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -129646,6 +129871,16 @@
     "path": "src/test/tokWorkforceMigration.test.ts",
     "category": "test",
     "extension": ".ts"
+   },
+   {
+    "path": "src/test/tokWorkforceReports.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/tokWorkforceRows.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/transactional-email-templates.test.ts",
@@ -130089,6 +130324,11 @@
    },
    {
     "path": "supabase/functions/_shared/tok-connect-auth.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -133474,6 +133714,11 @@
    },
    {
     "path": "supabase/migrations/20261015090000_admin_security_guardian_approval_guardrails.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -139459,40 +139704,40 @@
    "id": "code-module:466195cd4f76",
    "type": "code-module",
    "title": "src/components/workforce/WorkforceClock.tsx",
-   "description": "Module de 46 lignes; exports: default.",
+   "description": "Module de 48 lignes; exports: default.",
    "path": "src/components/workforce/WorkforceClock.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "16aee85c06a6"
+   "detailRef": "edb31866e289"
   },
   {
    "id": "code-module:2c5a7276ccb4",
    "type": "code-module",
    "title": "src/components/workforce/WorkforceClockOverview.tsx",
-   "description": "Module de 45 lignes; exports: default.",
+   "description": "Module de 79 lignes; exports: default.",
    "path": "src/components/workforce/WorkforceClockOverview.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "331e463ccbf1"
+   "detailRef": "6fa7b645cc35"
   },
   {
    "id": "code-module:f8f6929d882d",
    "type": "code-module",
    "title": "src/components/workforce/WorkforceEmployees.tsx",
-   "description": "Module de 88 lignes; exports: default.",
+   "description": "Module de 104 lignes; exports: default.",
    "path": "src/components/workforce/WorkforceEmployees.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "cb75fefaaf5e"
+   "detailRef": "4b5cc5e47920"
   },
   {
    "id": "code-module:a95afdadfd2f",
@@ -139511,14 +139756,14 @@
    "id": "code-module:a60ec67b6250",
    "type": "code-module",
    "title": "src/components/workforce/WorkforcePersonal.tsx",
-   "description": "Module de 97 lignes; exports: default.",
+   "description": "Module de 98 lignes; exports: default.",
    "path": "src/components/workforce/WorkforcePersonal.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "8ff0a063c01a"
+   "detailRef": "ee20e48a6174"
   },
   {
    "id": "code-module:58f038040988",
@@ -139550,14 +139795,14 @@
    "id": "code-module:c63559f1280b",
    "type": "code-module",
    "title": "src/components/workforce/WorkforceReports.tsx",
-   "description": "Module de 76 lignes; exports: default.",
+   "description": "Module de 83 lignes; exports: default.",
    "path": "src/components/workforce/WorkforceReports.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "1fac72588ce2"
+   "detailRef": "18aef3871f80"
   },
   {
    "id": "code-module:e1100737a67d",
@@ -140070,7 +140315,7 @@
    "id": "code-module:bb64630fe432",
    "type": "code-module",
    "title": "src/hooks/useTokWorkforce.ts",
-   "description": "Module de 76 lignes; exports: workforceDb, workforceKey, useWorkforceSettings, useWorkforceRows, useWorkforceEmployees, useWorkforceShifts, useWorkforceEntries, useWorkforceEntriesInRange, useWorkforceValidations, useWorkforceAbsences, useWorkforceRequests, useWorkforceExchanges, useWorkforceRefresh.",
+   "description": "Module de 90 lignes; exports: workforceDb, workforceKey, useWorkforceSettings, useWorkforceRows, useWorkforceEmployees, useWorkforceShifts, useWorkforceEntries, useWorkforceEntriesInRange, useWorkforceValidations, useWorkforceAbsences, useWorkforceRequests, useWorkforceExchanges, useWorkforceRefresh.",
    "path": "src/hooks/useTokWorkforce.ts",
    "line": 1,
    "surface": null,
@@ -140090,7 +140335,7 @@
     "workforceDb",
     "workforceKey"
    ],
-   "detailRef": "f79926d6953c"
+   "detailRef": "fe59a73b2c74"
   },
   {
    "id": "code-module:4878faa3eb2b",
@@ -140630,14 +140875,14 @@
    "id": "code-module:f357467a3e58",
    "type": "code-module",
    "title": "src/lib/authPostLogin.ts",
-   "description": "Module de 43 lignes; exports: getPostAuthTargetForRole.",
+   "description": "Module de 47 lignes; exports: getPostAuthTargetForRole.",
    "path": "src/lib/authPostLogin.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "getPostAuthTargetForRole"
    ],
-   "detailRef": "be2c8461ef77"
+   "detailRef": "5c5c53ffa880"
   },
   {
    "id": "code-module:6fd34c3ed57c",
@@ -144315,7 +144560,7 @@
    "id": "code-module:de525faa4a42",
    "type": "code-module",
    "title": "src/lib/tokWorkforce.ts",
-   "description": "Module de 42 lignes; exports: WorkforceEmployee, WorkforceShift, WorkforceEntry, WorkforceAbsence, WorkforceRequest, WorkforceExchange, WorkforceSettings, WorkforceValidation, employeeName, minutesFromTime, workedHours, weekRange, dateIsValid, csvCell.",
+   "description": "Module de 57 lignes; exports: WorkforceEmployee, WorkforceShift, WorkforceEntry, WorkforceAbsence, WorkforceRequest, WorkforceExchange, WorkforceSettings, WorkforceValidation, employeeName, minutesFromTime, workedHours, weekRange, dateIsValid, csvCell, entryWorkedHours.",
    "path": "src/lib/tokWorkforce.ts",
    "line": 1,
    "surface": null,
@@ -144331,12 +144576,13 @@
     "csvCell",
     "dateIsValid",
     "employeeName",
+    "entryWorkedHours",
     "minutesFromTime",
     "supabase",
     "weekRange",
     "workedHours"
    ],
-   "detailRef": "052152dde6d9"
+   "detailRef": "b8f40cc5d2ab"
   },
   {
    "id": "code-module:f81222ab37b2",
@@ -147574,12 +147820,12 @@
    "id": "code-module:7acfd51fa7f6",
    "type": "code-module",
    "title": "src/test/auth-post-login-routing.test.ts",
-   "description": "Module de 36 lignes; exports: aucun export statique.",
+   "description": "Module de 49 lignes; exports: aucun export statique.",
    "path": "src/test/auth-post-login-routing.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "6393ad2e75db"
+   "detailRef": "28c6b0d032db"
   },
   {
    "id": "code-module:eabb9d9ec28c",
@@ -154177,6 +154423,20 @@
    "detailRef": "cc8ce3bfc2eb"
   },
   {
+   "id": "code-module:59f63392cb50",
+   "type": "code-module",
+   "title": "src/test/tok-connect-commerce-handler.test.ts",
+   "description": "Module de 83 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-commerce-handler.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "986a9c6c60d9"
+  },
+  {
    "id": "code-module:42d6d5992482",
    "type": "code-module",
    "title": "src/test/tok-connect-commercial-bridge.test.ts",
@@ -154188,6 +154448,35 @@
     "supabase"
    ],
    "detailRef": "12aed0cede5c"
+  },
+  {
+   "id": "code-module:9b165d402e85",
+   "type": "code-module",
+   "title": "src/test/tok-connect-customer-commerce.test.ts",
+   "description": "Module de 315 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-customer-commerce.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "58a423edce71"
+  },
+  {
+   "id": "code-module:1d42874808ef",
+   "type": "code-module",
+   "title": "src/test/tok-connect-customer-journey.test.ts",
+   "description": "Module de 198 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-customer-journey.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "4724c43e7cf1"
   },
   {
    "id": "code-module:5ba8bcabdf99",
@@ -154415,12 +154704,12 @@
    "id": "code-module:023abe7e2772",
    "type": "code-module",
    "title": "src/test/tokWorkforce.test.ts",
-   "description": "Module de 49 lignes; exports: aucun export statique.",
+   "description": "Module de 62 lignes; exports: aucun export statique.",
    "path": "src/test/tokWorkforce.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "3aa5675c885f"
+   "detailRef": "236d916cfe9e"
   },
   {
    "id": "code-module:269dde578cea",
@@ -154447,6 +154736,30 @@
     "supabase"
    ],
    "detailRef": "9b5dc17a5d09"
+  },
+  {
+   "id": "code-module:376b6576f665",
+   "type": "code-module",
+   "title": "src/test/tokWorkforceReports.test.tsx",
+   "description": "Module de 49 lignes; exports: aucun export statique.",
+   "path": "src/test/tokWorkforceReports.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "e47e3f0ef570"
+  },
+  {
+   "id": "code-module:a6df827cc0e9",
+   "type": "code-module",
+   "title": "src/test/tokWorkforceRows.test.tsx",
+   "description": "Module de 47 lignes; exports: aucun export statique.",
+   "path": "src/test/tokWorkforceRows.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "aa4f281259db"
   },
   {
    "id": "code-module:dd826816118e",
@@ -154826,7 +155139,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3385 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3547 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -154840,7 +155153,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "a38d01b6aa80"
+   "detailRef": "4570581f3a1e"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -155924,10 +156237,31 @@
    "detailRef": "488040556204"
   },
   {
+   "id": "code-module:079f909ea9f2",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "description": "Module de 161 lignes; exports: TokCustomerJourney, TokCustomerCartItem, TokCustomerCartInput, TokCustomerCommerceError, normalizeTokCustomerCart, assertTokCartAmountUnchanged, safeTokCommerceCheckoutUrl.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TokCustomerCartInput",
+    "TokCustomerCartItem",
+    "TokCustomerCommerceError",
+    "TokCustomerJourney",
+    "assertTokCartAmountUnchanged",
+    "normalizeTokCustomerCart",
+    "safeTokCommerceCheckoutUrl",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "223795f4909c"
+  },
+  {
    "id": "code-module:38f3af390908",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "description": "Module de 989 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
+   "description": "Module de 1730 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
    "line": 1,
    "surface": null,
@@ -155940,10 +156274,12 @@
     "buildTokDiscoveryToolMeta",
     "google",
     "openai",
+    "stripe",
     "supabase",
+    "twint",
     "vercel"
    ],
-   "detailRef": "333ed6a95f54"
+   "detailRef": "989a88faf4c6"
   },
   {
    "id": "code-module:bd4199664d50",
@@ -156664,7 +157000,7 @@
    "id": "code-module:ee34f3a570c0",
    "type": "code-module",
    "title": "supabase/functions/create-checkout/index.ts",
-   "description": "Module de 2774 lignes; exports: aucun export statique.",
+   "description": "Module de 2791 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-checkout/index.ts",
    "line": 1,
    "surface": null,
@@ -156672,7 +157008,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "2488affeec24"
+   "detailRef": "00f7aaaa8e90"
   },
   {
    "id": "code-module:4160ab4db106",
@@ -157686,7 +158022,7 @@
    "id": "code-module:5f5eb07543f1",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-app-bridge/index.ts",
-   "description": "Module de 433 lignes; exports: aucun export statique.",
+   "description": "Module de 812 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-app-bridge/index.ts",
    "line": 1,
    "surface": null,
@@ -157697,7 +158033,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ec602cb04409"
+   "detailRef": "dcdb82d91fbd"
   },
   {
    "id": "code-module:4266f84831a7",
@@ -157803,7 +158139,7 @@
    "id": "code-module:a6d1c05c1a13",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-remote-mcp/index.ts",
-   "description": "Module de 461 lignes; exports: aucun export statique.",
+   "description": "Module de 735 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
    "line": 1,
    "surface": null,
@@ -157812,9 +158148,12 @@
     "SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_URL",
     "TOK_CONNECT_PUBLIC_ORIGIN",
-    "supabase"
+    "openai",
+    "stripe",
+    "supabase",
+    "twint"
    ],
-   "detailRef": "ee36e00e15f9"
+   "detailRef": "6d4d5c00030b"
   },
   {
    "id": "code-module:61c89ba4dc3b",
@@ -198023,6 +198362,21 @@
    "detailRef": "5ebf414cb580"
   },
   {
+   "id": "database-object:e14e42dee0c3",
+   "type": "database-object",
+   "title": "public.tok_workforce_reconcile_clock",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "fbfedae7b874"
+  },
+  {
    "id": "database-object:e8da84512ee0",
    "type": "database-object",
    "title": "public.tok_workforce_requests.tok_workforce_requests_manage",
@@ -203736,6 +204090,21 @@
     "supabase"
    ],
    "detailRef": "19bec601aeee"
+  },
+  {
+   "id": "database-object:64afa0e600c5",
+   "type": "database-object",
+   "title": "tok_workforce_clock_entry_once",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "4103bb627934"
   },
   {
    "id": "database-object:a4f6fc29ad97",
@@ -216018,6 +216387,20 @@
    "detailRef": "158db2ee5ee8"
   },
   {
+   "id": "document-section:429c5b588631",
+   "type": "document-section",
+   "title": "Déploiement et retour arrière",
+   "description": "Section de TOK Connect et TOK Équipe — livraison du 16 octobre 2026.",
+   "path": "docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md",
+   "line": 56,
+   "surface": null,
+   "tags": [
+    "TOK Connect et TOK Équipe — livraison du 16 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "ce55643bc4be"
+  },
+  {
    "id": "document-section:68ec377a40a7",
    "type": "document-section",
    "title": "Déploiement et retour arrière",
@@ -225174,6 +225557,20 @@
    "detailRef": "037e75885d33"
   },
   {
+   "id": "document-section:c2133fbb83a4",
+   "type": "document-section",
+   "title": "Périmètre",
+   "description": "Section de TOK Connect et TOK Équipe — livraison du 16 octobre 2026.",
+   "path": "docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "TOK Connect et TOK Équipe — livraison du 16 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "11e5eb37f8a5"
+  },
+  {
    "id": "document-section:91fd5da15fab",
    "type": "document-section",
    "title": "Périmètre",
@@ -226726,6 +227123,20 @@
     "h2"
    ],
    "detailRef": "0c698b8cc418"
+  },
+  {
+   "id": "document-section:54189da577c3",
+   "type": "document-section",
+   "title": "Risque et contrôles",
+   "description": "Section de TOK Connect et TOK Équipe — livraison du 16 octobre 2026.",
+   "path": "docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "TOK Connect et TOK Équipe — livraison du 16 octobre 2026",
+    "h2"
+   ],
+   "detailRef": "74bab2626ea7"
   },
   {
    "id": "document-section:575c135629b1",
@@ -230002,6 +230413,20 @@
     "h1"
    ],
    "detailRef": "b5cb62861893"
+  },
+  {
+   "id": "document-section:3e8fc63f2082",
+   "type": "document-section",
+   "title": "TOK Connect et TOK Équipe — livraison du 16 octobre 2026",
+   "description": "Section de TOK Connect et TOK Équipe — livraison du 16 octobre 2026.",
+   "path": "docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK Connect et TOK Équipe — livraison du 16 octobre 2026",
+    "h1"
+   ],
+   "detailRef": "498bfed10985"
   },
   {
    "id": "document-section:6866b44da949",
@@ -239574,6 +239999,22 @@
    "detailRef": "77d1658ee3fb"
   },
   {
+   "id": "document:3e8fc63f2082",
+   "type": "document",
+   "title": "TOK Connect et TOK Équipe — livraison du 16 octobre 2026",
+   "description": "Document Markdown avec 4 section(s).",
+   "path": "docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Déploiement et retour arrière",
+    "Périmètre",
+    "Risque et contrôles",
+    "TOK Connect et TOK Équipe — livraison du 16 octobre 2026"
+   ],
+   "detailRef": "605102a4fbd1"
+  },
+  {
    "id": "document:6866b44da949",
    "type": "document",
    "title": "TOK Connect",
@@ -240846,6 +241287,20 @@
    "detailRef": "f063e5a19bc1"
   },
   {
+   "id": "edge-action:5a22666330a4",
+   "type": "edge-action",
+   "title": "cancel_attempt",
+   "description": "Action statiquement détectée dans la fonction Edge tok-connect-app-bridge.",
+   "path": "supabase/functions/tok-connect-app-bridge/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/tok-connect-app-bridge",
+    "tok-connect-app-bridge"
+   ],
+   "detailRef": "0a48af2b1c9d"
+  },
+  {
    "id": "edge-action:f8cd8dc0c73c",
    "type": "edge-action",
    "title": "change_plan",
@@ -240886,6 +241341,20 @@
     "marketing-orchestrator"
    ],
    "detailRef": "7cfb3d2fa511"
+  },
+  {
+   "id": "edge-action:4bb238ecd780",
+   "type": "edge-action",
+   "title": "checkout",
+   "description": "Action statiquement détectée dans la fonction Edge tok-connect-app-bridge.",
+   "path": "supabase/functions/tok-connect-app-bridge/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/tok-connect-app-bridge",
+    "tok-connect-app-bridge"
+   ],
+   "detailRef": "8305a5f74e98"
   },
   {
    "id": "edge-action:877da3346f2c",
@@ -242132,6 +242601,20 @@
     "daily-dish-ai"
    ],
    "detailRef": "a30f25a73085"
+  },
+  {
+   "id": "edge-action:c1ac8a9e29f3",
+   "type": "edge-action",
+   "title": "status",
+   "description": "Action statiquement détectée dans la fonction Edge tok-connect-app-bridge.",
+   "path": "supabase/functions/tok-connect-app-bridge/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/tok-connect-app-bridge",
+    "tok-connect-app-bridge"
+   ],
+   "detailRef": "b3fb60c43e66"
   },
   {
    "id": "edge-action:eaf2505260d3",
@@ -244127,14 +244610,17 @@
     "SUPABASE_ANON_KEY",
     "SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_URL",
+    "cancel_attempt",
+    "checkout",
     "insert",
     "list",
     "select",
+    "status",
     "stripe",
     "supabase",
     "update"
    ],
-   "detailRef": "b3fa31c04f60"
+   "detailRef": "2721c8bc7789"
   },
   {
    "id": "edge-function:4ae45b142614",
@@ -244278,9 +244764,12 @@
     "SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_URL",
     "TOK_CONNECT_PUBLIC_ORIGIN",
-    "supabase"
+    "openai",
+    "stripe",
+    "supabase",
+    "twint"
    ],
-   "detailRef": "f82e67739b81"
+   "detailRef": "64aa108b5d8e"
   },
   {
    "id": "edge-function:18e2720fac44",
@@ -266084,7 +266573,9 @@
    "tags": [
     "google",
     "openai",
+    "stripe",
     "supabase",
+    "twint",
     "variable",
     "vercel"
    ],
@@ -266101,7 +266592,9 @@
    "tags": [
     "google",
     "openai",
+    "stripe",
     "supabase",
+    "twint",
     "variable",
     "vercel"
    ],
@@ -266118,7 +266611,9 @@
    "tags": [
     "google",
     "openai",
+    "stripe",
     "supabase",
+    "twint",
     "variable",
     "vercel"
    ],
@@ -267446,6 +267941,66 @@
     "typealias"
    ],
    "detailRef": "6494975dbff4"
+  },
+  {
+   "id": "exported-symbol:f562f1b9cb84",
+   "type": "exported-symbol",
+   "title": "TokCustomerCartInput",
+   "description": "Export typealias de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "twint",
+    "typealias"
+   ],
+   "detailRef": "067966bf993e"
+  },
+  {
+   "id": "exported-symbol:8eaf715ea04c",
+   "type": "exported-symbol",
+   "title": "TokCustomerCartItem",
+   "description": "Export typealias de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "twint",
+    "typealias"
+   ],
+   "detailRef": "7f936c8d91ab"
+  },
+  {
+   "id": "exported-symbol:06800dd6c431",
+   "type": "exported-symbol",
+   "title": "TokCustomerCommerceError",
+   "description": "Export class de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "class",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "dd738ee20d38"
+  },
+  {
+   "id": "exported-symbol:a1644dcc594c",
+   "type": "exported-symbol",
+   "title": "TokCustomerJourney",
+   "description": "Export typealias de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "twint",
+    "typealias"
+   ],
+   "detailRef": "82d77d85b8f8"
   },
   {
    "id": "exported-symbol:a3d217bcf82b",
@@ -269179,6 +269734,21 @@
     "function"
    ],
    "detailRef": "26e846f0cd81"
+  },
+  {
+   "id": "exported-symbol:9274adc3f3c3",
+   "type": "exported-symbol",
+   "title": "assertTokCartAmountUnchanged",
+   "description": "Export function de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 145,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "1b36d1a55fff"
   },
   {
    "id": "exported-symbol:7821919afaa1",
@@ -271048,55 +271618,61 @@
    "detailRef": "82f9e612ba62"
   },
   {
-   "id": "exported-symbol:b70c9de27495",
+   "id": "exported-symbol:ca04a7337a4f",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryResourceContents",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 968,
+   "line": 1709,
    "surface": null,
    "tags": [
     "function",
     "google",
     "openai",
+    "stripe",
     "supabase",
+    "twint",
     "vercel"
    ],
-   "detailRef": "1178a6ed4122"
+   "detailRef": "bd1407ee369b"
   },
   {
-   "id": "exported-symbol:ee1f593c58f2",
+   "id": "exported-symbol:5b09c48cfff5",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryResourceDescriptor",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 939,
+   "line": 1680,
    "surface": null,
    "tags": [
     "function",
     "google",
     "openai",
+    "stripe",
     "supabase",
+    "twint",
     "vercel"
    ],
-   "detailRef": "98f64c846d63"
+   "detailRef": "9a10eb984e96"
   },
   {
-   "id": "exported-symbol:e47a709c449e",
+   "id": "exported-symbol:146982e8d8f4",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryToolMeta",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 979,
+   "line": 1720,
    "surface": null,
    "tags": [
     "function",
     "google",
     "openai",
+    "stripe",
     "supabase",
+    "twint",
     "vercel"
    ],
-   "detailRef": "355dc1381a5f"
+   "detailRef": "53ae1c25d3ff"
   },
   {
    "id": "exported-symbol:c48bb56c3e9c",
@@ -276001,17 +276577,17 @@
    "detailRef": "804e9b9a12ae"
   },
   {
-   "id": "exported-symbol:b7881b19aac2",
+   "id": "exported-symbol:0d190c73058e",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/workforce/WorkforceClockOverview.tsx.",
    "path": "src/components/workforce/WorkforceClockOverview.tsx",
-   "line": 11,
+   "line": 15,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "9201577cc024"
+   "detailRef": "9203aa6bab7e"
   },
   {
    "id": "exported-symbol:b91dc6f39a06",
@@ -278631,6 +279207,20 @@
     "supabase"
    ],
    "detailRef": "9ed92f370ac2"
+  },
+  {
+   "id": "exported-symbol:91497c062327",
+   "type": "exported-symbol",
+   "title": "entryWorkedHours",
+   "description": "Export function de src/lib/tokWorkforce.ts.",
+   "path": "src/lib/tokWorkforce.ts",
+   "line": 44,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "94eba62b7f9e"
   },
   {
    "id": "exported-symbol:c940d7717380",
@@ -287783,12 +288373,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:4bd7ab71f283",
+   "id": "exported-symbol:d862c42f4196",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3380,
+   "line": 3542,
    "surface": null,
    "tags": [
     "firebase",
@@ -287798,7 +288388,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ca5a6faa33b6"
+   "detailRef": "b0187c429492"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -289378,6 +289968,21 @@
     "function"
    ],
    "detailRef": "07d2a17d6dc9"
+  },
+  {
+   "id": "exported-symbol:5e8a7a194bb2",
+   "type": "exported-symbol",
+   "title": "normalizeTokCustomerCart",
+   "description": "Export function de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 55,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "49500ba7a492"
   },
   {
    "id": "exported-symbol:5214b0eeca56",
@@ -292027,6 +292632,21 @@
     "function"
    ],
    "detailRef": "1fd7b4cdde6c"
+  },
+  {
+   "id": "exported-symbol:a35ee9a73ce1",
+   "type": "exported-symbol",
+   "title": "safeTokCommerceCheckoutUrl",
+   "description": "Export function de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 151,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "0eeba145f528"
   },
   {
    "id": "exported-symbol:b094beb5e72f",
@@ -295682,158 +296302,158 @@
    "detailRef": "25db7aaae92b"
   },
   {
-   "id": "exported-symbol:7d745fa26fb2",
+   "id": "exported-symbol:ade695e430a5",
    "type": "exported-symbol",
    "title": "useWorkforceAbsences",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 63,
+   "line": 77,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "0133cc917c22"
+   "detailRef": "4b3e5d787c3f"
   },
   {
-   "id": "exported-symbol:2bee00e432d9",
+   "id": "exported-symbol:d81c7708921b",
    "type": "exported-symbol",
    "title": "useWorkforceEmployees",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 48,
+   "line": 62,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "8cecf8417c9c"
+   "detailRef": "affcb7f2b9d6"
   },
   {
-   "id": "exported-symbol:8aa96f796dab",
+   "id": "exported-symbol:2947a4db5559",
    "type": "exported-symbol",
    "title": "useWorkforceEntries",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 54,
+   "line": 68,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "30f9ca2cf05c"
+   "detailRef": "f418ee0c08d5"
   },
   {
-   "id": "exported-symbol:570a6ae825b8",
+   "id": "exported-symbol:8cde5bb5ff46",
    "type": "exported-symbol",
    "title": "useWorkforceEntriesInRange",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 57,
+   "line": 71,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "c05f7e4e1d5f"
+   "detailRef": "434999bc51ac"
   },
   {
-   "id": "exported-symbol:a2f5d8abf16e",
+   "id": "exported-symbol:d971916b3279",
    "type": "exported-symbol",
    "title": "useWorkforceExchanges",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 69,
+   "line": 83,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "1b66d29af542"
+   "detailRef": "4f667691690c"
   },
   {
-   "id": "exported-symbol:62b51754f048",
+   "id": "exported-symbol:61fafd8c8a23",
    "type": "exported-symbol",
    "title": "useWorkforceRefresh",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 72,
+   "line": 86,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "b77e1e605ba1"
+   "detailRef": "363c721542f8"
   },
   {
-   "id": "exported-symbol:a5034df6a5a1",
+   "id": "exported-symbol:a945fd5cfbd0",
    "type": "exported-symbol",
    "title": "useWorkforceRequests",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 66,
+   "line": 80,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "f689a6c3811b"
+   "detailRef": "65ebe9e08ffe"
   },
   {
-   "id": "exported-symbol:679fb9b50997",
+   "id": "exported-symbol:7fdf274b3a7c",
    "type": "exported-symbol",
    "title": "useWorkforceRows",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 29,
+   "line": 31,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "a626a781c12e"
+   "detailRef": "a7ee70d9a637"
   },
   {
-   "id": "exported-symbol:014095ecd157",
+   "id": "exported-symbol:2861af8130ae",
    "type": "exported-symbol",
    "title": "useWorkforceSettings",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 14,
+   "line": 15,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "7ffe9b3fb68e"
+   "detailRef": "0a54c59d1d9f"
   },
   {
-   "id": "exported-symbol:295ef02021fc",
+   "id": "exported-symbol:3df6d87a927c",
    "type": "exported-symbol",
    "title": "useWorkforceShifts",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 51,
+   "line": 65,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "92f3a03ea5c2"
+   "detailRef": "8f7d52ead8e6"
   },
   {
-   "id": "exported-symbol:7eaed0cda3fa",
+   "id": "exported-symbol:a4abece33e53",
    "type": "exported-symbol",
    "title": "useWorkforceValidations",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 60,
+   "line": 74,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "cef5f9cf2e2f"
+   "detailRef": "395a878843b9"
   },
   {
    "id": "exported-symbol:c225003564e8",
@@ -296260,23 +296880,9 @@
    "detailRef": "9ac788e9862b"
   },
   {
-   "id": "exported-symbol:b77da3b7b0f6",
+   "id": "exported-symbol:0c197f92be21",
    "type": "exported-symbol",
    "title": "workforceDb",
-   "description": "Export variable de src/hooks/useTokWorkforce.ts.",
-   "path": "src/hooks/useTokWorkforce.ts",
-   "line": 11,
-   "surface": null,
-   "tags": [
-    "supabase",
-    "variable"
-   ],
-   "detailRef": "5e5ff9858767"
-  },
-  {
-   "id": "exported-symbol:2e5c0f43e31b",
-   "type": "exported-symbol",
-   "title": "workforceKey",
    "description": "Export variable de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
    "line": 12,
@@ -296285,7 +296891,21 @@
     "supabase",
     "variable"
    ],
-   "detailRef": "47e3b035902e"
+   "detailRef": "392c7ed48aa1"
+  },
+  {
+   "id": "exported-symbol:ce1603728308",
+   "type": "exported-symbol",
+   "title": "workforceKey",
+   "description": "Export variable de src/hooks/useTokWorkforce.ts.",
+   "path": "src/hooks/useTokWorkforce.ts",
+   "line": 13,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "variable"
+   ],
+   "detailRef": "8bfcf895124e"
   },
   {
    "id": "exported-symbol:9e3213888c16",
@@ -300885,6 +301505,20 @@
     "documentation"
    ],
    "detailRef": "a60b1fc7159a"
+  },
+  {
+   "id": "file:7b6d0d352bc2",
+   "type": "file",
+   "title": "docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "b2b9accb732d"
   },
   {
    "id": "file:7abfcbd8dd5e",
@@ -331169,6 +331803,20 @@
    "detailRef": "d7a5f5b1e48f"
   },
   {
+   "id": "file:e4996675d874",
+   "type": "file",
+   "title": "src/test/tok-connect-commerce-handler.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-commerce-handler.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "2d2d7740dae6"
+  },
+  {
    "id": "file:ac4774ca8ed6",
    "type": "file",
    "title": "src/test/tok-connect-commercial-bridge.test.ts",
@@ -331181,6 +331829,34 @@
     "test"
    ],
    "detailRef": "3a00fa9409d8"
+  },
+  {
+   "id": "file:2f034f67e1cc",
+   "type": "file",
+   "title": "src/test/tok-connect-customer-commerce.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-customer-commerce.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "99cb7fb46aa1"
+  },
+  {
+   "id": "file:c0eeb9dae073",
+   "type": "file",
+   "title": "src/test/tok-connect-customer-journey.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-customer-journey.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "7549122ac0a0"
   },
   {
    "id": "file:cf69bd35eb0e",
@@ -331461,6 +332137,34 @@
     "test"
    ],
    "detailRef": "b701e04ccfb0"
+  },
+  {
+   "id": "file:ffaf79bde5b5",
+   "type": "file",
+   "title": "src/test/tokWorkforceReports.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tokWorkforceReports.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "002975efc271"
+  },
+  {
+   "id": "file:ea6abfc8f5ce",
+   "type": "file",
+   "title": "src/test/tokWorkforceRows.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tokWorkforceRows.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "5a7fb244bc0a"
   },
   {
    "id": "file:3f0d709be6a5",
@@ -332707,6 +333411,20 @@
     "edge-function-source"
    ],
    "detailRef": "f32ce0e53c87"
+  },
+  {
+   "id": "file:7095c28cb762",
+   "type": "file",
+   "title": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "e8320baff696"
   },
   {
    "id": "file:a6bdab98b46e",
@@ -342187,6 +342905,20 @@
    "detailRef": "f2dee69ff387"
   },
   {
+   "id": "file:ab5841cbdb3f",
+   "type": "file",
+   "title": "supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "5d2d29fb018d"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -345797,7 +346529,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 120 module(s).",
+   "description": "Intégration externe détectée dans 123 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -345876,6 +346608,8 @@
     "src/test/tok-ai-platform-plan.test.ts",
     "src/test/tok-ai-tools.test.ts",
     "src/test/tok-connect-chatgpt-finalization.test.ts",
+    "src/test/tok-connect-customer-commerce.test.ts",
+    "src/test/tok-connect-customer-journey.test.ts",
     "src/test/tok-connect-discovery.test.ts",
     "src/test/tok-connect-edge-functions.test.ts",
     "src/test/tok-connect-full-app-mcp.test.ts",
@@ -345921,10 +346655,11 @@
     "supabase/functions/tok-connect-chatgpt/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts",
+    "supabase/functions/tok-connect-remote-mcp/index.ts",
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "8d672b46ceb5"
+   "detailRef": "b9fb38c4bfbc"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -346013,7 +346748,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 243 module(s).",
+   "description": "Intégration externe détectée dans 248 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -346183,6 +346918,8 @@
     "src/test/tok-ai-tools.test.ts",
     "src/test/tok-canonical-subscription-invoice.test.ts",
     "src/test/tok-connect-app-bridge.test.ts",
+    "src/test/tok-connect-commerce-handler.test.ts",
+    "src/test/tok-connect-customer-commerce.test.ts",
     "src/test/tok-one-stripe-test-mode.test.ts",
     "src/test/tok-stripe-price-catalog.test.ts",
     "src/test/user-facing-errors.test.ts",
@@ -346212,6 +346949,8 @@
     "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "supabase/functions/_shared/stripe-client.ts",
     "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
+    "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+    "supabase/functions/_shared/tok-connect-discovery-widget.ts",
     "supabase/functions/_shared/tok-one.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/_shared/zero-cost-checkout.ts",
@@ -346261,15 +347000,16 @@
     "supabase/functions/tok-connect-app-bridge/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts",
+    "supabase/functions/tok-connect-remote-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "a1b3515ca479"
+   "detailRef": "9f21d61fb1a2"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 709 module(s).",
+   "description": "Intégration externe détectée dans 713 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -346878,7 +347618,10 @@
     "src/test/tok-connect-admin-schema-contract.test.ts",
     "src/test/tok-connect-app-bridge.test.ts",
     "src/test/tok-connect-chatgpt-finalization.test.ts",
+    "src/test/tok-connect-commerce-handler.test.ts",
     "src/test/tok-connect-commercial-bridge.test.ts",
+    "src/test/tok-connect-customer-commerce.test.ts",
+    "src/test/tok-connect-customer-journey.test.ts",
     "src/test/tok-connect-discovery.test.ts",
     "src/test/tok-connect-edge-functions.test.ts",
     "src/test/tok-connect-frontend.test.ts",
@@ -346894,6 +347637,7 @@
     "src/test/tok-stripe-price-catalog.test.ts",
     "src/test/tokWorkforceClock.test.ts",
     "src/test/tokWorkforceMigration.test.ts",
+    "src/test/tokWorkforceRows.test.tsx",
     "src/test/transactional-email-templates.test.ts",
     "src/test/user-facing-errors.test.ts",
     "src/test/vercel-rewrites.test.ts",
@@ -346985,13 +347729,13 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f1b347ace155"
+   "detailRef": "33e367c30eff"
   },
   {
    "id": "integration:c20910a79a78",
    "type": "integration",
    "title": "Twint",
-   "description": "Intégration externe détectée dans 24 module(s).",
+   "description": "Intégration externe détectée dans 27 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -347016,13 +347760,16 @@
     "src/test/feature-flags.test.ts",
     "src/test/feature-visibility.test.ts",
     "supabase/functions/_shared/feature-flags.ts",
+    "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+    "supabase/functions/_shared/tok-connect-discovery-widget.ts",
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/campaign-portal/index.ts",
     "supabase/functions/create-checkout/index.ts",
     "supabase/functions/create-zero-attente-reservation/index.ts",
+    "supabase/functions/tok-connect-remote-mcp/index.ts",
     "twint"
    ],
-   "detailRef": "9bbf89f37712"
+   "detailRef": "c46ef3c07afb"
   },
   {
    "id": "integration:077d0104684d",
@@ -355299,6 +356046,20 @@
    "detailRef": "31de4f063d54"
   },
   {
+   "id": "migration:cdc561d828fe",
+   "type": "migration",
+   "title": "20261016201212 Tok Workforce Clock Reconciliation",
+   "description": "Migration SQL de 45 lignes, 2 objets CREATE détectés.",
+   "path": "supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "3c7e6b216d11"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -358255,7 +359016,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 243 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 244 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -358357,6 +359118,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/supabase-client-imports.test.ts",
+    "src/test/tok-connect-commerce-handler.test.ts",
     "src/test/tok-logo-calendar.test.ts",
     "src/test/vercel-rewrites.test.ts",
     "supabase/functions/_shared/auth.ts",
@@ -358380,7 +359142,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "dc6ffd53ec51"
+   "detailRef": "52a4b9152b2b"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -358531,6 +359293,19 @@
     "src/test/marketing-one-click-unsubscribe.test.ts"
    ],
    "detailRef": "4decf6922e9b"
+  },
+  {
+   "id": "path-literal:91fcc6acf06f",
+   "type": "path-literal",
+   "title": "/^\\d{4}-\\d{2}-\\d{2}$/",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/tok-connect-customer-journey.test.ts",
+   "line": 144,
+   "surface": null,
+   "tags": [
+    "src/test/tok-connect-customer-journey.test.ts"
+   ],
+   "detailRef": "81fb11f02bbb"
   },
   {
    "id": "path-literal:52d7c05491fb",
@@ -360378,7 +361153,7 @@
    "id": "path-literal:189dd2480ec5",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 537,
    "surface": null,
@@ -360388,6 +361163,7 @@
     "src/lib/authPostLogin.ts",
     "src/lib/featureCatalog.ts",
     "src/lib/launchGate.ts",
+    "src/test/auth-post-login-routing.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
     "src/test/coming-soon-signup-page.test.tsx",
@@ -360395,7 +361171,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "3996dbfc29f5"
+   "detailRef": "9e038dd4a97d"
   },
   {
    "id": "path-literal:e53adf57f6c1",
@@ -360887,7 +361663,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "43f43f63b197"
+   "detailRef": "fa6ec1875d2b"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -362030,7 +362806,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "d21d45f7d9be"
+   "detailRef": "cb994c25392f"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -362196,7 +362972,7 @@
     "src/test/application-search-index.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "3bbef4dd5bd3"
+   "detailRef": "af93ea6c9d4a"
   },
   {
    "id": "path-literal:f76ae63d200b",
@@ -362240,7 +363016,7 @@
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "d67bd020dd5e"
+   "detailRef": "eff24215c4e8"
   },
   {
    "id": "path-literal:61b7c747d86f",
@@ -362406,7 +363182,7 @@
    "id": "path-literal:86a5c723657e",
    "type": "path-literal",
    "title": "/functions/v1/",
-   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 9 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/lib/commercialDemoEffects.ts",
    "line": 27,
    "surface": null,
@@ -362414,9 +363190,10 @@
     "src/lib/commercialDemoEffects.ts",
     "src/lib/commercialDemoHostSecurity.ts",
     "src/lib/iosCommerceFetch.ts",
-    "src/test/marketing-agent-bff.test.ts"
+    "src/test/marketing-agent-bff.test.ts",
+    "supabase/functions/tok-connect-app-bridge/index.ts"
    ],
-   "detailRef": "6a0c20e33a3f"
+   "detailRef": "97f13c223321"
   },
   {
    "id": "path-literal:4d3338389c80",
@@ -366494,20 +367271,20 @@
     "src/test/auth-post-login-routing.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "48a4c727ca48"
+   "detailRef": "84535e7327b8"
   },
   {
    "id": "path-literal:88954cab6189",
    "type": "path-literal",
    "title": "/oauth/consent?authorization_id=authorization-123",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/auth-post-login-routing.test.ts",
    "line": 15,
    "surface": null,
    "tags": [
     "src/test/auth-post-login-routing.test.ts"
    ],
-   "detailRef": "5a2cce06bdbb"
+   "detailRef": "4b038bd73d94"
   },
   {
    "id": "path-literal:09d6810c2c29",
@@ -379332,7 +380109,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/tok-connect-remote-mcp/index.ts"
    ],
-   "detailRef": "d8a6afabda43"
+   "detailRef": "2e1df0dc3e48"
   },
   {
    "id": "query-parameter:53f1f1bd6ea8",

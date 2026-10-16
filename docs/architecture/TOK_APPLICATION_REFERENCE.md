@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b74bbea82a2ead90d34b68b2aa4e9275835cb9bf4249556e96ad24b6b72ffa42`
+- Empreinte SHA-256 des sources indexées : `9d563187c74eb4d082d0885497661b41e1b607904831a941b49f10d816e4ae2a`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2894 |
-| documents | 205 |
+| databaseObjects | 2896 |
+| documents | 206 |
 | edgeFunctions | 118 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3577 |
+| exportedSymbols | 3585 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 545 |
-| modules | 1591 |
+| migrations | 546 |
+| modules | 1597 |
 | pages | 133 |
-| pathLiterals | 754 |
+| pathLiterals | 755 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 109 |
-| records | 17103 |
-| repositoryFiles | 3220 |
+| records | 17137 |
+| repositoryFiles | 3228 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -572,14 +572,14 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | sync-apple-storekit | [supabase/functions/sync-apple-storekit/index.ts:1](../../supabase/functions/sync-apple-storekit/index.ts#L1) | oui ([supabase/config.toml:281](../../supabase/config.toml#L281)) | false | POST | — | — |
 | tok-connect-admin | [supabase/functions/tok-connect-admin/index.ts:1](../../supabase/functions/tok-connect-admin/index.ts#L1) | oui ([supabase/config.toml:341](../../supabase/config.toml#L341)) | false | POST | admin-overview, admin-restaurants, set-restaurant-mcp-access | supabase |
 | tok-connect-api | [supabase/functions/tok-connect-api/index.ts:1](../../supabase/functions/tok-connect-api/index.ts#L1) | oui ([supabase/config.toml:329](../../supabase/config.toml#L329)) | false | GET, POST | — | — |
-| tok-connect-app-bridge | [supabase/functions/tok-connect-app-bridge/index.ts:1](../../supabase/functions/tok-connect-app-bridge/index.ts#L1) | oui ([supabase/config.toml:347](../../supabase/config.toml#L347)) | false | GET, POST | insert, list, select, update | stripe, supabase |
+| tok-connect-app-bridge | [supabase/functions/tok-connect-app-bridge/index.ts:1](../../supabase/functions/tok-connect-app-bridge/index.ts#L1) | oui ([supabase/config.toml:347](../../supabase/config.toml#L347)) | false | GET, POST | cancel_attempt, checkout, insert, list, select, status, update | stripe, supabase |
 | tok-connect-chatgpt | [supabase/functions/tok-connect-chatgpt/index.ts:1](../../supabase/functions/tok-connect-chatgpt/index.ts#L1) | oui ([supabase/config.toml:350](../../supabase/config.toml#L350)) | false | GET, POST | — | openai, supabase |
 | tok-connect-commercial-bridge | [supabase/functions/tok-connect-commercial-bridge/index.ts:1](../../supabase/functions/tok-connect-commercial-bridge/index.ts#L1) | oui ([supabase/config.toml:353](../../supabase/config.toml#L353)) | false | POST | demo_session, list, read, rpc | supabase |
 | tok-connect-full-app-mcp | [supabase/functions/tok-connect-full-app-mcp/index.ts:1](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L1) | oui ([supabase/config.toml:335](../../supabase/config.toml#L335)) | false | GET, POST | — | google, openai, stripe, supabase, vercel |
 | tok-connect-mcp | [supabase/functions/tok-connect-mcp/index.ts:1](../../supabase/functions/tok-connect-mcp/index.ts#L1) | oui ([supabase/config.toml:332](../../supabase/config.toml#L332)) | false | GET, POST | — | google, openai, stripe, supabase, vercel |
 | tok-connect-oauth | [supabase/functions/tok-connect-oauth/index.ts:1](../../supabase/functions/tok-connect-oauth/index.ts#L1) | oui ([supabase/config.toml:326](../../supabase/config.toml#L326)) | false | GET, POST | — | supabase |
 | tok-connect-portal | [supabase/functions/tok-connect-portal/index.ts:1](../../supabase/functions/tok-connect-portal/index.ts#L1) | oui ([supabase/config.toml:338](../../supabase/config.toml#L338)) | false | POST | approve-agent-run, approve-partner, create-sandbox-client, create-webhook-endpoint, mcp-connection-status, overview, reject-agent-run, revoke-client, revoke-partner, rotate-client-secret, send-webhook-test, suspend-partner, update-client-policy, update-grant-status, upsert-restaurant-grant | supabase |
-| tok-connect-remote-mcp | [supabase/functions/tok-connect-remote-mcp/index.ts:1](../../supabase/functions/tok-connect-remote-mcp/index.ts#L1) | oui ([supabase/config.toml:356](../../supabase/config.toml#L356)) | false | GET, POST | — | supabase |
+| tok-connect-remote-mcp | [supabase/functions/tok-connect-remote-mcp/index.ts:1](../../supabase/functions/tok-connect-remote-mcp/index.ts#L1) | oui ([supabase/config.toml:356](../../supabase/config.toml#L356)) | false | GET, POST | — | openai, stripe, supabase, twint |
 | tok-connect-webhook-dispatch | [supabase/functions/tok-connect-webhook-dispatch/index.ts:1](../../supabase/functions/tok-connect-webhook-dispatch/index.ts#L1) | oui ([supabase/config.toml:344](../../supabase/config.toml#L344)) | false | POST | — | supabase |
 | tok-pulse-widget | [supabase/functions/tok-pulse-widget/index.ts:1](../../supabase/functions/tok-pulse-widget/index.ts#L1) | oui ([supabase/config.toml:359](../../supabase/config.toml#L359)) | false | GET | — | supabase |
 | track-analytics | [supabase/functions/track-analytics/index.ts:1](../../supabase/functions/track-analytics/index.ts#L1) | oui ([supabase/config.toml:269](../../supabase/config.toml#L269)) | false | POST | — | supabase |
@@ -1239,7 +1239,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 243 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 244 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:81](../../src/test/application-search-index.test.ts#L81) |
@@ -1260,6 +1260,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /Outlines | 2 | [src/test/guide-pdf.test.ts:19](../../src/test/guide-pdf.test.ts#L19) |
 | /[^/]+ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /^[0-9a-f-]{36}$/i.test(deliveryId) | 1 | [src/test/marketing-one-click-unsubscribe.test.ts:69](../../src/test/marketing-one-click-unsubscribe.test.ts#L69) |
+| /^\d{4}-\d{2}-\d{2}$/ | 1 | [src/test/tok-connect-customer-journey.test.ts:144](../../src/test/tok-connect-customer-journey.test.ts#L144) |
 | /__campaign-layout | 2 | [scripts/check-campaign-layout.mjs:59](../../scripts/check-campaign-layout.mjs#L59) |
 | /__campaign-layout-test.tsx | 1 | [scripts/check-campaign-layout.mjs:12](../../scripts/check-campaign-layout.mjs#L12) |
 | /__commercial-map | 2 | [scripts/check-commercial-map.mjs:42](../../scripts/check-commercial-map.mjs#L42) |
@@ -1372,7 +1373,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /chefs-table | 25 | [scripts/prerender-seo.mjs:994](../../scripts/prerender-seo.mjs#L994) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:31](../../src/test/tok-logo-calendar.test.ts#L31) |
-| /coming-soon | 18 | [src/App.tsx:537](../../src/App.tsx#L537) |
+| /coming-soon | 20 | [src/App.tsx:537](../../src/App.tsx#L537) |
 | /coming-soon?welcome=1 | 3 | [src/test/coming-soon-signup-page.test.tsx:53](../../src/test/coming-soon-signup-page.test.tsx#L53) |
 | /coming-soon?welcome=1&email=1 | 2 | [src/test/coming-soon-signup-page.test.tsx:53](../../src/test/coming-soon-signup-page.test.tsx#L53) |
 | /commande | 2 | [scripts/prerender-seo.mjs:1217](../../scripts/prerender-seo.mjs#L1217) |
@@ -1488,7 +1489,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /flex-prix-bas | 11 | [scripts/prerender-seo.mjs:1058](../../scripts/prerender-seo.mjs#L1058) |
 | /fond3.png | 7 | [public/seo-trust-runtime.js:8](../../public/seo-trust-runtime.js#L8) |
 | /fondbanniere.png | 1 | [src/test/dashboard-overview-google-compact.test.ts:24](../../src/test/dashboard-overview-google-compact.test.ts#L24) |
-| /functions/v1/ | 8 | [src/lib/commercialDemoEffects.ts:27](../../src/lib/commercialDemoEffects.ts#L27) |
+| /functions/v1/ | 9 | [src/lib/commercialDemoEffects.ts:27](../../src/lib/commercialDemoEffects.ts#L27) |
 | /functions/v1/:path* | 1 | [src/test/vercel-rewrites.test.ts:128](../../src/test/vercel-rewrites.test.ts#L128) |
 | /functions/v1/ai-marketing-agent | 4 | [src/test/marketing-agent-bff.test.ts:30](../../src/test/marketing-agent-bff.test.ts#L30) |
 | /functions/v1/create-checkout | 1 | [src/lib/iosCommerceFetch.ts:291](../../src/lib/iosCommerceFetch.ts#L291) |
@@ -1786,7 +1787,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /notifications?tab=orders | 2 | [src/test/navigation.test.ts:10](../../src/test/navigation.test.ts#L10) |
 | /oauth | 2 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
 | /oauth/consent | 5 | [src/App.tsx:459](../../src/App.tsx#L459) |
-| /oauth/consent?authorization_id=authorization-123 | 1 | [src/test/auth-post-login-routing.test.ts:15](../../src/test/auth-post-login-routing.test.ts#L15) |
+| /oauth/consent?authorization_id=authorization-123 | 2 | [src/test/auth-post-login-routing.test.ts:15](../../src/test/auth-post-login-routing.test.ts#L15) |
 | /orders/add | 4 | [src/test/cloudprinter-edge-runtime.test.ts:133](../../src/test/cloudprinter-edge-runtime.test.ts#L133) |
 | /orders/cancel | 1 | [supabase/functions/_shared/print/cloudprinter.ts:342](../../supabase/functions/_shared/print/cloudprinter.ts#L342) |
 | /orders/info | 2 | [src/test/marketing-print-contract.test.ts:192](../../src/test/marketing-print-contract.test.ts#L192) |
@@ -2407,7 +2408,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (788)</summary>
+<details><summary>function (789)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3154,6 +3155,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.tok_workforce_my_restaurants` (1 définition(s))
 - `public.tok_workforce_prevent_shift_absence_conflict` (1 définition(s))
 - `public.tok_workforce_punch` (1 définition(s))
+- `public.tok_workforce_reconcile_clock` (1 définition(s))
 - `public.tok_workforce_respond_exchange` (1 définition(s))
 - `public.tok_workforce_review_exchange` (2 définition(s))
 - `public.tok_workforce_review_request` (1 définition(s))
@@ -3200,7 +3202,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (684)</summary>
+<details><summary>index (685)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3830,6 +3832,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `tok_workforce_absences_period_idx` (1 définition(s))
 - `tok_workforce_audit_recent_idx` (1 définition(s))
 - `tok_workforce_clock_employee_recent` (1 définition(s))
+- `tok_workforce_clock_entry_once` (1 définition(s))
 - `tok_workforce_clock_events_recent` (1 définition(s))
 - `tok_workforce_clock_events_session` (1 définition(s))
 - `tok_workforce_clock_one_active` (1 définition(s))
@@ -6173,6 +6176,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261014165500 Tok Workforce Restaurants | 312 | 49 | [supabase/migrations/20261014165500_tok_workforce_restaurants.sql:1](../../supabase/migrations/20261014165500_tok_workforce_restaurants.sql#L1) |
 | 20261014180000 Tok Workforce Clock Teams | 439 | 34 | [supabase/migrations/20261014180000_tok_workforce_clock_teams.sql:1](../../supabase/migrations/20261014180000_tok_workforce_clock_teams.sql#L1) |
 | 20261015090000 Admin Security Guardian Approval Guardrails | 124 | 2 | [supabase/migrations/20261015090000_admin_security_guardian_approval_guardrails.sql:1](../../supabase/migrations/20261015090000_admin_security_guardian_approval_guardrails.sql#L1) |
+| 20261016201212 Tok Workforce Clock Reconciliation | 45 | 2 | [supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql:1](../../supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6394,13 +6398,13 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 118 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 120 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 123 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 243 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 709 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
-| Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Stripe | 248 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 713 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Twint | 27 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
@@ -6412,7 +6416,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 210 |
 | automation-script | 66 |
 | documentation | 6 |
-| edge-function-source | 198 |
+| edge-function-source | 199 |
 | frontend-component | 272 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
@@ -6420,7 +6424,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 627 |
+| test | 632 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6500,6 +6504,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Supabase Backend Review | 6 | [codex-skills/mobile-fullstack-architect/references/supabase-backend.md:1](../../codex-skills/mobile-fullstack-architect/references/supabase-backend.md#L1) |
 | Centre d’opérations marketing TheTOK | 11 | [docs/MARKETING_OPERATIONS_CENTER.md:1](../../docs/MARKETING_OPERATIONS_CENTER.md#L1) |
 | Print fulfillment protocol — controlled rollout and recovery | 5 | [docs/PRINT_FULFILLMENT_PROTOCOL.md:1](../../docs/PRINT_FULFILLMENT_PROTOCOL.md#L1) |
+| TOK Connect et TOK Équipe — livraison du 16 octobre 2026 | 4 | [docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md:1](../../docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md#L1) |
 | État d’exécution TOK observé le 3 octobre 2026 | 6 | [docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md:1](../../docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md#L1) |
 | Audit Execution Plan | 22 | [docs/audit-execution-plan.md:1](../../docs/audit-execution-plan.md#L1) |
 | Supabase production audit — project `wwcrtyoueexyxkkikaos` (Tok) | 12 | [docs/audits/2026-04-18-supabase-production-audit.md:1](../../docs/audits/2026-04-18-supabase-production-audit.md#L1) |
@@ -7027,7 +7032,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (545)</summary>
+<details><summary>database-migration (546)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7574,13 +7579,15 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261014165500_tok_workforce_restaurants.sql`
 - `supabase/migrations/20261014180000_tok_workforce_clock_teams.sql`
 - `supabase/migrations/20261015090000_admin_security_guardian_approval_guardrails.sql`
+- `supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql`
 
 </details>
 
-<details><summary>documentation (158)</summary>
+<details><summary>documentation (159)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
+- `docs/TOK_CONNECT_EQUIPE_RELEASE_20261016.md`
 - `docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md`
 - `docs/architecture/tok-runtime-evidence-2026-10-03.json`
 - `docs/assets-archive/intro.mp4`
@@ -7740,7 +7747,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (198)</summary>
+<details><summary>edge-function-source (199)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7809,6 +7816,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/stripe-client.ts`
 - `supabase/functions/_shared/stripe-paid-invoice-payment.ts`
 - `supabase/functions/_shared/tok-connect-auth.ts`
+- `supabase/functions/_shared/tok-connect-customer-commerce.ts`
 - `supabase/functions/_shared/tok-connect-discovery-widget.ts`
 - `supabase/functions/_shared/tok-connect-discovery.ts`
 - `supabase/functions/_shared/tok-connect.ts`
@@ -9293,7 +9301,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (627)</summary>
+<details><summary>test (632)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9886,7 +9894,10 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-admin-schema-contract.test.ts`
 - `src/test/tok-connect-app-bridge.test.ts`
 - `src/test/tok-connect-chatgpt-finalization.test.ts`
+- `src/test/tok-connect-commerce-handler.test.ts`
 - `src/test/tok-connect-commercial-bridge.test.ts`
+- `src/test/tok-connect-customer-commerce.test.ts`
+- `src/test/tok-connect-customer-journey.test.ts`
 - `src/test/tok-connect-discovery.test.ts`
 - `src/test/tok-connect-edge-functions.test.ts`
 - `src/test/tok-connect-frontend.test.ts`
@@ -9907,6 +9918,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tokWorkforce.test.ts`
 - `src/test/tokWorkforceClock.test.ts`
 - `src/test/tokWorkforceMigration.test.ts`
+- `src/test/tokWorkforceReports.test.tsx`
+- `src/test/tokWorkforceRows.test.tsx`
 - `src/test/transactional-email-templates.test.ts`
 - `src/test/ui-overlay-layering.test.ts`
 - `src/test/user-facing-errors.test.ts`
