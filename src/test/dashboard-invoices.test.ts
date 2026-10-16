@@ -5,6 +5,8 @@ import { isInvoicePaid, splitInvoicesByPaymentState } from "@/lib/dashboardInvoi
 const INVOICES = [
   { id: "pending-1", status: "pending", amount_ttc: 25 },
   { id: "draft-1", status: "draft", amount_ttc: 10 },
+  { id: "reserved-1", status: "reserved", amount_ttc: 69 },
+  { id: "cancelled-1", status: "cancelled", amount_ttc: 199 },
   { id: "overdue-1", status: "overdue", amount_ttc: 18 },
   { id: "paid-1", status: "paid", amount_ttc: 40 },
   { id: "paid-2", status: "PAID", amount_ttc: 12 },
@@ -24,7 +26,6 @@ describe("splitInvoicesByPaymentState", () => {
     expect(splitInvoicesByPaymentState(INVOICES)).toEqual({
       actionable: [
         { id: "pending-1", status: "pending", amount_ttc: 25 },
-        { id: "draft-1", status: "draft", amount_ttc: 10 },
         { id: "overdue-1", status: "overdue", amount_ttc: 18 },
       ],
       history: [
@@ -32,6 +33,13 @@ describe("splitInvoicesByPaymentState", () => {
         { id: "paid-2", status: "PAID", amount_ttc: 12 },
       ],
     });
+  });
+
+  it("does not recognize unactivated reserved subscriptions or void drafts as debts", () => {
+    const invoices = splitInvoicesByPaymentState(INVOICES);
+    expect(invoices.actionable.reduce((sum, invoice) => sum + invoice.amount_ttc, 0)).toBe(43);
+    expect(invoices.history.reduce((sum, invoice) => sum + invoice.amount_ttc, 0)).toBe(52);
+    expect(invoices.actionable.some((invoice) => invoice.id === "reserved-1")).toBe(false);
   });
 
   it("treats missing statuses as actionable", () => {
