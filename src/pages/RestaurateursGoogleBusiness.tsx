@@ -13,9 +13,8 @@ import {
   Table2,
 } from "lucide-react";
 
+import { ReservationCostCalculator } from "@/components/restaurateurs/ReservationCostCalculator";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { B2BTable } from "@/components/restaurateurs/B2BTable";
 import { calculateGoogleBusinessSavings } from "@/lib/googleBusinessEconomics";
 import { FAIR_GROWTH_PLANS, RESERVATION_FLAT_FEE_CHF } from "@/lib/fairGrowth";
@@ -105,9 +104,9 @@ function formatChf(value: number) {
 }
 
 export default function RestaurateursGoogleBusiness() {
-  const [monthlyTables, setMonthlyTables] = useState(120);
-  const [coversPerTable, setCoversPerTable] = useState(3);
-  const [commissionPerCover, setCommissionPerCover] = useState(6.2);
+  const [monthlyTables, setMonthlyTables] = useState(80);
+  const [coversPerTable, setCoversPerTable] = useState(3.4);
+  const [commissionPerCover, setCommissionPerCover] = useState(4);
   const [planSlug, setPlanSlug] = useState("pro");
   const selectedPlan = FAIR_GROWTH_PLANS.find((plan) => plan.slug === planSlug) ?? FAIR_GROWTH_PLANS[1];
   const packFee = selectedPlan.monthlyPriceChf;
@@ -202,66 +201,30 @@ export default function RestaurateursGoogleBusiness() {
 
   return (
     <main className="bg-white text-slate-950">
-      <section
-        className="relative isolate flex items-end overflow-hidden bg-slate-950 px-4 pb-12 pt-16 text-white md:px-8 lg:px-12"
-        style={{
-          backgroundImage:
-            "linear-gradient(90deg, rgba(5,7,15,0.9), rgba(5,7,15,0.64), rgba(5,7,15,0.18)), url('/fond3.png')",
-          backgroundPosition: "center",
-          backgroundSize: "cover",
-        }}
-      >
-        <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-end">
-          <div className="max-w-3xl space-y-7">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur">
-              <SearchCheck className="h-4 w-4 text-orange-300" />
-              Pour les restaurants · Fiche Google et réservations
-            </div>
-            <div className="space-y-5">
-              <h1 className="max-w-4xl text-4xl font-black leading-tight md:text-5xl">
-                Depuis Google, aidez vos clients à réserver chez vous.
-              </h1>
-              <p className="max-w-2xl text-base leading-7 text-white/80 md:text-lg">
-                Votre fiche Google Business est la fiche gratuite de votre restaurant dans Google et Google Maps : adresse,
-                horaires, photos et liens. TOK est un service distinct, payant, pour gérer notamment vos réservations.
-                Vous pouvez ajouter un lien vers votre page restaurant TOK sur votre fiche Google, selon les options proposées par Google.
-                TOK facture 5 CHF par table réellement servie, quel que soit le nombre de personnes, en plus de l'abonnement choisi.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
-                <a href={`mailto:contact@thetok.ch?subject=${auditSubject}&body=${auditBody}`}>
-                  Demander un audit par e-mail
-                  <ExternalLink className="ml-2 h-5 w-5" />
-                </a>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-              >
-                <Link to="/restaurateurs/geneve">
-                  Voir la plateforme restaurateur
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid gap-3 rounded-lg border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-md">
-            <p className="text-sm leading-6 text-white/80">Exemple modifiable dans le simulateur ci-dessous · abonnement {selectedPlan.publicName} à {formatChf(packFee)}/mois.</p>
-            <MetricDark label="Tables servies issues de Google / mois" value={monthlyTables.toLocaleString("fr-CH")} />
-            <MetricDark label="Coût modèle au couvert" value={formatChf(simulation.perCoverModelCostChf)} />
-            <MetricDark label="TOK : pack + 5 CHF/table" value={formatChf(simulation.tokModelCostChf)} />
-            <MetricDark
-              label={simulation.monthlySavingsChf > 0 ? "TOK coûte moins par mois" : simulation.monthlySavingsChf < 0 ? "TOK coûte plus par mois" : "Coûts identiques"}
-              value={formatChf(Math.abs(simulation.monthlySavingsChf))}
-              accent={simulation.isTokCheaper}
-            />
+      <section className="bg-white px-4 pb-5 pt-8 text-slate-950 md:px-8">
+        <div className="mx-auto max-w-[1400px]">
+          <h1 className="text-2xl font-black tracking-tight md:text-3xl">Depuis Google, aidez vos clients à réserver chez vous.</h1>
+          <p className="mt-3 max-w-4xl text-sm leading-6 text-slate-600">Votre fiche Google est gratuite. Un lien vers TOK permet aux clients de réserver chez vous. TOK facture un abonnement et 5 CHF par table honorée : comparez les frais avec vos chiffres ci-dessous.</p>
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm font-bold text-orange-800">
+            <a className="underline underline-offset-4" href="#google-calcul">Calculer mes frais</a>
+            <Link className="underline underline-offset-4" to="/restaurateurs/geneve">Comprendre la plateforme TOK</Link>
+            <a className="underline underline-offset-4" href={`mailto:contact@thetok.ch?subject=${auditSubject}&body=${auditBody}`}>Demander un audit par e-mail</a>
           </div>
         </div>
       </section>
+      <ReservationCostCalculator id="google-calcul" tables={monthlyTables} covers={coversPerTable} fee={commissionPerCover} planSlug={planSlug}
+        onTablesChange={setMonthlyTables} onCoversChange={setCoversPerTable} onFeeChange={setCommissionPerCover} onPlanChange={setPlanSlug}
+        costs={{ servedTables: monthlyTables, servedPeople: simulation.monthlyCovers, perCoverCost: simulation.perCoverModelCostChf, tokTotal: simulation.tokModelCostChf }} />
+      <section className="bg-orange-50 px-4 pb-10 text-slate-950 md:px-8"><details className="mx-auto max-w-[1400px] rounded-xl border border-orange-200 bg-white p-5"><summary className="cursor-pointer font-bold text-orange-900">Voir toutes les formules, le coût par personne et le calcul annuel</summary><div className="mt-5">            <B2BTable caption="Détail du calcul avec vos valeurs" columns={["Étape", "Calcul", "Résultat"]} rows={[
+              ["Personnes servies / mois", `${monthlyTables.toLocaleString("fr-CH")} tables × ${coversPerTable.toLocaleString("fr-CH")} personnes`, simulation.monthlyCovers.toLocaleString("fr-CH")],
+              ["Modèle au couvert / mois", `${simulation.monthlyCovers.toLocaleString("fr-CH")} personnes × ${formatChf(commissionPerCover)}`, formatChf(simulation.perCoverModelCostChf)],
+              ["TOK : frais de tables / mois", `${monthlyTables.toLocaleString("fr-CH")} tables × ${formatChf(RESERVATION_FLAT_FEE_CHF)}`, formatChf(monthlyTables * RESERVATION_FLAT_FEE_CHF)],
+              ["TOK : abonnement / mois", `${selectedPlan.publicName} · paiement mensuel`, formatChf(packFee)],
+              ["TOK : total / mois", `${formatChf(monthlyTables * RESERVATION_FLAT_FEE_CHF)} + ${formatChf(packFee)}`, formatChf(simulation.tokModelCostChf)],
+              ["Écart / mois", `Coût au couvert − total TOK : ${formatChf(simulation.perCoverModelCostChf)} − ${formatChf(simulation.tokModelCostChf)}`, formatChf(simulation.monthlySavingsChf)],
+              ["Écart sur 12 mois identiques", `${formatChf(simulation.monthlySavingsChf)} × 12`, formatChf(simulation.annualSavingsChf)],
+              ["Coût TOK moyen par personne", simulation.monthlyCovers > 0 ? `${formatChf(simulation.tokModelCostChf)} ÷ ${simulation.monthlyCovers.toLocaleString("fr-CH")} personnes` : "Division impossible : aucune personne", simulation.monthlyCovers > 0 ? formatChf(simulation.tokEffectiveCostPerCoverChf) : "Non applicable"],
+            ]} /><p className="mt-4 text-sm leading-6 text-slate-600">L'écart annuel multiplie le mois par 12 mois identiques, sans appliquer l'offre de paiement annuel. Le coût par personne n'est pas calculable sans personne servie. L'abonnement éventuel du modèle au couvert et les autres frais ne sont pas inclus. Il ne s'agit pas d'une marge ni d'un bénéfice.</p></div></details></section>
 
       <section className="border-b bg-white px-4 py-14 md:px-8 lg:px-12">
         <div className="mx-auto max-w-7xl space-y-6">
@@ -335,49 +298,7 @@ export default function RestaurateursGoogleBusiness() {
         </div>
       </section>
 
-      <section className="px-4 py-16 md:px-8 lg:px-12">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[420px_minmax(0,1fr)]">
-          <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Simulateur des frais de réservation</p>
-            <h2 className="text-3xl font-black md:text-4xl">Combien coûtent les mêmes tables dans chaque modèle ?</h2>
-            <p className="text-slate-600">
-              Un couvert est une personne servie. Une table est une réservation honorée, même si elle rassemble plusieurs personnes.
-              Ce calcul compare le même volume de tables venues depuis Google dans les deux modèles. Le total TOK additionne l'abonnement mensuel
-              et 5 CHF par table ; le modèle concurrent additionne un montant pour chaque personne. Il s'agit d'une estimation,
-              pas d'une garantie de trafic ou de résultat Google.
-            </p>
-          </div>
 
-          <div className="min-w-0 space-y-6 rounded-lg border bg-white p-5 shadow-sm">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <NumberField id="tables" label="Tables réellement servies depuis Google / mois" value={monthlyTables} onChange={setMonthlyTables} />
-              <NumberField id="covers" label="Personnes en moyenne par table" value={coversPerTable} onChange={setCoversPerTable} step={0.5} />
-              <NumberField id="commission" label="Hypothèse de frais par personne (CHF)" value={commissionPerCover} onChange={setCommissionPerCover} step={0.1} />
-              <div className="space-y-2">
-                <Label htmlFor="google-pack">Abonnement TOK · paiement mensuel</Label>
-                <select id="google-pack" value={planSlug} onChange={(event) => setPlanSlug(event.target.value)} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  {FAIR_GROWTH_PLANS.map((plan) => <option key={plan.slug} value={plan.slug}>{plan.publicName} · {formatChf(plan.monthlyPriceChf)}/mois</option>)}
-                </select>
-              </div>
-            </div>
-            <B2BTable caption="Détail du calcul avec vos valeurs" columns={["Étape", "Calcul", "Résultat"]} rows={[
-              ["Personnes servies / mois", `${monthlyTables.toLocaleString("fr-CH")} tables × ${coversPerTable.toLocaleString("fr-CH")} personnes`, simulation.monthlyCovers.toLocaleString("fr-CH")],
-              ["Modèle au couvert / mois", `${simulation.monthlyCovers.toLocaleString("fr-CH")} personnes × ${formatChf(commissionPerCover)}`, formatChf(simulation.perCoverModelCostChf)],
-              ["TOK : frais de tables / mois", `${monthlyTables.toLocaleString("fr-CH")} tables × ${formatChf(RESERVATION_FLAT_FEE_CHF)}`, formatChf(monthlyTables * RESERVATION_FLAT_FEE_CHF)],
-              ["TOK : abonnement / mois", `${selectedPlan.publicName} · paiement mensuel`, formatChf(packFee)],
-              ["TOK : total / mois", `${formatChf(monthlyTables * RESERVATION_FLAT_FEE_CHF)} + ${formatChf(packFee)}`, formatChf(simulation.tokModelCostChf)],
-              ["Écart / mois", `Coût au couvert − total TOK : ${formatChf(simulation.perCoverModelCostChf)} − ${formatChf(simulation.tokModelCostChf)}`, formatChf(simulation.monthlySavingsChf)],
-              ["Écart sur 12 mois identiques", `${formatChf(simulation.monthlySavingsChf)} × 12`, formatChf(simulation.annualSavingsChf)],
-              ["Coût TOK moyen par personne", simulation.monthlyCovers > 0 ? `${formatChf(simulation.tokModelCostChf)} ÷ ${simulation.monthlyCovers.toLocaleString("fr-CH")} personnes` : "Division impossible : aucune personne", simulation.monthlyCovers > 0 ? formatChf(simulation.tokEffectiveCostPerCoverChf) : "Non applicable"],
-            ]} />
-            <div role="status" aria-live="polite" className="rounded-lg bg-slate-950 p-4 text-white">
-              <p className="font-bold">{simulation.monthlySavingsChf > 0 ? `Avec ces hypothèses, TOK coûte ${formatChf(simulation.monthlySavingsChf)} de moins par mois.` : simulation.monthlySavingsChf < 0 ? `Avec ces hypothèses, TOK coûte ${formatChf(Math.abs(simulation.monthlySavingsChf))} de plus par mois.` : "Avec ces hypothèses, les deux modèles ont le même coût mensuel."}</p>
-              <p className="mt-2 text-sm leading-6 text-white/80">Un écart positif indique une économie de frais avec TOK ; un écart négatif indique un surcoût. Il ne s'agit pas d'une marge ni d'un bénéfice.</p>
-            </div>
-            <p className="text-sm leading-6 text-slate-600">Hypothèses : mêmes tables réellement servies, même nombre de personnes et tarifs constants. Le montant par personne est votre hypothèse, pas un tarif concurrent vérifié. L'abonnement et les éventuels frais supplémentaires de l'autre service ne sont pas inclus. Le calcul impute ici l'abonnement TOK entier aux tables Google, même s'il sert aussi à d'autres usages. Il ne comprend pas les autres services, options, frais de commande ou de paiement, ni une comparaison de TVA. L'écart annuel multiplie le mois par 12 : il n'applique pas l'offre TOK en paiement annuel. Une moyenne de personnes peut être décimale ; une table reste une réservation honorée.</p>
-          </div>
-        </div>
-      </section>
 
       <section className="bg-slate-50 px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.85fr_1.15fr]">
@@ -472,45 +393,5 @@ export default function RestaurateursGoogleBusiness() {
         </div>
       </section>
     </main>
-  );
-}
-
-function NumberField({
-  id,
-  label,
-  value,
-  onChange,
-  step = 1,
-}: {
-  id: string;
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-  step?: number;
-}) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        type="number"
-        min={0}
-        step={step}
-        value={value}
-        onChange={(event) => {
-          const nextValue = Number(event.target.value);
-          onChange(Number.isFinite(nextValue) ? Math.max(0, nextValue) : 0);
-        }}
-      />
-    </div>
-  );
-}
-
-function MetricDark({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div className="rounded-lg bg-white/10 p-3">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/60">{label}</p>
-      <p className={`mt-1 text-2xl font-black ${accent ? "text-orange-300" : ""}`}>{value}</p>
-    </div>
   );
 }

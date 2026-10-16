@@ -31,7 +31,7 @@ describe("B2B restaurateur SEO cluster", () => {
     expect(google).toContain("Depuis Google, aidez vos clients à réserver chez vous");
     expect(google).toContain("Google Maps");
     expect(google).toContain("Mise en place pas à pas");
-    expect(google).toContain("Tables réellement servies depuis Google / mois");
+    expect(google).toContain("<ReservationCostCalculator");
     expect(google).toContain("lien de réservation");
     expect(google).toContain("Quel lien choisir selon votre situation ?");
     expect(google).toContain("Situation");

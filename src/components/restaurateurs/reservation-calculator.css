@@ -1,0 +1,88 @@
+.tok-math-scene { padding: clamp(20px, 3vw, 48px) 16px; background: #fff1e5; color: #12151b; }
+.tok-math-layout { display: grid; grid-template-columns: minmax(0, 1fr); max-width: 1400px; margin: auto; align-items: stretch; }
+.tok-math-host { display: none; }
+.tok-math-card { min-width: 0; padding: clamp(16px, 2.4vw, 34px); border: 2px solid #ff5a16; border-radius: 26px; background: #fff; box-shadow: 0 18px 55px #74300218; }
+.tok-math-heading h2 { margin: 5px 0 8px; font-size: clamp(27px, 3.2vw, 48px); font-weight: 950; line-height: 1.12; letter-spacing: -.04em; }
+.tok-math-heading h2 span { font-size: 1.5em; color: #f44508; vertical-align: -.03em; }
+.tok-math-heading h2 strong { color: #e53c00; }
+.tok-math-context { margin: 0; font-size: 14px; color: #8c350e; font-weight: 700; }
+.tok-math-equation { margin: 8px 0; font-size: clamp(17px, 1.8vw, 25px); font-weight: 800; line-height: 1.35; }
+.tok-math-equation strong { color: #d93c00; }
+.tok-math-definition, .tok-math-scope { font-size: 13px; line-height: 1.6; color: #50545d; }
+.tok-math-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 24px 0 18px; }
+.tok-math-field { min-width: 0; }
+.tok-math-field label, .tok-math-plan label { display: block; font-size: 13px; font-weight: 800; margin-bottom: 7px; line-height: 1.4; }
+.tok-math-input-wrap { position: relative; }
+.tok-math-field input { width: 100%; min-width: 0; height: 56px; border: 1.5px solid #e6a885; border-radius: 10px; padding: 8px 12px; background: #fffaf5; color: #15171c; font-size: 25px; font-weight: 850; font-variant-numeric: tabular-nums; }
+.tok-math-input-wrap:has(span) input { padding-right: 122px; }
+.tok-math-input-wrap span { position: absolute; right: 25px; top: 20px; font-size: 12px; font-weight: 700; color: #6c4d3d; pointer-events: none; }
+.tok-math-field > small { display: block; margin-top: 6px; font-size: 11px; line-height: 1.45; color: #646771; }
+.tok-math-toolbar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; align-items: center; }
+.tok-math-mode { display: inline-flex; padding: 4px; background: #f4f1ed; border-radius: 12px; gap: 3px; }
+.tok-math-mode button { padding: 10px 13px; border-radius: 8px; font-size: 13px; font-weight: 750; color: #4c4b4a; }
+.tok-math-mode button[aria-pressed=true] { background: #fff; color: #ac3104; box-shadow: 0 2px 7px #30100016; }
+.tok-math-reset { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; color: #86401d; padding: 8px 0; }
+.tok-math-scope { margin: 10px 0 16px; max-width: 78ch; }
+.tok-math-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; overflow: hidden; border-radius: 14px; border: 1px solid #e5d5c8; font-variant-numeric: tabular-nums; }
+.tok-math-label-column { width: 36%; }
+.tok-math-table th, .tok-math-table td { padding: 9px 14px; border-bottom: 1px solid #e5d9cf; border-right: 1px solid #ead9cb; vertical-align: middle; overflow-wrap: anywhere; }
+.tok-math-table thead th { background: linear-gradient(120deg,#d53b00,#c93400); color: #fff; font-size: clamp(15px, 1.5vw, 21px); font-weight: 900; text-align: left; }
+.tok-math-table thead th:not(:first-child) { text-align: center; }
+.tok-math-table thead th:last-child { background: #292f39; }
+.tok-math-table tbody th { font-size: 15px; line-height: 1.4; font-weight: 800; text-align: left; background: #fffdfa; }
+.tok-math-table td { text-align: center; font-size: clamp(17px, 1.65vw, 23px); font-weight: 800; line-height: 1.35; }
+.tok-math-table td:nth-child(2) { background: #fff0e1; }
+.tok-math-table td:last-child { background: #fafafa; border-right: 0; }
+.tok-math-table small { display: block; font-size: 12px; font-weight: 500; }
+.tok-math-table .tok-math-total th, .tok-math-table .tok-math-total td { border-bottom: 0; padding-top: 18px; padding-bottom: 18px; background: #fff0e0; }
+.tok-math-total td strong { font-size: clamp(21px, 2.6vw, 38px); font-weight: 950; letter-spacing: -.04em; }
+.tok-math-total td:nth-child(2) strong { color: #e63e00; }
+.tok-math-result { display: flex; align-items: center; justify-content: center; gap: 22px; padding: 16px 18px; margin-top: 14px; border-radius: 20px; background: linear-gradient(110deg,#d53b00,#c93400); color: #fff; text-align: center; }
+.tok-math-result > div { min-width: 0; }
+.tok-math-result p { margin: 0; line-height: 1.25; font-size: clamp(19px, 2vw, 28px); font-weight: 800; }
+.tok-math-result p:first-child strong { font-size: clamp(31px, 3vw, 45px); font-weight: 950; letter-spacing: -.04em; }
+.tok-math-result p + p { margin-top: 6px; }
+.tok-math-result small { display: block; margin-top: 9px; font-size: 12px; }
+.tok-math-result-extra { background: #343b47; }
+.tok-math-pig { flex-shrink: 0; }
+.tok-math-monthly { display: grid; grid-template-columns: 240px minmax(0,1fr); gap: 20px; align-items: center; margin: 22px 0 12px; padding: 16px; border: 1px solid #edc3a2; background: #fffaf4; border-radius: 12px; }
+.tok-math-plan select { width: 100%; min-height: 44px; border: 1px solid #d0b8a5; border-radius: 8px; background: #fff; color: #20242b; font-size: 13px; padding: 8px; }
+.tok-math-monthly p { font-size: 12px; line-height: 1.5; color: #514b45; }
+.tok-math-monthly .tok-math-monthly-sum { margin: 3px 0; font-size: clamp(15px, 1.5vw, 20px); font-weight: 700; color: #24201d; }
+.tok-math-monthly-sum strong { color: #b83100; }
+.tok-math-monthly-sum small { font-size: 12px; }
+.tok-math-details { padding: 12px 0; border-top: 1px solid #eaded5; font-size: 13px; color: #474a52; }
+.tok-math-details summary { cursor: pointer; font-weight: 750; padding: 7px 0; color: #793711; }
+.tok-math-details .tok-math-field { max-width: 300px; margin: 15px 0; }
+.tok-math-details p { line-height: 1.6; max-width: 78ch; }
+.tok-math-note { font-size: 11px; color: #646771; line-height: 1.6; margin: 10px 0 0; max-width: 100ch; }
+.tok-math-note a { color: #9b3709; text-decoration: underline; text-underline-offset: 2px; }
+.tok-math-card :is(input,select,button,summary,a):focus-visible { outline: 3px solid #fc5c16; outline-offset: 3px; }
+@media (min-width: 1200px) {
+  .tok-math-layout { grid-template-columns: 250px minmax(0,1fr); }
+  .tok-math-host { display: flex; flex-direction: column; justify-content: space-between; padding: 24px 16px 26px; border-radius: 24px 0 0 24px; background: linear-gradient(0deg,#44230fe8,transparent 75%),url('/images/home/tok-geneve-desktop.webp') 65% top / auto 740px no-repeat, #e7b784; }
+  .tok-math-host-logo { width: 94px; height: auto; align-self: flex-start; filter: drop-shadow(0 3px 8px #0004); }
+  .tok-math-host-message { background: #fffdf5f0; border: 1px solid #ff7b38; border-radius: 14px; padding: 15px; color: #3a2517; font-size: 23px; font-weight: 800; line-height: 1.2; }
+  .tok-math-host-message strong { color: #cf3a00; }
+}
+@media (max-width: 700px) {
+  .tok-math-scene { padding: 18px 10px; }
+  .tok-math-card { border-radius: 18px; padding: 16px 12px; }
+  .tok-math-controls { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 18px; }
+  .tok-math-controls .tok-math-field:last-child { grid-column: 1/-1; }
+  .tok-math-field input { font-size: 24px; }
+  .tok-math-mode { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .tok-math-mode button { padding: 10px 8px; font-size: 12px; line-height: 1.35; }
+  .tok-math-table th, .tok-math-table td { padding: 10px 6px; }
+  .tok-math-table thead th { font-size: 13px; }
+  .tok-math-table tbody th { font-size: 12px; }
+  .tok-math-table td { font-size: 16px; }
+  .tok-math-table small { font-size: 10px; }
+  .tok-math-total td strong { font-size: 22px; }
+  .tok-math-result { gap: 8px; padding: 18px 10px; border-radius: 15px; }
+  .tok-math-pig { display: none; }
+  .tok-math-result p { font-size: 19px; }
+  .tok-math-result p:first-child strong { display: block; font-size: 36px; }
+  .tok-math-result small { font-size: 11px; }
+  .tok-math-monthly { grid-template-columns: minmax(0,1fr); padding: 13px; gap: 12px; }
+}
