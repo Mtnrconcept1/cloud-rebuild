@@ -4,6 +4,13 @@ import { getRoleHomePath } from "@/lib/roleAccess";
 
 const INTERNAL_NAVIGATION_ORIGIN = "https://www.thetok.ch";
 
+/** Supabase may send its authorization path directly to /auth. */
+export function getOAuthConsentTargetFromSearch(searchParams: URLSearchParams) {
+  const values = searchParams.getAll("authorization_id");
+  if (values.length !== 1 || !/^[A-Za-z0-9_-]{1,200}$/.test(values[0])) return null;
+  return `/oauth/consent?${new URLSearchParams({ authorization_id: values[0] })}`;
+}
+
 function isOAuthConsentTarget(target: string) {
   try {
     const url = new URL(target, INTERNAL_NAVIGATION_ORIGIN);
@@ -30,12 +37,12 @@ export function getPostAuthTargetForRole(
     return getRoleHomePath(selectedRole);
   }
 
-  if (context.launchEnabled && selectedRole === "client") {
-    return "/coming-soon";
-  }
-
   if (postAuthRedirectTarget && isOAuthConsentTarget(postAuthRedirectTarget)) {
     return postAuthRedirectTarget;
+  }
+
+  if (context.launchEnabled && selectedRole === "client") {
+    return "/coming-soon";
   }
 
   return TOK_WORKSPACE_CHOOSER_PATH;

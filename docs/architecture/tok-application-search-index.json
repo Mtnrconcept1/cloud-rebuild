@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b74bbea82a2ead90d34b68b2aa4e9275835cb9bf4249556e96ad24b6b72ffa42",
+ "sourceDigest": "0beece58ef0bde59529674df65aab87c9d2d40d13a0be06bd35cdf55f500c6f5",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2894,
-  "documents": 205,
+  "documents": 206,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3577,
+  "exportedSymbols": 3579,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 545,
-  "modules": 1591,
+  "modules": 1595,
   "pages": 133,
-  "pathLiterals": 754,
+  "pathLiterals": 757,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 109,
-  "records": 17103,
-  "repositoryFiles": 3220,
+  "records": 17125,
+  "repositoryFiles": 3225,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -14509,11 +14509,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1120
+      "line": 1122
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2346
+      "line": 2348
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -14730,6 +14730,10 @@
      {
       "path": "src/test/supabase-client-imports.test.ts",
       "line": 31
+     },
+     {
+      "path": "src/test/tok-connect-preview-sandbox.test.tsx",
+      "line": 9
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -15729,7 +15733,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 33
+      "line": 35
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -17557,7 +17561,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2236
+      "line": 2238
      },
      {
       "path": "src/pages/ChefsTable.tsx",
@@ -18175,7 +18179,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3125
+      "line": 3127
      },
      {
       "path": "src/pages/CGU.tsx",
@@ -18402,7 +18406,7 @@
      },
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 34
+      "line": 45
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -18411,6 +18415,14 @@
      {
       "path": "src/lib/launchGate.ts",
       "line": 24
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 24
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 25
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -18781,6 +18793,10 @@
       "line": 44
      },
      {
+      "path": "src/test/tok-connect-oauth-routing.test.ts",
+      "line": 9
+     },
+     {
       "path": "supabase/functions/courier-portal/index.ts",
       "line": 336
      },
@@ -18911,7 +18927,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 36
+      "line": 38
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -18931,7 +18947,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 33
+      "line": 49
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -19783,7 +19799,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 35
+      "line": 37
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -20319,7 +20335,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 34
+      "line": 36
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -20363,7 +20379,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 31
+      "line": 47
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -22187,7 +22203,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 32
+      "line": 34
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -22219,11 +22235,11 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 22
+      "line": 38
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 26
+      "line": 42
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -26723,15 +26739,27 @@
      },
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 11
+      "line": 18
+     },
+     {
+      "path": "src/lib/launchGate.ts",
+      "line": 30
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 22
+      "line": 38
      },
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 32
+     },
+     {
+      "path": "src/test/tok-connect-oauth-routing.test.ts",
+      "line": 7
+     },
+     {
+      "path": "src/test/tok-connect-oauth-routing.test.ts",
+      "line": 13
      }
     ]
    },
@@ -26741,6 +26769,23 @@
      {
       "path": "src/test/auth-post-login-routing.test.ts",
       "line": 15
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 22
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 30
+     }
+    ]
+   },
+   {
+    "value": "/oauth/unknown",
+    "sources": [
+     {
+      "path": "src/test/tok-connect-oauth-routing.test.ts",
+      "line": 10
      }
     ]
    },
@@ -26993,6 +27038,10 @@
       "line": 260
      },
      {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 25
+     },
+     {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 29
      },
@@ -27011,6 +27060,10 @@
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 42
+     },
+     {
+      "path": "src/test/tok-connect-oauth-routing.test.ts",
+      "line": 8
      },
      {
       "path": "src/test/user-guide.test.ts",
@@ -27170,7 +27223,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3133
+      "line": 3135
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -28143,6 +28196,15 @@
      {
       "path": "src/test/restaurant-entity-seo.test.ts",
       "line": 150
+     }
+    ]
+   },
+   {
+    "value": "/restaurant/test",
+    "sources": [
+     {
+      "path": "src/test/tok-connect-oauth-routing.test.ts",
+      "line": 14
      }
     ]
    },
@@ -29807,6 +29869,15 @@
     ]
    },
    {
+    "value": "/tok-connect/mcp-widget?mode=sandbox",
+    "sources": [
+     {
+      "path": "src/test/tok-connect-preview-sandbox.test.tsx",
+      "line": 15
+     }
+    ]
+   },
+   {
     "value": "/tok-one",
     "sources": [
      {
@@ -30807,7 +30878,11 @@
     "sources": [
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 12
+      "line": 9
+     },
+     {
+      "path": "src/lib/authPostLogin.ts",
+      "line": 19
      },
      {
       "path": "src/pages/OAuthConsent.tsx",
@@ -31024,11 +31099,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1135
+      "line": 1137
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1136
+      "line": 1138
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -31227,7 +31302,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2363
+      "line": 2365
      }
     ],
     "routes": [
@@ -32000,7 +32075,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1118
+      "line": 1120
      }
     ],
     "routes": [
@@ -32750,6 +32825,7 @@
     "paths": [
      "scripts/application-index-core.mjs",
      "scripts/restaurant-image-truth-worker.mjs",
+     "scripts/tok-connect-smoke.mjs",
      "scripts/write-commercial-demo-secrets-env.mjs",
      "scripts/write-supabase-secrets-env.mjs",
      "src/components/DashboardLayout.tsx",
@@ -32944,6 +33020,7 @@
      "scripts/resolve-live-stripe-publishable-key.mjs",
      "scripts/scale-readiness-check.mjs",
      "scripts/test-checkout-security-postgres.mjs",
+     "scripts/tok-connect-smoke.mjs",
      "scripts/write-commercial-demo-secrets-env.mjs",
      "scripts/write-production-env.mjs",
      "scripts/write-supabase-secrets-env.mjs",
@@ -33221,6 +33298,7 @@
      "scripts/test-checkout-security-runner.test.mjs",
      "scripts/test-print-protocol-postgres.mjs",
      "scripts/test-print-protocol-runner.test.mjs",
+     "scripts/tok-connect-smoke.mjs",
      "scripts/verify-supabase-runtime-security.mjs",
      "scripts/write-commercial-demo-secrets-env.mjs",
      "scripts/write-production-env.mjs",
@@ -33310,6 +33388,7 @@
      "src/lib/analytics.ts",
      "src/lib/auth-context.ts",
      "src/lib/auth.tsx",
+     "src/lib/authPostLogin.ts",
      "src/lib/authRedirect.ts",
      "src/lib/campaigns.ts",
      "src/lib/commercialDemoAi.ts",
@@ -33479,6 +33558,7 @@
      "src/test/audit-readiness-financial-ledger.test.ts",
      "src/test/audit-remediation.test.ts",
      "src/test/auth-password-recovery.test.ts",
+     "src/test/auth-post-login-routing.test.ts",
      "src/test/auth-provider.test.tsx",
      "src/test/auth-redirect-security.test.ts",
      "src/test/auth-signup-form.test.tsx",
@@ -33791,7 +33871,9 @@
      "src/test/tok-connect-full-app-mcp.test.ts",
      "src/test/tok-connect-mcp-http.test.ts",
      "src/test/tok-connect-mcp-migration.test.ts",
+     "src/test/tok-connect-preview-sandbox.test.tsx",
      "src/test/tok-connect-runtime.test.ts",
+     "src/test/tok-connect-smoke.test.ts",
      "src/test/tok-connect-sql.test.ts",
      "src/test/tok-connect-universal-mcp.test.ts",
      "src/test/tok-intelligence-suite.test.ts",
@@ -84672,6 +84754,47 @@
     ]
    },
    {
+    "path": "docs/tok-connect/TESTING.md",
+    "title": "Recette TOK Connect dans ChatGPT",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Recette TOK Connect dans ChatGPT",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Connexion vérifiée le 16 octobre 2026",
+      "line": 3
+     },
+     {
+      "level": 2,
+      "title": "Corrections de continuité OAuth",
+      "line": 28
+     },
+     {
+      "level": 2,
+      "title": "Diagnostic réseau reproductible",
+      "line": 40
+     },
+     {
+      "level": 2,
+      "title": "Aperçu navigateur avec données fictives",
+      "line": 59
+     },
+     {
+      "level": 2,
+      "title": "Recette ChatGPT",
+      "line": 81
+     },
+     {
+      "level": 2,
+      "title": "Transactions restant à valider",
+      "line": 93
+     }
+    ]
+   },
+   {
     "path": "docs/tok-connect/full-app-mcp.md",
     "title": "TOK Connect Full App MCP (surface historique interne)",
     "headings": [
@@ -86804,6 +86927,23 @@
      "supabase"
     ],
     "lineCount": 40
+   },
+   {
+    "path": "scripts/tok-connect-smoke.mjs",
+    "exports": [
+     {
+      "name": "runTokConnectSmoke",
+      "line": 8,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 97
    },
    {
     "path": "scripts/verify-supabase-runtime-security.mjs",
@@ -94820,14 +94960,21 @@
     "path": "src/lib/authPostLogin.ts",
     "exports": [
      {
+      "name": "getOAuthConsentTargetFromSearch",
+      "line": 8,
+      "kind": "function"
+     },
+     {
       "name": "getPostAuthTargetForRole",
-      "line": 24,
+      "line": 31,
       "kind": "function"
      }
     ],
     "environmentNames": [],
-    "integrations": [],
-    "lineCount": 43
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 50
    },
    {
     "path": "src/lib/authRedirect.ts",
@@ -98819,7 +98966,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 41
+    "lineCount": 43
    },
    {
     "path": "src/lib/launchPacks.ts",
@@ -104728,7 +104875,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3408
+    "lineCount": 3410
    },
    {
     "path": "src/pages/BudgetAuto.tsx",
@@ -106995,7 +107142,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 291
+    "lineCount": 298
    },
    {
     "path": "src/pages/workforce/MyWorkforce.tsx",
@@ -107565,8 +107712,10 @@
     "path": "src/test/auth-post-login-routing.test.ts",
     "exports": [],
     "environmentNames": [],
-    "integrations": [],
-    "lineCount": 36
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 52
    },
    {
     "path": "src/test/auth-provider.test.tsx",
@@ -112124,7 +112273,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 587
+    "lineCount": 589
    },
    {
     "path": "src/test/tok-connect-edge-functions.test.ts",
@@ -112182,6 +112331,22 @@
     "lineCount": 41
    },
    {
+    "path": "src/test/tok-connect-oauth-routing.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 17
+   },
+   {
+    "path": "src/test/tok-connect-preview-sandbox.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 31
+   },
+   {
     "path": "src/test/tok-connect-runtime.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -112189,6 +112354,15 @@
      "supabase"
     ],
     "lineCount": 175
+   },
+   {
+    "path": "src/test/tok-connect-smoke.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 48
    },
    {
     "path": "src/test/tok-connect-sql.test.ts",
@@ -119518,6 +119692,11 @@
     "extension": ".md"
    },
    {
+    "path": "docs/tok-connect/TESTING.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
     "path": "docs/tok-connect/full-app-mcp.md",
     "category": "documentation",
     "extension": ".md"
@@ -123175,6 +123354,11 @@
    {
     "path": "scripts/test-print-protocol-runner.test.mjs",
     "category": "test",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/tok-connect-smoke.mjs",
+    "category": "automation-script",
     "extension": ".mjs"
    },
    {
@@ -129583,7 +129767,22 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-connect-oauth-routing.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-preview-sandbox.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/tok-connect-runtime.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-smoke.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -135446,6 +135645,22 @@
    "detailRef": "8cc56cae3521"
   },
   {
+   "id": "code-module:885b49131091",
+   "type": "code-module",
+   "title": "scripts/tok-connect-smoke.mjs",
+   "description": "Module de 97 lignes; exports: runTokConnectSmoke.",
+   "path": "scripts/tok-connect-smoke.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "runTokConnectSmoke",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "2e80c6506ab3"
+  },
+  {
    "id": "code-module:331a523ce62c",
    "type": "code-module",
    "title": "scripts/verify-supabase-runtime-security.mjs",
@@ -140630,14 +140845,16 @@
    "id": "code-module:f357467a3e58",
    "type": "code-module",
    "title": "src/lib/authPostLogin.ts",
-   "description": "Module de 43 lignes; exports: getPostAuthTargetForRole.",
+   "description": "Module de 50 lignes; exports: getOAuthConsentTargetFromSearch, getPostAuthTargetForRole.",
    "path": "src/lib/authPostLogin.ts",
    "line": 1,
    "surface": null,
    "tags": [
-    "getPostAuthTargetForRole"
+    "getOAuthConsentTargetFromSearch",
+    "getPostAuthTargetForRole",
+    "supabase"
    ],
-   "detailRef": "be2c8461ef77"
+   "detailRef": "e217a7d27469"
   },
   {
    "id": "code-module:6fd34c3ed57c",
@@ -142349,7 +142566,7 @@
    "id": "code-module:8f61f2fc7aaf",
    "type": "code-module",
    "title": "src/lib/launchGate.ts",
-   "description": "Module de 41 lignes; exports: LaunchState, parseLaunchState, launchRemaining, launchRouteAllowed.",
+   "description": "Module de 43 lignes; exports: LaunchState, parseLaunchState, launchRemaining, launchRouteAllowed.",
    "path": "src/lib/launchGate.ts",
    "line": 1,
    "surface": null,
@@ -142360,7 +142577,7 @@
     "parseLaunchState",
     "supabase"
    ],
-   "detailRef": "89c1da28d40c"
+   "detailRef": "282579632489"
   },
   {
    "id": "code-module:1423ece8b4d9",
@@ -144923,7 +145140,7 @@
    "id": "code-module:bf93db106c70",
    "type": "code-module",
    "title": "src/pages/Auth.tsx",
-   "description": "Module de 3408 lignes; exports: default.",
+   "description": "Module de 3410 lignes; exports: default.",
    "path": "src/pages/Auth.tsx",
    "line": 1,
    "surface": null,
@@ -144934,7 +145151,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "7fb0f7104d4e"
+   "detailRef": "9ae37dce4493"
   },
   {
    "id": "code-module:7a28b76c58b7",
@@ -146743,7 +146960,7 @@
    "id": "code-module:e48308c2482e",
    "type": "code-module",
    "title": "src/pages/tok-connect/TokConnectMcpWidget.tsx",
-   "description": "Module de 291 lignes; exports: default.",
+   "description": "Module de 298 lignes; exports: default.",
    "path": "src/pages/tok-connect/TokConnectMcpWidget.tsx",
    "line": 1,
    "surface": null,
@@ -146752,7 +146969,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "12f5c66fcc07"
+   "detailRef": "bb8c1bc05855"
   },
   {
    "id": "code-module:fc064657ab93",
@@ -147574,12 +147791,14 @@
    "id": "code-module:7acfd51fa7f6",
    "type": "code-module",
    "title": "src/test/auth-post-login-routing.test.ts",
-   "description": "Module de 36 lignes; exports: aucun export statique.",
+   "description": "Module de 52 lignes; exports: aucun export statique.",
    "path": "src/test/auth-post-login-routing.test.ts",
    "line": 1,
    "surface": null,
-   "tags": [],
-   "detailRef": "6393ad2e75db"
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "ad4db4d800a7"
   },
   {
    "id": "code-module:eabb9d9ec28c",
@@ -154193,7 +154412,7 @@
    "id": "code-module:5ba8bcabdf99",
    "type": "code-module",
    "title": "src/test/tok-connect-discovery.test.ts",
-   "description": "Module de 587 lignes; exports: aucun export statique.",
+   "description": "Module de 589 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-discovery.test.ts",
    "line": 1,
    "surface": null,
@@ -154202,7 +154421,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "03bc558126b1"
+   "detailRef": "f838697f63be"
   },
   {
    "id": "code-module:43dd95d166f5",
@@ -154284,6 +154503,30 @@
    "detailRef": "2282fe4d08ad"
   },
   {
+   "id": "code-module:c76315886fbd",
+   "type": "code-module",
+   "title": "src/test/tok-connect-oauth-routing.test.ts",
+   "description": "Module de 17 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-oauth-routing.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "325aaf576d42"
+  },
+  {
+   "id": "code-module:122ee8701470",
+   "type": "code-module",
+   "title": "src/test/tok-connect-preview-sandbox.test.tsx",
+   "description": "Module de 31 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-preview-sandbox.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "3bcff997b651"
+  },
+  {
    "id": "code-module:a99b1a425a3e",
    "type": "code-module",
    "title": "src/test/tok-connect-runtime.test.ts",
@@ -154295,6 +154538,19 @@
     "supabase"
    ],
    "detailRef": "bc477206a418"
+  },
+  {
+   "id": "code-module:47d7b3ce7ed7",
+   "type": "code-module",
+   "title": "src/test/tok-connect-smoke.test.ts",
+   "description": "Module de 48 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-smoke.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "a645f24d1254"
   },
   {
    "id": "code-module:7d5cd1586d20",
@@ -211076,6 +211332,20 @@
    "detailRef": "8138f533adeb"
   },
   {
+   "id": "document-section:542997271ecb",
+   "type": "document-section",
+   "title": "Aperçu navigateur avec données fictives",
+   "description": "Section de Recette TOK Connect dans ChatGPT.",
+   "path": "docs/tok-connect/TESTING.md",
+   "line": 59,
+   "surface": null,
+   "tags": [
+    "Recette TOK Connect dans ChatGPT",
+    "h2"
+   ],
+   "detailRef": "90d7d4e2f370"
+  },
+  {
    "id": "document-section:590c0075e4d5",
    "type": "document-section",
    "title": "App Store Connect notes",
@@ -214086,6 +214356,20 @@
    "detailRef": "f6b728644e06"
   },
   {
+   "id": "document-section:776fcf1df400",
+   "type": "document-section",
+   "title": "Connexion vérifiée le 16 octobre 2026",
+   "description": "Section de Recette TOK Connect dans ChatGPT.",
+   "path": "docs/tok-connect/TESTING.md",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "Recette TOK Connect dans ChatGPT",
+    "h2"
+   ],
+   "detailRef": "34bcf0db2ca7"
+  },
+  {
    "id": "document-section:a83b65f87c3f",
    "type": "document-section",
    "title": "Consentement analytique et marketing",
@@ -214686,6 +214970,20 @@
     "h2"
    ],
    "detailRef": "3dfe8b7cb72c"
+  },
+  {
+   "id": "document-section:4c9d62d1640a",
+   "type": "document-section",
+   "title": "Corrections de continuité OAuth",
+   "description": "Section de Recette TOK Connect dans ChatGPT.",
+   "path": "docs/tok-connect/TESTING.md",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "Recette TOK Connect dans ChatGPT",
+    "h2"
+   ],
+   "detailRef": "125995fa62fe"
   },
   {
    "id": "document-section:c3136260264a",
@@ -215470,6 +215768,20 @@
     "h3"
    ],
    "detailRef": "601c32ca53d7"
+  },
+  {
+   "id": "document-section:a8cc746899f6",
+   "type": "document-section",
+   "title": "Diagnostic réseau reproductible",
+   "description": "Section de Recette TOK Connect dans ChatGPT.",
+   "path": "docs/tok-connect/TESTING.md",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "Recette TOK Connect dans ChatGPT",
+    "h2"
+   ],
+   "detailRef": "9e6c026135c7"
   },
   {
    "id": "document-section:5d0e95a28e41",
@@ -225412,6 +225724,34 @@
    "detailRef": "40e075a9d0e1"
   },
   {
+   "id": "document-section:c5a6943abc68",
+   "type": "document-section",
+   "title": "Recette ChatGPT",
+   "description": "Section de Recette TOK Connect dans ChatGPT.",
+   "path": "docs/tok-connect/TESTING.md",
+   "line": 81,
+   "surface": null,
+   "tags": [
+    "Recette TOK Connect dans ChatGPT",
+    "h2"
+   ],
+   "detailRef": "bdfd07d9f22e"
+  },
+  {
+   "id": "document-section:3f895c6cc478",
+   "type": "document-section",
+   "title": "Recette TOK Connect dans ChatGPT",
+   "description": "Section de Recette TOK Connect dans ChatGPT.",
+   "path": "docs/tok-connect/TESTING.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Recette TOK Connect dans ChatGPT",
+    "h1"
+   ],
+   "detailRef": "df8f6c98a6f7"
+  },
+  {
    "id": "document-section:9f0b359c1499",
    "type": "document-section",
    "title": "Recette de sécurité checkout et menus — issue #710",
@@ -233070,6 +233410,20 @@
    "detailRef": "950c55911496"
   },
   {
+   "id": "document-section:ceeae05dce3c",
+   "type": "document-section",
+   "title": "Transactions restant à valider",
+   "description": "Section de Recette TOK Connect dans ChatGPT.",
+   "path": "docs/tok-connect/TESTING.md",
+   "line": 93,
+   "surface": null,
+   "tags": [
+    "Recette TOK Connect dans ChatGPT",
+    "h2"
+   ],
+   "detailRef": "d21380e90f52"
+  },
+  {
    "id": "document-section:b814c1723093",
    "type": "document-section",
    "title": "Transparence",
@@ -238448,6 +238802,25 @@
     "React + Capacitor Review"
    ],
    "detailRef": "556c08fab42b"
+  },
+  {
+   "id": "document:3f895c6cc478",
+   "type": "document",
+   "title": "Recette TOK Connect dans ChatGPT",
+   "description": "Document Markdown avec 7 section(s).",
+   "path": "docs/tok-connect/TESTING.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Aperçu navigateur avec données fictives",
+    "Connexion vérifiée le 16 octobre 2026",
+    "Corrections de continuité OAuth",
+    "Diagnostic réseau reproductible",
+    "Recette ChatGPT",
+    "Recette TOK Connect dans ChatGPT",
+    "Transactions restant à valider"
+   ],
+   "detailRef": "06f72696219b"
   },
   {
    "id": "document:9f0b359c1499",
@@ -282670,6 +283043,20 @@
    "detailRef": "14570e484114"
   },
   {
+   "id": "exported-symbol:a7656b9c843a",
+   "type": "exported-symbol",
+   "title": "getOAuthConsentTargetFromSearch",
+   "description": "Export function de src/lib/authPostLogin.ts.",
+   "path": "src/lib/authPostLogin.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "237249917497"
+  },
+  {
    "id": "exported-symbol:b89b86bf7953",
    "type": "exported-symbol",
    "title": "getOfferExpiresAt",
@@ -283161,17 +283548,18 @@
    "detailRef": "eb6a342a99b6"
   },
   {
-   "id": "exported-symbol:22600213661b",
+   "id": "exported-symbol:ba0276f66844",
    "type": "exported-symbol",
    "title": "getPostAuthTargetForRole",
    "description": "Export function de src/lib/authPostLogin.ts.",
    "path": "src/lib/authPostLogin.ts",
-   "line": 24,
+   "line": 31,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "adfae3d4fb95"
+   "detailRef": "8fa5dfd056c5"
   },
   {
    "id": "exported-symbol:8d283e41e897",
@@ -291943,6 +292331,22 @@
     "supabase"
    ],
    "detailRef": "32148fa5787a"
+  },
+  {
+   "id": "exported-symbol:d1664c32b1e1",
+   "type": "exported-symbol",
+   "title": "runTokConnectSmoke",
+   "description": "Export function de scripts/tok-connect-smoke.mjs.",
+   "path": "scripts/tok-connect-smoke.mjs",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "function",
+    "openai",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "676b56ab744f"
   },
   {
    "id": "exported-symbol:7cf680a9cef1",
@@ -303099,6 +303503,20 @@
    "detailRef": "54557ed81177"
   },
   {
+   "id": "file:e7b277c0efb3",
+   "type": "file",
+   "title": "docs/tok-connect/TESTING.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/tok-connect/TESTING.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "1356dad04c01"
+  },
+  {
    "id": "file:356f158fa5d2",
    "type": "file",
    "title": "docs/tok-connect/full-app-mcp.md",
@@ -313345,6 +313763,20 @@
     "test"
    ],
    "detailRef": "d36a2fd2beb1"
+  },
+  {
+   "id": "file:b1c27aa3f085",
+   "type": "file",
+   "title": "scripts/tok-connect-smoke.mjs",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/tok-connect-smoke.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "automation-script"
+   ],
+   "detailRef": "d4a702c514fd"
   },
   {
    "id": "file:8a641f5d96be",
@@ -331281,6 +331713,34 @@
    "detailRef": "e0da1fad3ff8"
   },
   {
+   "id": "file:2a1fdc61e9dc",
+   "type": "file",
+   "title": "src/test/tok-connect-oauth-routing.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-oauth-routing.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "c4695d298926"
+  },
+  {
+   "id": "file:8bbad2f6eb34",
+   "type": "file",
+   "title": "src/test/tok-connect-preview-sandbox.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-preview-sandbox.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "1282684fc5f8"
+  },
+  {
    "id": "file:d755456702eb",
    "type": "file",
    "title": "src/test/tok-connect-runtime.test.ts",
@@ -331293,6 +331753,20 @@
     "test"
    ],
    "detailRef": "958196769a8c"
+  },
+  {
+   "id": "file:d341e4af56ab",
+   "type": "file",
+   "title": "src/test/tok-connect-smoke.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-smoke.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "1c56e25b6b5f"
   },
   {
    "id": "file:a14ecd8177d5",
@@ -345797,7 +346271,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 120 module(s).",
+   "description": "Intégration externe détectée dans 121 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -345805,6 +346279,7 @@
     "openai",
     "scripts/application-index-core.mjs",
     "scripts/restaurant-image-truth-worker.mjs",
+    "scripts/tok-connect-smoke.mjs",
     "scripts/write-commercial-demo-secrets-env.mjs",
     "scripts/write-supabase-secrets-env.mjs",
     "src/components/DashboardLayout.tsx",
@@ -345924,7 +346399,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "8d672b46ceb5"
+   "detailRef": "1db26bd0114b"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -346013,7 +346488,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 243 module(s).",
+   "description": "Intégration externe détectée dans 244 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -346030,6 +346505,7 @@
     "scripts/resolve-live-stripe-publishable-key.mjs",
     "scripts/scale-readiness-check.mjs",
     "scripts/test-checkout-security-postgres.mjs",
+    "scripts/tok-connect-smoke.mjs",
     "scripts/write-commercial-demo-secrets-env.mjs",
     "scripts/write-production-env.mjs",
     "scripts/write-supabase-secrets-env.mjs",
@@ -346263,13 +346739,13 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "a1b3515ca479"
+   "detailRef": "c92d93333634"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 709 module(s).",
+   "description": "Intégration externe détectée dans 714 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -346315,6 +346791,7 @@
     "scripts/test-checkout-security-runner.test.mjs",
     "scripts/test-print-protocol-postgres.mjs",
     "scripts/test-print-protocol-runner.test.mjs",
+    "scripts/tok-connect-smoke.mjs",
     "scripts/verify-supabase-runtime-security.mjs",
     "scripts/write-commercial-demo-secrets-env.mjs",
     "scripts/write-production-env.mjs",
@@ -346404,6 +346881,7 @@
     "src/lib/analytics.ts",
     "src/lib/auth-context.ts",
     "src/lib/auth.tsx",
+    "src/lib/authPostLogin.ts",
     "src/lib/authRedirect.ts",
     "src/lib/campaigns.ts",
     "src/lib/commercialDemoAi.ts",
@@ -346573,6 +347051,7 @@
     "src/test/audit-readiness-financial-ledger.test.ts",
     "src/test/audit-remediation.test.ts",
     "src/test/auth-password-recovery.test.ts",
+    "src/test/auth-post-login-routing.test.ts",
     "src/test/auth-provider.test.tsx",
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx",
@@ -346885,7 +347364,9 @@
     "src/test/tok-connect-full-app-mcp.test.ts",
     "src/test/tok-connect-mcp-http.test.ts",
     "src/test/tok-connect-mcp-migration.test.ts",
+    "src/test/tok-connect-preview-sandbox.test.tsx",
     "src/test/tok-connect-runtime.test.ts",
+    "src/test/tok-connect-smoke.test.ts",
     "src/test/tok-connect-sql.test.ts",
     "src/test/tok-connect-universal-mcp.test.ts",
     "src/test/tok-intelligence-suite.test.ts",
@@ -346985,7 +347466,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f1b347ace155"
+   "detailRef": "e8ea84a9d9e5"
   },
   {
    "id": "integration:c20910a79a78",
@@ -358255,7 +358736,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 243 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 244 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -358357,6 +358838,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/supabase-client-imports.test.ts",
+    "src/test/tok-connect-preview-sandbox.test.tsx",
     "src/test/tok-logo-calendar.test.ts",
     "src/test/vercel-rewrites.test.ts",
     "supabase/functions/_shared/auth.ts",
@@ -358380,7 +358862,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "dc6ffd53ec51"
+   "detailRef": "561bd2a3cb3d"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -359545,7 +360027,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "7a19900e5060"
+   "detailRef": "4e909f1612e8"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -360084,7 +360566,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "90f522cd2b6c"
+   "detailRef": "bcf03befa220"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -360269,7 +360751,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "dfdc45b542a6"
+   "detailRef": "9b5e36c82bf9"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -360378,7 +360860,7 @@
    "id": "path-literal:189dd2480ec5",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 537,
    "surface": null,
@@ -360388,6 +360870,7 @@
     "src/lib/authPostLogin.ts",
     "src/lib/featureCatalog.ts",
     "src/lib/launchGate.ts",
+    "src/test/auth-post-login-routing.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
     "src/test/coming-soon-signup-page.test.tsx",
@@ -360395,7 +360878,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "3996dbfc29f5"
+   "detailRef": "ba3c59fdd839"
   },
   {
    "id": "path-literal:e53adf57f6c1",
@@ -360560,7 +361043,7 @@
    "id": "path-literal:638d24c7c03b",
    "type": "path-literal",
    "title": "/commandes",
-   "description": "Chemin référencé dans 36 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 37 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1216,
    "surface": null,
@@ -360586,9 +361069,10 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts",
+    "src/test/tok-connect-oauth-routing.test.ts",
     "supabase/functions/courier-portal/index.ts"
    ],
-   "detailRef": "737e0c87ddd6"
+   "detailRef": "f046faeba81f"
   },
   {
    "id": "path-literal:7997d6c00f84",
@@ -360887,7 +361371,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "43f43f63b197"
+   "detailRef": "1fbd621f8a3c"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -361154,7 +361638,7 @@
     "src/test/role-access.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "b4b53343bdfa"
+   "detailRef": "32f9481387f9"
   },
   {
    "id": "path-literal:53f7ddd4b372",
@@ -362030,7 +362514,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "d21d45f7d9be"
+   "detailRef": "48682de9cc76"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -362240,7 +362724,7 @@
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "d67bd020dd5e"
+   "detailRef": "b57b40e184a5"
   },
   {
    "id": "path-literal:61b7c747d86f",
@@ -366484,30 +366968,45 @@
    "id": "path-literal:c14788a8343e",
    "type": "path-literal",
    "title": "/oauth/consent",
-   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 459,
    "surface": null,
    "tags": [
     "src/App.tsx",
     "src/lib/authPostLogin.ts",
+    "src/lib/launchGate.ts",
     "src/test/auth-post-login-routing.test.ts",
-    "src/test/route-wiring.test.ts"
+    "src/test/route-wiring.test.ts",
+    "src/test/tok-connect-oauth-routing.test.ts"
    ],
-   "detailRef": "48a4c727ca48"
+   "detailRef": "0290c15823b0"
   },
   {
    "id": "path-literal:88954cab6189",
    "type": "path-literal",
    "title": "/oauth/consent?authorization_id=authorization-123",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/auth-post-login-routing.test.ts",
    "line": 15,
    "surface": null,
    "tags": [
     "src/test/auth-post-login-routing.test.ts"
    ],
-   "detailRef": "5a2cce06bdbb"
+   "detailRef": "2c02a4cbe916"
+  },
+  {
+   "id": "path-literal:39e988ec8097",
+   "type": "path-literal",
+   "title": "/oauth/unknown",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/tok-connect-oauth-routing.test.ts",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "src/test/tok-connect-oauth-routing.test.ts"
+   ],
+   "detailRef": "12e71ad622fa"
   },
   {
    "id": "path-literal:09d6810c2c29",
@@ -366606,7 +367105,7 @@
    "id": "path-literal:f15ac1b71119",
    "type": "path-literal",
    "title": "/panier",
-   "description": "Chemin référencé dans 42 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 44 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/launch-10k-load-check.mjs",
    "line": 25,
    "surface": null,
@@ -366637,15 +367136,17 @@
     "src/pages/OrderConfirmation.tsx",
     "src/pages/RestaurantDetail.tsx",
     "src/pages/VentesFlash.tsx",
+    "src/test/auth-post-login-routing.test.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/meal-subscription-cart.test.tsx",
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts",
+    "src/test/tok-connect-oauth-routing.test.ts",
     "src/test/user-guide.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "f6d0b1a767b5"
+   "detailRef": "b81b85df1b25"
   },
   {
    "id": "path-literal:b9bd524c18de",
@@ -366730,7 +367231,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "898793f36ecd"
+   "detailRef": "ba7c7909cda0"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -367336,6 +367837,19 @@
     "src/test/restaurant-entity-seo.test.ts"
    ],
    "detailRef": "bfd50a28bd86"
+  },
+  {
+   "id": "path-literal:822197b3ecb7",
+   "type": "path-literal",
+   "title": "/restaurant/test",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/tok-connect-oauth-routing.test.ts",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "src/test/tok-connect-oauth-routing.test.ts"
+   ],
+   "detailRef": "1270acdd8088"
   },
   {
    "id": "path-literal:c5394e938eea",
@@ -368796,6 +369310,19 @@
     "src/test/route-serving-regression.test.ts"
    ],
    "detailRef": "609c46017d2b"
+  },
+  {
+   "id": "path-literal:430c2578cbf2",
+   "type": "path-literal",
+   "title": "/tok-connect/mcp-widget?mode=sandbox",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/tok-connect-preview-sandbox.test.tsx",
+   "line": 15,
+   "surface": null,
+   "tags": [
+    "src/test/tok-connect-preview-sandbox.test.tsx"
+   ],
+   "detailRef": "516dff391f0d"
   },
   {
    "id": "path-literal:3a7121d06eeb",
@@ -377983,18 +378510,18 @@
    "detailRef": "76fa9da73536"
   },
   {
-   "id": "query-parameter:785ab52dbeb8",
+   "id": "query-parameter:500ffe577c35",
    "type": "query-parameter",
    "title": "authorization_id",
-   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
    "path": "src/lib/authPostLogin.ts",
-   "line": 12,
+   "line": 9,
    "surface": null,
    "tags": [
     "src/lib/authPostLogin.ts",
     "src/pages/OAuthConsent.tsx"
    ],
-   "detailRef": "488c545fc722"
+   "detailRef": "e5553600a93a"
   },
   {
    "id": "query-parameter:726c7a93403b",
@@ -378169,7 +378696,7 @@
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "67572e0af262"
+   "detailRef": "767273c21559"
   },
   {
    "id": "query-parameter:e58a726e4a9a",
@@ -378295,17 +378822,17 @@
    "detailRef": "b8e891e32777"
   },
   {
-   "id": "query-parameter:33f14ab3ce4b",
+   "id": "query-parameter:adb5d7bc0654",
    "type": "query-parameter",
    "title": "domain",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 2363,
+   "line": 2365,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "0e92a9c80839"
+   "detailRef": "85f337828527"
   },
   {
    "id": "query-parameter:4b8ca1ad9f1a",
@@ -378970,17 +379497,17 @@
    "detailRef": "253a489c0969"
   },
   {
-   "id": "query-parameter:376847886a9d",
+   "id": "query-parameter:6e0c6993541e",
    "type": "query-parameter",
    "title": "redirect",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 1118,
+   "line": 1120,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "c78c60051fb9"
+   "detailRef": "400fc24c95e7"
   },
   {
    "id": "query-parameter:9c0596468b12",

@@ -552,7 +552,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
 
     if (visible.length) {
       children.push(h('div', { class: 'foot' }, [
-        h('small', { text: payload.city ? 'Données TOK en direct · ' + payload.city : 'Données TOK en direct' }),
+        h('small', { text: payload.city ? 'Catalogue TOK · ' + payload.city : 'Catalogue TOK' }),
         payload.deep_link ? h('button', {
           class: 'btn ghost', type: 'button',
           onClick: function () { openLink(payload.deep_link); }

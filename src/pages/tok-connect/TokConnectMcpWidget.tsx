@@ -69,6 +69,7 @@ const PREVIEW_DOCUMENT = TOK_DISCOVERY_WIDGET_HTML.replace("</head>", HOST_SHIM)
 type PreviewLog = { id: string; label: string; detail: string };
 
 export default function TokConnectMcpWidget() {
+  const [sandboxOnly] = useState(() => new URLSearchParams(window.location.search).get("mode") === "sandbox");
   const [request, setRequest] = useState(EXAMPLES[0]);
   const [payload, setPayload] = useState<TokDiscoveryPayload | null>(null);
   const [loading, setLoading] = useState(false);
@@ -92,7 +93,7 @@ export default function TokConnectMcpWidget() {
 
   const run = useCallback(async () => {
     setLoading(true);
-    const client = discoveryClient();
+    const client = sandboxOnly ? null : discoveryClient();
     const args = { request };
     try {
       if (!client) throw new Error("supabase_unavailable");
@@ -109,9 +110,10 @@ export default function TokConnectMcpWidget() {
     } finally {
       setLoading(false);
     }
-  }, [discoveryClient, pushLog, request]);
+  }, [discoveryClient, pushLog, request, sandboxOnly]);
 
   useEffect(() => {
+    document.title = "Module TOK Connect | TOK";
     void run();
     // Un seul lancement au montage : les relances passent par le bouton.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -152,7 +154,7 @@ export default function TokConnectMcpWidget() {
         const args = (data.args && typeof data.args === "object" ? data.args : {}) as Record<string, unknown>;
         pushLog("callTool", `get_restaurant_details · ${String(args.restaurant_id || "")}`);
         try {
-          const client = discoveryClient();
+          const client = source === "live" ? discoveryClient() : null;
           const detail = client && source === "live"
             ? await runTokRestaurantDetail({ client, args, origin: window.location.origin })
             : buildSandboxRestaurantDetail(args, window.location.origin);
@@ -194,6 +196,11 @@ export default function TokConnectMcpWidget() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6 md:px-8">
+        {sandboxOnly ? (
+          <p role="status" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            Mode test : données fictives. Aucune réservation, commande ni paiement exécuté.
+          </p>
+        ) : null}
         <section className="rounded-2xl border bg-white p-4 shadow-sm">
           <label htmlFor="tok-request" className="text-sm font-bold text-slate-800">
             Demande envoyée à ChatGPT

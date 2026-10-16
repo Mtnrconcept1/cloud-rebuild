@@ -307,6 +307,8 @@ describe("TOK Connect discovery - ressource UI du module ChatGPT", () => {
   });
 
   it("rend les cartes et la fiche sans injection HTML ni dépendance externe", () => {
+    // The same widget displays fixtures in the sandbox and real catalogue data.
+    expect(TOK_DISCOVERY_WIDGET_HTML).not.toContain("Données TOK en direct");
     expect(TOK_DISCOVERY_WIDGET_HTML).not.toContain("innerHTML");
     expect(TOK_DISCOVERY_WIDGET_HTML).not.toContain("<script src");
     expect(TOK_DISCOVERY_WIDGET_HTML).not.toContain("fetch(");

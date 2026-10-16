@@ -26,6 +26,8 @@ const launchAuthRoutes = ['/auth', '/coming-soon'];
 export function launchRouteAllowed(path: string, actor: LaunchRouteActor): boolean {
   // Before signup, the visitor may freely discover the public application.
   if (!actor.authenticated) return true;
+  // Consent authenticates the external client; business access stays server-gated.
+  if (path === '/oauth/consent') return true;
   if ([...launchLegalRoutes, ...launchAuthRoutes].some(prefix => at(path, prefix))) return true;
   if (!actor.rolesResolved) return false;
   // Separate staff workspaces and the role chooser remain accessible.

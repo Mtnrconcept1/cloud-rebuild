@@ -93,7 +93,7 @@ import {
   getSupabaseAuthRedirectState,
 } from "@/lib/authRedirect";
 import { useLaunchGate } from "@/components/launch/LaunchGateProvider";
-import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
+import { getOAuthConsentTargetFromSearch, getPostAuthTargetForRole } from "@/lib/authPostLogin";
 import {
   getCanonicalAuthCallbackHref,
   getCanonicalAuthHref,
@@ -1115,6 +1115,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     user && session && incompletePrivilegedSignupRole,
   );
   const postAuthRedirectTarget = useMemo(() => {
+    const consentTarget = getOAuthConsentTargetFromSearch(searchParams);
+    if (consentTarget) return consentTarget;
     const redirectTarget = searchParams.get("redirect");
     if (!redirectTarget) return null;
     return normalizeInternalNavigationTarget(redirectTarget, "/");
