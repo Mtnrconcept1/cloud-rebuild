@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "0beece58ef0bde59529674df65aab87c9d2d40d13a0be06bd35cdf55f500c6f5",
+ "sourceDigest": "89045b5a8b7102c387de814ca4e8e7751cd298aaed9dfee1b9c96eecc877b091",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -17244,7 +17244,7 @@
      },
      {
       "path": "src/test/marketing-campaign-builder.test.tsx",
-      "line": 49
+      "line": 56
      },
      {
       "path": "src/test/marketing-source-discovery.test.tsx",
@@ -109840,7 +109840,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 115
+    "lineCount": 122
    },
    {
     "path": "src/test/marketing-campaign-gallery.test.tsx",
@@ -150881,14 +150881,14 @@
    "id": "code-module:ba62251e5408",
    "type": "code-module",
    "title": "src/test/marketing-campaign-builder.test.tsx",
-   "description": "Module de 115 lignes; exports: aucun export statique.",
+   "description": "Module de 122 lignes; exports: aucun export statique.",
    "path": "src/test/marketing-campaign-builder.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "c142e3e46494"
+   "detailRef": "32c49bf57e81"
   },
   {
    "id": "code-module:c5e50558b55f",
@@ -360188,7 +360188,7 @@
     "src/test/marketing-campaign-builder.test.tsx",
     "src/test/marketing-source-discovery.test.tsx"
    ],
-   "detailRef": "4d7f9462fdc5"
+   "detailRef": "a941f70798a3"
   },
   {
    "id": "path-literal:107cc0a99bd5",
