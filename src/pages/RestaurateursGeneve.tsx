@@ -338,12 +338,18 @@ export default function RestaurateursGeneve() {
             </div>
           </div>
 
-          <div className="grid gap-3 rounded-lg border border-white/14 bg-white/12 p-5 shadow-2xl backdrop-blur-md">
-            <p className="text-sm font-semibold">Exemple modifiable dans le simulateur ci-dessous</p>
-            <MetricDark label="Ventes mensuelles simulées" value={formatChf(activation.monthlyRevenue)} />
-            <MetricDark label="Actions à prévoir (estimation)" value={activation.monthlyActions.toLocaleString("fr-CH")} />
-            <MetricDark label="Repère photos IA du pack" value={activation.packConfig.aiPhotos.toLocaleString("fr-CH")} />
-            <MetricDark label="Mise en route indicative" value={`${activation.onboardingDays} jours`} accent />
+          <div className="min-w-0 overflow-hidden rounded-3xl border-2 border-[#ff4b00] bg-white text-slate-950 shadow-2xl">
+            <p className="bg-[#ff4b00] px-6 py-4 text-xl font-black text-white">Une table servie. Un prix fixe.</p>
+            <div className="space-y-5 p-6">
+              <p className="text-5xl font-black tracking-tight text-[#c93600]">5 CHF <span className="text-xl text-slate-950">/ table</span></p>
+              <p className="text-base leading-7">2, 4 ou 8 personnes à la même table ? Les frais de réservation restent de <strong>5 CHF pour ce groupe</strong>, en plus de l'abonnement.</p>
+              <div className="rounded-2xl bg-orange-50 p-4">
+                <p className="text-sm font-bold">Exemple : 10 tables servies avec le pack Starter</p>
+                <p className="mt-2 break-words text-2xl font-black">69 + (10 × 5) = <span className="text-[#c93600]">119 CHF / mois</span></p>
+                <p className="mt-2 text-sm text-slate-600">Abonnement + réservations. Hors commandes et autres frais éventuels.</p>
+              </div>
+              <a href="#simulation" className="inline-flex items-center gap-2 font-bold text-[#b53000] underline underline-offset-4">Calculer avec mes chiffres <ArrowRight className="h-4 w-4" /></a>
+            </div>
           </div>
         </div>
       </section>
@@ -428,27 +434,40 @@ export default function RestaurateursGeneve() {
         </div>
       </section>
 
-      <section id="simulation" className="scroll-mt-28 px-4 py-16 md:px-8 lg:px-12">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[420px_minmax(0,1fr)]">
+      <section id="simulation" className="scroll-mt-28 bg-orange-50/60 px-4 py-16 md:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl space-y-8">
           <div className="space-y-4">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Plan d'activation Genève</p>
-            <h2 className="text-3xl font-black md:text-4xl">Dimensionnez votre lancement sans empiler les outils.</h2>
-            <p className="text-muted-foreground">
-              Renseignez des tables réellement servies et des commandes distinctes, sans compter deux fois une même vente. Les montants ci-dessous illustrent votre activité ; ils ne prédisent pas les clients que TOK vous apportera.
+            <h2 className="max-w-4xl text-3xl font-black tracking-tight md:text-5xl">Vos ventes d'un côté.<br /><span className="text-[#c93600]">Votre coût TOK de l'autre.</span></h2>
+            <p className="max-w-3xl leading-7 text-slate-700">
+              Entrez votre activité mensuelle pour voir chaque multiplication et chaque total. Cette simulation décrit vos hypothèses : elle ne prédit pas les clients que TOK vous apportera.
             </p>
           </div>
 
-          <div className="grid gap-6 rounded-lg border bg-white p-5 shadow-sm xl:grid-cols-[minmax(0,1fr)_290px]">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <NumberField id="tables" label="Tables réellement servies / mois" value={tablesPerMonth} onChange={setTablesPerMonth} />
-              <NumberField id="orders" label="Commandes par mois" value={ordersPerMonth} onChange={setOrdersPerMonth} />
-              <NumberField id="posts" label="Actualités par semaine" value={postsPerWeek} onChange={setPostsPerWeek} />
-              <NumberField id="ticket" label="Addition moyenne par table (CHF)" value={averageTicket} onChange={setAverageTicket} />
-              <NumberField id="order-ticket" label="Montant moyen par commande (CHF)" value={averageOrder} onChange={setAverageOrder} />
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="activation-pack">Pack d'accompagnement</Label>
+          <div className="overflow-hidden rounded-3xl border-2 border-[#ff4b00] bg-white shadow-xl shadow-orange-950/5">
+            <div className="bg-[#ff4b00] px-5 py-5 text-white sm:px-8">
+              <h3 className="text-2xl font-black">1. Vos chiffres pour un mois</h3>
+              <p className="mt-1 text-sm font-semibold text-slate-950">Modifiez les cases : les résultats s'actualisent juste en dessous.</p>
+            </div>
+            <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-2">
+              <fieldset className="min-w-0 space-y-4 rounded-2xl border border-orange-200 bg-orange-50/50 p-4 sm:p-5">
+                <legend className="px-2 text-lg font-black">Les repas à table</legend>
+                <NumberField id="tables" label="Tables réellement servies / mois" value={tablesPerMonth} onChange={setTablesPerMonth} />
+                <p className="text-sm leading-6 text-slate-600">Comptez les groupes venus manger via une réservation TOK, pas les meubles de votre salle. Un groupe de 4 personnes = 1 table servie.</p>
+                <NumberField id="ticket" label="Addition moyenne par table (CHF)" value={averageTicket} onChange={setAverageTicket} />
+                <p className="text-sm leading-6 text-slate-700"><strong>Le total payé par tout le groupe.</strong> Par exemple : 4 personnes à 30 CHF = une addition de 120 CHF à saisir ici.</p>
+              </fieldset>
+              <fieldset className="min-w-0 space-y-4 rounded-2xl border border-slate-200 p-4 sm:p-5">
+                <legend className="px-2 text-lg font-black">Les commandes distinctes</legend>
+                <NumberField id="orders" label="Commandes par mois" value={ordersPerMonth} onChange={setOrdersPerMonth} />
+                <p className="text-sm leading-6 text-slate-600">Comptez vos commandes à emporter ou en livraison. Ne recomptez pas une vente déjà incluse dans les repas à table.</p>
+                <NumberField id="order-ticket" label="Montant moyen par commande (CHF)" value={averageOrder} onChange={setAverageOrder} />
+                <p className="text-sm leading-6 text-slate-700">Le montant total d'une commande, même si elle contient plusieurs plats. Aucune commande ? Saisissez 0.</p>
+              </fieldset>
+              <div className="min-w-0 space-y-2 lg:col-span-2">
+                <Label htmlFor="activation-pack" className="text-base font-bold">Pack d'accompagnement</Label>
                 <Select value={pack} onValueChange={(value) => setPack(value as PackKey)}>
-                  <SelectTrigger id="activation-pack">
+                  <SelectTrigger id="activation-pack" className="h-12 border-orange-200 bg-white text-base font-bold">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -462,14 +481,32 @@ export default function RestaurateursGeneve() {
               </div>
             </div>
 
-            <div className="grid gap-3 rounded-lg bg-slate-950 p-4 text-white">
-              <MetricDark label="Ventes mensuelles simulées" value={formatChf(activation.monthlyRevenue)} />
-              <MetricDark label="Budget marketing facultatif (12 %)" value={formatChf(activation.marketingEnvelope)} />
-              <MetricDark label="Actions à prévoir (estimation)" value={activation.monthlyActions.toLocaleString("fr-CH")} />
-              <MetricDark label="Photos IA pack" value={`${activation.packConfig.aiPhotos} visuels`} accent />
+            <div className="space-y-6 border-t border-orange-200 p-5 sm:p-8" aria-live="polite" aria-atomic="true">
+              <h3 className="text-2xl font-black">2. Vos ventes simulées, calculées étape par étape</h3>
+              <div className="grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
+                <RevenueStep title="Repas à table" calculation={`${tablesPerMonth.toLocaleString("fr-CH")} tables × ${formatChf(averageTicket)}`} result={formatChf(tablesPerMonth * averageTicket)} />
+                <span aria-hidden="true" className="self-center text-center text-4xl font-black text-[#c93600]">+</span>
+                <RevenueStep title="Commandes" calculation={`${ordersPerMonth.toLocaleString("fr-CH")} commandes × ${formatChf(averageOrder)}`} result={formatChf(ordersPerMonth * averageOrder)} />
+              </div>
+              <div className="min-w-0 rounded-2xl bg-[#ff4b00] p-5 text-white sm:p-7">
+                <p className="text-lg font-bold">= Total des ventes simulées / mois</p>
+                <p className="mt-2 break-words text-4xl font-black tracking-tight [overflow-wrap:anywhere] sm:text-5xl">{formatChf(activation.monthlyRevenue)}</p>
+                <p className="mt-3 text-sm font-semibold leading-6 text-slate-950">Ventes brutes avant vos charges et les frais. Ce montant n'est ni un bénéfice, ni une économie, ni une facture TOK.</p>
+              </div>
+              <div className="rounded-2xl border-2 border-orange-200 p-5 sm:p-6">
+                <h3 className="text-xl font-black">3. Le coût TOK pour ces réservations</h3>
+                <p className="mt-3 break-words text-lg font-bold leading-8">{formatChf(activation.packConfig.monthlyFee)} d'abonnement + ({tablesPerMonth.toLocaleString("fr-CH")} tables × {formatChf(RESERVATION_FLAT_FEE_CHF)})</p>
+                <p className="mt-2 break-words text-3xl font-black text-[#c93600] [overflow-wrap:anywhere] sm:text-4xl">= {formatChf(activation.packConfig.monthlyFee + tablesPerMonth * RESERVATION_FLAT_FEE_CHF)} / mois</p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">Pack {activation.packConfig.label} + frais des tables réellement servies. Hors frais des commandes, de livraison, de paiement et prestations supplémentaires. Une annulation ou une absence ne déclenche pas les 5 CHF ; l'abonnement reste dû.</p>
+              </div>
             </div>
           </div>
-          <div className="space-y-4 lg:col-span-2" aria-live="polite" aria-atomic="true">
+
+          <details className="rounded-2xl border border-orange-200 bg-white p-5 sm:p-6">
+            <summary className="cursor-pointer text-lg font-black text-slate-950">Voir toutes les hypothèses et les calculs</summary>
+            <div className="mt-6 space-y-5">
+              <p className="max-w-3xl text-sm leading-6 text-slate-600">Les repères suivants servent à préparer votre lancement. Le budget marketing est facultatif ; les actions, photos et délais restent indicatifs et sont à confirmer dans l'offre choisie.</p>
+              <div className="max-w-xs"><NumberField id="posts" label="Actualités par semaine" value={postsPerWeek} onChange={setPostsPerWeek} /></div>
             <B2BTable caption="Comment lire votre simulation mensuelle" columns={["Indicateur", "Calcul avec vos valeurs", "Résultat et signification"]} rows={[
               ["Ventes à table", `${tablesPerMonth} tables × ${averageTicket} CHF par addition`, formatChf(tablesPerMonth * averageTicket)],
               ["Ventes en commande", `${ordersPerMonth} commandes × ${averageOrder} CHF`, formatChf(ordersPerMonth * averageOrder)],
@@ -480,7 +517,8 @@ export default function RestaurateursGeneve() {
               ["Coût TOK des réservations", `${formatChf(activation.packConfig.monthlyFee)} + ${tablesPerMonth} tables × ${RESERVATION_FLAT_FEE_CHF} CHF`, `${formatChf(activation.packConfig.monthlyFee + tablesPerMonth * RESERVATION_FLAT_FEE_CHF)} / mois, hors commandes et prestations supplémentaires`],
             ]} />
             <p className="text-sm leading-6 text-muted-foreground">Les frais des commandes, de livraison, de paiement et des options sont distincts. Consultez les <Link to="/packs-restaurateur" className="font-semibold underline">packs et conditions applicables</Link> avant de choisir. Le budget marketing proposé ne mesure pas votre bénéfice.</p>
-          </div>
+            </div>
+          </details>
         </div>
       </section>
 
@@ -643,16 +681,17 @@ function NumberField({
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} type="number" min={0} value={value} onChange={(event) => onChange(Number.isFinite(Number(event.target.value)) ? Math.max(0, Number(event.target.value)) : 0)} />
+      <Input id={id} type="number" min={0} className="h-12 border-slate-300 bg-white text-lg font-bold" value={value} onChange={(event) => onChange(Number.isFinite(Number(event.target.value)) ? Math.max(0, Number(event.target.value)) : 0)} />
     </div>
   );
 }
 
-function MetricDark({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
+function RevenueStep({ title, calculation, result }: { title: string; calculation: string; result: string }) {
   return (
-    <div className="rounded-lg bg-white/10 p-3">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/60">{label}</p>
-      <p className={`mt-1 text-2xl font-black ${accent ? "text-orange-300" : ""}`}>{value}</p>
+    <div className="min-w-0 rounded-2xl border border-orange-200 bg-orange-50/60 p-5">
+      <h4 className="text-lg font-black">{title}</h4>
+      <p className="mt-3 break-words text-base font-semibold leading-7">{calculation}</p>
+      <p className="mt-2 break-words text-2xl font-black text-[#b53000] [overflow-wrap:anywhere] sm:text-3xl">= {result}</p>
     </div>
   );
 }

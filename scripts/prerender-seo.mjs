@@ -758,6 +758,8 @@ const PUBLIC_SEO_PAGES = [
     staticContent: {
       heading: "Depuis Google, aidez vos clients à réserver chez vous.",
       paragraphs: [
+        "Exemple interactif : 80 tables servies × 3,4 clients = 272 couverts. Frais TOK : 80 × 5 CHF = 400 CHF. Modèle au couvert : 272 × 4 CHF = 1 088 CHF. Économie sur les seuls frais de réservation : 688 CHF, soit 63,2 %, hors abonnement et autres frais éventuels.",
+        "Le simulateur distingue les frais de réservation seuls du total avec l'abonnement TOK sélectionné. Le pack reste affiché à côté du résultat et reste dû même sans table servie. Les tarifs au couvert sont des hypothèses modifiables, pas des tarifs concurrents vérifiés.",
         "Les clients vous trouvent déjà sur Google. TOK aide à brancher un bouton de réservation traçable, suivre les clics Google Maps et convertir cette intention en tables, commandes et relation client.",
         "La fiche Google est gratuite. TOK est un service distinct payant. Le client suit le lien de Google vers la fiche TOK, réserve un créneau puis vient au restaurant. Un clic, une réservation et une table servie sont des étapes différentes.",
       ],
@@ -904,6 +906,8 @@ const PUBLIC_SEO_PAGES = [
     staticContent: {
       heading: "Commission par couvert : comparez avant de choisir.",
       paragraphs: [
+        "Exemple interactif : 80 tables servies × 3,4 clients = 272 couverts. Frais TOK : 80 × 5 CHF = 400 CHF. Modèle au couvert : 272 × 4 CHF = 1 088 CHF. Économie sur les seuls frais de réservation : 688 CHF, soit 63,2 %, hors abonnement et autres frais éventuels.",
+        "Le simulateur distingue les frais de réservation seuls du total avec l'abonnement TOK sélectionné. Le pack reste affiché à côté du résultat et reste dû même sans table servie. Les tarifs au couvert sont des hypothèses modifiables, pas des tarifs concurrents vérifiés.",
         "Un couvert désigne une personne, une table une réservation honorée par un groupe. TOK facture un abonnement mensuel plus 5 CHF par table servie ; un modèle au couvert multiplie les personnes servies par la commission saisie.",
         "Tables servies estimées = réservations prévues × (1 − absences/100). Personnes servies = tables servies × personnes moyennes. Les décimales sont conservées pour la prévision, les montants affichés sont arrondis au centime. Ce comparatif mesure des frais, pas la marge.",
       ],
