@@ -176,4 +176,23 @@ describe("guides d’utilisation TOK", () => {
     expect(serialized).not.toContain("rôle administrateur");
     expect(serialized).not.toContain("console d’administration");
   });
+  it("couvre les chapitres avec toutes les captures disponibles sans visuel inventé", () => {
+    for (const [chapters, minimum] of [
+      [RESTAURANT_GUIDE_CHAPTERS, 2],
+      [BUYER_GUIDE_CHAPTERS, 3],
+    ] as const) {
+      for (const chapter of chapters) {
+        expect(chapter.screenshots?.length).toBeGreaterThanOrEqual(minimum);
+        const shots = chapter.screenshots || [];
+        expect(new Set(shots.map((shot) => shot.src)).size).toBe(shots.length);
+        for (const shot of shots) {
+          expect(existsSync(path.join(process.cwd(), "public", shot.src.slice(1)))).toBe(true);
+        }
+      }
+    }
+    const paths = new Set([...RESTAURANT_GUIDE_CHAPTERS, ...BUYER_GUIDE_CHAPTERS]
+      .flatMap((chapter) => (chapter.screenshots || []).map((shot) => shot.src)));
+    expect(paths.size).toBe(38);
+  });
+
 });
