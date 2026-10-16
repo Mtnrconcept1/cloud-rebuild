@@ -13,6 +13,7 @@ import {
   UsersRound,
 } from "lucide-react";
 
+import { B2BTable } from "@/components/restaurateurs/B2BTable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -114,7 +115,7 @@ const faqItems = [
 ];
 
 function formatChf(value: number) {
-  return `${Math.round(value).toLocaleString("fr-CH")} CHF`;
+  return `${value.toLocaleString("fr-CH", { maximumFractionDigits: 2 })} CHF`;
 }
 
 function clampNumber(value: number, fallback: number) {
@@ -210,7 +211,7 @@ export default function AlternativeCommissionCouvert() {
   return (
     <main className="bg-background text-foreground">
       <section
-        className="relative isolate flex min-h-[76vh] items-end overflow-hidden bg-slate-950 px-4 pb-12 pt-28 text-white md:px-8 lg:px-12"
+        className="relative isolate flex items-end overflow-hidden bg-slate-950 px-4 pb-12 pt-16 text-white md:px-8 lg:px-12"
         style={{
           backgroundImage:
             "linear-gradient(90deg, rgba(5,7,15,0.9), rgba(5,7,15,0.66), rgba(5,7,15,0.18)), url('/fond3.png')",
@@ -225,7 +226,7 @@ export default function AlternativeCommissionCouvert() {
               Commission par couvert · Marge · Prévisibilité
             </div>
             <div className="space-y-5">
-              <h1 className="text-4xl font-black leading-[0.98] md:text-6xl">
+              <h1 className="text-4xl font-black leading-tight md:text-5xl">
                 Commission par couvert : comparez avant de choisir.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-white/82 md:text-lg">
@@ -256,13 +257,22 @@ export default function AlternativeCommissionCouvert() {
           </div>
 
           <div className="grid gap-3 rounded-lg border border-white/14 bg-white/12 p-5 shadow-2xl backdrop-blur-md">
-            <MetricDark label="Tables réellement servies" value={Math.round(simulation.honoredTables).toLocaleString("fr-CH")} />
-            <MetricDark label="Personnes réellement servies" value={Math.round(simulation.honoredCovers).toLocaleString("fr-CH")} />
+            <MetricDark label="Tables réellement servies" value={simulation.honoredTables.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
+            <MetricDark label="Personnes réellement servies" value={simulation.honoredCovers.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
             <MetricDark label="Coût au couvert" value={formatChf(simulation.perCoverCost)} />
-            <MetricDark label="Écart mensuel estimé" value={formatChf(simulation.difference)} accent />
+            <MetricDark label={simulation.difference >= 0 ? "Coût en moins avec TOK / mois" : "Coût en plus avec TOK / mois"} value={formatChf(Math.abs(simulation.difference))} accent />
           </div>
         </div>
       </section>
+
+      <nav aria-label="Sur cette page" className="border-b bg-orange-50 px-4 py-4">
+        <div className="mx-auto flex max-w-7xl flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-orange-950">
+          <a href="#simulation" className="underline underline-offset-4">1. Simuler mon coût</a>
+          <a href="#regles" className="underline underline-offset-4">2. Comparer les règles</a>
+          <a href="#exemples" className="underline underline-offset-4">3. Voir les exemples</a>
+          <Link to="/packs-restaurateur" className="underline underline-offset-4">Détail des packs et conditions</Link>
+        </div>
+      </nav>
 
       <section className="border-b bg-white px-4 py-14 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
@@ -292,23 +302,23 @@ export default function AlternativeCommissionCouvert() {
         </div>
       </section>
 
-      <section className="px-4 py-16 md:px-8 lg:px-12">
+      <section id="simulation" className="scroll-mt-28 px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[420px_minmax(0,1fr)]">
           <div className="space-y-4">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Simulation économique</p>
-            <h2 className="text-3xl font-black md:text-4xl">Intégrez les no-shows et les couverts réels.</h2>
+            <h2 className="text-3xl font-black md:text-4xl">Comparez votre coût mensuel, étape par étape.</h2>
             <p className="text-muted-foreground">
               Entrez vos chiffres. Les deux modèles sont calculés sur les mêmes réservations réellement servies :
-              les annulations et no-shows ne gonflent donc pas artificiellement la comparaison.
+              les annulations et les absences (no-shows) sont retirées dans les deux modèles. Les valeurs initiales sont un exemple, pas vos résultats réels.
             </p>
           </div>
 
-          <div className="grid gap-6 rounded-lg border bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_290px]">
+          <div className="grid gap-6 rounded-lg border bg-white p-5 shadow-sm xl:grid-cols-[minmax(0,1fr)_290px]">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Abonnement</Label>
+                <Label htmlFor="comparison-plan">Abonnement TOK</Label>
                 <Select value={planSlug} onValueChange={(value) => setPlanSlug(value as FairGrowthPlanSlug)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="comparison-plan"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {FAIR_GROWTH_PLANS.map((plan) => (
                       <SelectItem key={plan.slug} value={plan.slug}>{plan.publicName} · CHF {plan.monthlyPriceChf}/mois</SelectItem>
@@ -318,65 +328,60 @@ export default function AlternativeCommissionCouvert() {
               </div>
               <NumberField id="tables-per-month" label="Réservations attendues / mois" value={tablesPerMonth} onChange={setTablesPerMonth} />
               <NumberField id="covers-per-table" label="Personnes moyennes par réservation" value={coversPerTable} onChange={setCoversPerTable} step={0.1} />
-              <NumberField id="fee-per-cover" label="Montant facturé par personne (comparatif)" value={feePerCover} onChange={setFeePerCover} step={0.1} />
-              <NumberField id="no-show-rate" label="Annulations ou no-shows (%)" value={noShowRate} onChange={setNoShowRate} />
+              <NumberField id="fee-per-cover" label="Commission comparée par personne (CHF)" value={feePerCover} onChange={setFeePerCover} step={0.1} />
+              <NumberField id="no-show-rate" label="Annulations ou absences (%)" value={noShowRate} onChange={setNoShowRate} max={100} />
             </div>
 
             <div className="grid gap-3 rounded-lg bg-slate-950 p-4 text-white">
-              <MetricDark label="1. Tables réellement servies" value={Math.round(simulation.honoredTables).toLocaleString("fr-CH")} />
-              <MetricDark label="2. Personnes réellement servies" value={Math.round(simulation.honoredCovers).toLocaleString("fr-CH")} />
+              <MetricDark label="1. Tables réellement servies" value={simulation.honoredTables.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
+              <MetricDark label="2. Personnes réellement servies" value={simulation.honoredCovers.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} />
               <MetricDark label="3. Modèle au couvert" value={formatChf(simulation.perCoverCost)} />
               <MetricDark label={"4. TOK · " + simulation.planName} value={formatChf(simulation.tokEstimatedCost)} />
               <MetricDark label="Forfait TOK / table servie" value={simulation.effectiveFeePerTable.toLocaleString("fr-CH", { maximumFractionDigits: 2 }) + " CHF"} />
               <p className="rounded-md border border-white/10 bg-white/5 p-3 text-xs leading-5 text-white/75">
-                Au couvert : {Math.round(simulation.honoredCovers).toLocaleString("fr-CH")} personnes × {feePerCover.toLocaleString("fr-CH")} CHF.
+                Au couvert : {simulation.honoredCovers.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} personnes × {feePerCover.toLocaleString("fr-CH")} CHF.
                 <br />
-                TOK : {Math.round(simulation.honoredTables).toLocaleString("fr-CH")} tables × 5 CHF + pack {simulation.planName}.
+                TOK : {simulation.honoredTables.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} tables × 5 CHF + pack {simulation.planName}.
               </p>
               <MetricDark
                 label="Coût TOK par personne servie"
-                value={`${simulation.acquisitionPerHonoredCover.toLocaleString("fr-CH", { maximumFractionDigits: 2 })} CHF`}
+                value={simulation.honoredCovers > 0 ? `${simulation.acquisitionPerHonoredCover.toLocaleString("fr-CH", { maximumFractionDigits: 2 })} CHF` : "Non calculable : aucune personne"}
                 accent
               />
             </div>
           </div>
+          <div className="space-y-4 lg:col-span-2" aria-live="polite" aria-atomic="true">
+            <B2BTable caption="Le détail de votre calcul mensuel" columns={["Étape", "Formule avec vos valeurs", "Résultat"]} rows={[
+              ["1. Tables servies estimées", `${tablesPerMonth} réservations × (1 − ${noShowRate} / 100)`, simulation.honoredTables.toLocaleString("fr-CH", { maximumFractionDigits: 4 })],
+              ["2. Personnes servies estimées", `${simulation.honoredTables.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} tables × ${coversPerTable} personnes en moyenne`, simulation.honoredCovers.toLocaleString("fr-CH", { maximumFractionDigits: 4 })],
+              ["3. Coût du modèle au couvert", `${simulation.honoredCovers.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} personnes × ${feePerCover} CHF`, formatChf(simulation.perCoverCost)],
+              ["4. Frais TOK des tables", `${simulation.honoredTables.toLocaleString("fr-CH", { maximumFractionDigits: 4 })} tables × 5 CHF`, formatChf(simulation.honoredTables * RESERVATION_FLAT_FEE_CHF)],
+              ["5. Abonnement TOK", `Pack ${simulation.planName}, facturation mensuelle`, formatChf(getFairGrowthPlan(planSlug).monthlyPriceChf)],
+              ["6. Total TOK", "Frais des tables + abonnement", formatChf(simulation.tokEstimatedCost)],
+              ["7. Différence mensuelle", `${formatChf(simulation.perCoverCost)} − ${formatChf(simulation.tokEstimatedCost)}`, `${formatChf(Math.abs(simulation.difference))} ${simulation.difference > 0 ? "de moins avec TOK" : simulation.difference < 0 ? "de plus avec TOK" : ": coûts identiques"}`],
+              ["8. Coût TOK par personne", `${formatChf(simulation.tokEstimatedCost)} ÷ personnes servies`, simulation.honoredCovers > 0 ? formatChf(simulation.acquisitionPerHonoredCover) : "Non calculable : aucune personne servie"],
+            ]} />
+            <p className="text-sm leading-6 text-muted-foreground">Une prévision peut donner une fraction de table ou de personne : par exemple, 90 réservations avec 8 % d'absences donnent 82,8 tables attendues. Les calculs conservent les décimales ; les montants affichés sont arrondis au centime. La facturation réelle porte sur les réservations effectivement honorées.</p>
+            <p className="text-sm leading-6 text-muted-foreground">La commission saisie est votre hypothèse de comparaison, pas un tarif concurrent vérifié. Le modèle au couvert exclut tout abonnement concurrent. Les options, taxes et autres frais éventuels ne sont pas ajoutés à cette simulation : comparez les devis sur une même base. L'abonnement TOK reste dû même si aucune table n'est servie. Ce calcul compare des frais de réservation, pas votre marge.</p>
+          </div>
         </div>
       </section>
 
-      <section className="bg-slate-50 px-4 py-16 md:px-8 lg:px-12">
+      <section id="regles" className="scroll-mt-28 bg-slate-50 px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2">
           <div className="space-y-4">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Comparatif modèle économique</p>
             <h2 className="text-3xl font-black">Modèle au couvert vs tarif fixe par table.</h2>
             <p className="text-muted-foreground">
-              Cette page doit répondre aux objections financières : pas de répétition de la page Google, mais une lecture
-              claire de la marge, des no-shows et de la prévisibilité.
+              Un couvert est une personne ; une table représente ici une réservation honorée par un groupe. Pour 4 personnes, TOK facture 5 CHF pour la réservation, tandis qu'une commission à 6 CHF par couvert représente 4 × 6 = 24 CHF, avant les éventuels abonnements.
             </p>
           </div>
-          <div className="grid gap-4">
-            {comparisonRows.map((row) => (
-              <article key={row.criterion} className="rounded-2xl border bg-white p-5 shadow-sm">
-                <h3 className="text-lg font-black text-slate-950">{row.criterion}</h3>
-                <div className="mt-4 grid gap-4 text-sm md:grid-cols-2">
-                  <div className="rounded-xl bg-emerald-50 p-4">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-800">Avec TOK</p>
-                    <p className="mt-2 leading-6 text-emerald-950">{row.tok}</p>
-                  </div>
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-600">Au couvert</p>
-                    <p className="mt-2 leading-6 text-slate-700">{row.perCover}</p>
-                  </div>
-                </div>
-                <p className="mt-4 rounded-xl bg-orange-50 p-4 text-sm font-medium leading-6 text-orange-950">
-                  À vérifier : {row.decision}
-                </p>
-              </article>
-            ))}
-          </div>
+          <B2BTable caption="Les règles à comparer avant de choisir" columns={["Critère", "Avec TOK", "Au couvert", "À vérifier"]}
+            rows={comparisonRows.map((row) => [row.criterion, row.tok, row.perCover, row.decision])} />
         </div>
       </section>
 
-      <section className="px-4 py-16 md:px-8 lg:px-12">
+      <section id="exemples" className="scroll-mt-28 px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto max-w-7xl space-y-8">
           <div className="max-w-3xl space-y-4">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Scénarios chiffrés</p>
@@ -385,24 +390,17 @@ export default function AlternativeCommissionCouvert() {
               Même montant par personne, résultat différent : plus une table est grande, plus une commission au couvert augmente. Les exemples utilisent le plan sélectionné et une salle sans no-show.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {scenarioRows.map((scenario) => {
-              const monthlyRevenue = scenario.tables * scenario.covers * scenario.averageTicket;
-              const variableCost = scenario.tables * scenario.covers * feePerCover;
+          <B2BTable caption={`Exemples mensuels avec le pack ${getFairGrowthPlan(planSlug).publicName}`} columns={["Scénario et hypothèses", "Ventes brutes simulées", "Coût au couvert", "Coût TOK"]}
+            rows={scenarioRows.map((scenario) => {
               const plan = getFairGrowthPlan(planSlug);
-              const tableCost = scenario.tables * RESERVATION_FLAT_FEE_CHF + plan.monthlyPriceChf;
-              return (
-                <article key={scenario.label} className="rounded-lg border bg-white p-5 shadow-sm">
-                  <h3 className="text-xl font-bold">{scenario.label}</h3>
-                  <div className="mt-4 grid gap-3 text-sm">
-                    <ScenarioMetric label="CA potentiel" value={formatChf(monthlyRevenue)} />
-                    <ScenarioMetric label="Commission au couvert" value={formatChf(variableCost)} />
-                    <ScenarioMetric label={"TOK " + getFairGrowthPlan(planSlug).publicName} value={formatChf(tableCost)} />
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+              return [
+                `${scenario.label} : ${scenario.tables} tables servies × ${scenario.covers} personnes ; addition par personne de ${scenario.averageTicket} CHF.`,
+                `${scenario.tables} × ${scenario.covers} × ${scenario.averageTicket} = ${formatChf(scenario.tables * scenario.covers * scenario.averageTicket)}`,
+                `${scenario.tables} × ${scenario.covers} × ${feePerCover} = ${formatChf(scenario.tables * scenario.covers * feePerCover)}`,
+                `${scenario.tables} × 5 + ${plan.monthlyPriceChf} = ${formatChf(scenario.tables * RESERVATION_FLAT_FEE_CHF + plan.monthlyPriceChf)}`,
+              ];
+            })} />
+          <p className="text-sm leading-6 text-muted-foreground">Les ventes brutes ne sont pas un bénéfice : achats, salaires, loyer et autres charges ne sont pas déduits. Ces scénarios utilisent leurs propres volumes, sans annulation ; seuls le pack et la commission par personne suivent votre sélection.</p>
         </div>
       </section>
 
@@ -473,12 +471,14 @@ function NumberField({
   value,
   onChange,
   step = 1,
+  max,
 }: {
   id: string;
   label: string;
   value: number;
   onChange: (value: number) => void;
   step?: number;
+  max?: number;
 }) {
   return (
     <div className="space-y-2">
@@ -486,10 +486,11 @@ function NumberField({
       <Input
         id={id}
         min={0}
+        max={max}
         step={step}
         type="number"
         value={value}
-        onChange={(event) => onChange(clampNumber(Number(event.target.value), 0))}
+        onChange={(event) => onChange(Math.min(max ?? Infinity, clampNumber(Number(event.target.value), 0)))}
       />
     </div>
   );
@@ -500,15 +501,6 @@ function MetricDark({ label, value, accent = false }: { label: string; value: st
     <div className="rounded-lg bg-white/10 p-3">
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/60">{label}</p>
       <p className={`mt-1 text-2xl font-black ${accent ? "text-orange-300" : ""}`}>{value}</p>
-    </div>
-  );
-}
-
-function ScenarioMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md bg-slate-50 p-3">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
-      <p className="mt-1 text-lg font-black text-slate-950">{value}</p>
     </div>
   );
 }
