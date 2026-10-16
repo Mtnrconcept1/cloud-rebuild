@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { JSDOM } from "jsdom";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { TOK_DISCOVERY_WIDGET_HTML } from "../../supabase/functions/_shared/tok-connect-discovery-widget.ts";
 
@@ -77,6 +78,24 @@ function setupWidget(options: { quoteRequiresGuarantee?: boolean; bookingDenied?
 }
 
 describe("TOK Connect customer MCP security", () => {
+  it("keeps app-only tools callable without declaring a second widget output", () => {
+    const start = remote.indexOf("const TOK_CLIENT_WIDGET_META =");
+    const end = remote.indexOf("const TOK_CLIENT_TOOL_NAMES =");
+    expect(start).toBeGreaterThan(0);
+    expect(end).toBeGreaterThan(start);
+    const compiled = ts.transpileModule(remote.slice(start, end), {
+      compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
+    }).outputText;
+    const tools = new Function("OAUTH_SECURITY", compiled + ";return TOK_CLIENT_TOOLS;")([]);
+    const privateTools = tools.filter((tool: { _meta: Record<string, unknown> }) => tool._meta["openai/visibility"] === "private");
+    expect(privateTools).toHaveLength(5);
+    for (const tool of privateTools) {
+      expect(tool._meta.ui).toEqual({ visibility: ["app"] });
+      expect(tool._meta["openai/outputTemplate"]).toBeUndefined();
+      expect(tool._meta["openai/widgetAccessible"]).toBe(true);
+    }
+  });
+
   it("only publishes named client writes while generic admin/RPC/payment tools remain closed", () => {
     expect(remote).toContain('const TOK_CLIENT_MUTATION_NAMES = new Set([');
     for (const toolName of ["tok_book_table", "tok_cancel_my_reservation", "tok_checkout_customer_cart", "tok_cancel_cart_payment_attempt"]) {
@@ -97,9 +116,8 @@ describe("TOK Connect customer MCP security", () => {
       expect(start).toBeGreaterThan(-1);
       const end = remote.indexOf("},\n  {", start);
       const definition = remote.slice(start, end > start ? end : undefined);
-      expect(definition).toContain('visibility: ["app"]');
-      expect(definition).toContain('"openai/visibility": "private"');
-      expect(definition).toContain("...TOK_CLIENT_WIDGET_META");
+      expect(definition).toContain("...TOK_CLIENT_PRIVATE_META");
+      expect(definition).not.toContain("...TOK_CLIENT_WIDGET_META");
     }
   });
 
