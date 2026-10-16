@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MarketingCampaignBuilder } from "@/components/marketing/MarketingCampaignBuilder";
 import MarketingAgentView from "@/components/marketing/views/MarketingAgentView";
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
@@ -20,23 +20,30 @@ function setup(overrides = {}) {
   return onGenerate;
 }
 beforeEach(() => { bff.mockReset(); bff.mockResolvedValue({ runs: [] }); });
+afterEach(() => { vi.restoreAllMocks(); });
 
 describe("campagne guidée", () => {
   it("conserve les calculs de période des campagnes existantes", () => {
     expect(campaignEndDate("2026-10-14", 4, "daily")).toBe("2026-10-17");
     expect(campaignEndDate("2026-10-14", 3, "weekly")).toBe("2026-10-28");
   });
-  it("conserve les deux thèmes et les fréquences ajoutés sur main", async () => {
+  it.each([
+    { start: "2026-10-12T09:00", startsAt: "2026-10-12T07:00:00.000Z", endsAt: "2026-10-19T08:00:00.000Z" },
+    { start: "2026-10-18T09:00", startsAt: "2026-10-18T07:00:00.000Z", endsAt: "2026-10-25T09:00:00.000Z" },
+  ])("conserve les thèmes et la cadence en heure de Genève depuis $start", async ({ start, startsAt, endsAt }) => {
+    vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-10T12:00:00Z"));
     const generate = setup();
     fireEvent.click(screen.getByRole("checkbox", { name: /Dernière minute/ }));
     fireEvent.click(screen.getByRole("checkbox", { name: /Découverte restaurant/ }));
     fireEvent.change(screen.getByLabelText("Fréquence"), { target: { value: "twice_weekly" } });
+    fireEvent.change(screen.getByLabelText("Début · heure de Genève"), { target: { value: start } });
     fireEvent.click(screen.getByRole("button", { name: "Envoyer et générer la campagne" }));
     await waitFor(() => expect(generate).toHaveBeenCalledTimes(1));
     const request = generate.mock.calls[0][0];
     expect(request.campaignOptions.templateIds).toEqual(["zero_attente", "last_minute", "discovery"]);
     expect(request.campaignOptions.cadence).toBe("twice_weekly");
-    expect(Date.parse(request.endsAt) - Date.parse(request.startsAt)).toBe(7 * 86400000 + 3600000);
+    expect(request.startsAt).toBe(startsAt);
+    expect(request.endsAt).toBe(endsAt);
   });
   it("conserve le choix de format dans le brief libre avancé", async () => {
     bff.mockImplementation((_url, options) => Promise.resolve(options.body.action === "list_runs" ? { runs: [] } : { items: [], summary: "Prêt", assetCount: 0, estimatedCostChf: 0 }));
