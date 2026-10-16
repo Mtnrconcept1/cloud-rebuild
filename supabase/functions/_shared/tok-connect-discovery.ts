@@ -1133,8 +1133,12 @@ export function scaleDiscoveryIntents(intents: TokDiscoveryIntent[], cap: number
 /** Candidats bruts pour un besoin : la base filtre, le score classe ensuite. */
 export async function fetchDiscoveryCandidates(
   client: TokDiscoveryClient,
-  options: { city?: string | null; matchers?: string[]; limit: number; requiresReservation?: boolean },
+  options: { city?: string | null; matchers?: string[]; limit: number; requiresReservation?: boolean; textQuery?: string },
 ): Promise<TokRestaurantRow[]> {
+  const textMatcher = options.textQuery
+    ? sanitizeDiscoveryMatcher(options.textQuery.replace(/[‘’]/g, " ")).split(/\s+/).join("*")
+    : "";
+  if (options.textQuery && textMatcher.length < 3) return [];
   let query = client
     .from("restaurants")
     .select(RESTAURANT_DISCOVERY_SELECT)
@@ -1151,6 +1155,9 @@ export async function fetchDiscoveryCandidates(
   }
   const orFilter = buildDiscoveryOrFilter(options.matchers || []);
   if (orFilter) query = query.or(orFilter);
+  if (textMatcher) query = query.or(
+    ["name", "cuisine_type", "description"].map((field) => `${field}.ilike.*${textMatcher}*`).join(","),
+  );
 
   const { data, error } = await query;
   if (error) throw new TokDiscoveryError(500, error.message || "discovery_query_failed");
@@ -1170,6 +1177,11 @@ export async function runTokDiscovery(input: {
 
   const parsed = parseTokDiscoveryRequest(discoveryRequestText(args), now);
   const intents = resolveDiscoveryIntents(parsed, args);
+  // A free-text search for a venue must not turn into an unrelated shortlist.
+  // Cuisine selections retain their existing multi-group discovery behavior.
+  const textQuery = typeof args.query === "string" && !parsed.intents.length
+    && !(Array.isArray(args.selections) && args.selections.length)
+    ? args.query.trim() : undefined;
   const city = typeof args.city === "string" && args.city.trim() ? args.city.trim() : parsed.city;
   const limit = Number(args.limit);
   const cap = Number.isFinite(limit) && limit > 0 ? Math.min(20, Math.round(limit)) : 0;
@@ -1194,6 +1206,7 @@ export async function runTokDiscovery(input: {
       matchers: intent.matchers,
       limit: intent.count,
       requiresReservation,
+      textQuery,
     }),
   })));
 
@@ -1201,7 +1214,7 @@ export async function runTokDiscovery(input: {
     (total, bucket) => total + Math.min(bucket.rows.length, bucket.intent.count),
     0,
   );
-  const fallbackRows = delivered < request.totalRequested
+  const fallbackRows = !textQuery && delivered < request.totalRequested
     ? await fetchDiscoveryCandidates(input.client, {
       city,
       matchers: [],

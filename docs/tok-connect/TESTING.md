@@ -95,9 +95,12 @@ Créer une conversation en sélectionnant explicitement **TOK Connect — Test**
 
 L'intégration commerce isolée de la PR #869 ajoute neuf outils au catalogue
 initial de 27 outils. TOK Équipe reste hors périmètre. Quatre mutations précises
-sont accessibles uniquement au widget : `tok_book_table`,
+sont présentées uniquement au widget par les hôtes conformes : `tok_book_table`,
 `tok_cancel_my_reservation`, `tok_checkout_customer_cart` et
 `tok_cancel_cart_payment_attempt`. Les mutations génériques restent exclues.
+Ces métadonnées ne prouvent pas au serveur qu'un appel provient d'un widget :
+un autre client MCP authentifié peut appeler les mêmes outils avec les mêmes
+contrôles de rôle, de propriété, de confirmation et d'idempotence.
 
 Les écritures exigent un JWT utilisateur, le rôle client, un accord explicite et
 une clé d'idempotence. L'historique reste filtré par propriétaire, même pour un

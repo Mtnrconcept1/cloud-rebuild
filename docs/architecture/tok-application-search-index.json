@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "106b255738de84b61019567d7d386d90add70c6ae23deb17bdd5f827736df521",
+ "sourceDigest": "5e97a14427c68d03be3de60c0f21b7b12e74b0260bdf0eda1584764874ca570c",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -32575,7 +32575,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2852
+      "line": 2853
      },
      {
       "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
@@ -84843,7 +84843,7 @@
      {
       "level": 2,
       "title": "Paiements restant à valider",
-      "line": 122
+      "line": 125
      }
     ]
    },
@@ -112388,7 +112388,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 589
+    "lineCount": 601
    },
    {
     "path": "src/test/tok-connect-edge-functions.test.ts",
@@ -115886,27 +115886,27 @@
      },
      {
       "name": "runTokDiscovery",
-      "line": 1161,
+      "line": 1168,
       "kind": "function"
      },
      {
       "name": "runTokRestaurantDetail",
-      "line": 1225,
+      "line": 1238,
       "kind": "function"
      },
      {
       "name": "TOK_SANDBOX_DISCOVERY_ROWS",
-      "line": 1279,
+      "line": 1292,
       "kind": "variable"
      },
      {
       "name": "buildSandboxDiscoveryPayload",
-      "line": 1348,
+      "line": 1361,
       "kind": "function"
      },
      {
       "name": "buildSandboxRestaurantDetail",
-      "line": 1381,
+      "line": 1394,
       "kind": "function"
      }
     ],
@@ -115915,7 +115915,7 @@
      "google",
      "supabase"
     ],
-    "lineCount": 1406
+    "lineCount": 1419
    },
    {
     "path": "supabase/functions/_shared/tok-connect.ts",
@@ -117649,7 +117649,7 @@
     "exports": [
      {
       "name": "tokConnectMcpHealthEnvelope",
-      "line": 2943,
+      "line": 2944,
       "kind": "variable"
      }
     ],
@@ -117663,7 +117663,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 2947
+    "lineCount": 2948
    },
    {
     "path": "supabase/functions/tok-connect-oauth/index.ts",
@@ -154696,7 +154696,7 @@
    "id": "code-module:5ba8bcabdf99",
    "type": "code-module",
    "title": "src/test/tok-connect-discovery.test.ts",
-   "description": "Module de 589 lignes; exports: aucun export statique.",
+   "description": "Module de 601 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-discovery.test.ts",
    "line": 1,
    "surface": null,
@@ -154705,7 +154705,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "f838697f63be"
+   "detailRef": "0dac38c1a17d"
   },
   {
    "id": "code-module:43dd95d166f5",
@@ -156513,7 +156513,7 @@
    "id": "code-module:bd4199664d50",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-discovery.ts",
-   "description": "Module de 1406 lignes; exports: TokDiscoveryCuisine, TokDiscoveryIntent, TokDiscoveryRequest, TokRestaurantRow, TokDiscoveryBadge, TokDiscoveryCard, TokDiscoveryGroup, TokDiscoveryPayload, TOK_DISCOVERY_CUISINES, normalizeDiscoveryText, findDiscoveryCuisine, extractDiscoveryCity, extractDiscoveryDate, parseTokDiscoveryRequest, bayesianRating, rowRating, rowReviewCount, discoveryStem, cuisineAffinity, scoreDiscoveryCandidate, priceDisplay, buildDiscoveryBadges, mapRestaurantToCard, buildDiscoverySelection, describeDiscoverySelection, buildDiscoveryPayload, normalizeOpeningHours, todayOpeningHours, TokDiscoveryDetail, mapRestaurantToDetail, TokDiscoveryQuery, TokDiscoveryClient, TokDiscoveryError, RESTAURANT_DISCOVERY_SELECT, sanitizeDiscoveryMatcher, buildDiscoveryOrFilter, discoveryRequestText, resolveDiscoveryIntents, scaleDiscoveryIntents, fetchDiscoveryCandidates, runTokDiscovery, runTokRestaurantDetail, TOK_SANDBOX_DISCOVERY_ROWS, buildSandboxDiscoveryPayload, buildSandboxRestaurantDetail.",
+   "description": "Module de 1419 lignes; exports: TokDiscoveryCuisine, TokDiscoveryIntent, TokDiscoveryRequest, TokRestaurantRow, TokDiscoveryBadge, TokDiscoveryCard, TokDiscoveryGroup, TokDiscoveryPayload, TOK_DISCOVERY_CUISINES, normalizeDiscoveryText, findDiscoveryCuisine, extractDiscoveryCity, extractDiscoveryDate, parseTokDiscoveryRequest, bayesianRating, rowRating, rowReviewCount, discoveryStem, cuisineAffinity, scoreDiscoveryCandidate, priceDisplay, buildDiscoveryBadges, mapRestaurantToCard, buildDiscoverySelection, describeDiscoverySelection, buildDiscoveryPayload, normalizeOpeningHours, todayOpeningHours, TokDiscoveryDetail, mapRestaurantToDetail, TokDiscoveryQuery, TokDiscoveryClient, TokDiscoveryError, RESTAURANT_DISCOVERY_SELECT, sanitizeDiscoveryMatcher, buildDiscoveryOrFilter, discoveryRequestText, resolveDiscoveryIntents, scaleDiscoveryIntents, fetchDiscoveryCandidates, runTokDiscovery, runTokRestaurantDetail, TOK_SANDBOX_DISCOVERY_ROWS, buildSandboxDiscoveryPayload, buildSandboxRestaurantDetail.",
    "path": "supabase/functions/_shared/tok-connect-discovery.ts",
    "line": 1,
    "surface": null,
@@ -156566,7 +156566,7 @@
     "supabase",
     "todayOpeningHours"
    ],
-   "detailRef": "0388c89be8a3"
+   "detailRef": "813da122cd48"
   },
   {
    "id": "code-module:fc6a15fb9307",
@@ -158320,7 +158320,7 @@
    "id": "code-module:d04caf9780c6",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-mcp/index.ts",
-   "description": "Module de 2947 lignes; exports: tokConnectMcpHealthEnvelope.",
+   "description": "Module de 2948 lignes; exports: tokConnectMcpHealthEnvelope.",
    "path": "supabase/functions/tok-connect-mcp/index.ts",
    "line": 1,
    "surface": null,
@@ -158333,7 +158333,7 @@
     "tokConnectMcpHealthEnvelope",
     "vercel"
    ],
-   "detailRef": "f54df8439517"
+   "detailRef": "e3df70b4281c"
   },
   {
    "id": "code-module:9149d3a94667",
@@ -223683,18 +223683,18 @@
    "detailRef": "0b959490b4c5"
   },
   {
-   "id": "document-section:23d38467cc41",
+   "id": "document-section:431318d4dc42",
    "type": "document-section",
    "title": "Paiements restant à valider",
    "description": "Section de Recette TOK Connect dans ChatGPT.",
    "path": "docs/tok-connect/TESTING.md",
-   "line": 122,
+   "line": 125,
    "surface": null,
    "tags": [
     "Recette TOK Connect dans ChatGPT",
     "h2"
    ],
-   "detailRef": "a042e5ac53e2"
+   "detailRef": "d80d65bedbdf"
   },
   {
    "id": "document-section:3108fe131b47",
@@ -239146,7 +239146,7 @@
     "Recette ChatGPT",
     "Recette TOK Connect dans ChatGPT"
    ],
-   "detailRef": "230d75684267"
+   "detailRef": "405f2d686843"
   },
   {
    "id": "document:9f0b359c1499",
@@ -267351,19 +267351,19 @@
    "detailRef": "fb4022c83cb2"
   },
   {
-   "id": "exported-symbol:eb83eacaedd9",
+   "id": "exported-symbol:9334a2988542",
    "type": "exported-symbol",
    "title": "TOK_SANDBOX_DISCOVERY_ROWS",
    "description": "Export variable de supabase/functions/_shared/tok-connect-discovery.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery.ts",
-   "line": 1279,
+   "line": 1292,
    "surface": null,
    "tags": [
     "google",
     "supabase",
     "variable"
    ],
-   "detailRef": "f22ffbf24d9c"
+   "detailRef": "878a62a8c1aa"
   },
   {
    "id": "exported-symbol:ea01f2c7f944",
@@ -271576,34 +271576,34 @@
    "detailRef": "5b19c3ba9f6d"
   },
   {
-   "id": "exported-symbol:b654e6008071",
+   "id": "exported-symbol:07a8be563c39",
    "type": "exported-symbol",
    "title": "buildSandboxDiscoveryPayload",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery.ts",
-   "line": 1348,
+   "line": 1361,
    "surface": null,
    "tags": [
     "function",
     "google",
     "supabase"
    ],
-   "detailRef": "7f0c4702909c"
+   "detailRef": "8bd2bfa11138"
   },
   {
-   "id": "exported-symbol:c56298a77606",
+   "id": "exported-symbol:c8309dd7bbcb",
    "type": "exported-symbol",
    "title": "buildSandboxRestaurantDetail",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery.ts",
-   "line": 1381,
+   "line": 1394,
    "surface": null,
    "tags": [
     "function",
     "google",
     "supabase"
    ],
-   "detailRef": "53f31d4406ef"
+   "detailRef": "ace5546365bd"
   },
   {
    "id": "exported-symbol:1869de170df5",
@@ -292838,34 +292838,34 @@
    "detailRef": "46f4cd3d4856"
   },
   {
-   "id": "exported-symbol:7cf680a9cef1",
+   "id": "exported-symbol:ba6bee7fb159",
    "type": "exported-symbol",
    "title": "runTokDiscovery",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery.ts",
-   "line": 1161,
+   "line": 1168,
    "surface": null,
    "tags": [
     "function",
     "google",
     "supabase"
    ],
-   "detailRef": "7215db88e746"
+   "detailRef": "c09134816bb2"
   },
   {
-   "id": "exported-symbol:07dd5db005e3",
+   "id": "exported-symbol:239ca1078c8a",
    "type": "exported-symbol",
    "title": "runTokRestaurantDetail",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery.ts",
-   "line": 1225,
+   "line": 1238,
    "surface": null,
    "tags": [
     "function",
     "google",
     "supabase"
    ],
-   "detailRef": "018509aee047"
+   "detailRef": "0c08dce95fde"
   },
   {
    "id": "exported-symbol:5d413423c8d1",
@@ -294703,12 +294703,12 @@
    "detailRef": "85fe3c50d091"
   },
   {
-   "id": "exported-symbol:5ce2a61ab9b7",
+   "id": "exported-symbol:fba782ec11b7",
    "type": "exported-symbol",
    "title": "tokConnectMcpHealthEnvelope",
    "description": "Export variable de supabase/functions/tok-connect-mcp/index.ts.",
    "path": "supabase/functions/tok-connect-mcp/index.ts",
-   "line": 2943,
+   "line": 2944,
    "surface": null,
    "tags": [
     "google",
@@ -294718,7 +294718,7 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "9c7e77c356f3"
+   "detailRef": "5b2a7b41d4c9"
   },
   {
    "id": "exported-symbol:d3054aa31594",
@@ -380494,7 +380494,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/tok-connect-remote-mcp/index.ts"
    ],
-   "detailRef": "2e1df0dc3e48"
+   "detailRef": "c5862aadb212"
   },
   {
    "id": "query-parameter:53f1f1bd6ea8",
