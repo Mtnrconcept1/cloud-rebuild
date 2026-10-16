@@ -299,14 +299,14 @@ describe("TOK widget recovery",()=>{
       expect(ui.dom.window.document.querySelector("#root")?.textContent).toContain("Aucun paiement créé");
       expect(ui.dom.window.document.querySelector("#root")?.textContent).not.toContain("Vérifier le paiement");
       expect(ui.links).toEqual([]);
-    }finally{ui.dom.window.close()}
+    }finally{ui.dom.window.close();}
   });
   it("never offers an expired checkout URL again",async()=>{
     const ui=widgetHarness({expired:true,restoredCart:{restaurantId,journey:"takeaway",date,time:"19:00",partySize:1,items:{[itemId]:1},attemptId}});
     try{await ui.wait();ui.press("Vérifier le paiement");await ui.wait();
       expect(ui.dom.window.document.querySelector("#root")?.textContent).toContain("Session Stripe expirée");
       expect(ui.dom.window.document.querySelector("#root")?.textContent).not.toContain("Reprendre le paiement Stripe");
-    }finally{ui.dom.window.close()}
+    }finally{ui.dom.window.close();}
   });
   it("rejects a same-day service already passed in Switzerland",()=>{
     expect(()=>normalizeTokCustomerCart({...input,date:"2026-10-16",time:"19:00"},{now:new Date("2026-10-16T20:00:00Z")})).toThrow("tok_cart_slot_in_past");
