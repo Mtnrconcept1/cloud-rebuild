@@ -101,6 +101,10 @@ sont présentées uniquement au widget par les hôtes conformes : `tok_book_tabl
 Ces métadonnées ne prouvent pas au serveur qu'un appel provient d'un widget :
 un autre client MCP authentifié peut appeler les mêmes outils avec les mêmes
 contrôles de rôle, de propriété, de confirmation et d'idempotence.
+Les outils privés, y compris le statut d'une tentative de paiement, ne doivent
+déclarer ni `ui.resourceUri` ni `openai/outputTemplate` : ChatGPT refuse ce contrat.
+Ils restent appelables par le widget avec `ui.visibility: ["app"]` et renvoient
+des données à l'interface déjà ouverte, sans créer un deuxième widget.
 
 Les écritures exigent un JWT utilisateur, le rôle client, un accord explicite et
 une clé d'idempotence. L'historique reste filtré par propriétaire, même pour un

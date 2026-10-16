@@ -62,6 +62,9 @@ export async function runTokConnectSmoke({ fetchImpl = fetch } = {}) {
     require(['discover_restaurants', 'get_restaurant_details', 'open_application_sandbox', 'tok_list_capabilities'].every((name) => tools.some((tool) => tool.name === name)));
     require(tools.every((tool) => tool.inputSchema?.type === 'object' && typeof tool.annotations?.readOnlyHint === 'boolean'));
     require(CLIENT_MUTATIONS.every((name) => tools.some((tool) => tool.name === name)));
+    require(tools.every((tool) => tool._meta?.['openai/visibility'] !== 'private' || (
+      !tool._meta?.ui?.resourceUri && !tool._meta?.['openai/outputTemplate']
+    )));
     require(tools.every((tool) => tool.annotations.readOnlyHint === true || (
       CLIENT_MUTATIONS.includes(tool.name) && tool._meta?.ui?.visibility?.length === 1
       && tool._meta.ui.visibility[0] === 'app' && tool._meta?.['openai/visibility'] === 'private'

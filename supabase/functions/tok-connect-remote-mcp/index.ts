@@ -160,6 +160,12 @@ const TOK_CLIENT_WIDGET_META = {
   "openai/outputTemplate": "ui://tok-connect/restaurant-discovery-v1.html",
 } as const;
 
+const TOK_CLIENT_PRIVATE_META = {
+  ui: { visibility: ["app"] },
+  "openai/widgetAccessible": true,
+  "openai/visibility": "private",
+} as const;
+
 const TOK_CLIENT_TOOLS = [
   {
     name: "tok_quote_reservation",
@@ -196,7 +202,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META, ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] }, "openai/visibility": "private" },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_PRIVATE_META },
   },
   {
     name: "tok_my_reservations",
@@ -284,9 +290,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META,
-      ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] },
-      "openai/visibility": "private" },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_PRIVATE_META },
   },
   {
     name: "tok_customer_payment_status",
@@ -299,9 +303,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META,
-      ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] },
-      "openai/visibility": "private" },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_PRIVATE_META },
   },
   {
     name: "tok_cancel_cart_payment_attempt",
@@ -318,9 +320,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META,
-      ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] },
-      "openai/visibility": "private" },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_PRIVATE_META },
   },
   {
     name: "tok_cancel_my_reservation",
@@ -338,7 +338,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META, ui: { ...TOK_CLIENT_WIDGET_META.ui, visibility: ["app"] }, "openai/visibility": "private" },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_PRIVATE_META },
   },
 ] as const;
 const TOK_CLIENT_TOOL_NAMES = new Set(TOK_CLIENT_TOOLS.map((tool) => tool.name));

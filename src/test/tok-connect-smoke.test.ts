@@ -4,7 +4,7 @@ import { runTokConnectSmoke } from '../../scripts/tok-connect-smoke.mjs';
 const issuer = 'https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1';
 const uri = 'ui://tok-connect/test.html';
 
-function fixture(options: { wrongIssuer?: boolean; leakedAccount?: boolean; unsafeSandbox?: boolean; rpcError?: boolean; genericMutation?: boolean; modelMutation?: boolean } = {}) {
+function fixture(options: { wrongIssuer?: boolean; leakedAccount?: boolean; unsafeSandbox?: boolean; rpcError?: boolean; genericMutation?: boolean; modelMutation?: boolean; privateWidget?: boolean } = {}) {
   const calls: Array<{ url: string; body: Record<string, unknown> | null; init: RequestInit }> = [];
   const fetchImpl = async (url: string, init: RequestInit) => {
     const body = init.body ? JSON.parse(String(init.body)) : null;
@@ -15,7 +15,7 @@ function fixture(options: { wrongIssuer?: boolean; leakedAccount?: boolean; unsa
     else if (body.method === 'initialize') payload = { result: { protocolVersion: '2025-11-25', capabilities: { tools: {} } } };
     else if (body.method === 'tools/list') payload = options.rpcError ? { error: { code: -32603, message: 'secret-provider-response' } } : { result: { tools: [
       ...['discover_restaurants', 'get_restaurant_details', 'open_application_sandbox', 'tok_list_capabilities'].map((name) => ({ name, inputSchema: { type: 'object' }, annotations: { readOnlyHint: true }, _meta: { ui: { resourceUri: uri } } })),
-      ...['tok_book_table', 'tok_cancel_my_reservation', 'tok_checkout_customer_cart', 'tok_cancel_cart_payment_attempt', ...(options.genericMutation ? ['tok_invoke_rpc'] : [])].map((name) => ({ name, inputSchema: { type: 'object', required: ['confirmed_by_user', 'idempotency_key'] }, annotations: { readOnlyHint: false }, _meta: { ui: { resourceUri: uri, visibility: options.modelMutation ? ['model', 'app'] : ['app'] }, 'openai/visibility': 'private' } })),
+      ...['tok_book_table', 'tok_cancel_my_reservation', 'tok_checkout_customer_cart', 'tok_cancel_cart_payment_attempt', ...(options.genericMutation ? ['tok_invoke_rpc'] : [])].map((name) => ({ name, inputSchema: { type: 'object', required: ['confirmed_by_user', 'idempotency_key'] }, annotations: { readOnlyHint: false }, _meta: { ui: { ...(options.privateWidget ? { resourceUri: uri } : {}), visibility: options.modelMutation ? ['model', 'app'] : ['app'] }, 'openai/visibility': 'private' } })),
     ] } };
     else if (body.method === 'resources/read') payload = { result: { contents: [{ uri, mimeType: 'text/html;profile=mcp-app', text: '<!doctype html><title>TOK</title>' }] } };
     else if (body.params.name === 'tok_list_capabilities') payload = { result: options.leakedAccount ? { structuredContent: { ok: true } } : { isError: true, _meta: { 'mcp/www_authenticate': ['Bearer'] } } };
@@ -42,7 +42,7 @@ describe('diagnostic TOK Connect sans écritures', () => {
     expect(report.passed).toBe(false);
     expect(calls.some(({ url }) => url.includes('untrusted'))).toBe(false);
   });
-  it.each([{ leakedAccount: true }, { unsafeSandbox: true }, { rpcError: true }, { genericMutation: true }, { modelMutation: true }])('échoue sur une régression critique %j et ne reproduit pas les réponses privées', async (options) => {
+  it.each([{ leakedAccount: true }, { unsafeSandbox: true }, { rpcError: true }, { genericMutation: true }, { modelMutation: true }, { privateWidget: true }])('échoue sur une régression critique %j et ne reproduit pas les réponses privées', async (options) => {
     const report = await runTokConnectSmoke({ fetchImpl: fixture(options).fetchImpl });
     expect(report.passed).toBe(false);
     expect(JSON.stringify(report)).not.toContain('secret-provider-response');

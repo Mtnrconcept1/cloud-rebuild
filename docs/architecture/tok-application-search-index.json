@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "8a65f0c7b848ee6db7e7109d47ab10c5690d3f024415978f228c5f10d11c1be7",
+ "sourceDigest": "17aa32ffea9a5839ff128d9ec84b53b9aca05374d767359001c1e7a41eb5fbac",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -15176,7 +15176,7 @@
     "sources": [
      {
       "path": "src/test/tok-connect-customer-journey.test.ts",
-      "line": 146
+      "line": 164
      }
     ]
    },
@@ -84843,7 +84843,7 @@
      {
       "level": 2,
       "title": "Paiements restant à valider",
-      "line": 125
+      "line": 129
      }
     ]
    },
@@ -86996,7 +86996,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 105
+    "lineCount": 108
    },
    {
     "path": "scripts/verify-supabase-runtime-security.mjs",
@@ -112390,7 +112390,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 200
+    "lineCount": 218
    },
    {
     "path": "src/test/tok-connect-discovery.test.ts",
@@ -135873,7 +135873,7 @@
    "id": "code-module:885b49131091",
    "type": "code-module",
    "title": "scripts/tok-connect-smoke.mjs",
-   "description": "Module de 105 lignes; exports: runTokConnectSmoke.",
+   "description": "Module de 108 lignes; exports: runTokConnectSmoke.",
    "path": "scripts/tok-connect-smoke.mjs",
    "line": 1,
    "surface": null,
@@ -135883,7 +135883,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "26b6a50ab756"
+   "detailRef": "35a6d4bfba70"
   },
   {
    "id": "code-module:331a523ce62c",
@@ -154718,7 +154718,7 @@
    "id": "code-module:1d42874808ef",
    "type": "code-module",
    "title": "src/test/tok-connect-customer-journey.test.ts",
-   "description": "Module de 200 lignes; exports: aucun export statique.",
+   "description": "Module de 218 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-customer-journey.test.ts",
    "line": 1,
    "surface": null,
@@ -154726,7 +154726,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "37efea49c5f5"
+   "detailRef": "93e59c5865bd"
   },
   {
    "id": "code-module:5ba8bcabdf99",
@@ -223719,18 +223719,18 @@
    "detailRef": "0b959490b4c5"
   },
   {
-   "id": "document-section:431318d4dc42",
+   "id": "document-section:1c39367d1232",
    "type": "document-section",
    "title": "Paiements restant à valider",
    "description": "Section de Recette TOK Connect dans ChatGPT.",
    "path": "docs/tok-connect/TESTING.md",
-   "line": 125,
+   "line": 129,
    "surface": null,
    "tags": [
     "Recette TOK Connect dans ChatGPT",
     "h2"
    ],
-   "detailRef": "d80d65bedbdf"
+   "detailRef": "c1bf1170887e"
   },
   {
    "id": "document-section:3108fe131b47",
@@ -239182,7 +239182,7 @@
     "Recette ChatGPT",
     "Recette TOK Connect dans ChatGPT"
    ],
-   "detailRef": "405f2d686843"
+   "detailRef": "50745fb6d689"
   },
   {
    "id": "document:9f0b359c1499",
@@ -359712,17 +359712,17 @@
    "detailRef": "4decf6922e9b"
   },
   {
-   "id": "path-literal:c1fb2cceebf7",
+   "id": "path-literal:49cc33d8240f",
    "type": "path-literal",
    "title": "/^\\d{4}-\\d{2}-\\d{2}$/",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/tok-connect-customer-journey.test.ts",
-   "line": 146,
+   "line": 164,
    "surface": null,
    "tags": [
     "src/test/tok-connect-customer-journey.test.ts"
    ],
-   "detailRef": "0ca16a3bd3e1"
+   "detailRef": "b99841a71e0b"
   },
   {
    "id": "path-literal:52d7c05491fb",
