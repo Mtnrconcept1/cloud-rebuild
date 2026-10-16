@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "89045b5a8b7102c387de814ca4e8e7751cd298aaed9dfee1b9c96eecc877b091",
+ "sourceDigest": "f159533aa77220ad5d07e868d5f59f76f20c4e8bab36e2a2144264ecf67fdd3f",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 206,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3579,
+  "exportedSymbols": 3580,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 545,
-  "modules": 1595,
+  "modules": 1597,
   "pages": 133,
   "pathLiterals": 757,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 109,
-  "records": 17125,
-  "repositoryFiles": 3225,
+  "records": 17130,
+  "repositoryFiles": 3227,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -3013,7 +3013,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 124,
+      "line": 125,
       "kind": "function"
      }
     ],
@@ -3766,7 +3766,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 146,
+      "line": 148,
       "kind": "function"
      }
     ],
@@ -3784,7 +3784,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 106,
+      "line": 107,
       "kind": "function"
      }
     ],
@@ -10313,7 +10313,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1234
+     "line": 1274
     },
     {
      "route": "/actualites/:id",
@@ -10321,7 +10321,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1863
+     "line": 1903
     },
     {
      "route": "/restaurant/:id",
@@ -10329,7 +10329,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1294
+     "line": 1334
     },
     {
      "route": "/restaurants/:citySlug",
@@ -10337,7 +10337,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1643
+     "line": 1683
     },
     {
      "route": "/restaurants/:citySlug/:cuisineSlug",
@@ -10345,7 +10345,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1631
+     "line": 1671
     },
     {
      "route": "/restaurants/:citySlug/:districtSlug",
@@ -10369,7 +10369,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1291
+     "line": 1331
     },
     {
      "route": "/restaurants/:slug",
@@ -10393,7 +10393,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1066
+     "line": 1106
     },
     {
      "route": "/abonnement",
@@ -10401,7 +10401,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1002
+     "line": 1042
     },
     {
      "route": "/actualites",
@@ -10417,7 +10417,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1082
+     "line": 1122
     },
     {
      "route": "/anti-gaspi",
@@ -10433,7 +10433,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1026
+     "line": 1066
     },
     {
      "route": "/cgu",
@@ -10441,7 +10441,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1171
+     "line": 1211
     },
     {
      "route": "/chefs-table",
@@ -10449,7 +10449,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 994
+     "line": 1034
     },
     {
      "route": "/conditions-restaurateurs",
@@ -10457,7 +10457,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1185
+     "line": 1225
     },
     {
      "route": "/contact",
@@ -10465,7 +10465,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1074
+     "line": 1114
     },
     {
      "route": "/cookies",
@@ -10473,7 +10473,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1178
+     "line": 1218
     },
     {
      "route": "/creneaux-garantis",
@@ -10481,7 +10481,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1010
+     "line": 1050
     },
     {
      "route": "/flex-prix-bas",
@@ -10489,7 +10489,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1058
+     "line": 1098
     },
     {
      "route": "/garantie-qualite",
@@ -10497,7 +10497,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1018
+     "line": 1058
     },
     {
      "route": "/match-groupes",
@@ -10505,7 +10505,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1050
+     "line": 1090
     },
     {
      "route": "/miamz-solidaires",
@@ -10521,7 +10521,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1034
+     "line": 1074
     },
     {
      "route": "/multi-stop",
@@ -10529,7 +10529,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1042
+     "line": 1082
     },
     {
      "route": "/packs-restaurateur",
@@ -10545,7 +10545,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1200
+     "line": 1240
     },
     {
      "route": "/recherche",
@@ -10561,7 +10561,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 868
+     "line": 898
     },
     {
      "route": "/restaurateurs/geneve",
@@ -10577,7 +10577,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 741
+     "line": 752
     },
     {
      "route": "/tok-connect",
@@ -10601,7 +10601,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 1192
+     "line": 1232
     },
     {
      "route": "/ventes-flash",
@@ -10617,7 +10617,7 @@
      "generatedAtBuild": true,
      "indexability": "data-dependent",
      "path": "scripts/prerender-seo.mjs",
-     "line": 986
+     "line": 1026
     }
    ],
    "generatedArtifacts": [
@@ -14161,27 +14161,27 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1233
+      "line": 1273
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1233
+      "line": 1273
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1239
+      "line": 1279
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1401
+      "line": 1441
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1402
+      "line": 1442
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 2204
+      "line": 2244
      },
      {
       "path": "scripts/prerender-stoppin-restaurants-bounded.mjs",
@@ -15228,7 +15228,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1066
+      "line": 1106
      },
      {
       "path": "src/App.tsx",
@@ -15289,11 +15289,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1002
+      "line": 1042
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1327
+      "line": 1367
      },
      {
       "path": "src/App.tsx",
@@ -15371,15 +15371,15 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1317
+      "line": 1357
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1891
+      "line": 1931
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1954
+      "line": 1994
      },
      {
       "path": "src/App.tsx",
@@ -15565,7 +15565,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1209
+      "line": 1249
      },
      {
       "path": "src/App.tsx",
@@ -17011,7 +17011,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1082
+      "line": 1122
      },
      {
       "path": "src/App.tsx",
@@ -17093,7 +17093,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1315
+      "line": 1355
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -17441,7 +17441,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1225
+      "line": 1265
      },
      {
       "path": "src/App.tsx",
@@ -18056,11 +18056,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1026
+      "line": 1066
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1326
+      "line": 1366
      },
      {
       "path": "src/App.tsx",
@@ -18127,7 +18127,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1171
+      "line": 1211
      },
      {
       "path": "src/App.tsx",
@@ -18267,11 +18267,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 994
+      "line": 1034
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1323
+      "line": 1363
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -18505,7 +18505,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1217
+      "line": 1257
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -18658,7 +18658,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1216
+      "line": 1256
      },
      {
       "path": "src/App.tsx",
@@ -18815,7 +18815,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1212
+      "line": 1252
      },
      {
       "path": "src/App.tsx",
@@ -19435,7 +19435,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1220
+      "line": 1260
      },
      {
       "path": "src/App.tsx",
@@ -19460,7 +19460,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1185
+      "line": 1225
      },
      {
       "path": "src/App.tsx",
@@ -19508,7 +19508,7 @@
      },
      {
       "path": "src/pages/RestaurateursGoogleBusiness.tsx",
-      "line": 284
+      "line": 307
      },
      {
       "path": "src/pages/dashboard/DashboardAccountBilling.tsx",
@@ -19541,19 +19541,19 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 798
+      "line": 812
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 916
+      "line": 948
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1074
+      "line": 1114
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1109
+      "line": 1149
      },
      {
       "path": "src/App.tsx",
@@ -19593,11 +19593,11 @@
      },
      {
       "path": "src/pages/AlternativeCommissionCouvert.tsx",
-      "line": 239
+      "line": 240
      },
      {
       "path": "src/pages/AlternativeCommissionCouvert.tsx",
-      "line": 433
+      "line": 431
      },
      {
       "path": "src/pages/ClientDashboardHome.tsx",
@@ -19630,7 +19630,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1178
+      "line": 1218
      },
      {
       "path": "src/App.tsx",
@@ -19711,7 +19711,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1211
+      "line": 1251
      },
      {
       "path": "src/App.tsx",
@@ -20062,11 +20062,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1010
+      "line": 1050
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1318
+      "line": 1358
      },
      {
       "path": "src/App.tsx",
@@ -20115,7 +20115,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1210
+      "line": 1250
      },
      {
       "path": "src/App.tsx",
@@ -22154,7 +22154,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1221
+      "line": 1261
      },
      {
       "path": "src/App.tsx",
@@ -22175,7 +22175,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1227
+      "line": 1267
      },
      {
       "path": "src/App.tsx",
@@ -22383,11 +22383,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1058
+      "line": 1098
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1319
+      "line": 1359
      },
      {
       "path": "src/App.tsx",
@@ -22448,15 +22448,15 @@
      },
      {
       "path": "src/pages/AlternativeCommissionCouvert.tsx",
-      "line": 206
+      "line": 207
      },
      {
       "path": "src/pages/RestaurateursGeneve.tsx",
-      "line": 255
+      "line": 258
      },
      {
       "path": "src/pages/RestaurateursGoogleBusiness.tsx",
-      "line": 174
+      "line": 177
      }
     ]
    },
@@ -22626,11 +22626,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1018
+      "line": 1058
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1325
+      "line": 1365
      },
      {
       "path": "src/App.tsx",
@@ -26096,11 +26096,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1050
+      "line": 1090
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1320
+      "line": 1360
      },
      {
       "path": "src/App.tsx",
@@ -26162,7 +26162,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1214
+      "line": 1254
      },
      {
       "path": "src/App.tsx",
@@ -26212,7 +26212,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1222
+      "line": 1262
      },
      {
       "path": "src/App.tsx",
@@ -26262,11 +26262,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 677
+      "line": 680
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1112
+      "line": 1152
      },
      {
       "path": "src/App.tsx",
@@ -26315,7 +26315,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1219
+      "line": 1259
      },
      {
       "path": "src/App.tsx",
@@ -26453,11 +26453,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1034
+      "line": 1074
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1322
+      "line": 1362
      },
      {
       "path": "src/App.tsx",
@@ -26518,11 +26518,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1042
+      "line": 1082
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1321
+      "line": 1361
      },
      {
       "path": "src/App.tsx",
@@ -26580,7 +26580,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1215
+      "line": 1255
      },
      {
       "path": "src/App.tsx",
@@ -26718,7 +26718,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1226
+      "line": 1266
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -26850,11 +26850,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 673
+      "line": 676
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1111
+      "line": 1151
      },
      {
       "path": "src/App.tsx",
@@ -26889,8 +26889,16 @@
       "line": 1243
      },
      {
+      "path": "src/pages/AlternativeCommissionCouvert.tsx",
+      "line": 273
+     },
+     {
       "path": "src/pages/RestaurateursGeneve.tsx",
-      "line": 486
+      "line": 482
+     },
+     {
+      "path": "src/pages/RestaurateursGeneve.tsx",
+      "line": 517
      },
      {
       "path": "src/test/public-feature-legal-matrix.test.ts",
@@ -26911,7 +26919,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1224
+      "line": 1264
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -27126,7 +27134,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1223
+      "line": 1263
      },
      {
       "path": "src/App.tsx",
@@ -27179,7 +27187,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1200
+      "line": 1240
      },
      {
       "path": "src/App.tsx",
@@ -27303,7 +27311,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1213
+      "line": 1253
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -27442,7 +27450,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1228
+      "line": 1268
      },
      {
       "path": "src/hooks/useSeoMeta.ts",
@@ -27543,15 +27551,15 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1110
+      "line": 1150
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1658
+      "line": 1698
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1892
+      "line": 1932
      },
      {
       "path": "scripts/prerender-stoppin-restaurants.mjs",
@@ -27875,7 +27883,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1218
+      "line": 1258
      },
      {
       "path": "src/App.tsx",
@@ -28213,7 +28221,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1955
+      "line": 1995
      },
      {
       "path": "src/components/marketing/views/MarketingOutreachView.tsx",
@@ -29073,15 +29081,15 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 675
+      "line": 678
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 797
+      "line": 811
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 868
+      "line": 898
      },
      {
       "path": "src/App.tsx",
@@ -29109,19 +29117,19 @@
      },
      {
       "path": "src/pages/AlternativeCommissionCouvert.tsx",
-      "line": 28
+      "line": 29
      },
      {
       "path": "src/pages/RestaurateursGeneve.tsx",
-      "line": 330
+      "line": 333
      },
      {
       "path": "src/pages/RestaurateursGeneve.tsx",
-      "line": 378
+      "line": 411
      },
      {
       "path": "src/pages/RestaurateursGoogleBusiness.tsx",
-      "line": 440
+      "line": 457
      },
      {
       "path": "src/test/b2b-seo-cluster.test.ts",
@@ -29158,11 +29166,11 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 796
+      "line": 810
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 914
+      "line": 946
      },
      {
       "path": "src/App.tsx",
@@ -29206,15 +29214,15 @@
      },
      {
       "path": "src/pages/AlternativeCommissionCouvert.tsx",
-      "line": 250
+      "line": 251
      },
      {
       "path": "src/pages/RestaurateursGeneve.tsx",
-      "line": 25
+      "line": 27
      },
      {
       "path": "src/pages/RestaurateursGoogleBusiness.tsx",
-      "line": 240
+      "line": 244
      },
      {
       "path": "src/test/b2b-seo-cluster.test.ts",
@@ -29255,15 +29263,15 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 674
+      "line": 677
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 741
+      "line": 752
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 915
+      "line": 947
      },
      {
       "path": "src/App.tsx",
@@ -29291,7 +29299,7 @@
      },
      {
       "path": "src/pages/AlternativeCommissionCouvert.tsx",
-      "line": 444
+      "line": 442
      },
      {
       "path": "src/pages/PacksRestaurateur.tsx",
@@ -29299,11 +29307,11 @@
      },
      {
       "path": "src/pages/RestaurateursGeneve.tsx",
-      "line": 319
+      "line": 322
      },
      {
       "path": "src/pages/RestaurateursGoogleBusiness.tsx",
-      "line": 24
+      "line": 25
      },
      {
       "path": "src/test/b2b-seo-cluster.test.ts",
@@ -29708,7 +29716,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1330
+      "line": 1370
      },
      {
       "path": "src/App.tsx",
@@ -29774,7 +29782,7 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1229
+      "line": 1269
      },
      {
       "path": "src/App.tsx",
@@ -29886,7 +29894,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1328
+      "line": 1368
      },
      {
       "path": "src/App.tsx",
@@ -29996,11 +30004,11 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1192
+      "line": 1232
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1329
+      "line": 1369
      },
      {
       "path": "src/App.tsx",
@@ -30645,7 +30653,7 @@
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1316
+      "line": 1356
      },
      {
       "path": "scripts/take-screenshots.mjs",
@@ -30756,15 +30764,15 @@
     "sources": [
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 676
+      "line": 679
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 986
+      "line": 1026
      },
      {
       "path": "scripts/prerender-seo.mjs",
-      "line": 1324
+      "line": 1364
      },
      {
       "path": "src/App.tsx",
@@ -30808,7 +30816,7 @@
      },
      {
       "path": "src/pages/RestaurateursGeneve.tsx",
-      "line": 489
+      "line": 520
      },
      {
       "path": "src/pages/ZeroAttente.tsx",
@@ -32789,6 +32797,7 @@
      "src/test/reservation-card-guarantee.test.ts",
      "src/test/responsive-seo-regressions.test.ts",
      "src/test/restaurateur-commercial-pages.test.ts",
+     "src/test/restaurateurs-simulators.test.tsx",
      "src/test/route-serving-regression.test.ts",
      "src/test/route-wiring.test.ts",
      "src/test/seo-directory-quality-hardening.test.ts",
@@ -86572,7 +86581,7 @@
      "twint",
      "vercel"
     ],
-    "lineCount": 2259
+    "lineCount": 2299
    },
    {
     "path": "scripts/prerender-stoppin-restaurants-bounded.mjs",
@@ -90602,6 +90611,19 @@
      "supabase"
     ],
     "lineCount": 97
+   },
+   {
+    "path": "src/components/restaurateurs/B2BTable.tsx",
+    "exports": [
+     {
+      "name": "B2BTable",
+      "line": 4,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 38
    },
    {
     "path": "src/components/security/TurnstileCaptcha.tsx",
@@ -104834,7 +104856,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 124,
+      "line": 125,
       "kind": "function"
      }
     ],
@@ -104842,7 +104864,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 515
+    "lineCount": 507
    },
    {
     "path": "src/pages/AntiGaspi.tsx",
@@ -105456,7 +105478,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 146,
+      "line": 148,
       "kind": "function"
      }
     ],
@@ -105464,14 +105486,14 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 629
+    "lineCount": 659
    },
    {
     "path": "src/pages/RestaurateursGoogleBusiness.tsx",
     "exports": [
      {
       "name": "default",
-      "line": 106,
+      "line": 107,
       "kind": "function"
      }
     ],
@@ -105479,7 +105501,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 497
+    "lineCount": 517
    },
    {
     "path": "src/pages/SuiviCommande.tsx",
@@ -111356,7 +111378,7 @@
     "integrations": [
      "google"
     ],
-    "lineCount": 42
+    "lineCount": 43
    },
    {
     "path": "src/test/restaurateur-onboarding-reliability.test.ts",
@@ -111367,6 +111389,15 @@
      "supabase"
     ],
     "lineCount": 78
+   },
+   {
+    "path": "src/test/restaurateurs-simulators.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "google"
+    ],
+    "lineCount": 69
    },
    {
     "path": "src/test/review-submission-governance.test.ts",
@@ -124412,6 +124443,11 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/components/restaurateurs/B2BTable.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/components/security/TurnstileCaptcha.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
@@ -129210,6 +129246,11 @@
     "path": "src/test/restaurateur-onboarding-reliability.test.ts",
     "category": "test",
     "extension": ".ts"
+   },
+   {
+    "path": "src/test/restaurateurs-simulators.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/review-submission-governance.test.ts",
@@ -135255,7 +135296,7 @@
    "id": "code-module:c3dee908e582",
    "type": "code-module",
    "title": "scripts/prerender-seo.mjs",
-   "description": "Module de 2259 lignes; exports: aucun export statique.",
+   "description": "Module de 2299 lignes; exports: aucun export statique.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1,
    "surface": null,
@@ -135280,7 +135321,7 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "acc1400a19d7"
+   "detailRef": "8d164de9d17e"
   },
   {
    "id": "code-module:6c15664b5a20",
@@ -138597,6 +138638,19 @@
     "supabase"
    ],
    "detailRef": "14eb2b9764ba"
+  },
+  {
+   "id": "code-module:34d2ca7a3e27",
+   "type": "code-module",
+   "title": "src/components/restaurateurs/B2BTable.tsx",
+   "description": "Module de 38 lignes; exports: B2BTable.",
+   "path": "src/components/restaurateurs/B2BTable.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "B2BTable"
+   ],
+   "detailRef": "151e9cc6bc41"
   },
   {
    "id": "code-module:b03955863ce8",
@@ -145112,7 +145166,7 @@
    "id": "code-module:00419f7d2122",
    "type": "code-module",
    "title": "src/pages/AlternativeCommissionCouvert.tsx",
-   "description": "Module de 515 lignes; exports: default.",
+   "description": "Module de 507 lignes; exports: default.",
    "path": "src/pages/AlternativeCommissionCouvert.tsx",
    "line": 1,
    "surface": null,
@@ -145120,7 +145174,7 @@
     "default",
     "google"
    ],
-   "detailRef": "498b4cb7b0be"
+   "detailRef": "e93f52b68f56"
   },
   {
    "id": "code-module:186364e50d24",
@@ -145698,7 +145752,7 @@
    "id": "code-module:36f564316b7b",
    "type": "code-module",
    "title": "src/pages/RestaurateursGeneve.tsx",
-   "description": "Module de 629 lignes; exports: default.",
+   "description": "Module de 659 lignes; exports: default.",
    "path": "src/pages/RestaurateursGeneve.tsx",
    "line": 1,
    "surface": null,
@@ -145706,13 +145760,13 @@
     "default",
     "google"
    ],
-   "detailRef": "412f8fabb030"
+   "detailRef": "929ef1df6152"
   },
   {
    "id": "code-module:1678c3cd0240",
    "type": "code-module",
    "title": "src/pages/RestaurateursGoogleBusiness.tsx",
-   "description": "Module de 497 lignes; exports: default.",
+   "description": "Module de 517 lignes; exports: default.",
    "path": "src/pages/RestaurateursGoogleBusiness.tsx",
    "line": 1,
    "surface": null,
@@ -145720,7 +145774,7 @@
     "default",
     "google"
    ],
-   "detailRef": "068eaf7697a5"
+   "detailRef": "9f2a9ff171a9"
   },
   {
    "id": "code-module:81e952053926",
@@ -153080,14 +153134,14 @@
    "id": "code-module:3079fae28adb",
    "type": "code-module",
    "title": "src/test/restaurateur-commercial-pages.test.ts",
-   "description": "Module de 42 lignes; exports: aucun export statique.",
+   "description": "Module de 43 lignes; exports: aucun export statique.",
    "path": "src/test/restaurateur-commercial-pages.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "google"
    ],
-   "detailRef": "c8bb20136886"
+   "detailRef": "b007c3ebdd4b"
   },
   {
    "id": "code-module:98d33c28c22f",
@@ -153102,6 +153156,19 @@
     "supabase"
    ],
    "detailRef": "3702d5d2f566"
+  },
+  {
+   "id": "code-module:5ebc88874baf",
+   "type": "code-module",
+   "title": "src/test/restaurateurs-simulators.test.tsx",
+   "description": "Module de 69 lignes; exports: aucun export statique.",
+   "path": "src/test/restaurateurs-simulators.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "google"
+   ],
+   "detailRef": "b0f8b6af6304"
   },
   {
    "id": "code-module:0870d72e88de",
@@ -249049,6 +249116,19 @@
    "detailRef": "c5960b411bb9"
   },
   {
+   "id": "exported-symbol:943bd6da1a53",
+   "type": "exported-symbol",
+   "title": "B2BTable",
+   "description": "Export function de src/components/restaurateurs/B2BTable.tsx.",
+   "path": "src/components/restaurateurs/B2BTable.tsx",
+   "line": 4,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "35acc268a2b9"
+  },
+  {
    "id": "exported-symbol:cece04218d15",
    "type": "exported-symbol",
    "title": "BUSINESS_TIME_ZONE",
@@ -276600,18 +276680,18 @@
    "detailRef": "2c2c951a6a36"
   },
   {
-   "id": "exported-symbol:3fc69c7f23a0",
+   "id": "exported-symbol:b56668a46eb7",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/AlternativeCommissionCouvert.tsx.",
    "path": "src/pages/AlternativeCommissionCouvert.tsx",
-   "line": 124,
+   "line": 125,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "d1a421241480"
+   "detailRef": "1d6503632946"
   },
   {
    "id": "exported-symbol:ca23634beeba",
@@ -277185,32 +277265,32 @@
    "detailRef": "b316f190a409"
   },
   {
-   "id": "exported-symbol:6bfc1fe569b0",
+   "id": "exported-symbol:4d1e3ab65637",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/RestaurateursGeneve.tsx.",
    "path": "src/pages/RestaurateursGeneve.tsx",
-   "line": 146,
+   "line": 148,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "ba5d5870d49f"
+   "detailRef": "2df8dc74bf43"
   },
   {
-   "id": "exported-symbol:fac2f118be27",
+   "id": "exported-symbol:02e34cfd2bdd",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/RestaurateursGoogleBusiness.tsx.",
    "path": "src/pages/RestaurateursGoogleBusiness.tsx",
-   "line": 106,
+   "line": 107,
    "surface": null,
    "tags": [
     "function",
     "google"
    ],
-   "detailRef": "93416fd0371c"
+   "detailRef": "ba5b50332286"
   },
   {
    "id": "exported-symbol:e183d65ed02a",
@@ -316719,6 +316799,20 @@
    "detailRef": "17928e2b42aa"
   },
   {
+   "id": "file:989bf644acba",
+   "type": "file",
+   "title": "src/components/restaurateurs/B2BTable.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/restaurateurs/B2BTable.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "83d847e9c589"
+  },
+  {
    "id": "file:8a0ec8135a86",
    "type": "file",
    "title": "src/components/security/TurnstileCaptcha.tsx",
@@ -330157,6 +330251,20 @@
     "test"
    ],
    "detailRef": "9cc8e28b7e10"
+  },
+  {
+   "id": "file:5ff109d52f11",
+   "type": "file",
+   "title": "src/test/restaurateurs-simulators.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/restaurateurs-simulators.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "f8a976e7c114"
   },
   {
    "id": "file:6f3a64e01c81",
@@ -346140,7 +346248,7 @@
    "id": "integration:5c0229914ab6",
    "type": "integration",
    "title": "Google",
-   "description": "Intégration externe détectée dans 118 module(s).",
+   "description": "Intégration externe détectée dans 119 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -346235,6 +346343,7 @@
     "src/test/reservation-card-guarantee.test.ts",
     "src/test/responsive-seo-regressions.test.ts",
     "src/test/restaurateur-commercial-pages.test.ts",
+    "src/test/restaurateurs-simulators.test.tsx",
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts",
     "src/test/seo-directory-quality-hardening.test.ts",
@@ -346265,7 +346374,7 @@
     "supabase/functions/verify-directory-commercial-names/index.ts",
     "supabase/functions/verify-directory-image-truth/index.ts"
    ],
-   "detailRef": "6136f4fdc0d6"
+   "detailRef": "db6549746a03"
   },
   {
    "id": "integration:672e2c9b82f3",
@@ -357236,7 +357345,7 @@
     "/restaurateurs/alternative-commission-couvert",
     "google"
    ],
-   "detailRef": "9dd8a3749dd8"
+   "detailRef": "b1f27c53559d"
   },
   {
    "id": "page:d27dc0800ce4",
@@ -358438,7 +358547,7 @@
     "/restaurateurs/geneve",
     "google"
    ],
-   "detailRef": "f1814f56e8e0"
+   "detailRef": "f504397b160c"
   },
   {
    "id": "page:bda76a40d131",
@@ -358452,7 +358561,7 @@
     "/restaurateurs/google-business",
     "google"
    ],
-   "detailRef": "41af3e2dc352"
+   "detailRef": "f5df98e666b3"
   },
   {
    "id": "page:e10716269539",
@@ -358862,7 +358971,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "561bd2a3cb3d"
+   "detailRef": "9a8e5d7da33c"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -359080,12 +359189,12 @@
    "detailRef": "62fc6e401bf5"
   },
   {
-   "id": "path-literal:8c3db5e85ec5",
+   "id": "path-literal:0cab46962cce",
    "type": "path-literal",
    "title": "/a-propos",
    "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1066,
+   "line": 1106,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -359102,7 +359211,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "1e2d5f2d021c"
+   "detailRef": "873d204aa5f4"
   },
   {
    "id": "path-literal:b93cc2bbc5bc",
@@ -359118,12 +359227,12 @@
    "detailRef": "9dcaabf16caa"
   },
   {
-   "id": "path-literal:fb6caf1ad553",
+   "id": "path-literal:c0beee3477f5",
    "type": "path-literal",
    "title": "/abonnement",
    "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1002,
+   "line": 1042,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -359139,7 +359248,7 @@
     "src/test/meal-subscription-cart.test.tsx",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "57ce1c7bf057"
+   "detailRef": "43b447665a0e"
   },
   {
    "id": "path-literal:a5b6aab3e61b",
@@ -359239,7 +359348,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "05de6b68fb91"
+   "detailRef": "c8c3b0113fde"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -360027,7 +360136,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "4e909f1612e8"
+   "detailRef": "fda61f896b84"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -360043,12 +360152,12 @@
    "detailRef": "1fe113aaf5b0"
   },
   {
-   "id": "path-literal:72326e3872bb",
+   "id": "path-literal:a06df3b30575",
    "type": "path-literal",
    "title": "/aide",
    "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1082,
+   "line": 1122,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -360063,7 +360172,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "cfce119d0fec"
+   "detailRef": "1b368e4edcb3"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -360107,7 +360216,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "003b2ca6df93"
+   "detailRef": "f6af0b4a9791"
   },
   {
    "id": "path-literal:b8366dc7f0ad",
@@ -360517,12 +360626,12 @@
    "detailRef": "33a99e29ad6a"
   },
   {
-   "id": "path-literal:f57b02c91322",
+   "id": "path-literal:0ac16c9490c6",
    "type": "path-literal",
    "title": "/auth",
    "description": "Chemin référencé dans 54 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1225,
+   "line": 1265,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -360566,7 +360675,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "bcf03befa220"
+   "detailRef": "81a308467814"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -360674,12 +360783,12 @@
    "detailRef": "458380165b04"
   },
   {
-   "id": "path-literal:9e7d998e2afc",
+   "id": "path-literal:097f08c05789",
    "type": "path-literal",
    "title": "/budget-auto",
    "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1026,
+   "line": 1066,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -360693,7 +360802,7 @@
     "src/lib/featureCatalog.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts"
    ],
-   "detailRef": "4f9929a0d266"
+   "detailRef": "9ca70bda4633"
   },
   {
    "id": "path-literal:32d025d623e0",
@@ -360723,12 +360832,12 @@
    "detailRef": "f1d4c749f877"
   },
   {
-   "id": "path-literal:d1896f287c8a",
+   "id": "path-literal:92b51d8eedfe",
    "type": "path-literal",
    "title": "/cgu",
    "description": "Chemin référencé dans 22 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1171,
+   "line": 1211,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -360751,7 +360860,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "9b5e36c82bf9"
+   "detailRef": "2a8f4151a70b"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -360822,12 +360931,12 @@
    "detailRef": "1f9909d9d4e3"
   },
   {
-   "id": "path-literal:d7b2a9564c6c",
+   "id": "path-literal:e4462841fa05",
    "type": "path-literal",
    "title": "/chefs-table",
    "description": "Chemin référencé dans 25 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 994,
+   "line": 1034,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -360854,7 +360963,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "ef3f380c1a42"
+   "detailRef": "ab6029b20af0"
   },
   {
    "id": "path-literal:189dd2480ec5",
@@ -361026,26 +361135,26 @@
    "detailRef": "3f175106e2ff"
   },
   {
-   "id": "path-literal:2d7e72241d01",
+   "id": "path-literal:8bc267fd305a",
    "type": "path-literal",
    "title": "/commande",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1217,
+   "line": 1257,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
     "src/hooks/useSeoMeta.ts"
    ],
-   "detailRef": "83dc1009b6c8"
+   "detailRef": "2e499642e209"
   },
   {
-   "id": "path-literal:638d24c7c03b",
+   "id": "path-literal:7f49194729c5",
    "type": "path-literal",
    "title": "/commandes",
    "description": "Chemin référencé dans 37 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1216,
+   "line": 1256,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -361072,7 +361181,7 @@
     "src/test/tok-connect-oauth-routing.test.ts",
     "supabase/functions/courier-portal/index.ts"
    ],
-   "detailRef": "f046faeba81f"
+   "detailRef": "145e371a9e92"
   },
   {
    "id": "path-literal:7997d6c00f84",
@@ -361371,7 +361480,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "1fbd621f8a3c"
+   "detailRef": "02f01f54f010"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -361400,12 +361509,12 @@
    "detailRef": "266cc42a4cac"
   },
   {
-   "id": "path-literal:cf973755cfab",
+   "id": "path-literal:40f3732cd068",
    "type": "path-literal",
    "title": "/compte",
    "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1220,
+   "line": 1260,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -361414,15 +361523,15 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "848df689ba58"
+   "detailRef": "3c7503230ca6"
   },
   {
-   "id": "path-literal:ee9c34d7d537",
+   "id": "path-literal:76d436d36ce2",
    "type": "path-literal",
    "title": "/conditions-restaurateurs",
    "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1185,
+   "line": 1225,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -361441,15 +361550,15 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "0e8733e10c23"
+   "detailRef": "eaed666cd706"
   },
   {
-   "id": "path-literal:2a26b0d45a67",
+   "id": "path-literal:bfce4508006f",
    "type": "path-literal",
    "title": "/contact",
    "description": "Chemin référencé dans 21 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 798,
+   "line": 812,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -361470,15 +361579,15 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "d907a8459b47"
+   "detailRef": "e0374c226adb"
   },
   {
-   "id": "path-literal:5c1c55111e98",
+   "id": "path-literal:c15f4bc06f54",
    "type": "path-literal",
    "title": "/cookies",
    "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1178,
+   "line": 1218,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -361497,7 +361606,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "407cf7d4898a"
+   "detailRef": "a7c51c24ab71"
   },
   {
    "id": "path-literal:61d8f5f4f3f0",
@@ -361638,15 +361747,15 @@
     "src/test/role-access.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "32f9481387f9"
+   "detailRef": "f612b4173c9c"
   },
   {
-   "id": "path-literal:53f7ddd4b372",
+   "id": "path-literal:7176cfe87707",
    "type": "path-literal",
    "title": "/creneaux-garantis",
    "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1010,
+   "line": 1050,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -361660,7 +361769,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "8b02cfc21c0b"
+   "detailRef": "2ed9aa35345c"
   },
   {
    "id": "path-literal:ba7109f57025",
@@ -362514,7 +362623,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "48682de9cc76"
+   "detailRef": "5ff3ab2193cd"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -362683,12 +362792,12 @@
    "detailRef": "3bbef4dd5bd3"
   },
   {
-   "id": "path-literal:f76ae63d200b",
+   "id": "path-literal:c85e3c66490d",
    "type": "path-literal",
    "title": "/espace-client",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1221,
+   "line": 1261,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -362696,15 +362805,15 @@
     "src/hooks/useSeoMeta.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "5741ce79cfbf"
+   "detailRef": "2c9a2ad69687"
   },
   {
-   "id": "path-literal:7a50cf3ee0ea",
+   "id": "path-literal:7d01b8ba2286",
    "type": "path-literal",
    "title": "/espaces",
    "description": "Chemin référencé dans 29 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1227,
+   "line": 1267,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -362724,7 +362833,7 @@
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "b57b40e184a5"
+   "detailRef": "c63ff74e570a"
   },
   {
    "id": "path-literal:61b7c747d86f",
@@ -362820,12 +362929,12 @@
    "detailRef": "5a8da1a1e95d"
   },
   {
-   "id": "path-literal:9d9f42b8aa0f",
+   "id": "path-literal:493b9977a8cd",
    "type": "path-literal",
    "title": "/flex-prix-bas",
    "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1058,
+   "line": 1098,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -362839,7 +362948,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "56191570273e"
+   "detailRef": "9fa11fe0b072"
   },
   {
    "id": "path-literal:b657e0a461f5",
@@ -362858,7 +362967,7 @@
     "src/pages/RestaurateursGeneve.tsx",
     "src/pages/RestaurateursGoogleBusiness.tsx"
    ],
-   "detailRef": "0ded6f57197b"
+   "detailRef": "6fb2add2b420"
   },
   {
    "id": "path-literal:bf08ff1dbba9",
@@ -363034,12 +363143,12 @@
    "detailRef": "7ce6bdc89854"
   },
   {
-   "id": "path-literal:a11892e79db7",
+   "id": "path-literal:b521466dc48b",
    "type": "path-literal",
    "title": "/garantie-qualite",
    "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1018,
+   "line": 1058,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -363053,7 +363162,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "7af00470ce96"
+   "detailRef": "1fe9a589fa3f"
   },
   {
    "id": "path-literal:404146eb3855",
@@ -366689,12 +366798,12 @@
    "detailRef": "d68da20acd43"
   },
   {
-   "id": "path-literal:0260b3e54fb9",
+   "id": "path-literal:18218113ce7c",
    "type": "path-literal",
    "title": "/match-groupes",
    "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1050,
+   "line": 1090,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -366710,7 +366819,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "99c60a652446"
+   "detailRef": "40ba4aeaff27"
   },
   {
    "id": "path-literal:12650914bbf4",
@@ -366726,12 +366835,12 @@
    "detailRef": "783c54f9181a"
   },
   {
-   "id": "path-literal:ec7aec2e0d53",
+   "id": "path-literal:b120280ae594",
    "type": "path-literal",
    "title": "/memoire-tok",
    "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1214,
+   "line": 1254,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -366742,7 +366851,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/tok-intelligence-suite.test.ts"
    ],
-   "detailRef": "04cba2a4e035"
+   "detailRef": "428728043513"
   },
   {
    "id": "path-literal:b3fdc1d0bbb5",
@@ -366760,12 +366869,12 @@
    "detailRef": "2bfba95a083d"
   },
   {
-   "id": "path-literal:70051accee4e",
+   "id": "path-literal:381a985641ab",
    "type": "path-literal",
    "title": "/mes-avis",
    "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1222,
+   "line": 1262,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -366777,7 +366886,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "7e98c8028a97"
+   "detailRef": "07d4b4e59483"
   },
   {
    "id": "path-literal:4465530a888e",
@@ -366800,7 +366909,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "1e58a6aa29f7"
+   "detailRef": "24228d6d602f"
   },
   {
    "id": "path-literal:0bc97f93cc32",
@@ -366816,12 +366925,12 @@
    "detailRef": "3981fb733c44"
   },
   {
-   "id": "path-literal:f84f8cfa54be",
+   "id": "path-literal:24ec15234ec2",
    "type": "path-literal",
    "title": "/mon-espace",
    "description": "Chemin référencé dans 31 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1219,
+   "line": 1259,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -366842,7 +366951,7 @@
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "17313f6ee0a1"
+   "detailRef": "37c3ce00bf8f"
   },
   {
    "id": "path-literal:920a4e2a4f51",
@@ -366858,12 +366967,12 @@
    "detailRef": "8c90cf832bf3"
   },
   {
-   "id": "path-literal:6c3ccf718b08",
+   "id": "path-literal:0e525c9858fd",
    "type": "path-literal",
    "title": "/multi-restaurant",
    "description": "Chemin référencé dans 15 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1034,
+   "line": 1074,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -366881,15 +366990,15 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "663923e1c6ba"
+   "detailRef": "fa016f6d26f4"
   },
   {
-   "id": "path-literal:f2c4f5685f12",
+   "id": "path-literal:74c855e49f79",
    "type": "path-literal",
    "title": "/multi-stop",
    "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1042,
+   "line": 1082,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -366904,7 +367013,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "b896eec85296"
+   "detailRef": "7164008bb2a2"
   },
   {
    "id": "path-literal:c940e29d8563",
@@ -366920,12 +367029,12 @@
    "detailRef": "776d2e7e0e1e"
   },
   {
-   "id": "path-literal:76ee62ad8c06",
+   "id": "path-literal:f73f82cab029",
    "type": "path-literal",
    "title": "/notifications",
    "description": "Chemin référencé dans 30 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1215,
+   "line": 1255,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -366949,7 +367058,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "cbdb61d5c800"
+   "detailRef": "e4e2afc0c95f"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -367009,18 +367118,18 @@
    "detailRef": "12e71ad622fa"
   },
   {
-   "id": "path-literal:09d6810c2c29",
+   "id": "path-literal:787d98d381b4",
    "type": "path-literal",
    "title": "/oauth",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1226,
+   "line": 1266,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
     "src/hooks/useSeoMeta.ts"
    ],
-   "detailRef": "60f8876af22a"
+   "detailRef": "814c52429f95"
   },
   {
    "id": "path-literal:ca0e954d32f0",
@@ -367081,7 +367190,7 @@
    "id": "path-literal:198b768de83f",
    "type": "path-literal",
    "title": "/packs-restaurateur",
-   "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 16 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 595,
    "surface": null,
@@ -367095,11 +367204,12 @@
     "src/lib/publicFeatureMatrix.ts",
     "src/pages/APropos.tsx",
     "src/pages/Aide.tsx",
+    "src/pages/AlternativeCommissionCouvert.tsx",
     "src/pages/RestaurateursGeneve.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "cedf0f1747df"
+   "detailRef": "a5868738b769"
   },
   {
    "id": "path-literal:f15ac1b71119",
@@ -367146,7 +367256,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "b81b85df1b25"
+   "detailRef": "2bf7441d7ad0"
   },
   {
    "id": "path-literal:b9bd524c18de",
@@ -367179,12 +367289,12 @@
    "detailRef": "5a33b21e384a"
   },
   {
-   "id": "path-literal:2798a1bddf86",
+   "id": "path-literal:189b38979734",
    "type": "path-literal",
    "title": "/points-cadeau",
    "description": "Chemin référencé dans 12 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1223,
+   "line": 1263,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -367200,15 +367310,15 @@
     "src/test/feature-flags.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "fae991708ed8"
+   "detailRef": "3984b0e8f882"
   },
   {
-   "id": "path-literal:23d3361eb9c0",
+   "id": "path-literal:7904f09c0850",
    "type": "path-literal",
    "title": "/politique-confidentialite",
    "description": "Chemin référencé dans 21 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1200,
+   "line": 1240,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -367231,7 +367341,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "ba7c7909cda0"
+   "detailRef": "0e4574e48c73"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -367274,12 +367384,12 @@
    "detailRef": "7832484941d3"
   },
   {
-   "id": "path-literal:a199e5e323eb",
+   "id": "path-literal:8a7c593bb40a",
    "type": "path-literal",
    "title": "/profil",
    "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1213,
+   "line": 1253,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -367296,7 +367406,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "6c7f275585a0"
+   "detailRef": "7d1d96307b8c"
   },
   {
    "id": "path-literal:2bbc09f21875",
@@ -367425,18 +367535,18 @@
    "detailRef": "e2f2363db5aa"
   },
   {
-   "id": "path-literal:f811d1009c70",
+   "id": "path-literal:33c83cd1b4e5",
    "type": "path-literal",
    "title": "/r",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1228,
+   "line": 1268,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
     "src/hooks/useSeoMeta.ts"
    ],
-   "detailRef": "529ec0f93e0b"
+   "detailRef": "c74e9dad5fce"
   },
   {
    "id": "path-literal:a1f7fcf5ef94",
@@ -367507,7 +367617,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "91600418ead2"
+   "detailRef": "8d5012927b81"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -367601,12 +367711,12 @@
    "detailRef": "5b42127db828"
   },
   {
-   "id": "path-literal:21dc55e01368",
+   "id": "path-literal:2a393fb7e968",
    "type": "path-literal",
    "title": "/reservations",
    "description": "Chemin référencé dans 25 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1218,
+   "line": 1258,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -367630,7 +367740,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "b2169e206f11"
+   "detailRef": "8ea2fdf16a84"
   },
   {
    "id": "path-literal:0af02260597a",
@@ -368745,19 +368855,19 @@
    "detailRef": "e58a4d69c856"
   },
   {
-   "id": "path-literal:0d50fcfb5f85",
+   "id": "path-literal:e81f00b7bbfc",
    "type": "path-literal",
    "title": "/restaurants",
    "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1955,
+   "line": 1995,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
     "src/components/marketing/views/MarketingOutreachView.tsx",
     "src/marketing/marketingClient.ts"
    ],
-   "detailRef": "4e6b41741673"
+   "detailRef": "d185b8a5ff4c"
   },
   {
    "id": "path-literal:38729e52638a",
@@ -368788,12 +368898,12 @@
    "detailRef": "4b9979eb52c8"
   },
   {
-   "id": "path-literal:28ec8b0caf24",
+   "id": "path-literal:1dff6b8d8bbc",
    "type": "path-literal",
    "title": "/restaurateurs/alternative-commission-couvert",
    "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 675,
+   "line": 678,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -368812,7 +368922,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "966b9bc470e7"
+   "detailRef": "97115f932418"
   },
   {
    "id": "path-literal:784b13bf4e15",
@@ -368842,15 +368952,15 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "2cdc5f3a9310"
+   "detailRef": "975165ac459a"
   },
   {
-   "id": "path-literal:ddcd2bd824da",
+   "id": "path-literal:c00d444c62cc",
    "type": "path-literal",
    "title": "/restaurateurs/google-business",
    "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 674,
+   "line": 677,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -368870,7 +368980,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "bd9f0107d203"
+   "detailRef": "ab04a2c0f249"
   },
   {
    "id": "path-literal:e0d8149df64e",
@@ -369273,12 +369383,12 @@
    "detailRef": "7d890fa5701e"
   },
   {
-   "id": "path-literal:cf5146ff218d",
+   "id": "path-literal:c2b605871cfb",
    "type": "path-literal",
    "title": "/tok-connect/developer",
    "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1229,
+   "line": 1269,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -369292,7 +369402,7 @@
     "src/test/tok-connect.test.ts",
     "src/test/vercel-rewrites.test.ts"
    ],
-   "detailRef": "1c55abdd9bbb"
+   "detailRef": "f303d3cb3f16"
   },
   {
    "id": "path-literal:73b51d75e510",
@@ -369343,7 +369453,7 @@
     "src/pages/TokConnect.tsx",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "937cd67ff9a5"
+   "detailRef": "e669c799e5f9"
   },
   {
    "id": "path-literal:9b50a6f5fb1d",
@@ -369376,7 +369486,7 @@
     "src/test/navbar-action-stability.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "966adfb18f9a"
+   "detailRef": "eb1d59ccfe89"
   },
   {
    "id": "path-literal:d01a3ea49721",
@@ -369392,12 +369502,12 @@
    "detailRef": "10227fc6d719"
   },
   {
-   "id": "path-literal:3b5b09acab41",
+   "id": "path-literal:50422deac263",
    "type": "path-literal",
    "title": "/tok-pulse",
    "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1192,
+   "line": 1232,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -369409,7 +369519,7 @@
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/route-serving-regression.test.ts"
    ],
-   "detailRef": "c180920e2e04"
+   "detailRef": "eb5776ca7034"
   },
   {
    "id": "path-literal:5480e7250f74",
@@ -370056,7 +370166,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "0d5d74e862da"
+   "detailRef": "debff970c97b"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -370085,12 +370195,12 @@
    "detailRef": "125a1cdb5149"
   },
   {
-   "id": "path-literal:c501802f06a7",
+   "id": "path-literal:59a66ea751fc",
    "type": "path-literal",
    "title": "/zero-attente",
    "description": "Chemin référencé dans 19 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 676,
+   "line": 679,
    "surface": null,
    "tags": [
     "scripts/prerender-seo.mjs",
@@ -370111,7 +370221,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "ea9722ec9251"
+   "detailRef": "5cfaef7211db"
   },
   {
    "id": "path-literal:93c6bbab763a",
@@ -381513,19 +381623,19 @@
    "detailRef": "2b13968addb3"
   },
   {
-   "id": "seo-build-route:0c6d6c52a34d",
+   "id": "seo-build-route:d29b5b813327",
    "type": "seo-build-route",
    "title": "/:param1",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1234,
+   "line": 1274,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "0f191a809037"
+   "detailRef": "02f4a8314fb2"
   },
   {
    "id": "seo-build-route:6b0d9584df00",
@@ -381543,49 +381653,49 @@
    "detailRef": "07848215d3c6"
   },
   {
-   "id": "seo-build-route:8c3db5e85ec5",
+   "id": "seo-build-route:0cab46962cce",
    "type": "seo-build-route",
    "title": "/a-propos",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1066,
+   "line": 1106,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "06cff1b7e25f"
+   "detailRef": "0e98d5c4e973"
   },
   {
-   "id": "seo-build-route:fb6caf1ad553",
+   "id": "seo-build-route:c0beee3477f5",
    "type": "seo-build-route",
    "title": "/abonnement",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1002,
+   "line": 1042,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "6a438b987385"
+   "detailRef": "33c101b633d0"
   },
   {
-   "id": "seo-build-route:b001b05dfb66",
+   "id": "seo-build-route:381be7b80c55",
    "type": "seo-build-route",
    "title": "/actualites/:id",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1863,
+   "line": 1903,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "490faafef140"
+   "detailRef": "371155dfec91"
   },
   {
    "id": "seo-build-route:7800634c065f",
@@ -381603,19 +381713,19 @@
    "detailRef": "c3b1ace2b3e3"
   },
   {
-   "id": "seo-build-route:72326e3872bb",
+   "id": "seo-build-route:a06df3b30575",
    "type": "seo-build-route",
    "title": "/aide",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1082,
+   "line": 1122,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "438e114609a2"
+   "detailRef": "03f79b1eb59d"
   },
   {
    "id": "seo-build-route:9983f2bcbe62",
@@ -381633,144 +381743,99 @@
    "detailRef": "aa06080b98ae"
   },
   {
-   "id": "seo-build-route:9e7d998e2afc",
+   "id": "seo-build-route:097f08c05789",
    "type": "seo-build-route",
    "title": "/budget-auto",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1026,
+   "line": 1066,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "a47ab9f21bb4"
+   "detailRef": "23685c965714"
   },
   {
-   "id": "seo-build-route:d1896f287c8a",
+   "id": "seo-build-route:92b51d8eedfe",
    "type": "seo-build-route",
    "title": "/cgu",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1171,
+   "line": 1211,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "e8163c149ddb"
+   "detailRef": "b481ba582779"
   },
   {
-   "id": "seo-build-route:d7b2a9564c6c",
+   "id": "seo-build-route:e4462841fa05",
    "type": "seo-build-route",
    "title": "/chefs-table",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 994,
+   "line": 1034,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "f487a553fea5"
+   "detailRef": "72433d6fac7b"
   },
   {
-   "id": "seo-build-route:ee9c34d7d537",
+   "id": "seo-build-route:76d436d36ce2",
    "type": "seo-build-route",
    "title": "/conditions-restaurateurs",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1185,
+   "line": 1225,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "c0a84322dd08"
+   "detailRef": "62a48a9be217"
   },
   {
-   "id": "seo-build-route:87c83ca2af69",
+   "id": "seo-build-route:fab1c6d87030",
    "type": "seo-build-route",
    "title": "/contact",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1074,
+   "line": 1114,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "495a3f6210ab"
+   "detailRef": "978a57c8f1ed"
   },
   {
-   "id": "seo-build-route:5c1c55111e98",
+   "id": "seo-build-route:c15f4bc06f54",
    "type": "seo-build-route",
    "title": "/cookies",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1178,
+   "line": 1218,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "c926d17faa8f"
+   "detailRef": "1ba6e7dc07fa"
   },
   {
-   "id": "seo-build-route:53f7ddd4b372",
+   "id": "seo-build-route:7176cfe87707",
    "type": "seo-build-route",
    "title": "/creneaux-garantis",
-   "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
-   "path": "scripts/prerender-seo.mjs",
-   "line": 1010,
-   "surface": null,
-   "tags": [
-    "data-dependent",
-    "prerender",
-    "static"
-   ],
-   "detailRef": "09cb14484471"
-  },
-  {
-   "id": "seo-build-route:9d9f42b8aa0f",
-   "type": "seo-build-route",
-   "title": "/flex-prix-bas",
-   "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
-   "path": "scripts/prerender-seo.mjs",
-   "line": 1058,
-   "surface": null,
-   "tags": [
-    "data-dependent",
-    "prerender",
-    "static"
-   ],
-   "detailRef": "fd0a87e67ff4"
-  },
-  {
-   "id": "seo-build-route:a11892e79db7",
-   "type": "seo-build-route",
-   "title": "/garantie-qualite",
-   "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
-   "path": "scripts/prerender-seo.mjs",
-   "line": 1018,
-   "surface": null,
-   "tags": [
-    "data-dependent",
-    "prerender",
-    "static"
-   ],
-   "detailRef": "57f4abf05840"
-  },
-  {
-   "id": "seo-build-route:0260b3e54fb9",
-   "type": "seo-build-route",
-   "title": "/match-groupes",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1050,
@@ -381780,7 +381845,52 @@
     "prerender",
     "static"
    ],
-   "detailRef": "721e2806853d"
+   "detailRef": "090dd21328bf"
+  },
+  {
+   "id": "seo-build-route:493b9977a8cd",
+   "type": "seo-build-route",
+   "title": "/flex-prix-bas",
+   "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
+   "path": "scripts/prerender-seo.mjs",
+   "line": 1098,
+   "surface": null,
+   "tags": [
+    "data-dependent",
+    "prerender",
+    "static"
+   ],
+   "detailRef": "fa02c168b39c"
+  },
+  {
+   "id": "seo-build-route:b521466dc48b",
+   "type": "seo-build-route",
+   "title": "/garantie-qualite",
+   "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
+   "path": "scripts/prerender-seo.mjs",
+   "line": 1058,
+   "surface": null,
+   "tags": [
+    "data-dependent",
+    "prerender",
+    "static"
+   ],
+   "detailRef": "73936bdbf85a"
+  },
+  {
+   "id": "seo-build-route:18218113ce7c",
+   "type": "seo-build-route",
+   "title": "/match-groupes",
+   "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
+   "path": "scripts/prerender-seo.mjs",
+   "line": 1090,
+   "surface": null,
+   "tags": [
+    "data-dependent",
+    "prerender",
+    "static"
+   ],
+   "detailRef": "6ab054cbe409"
   },
   {
    "id": "seo-build-route:4465530a888e",
@@ -381798,34 +381908,34 @@
    "detailRef": "db389cbd7ac0"
   },
   {
-   "id": "seo-build-route:6c3ccf718b08",
+   "id": "seo-build-route:0e525c9858fd",
    "type": "seo-build-route",
    "title": "/multi-restaurant",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1034,
+   "line": 1074,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "f06b0518dfb1"
+   "detailRef": "1d2ffa41c27f"
   },
   {
-   "id": "seo-build-route:f2c4f5685f12",
+   "id": "seo-build-route:74c855e49f79",
    "type": "seo-build-route",
    "title": "/multi-stop",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1042,
+   "line": 1082,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "7cfe337d8a50"
+   "detailRef": "958ec11bd098"
   },
   {
    "id": "seo-build-route:198b768de83f",
@@ -381843,19 +381953,19 @@
    "detailRef": "bed8928949e5"
   },
   {
-   "id": "seo-build-route:23d3361eb9c0",
+   "id": "seo-build-route:7904f09c0850",
    "type": "seo-build-route",
    "title": "/politique-confidentialite",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1200,
+   "line": 1240,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "a86e88e4efbc"
+   "detailRef": "1dbc26450bc5"
   },
   {
    "id": "seo-build-route:1a00cd50d8d2",
@@ -381873,34 +381983,34 @@
    "detailRef": "53d8196df72e"
   },
   {
-   "id": "seo-build-route:45841585f5cc",
+   "id": "seo-build-route:bad28cfe7e7b",
    "type": "seo-build-route",
    "title": "/restaurant/:id",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1294,
+   "line": 1334,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "6b80c2c64160"
+   "detailRef": "798542812e7a"
   },
   {
-   "id": "seo-build-route:9272b677e8e1",
+   "id": "seo-build-route:fd844433f746",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug/:cuisineSlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1631,
+   "line": 1671,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "f906f93dbe3f"
+   "detailRef": "c1734b0f9cb0"
   },
   {
    "id": "seo-build-route:340a6801ba1a",
@@ -381933,34 +382043,34 @@
    "detailRef": "c38120c4290c"
   },
   {
-   "id": "seo-build-route:02fd2eb68a38",
+   "id": "seo-build-route:ce768c576b5c",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug/r/:restaurantSlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1291,
+   "line": 1331,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "f9d5109c38cf"
+   "detailRef": "cbcefcbfa067"
   },
   {
-   "id": "seo-build-route:da108bf4939a",
+   "id": "seo-build-route:e877e5b6b300",
    "type": "seo-build-route",
    "title": "/restaurants/:citySlug",
    "description": "Route SEO dynamic-template produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1643,
+   "line": 1683,
    "surface": null,
    "tags": [
     "data-dependent",
     "dynamic-template",
     "prerender"
    ],
-   "detailRef": "9faa847db19c"
+   "detailRef": "c97938415cdb"
   },
   {
    "id": "seo-build-route:081f9fd6c483",
@@ -381978,19 +382088,19 @@
    "detailRef": "023dd7876676"
   },
   {
-   "id": "seo-build-route:6625fe62996a",
+   "id": "seo-build-route:cf35ab6d2a8d",
    "type": "seo-build-route",
    "title": "/restaurateurs/alternative-commission-couvert",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 868,
+   "line": 898,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "a523c55c0dd5"
+   "detailRef": "17f3c85501de"
   },
   {
    "id": "seo-build-route:784b13bf4e15",
@@ -382008,19 +382118,19 @@
    "detailRef": "71811edc52d5"
   },
   {
-   "id": "seo-build-route:4dcc78f2db0b",
+   "id": "seo-build-route:1176f19dbe85",
    "type": "seo-build-route",
    "title": "/restaurateurs/google-business",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 741,
+   "line": 752,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "7da4a3c2609a"
+   "detailRef": "86931d0ccfd4"
   },
   {
    "id": "seo-build-route:3a7121d06eeb",
@@ -382053,19 +382163,19 @@
    "detailRef": "b9c8be4e27e5"
   },
   {
-   "id": "seo-build-route:3b5b09acab41",
+   "id": "seo-build-route:50422deac263",
    "type": "seo-build-route",
    "title": "/tok-pulse",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 1192,
+   "line": 1232,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "eb9411ef076d"
+   "detailRef": "7ca97ff8f1af"
   },
   {
    "id": "seo-build-route:a99c7b3ae0eb",
@@ -382083,19 +382193,19 @@
    "detailRef": "f6b81dc6e05b"
   },
   {
-   "id": "seo-build-route:8ed2a392d785",
+   "id": "seo-build-route:a29dd511e772",
    "type": "seo-build-route",
    "title": "/zero-attente",
    "description": "Route SEO static produite pendant le build; indexabilité dépendante des données.",
    "path": "scripts/prerender-seo.mjs",
-   "line": 986,
+   "line": 1026,
    "surface": null,
    "tags": [
     "data-dependent",
     "prerender",
     "static"
    ],
-   "detailRef": "7c06441dc10d"
+   "detailRef": "19a38418bf75"
   },
   {
    "id": "static-data:3607512b0ada",

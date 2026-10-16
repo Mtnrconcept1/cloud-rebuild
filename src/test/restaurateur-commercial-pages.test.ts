@@ -34,7 +34,8 @@ describe("pages commerciales restaurateurs", () => {
     expect(alternativePage).toContain("que la table compte 2 ou 8 personnes");
     expect(googlePage).toContain("tokFeePerTableChf: RESERVATION_FLAT_FEE_CHF");
     expect(googlePage).not.toContain("tokFeePerTableChf: 0");
-    expect(googlePage).toContain("TOK : {monthlyTables.toLocaleString");
+    expect(googlePage).toContain("TOK : frais de tables / mois");
+    expect(googlePage).toContain('`${monthlyTables.toLocaleString("fr-CH")} tables × ${formatChf(RESERVATION_FLAT_FEE_CHF)}`');
     expect(genevePage).toContain("Trois repères avant de comparer les offres.");
     expect(genevePage).toContain("5 CHF pour une table réellement servie");
   });
