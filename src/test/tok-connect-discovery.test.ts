@@ -383,8 +383,9 @@ function fakeClient(tables: Record<string, TokRestaurantRow[] | Array<Record<str
         const clauses = call.or.join(",").split(",");
         data = data.filter((row) => clauses.some((clause) => {
           const [column, , pattern] = clause.split(".");
-          const needle = (pattern || "").replace(/\*/g, "").toLowerCase();
-          return needle ? String(row[column] ?? "").toLowerCase().includes(needle) : false;
+          const escaped = (pattern || "").split("*")
+            .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*");
+          return escaped ? new RegExp(`^${escaped}$`, "i").test(String(row[column] ?? "")) : false;
         }));
       }
       return call.limit === null ? data : data.slice(0, call.limit);
@@ -434,6 +435,17 @@ const CATALOG: TokRestaurantRow[] = [
 
 describe("TOK Connect discovery - exécution de l'outil discover_restaurants", () => {
   const args = { request: "fais-moi une sélection de 3 pizzeria et deux restaurant de sushi à Genève" };
+
+  it("retrouve un établissement nommé sans compléter par des adresses sans rapport", async () => {
+    const { client } = fakeClient({ restaurants: [
+      ...CATALOG,
+      restaurant({ id: "gazelle", name: "La Gazelle d’Or", rating: null }),
+    ] });
+    const found = await runTokDiscovery({ client, args: { query: "La Gazelle d'Or", limit: 5 } });
+    expect(found.restaurants.map((row) => row.id)).toEqual(["gazelle"]);
+    const absent = await runTokDiscovery({ client, args: { query: "Établissement introuvable", limit: 5 } });
+    expect(absent.restaurants).toEqual([]);
+  });
 
   it("répond exactement à « 3 pizzerias et 2 sushis à Genève »", async () => {
     const { client } = fakeClient({ restaurants: CATALOG });

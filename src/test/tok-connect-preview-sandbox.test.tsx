@@ -26,5 +26,16 @@ describe('aperçu TOK Connect explicitement isolé', () => {
     });
     await waitFor(() => expect(screen.getByText('get_restaurant_details · sandbox-test')).toBeInTheDocument());
     expect(getSupabase).not.toHaveBeenCalled();
+    const reply = vi.spyOn(frame.contentWindow!, 'postMessage');
+    await act(async () => {
+      window.dispatchEvent(new MessageEvent('message', {
+        source: frame.contentWindow,
+        data: { type: 'tok_preview_call', id: 'blocked-booking', name: 'tok_book_table', args: {} },
+      }));
+    });
+    expect(reply).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'tok_preview_result', id: 'blocked-booking', error: expect.stringContaining('aucune transaction'),
+    }), '*');
+    expect(getSupabase).not.toHaveBeenCalled();
   });
 });

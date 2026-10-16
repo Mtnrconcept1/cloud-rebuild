@@ -344,7 +344,7 @@ async function handleGatewayTool(req: Request, rpc: JsonRpcRequest, name: string
       params: {
         name: "discover_restaurants",
         arguments: {
-          request: String(args.query || ""),
+          query: String(args.query || ""),
           ...(args.city ? { city: String(args.city) } : {}),
           ...(args.cuisine ? { selections: [{ cuisine: String(args.cuisine) }] } : {}),
           limit: Number(args.limit) > 0 ? Math.min(20, Number(args.limit)) : 8,

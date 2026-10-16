@@ -245,6 +245,26 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
 .tags{display:flex;flex-wrap:wrap;gap:5px}
 .detail-actions{display:flex;flex-wrap:wrap;gap:8px}
 .detail-actions .btn{flex:1 1 auto;min-width:150px}
+.tok-booking{margin-top:14px}
+.booking-fields{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
+.booking-field{display:flex;flex:1 1 150px;flex-direction:column;gap:4px;font-size:12px;font-weight:700}
+.booking-field input{width:100%;max-width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:inherit}
+.booking-guarantee{display:flex;gap:9px;align-items:flex-start;font-size:12px;margin-top:10px}
+.booking-guarantee input{margin-top:4px;accent-color:var(--tok-orange)}
+.booking-message{font-size:12px;color:var(--text-2);line-height:1.5;margin:8px 0}
+.booking-error{font-size:12px;color:#a82820;background:rgba(206,45,28,.1);border-radius:9px;padding:9px;line-height:1.45;margin:10px 0}
+.tok-booking .btn{margin:5px 6px 4px 0}
+.tok-booking .slot[aria-pressed="true"]{background:var(--tok-orange);color:white;border-color:var(--tok-orange)}
+.tok-cart{margin-top:14px}.tok-cart .btn{margin:4px}
+.tok-cart-list{max-height:320px;overflow:auto;margin:12px 0;border:1px solid var(--line);border-radius:12px;padding:8px}
+.tok-cart-line{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--line-2)}
+.tok-cart-line:last-child{border-bottom:0}.tok-cart-line strong{font-size:13px}
+.tok-cart-controls{display:flex;align-items:center;gap:4px;white-space:nowrap}
+.tok-cart-controls .btn{min-width:30px;padding:3px 8px}
+.tok-cart-select{width:100%;padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text)}
+.tok-cart-total{display:flex;justify-content:space-between;font-size:16px;font-weight:850;border-top:1px solid var(--line);padding-top:12px}
+.tok-cart .booking-field input{width:100%}
+.tok-cart-alert{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
 
 /* ---------- états ---------- */
 .skeleton{border-radius:var(--radius);background:var(--skeleton);background-size:220% 100%;
@@ -289,7 +309,16 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     details: {},
     loadingId: null,
     errorId: null,
-    fullscreen: false
+    fullscreen: false,
+    booking: null,
+    historyItems: [],
+    historyLoading: false,
+    historyError: null,
+    cancelTarget: null,
+    cart: null,
+    customerOrders: [],
+    ordersLoading: false,
+    ordersError: null
   };
 
   /* ---------- petit constructeur DOM (aucune injection HTML) ---------- */
@@ -302,6 +331,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         if (key === 'text') { el.textContent = String(value); return; }
         if (key === 'class') { el.className = String(value); return; }
         if (key === 'onClick') { el.addEventListener('click', value); return; }
+        if (key === 'onChange') { el.addEventListener('change', value); return; }
         if (key === 'onError') { el.addEventListener('error', value); return; }
         el.setAttribute(key, value === true ? '' : String(value));
       });
@@ -336,7 +366,14 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     var setWidgetState = hostCall('setWidgetState');
     if (!setWidgetState) return;
     try {
-      setWidgetState({ view: state.view, selectedId: state.selectedId, filter: state.filter });
+      var cart = state.cart;
+      setWidgetState({ view: state.view, selectedId: state.selectedId, filter: state.filter,
+        booking: state.booking && state.booking.idempotencyKey ? { restaurantId: state.booking.restaurantId, name: state.booking.name, date: state.booking.date, time: state.booking.time, partySize: state.booking.partySize, guaranteeAccepted: state.booking.guaranteeAccepted, idempotencyKey: state.booking.idempotencyKey } : null,
+        cart: cart ? { restaurantId: cart.restaurantId, journey: cart.journey,
+          date: cart.date, time: cart.time, partySize: cart.partySize,
+          paymentMethod: cart.paymentMethod, items: cart.items,
+          attemptId: cart.attemptId, stage: cart.stage } : null
+      });
     } catch (error) { /* l'état local suffit */ }
   }
 
@@ -527,6 +564,12 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         h('p', { text: payload.subtitle || 'Restaurants TOK classés par note' })
       ]),
       h('div', { class: 'hero-side' }, [
+        h('button', { class: 'btn', type: 'button', onClick: loadCustomerHistory }, 'Mes tables'),
+        h('button', { class: 'btn', type: 'button', onClick: loadMyOrders }, 'Mes commandes'),
+        state.cart && state.cart.attemptId ? h('button', {
+          class: 'btn', type: 'button',
+          onClick: function () { state.view = 'detail'; state.selectedId = state.cart.restaurantId; render(); }
+        }, 'Paiement à vérifier') : null,
         h('span', { class: 'pill live' }, [h('span', { class: 'dot' }), h('span', { text: cards.length + (cards.length > 1 ? ' tables' : ' table') })]),
         h('button', {
           class: 'icon-btn', type: 'button', title: 'Agrandir', 'aria-label': 'Agrandir la sélection',
@@ -670,6 +713,624 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     return text + ' ' + (currency || 'CHF');
   }
 
+  /* ---------- réservation cliente native (jamais de paiement non vérifié) ---------- */
+  function tokToolPayload(raw) {
+    var value = raw && raw.structuredContent ? raw.structuredContent
+      : raw && raw.result && raw.result.structuredContent ? raw.result.structuredContent : raw;
+    if (value && value.structuredContent) value = value.structuredContent;
+    if (!value || typeof value !== 'object') throw new Error('Réponse TOK invalide.');
+    if (raw && (raw.isError === true || raw.result && raw.result.isError === true) || value.ok === false || value.isError === true) {
+      var err = value.error || {};
+      var nested = value.data && value.data.error ? value.data.error : {};
+      var failure = new Error(String(err.message || nested.message || value.data && value.data.error_message
+        || value.data && value.data.error_code || 'Connexion requise ou action refusée par TOK.'));
+      failure.retrySafe = value.retry_safe === true;
+      throw failure;
+    }
+    if (value.data && typeof value.data === 'object') {
+      if (value.data.ok === false || value.data.error_code) {
+        throw new Error(String(value.data.error_message || value.data.error_code || 'Action TOK refusée.'));
+      }
+      return value.data;
+    }
+    return value;
+  }
+
+  function invokeTokTool(name, args) {
+    var call = hostCall('callTool');
+    if (!call) return Promise.reject(new Error('Ouvrez TOK Connect dans ChatGPT pour utiliser cette action.'));
+    return Promise.resolve().then(function () { return call(name, args); }).then(tokToolPayload);
+  }
+
+  function tokIdempotencyKey() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return 'tok-widget-' + crypto.randomUUID();
+    }
+    return 'tok-widget-' + String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+  }
+
+  function startBooking(detail, slot) {
+    if (!detail || !detail.id) return;
+    var current = state.booking;
+    if (current && ['processing', 'uncertain', 'guarantee'].indexOf(current.step) >= 0) {
+      state.selectedId = current.restaurantId; state.view = 'detail'; render(); return;
+    }
+    var date = detail.availability && detail.availability.date || state.payload && state.payload.date || '';
+    state.booking = {
+      restaurantId: detail.id, name: detail.name,
+      date: date, time: slot && slot.time || '',
+      partySize: Math.max(1, Math.min(20, Number(state.payload && state.payload.party_size) || 2)),
+      slots: detail.availability && Array.isArray(detail.availability.slots) ? detail.availability.slots : [],
+      step: 'draft', quote: null, quoteLoading: false, loadingSlots: false,
+      quoteError: null, guaranteeAccepted: false, error: null, result: null, idempotencyKey: null
+    };
+    if (current && current.restaurantId === detail.id && current.date === date && current.time === (slot && slot.time || '')) {
+      state.booking.partySize = current.partySize;
+    }
+    render();
+    loadBookingQuote();
+    if (!state.booking.slots.length && date) loadBookingSlots(detail);
+  }
+
+  function loadBookingQuote() {
+    var booking = state.booking;
+    if (!booking || booking.quoteLoading) return;
+    booking.quoteLoading = true; booking.quoteError = null; booking.quote = null;
+    var capturedSize = booking.partySize;
+    render();
+    invokeTokTool('tok_quote_reservation', { party_size: capturedSize }).then(function (quote) {
+      if (state.booking === booking && booking.partySize === capturedSize) booking.quote = quote;
+    }).catch(function (error) {
+      if (state.booking === booking && booking.partySize === capturedSize)
+        booking.quoteError = String(error.message || error);
+    }).finally(function () {
+      if (state.booking === booking) { booking.quoteLoading = false; render(); }
+    });
+  }
+
+  function loadBookingSlots(detail) {
+    var booking = state.booking;
+    if (!booking || booking.loadingSlots || !booking.date) return;
+    booking.loadingSlots = true; booking.error = null;
+    var date = booking.date;
+    var size = booking.partySize;
+    render();
+    invokeTokTool('get_real_time_availability', {
+      restaurant_id: detail.id, date: date, party_size: size
+    }).then(function (response) {
+      if (state.booking !== booking || booking.date !== date || booking.partySize !== size) return;
+      var raw = Array.isArray(response.slots) ? response.slots : [];
+      booking.slots = raw.map(function (slot) {
+        return {
+          time: String(slot.slot_time || slot.time || '').slice(0, 5),
+          available: slot.available !== false && slot.remaining_tables !== 0 && slot.remaining !== 0,
+          remaining: slot.remaining_tables != null ? slot.remaining_tables : slot.remaining
+        };
+      }).filter(function (slot) { return /^\\d{2}:\\d{2}$/.test(slot.time); });
+    }).catch(function (error) {
+      if (state.booking === booking) booking.error = String(error.message || error);
+    }).finally(function () {
+      if (state.booking === booking) { booking.loadingSlots = false; render(); }
+    });
+  }
+
+  function safePaymentUrl(value) {
+    try {
+      var url = new URL(String(value || ''));
+      if (url.protocol !== 'https:' || url.username || url.password || url.port) return null;
+      if (['checkout.stripe.com', 'www.thetok.ch', 'thetok.ch'].indexOf(url.hostname) < 0) return null;
+      return url.toString();
+    } catch (error) { return null; }
+  }
+
+  function confirmBooking() {
+    var booking = state.booking;
+    if (!booking || ['draft', 'uncertain'].indexOf(booking.step) < 0 || !booking.quote || !booking.date || !booking.time
+      || !/^\\d{4}-\\d{2}-\\d{2}$/.test(booking.date) || !/^\\d{2}:\\d{2}$/.test(booking.time)) return;
+    if (booking.quote.required && !booking.guaranteeAccepted) {
+      booking.error = 'Acceptez les conditions de garantie bancaire avant de continuer.';
+      render(); return;
+    }
+    booking.error = null; booking.step = 'processing';
+    if (!booking.idempotencyKey) booking.idempotencyKey = tokIdempotencyKey();
+    persist(); render();
+    invokeTokTool('tok_book_table', {
+      restaurant_id: booking.restaurantId,
+      date: booking.date, time: booking.time, party_size: booking.partySize,
+      guarantee_accepted: booking.guaranteeAccepted === true,
+      confirmed_by_user: true, idempotency_key: booking.idempotencyKey
+    }).then(function (response) {
+      if (state.booking !== booking) return;
+      if (response.requires_card_guarantee && safePaymentUrl(response.checkout_url)) {
+        booking.step = 'guarantee'; booking.result = { url: safePaymentUrl(response.checkout_url) };
+      } else if (response.reservation_id || response.reservationId) {
+        booking.step = 'confirmed';
+        booking.result = { id: String(response.reservation_id || response.reservationId) };
+      } else {
+        throw new Error('TOK n’a pas confirmé la réservation : vérifiez votre historique avant de réessayer.');
+      }
+    }).catch(function (error) {
+      if (state.booking === booking) {
+        booking.step = error.retrySafe === true ? 'draft' : 'uncertain';
+        if (error.retrySafe === true) { booking.idempotencyKey = null; booking.quote = null; }
+        booking.error = String(error.message || error);
+      }
+    }).finally(function () { if (state.booking === booking) { persist(); render(); } });
+  }
+
+  function bookingPanel(detail) {
+    var booking = state.booking;
+    if (!booking || booking.restaurantId !== detail.id) return null;
+    var inputs = [];
+    if (booking.step === 'confirmed') {
+      return h('section', { class: 'panel tok-booking' }, [
+        h('h3', { text: 'Réservation confirmée par TOK' }),
+        h('p', { class: 'booking-message', text: 'Votre réservation est enregistrée. Référence : ' + booking.result.id }),
+        h('button', { class: 'btn', type: 'button', onClick: function () { loadCustomerHistory(); } }, 'Mes réservations')
+      ]);
+    }
+    if (booking.step === 'processing' || booking.step === 'uncertain') {
+      return h('section', { class: 'panel tok-booking' }, [
+        h('h3', { text: 'Vérification de votre réservation' }),
+        h('p', { class: 'booking-message', text: booking.partySize + ' personne(s) · ' + formatDate(booking.date) + ' · ' + booking.time }),
+        h('p', { class: 'booking-message', text: 'La réponse est en attente ou a été interrompue. Les détails restent verrouillés pour éviter une seconde réservation.' }),
+        booking.error ? h('p', { class: 'booking-error', role: 'alert', text: booking.error }) : null,
+        h('button', { class: 'btn', type: 'button', disabled: booking.step === 'processing', onClick: confirmBooking }, 'Reprendre la même réservation'),
+        h('button', { class: 'btn', type: 'button', onClick: loadCustomerHistory }, 'Vérifier mes réservations')
+      ]);
+    }
+    if (booking.step === 'guarantee') {
+      return h('section', { class: 'panel tok-booking' }, [
+        h('h3', { text: 'Empreinte bancaire à finaliser' }),
+        h('p', { class: 'booking-message', text: 'La table n’est pas encore confirmée. Terminez la garantie bancaire via le paiement sécurisé TOK, puis vérifiez le statut de votre réservation.' }),
+        h('button', { class: 'btn primary', type: 'button',
+          onClick: function () { openLink(booking.result.url); }
+        }, 'Continuer sur Stripe'),
+        h('button', { class: 'btn', type: 'button', onClick: loadCustomerHistory }, 'Vérifier mes réservations')
+      ]);
+    }
+    inputs.push(h('div', { class: 'booking-fields' }, [
+      h('label', { class: 'booking-field' }, [
+        h('span', { text: 'Date de réservation' }),
+        h('input', { type: 'date', value: booking.date, onChange: function (event) {
+          booking.date = event.target.value; booking.time = ''; booking.slots = []; booking.idempotencyKey = null;
+          render();
+        } })
+      ]),
+      h('label', { class: 'booking-field' }, [
+        h('span', { text: 'Convives' }),
+        h('input', { type: 'number', min: '1', max: '20', step: '1', value: booking.partySize,
+          onChange: function (event) {
+            var next = Number(event.target.value);
+            if (!Number.isInteger(next) || next < 1 || next > 20) return;
+            booking.partySize = next; booking.slots = []; booking.time = ''; booking.quote = null;
+            booking.idempotencyKey = null; booking.guaranteeAccepted = false;
+            render(); loadBookingQuote();
+          }
+        })
+      ])
+    ]));
+    inputs.push(h('button', { class: 'btn', type: 'button', disabled: booking.loadingSlots || !booking.date,
+      onClick: function () { loadBookingSlots(detail); }
+    }, booking.loadingSlots ? 'Vérification…' : 'Actualiser les créneaux'));
+    var slots = Array.isArray(booking.slots) ? booking.slots : [];
+    if (slots.length) inputs.push(h('div', { class: 'slots' }, slots.map(function (slot) {
+      return h('button', {
+        class: 'slot', type: 'button',
+        disabled: slot.available === false,
+        'aria-pressed': booking.time === slot.time ? 'true' : 'false',
+        onClick: function () { booking.time = slot.time; booking.idempotencyKey = null; render(); }
+      }, slot.time);
+    })));
+    else inputs.push(h('p', { class: 'booking-message', text: 'Choisissez une date, puis vérifiez les créneaux disponibles.' }));
+    if (booking.date && booking.time) inputs.push(h('p', { class: 'booking-message',
+      text: booking.partySize + ' personne(s) · ' + formatDate(booking.date) + ' · ' + booking.time
+    }));
+    if (booking.quoteLoading) inputs.push(h('p', { class: 'booking-message', text: 'Vérification de la garantie bancaire…' }));
+    if (booking.quoteError) inputs.push(h('p', { class: 'booking-error', text: booking.quoteError }));
+    if (booking.quote && booking.quote.required) {
+      var fee = Number(booking.quote.fee_amount_cents || 0) / 100;
+      inputs.push(h('label', { class: 'booking-guarantee' }, [
+        h('input', { type: 'checkbox', checked: booking.guaranteeAccepted,
+          onChange: function (event) {
+            booking.guaranteeAccepted = event.target.checked; booking.idempotencyKey = null; render();
+          }
+        }),
+        h('span', { text: 'J’accepte l’empreinte bancaire et les conditions d’annulation TOK (montant annoncé : ' + formatPrice(fee, 'CHF') + ').' })
+      ]));
+    }
+    if (booking.error) inputs.push(h('p', { class: 'booking-error', role: 'alert', text: booking.error }));
+    inputs.push(h('button', { class: 'btn primary', type: 'button',
+      disabled: booking.step === 'processing' || !booking.quote || !booking.time || !booking.date
+        || (booking.quote.required && !booking.guaranteeAccepted),
+      onClick: confirmBooking
+    }, booking.step === 'processing' ? 'Confirmation TOK en cours…' : 'Confirmer cette réservation'));
+    inputs.push(h('p', { class: 'booking-message', text: 'Le serveur TOK revérifie la disponibilité. Une garantie bancaire éventuelle ne confirme la réservation qu’après sa finalisation.' }));
+    return h('section', { class: 'panel tok-booking' }, [h('h3', { text: 'Réserver chez ' + booking.name })].concat(inputs));
+  }
+
+  function loadCustomerHistory() {
+    state.view = 'history'; state.historyLoading = true; state.historyError = null;
+    state.cancelTarget = null; render();
+    invokeTokTool('tok_my_reservations', { limit: 10 }).then(function (response) {
+      state.historyItems = Array.isArray(response.items) ? response.items : [];
+    }).catch(function (error) {
+      state.historyError = String(error.message || error);
+    }).finally(function () { state.historyLoading = false; render(); });
+  }
+
+  function cancelCustomerBooking(item) {
+    if (!item || state.cancelTarget !== item.id) return;
+    state.historyLoading = true; state.historyError = null;
+    render();
+    invokeTokTool('tok_cancel_my_reservation', {
+      reservation_id: item.id, confirmed_by_user: true,
+      idempotency_key: tokIdempotencyKey()
+    }).then(function () {
+      loadCustomerHistory();
+    }).catch(function (error) {
+      state.historyError = String(error.message || error);
+      state.cancelTarget = null;
+      state.historyLoading = false; render();
+    });
+  }
+
+  function renderHistory() {
+    var children = [
+      h('button', { class: 'back', type: 'button', onClick: closeDetail }, [svg(ICON_BACK, 14), h('span', { text: 'Retour aux restaurants' })]),
+      h('h2', { text: 'Mes réservations TOK' })
+    ];
+    if (state.historyLoading) children.push(h('p', { class: 'booking-message', text: 'Chargement…' }));
+    if (state.historyError) children.push(h('p', { class: 'booking-error', role: 'alert', text: state.historyError }));
+    if (!state.historyLoading && !state.historyItems.length) {
+      children.push(h('p', { class: 'booking-message', text: 'Aucune réservation visible sur votre compte TOK.' }));
+    }
+    state.historyItems.forEach(function (item) {
+      var canCancel = String(item.feature || 'classique') === 'classique' && item.status !== 'cancelled';
+      var rows = [
+        h('h3', { text: formatDate(item.date) + ' · ' + String(item.time || '').slice(0,5) }),
+        h('p', { class: 'booking-message', text: 'Statut : ' + item.status + ' · ' + item.party_size + ' convive(s)' }),
+        h('p', { class: 'booking-message', text: 'Référence : ' + item.id })
+      ];
+      if (canCancel && state.cancelTarget !== item.id) rows.push(h('button', {
+        class: 'btn', type: 'button', onClick: function () { state.cancelTarget = item.id; render(); }
+      }, 'Demander l’annulation'));
+      else if (canCancel) rows.push(h('div', { class: 'detail-actions' }, [
+        h('button', { class: 'btn primary', type: 'button', onClick: function () { cancelCustomerBooking(item); } }, 'Confirmer l’annulation'),
+        h('button', { class: 'btn', type: 'button', onClick: function () { state.cancelTarget = null; render(); } }, 'Conserver ma table')
+      ]));
+      children.push(h('section', { class: 'panel tok-booking' }, rows));
+    });
+    return h('div', { class: 'detail' }, children);
+  }
+
+  /* ---------- parcours panier et checkout authentifiés TOK ---------- */
+  function tokTodayInZurich() {
+    var parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(new Date());
+    function value(type) { return (parts.find(function (p) { return p.type === type; }) || {}).value || ''; }
+    return value('year') + '-' + value('month') + '-' + value('day');
+  }
+
+  function startCart(detail, mode) {
+    if (!detail || !detail.id) return;
+    if (state.cart && state.cart.restaurantId === detail.id && !state.cart.attemptId) {
+      state.cart.journey = mode;
+      cartChanged(state.cart);
+      return;
+    }
+    // An ambiguous checkout may already be payable. Never overwrite its
+    // idempotency key by opening a new cart, even at another restaurant.
+    if (state.cart && state.cart.attemptId) {
+      state.view = 'detail'; state.selectedId = state.cart.restaurantId;
+      var existingCard = findCard(state.cart.restaurantId);
+      if (existingCard && !state.details[existingCard.id]) {
+        state.details[existingCard.id] = Object.assign({}, existingCard, { kind: 'restaurant_detail', partial: true });
+      }
+      state.cart.error = 'Terminez ou annulez votre tentative Stripe avant de commencer une autre commande.';
+      render(); return;
+    }
+    state.cart = {
+      restaurantId: detail.id, journey: mode, date: detail.availability && detail.availability.date
+        || state.payload && state.payload.date || tokTodayInZurich(),
+      time: detail.availability && detail.availability.slots && detail.availability.slots[0]
+        ? String(detail.availability.slots[0].time || '') : '',
+      partySize: Math.max(1, Math.min(20, Number(state.payload && state.payload.party_size) || 2)),
+      paymentMethod: 'card', items: {}, menu: [], notes: '',
+      quote: null, quoteLoading: false, menuLoading: true,
+      stage: 'draft', attemptId: null, checkoutUrl: null, message: null, error: null
+    };
+    persist(); render();
+    var cart = state.cart;
+    invokeTokTool('get_restaurant_menu', { restaurant_id: detail.id, limit: 100 }).then(function (payload) {
+      if (state.cart !== cart) return;
+      var items = Array.isArray(payload.items) ? payload.items : [];
+      cart.menu = items.filter(function (item) {
+        return item && typeof item.id === 'string' && /^[0-9a-f-]{36}$/i.test(item.id)
+          && item.is_available !== false && isFinite(Number(item.price));
+      }).slice(0, 100);
+      if (!cart.menu.length) cart.error = 'Aucun plat commandable pour le moment.';
+    }).catch(function (error) {
+      if (state.cart === cart) cart.error = String(error.message || error);
+    }).finally(function () {
+      if (state.cart === cart) { cart.menuLoading = false; render(); }
+    });
+  }
+
+  function cartEditable(cart) {
+    return !cart.attemptId && cart.stage !== 'processing' && cart.stage !== 'pending';
+  }
+  function cartChanged(cart) {
+    if (!cartEditable(cart)) return;
+    cart.quote = null; cart.attemptId = null; cart.checkoutUrl = null;
+    cart.message = null; cart.error = null; cart.stage = 'draft';
+    persist(); render();
+  }
+  function selectedCartItems(cart) {
+    return Object.keys(cart.items).map(function (id) {
+      return { menu_item_id: id, quantity: Number(cart.items[id]) };
+    }).filter(function (item) { return Number.isInteger(item.quantity) && item.quantity > 0; });
+  }
+  function cartArguments(cart) {
+    return { restaurant_id: cart.restaurantId, journey: cart.journey,
+      items: selectedCartItems(cart), date: cart.date, time: cart.time,
+      party_size: cart.journey === 'zero-attente' ? cart.partySize : 1,
+      payment_method: cart.paymentMethod, notes: cart.notes || '' };
+  }
+
+  function quoteCart() {
+    var cart = state.cart;
+    if (!cart || !cartEditable(cart) || !selectedCartItems(cart).length || !cart.date || !cart.time) return;
+    cart.quote = null; cart.error = null; cart.quoteLoading = true; render();
+    invokeTokTool('tok_quote_customer_cart', cartArguments(cart)).then(function (response) {
+      if (state.cart !== cart) return;
+      if (!response.quote || !Number.isSafeInteger(response.quote.total_cents))
+        throw new Error('Le devis du serveur TOK est invalide.');
+      cart.quote = response.quote; cart.stage = 'quoted';
+    }).catch(function (error) {
+      if (state.cart === cart) cart.error = String(error.message || error);
+    }).finally(function () {
+      if (state.cart === cart) { cart.quoteLoading = false; render(); }
+    });
+  }
+
+  function payCart() {
+    var cart = state.cart;
+    if (!cart || cart.stage !== 'quoted' || !cart.quote) return;
+    var checkedAt = Date.parse(cart.quote.checked_at || '');
+    if (!isFinite(checkedAt) || Math.abs(Date.now() - checkedAt) > 300000) {
+      cart.quote = null; cart.stage = 'draft';
+      cart.error = 'Devis expiré. Vérifiez de nouveau le prix.'; render(); return;
+    }
+    if (typeof crypto === 'undefined' || typeof crypto.randomUUID !== 'function') {
+      cart.error = 'Cet appareil ne permet pas de sécuriser la tentative de paiement.'; render(); return;
+    }
+    if (!cart.attemptId) cart.attemptId = crypto.randomUUID();
+    var args = Object.assign({}, cartArguments(cart), {
+      expected_total_cents: cart.quote.total_cents, payment_attempt_id: cart.attemptId,
+      idempotency_key: 'tok-cart:' + cart.attemptId, confirmed_by_user: true
+    });
+    cart.stage = 'processing'; cart.error = null; persist(); render();
+    invokeTokTool('tok_checkout_customer_cart', args).then(function (response) {
+      if (state.cart !== cart) return;
+      var url = safePaymentUrl(response.checkout_url);
+      if (!url || response.payment_status !== 'pending')
+        throw new Error('TOK n’a pas fourni une session de paiement vérifiée.');
+      cart.checkoutUrl = url; cart.stage = 'pending';
+      cart.message = 'Paiement Stripe à finaliser. La commande ou la table n’est pas encore confirmée.';
+      persist(); openLink(url);
+    }).catch(function (error) {
+      if (state.cart !== cart) return;
+      cart.error = String(error.message || error);
+      if (error.retrySafe === true) {
+        cart.attemptId = null; cart.quote = null; cart.stage = 'draft';
+        cart.message = 'Aucun paiement créé. Corrigez le panier et vérifiez de nouveau le prix.';
+        persist(); return;
+      }
+      // Stripe may have created a session despite a lost response.
+      // Keep the operation UUID frozen until status or cancellation proves
+      // it safe to start a different payment.
+      cart.stage = 'pending';
+      cart.message = 'État de paiement incertain. Vérifiez ou annulez cette tentative avant toute nouvelle commande.';
+      persist();
+    }).finally(function () { if (state.cart === cart) render(); });
+  }
+
+  function checkCartPayment() {
+    var cart = state.cart;
+    if (!cart || !cart.attemptId || cart.statusLoading || cart.stage === 'processing') return;
+    cart.statusLoading = true; cart.error = null; render();
+    invokeTokTool('tok_customer_payment_status', { payment_attempt_id: cart.attemptId })
+      .then(function (status) {
+        if (state.cart !== cart) return;
+        cart.checkoutUrl = status.paid ? null : safePaymentUrl(status.checkout_url);
+        if (status.retry_safe === true && status.state === 'rejected' || status.state === 'cancelled') {
+          cart.attemptId = null; cart.quote = null; cart.stage = 'draft';
+          cart.message = 'Aucun paiement en cours. Vérifiez de nouveau le prix.'; persist(); return;
+        }
+        cart.paymentFinalized = status.paid === true && status.state === 'finalized';
+        cart.message = cart.paymentFinalized
+          ? 'Paiement traité par TOK. Vérifiez votre commande ou réservation avant de commander à nouveau.'
+          : status.paid
+            ? 'Paiement reçu. TOK finalise la commande ou réservation ; ne repassez pas de paiement.'
+            : status.state === 'expired'
+              ? 'Session Stripe expirée. Annulez cette tentative pour libérer le panier.'
+              : status.state === 'indeterminate'
+                ? 'Vérification temporairement indisponible. Aucun nouveau paiement ne sera lancé.'
+                : 'Paiement non encore finalisé. Reprenez la session disponible ou vérifiez de nouveau.';
+        persist();
+      }).catch(function (error) {
+        if (state.cart === cart) cart.error = String(error.message || error);
+      }).finally(function () { if (state.cart === cart) { cart.statusLoading = false; render(); } });
+  }
+
+  function cancelCartPayment() {
+    var cart = state.cart;
+    if (!cart || !cart.attemptId) return;
+    if (!cart.cancelConfirmed) {
+      cart.cancelConfirmed = true; render(); return;
+    }
+    if (cart.cancelLoading) return;
+    cart.cancelLoading = true; cart.error = null; render();
+    invokeTokTool('tok_cancel_cart_payment_attempt', {
+      payment_attempt_id: cart.attemptId,
+      confirmed_by_user: true,
+      idempotency_key: 'tok-cancel:' + cart.attemptId
+    }).then(function (result) {
+      if (state.cart !== cart) return;
+      if (result.cancelled === true && result.state === 'cancelled') {
+        cart.attemptId = null; cart.checkoutUrl = null; cart.quote = null;
+        cart.stage = 'draft'; cart.message = 'Tentative annulée par TOK. Vous pouvez modifier le panier et demander un nouveau devis.';
+        cart.cancelConfirmed = false;
+      } else {
+        cart.message = 'Annulation en cours de vérification : le panier reste verrouillé.';
+      }
+      persist();
+    }).catch(function (error) {
+      if (state.cart === cart) cart.error = String(error.message || error);
+    }).finally(function () {
+      if (state.cart === cart) { cart.cancelLoading = false; render(); }
+    });
+  }
+
+  function loadMyOrders() {
+    state.view = 'orders'; state.ordersLoading = true; state.ordersError = null; render();
+    invokeTokTool('tok_my_orders', { limit: 10 }).then(function (response) {
+      state.customerOrders = Array.isArray(response.items) ? response.items : [];
+    }).catch(function (error) {
+      state.ordersError = String(error.message || error);
+    }).finally(function () { state.ordersLoading = false; render(); });
+  }
+
+  function renderMyOrders() {
+    var rows = [
+      h('button', { class: 'back', type: 'button', onClick: closeDetail }, 'Retour aux restaurants'),
+      h('h2', { text: 'Mes commandes TOK' })
+    ];
+    if (state.ordersLoading) rows.push(h('p', { class: 'booking-message', text: 'Chargement…' }));
+    if (state.ordersError) rows.push(h('p', { class: 'booking-error', text: state.ordersError }));
+    if (!state.ordersLoading && !state.customerOrders.length)
+      rows.push(h('p', { class: 'booking-message', text: 'Aucune commande sur ce compte TOK.' }));
+    state.customerOrders.forEach(function (order) {
+      rows.push(h('section', { class: 'panel' }, [
+        h('h3', { text: 'Commande du ' + String(order.created_at || '').slice(0, 10) }),
+        h('p', { class: 'booking-message',
+          text: 'Statut : ' + String(order.status || '?') + ' · Paiement : ' + String(order.payment_status || '?') }),
+        h('p', { class: 'booking-message', text: 'Référence : ' + String(order.id || '') })
+      ]));
+    });
+    return h('div', { class: 'detail' }, rows);
+  }
+
+  function cartPanel(detail) {
+    var cart = state.cart;
+    if (!cart || cart.restaurantId !== detail.id) return null;
+    var editable = cartEditable(cart);
+    var nodes = [h('h3', { text: 'Commande TOK · ' + detail.name }),
+      h('p', { class: 'booking-message', text: 'Prix et disponibilité vérifiés par TOK avant le paiement.' })];
+    if (editable) nodes.push(h('div', { class: 'detail-actions' }, [
+      h('button', { class: 'btn', type: 'button', onClick: function () {
+        cart.journey = 'takeaway'; cartChanged(cart);
+      } }, 'À emporter'),
+      h('button', { class: 'btn', type: 'button', onClick: function () {
+        cart.journey = 'zero-attente'; cartChanged(cart);
+      } }, 'Zéro Attente')
+    ]));
+    if (cart.menuLoading) nodes.push(h('p', { class: 'booking-message', text: 'Chargement de la carte…' }));
+    if (cart.menu.length) nodes.push(h('div', { class: 'tok-cart-list' }, cart.menu.map(function (item) {
+      var count = Number(cart.items[item.id] || 0);
+      return h('div', { class: 'tok-cart-line' }, [
+        h('div', null, [
+          h('strong', { text: item.name }),
+          h('p', { class: 'booking-message', text: formatPrice(item.price, 'CHF') })
+        ]),
+        h('div', { class: 'tok-cart-controls' }, [
+          h('button', { class: 'btn', type: 'button', disabled: !editable || count === 0,
+            'aria-label': 'Retirer ' + item.name, onClick: function () {
+              if (count <= 1) delete cart.items[item.id]; else cart.items[item.id] = count - 1;
+              cartChanged(cart);
+            } }, '−'),
+          h('span', { text: String(count) }),
+          h('button', { class: 'btn', type: 'button', disabled: !editable || count >= 20,
+            'aria-label': 'Ajouter ' + item.name, onClick: function () {
+              cart.items[item.id] = count + 1; cartChanged(cart);
+            } }, '+')
+        ])
+      ]);
+    })));
+    if (editable) {
+      nodes.push(h('div', { class: 'booking-fields' }, [
+        h('label', { class: 'booking-field' }, [
+          h('span', { text: cart.journey === 'zero-attente' ? 'Date d’arrivée' : 'Date de retrait' }),
+          h('input', { type: 'date', value: cart.date, onChange: function (event) {
+            cart.date = event.target.value; cartChanged(cart);
+          } })
+        ]),
+        h('label', { class: 'booking-field' }, [
+          h('span', { text: cart.journey === 'zero-attente' ? 'Heure d’arrivée' : 'Heure de retrait' }),
+          h('input', { type: 'time', value: cart.time, onChange: function (event) {
+            cart.time = event.target.value; cartChanged(cart);
+          } })
+        ]),
+        cart.journey === 'zero-attente' ? h('label', { class: 'booking-field' }, [
+          h('span', { text: 'Convives' }),
+          h('input', { type: 'number', min: '1', max: '20', value: cart.partySize,
+            onChange: function (event) {
+              var next = Number(event.target.value);
+              if (!Number.isInteger(next) || next < 1 || next > 20) return;
+              cart.partySize = next; cartChanged(cart);
+            } })
+        ]) : null,
+        h('label', { class: 'booking-field' }, [
+          h('span', { text: 'Paiement' }),
+          h('select', { class: 'tok-cart-select', onChange: function (event) {
+            cart.paymentMethod = event.target.value; cartChanged(cart);
+          } }, [
+            h('option', { value: 'card', selected: cart.paymentMethod === 'card' }, 'Carte bancaire'),
+            h('option', { value: 'twint', selected: cart.paymentMethod === 'twint' }, 'TWINT')
+          ])
+        ])
+      ]));
+      nodes.push(h('button', { class: 'btn', type: 'button',
+        disabled: cart.quoteLoading || !selectedCartItems(cart).length || !cart.time || !cart.date,
+        onClick: quoteCart
+      }, cart.quoteLoading ? 'Vérification TOK…' : 'Vérifier le prix'));
+      if (cart.quote) {
+        nodes.push(h('div', { class: 'tok-cart-total' }, [
+          h('span', { text: 'Total confirmé par TOK' }),
+          h('span', { text: formatPrice(cart.quote.total_cents / 100, 'CHF') })
+        ]));
+        nodes.push(h('button', { class: 'btn primary', type: 'button',
+          disabled: cart.stage !== 'quoted', onClick: payCart
+        }, 'Confirmer et payer sur Stripe'));
+      }
+    }
+    if (cart.message) nodes.push(h('p', { class: 'booking-message', text: cart.message }));
+    if (cart.error) nodes.push(h('p', { class: 'booking-error', role: 'alert', text: cart.error }));
+    if (cart.checkoutUrl) nodes.push(h('button', { class: 'btn primary', type: 'button',
+      onClick: function () { openLink(cart.checkoutUrl); }
+    }, 'Reprendre le paiement Stripe'));
+    if (cart.attemptId) {
+      nodes.push(h('button', { class: 'btn', type: 'button', disabled: cart.statusLoading || cart.stage === 'processing',
+        onClick: checkCartPayment
+      }, 'Vérifier le paiement'));
+      if (cart.paymentFinalized) nodes.push(h('button', { class: 'btn', type: 'button',
+        onClick: function () {
+          if (!cart.paymentFinalized) return;
+          state.cart = null; persist(); render();
+        }
+      }, 'Terminer ce paiement'));
+      nodes.push(h('button', { class: 'btn', type: 'button', disabled: cart.cancelLoading || cart.stage === 'processing' || cart.paymentFinalized,
+        onClick: cancelCartPayment
+      }, cart.cancelConfirmed ? 'Confirmer l’annulation de Stripe' : 'Annuler cette tentative de paiement'));
+    }
+    nodes.push(h('button', { class: 'btn', type: 'button', onClick: loadMyOrders }, 'Mes commandes'));
+    nodes.push(h('p', { class: 'tok-cart-alert',
+      text: 'Seule la confirmation serveur TOK après paiement valide une commande ou une réservation. Aucune donnée bancaire ne transite par le widget.' }));
+    return h('section', { class: 'panel tok-cart' }, nodes);
+  }
+
   function availabilityPanel(detail) {
     var availability = detail.availability || {};
     var slots = Array.isArray(availability.slots) ? availability.slots : [];
@@ -682,9 +1343,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
           type: 'button',
           'data-available': slot.available === false ? 'false' : 'true',
           title: slot.remaining !== null && slot.remaining !== undefined ? slot.remaining + ' table(s) restante(s)' : undefined,
-          onClick: function () {
-            askModel('Prépare une réservation TOK chez ' + detail.name + ' le ' + (formatDate(availability.date) || 'prochain service disponible') + ' à ' + slot.time + '. Demande-moi confirmation avant de réserver.');
-          }
+          onClick: function () { startBooking(detail, slot); }
         }, slot.time);
       }))
     ]);
@@ -734,13 +1393,19 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       actions.push(h('button', {
         class: 'btn primary', type: 'button',
         onClick: function () {
-          askModel('Réserve une table chez ' + detail.name + (detail.city ? ' à ' + detail.city : '') + ' via TOK. Propose-moi les créneaux puis demande ma confirmation explicite avant de valider.');
+          startBooking(detail, null);
         }
       }, 'Réserver une table'));
     }
-    if (detail.url) {
-      actions.push(h('button', { class: 'btn', type: 'button', onClick: function () { openLink(detail.url); } }, 'Ouvrir la fiche TOK'));
-    }
+    if (detail.supports_pickup) actions.push(h('button', {
+      class: 'btn', type: 'button', onClick: function () { startCart(detail, 'takeaway'); }
+    }, 'Commander à emporter'));
+    if (detail.supports_reservation && detail.supports_dinein) actions.push(h('button', {
+      class: 'btn', type: 'button', onClick: function () { startCart(detail, 'zero-attente'); }
+    }, 'Zéro Attente'));
+    if (detail.url) actions.push(h('button', { class: 'btn ghost', type: 'button',
+      onClick: function () { openLink(detail.url); }
+    }, 'Voir sur TOK'));
     if (detail.map_url) {
       actions.push(h('button', { class: 'btn ghost', type: 'button', onClick: function () { openLink(detail.map_url); } }, 'Itinéraire'));
     }
@@ -756,6 +1421,8 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         h('div', { class: 'kv' }, h('span', { class: 'v', text: detail.description }))
       ]) : null,
       h('div', { class: 'detail-grid' }, [infoPanel(detail), hoursPanel(detail), availabilityPanel(detail), menuPanel(detail), tagsPanel(detail)].filter(Boolean)),
+      bookingPanel(detail),
+      cartPanel(detail),
       actions.length ? h('div', { class: 'detail-actions' }, actions) : null
     ]);
   }
@@ -827,6 +1494,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
   }
 
   function closeDetail() {
+    state.booking = null;
     state.view = 'list';
     state.selectedId = null;
     state.errorId = null;
@@ -840,6 +1508,15 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
   function render() {
     var payload = state.payload;
     root.textContent = '';
+
+    if (state.view === 'history') {
+      root.appendChild(renderHistory());
+      return;
+    }
+    if (state.view === 'orders') {
+      root.appendChild(renderMyOrders());
+      return;
+    }
 
     if (!payload) {
       root.appendChild(h('div', { class: 'empty' }, [
@@ -871,6 +1548,58 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     if (isFinite(height) && height > 0) root.style.minHeight = Math.max(180, height - 32) + 'px';
   }
 
+  function restoreTokCart(snapshot) {
+    if (state.cart || !snapshot || typeof snapshot !== 'object') return;
+    var id = String(snapshot.restaurantId || '');
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return;
+    var detail = findCard(id) || (state.payload && state.payload.detail && state.payload.detail.id === id
+      ? state.payload.detail : null);
+    // The latest restaurant selection can differ from the interrupted
+    // payment's restaurant. Keep the attempt recoverable even in that case.
+    if (!detail) detail = { id: id, name: 'Restaurant TOK' };
+    var items = {};
+    if (snapshot.items && typeof snapshot.items === 'object' && !Array.isArray(snapshot.items)) {
+      Object.keys(snapshot.items).slice(0, 24).forEach(function (key) {
+        var amount = snapshot.items[key];
+        if (/^[0-9a-f-]{36}$/i.test(key) && Number.isInteger(amount) && amount > 0 && amount <= 20) {
+          items[key] = amount;
+        }
+      });
+    }
+    var attemptId = typeof snapshot.attemptId === 'string'
+      && /^[0-9a-f-]{36}$/i.test(snapshot.attemptId) ? snapshot.attemptId : null;
+    state.cart = {
+      restaurantId: id, journey: snapshot.journey === 'zero-attente' ? 'zero-attente' : 'takeaway',
+      date: /^\\d{4}-\\d{2}-\\d{2}$/.test(snapshot.date || '') ? snapshot.date : tokTodayInZurich(),
+      time: /^([01]\\d|2[0-3]):[0-5]\\d$/.test(snapshot.time || '') ? snapshot.time : '',
+      partySize: Number.isInteger(snapshot.partySize) && snapshot.partySize >= 1 && snapshot.partySize <= 20
+        ? snapshot.partySize : 2,
+      paymentMethod: snapshot.paymentMethod === 'twint' ? 'twint' : 'card',
+      items: items, menu: [], notes: '', quote: null, quoteLoading: false,
+      menuLoading: true, stage: attemptId ? 'pending' : 'draft',
+      attemptId: attemptId, checkoutUrl: null,
+      message: attemptId
+        ? 'Tentative de paiement restaurée. Vérifiez son statut ou annulez-la avant de modifier le panier.'
+        : 'Panier restauré. Actualisez le devis avant de payer.',
+      error: null
+    };
+    state.details[id] = Object.assign({}, detail, { kind: 'restaurant_detail' });
+    state.selectedId = id;
+    state.view = 'detail';
+    var restored = state.cart;
+    invokeTokTool('get_restaurant_menu', { restaurant_id: id, limit: 100 }).then(function (result) {
+      if (state.cart !== restored) return;
+      restored.menu = (Array.isArray(result.items) ? result.items : []).filter(function (item) {
+        return item && typeof item.id === 'string' && /^[0-9a-f-]{36}$/i.test(item.id)
+          && item.is_available !== false && isFinite(Number(item.price));
+      }).slice(0, 100);
+    }).catch(function (error) {
+      if (state.cart === restored) restored.error = String(error.message || error);
+    }).finally(function () {
+      if (state.cart === restored) { restored.menuLoading = false; render(); }
+    });
+  }
+
   function ingest(globals) {
     if (!globals || typeof globals !== 'object') return;
     if (globals.theme) applyTheme(globals.theme);
@@ -892,9 +1621,21 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     }
 
     var widgetState = globals.widgetState;
-    if (widgetState && typeof widgetState === 'object' && !next) {
+    if (widgetState && typeof widgetState === 'object') {
       if (widgetState.filter) state.filter = widgetState.filter;
-      if (widgetState.view === 'detail' && widgetState.selectedId && findCard(widgetState.selectedId)) {
+      // A reload must never forget an existing payable Stripe attempt. Its
+      // stable UUID is restored in a locked state; no implicit payment calls.
+      if (!state.cart && widgetState.cart) restoreTokCart(widgetState.cart);
+      var saved = widgetState.booking;
+      if (!state.booking && saved && /^[0-9a-f-]{36}$/i.test(saved.restaurantId || '')
+        && /^tok-widget-[A-Za-z0-9-]+$/.test(saved.idempotencyKey || '')
+        && Number.isInteger(saved.partySize) && saved.partySize >= 1 && saved.partySize <= 20) {
+        state.booking = Object.assign({}, saved, { step: 'uncertain', slots: [], quote: { required: saved.guaranteeAccepted === true }, error: null });
+        state.details[saved.restaurantId] = state.details[saved.restaurantId] || { id: saved.restaurantId, name: String(saved.name || 'Restaurant TOK'), kind: 'restaurant_detail' };
+        state.selectedId = saved.restaurantId; state.view = 'detail';
+      }
+      if (!state.cart && !next && widgetState.view === 'detail'
+        && widgetState.selectedId && findCard(widgetState.selectedId)) {
         state.view = 'detail';
         state.selectedId = widgetState.selectedId;
       }

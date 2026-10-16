@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 422 error codes mapped from supabase/functions/**.
+// 445 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -1200,7 +1200,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "idempotency_key_reused_with_different_arguments": [
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1964
+      "line": 1965
     }
   ],
   "idempotency_key_reused_with_different_body": [
@@ -1738,7 +1738,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2838
+      "line": 2839
     }
   ],
   "mcp_prompt_not_found": [
@@ -1748,7 +1748,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2811
+      "line": 2812
     }
   ],
   "mcp_tool_not_found": [
@@ -1762,11 +1762,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2539
+      "line": 2540
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2583
+      "line": 2584
     }
   ],
   "media_id_required": [
@@ -1993,6 +1993,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 269
     }
   ],
+  "paid_reservation_requires_tok_support": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 342
+    }
+  ],
   "partner_id_required": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
@@ -2034,13 +2040,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "payment_attempt_order_expired_recreate": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2072
+      "line": 2089
     }
   ],
   "payment_attempt_reacquire_failed": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2080
+      "line": 2097
     }
   ],
   "payment_attempt_request_mismatch": [
@@ -2052,7 +2058,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "payment_attempt_session_expired_retry": [
     {
       "file": "supabase/functions/create-checkout/index.ts",
-      "line": 2442
+      "line": 2459
     }
   ],
   "personalization_consent_required": [
@@ -2481,10 +2487,22 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 386
     }
   ],
+  "reservation_id_invalid": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 331
+    }
+  ],
   "reservation_invalid_state": [
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
       "line": 697
+    }
+  ],
+  "reservation_lookup_failed": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 338
     }
   ],
   "reservation_not_found": [
@@ -2507,6 +2525,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
       "line": 732
+    },
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 339
     }
   ],
   "reservation_preview_fields_required": [
@@ -2851,6 +2873,100 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 1557
     }
   ],
+  "tok_cart_action_invalid": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 588
+    }
+  ],
+  "tok_cart_availability_unavailable": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 500
+    }
+  ],
+  "tok_cart_cancel_confirmation_required": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 555
+    }
+  ],
+  "tok_cart_cancel_idempotency_invalid": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 558
+    }
+  ],
+  "tok_cart_checkout_url_unavailable": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 701
+    }
+  ],
+  "tok_cart_free_takeaway_requires_tok": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 655
+    }
+  ],
+  "tok_cart_menu_or_service_unavailable": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 492
+    }
+  ],
+  "tok_cart_payment_attempt_invalid": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 549
+    }
+  ],
+  "tok_cart_pending_order_missing": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 682
+    }
+  ],
+  "tok_cart_price_changed_refresh_quote": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 643
+    },
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 679
+    }
+  ],
+  "tok_cart_restaurant_not_open_for_checkout": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 461
+    }
+  ],
+  "tok_cart_restaurant_unavailable": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 459
+    }
+  ],
+  "tok_cart_status_unavailable": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 572
+    }
+  ],
+  "tok_cart_table_not_available": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 508
+    }
+  ],
+  "tok_cart_total_out_of_range": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 513
+    }
+  ],
   "tok_connect_agent_run_not_approvable": [
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
@@ -2866,19 +2982,19 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_bridge_mode_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 404
+      "line": 783
     }
   ],
   "tok_connect_capability_method_not_allowed": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 241
+      "line": 250
     }
   ],
   "tok_connect_capability_not_found": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 237
+      "line": 246
     }
   ],
   "tok_connect_client_inactive": [
@@ -2915,6 +3031,18 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 174
     }
   ],
+  "tok_connect_customer_history_kind_invalid": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 726
+    }
+  ],
+  "tok_connect_customer_history_unavailable": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 739
+    }
+  ],
   "tok_connect_daily_reservation_limit_exceeded": [
     {
       "file": "supabase/functions/_shared/tok-connect-auth.ts",
@@ -2924,19 +3052,25 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_data_operation_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 332
+      "line": 387
     }
   ],
   "tok_connect_data_operation_not_allowed": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 308
+      "line": 363
+    }
+  ],
+  "tok_connect_expected_total_invalid": [
+    {
+      "file": "supabase/functions/create-checkout/index.ts",
+      "line": 1710
     }
   ],
   "tok_connect_filter_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 315
+      "line": 370
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -2946,7 +3080,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_filter_operator_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 322
+      "line": 377
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -2962,7 +3096,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_human_confirmation_required": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 153
+      "line": 162
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -2972,7 +3106,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_idempotency_key_required": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 159
+      "line": 168
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -2982,7 +3116,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_idempotency_key_reused_with_different_body": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 173
+      "line": 182
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -2992,11 +3126,17 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_idempotency_request_in_progress": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 177
+      "line": 186
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
       "line": 100
+    }
+  ],
+  "tok_connect_login_required": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 433
     }
   ],
   "tok_connect_mcp_grant_required": [
@@ -3008,7 +3148,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_mutation_filter_required": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 336
+      "line": 391
     }
   ],
   "tok_connect_oauth_client_id_required": [
@@ -3051,6 +3191,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 986
     }
   ],
+  "tok_connect_price_changed_requote_required": [
+    {
+      "file": "supabase/functions/create-checkout/index.ts",
+      "line": 1713
+    }
+  ],
   "tok_connect_reservation_not_owned": [
     {
       "file": "supabase/functions/tok-connect-api/index.ts",
@@ -3082,13 +3228,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_rpc_not_allowlisted": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 281
+      "line": 313
     }
   ],
   "tok_connect_table_not_allowlisted": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 306
+      "line": 361
     }
   ],
   "tok_connect_token_client_mismatch": [
@@ -3132,11 +3278,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_user_client_required": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 294
+      "line": 326
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 330
+      "line": 385
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -3154,15 +3300,31 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 146
+      "line": 155
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 164
+      "line": 173
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 382
+      "line": 453
+    },
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 468
+    },
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 544
+    },
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 724
+    },
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 755
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -3172,11 +3334,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_values_required": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 353
+      "line": 408
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 356
+      "line": 411
     }
   ],
   "tok_connect_webhook_endpoint_inactive": [

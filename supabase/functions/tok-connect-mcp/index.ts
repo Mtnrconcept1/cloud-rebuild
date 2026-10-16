@@ -1592,6 +1592,7 @@ const TOK_CONNECT_DISCOVERY_TOOL: TokConnectMcpTool = {
         maxLength: 400,
         description: "La demande de la personne, telle qu'elle l'a formulée (« 3 pizzerias et 2 sushis à Genève »).",
       },
+      query: { type: "string", maxLength: 160, description: "Recherche textuelle d'un établissement nommé, sans complément hors sujet." },
       city: { type: "string", maxLength: 80, description: "Ville ciblée si elle est connue en dehors du texte." },
       selections: {
         type: "array",
