@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getPostAuthTargetForRole } from "@/lib/authPostLogin";
+import { getOAuthConsentTargetFromSearch, getPostAuthTargetForRole } from "@/lib/authPostLogin";
 
 describe("post-auth workspace routing", () => {
   it("sends every production account to the canonical workspace chooser", () => {
@@ -16,6 +16,22 @@ describe("post-auth workspace routing", () => {
     for (const role of ["client", "admin", "restaurateur", "courier", "commercial"] as const) {
       expect(getPostAuthTargetForRole(role, consentTarget)).toBe(consentTarget);
     }
+  });
+
+  it("preserves OAuth consent for clients while the launch gate is enabled or unknown", () => {
+    const consentTarget = "/oauth/consent?authorization_id=authorization-123";
+    expect(getPostAuthTargetForRole("client", consentTarget, { launchEnabled: true })).toBe(consentTarget);
+    expect(getPostAuthTargetForRole("client", null, { launchEnabled: true })).toBe("/coming-soon");
+    expect(getPostAuthTargetForRole("client", "/panier", { launchEnabled: true })).toBe("/coming-soon");
+  });
+
+  it("recovers the native Supabase authorization id sent directly to the login page", () => {
+    const params = new URLSearchParams("authorization_id=authorization-123&redirect=https://attacker.example");
+    expect(getOAuthConsentTargetFromSearch(params)).toBe("/oauth/consent?authorization_id=authorization-123");
+  });
+
+  it.each(["", "authorization_id=", "authorization_id=%20", "authorization_id=x&authorization_id=y", "authorization_id=%2F%2Fevil.example", `authorization_id=${"x".repeat(201)}`])("ignores malformed or ambiguous authorization ids: %s", (query) => {
+    expect(getOAuthConsentTargetFromSearch(new URLSearchParams(query))).toBeNull();
   });
 
   it("does not accept invalid or cross-origin consent continuations", () => {

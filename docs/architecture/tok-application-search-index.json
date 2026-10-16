@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b74bbea82a2ead90d34b68b2aa4e9275835cb9bf4249556e96ad24b6b72ffa42",
+ "sourceDigest": "c36c48cff9088ad3b2f1d228879e13b7e70ea06f765d5ceb9f8ec7bf970be610",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,7 +12,7 @@
   "documents": 205,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3577,
+  "exportedSymbols": 3578,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
@@ -25,7 +25,7 @@
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 109,
-  "records": 17103,
+  "records": 17104,
   "repositoryFiles": 3220,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -14509,11 +14509,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1120
+      "line": 1122
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2346
+      "line": 2348
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -15729,7 +15729,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 33
+      "line": 35
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -17557,7 +17557,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2236
+      "line": 2238
      },
      {
       "path": "src/pages/ChefsTable.tsx",
@@ -18175,7 +18175,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3125
+      "line": 3127
      },
      {
       "path": "src/pages/CGU.tsx",
@@ -18402,7 +18402,7 @@
      },
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 34
+      "line": 45
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -18411,6 +18411,14 @@
      {
       "path": "src/lib/launchGate.ts",
       "line": 24
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 24
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 25
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -18911,7 +18919,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 36
+      "line": 38
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -18931,7 +18939,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 33
+      "line": 49
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -19783,7 +19791,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 35
+      "line": 37
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -20319,7 +20327,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 34
+      "line": 36
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -20363,7 +20371,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 31
+      "line": 47
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -22187,7 +22195,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 32
+      "line": 34
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -22219,11 +22227,11 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 22
+      "line": 38
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 26
+      "line": 42
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -26723,11 +26731,15 @@
      },
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 11
+      "line": 18
+     },
+     {
+      "path": "src/lib/launchGate.ts",
+      "line": 30
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 22
+      "line": 38
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -26741,6 +26753,14 @@
      {
       "path": "src/test/auth-post-login-routing.test.ts",
       "line": 15
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 22
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 30
      }
     ]
    },
@@ -26993,6 +27013,10 @@
       "line": 260
      },
      {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 25
+     },
+     {
       "path": "src/test/commercial-demo-visible-navigation-isolation.test.ts",
       "line": 29
      },
@@ -27170,7 +27194,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3133
+      "line": 3135
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -30807,7 +30831,11 @@
     "sources": [
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 12
+      "line": 9
+     },
+     {
+      "path": "src/lib/authPostLogin.ts",
+      "line": 19
      },
      {
       "path": "src/pages/OAuthConsent.tsx",
@@ -31024,11 +31052,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1135
+      "line": 1137
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1136
+      "line": 1138
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -31227,7 +31255,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2363
+      "line": 2365
      }
     ],
     "routes": [
@@ -32000,7 +32028,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1118
+      "line": 1120
      }
     ],
     "routes": [
@@ -33310,6 +33338,7 @@
      "src/lib/analytics.ts",
      "src/lib/auth-context.ts",
      "src/lib/auth.tsx",
+     "src/lib/authPostLogin.ts",
      "src/lib/authRedirect.ts",
      "src/lib/campaigns.ts",
      "src/lib/commercialDemoAi.ts",
@@ -33479,6 +33508,7 @@
      "src/test/audit-readiness-financial-ledger.test.ts",
      "src/test/audit-remediation.test.ts",
      "src/test/auth-password-recovery.test.ts",
+     "src/test/auth-post-login-routing.test.ts",
      "src/test/auth-provider.test.tsx",
      "src/test/auth-redirect-security.test.ts",
      "src/test/auth-signup-form.test.tsx",
@@ -94820,14 +94850,21 @@
     "path": "src/lib/authPostLogin.ts",
     "exports": [
      {
+      "name": "getOAuthConsentTargetFromSearch",
+      "line": 8,
+      "kind": "function"
+     },
+     {
       "name": "getPostAuthTargetForRole",
-      "line": 24,
+      "line": 31,
       "kind": "function"
      }
     ],
     "environmentNames": [],
-    "integrations": [],
-    "lineCount": 43
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 50
    },
    {
     "path": "src/lib/authRedirect.ts",
@@ -98819,7 +98856,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 41
+    "lineCount": 43
    },
    {
     "path": "src/lib/launchPacks.ts",
@@ -104728,7 +104765,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3408
+    "lineCount": 3410
    },
    {
     "path": "src/pages/BudgetAuto.tsx",
@@ -106995,7 +107032,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 291
+    "lineCount": 298
    },
    {
     "path": "src/pages/workforce/MyWorkforce.tsx",
@@ -107565,8 +107602,10 @@
     "path": "src/test/auth-post-login-routing.test.ts",
     "exports": [],
     "environmentNames": [],
-    "integrations": [],
-    "lineCount": 36
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 52
    },
    {
     "path": "src/test/auth-provider.test.tsx",
@@ -112124,7 +112163,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 587
+    "lineCount": 589
    },
    {
     "path": "src/test/tok-connect-edge-functions.test.ts",
@@ -140630,14 +140669,16 @@
    "id": "code-module:f357467a3e58",
    "type": "code-module",
    "title": "src/lib/authPostLogin.ts",
-   "description": "Module de 43 lignes; exports: getPostAuthTargetForRole.",
+   "description": "Module de 50 lignes; exports: getOAuthConsentTargetFromSearch, getPostAuthTargetForRole.",
    "path": "src/lib/authPostLogin.ts",
    "line": 1,
    "surface": null,
    "tags": [
-    "getPostAuthTargetForRole"
+    "getOAuthConsentTargetFromSearch",
+    "getPostAuthTargetForRole",
+    "supabase"
    ],
-   "detailRef": "be2c8461ef77"
+   "detailRef": "e217a7d27469"
   },
   {
    "id": "code-module:6fd34c3ed57c",
@@ -142349,7 +142390,7 @@
    "id": "code-module:8f61f2fc7aaf",
    "type": "code-module",
    "title": "src/lib/launchGate.ts",
-   "description": "Module de 41 lignes; exports: LaunchState, parseLaunchState, launchRemaining, launchRouteAllowed.",
+   "description": "Module de 43 lignes; exports: LaunchState, parseLaunchState, launchRemaining, launchRouteAllowed.",
    "path": "src/lib/launchGate.ts",
    "line": 1,
    "surface": null,
@@ -142360,7 +142401,7 @@
     "parseLaunchState",
     "supabase"
    ],
-   "detailRef": "89c1da28d40c"
+   "detailRef": "282579632489"
   },
   {
    "id": "code-module:1423ece8b4d9",
@@ -144923,7 +144964,7 @@
    "id": "code-module:bf93db106c70",
    "type": "code-module",
    "title": "src/pages/Auth.tsx",
-   "description": "Module de 3408 lignes; exports: default.",
+   "description": "Module de 3410 lignes; exports: default.",
    "path": "src/pages/Auth.tsx",
    "line": 1,
    "surface": null,
@@ -144934,7 +144975,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "7fb0f7104d4e"
+   "detailRef": "9ae37dce4493"
   },
   {
    "id": "code-module:7a28b76c58b7",
@@ -146743,7 +146784,7 @@
    "id": "code-module:e48308c2482e",
    "type": "code-module",
    "title": "src/pages/tok-connect/TokConnectMcpWidget.tsx",
-   "description": "Module de 291 lignes; exports: default.",
+   "description": "Module de 298 lignes; exports: default.",
    "path": "src/pages/tok-connect/TokConnectMcpWidget.tsx",
    "line": 1,
    "surface": null,
@@ -146752,7 +146793,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "12f5c66fcc07"
+   "detailRef": "bb8c1bc05855"
   },
   {
    "id": "code-module:fc064657ab93",
@@ -147574,12 +147615,14 @@
    "id": "code-module:7acfd51fa7f6",
    "type": "code-module",
    "title": "src/test/auth-post-login-routing.test.ts",
-   "description": "Module de 36 lignes; exports: aucun export statique.",
+   "description": "Module de 52 lignes; exports: aucun export statique.",
    "path": "src/test/auth-post-login-routing.test.ts",
    "line": 1,
    "surface": null,
-   "tags": [],
-   "detailRef": "6393ad2e75db"
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "ad4db4d800a7"
   },
   {
    "id": "code-module:eabb9d9ec28c",
@@ -154193,7 +154236,7 @@
    "id": "code-module:5ba8bcabdf99",
    "type": "code-module",
    "title": "src/test/tok-connect-discovery.test.ts",
-   "description": "Module de 587 lignes; exports: aucun export statique.",
+   "description": "Module de 589 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-discovery.test.ts",
    "line": 1,
    "surface": null,
@@ -154202,7 +154245,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "03bc558126b1"
+   "detailRef": "f838697f63be"
   },
   {
    "id": "code-module:43dd95d166f5",
@@ -282670,6 +282713,20 @@
    "detailRef": "14570e484114"
   },
   {
+   "id": "exported-symbol:a7656b9c843a",
+   "type": "exported-symbol",
+   "title": "getOAuthConsentTargetFromSearch",
+   "description": "Export function de src/lib/authPostLogin.ts.",
+   "path": "src/lib/authPostLogin.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "237249917497"
+  },
+  {
    "id": "exported-symbol:b89b86bf7953",
    "type": "exported-symbol",
    "title": "getOfferExpiresAt",
@@ -283161,17 +283218,18 @@
    "detailRef": "eb6a342a99b6"
   },
   {
-   "id": "exported-symbol:22600213661b",
+   "id": "exported-symbol:ba0276f66844",
    "type": "exported-symbol",
    "title": "getPostAuthTargetForRole",
    "description": "Export function de src/lib/authPostLogin.ts.",
    "path": "src/lib/authPostLogin.ts",
-   "line": 24,
+   "line": 31,
    "surface": null,
    "tags": [
-    "function"
+    "function",
+    "supabase"
    ],
-   "detailRef": "adfae3d4fb95"
+   "detailRef": "8fa5dfd056c5"
   },
   {
    "id": "exported-symbol:8d283e41e897",
@@ -346269,7 +346327,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 709 module(s).",
+   "description": "Intégration externe détectée dans 711 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -346404,6 +346462,7 @@
     "src/lib/analytics.ts",
     "src/lib/auth-context.ts",
     "src/lib/auth.tsx",
+    "src/lib/authPostLogin.ts",
     "src/lib/authRedirect.ts",
     "src/lib/campaigns.ts",
     "src/lib/commercialDemoAi.ts",
@@ -346573,6 +346632,7 @@
     "src/test/audit-readiness-financial-ledger.test.ts",
     "src/test/audit-remediation.test.ts",
     "src/test/auth-password-recovery.test.ts",
+    "src/test/auth-post-login-routing.test.ts",
     "src/test/auth-provider.test.tsx",
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx",
@@ -346985,7 +347045,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f1b347ace155"
+   "detailRef": "939e8a6fcf04"
   },
   {
    "id": "integration:c20910a79a78",
@@ -358380,7 +358440,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "dc6ffd53ec51"
+   "detailRef": "b7ab0ff21315"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -359545,7 +359605,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "7a19900e5060"
+   "detailRef": "4e909f1612e8"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -360084,7 +360144,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "90f522cd2b6c"
+   "detailRef": "bcf03befa220"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -360269,7 +360329,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "dfdc45b542a6"
+   "detailRef": "9b5e36c82bf9"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -360378,7 +360438,7 @@
    "id": "path-literal:189dd2480ec5",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 18 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 537,
    "surface": null,
@@ -360388,6 +360448,7 @@
     "src/lib/authPostLogin.ts",
     "src/lib/featureCatalog.ts",
     "src/lib/launchGate.ts",
+    "src/test/auth-post-login-routing.test.ts",
     "src/test/auth-signup-form.test.tsx",
     "src/test/coming-soon-gate.test.tsx",
     "src/test/coming-soon-signup-page.test.tsx",
@@ -360395,7 +360456,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "3996dbfc29f5"
+   "detailRef": "ba3c59fdd839"
   },
   {
    "id": "path-literal:e53adf57f6c1",
@@ -360887,7 +360948,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "43f43f63b197"
+   "detailRef": "1fbd621f8a3c"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -361154,7 +361215,7 @@
     "src/test/role-access.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "b4b53343bdfa"
+   "detailRef": "32f9481387f9"
   },
   {
    "id": "path-literal:53f7ddd4b372",
@@ -362030,7 +362091,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "d21d45f7d9be"
+   "detailRef": "48682de9cc76"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -362240,7 +362301,7 @@
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "d67bd020dd5e"
+   "detailRef": "b57b40e184a5"
   },
   {
    "id": "path-literal:61b7c747d86f",
@@ -366484,30 +366545,31 @@
    "id": "path-literal:c14788a8343e",
    "type": "path-literal",
    "title": "/oauth/consent",
-   "description": "Chemin référencé dans 5 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 459,
    "surface": null,
    "tags": [
     "src/App.tsx",
     "src/lib/authPostLogin.ts",
+    "src/lib/launchGate.ts",
     "src/test/auth-post-login-routing.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "48a4c727ca48"
+   "detailRef": "fc2d792f552b"
   },
   {
    "id": "path-literal:88954cab6189",
    "type": "path-literal",
    "title": "/oauth/consent?authorization_id=authorization-123",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/auth-post-login-routing.test.ts",
    "line": 15,
    "surface": null,
    "tags": [
     "src/test/auth-post-login-routing.test.ts"
    ],
-   "detailRef": "5a2cce06bdbb"
+   "detailRef": "2c02a4cbe916"
   },
   {
    "id": "path-literal:09d6810c2c29",
@@ -366606,7 +366668,7 @@
    "id": "path-literal:f15ac1b71119",
    "type": "path-literal",
    "title": "/panier",
-   "description": "Chemin référencé dans 42 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 43 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/launch-10k-load-check.mjs",
    "line": 25,
    "surface": null,
@@ -366637,6 +366699,7 @@
     "src/pages/OrderConfirmation.tsx",
     "src/pages/RestaurantDetail.tsx",
     "src/pages/VentesFlash.tsx",
+    "src/test/auth-post-login-routing.test.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/meal-subscription-cart.test.tsx",
     "src/test/role-route-wiring.test.ts",
@@ -366645,7 +366708,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "f6d0b1a767b5"
+   "detailRef": "6c5f49236867"
   },
   {
    "id": "path-literal:b9bd524c18de",
@@ -366730,7 +366793,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "898793f36ecd"
+   "detailRef": "ba7c7909cda0"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -377983,18 +378046,18 @@
    "detailRef": "76fa9da73536"
   },
   {
-   "id": "query-parameter:785ab52dbeb8",
+   "id": "query-parameter:500ffe577c35",
    "type": "query-parameter",
    "title": "authorization_id",
-   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
    "path": "src/lib/authPostLogin.ts",
-   "line": 12,
+   "line": 9,
    "surface": null,
    "tags": [
     "src/lib/authPostLogin.ts",
     "src/pages/OAuthConsent.tsx"
    ],
-   "detailRef": "488c545fc722"
+   "detailRef": "e5553600a93a"
   },
   {
    "id": "query-parameter:726c7a93403b",
@@ -378169,7 +378232,7 @@
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "67572e0af262"
+   "detailRef": "767273c21559"
   },
   {
    "id": "query-parameter:e58a726e4a9a",
@@ -378295,17 +378358,17 @@
    "detailRef": "b8e891e32777"
   },
   {
-   "id": "query-parameter:33f14ab3ce4b",
+   "id": "query-parameter:adb5d7bc0654",
    "type": "query-parameter",
    "title": "domain",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 2363,
+   "line": 2365,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "0e92a9c80839"
+   "detailRef": "85f337828527"
   },
   {
    "id": "query-parameter:4b8ca1ad9f1a",
@@ -378970,17 +379033,17 @@
    "detailRef": "253a489c0969"
   },
   {
-   "id": "query-parameter:376847886a9d",
+   "id": "query-parameter:6e0c6993541e",
    "type": "query-parameter",
    "title": "redirect",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 1118,
+   "line": 1120,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "c78c60051fb9"
+   "detailRef": "400fc24c95e7"
   },
   {
    "id": "query-parameter:9c0596468b12",

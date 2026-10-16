@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b74bbea82a2ead90d34b68b2aa4e9275835cb9bf4249556e96ad24b6b72ffa42`
+- Empreinte SHA-256 des sources indexées : `c36c48cff9088ad3b2f1d228879e13b7e70ea06f765d5ceb9f8ec7bf970be610`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,7 +32,7 @@
 | documents | 205 |
 | edgeFunctions | 118 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3577 |
+| exportedSymbols | 3578 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
@@ -45,7 +45,7 @@
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 109 |
-| records | 17103 |
+| records | 17104 |
 | repositoryFiles | 3220 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1372,7 +1372,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /chefs-table | 25 | [scripts/prerender-seo.mjs:994](../../scripts/prerender-seo.mjs#L994) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:31](../../src/test/tok-logo-calendar.test.ts#L31) |
-| /coming-soon | 18 | [src/App.tsx:537](../../src/App.tsx#L537) |
+| /coming-soon | 20 | [src/App.tsx:537](../../src/App.tsx#L537) |
 | /coming-soon?welcome=1 | 3 | [src/test/coming-soon-signup-page.test.tsx:53](../../src/test/coming-soon-signup-page.test.tsx#L53) |
 | /coming-soon?welcome=1&email=1 | 2 | [src/test/coming-soon-signup-page.test.tsx:53](../../src/test/coming-soon-signup-page.test.tsx#L53) |
 | /commande | 2 | [scripts/prerender-seo.mjs:1217](../../scripts/prerender-seo.mjs#L1217) |
@@ -1785,14 +1785,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /notifications | 30 | [scripts/prerender-seo.mjs:1215](../../scripts/prerender-seo.mjs#L1215) |
 | /notifications?tab=orders | 2 | [src/test/navigation.test.ts:10](../../src/test/navigation.test.ts#L10) |
 | /oauth | 2 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
-| /oauth/consent | 5 | [src/App.tsx:459](../../src/App.tsx#L459) |
-| /oauth/consent?authorization_id=authorization-123 | 1 | [src/test/auth-post-login-routing.test.ts:15](../../src/test/auth-post-login-routing.test.ts#L15) |
+| /oauth/consent | 6 | [src/App.tsx:459](../../src/App.tsx#L459) |
+| /oauth/consent?authorization_id=authorization-123 | 3 | [src/test/auth-post-login-routing.test.ts:15](../../src/test/auth-post-login-routing.test.ts#L15) |
 | /orders/add | 4 | [src/test/cloudprinter-edge-runtime.test.ts:133](../../src/test/cloudprinter-edge-runtime.test.ts#L133) |
 | /orders/cancel | 1 | [supabase/functions/_shared/print/cloudprinter.ts:342](../../supabase/functions/_shared/print/cloudprinter.ts#L342) |
 | /orders/info | 2 | [src/test/marketing-print-contract.test.ts:192](../../src/test/marketing-print-contract.test.ts#L192) |
 | /orders/quote | 1 | [supabase/functions/_shared/print/cloudprinter.ts:294](../../supabase/functions/_shared/print/cloudprinter.ts#L294) |
 | /packs-restaurateur | 14 | [scripts/prerender-seo.mjs:595](../../scripts/prerender-seo.mjs#L595) |
-| /panier | 42 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
+| /panier | 43 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
 | /parametres/securite | 5 | [src/App.tsx:365](../../src/App.tsx#L365) |
 | /placeholder.svg | 2 | [public/seo-trust-runtime.js:10](../../public/seo-trust-runtime.js#L10) |
 | /points-cadeau | 12 | [scripts/prerender-seo.mjs:1223](../../scripts/prerender-seo.mjs#L1223) |
@@ -2001,7 +2001,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | apiKey | — | 1 | [src/lib/push.ts:81](../../src/lib/push.ts#L81) |
 | appId | — | 1 | [src/lib/push.ts:84](../../src/lib/push.ts#L84) |
 | appsecret_proof | — | 1 | [supabase/functions/_shared/meta-marketing-health.ts:25](../../supabase/functions/_shared/meta-marketing-health.ts#L25) |
-| authorization_id | /oauth/consent | 2 | [src/lib/authPostLogin.ts:12](../../src/lib/authPostLogin.ts#L12) |
+| authorization_id | /oauth/consent | 3 | [src/lib/authPostLogin.ts:9](../../src/lib/authPostLogin.ts#L9) |
 | campaign_checkout | /dashboard/actualites, /dashboard/campagnes | 4 | [src/pages/dashboard/DashboardActualites.tsx:285](../../src/pages/dashboard/DashboardActualites.tsx#L285) |
 | campaign_id | /dashboard/actualites, /dashboard/campagnes | 3 | [src/pages/dashboard/DashboardActualites.tsx:305](../../src/pages/dashboard/DashboardActualites.tsx#L305) |
 | channel | — | 1 | [src/marketing/useMarketingUrlState.ts:82](../../src/marketing/useMarketingUrlState.ts#L82) |
@@ -2024,7 +2024,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | delivery | /recherche | 1 | [src/pages/Recherche.tsx:244](../../src/pages/Recherche.tsx#L244) |
 | demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:85](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L85) |
 | demo_session_id | — | 4 | [src/components/commercial/CommercialDemoActorWorkspace.tsx:88](../../src/components/commercial/CommercialDemoActorWorkspace.tsx#L88) |
-| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2363](../../src/pages/Auth.tsx#L2363) |
+| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2365](../../src/pages/Auth.tsx#L2365) |
 | fields | — | 1 | [supabase/functions/_shared/meta-marketing-health.ts:24](../../supabase/functions/_shared/meta-marketing-health.ts#L24) |
 | fields[appScreenshotSets] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:205](../../scripts/app-store-connect-upload-screenshots.mjs#L205) |
 | fields[appScreenshots] | — | 2 | [scripts/app-store-connect-upload-screenshots.mjs:237](../../scripts/app-store-connect-upload-screenshots.mjs#L237) |
@@ -2074,7 +2074,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | q | /recherche | 4 | [src/marketing/useMarketingUrlState.ts:85](../../src/marketing/useMarketingUrlState.ts#L85) |
 | quality | — | 1 | [src/lib/optimizedImages.ts:39](../../src/lib/optimizedImages.ts#L39) |
 | rating | /recherche | 1 | [src/pages/Recherche.tsx:245](../../src/pages/Recherche.tsx#L245) |
-| redirect | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:1118](../../src/pages/Auth.tsx#L1118) |
+| redirect | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:1120](../../src/pages/Auth.tsx#L1120) |
 | redirect_uri | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:221](../../supabase/functions/tok-connect-oauth/index.ts#L221) |
 | removeRestaurant | — | 1 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:171](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L171) |
 | reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:288](../../src/pages/Reservations.tsx#L288) |
@@ -6399,7 +6399,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 243 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 709 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 711 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 24 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
