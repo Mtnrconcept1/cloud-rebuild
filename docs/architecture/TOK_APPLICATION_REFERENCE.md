@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `5e97a14427c68d03be3de60c0f21b7b12e74b0260bdf0eda1584764874ca570c`
+- Empreinte SHA-256 des sources indexées : `51b25c5c44f70e52a8e288cf988094a7620af50e52587dc4b938590fe14e0aed`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1260,7 +1260,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /Outlines | 2 | [src/test/guide-pdf.test.ts:19](../../src/test/guide-pdf.test.ts#L19) |
 | /[^/]+ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /^[0-9a-f-]{36}$/i.test(deliveryId) | 1 | [src/test/marketing-one-click-unsubscribe.test.ts:69](../../src/test/marketing-one-click-unsubscribe.test.ts#L69) |
-| /^\d{4}-\d{2}-\d{2}$/ | 1 | [src/test/tok-connect-customer-journey.test.ts:144](../../src/test/tok-connect-customer-journey.test.ts#L144) |
+| /^\d{4}-\d{2}-\d{2}$/ | 1 | [src/test/tok-connect-customer-journey.test.ts:146](../../src/test/tok-connect-customer-journey.test.ts#L146) |
 | /__campaign-layout | 2 | [scripts/check-campaign-layout.mjs:59](../../scripts/check-campaign-layout.mjs#L59) |
 | /__campaign-layout-test.tsx | 1 | [scripts/check-campaign-layout.mjs:12](../../scripts/check-campaign-layout.mjs#L12) |
 | /__commercial-map | 2 | [scripts/check-commercial-map.mjs:42](../../scripts/check-commercial-map.mjs#L42) |

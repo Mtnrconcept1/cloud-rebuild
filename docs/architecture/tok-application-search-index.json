@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "5e97a14427c68d03be3de60c0f21b7b12e74b0260bdf0eda1584764874ca570c",
+ "sourceDigest": "51b25c5c44f70e52a8e288cf988094a7620af50e52587dc4b938590fe14e0aed",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -15176,7 +15176,7 @@
     "sources": [
      {
       "path": "src/test/tok-connect-customer-journey.test.ts",
-      "line": 144
+      "line": 146
      }
     ]
    },
@@ -112377,7 +112377,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 198
+    "lineCount": 200
    },
    {
     "path": "src/test/tok-connect-discovery.test.ts",
@@ -154682,7 +154682,7 @@
    "id": "code-module:1d42874808ef",
    "type": "code-module",
    "title": "src/test/tok-connect-customer-journey.test.ts",
-   "description": "Module de 198 lignes; exports: aucun export statique.",
+   "description": "Module de 200 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-customer-journey.test.ts",
    "line": 1,
    "surface": null,
@@ -154690,7 +154690,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "4724c43e7cf1"
+   "detailRef": "37efea49c5f5"
   },
   {
    "id": "code-module:5ba8bcabdf99",
@@ -359635,17 +359635,17 @@
    "detailRef": "4decf6922e9b"
   },
   {
-   "id": "path-literal:91fcc6acf06f",
+   "id": "path-literal:c1fb2cceebf7",
    "type": "path-literal",
    "title": "/^\\d{4}-\\d{2}-\\d{2}$/",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/tok-connect-customer-journey.test.ts",
-   "line": 144,
+   "line": 146,
    "surface": null,
    "tags": [
     "src/test/tok-connect-customer-journey.test.ts"
    ],
-   "detailRef": "81fb11f02bbb"
+   "detailRef": "0ca16a3bd3e1"
   },
   {
    "id": "path-literal:52d7c05491fb",

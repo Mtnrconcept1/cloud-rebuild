@@ -138,7 +138,9 @@ describe("TOK Connect transactional widget", () => {
     }
   });
   it("embeds valid JavaScript and preserves date/time validation after TS string escaping", () => {
-    const script = TOK_DISCOVERY_WIDGET_HTML.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+    const document = new JSDOM(TOK_DISCOVERY_WIDGET_HTML);
+    const script = document.window.document.querySelector("script")?.textContent;
+    document.window.close();
     expect(script).toBeTruthy();
     expect(() => new Function(script || "")).not.toThrow();
     expect(script).toContain("/^\\d{4}-\\d{2}-\\d{2}$/");
