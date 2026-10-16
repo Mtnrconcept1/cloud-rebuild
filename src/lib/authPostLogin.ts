@@ -30,12 +30,16 @@ export function getPostAuthTargetForRole(
     return getRoleHomePath(selectedRole);
   }
 
-  if (context.launchEnabled && selectedRole === "client") {
-    return "/coming-soon";
-  }
-
+  // Complete an explicitly requested OAuth consent *before* applying the
+  // customer launch gate. Otherwise ChatGPT creates pending authorizations
+  // that can never be approved while the public client app is pre-launch.
+  // Downstream order/reservation launch gates still apply independently.
   if (postAuthRedirectTarget && isOAuthConsentTarget(postAuthRedirectTarget)) {
     return postAuthRedirectTarget;
+  }
+
+  if (context.launchEnabled && selectedRole === "client") {
+    return "/coming-soon";
   }
 
   return TOK_WORKSPACE_CHOOSER_PATH;

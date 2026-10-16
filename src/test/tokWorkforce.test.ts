@@ -1,5 +1,5 @@
 import { describe,it,expect } from "vitest";
-import { csvCell,dateIsValid,workedHours,weekRange,type WorkforceEmployee,type WorkforceShift } from "@/lib/tokWorkforce";
+import { csvCell,dateIsValid,workedHours,entryWorkedHours,type WorkforceEntry,weekRange,type WorkforceEmployee,type WorkforceShift } from "@/lib/tokWorkforce";
 import { planningWarnings } from "@/lib/tokWorkforceWarnings";
 
 const employee:WorkforceEmployee={
@@ -44,5 +44,18 @@ describe("TOK Équipe — horaires et rapport",()=>{
   it("neutralise les formules et sépare correctement les champs CSV",()=>{
     expect(csvCell("=1+1")).toBe('"\'=1+1"');
     expect(csvCell('a"b')).toBe('"a""b"');
+  });
+});
+
+describe("TOK Équipe — pointages réels",()=>{
+  it("accepte les secondes et microsecondes de PostgreSQL",()=>{
+    expect(workedHours("09:00:00.123456","17:00:00.123456",30)).toBe(7.5);
+    expect(()=>workedHours("09:00:99","17:00:00",0)).toThrow();
+  });
+  it("calcule le temps écoulé réel au changement d’heure et les pauses exactes",()=>{
+    const entry={start_time:"01:00:00",end_time:"04:00:00",break_minutes:10,
+      tok_workforce_clock_sessions:[{clock_in_at:"2026-10-24T23:00:00Z",clock_out_at:"2026-10-25T03:00:00Z",break_seconds:600}]};
+    expect(entryWorkedHours(entry as WorkforceEntry)).toBe(3.83);
+    expect(entryWorkedHours({...entry,tok_workforce_clock_sessions:[{...entry.tok_workforce_clock_sessions[0],reconciled_at:"2026-10-26T10:00:00Z"}]} as WorkforceEntry)).toBe(2.83);
   });
 });

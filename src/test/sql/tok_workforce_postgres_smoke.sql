@@ -19,6 +19,7 @@ CREATE FUNCTION public.auth_owns_restaurant(p_restaurant_id uuid) RETURNS boolea
  AND auth.uid() IS NOT NULL $$;
 \i supabase/migrations/20261014165500_tok_workforce_restaurants.sql
 \i supabase/migrations/20261014180000_tok_workforce_clock_teams.sql
+\i supabase/migrations/20261016201212_tok_workforce_clock_reconciliation.sql
 
 SET "test.is_admin"='yes';
 SET "request.jwt.claim.sub"='00000000-0000-4000-8000-000000000003';
@@ -139,3 +140,37 @@ BEGIN
   RAISE EXCEPTION 'Employee from another restaurant can read Alice signature'; END IF;
 END $$;
 SELECT 'TOK WORKFORCE POSTGRES SMOKE PASSED' AS result;
+
+
+-- Orphan regularization: no timestamp rewriting, no cross-tenant entry, replay safe.
+RESET ROLE;
+INSERT INTO public.tok_workforce_clock_sessions(id,restaurant_id,employee_id,clock_in_at,clock_out_at)
+VALUES('30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','2026-10-14T08:00:00Z','2026-10-15T08:00:00Z');
+INSERT INTO public.tok_workforce_time_entries(id,restaurant_id,employee_id,entry_date,start_time,end_time)
+VALUES('40000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','2026-10-14','10:00','18:00'),
+('40000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000002','2026-10-14','10:00','18:00');
+SET ROLE authenticated;
+SET "request.jwt.claim.sub"='00000000-0000-4000-8000-000000000002';
+DO $$ BEGIN
+ BEGIN
+  PERFORM public.tok_workforce_reconcile_clock('30000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Missed departure');
+  RAISE EXCEPTION 'Cross tenant correction accepted';
+ EXCEPTION WHEN OTHERS THEN IF SQLERRM='Cross tenant correction accepted' THEN RAISE; END IF; END;
+END $$;
+SET "request.jwt.claim.sub"='00000000-0000-4000-8000-000000000003';
+DO $$ DECLARE result jsonb; BEGIN
+ BEGIN
+  PERFORM public.tok_workforce_reconcile_clock('30000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','Wrong employee');
+  RAISE EXCEPTION 'Cross employee correction accepted';
+ EXCEPTION WHEN OTHERS THEN IF SQLERRM='Cross employee correction accepted' THEN RAISE; END IF; END;
+ result:=public.tok_workforce_reconcile_clock('30000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Missed departure');
+ IF (result->>'replayed')::boolean THEN RAISE EXCEPTION 'First correction must write'; END IF;
+ result:=public.tok_workforce_reconcile_clock('30000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Missed departure');
+ IF NOT (result->>'replayed')::boolean THEN RAISE EXCEPTION 'Correction retry must replay'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.tok_workforce_clock_sessions WHERE id='30000000-0000-4000-8000-000000000001' AND reconciled_by=auth.uid() AND reconciliation_reason='Missed departure' AND clock_out_at='2026-10-15T08:00:00Z') THEN RAISE EXCEPTION 'Audit or timestamp altered'; END IF;
+END $$;
+RESET ROLE;
+DO $$ BEGIN
+ IF has_function_privilege('anon','public.tok_workforce_reconcile_clock(uuid,uuid,text)','EXECUTE') THEN RAISE EXCEPTION 'Anonymous correction allowed'; END IF;
+END $$;
+SELECT 'TOK WORKFORCE RECONCILIATION PASSED' AS result;

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs,TabsContent,TabsList,TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { workforceDb,useWorkforceAbsences,useWorkforceEntriesInRange,useWorkforceRequests,useWorkforceShifts } from "@/hooks/useTokWorkforce";
-import { workedHours,weekRange } from "@/lib/tokWorkforce";
+import { entryWorkedHours,weekRange } from "@/lib/tokWorkforce";
 import WorkforceClock from "@/components/workforce/WorkforceClock";
 import WorkforcePersonalExchanges from "@/components/workforce/WorkforcePersonalExchanges";
 
@@ -17,17 +17,17 @@ export default function WorkforcePersonal({restaurantId,employeeId,contractHours
  const [leaveStart,setLeaveStart]=useState(""),[leaveEnd,setLeaveEnd]=useState(""),[leaveDays,setLeaveDays]=useState("1");
  const cursor=useMemo(()=>{const d=new Date();d.setDate(d.getDate()+weekOffset*7);return d},[weekOffset]);
  const range=weekRange(cursor),year=new Date().getFullYear();
- const shifts=useWorkforceShifts(restaurantId,true,range.start,range.end);
- const entries=useWorkforceEntriesInRange(restaurantId,true,year+"-01-01",year+"-12-31");
- const absences=useWorkforceAbsences(restaurantId,true);
- const requests=useWorkforceRequests(restaurantId,true);
+ const shifts=useWorkforceShifts(restaurantId,true,range.start,range.end,employeeId);
+ const entries=useWorkforceEntriesInRange(restaurantId,true,year+"-01-01",year+"-12-31",employeeId);
+ const absences=useWorkforceAbsences(restaurantId,true,employeeId);
+ const requests=useWorkforceRequests(restaurantId,true,employeeId);
  const myShifts=(shifts.data||[]).filter(s=>s.employee_id===employeeId);
  const myEntries=(entries.data||[]).filter(e=>e.employee_id===employeeId);
  const myAbsences=(absences.data||[]).filter(a=>a.employee_id===employeeId);
  const myRequests=(requests.data||[]).filter(r=>r.employee_id===employeeId);
- const worked=myEntries.reduce((total,e)=>{try{return total+workedHours(e.start_time,e.end_time,e.break_minutes)}catch{return total}},0);
- const night=myEntries.filter(e=>e.is_night_work).reduce((sum,e)=>{try{return sum+workedHours(e.start_time,e.end_time,e.break_minutes)}catch{return sum}},0);
- const sunday=myEntries.filter(e=>e.is_sunday_work).reduce((sum,e)=>{try{return sum+workedHours(e.start_time,e.end_time,e.break_minutes)}catch{return sum}},0);
+ const worked=myEntries.reduce((total,e)=>{try{return total+entryWorkedHours(e)}catch{return total}},0);
+ const night=myEntries.filter(e=>e.is_night_work).reduce((sum,e)=>{try{return sum+entryWorkedHours(e)}catch{return sum}},0);
+ const sunday=myEntries.filter(e=>e.is_sunday_work).reduce((sum,e)=>{try{return sum+entryWorkedHours(e)}catch{return sum}},0);
  const leave=myAbsences.filter(a=>a.absence_type==="vacation"&&a.start_date.startsWith(String(year))).reduce((sum,a)=>sum+Number(a.days_count),0);
  const req=useMutation({mutationFn:async()=>{if(!description.trim()||description.length>2000)throw new Error("Description invalide");
   if(requestType==="vacation"&&(!leaveStart||!leaveEnd||leaveEnd<leaveStart||!Number.isFinite(Number(leaveDays))||Number(leaveDays)<=0))throw new Error("Indiquez une période et le nombre de jours de congé.");
@@ -36,6 +36,7 @@ export default function WorkforcePersonal({restaurantId,employeeId,contractHours
     requested_days:requestType==="vacation"?Number(leaveDays):null});
   if(error)throw error;},onSuccess:()=>{setDescription("");requests.refetch();toast({title:"Demande envoyée"});},
   onError:(error:Error)=>toast({title:"Demande refusée",description:error.message,variant:"destructive"})});
+ const incomplete=entries.isError||absences.isError||entries.isPending||absences.isPending;
  return <Tabs defaultValue="clock" className="space-y-5">
   <TabsList className="grid h-auto grid-cols-2 gap-1 sm:grid-cols-3 xl:grid-cols-6">
    <TabsTrigger value="clock"><Clock3 className="mr-1 h-4 w-4"/>Badgeuse</TabsTrigger>
@@ -56,22 +57,22 @@ export default function WorkforcePersonal({restaurantId,employeeId,contractHours
   </CardContent></Card></TabsContent>
   <TabsContent value="hours"><Card><CardHeader><CardTitle>Mes heures · {year}</CardTitle></CardHeader><CardContent className="space-y-2">
    {entries.isError?<p role="alert" className="text-destructive">Impossible de consulter les heures.</p>:null}
-   <p className="text-lg font-bold text-primary">{worked.toFixed(1)} h comptabilisées</p>
+   <p className="text-lg font-bold text-primary">{incomplete?"—":worked.toFixed(1)} h comptabilisées</p>
    {myEntries.length===0?<p className="text-muted-foreground">Aucune heure enregistrée.</p>:null}
    {myEntries.map(e=><div key={e.id} className="flex flex-wrap justify-between gap-2 rounded-xl border p-3 text-sm">
     <span>{e.entry_date} · {e.start_time.slice(0,5)}–{e.end_time.slice(0,5)}</span>
-    <span>{workedHours(e.start_time,e.end_time,e.break_minutes).toFixed(1)} h · Pause {e.break_minutes} min</span>
+    <span>{entryWorkedHours(e).toFixed(1)} h · Pause {e.break_minutes} min</span>
    </div>)}
    {myEntries.length>=1000?<p className="text-destructive">Limite des relevés atteinte, contactez votre responsable pour un export complet.</p>:null}
   </CardContent></Card></TabsContent>
   <TabsContent value="counters"><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
    {[
-    ["Heures travaillées",worked.toFixed(1)+" h"],["Heures de nuit",night.toFixed(1)+" h"],
-    ["Dimanches",sunday.toFixed(1)+" h"],["Vacances restantes",Math.max(0,vacationDays-leave).toFixed(1)+" j"],
+    ["Heures travaillées",incomplete?"—":worked.toFixed(1)+" h"],["Services de nuit",incomplete?"—":night.toFixed(1)+" h"],
+    ["Services du dimanche",incomplete?"—":sunday.toFixed(1)+" h"],["Vacances restantes",incomplete?"—":Math.max(0,vacationDays-leave).toFixed(1)+" j"],
    ].map(([label,value])=><Card key={label}><CardContent className="space-y-2 p-5">
     <p className="text-xs text-muted-foreground">{label}</p><p className="text-2xl font-bold text-primary">{value}</p></CardContent></Card>)}
    <Card className="sm:col-span-2 lg:col-span-4"><CardContent className="p-5 text-sm text-muted-foreground">
-    Contrat : {contractHours} h/semaine · Vacances annuelles : {vacationDays} jours · Pris : {leave} jours.
+    Contrat : {contractHours} h/semaine · Vacances annuelles : {vacationDays} jours · Pris : {incomplete?"—":leave} jours. Les compteurs de nuit et du dimanche indiquent la durée des services concernés.
     Les heures supplémentaires ne peuvent être arrêtées définitivement qu'après validation des relevés, absences et conventions applicables.
    </CardContent></Card>
   </div></TabsContent>

@@ -13,11 +13,13 @@ export default function WorkforceClock({restaurantId, employeeId}:{restaurantId:
   .select("id,clock_in_at,clock_out_at,pause_started_at,entry_id")
   .eq("restaurant_id",restaurantId).eq("employee_id",employeeId).order("clock_in_at",{ascending:false}).limit(30);
   if(error)throw error;return (data||[]) as Session[];}});
+ const unavailable=query.isPending||query.isError||query.isFetching;
  const live=query.data?.find(s=>!s.clock_out_at),paused=Boolean(live?.pause_started_at);
  const punch=useMutation({mutationFn:async(action:string)=>{const {data,error}=await workforceDb().rpc("tok_workforce_punch",{p_restaurant_id:restaurantId,p_action:action});
   if(error)throw error;return data as {time_entry_id?:string|null};},
-  onSuccess:(data,action)=>{qc.invalidateQueries({queryKey:["workforce-clock"]});qc.invalidateQueries({queryKey:["tok-workforce"]});
+  onSuccess:(data,action)=>{
     toast({title:"Pointage enregistré",description:action==="clock_out"&&!data?.time_entry_id?"Relevé à régulariser par le responsable":undefined});},
+  onSettled:async()=>{await Promise.all([qc.invalidateQueries({queryKey:["workforce-clock"]}),qc.invalidateQueries({queryKey:["workforce-clock-overview"]}),qc.invalidateQueries({queryKey:["tok-workforce"]})]);},
   onError:(err:Error)=>toast({title:"Pointage impossible",description:err.message,variant:"destructive"})});
  const stamp=(date:string)=>new Intl.DateTimeFormat("fr-CH",{dateStyle:"short",timeStyle:"short",timeZone:"Europe/Zurich"}).format(new Date(date));
  return <div className="space-y-4">
@@ -26,13 +28,13 @@ export default function WorkforceClock({restaurantId, employeeId}:{restaurantId:
    <CardContent className="space-y-4">
     {query.isPending?<p>Chargement du pointage…</p>:null}
     {query.isError?<p role="alert" className="text-destructive">État indisponible. Aucun pointage possible.</p>:null}
-    <p className="text-lg font-semibold">{!live?"Hors service":paused?"En pause":"En service"}</p>
+    <p className="text-lg font-semibold">{query.isError?"État inconnu":query.isPending?"Vérification…":!live?"Hors service":paused?"En pause":"En service"}</p>
     {live?<p className="text-sm text-muted-foreground">Arrivée : {stamp(live.clock_in_at)}</p>:null}
     <div className="flex flex-wrap gap-3">
-     {!live?<Button disabled={punch.isPending||query.isPending||query.isError} onClick={()=>punch.mutate("clock_in")}>Badger l'arrivée</Button>:null}
-     {live&&!paused?<><Button variant="secondary" disabled={punch.isPending} onClick={()=>punch.mutate("break_start")}>Début de pause</Button>
-      <Button disabled={punch.isPending} onClick={()=>punch.mutate("clock_out")}>Badger le départ</Button></>:null}
-     {live&&paused?<Button disabled={punch.isPending} onClick={()=>punch.mutate("break_end")}>Terminer la pause</Button>:null}
+     {!live?<Button disabled={punch.isPending||unavailable} onClick={()=>punch.mutate("clock_in")}>Badger l'arrivée</Button>:null}
+     {live&&!paused?<><Button variant="secondary" disabled={punch.isPending||unavailable} onClick={()=>punch.mutate("break_start")}>Début de pause</Button>
+      <Button disabled={punch.isPending||unavailable} onClick={()=>punch.mutate("clock_out")}>Badger le départ</Button></>:null}
+     {live&&paused?<Button disabled={punch.isPending||unavailable} onClick={()=>punch.mutate("break_end")}>Terminer la pause</Button>:null}
     </div>
     <p className="text-xs text-muted-foreground">Pointages horodatés sur le serveur, fuseau Europe/Zurich. Aucun antidatage possible.</p>
    </CardContent></Card>

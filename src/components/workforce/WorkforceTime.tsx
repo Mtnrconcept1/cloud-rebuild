@@ -7,7 +7,7 @@ import { Card,CardContent,CardHeader,CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { dateIsValid,employeeName,minutesFromTime,workedHours } from "@/lib/tokWorkforce";
+import { dateIsValid,employeeName,minutesFromTime,workedHours,entryWorkedHours } from "@/lib/tokWorkforce";
 import { useWorkforceEntries,useWorkforceEmployees,useWorkforceRefresh,useWorkforceValidations,workforceDb } from "@/hooks/useTokWorkforce";
 import { useAuth } from "@/lib/auth-context";
 import WorkforceSignaturePad from "./WorkforceSignaturePad";
@@ -75,7 +75,7 @@ export default function WorkforceTime({restaurantId}:{restaurantId:string}) {
         {!isPending&&entries.length===0?<p className="text-muted-foreground">Aucun relevé saisi.</p>:null}
         {entries.map(entry=>{
           const validation=validations.find(v=>v.time_entry_id===entry.id);
-          let duration="—";try{duration=workedHours(entry.start_time,entry.end_time,entry.break_minutes).toLocaleString("fr-CH")+" h";}catch{/* malformed historical record */}
+          let duration="—";try{duration=entryWorkedHours(entry).toLocaleString("fr-CH")+" h";}catch{/* malformed historical record */}
           return <div key={entry.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 p-3">
             <div><p className="font-semibold">{employeeName(employees.find(e=>e.id===entry.employee_id))}</p>
               <p className="text-sm text-muted-foreground">{entry.entry_date} · {entry.start_time.slice(0,5)}–{entry.end_time.slice(0,5)} · {duration}</p>
