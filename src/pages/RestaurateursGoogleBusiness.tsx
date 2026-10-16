@@ -16,20 +16,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { B2BTable } from "@/components/restaurateurs/B2BTable";
 import { calculateGoogleBusinessSavings } from "@/lib/googleBusinessEconomics";
-import { RESERVATION_FLAT_FEE_CHF } from "@/lib/fairGrowth";
+import { FAIR_GROWTH_PLANS, RESERVATION_FLAT_FEE_CHF } from "@/lib/fairGrowth";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
-import { GOOGLE_BUSINESS_SERVICE_SCOPE } from "@/lib/googleBusinessServiceScope";
+import { GOOGLE_BUSINESS_PLAN_PRESENTATION, GOOGLE_BUSINESS_SERVICE_SCOPE } from "@/lib/googleBusinessServiceScope";
 
 const PAGE_PATH = "/restaurateurs/google-business";
 const CANONICAL_ORIGIN = "https://www.thetok.ch";
 
 const guideSteps = [
   "Relevez le lien actuel du bouton de réservation ou de commande sur votre fiche Google Business.",
-  "Créez un lien TOK traçable pour distinguer Google Maps, recherche Google, QR code et site propre.",
-  "Ajoutez des UTM et une source claire dans le dashboard pour mesurer clics, réservations et commandes.",
+  "Depuis votre espace restaurateur TOK, créez un lien de réservation identifié comme venant de Google.",
+  "Ce lien contient une indication de provenance : elle aide à distinguer Google de votre site ou d'un QR code, lorsque les données sont disponibles.",
   "Remplacez le bouton seulement quand la page restaurant, les horaires et les créneaux sont prêts.",
-  "Suivez chaque semaine les clics Google, le taux de conversion et les ventes générées depuis ce canal.",
+  "Chaque semaine, comparez les clics, les réservations et les tables effectivement servies. Un clic ou une réservation ne prouve pas une visite.",
 ];
 
 const googleDecisionRows = [
@@ -41,15 +42,15 @@ const googleDecisionRows = [
   },
   {
     situation: "Bouton Google vers une plateforme externe",
-    risk: "Le restaurant perd la donnée client et lit mal le coût réel du canal.",
-    tokAction: "Tester TOK en parallèle, puis basculer si la conversion directe est meilleure.",
-    metric: "Coût par conversion, marge, clients récupérés dans le CRM.",
+    risk: "Les frais et l'accès aux coordonnées clients dépendent du contrat de cette plateforme.",
+    tokAction: "Tester un lien TOK avant de décider si vous souhaitez changer de service.",
+    metric: "Frais facturés, tables servies et coordonnées disponibles avec les consentements requis.",
   },
   {
     situation: "Bouton Google vers le site du restaurant",
     risk: "Le lien existe mais les horaires, services et conversions ne sont pas toujours mesurés.",
-    tokAction: "Garder l'expérience de marque et ajouter tracking, créneaux, paiements et relances.",
-    metric: "Taux de clic vers action, no-show, panier ou table moyenne.",
+    tokAction: "Conserver votre site et vérifier si un lien TOK répond à vos besoins de réservation et de suivi.",
+    metric: "Clics, réservations, absences et tables effectivement servies.",
   },
 ];
 
@@ -57,35 +58,35 @@ const channelMetrics = [
   {
     icon: MousePointerClick,
     title: "Clics Google",
-    body: "Identifiez le volume d'intention qui arrive déjà depuis Google Search et Google Maps.",
+    body: "Nombre de fois où une personne clique sur votre lien depuis Google ou Google Maps, lorsque cette mesure est disponible.",
   },
   {
     icon: Table2,
-    title: "Tables converties",
-    body: "Mesurez les réservations confirmées, les commandes à emporter et les demandes de créneau.",
+    title: "Réservations et visites",
+    body: "Une réservation confirme une demande ; une table honorée signifie que les clients sont réellement venus. Ce sont deux mesures différentes.",
   },
   {
     icon: LineChart,
-    title: "Coût par conversion",
-    body: "Comparez le coût d'acquisition réel au chiffre d'affaires généré par la fiche Google.",
+    title: "Frais de réservation",
+    body: "Comparez les frais pour les mêmes tables réellement servies. Le simulateur ci-dessous détaille chaque multiplication et l'abonnement TOK.",
   },
 ];
 
 const faqItems = [
   {
-    question: "Pourquoi créer une page dédiée à Google Business ?",
+    question: "La fiche Google est-elle payante ? Et TOK ?",
     answer:
-      "Parce que les clients qui arrivent depuis Google ont déjà une intention forte. TOK aide à convertir ces clics en réservations, commandes et données mesurables.",
+      "La fiche Google Business est gratuite. TOK est un service distinct avec un abonnement mensuel et des frais de 5 CHF par table honorée. L'accompagnement Google est inclus ou optionnel selon le pack ; une prestation optionnelle nécessite un devis.",
   },
   {
     question: "TOK peut-il remplacer le bouton de réservation Google Business ?",
     answer:
-      "TOK fournit un lien direct et traçable vers les services réellement activés. Le restaurateur l'ajoute lui-même, ou mandate TOK par écrit avec un accès gestionnaire ; aucune modification automatique de la fiche n'est annoncée.",
+      "TOK fournit un lien vers votre page restaurant et les services activés. Vous pouvez l'ajouter dans votre fiche lorsque Google le permet, ou mandater TOK par écrit avec un accès gestionnaire. Il ne s'agit pas d'une intégration automatique à tous les boutons Google.",
   },
   {
     question: "Comment mesurer les clics Google avec TOK ?",
     answer:
-      "Les liens peuvent porter une source Google Business, puis les conversions sont rapprochées des réservations, commandes, paiements et demandes de contact.",
+      "Un lien identifié Google Business aide à retrouver les visites et les réservations venant de Google lorsque les données sont disponibles. Les clics, réservations, commandes, paiements et demandes de contact restent des événements distincts ; aucun ne prouve à lui seul une table servie.",
   },
   {
     question: "Faut-il abandonner les autres plateformes immédiatement ?",
@@ -100,14 +101,16 @@ const faqItems = [
 ];
 
 function formatChf(value: number) {
-  return `${Math.round(value).toLocaleString("fr-CH")} CHF`;
+  return `${value.toLocaleString("fr-CH", { maximumFractionDigits: 2 })} CHF`;
 }
 
 export default function RestaurateursGoogleBusiness() {
   const [monthlyTables, setMonthlyTables] = useState(120);
   const [coversPerTable, setCoversPerTable] = useState(3);
   const [commissionPerCover, setCommissionPerCover] = useState(6.2);
-  const [packFee, setPackFee] = useState(149);
+  const [planSlug, setPlanSlug] = useState("pro");
+  const selectedPlan = FAIR_GROWTH_PLANS.find((plan) => plan.slug === planSlug) ?? FAIR_GROWTH_PLANS[1];
+  const packFee = selectedPlan.monthlyPriceChf;
 
   const simulation = useMemo(
     () =>
@@ -186,7 +189,7 @@ export default function RestaurateursGoogleBusiness() {
       `Couverts par table : ${coversPerTable}`,
       `Commission par couvert comparée : ${commissionPerCover} CHF`,
       `Pack TOK estimé : ${packFee} CHF/mois`,
-      `Économie mensuelle estimée : ${formatChf(simulation.monthlySavingsChf)}`,
+      `Écart mensuel estimé (coût au couvert moins TOK) : ${formatChf(simulation.monthlySavingsChf)}`,
       "",
       "Restaurant :",
       "Lien fiche Google Business :",
@@ -200,7 +203,7 @@ export default function RestaurateursGoogleBusiness() {
   return (
     <main className="bg-white text-slate-950">
       <section
-        className="relative isolate flex min-h-[76vh] items-end overflow-hidden bg-slate-950 px-4 pb-12 pt-28 text-white md:px-8 lg:px-12"
+        className="relative isolate flex items-end overflow-hidden bg-slate-950 px-4 pb-12 pt-16 text-white md:px-8 lg:px-12"
         style={{
           backgroundImage:
             "linear-gradient(90deg, rgba(5,7,15,0.9), rgba(5,7,15,0.64), rgba(5,7,15,0.18)), url('/fond3.png')",
@@ -212,22 +215,23 @@ export default function RestaurateursGoogleBusiness() {
           <div className="max-w-3xl space-y-7">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur">
               <SearchCheck className="h-4 w-4 text-orange-300" />
-              Google Business · Google Maps · Conversion directe
+              Pour les restaurants · Fiche Google et réservations
             </div>
             <div className="space-y-5">
-              <h1 className="max-w-4xl text-4xl font-black leading-[0.98] md:text-6xl">
-                Transformez votre fiche Google Business en canal direct.
+              <h1 className="max-w-4xl text-4xl font-black leading-tight md:text-5xl">
+                Depuis Google, aidez vos clients à réserver chez vous.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-white/80 md:text-lg">
-                Audit, recommandations, suivi des clics Google Maps et bouton de réservation traçable vers les services réellement ouverts.
-                Pour comparer les coûts, TOK applique 5 CHF par table réellement servie, en plus du pack mensuel sélectionné. Toute intervention
-                dans Google est soumise à mandat ; aucune publication automatique ni garantie de classement.
+                Votre fiche Google Business est la fiche gratuite de votre restaurant dans Google et Google Maps : adresse,
+                horaires, photos et liens. TOK est un service distinct, payant, pour gérer notamment vos réservations.
+                Vous pouvez ajouter un lien vers votre page restaurant TOK sur votre fiche Google, selon les options proposées par Google.
+                TOK facture 5 CHF par table réellement servie, quel que soit le nombre de personnes, en plus de l'abonnement choisi.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
                 <a href={`mailto:contact@thetok.ch?subject=${auditSubject}&body=${auditBody}`}>
-                  Auditer ma fiche Google
+                  Demander un audit par e-mail
                   <ExternalLink className="ml-2 h-5 w-5" />
                 </a>
               </Button>
@@ -246,15 +250,30 @@ export default function RestaurateursGoogleBusiness() {
           </div>
 
           <div className="grid gap-3 rounded-lg border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-md">
-            <MetricDark label="Tables Google comparées" value={monthlyTables.toLocaleString("fr-CH")} />
+            <p className="text-sm leading-6 text-white/80">Exemple modifiable dans le simulateur ci-dessous · abonnement {selectedPlan.publicName} à {formatChf(packFee)}/mois.</p>
+            <MetricDark label="Tables servies issues de Google / mois" value={monthlyTables.toLocaleString("fr-CH")} />
             <MetricDark label="Coût modèle au couvert" value={formatChf(simulation.perCoverModelCostChf)} />
             <MetricDark label="TOK : pack + 5 CHF/table" value={formatChf(simulation.tokModelCostChf)} />
             <MetricDark
-              label={simulation.isTokCheaper ? "Gain mensuel estimé" : "Écart mensuel estimé"}
+              label={simulation.monthlySavingsChf > 0 ? "TOK coûte moins par mois" : simulation.monthlySavingsChf < 0 ? "TOK coûte plus par mois" : "Coûts identiques"}
               value={formatChf(Math.abs(simulation.monthlySavingsChf))}
               accent={simulation.isTokCheaper}
             />
           </div>
+        </div>
+      </section>
+
+      <section className="border-b bg-white px-4 py-14 md:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <h2 className="text-3xl font-black">Le parcours d'un client, en 5 étapes</h2>
+          <B2BTable caption="De la recherche Google à la table servie" columns={["Étape", "Ce qui se passe", "À comprendre"]} rows={[
+            ["1. Recherche Google", "Le client trouve votre fiche dans Google ou Maps.", "Google décide du classement et des boutons disponibles. TOK ne garantit pas votre visibilité."],
+            ["2. Clic sur votre lien", "Le client ouvre le lien TOK que vous avez ajouté à la fiche.", "Un clic indique un intérêt, pas encore une réservation."],
+            ["3. Page restaurant TOK", "Il consulte votre restaurant et les services activés.", "Les horaires, informations et disponibilités doivent être à jour."],
+            ["4. Réservation", "Il choisit un créneau et effectue sa réservation.", "Une réservation n'est pas encore une table servie."],
+            ["5. Table honorée", "Les clients viennent et sont servis au restaurant.", "TOK facture 5 CHF pour cette table, pas 5 CHF par personne. L'abonnement reste dû séparément."],
+          ]} />
+          <p className="text-sm leading-6 text-slate-600">La fiche Google reste gratuite. L'accompagnement TOK dépend de votre abonnement et des prestations convenues. Toute modification de votre fiche par TOK exige votre mandat et les accès nécessaires ; elle n'est pas automatique.</p>
         </div>
       </section>
 
@@ -280,6 +299,10 @@ export default function RestaurateursGoogleBusiness() {
               </article>
             ))}
           </div>
+          <B2BTable caption="Accompagnement Google selon votre abonnement TOK" columns={["Abonnement", "Statut du service Google", "Ce que cela signifie"]} rows={FAIR_GROWTH_PLANS.map((plan) => {
+            const scope = GOOGLE_BUSINESS_PLAN_PRESENTATION[plan.slug === "pro" ? "business" : plan.slug];
+            return [plan.publicName, scope.status, scope.detail];
+          })} />
           <div className="rounded-xl border border-orange-200 bg-orange-50 p-5 text-sm leading-6 text-orange-950">
             <strong>Délais :</strong> l'audit et le calendrier d'intervention sont confirmés après réception d'un dossier complet. Toute attente d'accès, de validation restaurant ou de contrôle Google suspend le délai. Consultez les <Link className="underline" to="/conditions-restaurateurs">conditions restaurateurs</Link>.
           </div>
@@ -299,66 +322,59 @@ export default function RestaurateursGoogleBusiness() {
       </section>
 
       <section className="px-4 py-16 md:px-8 lg:px-12">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.78fr_1.22fr]">
+        <div className="mx-auto grid max-w-7xl gap-8">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Bascule du bouton Google</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Votre lien de réservation</p>
             <h2 className="text-3xl font-black md:text-4xl">Le bon lien dépend de votre situation actuelle.</h2>
             <p className="text-slate-600">
-              Le restaurateur doit pouvoir décider sans jargon : quel est le risque aujourd'hui, quelle action TOK
-              mettre en place, et quelle métrique regarder après sept jours.
+              Identifiez votre situation, puis comparez les options avant de changer votre lien.
+              Vérifiez ensuite combien de clients cliquent, réservent et viennent effectivement au restaurant.
             </p>
           </div>
-          <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-            <div className="grid bg-slate-950 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-white md:grid-cols-[0.85fr_1.05fr_1.1fr_1fr]">
-              <span>Situation</span>
-              <span>Risque</span>
-              <span>Action TOK</span>
-              <span>Mesure</span>
-            </div>
-            {googleDecisionRows.map((row) => (
-              <div key={row.situation} className="grid gap-2 border-t p-4 text-sm md:grid-cols-[0.85fr_1.05fr_1.1fr_1fr]">
-                <p className="font-bold text-slate-950">{row.situation}</p>
-                <p className="leading-6 text-slate-600">{row.risk}</p>
-                <p className="leading-6 text-orange-700">{row.tokAction}</p>
-                <p className="leading-6 text-slate-600">{row.metric}</p>
-              </div>
-            ))}
-          </div>
+          <B2BTable caption="Quel lien choisir selon votre situation ?" columns={["Situation actuelle", "Point à vérifier", "Action possible avec TOK", "Résultat à suivre"]} rows={googleDecisionRows.map((row) => [row.situation, row.risk, row.tokAction, row.metric])} />
         </div>
       </section>
 
       <section className="px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[420px_minmax(0,1fr)]">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Simulateur du canal Google</p>
-            <h2 className="text-3xl font-black md:text-4xl">Mesurez le coût de conversion des tables issues de Google.</h2>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Simulateur des frais de réservation</p>
+            <h2 className="text-3xl font-black md:text-4xl">Combien coûtent les mêmes tables dans chaque modèle ?</h2>
             <p className="text-slate-600">
-              Ce calcul compare le même volume de tables Google dans les deux modèles. Le total TOK additionne le pack mensuel
+              Un couvert est une personne servie. Une table est une réservation honorée, même si elle rassemble plusieurs personnes.
+              Ce calcul compare le même volume de tables venues depuis Google dans les deux modèles. Le total TOK additionne l'abonnement mensuel
               et 5 CHF par table ; le modèle concurrent additionne un montant pour chaque personne. Il s'agit d'une estimation,
               pas d'une garantie de trafic ou de résultat Google.
             </p>
           </div>
 
-          <div className="grid gap-6 rounded-lg border bg-white p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_290px]">
+          <div className="min-w-0 space-y-6 rounded-lg border bg-white p-5 shadow-sm">
             <div className="grid gap-4 sm:grid-cols-2">
-              <NumberField id="tables" label="Réservations issues de Google / mois" value={monthlyTables} onChange={setMonthlyTables} />
-              <NumberField id="covers" label="Personnes moyennes par réservation" value={coversPerTable} onChange={setCoversPerTable} step={0.5} />
-              <NumberField id="commission" label="Montant facturé par personne (comparatif)" value={commissionPerCover} onChange={setCommissionPerCover} step={0.1} />
-              <NumberField id="pack" label="Pack TOK mensuel" value={packFee} onChange={setPackFee} />
+              <NumberField id="tables" label="Tables réellement servies depuis Google / mois" value={monthlyTables} onChange={setMonthlyTables} />
+              <NumberField id="covers" label="Personnes en moyenne par table" value={coversPerTable} onChange={setCoversPerTable} step={0.5} />
+              <NumberField id="commission" label="Hypothèse de frais par personne (CHF)" value={commissionPerCover} onChange={setCommissionPerCover} step={0.1} />
+              <div className="space-y-2">
+                <Label htmlFor="google-pack">Abonnement TOK · paiement mensuel</Label>
+                <select id="google-pack" value={planSlug} onChange={(event) => setPlanSlug(event.target.value)} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  {FAIR_GROWTH_PLANS.map((plan) => <option key={plan.slug} value={plan.slug}>{plan.publicName} · {formatChf(plan.monthlyPriceChf)}/mois</option>)}
+                </select>
+              </div>
             </div>
-
-            <div className="grid gap-3 rounded-lg bg-slate-950 p-4 text-white">
-              <MetricDark label="1. Personnes comparées" value={simulation.monthlyCovers.toLocaleString("fr-CH")} />
-              <MetricDark label="2. Modèle au couvert" value={formatChf(simulation.perCoverModelCostChf)} />
-              <MetricDark label="3. TOK : pack + tables" value={formatChf(simulation.tokModelCostChf)} />
-              <p className="rounded-md border border-white/10 bg-white/5 p-3 text-xs leading-5 text-white/75">
-                Au couvert : {simulation.monthlyCovers.toLocaleString("fr-CH")} personnes × {commissionPerCover.toLocaleString("fr-CH")} CHF.
-                <br />
-                TOK : {monthlyTables.toLocaleString("fr-CH")} tables × 5 CHF + pack {formatChf(packFee)}.
-              </p>
-              <MetricDark label="Coût TOK par personne" value={`${simulation.tokEffectiveCostPerCoverChf.toLocaleString("fr-CH")} CHF`} />
-              <MetricDark label="Écart annuel estimé" value={formatChf(simulation.annualSavingsChf)} accent={simulation.isTokCheaper} />
+            <B2BTable caption="Détail du calcul avec vos valeurs" columns={["Étape", "Calcul", "Résultat"]} rows={[
+              ["Personnes servies / mois", `${monthlyTables.toLocaleString("fr-CH")} tables × ${coversPerTable.toLocaleString("fr-CH")} personnes`, simulation.monthlyCovers.toLocaleString("fr-CH")],
+              ["Modèle au couvert / mois", `${simulation.monthlyCovers.toLocaleString("fr-CH")} personnes × ${formatChf(commissionPerCover)}`, formatChf(simulation.perCoverModelCostChf)],
+              ["TOK : frais de tables / mois", `${monthlyTables.toLocaleString("fr-CH")} tables × ${formatChf(RESERVATION_FLAT_FEE_CHF)}`, formatChf(monthlyTables * RESERVATION_FLAT_FEE_CHF)],
+              ["TOK : abonnement / mois", `${selectedPlan.publicName} · paiement mensuel`, formatChf(packFee)],
+              ["TOK : total / mois", `${formatChf(monthlyTables * RESERVATION_FLAT_FEE_CHF)} + ${formatChf(packFee)}`, formatChf(simulation.tokModelCostChf)],
+              ["Écart / mois", `Coût au couvert − total TOK : ${formatChf(simulation.perCoverModelCostChf)} − ${formatChf(simulation.tokModelCostChf)}`, formatChf(simulation.monthlySavingsChf)],
+              ["Écart sur 12 mois identiques", `${formatChf(simulation.monthlySavingsChf)} × 12`, formatChf(simulation.annualSavingsChf)],
+              ["Coût TOK moyen par personne", simulation.monthlyCovers > 0 ? `${formatChf(simulation.tokModelCostChf)} ÷ ${simulation.monthlyCovers.toLocaleString("fr-CH")} personnes` : "Division impossible : aucune personne", simulation.monthlyCovers > 0 ? formatChf(simulation.tokEffectiveCostPerCoverChf) : "Non applicable"],
+            ]} />
+            <div role="status" aria-live="polite" className="rounded-lg bg-slate-950 p-4 text-white">
+              <p className="font-bold">{simulation.monthlySavingsChf > 0 ? `Avec ces hypothèses, TOK coûte ${formatChf(simulation.monthlySavingsChf)} de moins par mois.` : simulation.monthlySavingsChf < 0 ? `Avec ces hypothèses, TOK coûte ${formatChf(Math.abs(simulation.monthlySavingsChf))} de plus par mois.` : "Avec ces hypothèses, les deux modèles ont le même coût mensuel."}</p>
+              <p className="mt-2 text-sm leading-6 text-white/80">Un écart positif indique une économie de frais avec TOK ; un écart négatif indique un surcoût. Il ne s'agit pas d'une marge ni d'un bénéfice.</p>
             </div>
+            <p className="text-sm leading-6 text-slate-600">Hypothèses : mêmes tables réellement servies, même nombre de personnes et tarifs constants. Le montant par personne est votre hypothèse, pas un tarif concurrent vérifié. L'abonnement et les éventuels frais supplémentaires de l'autre service ne sont pas inclus. Le calcul impute ici l'abonnement TOK entier aux tables Google, même s'il sert aussi à d'autres usages. Il ne comprend pas les autres services, options, frais de commande ou de paiement, ni une comparaison de TVA. L'écart annuel multiplie le mois par 12 : il n'applique pas l'offre TOK en paiement annuel. Une moyenne de personnes peut être décimale ; une table reste une réservation honorée.</p>
           </div>
         </div>
       </section>
@@ -366,12 +382,13 @@ export default function RestaurateursGoogleBusiness() {
       <section className="bg-slate-50 px-4 py-16 md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.85fr_1.15fr]">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Checklist de bascule</p>
-            <h2 className="text-3xl font-black">Changer le bouton Google sans perdre la mesure.</h2>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Mise en place pas à pas</p>
+            <h2 className="text-3xl font-black">Ajouter votre lien et suivre les résultats.</h2>
             <p className="text-slate-600">
-              Chaque étape doit laisser une trace : lien avant/après, source, date, service ouvert et conversion finale.
-              Le dashboard permet aujourd'hui de générer/copier le lien, déclarer la fiche, confirmer la configuration,
-              demander de l'aide et lire les conversions disponibles ; il ne modifie pas automatiquement Google.
+              Gardez une copie de l'ancien lien et notez la date du changement pour comparer les résultats.
+              Votre espace restaurateur permet de générer et copier le lien, renseigner votre fiche,
+              confirmer sa configuration, demander de l'aide et consulter les résultats disponibles ; il ne modifie pas automatiquement Google. Vous ajoutez vous-même le lien dans Google,
+              ou vous mandatez TOK par écrit avec un accès gestionnaire.
             </p>
           </div>
           <ol className="grid gap-3">
@@ -392,13 +409,13 @@ export default function RestaurateursGoogleBusiness() {
           {[
             {
               icon: Link2,
-              title: "Lien traçable",
-              body: "Un lien Google Business ne doit pas être un simple raccourci. Il doit porter une source lisible.",
+              title: "Savoir d'où vient le client",
+              body: "Le lien identifié Google aide à retrouver l'origine des visites et des réservations dans les données disponibles.",
             },
             {
               icon: MapPinned,
               title: "Google Maps",
-              body: "Les recherches de proximité sont traitées comme un canal commercial distinct du site et des réseaux sociaux.",
+              body: "Votre fiche aide les clients qui cherchent un restaurant près d'eux. Google contrôle son affichage et ses fonctionnalités.",
             },
             {
               icon: ShieldCheck,
@@ -418,16 +435,16 @@ export default function RestaurateursGoogleBusiness() {
       <section className="bg-slate-950 px-4 py-16 text-white md:px-8 lg:px-12">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_420px]">
           <div className="space-y-4">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-300">Audit gratuit</p>
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-300">Demande d'audit</p>
             <h2 className="text-3xl font-black md:text-4xl">Votre fiche Google envoie-t-elle vraiment les clients chez vous ?</h2>
             <p className="max-w-2xl text-sm leading-6 text-white/70">
               Envoyez votre fiche, votre bouton actuel et vos volumes estimés. TOK vous renvoie une lecture claire :
-              source, conversion, coût et prochaines actions.
+              parcours du client, réservations mesurables, frais et prochaines actions. Le bouton ouvre votre application de messagerie avec un brouillon ; vous choisissez de l'envoyer.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
                 <a href={`mailto:contact@thetok.ch?subject=${auditSubject}&body=${auditBody}`}>
-                  Lancer l'audit Google
+                  Préparer ma demande d'audit
                   <CheckCircle2 className="ml-2 h-5 w-5" />
                 </a>
               </Button>
@@ -444,7 +461,7 @@ export default function RestaurateursGoogleBusiness() {
           <div className="rounded-lg border border-white/12 bg-white/10 p-5">
             <h3 className="text-lg font-bold">FAQ Google Business</h3>
             <div className="mt-4 grid gap-3">
-              {faqItems.slice(0, 3).map((item) => (
+              {faqItems.map((item) => (
                 <article key={item.question} className="rounded-md bg-white/10 p-4">
                   <h4 className="text-sm font-bold">{item.question}</h4>
                   <p className="mt-2 text-sm leading-6 text-white/70">{item.answer}</p>
@@ -480,7 +497,10 @@ function NumberField({
         min={0}
         step={step}
         value={value}
-        onChange={(event) => onChange(Number(event.target.value) || 0)}
+        onChange={(event) => {
+          const nextValue = Number(event.target.value);
+          onChange(Number.isFinite(nextValue) ? Math.max(0, nextValue) : 0);
+        }}
       />
     </div>
   );

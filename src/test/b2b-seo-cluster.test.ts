@@ -18,7 +18,7 @@ describe("B2B restaurateur SEO cluster", () => {
     const google = read(pages.google);
     const alternative = read(pages.alternative);
 
-    expect(geneve).toContain("La plateforme restaurateur pour transformer la demande locale à Genève");
+    expect(geneve).toContain("Réservations, commandes et fidélité : votre restaurant réuni dans TOK");
     expect(geneve).toContain("Trois repères avant de comparer les offres");
     expect(geneve).toContain("Réservations et commandes directes");
     expect(geneve).toContain("Anti-gaspi et ventes flash");
@@ -28,14 +28,14 @@ describe("B2B restaurateur SEO cluster", () => {
     expect(geneve).toContain("Besoin terrain");
     expect(geneve).toContain("Résultat attendu");
 
-    expect(google).toContain("Transformez votre fiche Google Business en canal direct");
-    expect(google).toContain("clics Google Maps");
-    expect(google).toContain("Checklist de bascule");
-    expect(google).toContain("Réservations issues de Google / mois");
-    expect(google).toContain("bouton de réservation traçable");
-    expect(google).toContain("Bascule du bouton Google");
+    expect(google).toContain("Depuis Google, aidez vos clients à réserver chez vous");
+    expect(google).toContain("Google Maps");
+    expect(google).toContain("Mise en place pas à pas");
+    expect(google).toContain("Tables réellement servies depuis Google / mois");
+    expect(google).toContain("lien de réservation");
+    expect(google).toContain("Quel lien choisir selon votre situation ?");
     expect(google).toContain("Situation");
-    expect(google).toContain("Action TOK");
+    expect(google).toContain("Action possible avec TOK");
 
     expect(alternative).toContain("Commission par couvert : comparez avant de choisir");
     expect(alternative).toContain("coût d'acquisition");
@@ -45,7 +45,7 @@ describe("B2B restaurateur SEO cluster", () => {
     expect(alternative).toContain("À vérifier");
     expect(alternative).toContain("Avec TOK");
 
-    expect(geneve).not.toContain("Transformez votre fiche Google Business en canal direct");
+    expect(geneve).not.toContain("Depuis Google, aidez vos clients à réserver chez vous");
     expect(google).not.toContain("Scénarios chiffrés");
     expect(alternative).not.toContain("dashboard pensé pour les restaurants genevois");
   });

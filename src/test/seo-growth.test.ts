@@ -111,11 +111,11 @@ describe("SEO growth readiness", () => {
     expect(prerender).toContain('<section id="tok-prerendered-content" data-prerendered="true"');
     expect(prerender).toContain('`<div id="root">${renderStaticContent(page)}</div>`');
     expect(prerender).not.toContain("<noscript><section");
-    expect(prerender).toContain("La plateforme restaurateur pour transformer la demande locale à Genève.");
+    expect(prerender).toContain("Réservations, commandes et fidélité : votre restaurant réuni dans TOK.");
     expect(prerender).toContain("Plan d'activation Genève");
     expect(prerender).toContain("Modules restaurateur");
-    expect(prerender).toContain("Transformez votre fiche Google Business en canal direct.");
-    expect(prerender).toContain("Checklist de bascule");
+    expect(prerender).toContain("Depuis Google, aidez vos clients à réserver chez vous.");
+    expect(prerender).toContain("Mise en place pas à pas");
     expect(prerender).toContain("Commission par couvert : comparez avant de choisir.");
     expect(prerender).toContain("Scénarios chiffrés");
     expect(prerender).toContain("BreadcrumbList");

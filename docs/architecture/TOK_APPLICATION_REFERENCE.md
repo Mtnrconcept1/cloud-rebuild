@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `89045b5a8b7102c387de814ca4e8e7751cd298aaed9dfee1b9c96eecc877b091`
+- Empreinte SHA-256 des sources indexées : `9a1533374bc969e8c89c3d1e17836e2534d00a21cfdade9c325a94b31bd321e8`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 206 |
 | edgeFunctions | 118 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3579 |
+| exportedSymbols | 3580 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 545 |
-| modules | 1595 |
+| modules | 1597 |
 | pages | 133 |
 | pathLiterals | 757 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 109 |
-| records | 17125 |
-| repositoryFiles | 3225 |
+| records | 17130 |
+| repositoryFiles | 3227 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1266,8 +1266,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /__commercial-map-test.tsx | 1 | [scripts/check-commercial-map.mjs:10](../../scripts/check-commercial-map.mjs#L10) |
 | /__tests__/ | 1 | [scripts/frontend-10k-readiness.mjs:164](../../scripts/frontend-10k-readiness.mjs#L164) |
 | /a | 1 | [src/test/seo-restaurant-context-hardening.test.ts:40](../../src/test/seo-restaurant-context-hardening.test.ts#L40) |
-| /a-propos | 14 | [scripts/prerender-seo.mjs:1066](../../scripts/prerender-seo.mjs#L1066) |
-| /abonnement | 14 | [scripts/prerender-seo.mjs:1002](../../scripts/prerender-seo.mjs#L1002) |
+| /a-propos | 14 | [scripts/prerender-seo.mjs:1106](../../scripts/prerender-seo.mjs#L1106) |
+| /abonnement | 14 | [scripts/prerender-seo.mjs:1042](../../scripts/prerender-seo.mjs#L1042) |
 | /actions/runs/$FAILED_WORKFLOW_ID/jobs | 1 | [src/test/incident-automation-readiness.test.ts:547](../../src/test/incident-automation-readiness.test.ts#L547) |
 | /actualites | 32 | [scripts/harden-seo-crawl.mjs:380](../../scripts/harden-seo-crawl.mjs#L380) |
 | /actualites/ | 2 | [scripts/prerender-seo.mjs:49](../../scripts/prerender-seo.mjs#L49) |
@@ -1321,7 +1321,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/utilisateurs?tab=commercials | 3 | [src/components/admin/AdminMobileNavigation.tsx:68](../../src/components/admin/AdminMobileNavigation.tsx#L68) |
 | /admin/utilisateurs?tab=couriers | 3 | [src/components/admin/AdminMobileNavigation.tsx:70](../../src/components/admin/AdminMobileNavigation.tsx#L70) |
 | /advisor | 1 | [src/lib/commercialDemoAi.ts:293](../../src/lib/commercialDemoAi.ts#L293) |
-| /aide | 15 | [scripts/prerender-seo.mjs:1082](../../scripts/prerender-seo.mjs#L1082) |
+| /aide | 15 | [scripts/prerender-seo.mjs:1122](../../scripts/prerender-seo.mjs#L1122) |
 | /aligro-catalog-sync | 1 | [src/test/supplier-catalog-sync.test.ts:82](../../src/test/supplier-catalog-sync.test.ts#L82) |
 | /anti-gaspi | 22 | [scripts/prerender-seo.mjs:341](../../scripts/prerender-seo.mjs#L341) |
 | /api | 1 | [vite.config.ts:97](../../vite.config.ts#L97) |
@@ -1343,7 +1343,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
 | /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:524](../../src/test/tok-ai-tools.test.ts#L524) |
 | /assets/missing.js | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
-| /auth | 54 | [scripts/prerender-seo.mjs:1225](../../scripts/prerender-seo.mjs#L1225) |
+| /auth | 54 | [scripts/prerender-seo.mjs:1265](../../scripts/prerender-seo.mjs#L1265) |
 | /auth/ | 1 | [src/components/ComingSoonGate.tsx:13](../../src/components/ComingSoonGate.tsx#L13) |
 | /auth/callback | 19 | [src/App.tsx:568](../../src/App.tsx#L568) |
 | /auth/callback? | 1 | [src/lib/deep-links.ts:33](../../src/lib/deep-links.ts#L33) |
@@ -1362,20 +1362,20 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth?type=client | 14 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
 | /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:611](../../src/test/auth-signup-form.test.tsx#L611) |
 | /availability | 1 | [supabase/functions/tok-connect-api/index.ts:1039](../../supabase/functions/tok-connect-api/index.ts#L1039) |
-| /budget-auto | 11 | [scripts/prerender-seo.mjs:1026](../../scripts/prerender-seo.mjs#L1026) |
+| /budget-auto | 11 | [scripts/prerender-seo.mjs:1066](../../scripts/prerender-seo.mjs#L1066) |
 | /campagnes | 1 | [src/lib/commercialDemoAi.ts:298](../../src/lib/commercialDemoAi.ts#L298) |
 | /carte | 2 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
-| /cgu | 22 | [scripts/prerender-seo.mjs:1171](../../scripts/prerender-seo.mjs#L1171) |
+| /cgu | 22 | [scripts/prerender-seo.mjs:1211](../../scripts/prerender-seo.mjs#L1211) |
 | /chef.png | 1 | [src/test/marketing-email-template.test.ts:25](../../src/test/marketing-email-template.test.ts#L25) |
 | /chef2.png | 3 | [src/test/transactional-email-templates.test.ts:101](../../src/test/transactional-email-templates.test.ts#L101) |
 | /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:671](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L671) |
-| /chefs-table | 25 | [scripts/prerender-seo.mjs:994](../../scripts/prerender-seo.mjs#L994) |
+| /chefs-table | 25 | [scripts/prerender-seo.mjs:1034](../../scripts/prerender-seo.mjs#L1034) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:31](../../src/test/tok-logo-calendar.test.ts#L31) |
 | /coming-soon | 20 | [src/App.tsx:537](../../src/App.tsx#L537) |
 | /coming-soon?welcome=1 | 3 | [src/test/coming-soon-signup-page.test.tsx:53](../../src/test/coming-soon-signup-page.test.tsx#L53) |
 | /coming-soon?welcome=1&email=1 | 2 | [src/test/coming-soon-signup-page.test.tsx:53](../../src/test/coming-soon-signup-page.test.tsx#L53) |
-| /commande | 2 | [scripts/prerender-seo.mjs:1217](../../scripts/prerender-seo.mjs#L1217) |
+| /commande | 2 | [scripts/prerender-seo.mjs:1257](../../scripts/prerender-seo.mjs#L1257) |
 | /commande/ | 3 | [src/components/navigation/BackNavigationButton.tsx:22](../../src/components/navigation/BackNavigationButton.tsx#L22) |
 | /commande/123?tab=details | 1 | [src/test/navigation.test.ts:24](../../src/test/navigation.test.ts#L24) |
 | /commande/:id | 4 | [src/App.tsx:585](../../src/App.tsx#L585) |
@@ -1384,7 +1384,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commande/confirmation?checkout_kind=order | 1 | [src/test/payment-attempt-state.test.ts:114](../../src/test/payment-attempt-state.test.ts#L114) |
 | /commande/id | 1 | [src/test/coming-soon-gate.test.tsx:42](../../src/test/coming-soon-gate.test.tsx#L42) |
 | /commande/order-1 | 3 | [src/test/notifications-sinistres-governance.test.ts:23](../../src/test/notifications-sinistres-governance.test.ts#L23) |
-| /commandes | 37 | [scripts/prerender-seo.mjs:1216](../../scripts/prerender-seo.mjs#L1216) |
+| /commandes | 37 | [scripts/prerender-seo.mjs:1256](../../scripts/prerender-seo.mjs#L1256) |
 | /commercial | 51 | [scripts/application-index-core.mjs:171](../../scripts/application-index-core.mjs#L171) |
 | /commercial/ | 4 | [src/App.tsx:321](../../src/App.tsx#L321) |
 | /commercial/anything | 1 | [src/test/commercial-domain-isolation.test.ts:177](../../src/test/commercial-domain-isolation.test.ts#L177) |
@@ -1405,10 +1405,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commercial/route-inconnue | 1 | [src/test/commercial-domain-isolation.test.ts:189](../../src/test/commercial-domain-isolation.test.ts#L189) |
 | /commercial?tab=followups | 2 | [src/test/notifications-sinistres-governance.test.ts:39](../../src/test/notifications-sinistres-governance.test.ts#L39) |
 | /commercially | 1 | [src/test/commercial-domain-isolation.test.ts:178](../../src/test/commercial-domain-isolation.test.ts#L178) |
-| /compte | 5 | [scripts/prerender-seo.mjs:1220](../../scripts/prerender-seo.mjs#L1220) |
-| /conditions-restaurateurs | 19 | [scripts/prerender-seo.mjs:1185](../../scripts/prerender-seo.mjs#L1185) |
-| /contact | 21 | [scripts/prerender-seo.mjs:798](../../scripts/prerender-seo.mjs#L798) |
-| /cookies | 18 | [scripts/prerender-seo.mjs:1178](../../scripts/prerender-seo.mjs#L1178) |
+| /compte | 5 | [scripts/prerender-seo.mjs:1260](../../scripts/prerender-seo.mjs#L1260) |
+| /conditions-restaurateurs | 19 | [scripts/prerender-seo.mjs:1225](../../scripts/prerender-seo.mjs#L1225) |
+| /contact | 21 | [scripts/prerender-seo.mjs:812](../../scripts/prerender-seo.mjs#L812) |
+| /cookies | 18 | [scripts/prerender-seo.mjs:1218](../../scripts/prerender-seo.mjs#L1218) |
 | /courier | 32 | [scripts/application-index-core.mjs:170](../../scripts/application-index-core.mjs#L170) |
 | /courier/ | 3 | [src/App.tsx:319](../../src/App.tsx#L319) |
 | /courier/earnings | 7 | [src/App.tsx:429](../../src/App.tsx#L429) |
@@ -1416,7 +1416,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /courier/jobs?job=job-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:31](../../src/test/notifications-sinistres-governance.test.ts#L31) |
 | /courier/notifications | 11 | [src/App.tsx:429](../../src/App.tsx#L429) |
 | /courier/profile | 8 | [src/App.tsx:429](../../src/App.tsx#L429) |
-| /creneaux-garantis | 11 | [scripts/prerender-seo.mjs:1010](../../scripts/prerender-seo.mjs#L1010) |
+| /creneaux-garantis | 11 | [scripts/prerender-seo.mjs:1050](../../scripts/prerender-seo.mjs#L1050) |
 | /dashboard | 84 | [scripts/application-index-core.mjs:169](../../scripts/application-index-core.mjs#L169) |
 | /dashboard/ | 4 | [src/App.tsx:315](../../src/App.tsx#L315) |
 | /dashboard/abonnement | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:224](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L224) |
@@ -1476,8 +1476,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /enrich-directory-images | 2 | [src/test/directory-image-discovery-worker.test.ts:44](../../src/test/directory-image-discovery-worker.test.ts#L44) |
 | /equipe/gestion | 3 | [src/App.tsx:571](../../src/App.tsx#L571) |
 | /equipe/mon-espace | 7 | [src/App.tsx:570](../../src/App.tsx#L570) |
-| /espace-client | 4 | [scripts/prerender-seo.mjs:1221](../../scripts/prerender-seo.mjs#L1221) |
-| /espaces | 29 | [scripts/prerender-seo.mjs:1227](../../scripts/prerender-seo.mjs#L1227) |
+| /espace-client | 4 | [scripts/prerender-seo.mjs:1261](../../scripts/prerender-seo.mjs#L1261) |
+| /espaces | 29 | [scripts/prerender-seo.mjs:1267](../../scripts/prerender-seo.mjs#L1267) |
 | /factors | 1 | [server/marketingBff.ts:791](../../server/marketingBff.ts#L791) |
 | /fallback.jpg | 4 | [src/test/security-url-helpers.test.ts:17](../../src/test/security-url-helpers.test.ts#L17) |
 | /favicon-180x180.png | 2 | [src/hooks/useTokLogo.ts:25](../../src/hooks/useTokLogo.ts#L25) |
@@ -1485,7 +1485,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /favicon-48x48.png | 2 | [src/hooks/useTokLogo.ts:25](../../src/hooks/useTokLogo.ts#L25) |
 | /favicon-512x512.png | 1 | [src/test/favicon-branding.test.ts:59](../../src/test/favicon-branding.test.ts#L59) |
 | /firebase-messaging-sw.js | 1 | [src/lib/push.ts:80](../../src/lib/push.ts#L80) |
-| /flex-prix-bas | 11 | [scripts/prerender-seo.mjs:1058](../../scripts/prerender-seo.mjs#L1058) |
+| /flex-prix-bas | 11 | [scripts/prerender-seo.mjs:1098](../../scripts/prerender-seo.mjs#L1098) |
 | /fond3.png | 7 | [public/seo-trust-runtime.js:8](../../public/seo-trust-runtime.js#L8) |
 | /fondbanniere.png | 1 | [src/test/dashboard-overview-google-compact.test.ts:24](../../src/test/dashboard-overview-google-compact.test.ts#L24) |
 | /functions/v1/ | 8 | [src/lib/commercialDemoEffects.ts:27](../../src/lib/commercialDemoEffects.ts#L27) |
@@ -1500,7 +1500,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /functions/v1/tok-pulse-widget | 2 | [src/pages/TokPulse.tsx:57](../../src/pages/TokPulse.tsx#L57) |
 | /galerie | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
 | /gallery | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
-| /garantie-qualite | 11 | [scripts/prerender-seo.mjs:1018](../../scripts/prerender-seo.mjs#L1018) |
+| /garantie-qualite | 11 | [scripts/prerender-seo.mjs:1058](../../scripts/prerender-seo.mjs#L1058) |
 | /generations | 1 | [src/test/marketing-brand-references.test.ts:88](../../src/test/marketing-brand-references.test.ts#L88) |
 | /google-actions-center-sync | 1 | [src/test/google-actions-center-outbox.test.ts:147](../../src/test/google-actions-center-outbox.test.ts#L147) |
 | /guide | 5 | [src/App.tsx:701](../../src/App.tsx#L701) |
@@ -1770,21 +1770,21 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
 | /marketing/login | 10 | [src/App.tsx:744](../../src/App.tsx#L744) |
 | /marketing_calendar_items? | 5 | [src/test/marketing-approval-readiness.test.ts:30](../../src/test/marketing-approval-readiness.test.ts#L30) |
-| /match-groupes | 13 | [scripts/prerender-seo.mjs:1050](../../scripts/prerender-seo.mjs#L1050) |
+| /match-groupes | 13 | [scripts/prerender-seo.mjs:1090](../../scripts/prerender-seo.mjs#L1090) |
 | /me/accounts? | 1 | [src/test/marketing-meta-publishing.test.ts:106](../../src/test/marketing-meta-publishing.test.ts#L106) |
-| /memoire-tok | 7 | [scripts/prerender-seo.mjs:1214](../../scripts/prerender-seo.mjs#L1214) |
+| /memoire-tok | 7 | [scripts/prerender-seo.mjs:1254](../../scripts/prerender-seo.mjs#L1254) |
 | /menu | 3 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
-| /mes-avis | 8 | [scripts/prerender-seo.mjs:1222](../../scripts/prerender-seo.mjs#L1222) |
+| /mes-avis | 8 | [scripts/prerender-seo.mjs:1262](../../scripts/prerender-seo.mjs#L1262) |
 | /miamz | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:206](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L206) |
 | /miamz-solidaires | 13 | [scripts/prerender-seo.mjs:564](../../scripts/prerender-seo.mjs#L564) |
-| /mon-espace | 31 | [scripts/prerender-seo.mjs:1219](../../scripts/prerender-seo.mjs#L1219) |
+| /mon-espace | 31 | [scripts/prerender-seo.mjs:1259](../../scripts/prerender-seo.mjs#L1259) |
 | /mon-espace?source=pwa-shortcut | 1 | [src/test/application-search-index.test.ts:108](../../src/test/application-search-index.test.ts#L108) |
-| /multi-restaurant | 15 | [scripts/prerender-seo.mjs:1034](../../scripts/prerender-seo.mjs#L1034) |
-| /multi-stop | 12 | [scripts/prerender-seo.mjs:1042](../../scripts/prerender-seo.mjs#L1042) |
+| /multi-restaurant | 15 | [scripts/prerender-seo.mjs:1074](../../scripts/prerender-seo.mjs#L1074) |
+| /multi-stop | 12 | [scripts/prerender-seo.mjs:1082](../../scripts/prerender-seo.mjs#L1082) |
 | /notification/partners/{partnerId}/bookings:notify | 1 | [supabase/functions/google-actions-center-sync/index.ts:60](../../supabase/functions/google-actions-center-sync/index.ts#L60) |
-| /notifications | 30 | [scripts/prerender-seo.mjs:1215](../../scripts/prerender-seo.mjs#L1215) |
+| /notifications | 30 | [scripts/prerender-seo.mjs:1255](../../scripts/prerender-seo.mjs#L1255) |
 | /notifications?tab=orders | 2 | [src/test/navigation.test.ts:10](../../src/test/navigation.test.ts#L10) |
-| /oauth | 2 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
+| /oauth | 2 | [scripts/prerender-seo.mjs:1266](../../scripts/prerender-seo.mjs#L1266) |
 | /oauth/consent | 8 | [src/App.tsx:459](../../src/App.tsx#L459) |
 | /oauth/consent?authorization_id=authorization-123 | 3 | [src/test/auth-post-login-routing.test.ts:15](../../src/test/auth-post-login-routing.test.ts#L15) |
 | /oauth/unknown | 1 | [src/test/tok-connect-oauth-routing.test.ts:10](../../src/test/tok-connect-oauth-routing.test.ts#L10) |
@@ -1792,23 +1792,23 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /orders/cancel | 1 | [supabase/functions/_shared/print/cloudprinter.ts:342](../../supabase/functions/_shared/print/cloudprinter.ts#L342) |
 | /orders/info | 2 | [src/test/marketing-print-contract.test.ts:192](../../src/test/marketing-print-contract.test.ts#L192) |
 | /orders/quote | 1 | [supabase/functions/_shared/print/cloudprinter.ts:294](../../supabase/functions/_shared/print/cloudprinter.ts#L294) |
-| /packs-restaurateur | 14 | [scripts/prerender-seo.mjs:595](../../scripts/prerender-seo.mjs#L595) |
+| /packs-restaurateur | 16 | [scripts/prerender-seo.mjs:595](../../scripts/prerender-seo.mjs#L595) |
 | /panier | 44 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
 | /parametres/securite | 5 | [src/App.tsx:365](../../src/App.tsx#L365) |
 | /placeholder.svg | 2 | [public/seo-trust-runtime.js:10](../../public/seo-trust-runtime.js#L10) |
-| /points-cadeau | 12 | [scripts/prerender-seo.mjs:1223](../../scripts/prerender-seo.mjs#L1223) |
-| /politique-confidentialite | 21 | [scripts/prerender-seo.mjs:1200](../../scripts/prerender-seo.mjs#L1200) |
+| /points-cadeau | 12 | [scripts/prerender-seo.mjs:1263](../../scripts/prerender-seo.mjs#L1263) |
+| /politique-confidentialite | 21 | [scripts/prerender-seo.mjs:1240](../../scripts/prerender-seo.mjs#L1240) |
 | /prices/lookup | 1 | [supabase/functions/_shared/print/cloudprinter.ts:283](../../supabase/functions/_shared/print/cloudprinter.ts#L283) |
 | /products | 3 | [src/test/cloudprinter-edge-runtime.test.ts:64](../../src/test/cloudprinter-edge-runtime.test.ts#L64) |
 | /products/info | 1 | [supabase/functions/_shared/print/cloudprinter.ts:273](../../supabase/functions/_shared/print/cloudprinter.ts#L273) |
-| /profil | 13 | [scripts/prerender-seo.mjs:1213](../../scripts/prerender-seo.mjs#L1213) |
+| /profil | 13 | [scripts/prerender-seo.mjs:1253](../../scripts/prerender-seo.mjs#L1253) |
 | /profil?mode=edit | 1 | [src/test/navigation.test.ts:28](../../src/test/navigation.test.ts#L28) |
 | /profil?tab=abonnement | 4 | [src/components/CustomerDashboardLayout.tsx:107](../../src/components/CustomerDashboardLayout.tsx#L107) |
 | /profil?tab=favoris | 3 | [src/components/CustomerDashboardLayout.tsx:105](../../src/components/CustomerDashboardLayout.tsx#L105) |
 | /profil?tab=fidelite | 2 | [src/components/CustomerDashboardLayout.tsx:106](../../src/components/CustomerDashboardLayout.tsx#L106) |
 | /profil?tab=infos | 2 | [src/components/CustomerDashboardLayout.tsx:119](../../src/components/CustomerDashboardLayout.tsx#L119) |
 | /pub.jpg | 1 | [src/lib/campaignCreative.ts:171](../../src/lib/campaignCreative.ts#L171) |
-| /r | 2 | [scripts/prerender-seo.mjs:1228](../../scripts/prerender-seo.mjs#L1228) |
+| /r | 2 | [scripts/prerender-seo.mjs:1268](../../scripts/prerender-seo.mjs#L1268) |
 | /r/ | 2 | [scripts/harden-seo-crawl.mjs:118](../../scripts/harden-seo-crawl.mjs#L118) |
 | /r/:slug | 3 | [src/App.tsx:579](../../src/App.tsx#L579) |
 | /r/:slug/reserver | 2 | [src/App.tsx:578](../../src/App.tsx#L578) |
@@ -1821,7 +1821,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /recherche?q=sushi&city=Genève | 2 | [src/test/restaurant-search-preview.test.tsx:30](../../src/test/restaurant-search-preview.test.tsx#L30) |
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
 | /reseaux-sociaux | 1 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
-| /reservations | 25 | [scripts/prerender-seo.mjs:1218](../../scripts/prerender-seo.mjs#L1218) |
+| /reservations | 25 | [scripts/prerender-seo.mjs:1258](../../scripts/prerender-seo.mjs#L1258) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
 | /rest/v1/ | 3 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
 | /rest/v1/rpc/ | 2 | [src/lib/commercialDemoEffects.ts:20](../../src/lib/commercialDemoEffects.ts#L20) |
@@ -1839,7 +1839,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurant/real-id | 1 | [src/test/commercial-domain-isolation.test.ts:355](../../src/test/commercial-domain-isolation.test.ts#L355) |
 | /restaurant/sans-donnee-inventee-restaurant-2 | 1 | [src/test/restaurant-entity-seo.test.ts:150](../../src/test/restaurant-entity-seo.test.ts#L150) |
 | /restaurant/test | 1 | [src/test/tok-connect-oauth-routing.test.ts:14](../../src/test/tok-connect-oauth-routing.test.ts#L14) |
-| /restaurants | 6 | [scripts/prerender-seo.mjs:1955](../../scripts/prerender-seo.mjs#L1955) |
+| /restaurants | 6 | [scripts/prerender-seo.mjs:1995](../../scripts/prerender-seo.mjs#L1995) |
 | /restaurants-pres/:path* | 2 | [middleware.js:5](../../middleware.js#L5) |
 | /restaurants-pres/:venueSlug | 2 | [src/App.tsx:575](../../src/App.tsx#L575) |
 | /restaurants-pres/OLD | 1 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
@@ -1907,9 +1907,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants/vesenaz/r/sushi-zen-sa | 2 | [src/test/seo-directory-quality-hardening.test.ts:32](../../src/test/seo-directory-quality-hardening.test.ts#L32) |
 | /restaurateurs-geneve | 1 | [src/test/marketing-legacy-landing.test.ts:7](../../src/test/marketing-legacy-landing.test.ts#L7) |
 | /restaurateurs/:city | 3 | [src/App.tsx:697](../../src/App.tsx#L697) |
-| /restaurateurs/alternative-commission-couvert | 19 | [scripts/prerender-seo.mjs:675](../../scripts/prerender-seo.mjs#L675) |
+| /restaurateurs/alternative-commission-couvert | 19 | [scripts/prerender-seo.mjs:678](../../scripts/prerender-seo.mjs#L678) |
 | /restaurateurs/geneve | 24 | [scripts/prerender-seo.mjs:610](../../scripts/prerender-seo.mjs#L610) |
-| /restaurateurs/google-business | 19 | [scripts/prerender-seo.mjs:674](../../scripts/prerender-seo.mjs#L674) |
+| /restaurateurs/google-business | 19 | [scripts/prerender-seo.mjs:677](../../scripts/prerender-seo.mjs#L677) |
 | /restaurateurs/lausanne | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
 | /robots.txt | 5 | [supabase/functions/discover-thefork-official-sites/index.ts:348](../../supabase/functions/discover-thefork-official-sites/index.ts#L348) |
 | /rpc/ | 1 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
@@ -1940,13 +1940,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /this-route-does-not-exist | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /tok-connect | 14 | [scripts/prerender-seo.mjs:556](../../scripts/prerender-seo.mjs#L556) |
 | /tok-connect-api | 1 | [supabase/functions/tok-connect-api/index.ts:89](../../supabase/functions/tok-connect-api/index.ts#L89) |
-| /tok-connect/developer | 13 | [scripts/prerender-seo.mjs:1229](../../scripts/prerender-seo.mjs#L1229) |
+| /tok-connect/developer | 13 | [scripts/prerender-seo.mjs:1269](../../scripts/prerender-seo.mjs#L1269) |
 | /tok-connect/developer/:path* | 2 | [src/test/vercel-rewrites.test.ts:117](../../src/test/vercel-rewrites.test.ts#L117) |
 | /tok-connect/mcp-widget | 6 | [src/App.tsx:609](../../src/App.tsx#L609) |
 | /tok-connect/mcp-widget?mode=sandbox | 1 | [src/test/tok-connect-preview-sandbox.test.tsx:15](../../src/test/tok-connect-preview-sandbox.test.tsx#L15) |
 | /tok-one | 25 | [scripts/prerender-seo.mjs:548](../../scripts/prerender-seo.mjs#L548) |
 | /tok-one?status=success | 1 | [src/test/security-url-helpers.test.ts:62](../../src/test/security-url-helpers.test.ts#L62) |
-| /tok-pulse | 10 | [scripts/prerender-seo.mjs:1192](../../scripts/prerender-seo.mjs#L1192) |
+| /tok-pulse | 10 | [scripts/prerender-seo.mjs:1232](../../scripts/prerender-seo.mjs#L1232) |
 | /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:81](../../supabase/functions/ai-image-enhance/index.ts#L81) |
 | /tok-slot-machine/index.html?v=20260719 | 1 | [src/components/DailyMiamzSlotMachine.tsx:15](../../src/components/DailyMiamzSlotMachine.tsx#L15) |
 | /token?grant_type=password | 1 | [server/marketingBff.ts:732](../../server/marketingBff.ts#L732) |
@@ -1994,7 +1994,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /ventes-flash | 21 | [scripts/prerender-seo.mjs:342](../../scripts/prerender-seo.mjs#L342) |
 | /webhooks/tok | 4 | [src/lib/tokConnect.ts:169](../../src/lib/tokConnect.ts#L169) |
 | /workers/image-ai-worker | 1 | [scripts/dependabot-policy.test.mjs:40](../../scripts/dependabot-policy.test.mjs#L40) |
-| /zero-attente | 19 | [scripts/prerender-seo.mjs:676](../../scripts/prerender-seo.mjs#L676) |
+| /zero-attente | 19 | [scripts/prerender-seo.mjs:679](../../scripts/prerender-seo.mjs#L679) |
 | /zero-attente?restaurant=restaurant-123&date=2026-06-20&time=20%3A15&party_size=4 | 1 | [src/test/zero-attente-reservation-context.test.ts:15](../../src/test/zero-attente-reservation-context.test.ts#L15) |
 
 ### Paramètres d’URL
@@ -2117,45 +2117,45 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 | Route ou famille | Type | Indexabilité | Source |
 | --- | --- | --- | --- |
-| /:param1 | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1234](../../scripts/prerender-seo.mjs#L1234) |
-| /actualites/:id | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1863](../../scripts/prerender-seo.mjs#L1863) |
-| /restaurant/:id | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1294](../../scripts/prerender-seo.mjs#L1294) |
-| /restaurants/:citySlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1643](../../scripts/prerender-seo.mjs#L1643) |
-| /restaurants/:citySlug/:cuisineSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1631](../../scripts/prerender-seo.mjs#L1631) |
+| /:param1 | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1274](../../scripts/prerender-seo.mjs#L1274) |
+| /actualites/:id | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1903](../../scripts/prerender-seo.mjs#L1903) |
+| /restaurant/:id | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1334](../../scripts/prerender-seo.mjs#L1334) |
+| /restaurants/:citySlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1683](../../scripts/prerender-seo.mjs#L1683) |
+| /restaurants/:citySlug/:cuisineSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1671](../../scripts/prerender-seo.mjs#L1671) |
 | /restaurants/:citySlug/:districtSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:330](../../scripts/prerender-seo.mjs#L330) |
 | /restaurants/:citySlug/:slug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:314](../../scripts/prerender-seo.mjs#L314) |
-| /restaurants/:citySlug/r/:restaurantSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1291](../../scripts/prerender-seo.mjs#L1291) |
+| /restaurants/:citySlug/r/:restaurantSlug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:1331](../../scripts/prerender-seo.mjs#L1331) |
 | /restaurants/:slug | dynamic-template | data-dependent | [scripts/prerender-seo.mjs:393](../../scripts/prerender-seo.mjs#L393) |
 | / | static | data-dependent | [scripts/prerender-seo.mjs:457](../../scripts/prerender-seo.mjs#L457) |
-| /a-propos | static | data-dependent | [scripts/prerender-seo.mjs:1066](../../scripts/prerender-seo.mjs#L1066) |
-| /abonnement | static | data-dependent | [scripts/prerender-seo.mjs:1002](../../scripts/prerender-seo.mjs#L1002) |
+| /a-propos | static | data-dependent | [scripts/prerender-seo.mjs:1106](../../scripts/prerender-seo.mjs#L1106) |
+| /abonnement | static | data-dependent | [scripts/prerender-seo.mjs:1042](../../scripts/prerender-seo.mjs#L1042) |
 | /actualites | static | data-dependent | [scripts/prerender-seo.mjs:515](../../scripts/prerender-seo.mjs#L515) |
-| /aide | static | data-dependent | [scripts/prerender-seo.mjs:1082](../../scripts/prerender-seo.mjs#L1082) |
+| /aide | static | data-dependent | [scripts/prerender-seo.mjs:1122](../../scripts/prerender-seo.mjs#L1122) |
 | /anti-gaspi | static | data-dependent | [scripts/prerender-seo.mjs:532](../../scripts/prerender-seo.mjs#L532) |
-| /budget-auto | static | data-dependent | [scripts/prerender-seo.mjs:1026](../../scripts/prerender-seo.mjs#L1026) |
-| /cgu | static | data-dependent | [scripts/prerender-seo.mjs:1171](../../scripts/prerender-seo.mjs#L1171) |
-| /chefs-table | static | data-dependent | [scripts/prerender-seo.mjs:994](../../scripts/prerender-seo.mjs#L994) |
-| /conditions-restaurateurs | static | data-dependent | [scripts/prerender-seo.mjs:1185](../../scripts/prerender-seo.mjs#L1185) |
-| /contact | static | data-dependent | [scripts/prerender-seo.mjs:1074](../../scripts/prerender-seo.mjs#L1074) |
-| /cookies | static | data-dependent | [scripts/prerender-seo.mjs:1178](../../scripts/prerender-seo.mjs#L1178) |
-| /creneaux-garantis | static | data-dependent | [scripts/prerender-seo.mjs:1010](../../scripts/prerender-seo.mjs#L1010) |
-| /flex-prix-bas | static | data-dependent | [scripts/prerender-seo.mjs:1058](../../scripts/prerender-seo.mjs#L1058) |
-| /garantie-qualite | static | data-dependent | [scripts/prerender-seo.mjs:1018](../../scripts/prerender-seo.mjs#L1018) |
-| /match-groupes | static | data-dependent | [scripts/prerender-seo.mjs:1050](../../scripts/prerender-seo.mjs#L1050) |
+| /budget-auto | static | data-dependent | [scripts/prerender-seo.mjs:1066](../../scripts/prerender-seo.mjs#L1066) |
+| /cgu | static | data-dependent | [scripts/prerender-seo.mjs:1211](../../scripts/prerender-seo.mjs#L1211) |
+| /chefs-table | static | data-dependent | [scripts/prerender-seo.mjs:1034](../../scripts/prerender-seo.mjs#L1034) |
+| /conditions-restaurateurs | static | data-dependent | [scripts/prerender-seo.mjs:1225](../../scripts/prerender-seo.mjs#L1225) |
+| /contact | static | data-dependent | [scripts/prerender-seo.mjs:1114](../../scripts/prerender-seo.mjs#L1114) |
+| /cookies | static | data-dependent | [scripts/prerender-seo.mjs:1218](../../scripts/prerender-seo.mjs#L1218) |
+| /creneaux-garantis | static | data-dependent | [scripts/prerender-seo.mjs:1050](../../scripts/prerender-seo.mjs#L1050) |
+| /flex-prix-bas | static | data-dependent | [scripts/prerender-seo.mjs:1098](../../scripts/prerender-seo.mjs#L1098) |
+| /garantie-qualite | static | data-dependent | [scripts/prerender-seo.mjs:1058](../../scripts/prerender-seo.mjs#L1058) |
+| /match-groupes | static | data-dependent | [scripts/prerender-seo.mjs:1090](../../scripts/prerender-seo.mjs#L1090) |
 | /miamz-solidaires | static | data-dependent | [scripts/prerender-seo.mjs:564](../../scripts/prerender-seo.mjs#L564) |
-| /multi-restaurant | static | data-dependent | [scripts/prerender-seo.mjs:1034](../../scripts/prerender-seo.mjs#L1034) |
-| /multi-stop | static | data-dependent | [scripts/prerender-seo.mjs:1042](../../scripts/prerender-seo.mjs#L1042) |
+| /multi-restaurant | static | data-dependent | [scripts/prerender-seo.mjs:1074](../../scripts/prerender-seo.mjs#L1074) |
+| /multi-stop | static | data-dependent | [scripts/prerender-seo.mjs:1082](../../scripts/prerender-seo.mjs#L1082) |
 | /packs-restaurateur | static | data-dependent | [scripts/prerender-seo.mjs:595](../../scripts/prerender-seo.mjs#L595) |
-| /politique-confidentialite | static | data-dependent | [scripts/prerender-seo.mjs:1200](../../scripts/prerender-seo.mjs#L1200) |
+| /politique-confidentialite | static | data-dependent | [scripts/prerender-seo.mjs:1240](../../scripts/prerender-seo.mjs#L1240) |
 | /recherche | static | data-dependent | [scripts/prerender-seo.mjs:507](../../scripts/prerender-seo.mjs#L507) |
-| /restaurateurs/alternative-commission-couvert | static | data-dependent | [scripts/prerender-seo.mjs:868](../../scripts/prerender-seo.mjs#L868) |
+| /restaurateurs/alternative-commission-couvert | static | data-dependent | [scripts/prerender-seo.mjs:898](../../scripts/prerender-seo.mjs#L898) |
 | /restaurateurs/geneve | static | data-dependent | [scripts/prerender-seo.mjs:610](../../scripts/prerender-seo.mjs#L610) |
-| /restaurateurs/google-business | static | data-dependent | [scripts/prerender-seo.mjs:741](../../scripts/prerender-seo.mjs#L741) |
+| /restaurateurs/google-business | static | data-dependent | [scripts/prerender-seo.mjs:752](../../scripts/prerender-seo.mjs#L752) |
 | /tok-connect | static | data-dependent | [scripts/prerender-seo.mjs:556](../../scripts/prerender-seo.mjs#L556) |
 | /tok-one | static | data-dependent | [scripts/prerender-seo.mjs:548](../../scripts/prerender-seo.mjs#L548) |
-| /tok-pulse | static | data-dependent | [scripts/prerender-seo.mjs:1192](../../scripts/prerender-seo.mjs#L1192) |
+| /tok-pulse | static | data-dependent | [scripts/prerender-seo.mjs:1232](../../scripts/prerender-seo.mjs#L1232) |
 | /ventes-flash | static | data-dependent | [scripts/prerender-seo.mjs:540](../../scripts/prerender-seo.mjs#L540) |
-| /zero-attente | static | data-dependent | [scripts/prerender-seo.mjs:986](../../scripts/prerender-seo.mjs#L986) |
+| /zero-attente | static | data-dependent | [scripts/prerender-seo.mjs:1026](../../scripts/prerender-seo.mjs#L1026) |
 
 ### Artefacts de routage générés
 
@@ -6396,7 +6396,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | --- | --- | --- |
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
-| Google | 118 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Google | 119 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Openai | 121 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
@@ -6416,14 +6416,14 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 67 |
 | documentation | 6 |
 | edge-function-source | 198 |
-| frontend-component | 272 |
+| frontend-component | 273 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
 | frontend-source | 28 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 630 |
+| test | 631 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -7949,7 +7949,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (276)</summary>
+<details><summary>frontend-component (277)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8150,6 +8150,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/orders/OrderPaymentBreakdown.tsx`
 - `src/components/orders/order-payment-breakdown-utils.ts`
 - `src/components/restaurant/RestaurantDailyDishCard.tsx`
+- `src/components/restaurateurs/B2BTable.tsx`
 - `src/components/security/TurnstileCaptcha.tsx`
 - `src/components/signup/SignupApplicationStatusCard.tsx`
 - `src/components/social/SocialComposer.tsx`
@@ -9299,7 +9300,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (630)</summary>
+<details><summary>test (631)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9791,6 +9792,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-stripe-adjustments.test.ts`
 - `src/test/restaurateur-commercial-pages.test.ts`
 - `src/test/restaurateur-onboarding-reliability.test.ts`
+- `src/test/restaurateurs-simulators.test.tsx`
 - `src/test/review-submission-governance.test.ts`
 - `src/test/rls-exact-policy-deduplication.test.ts`
 - `src/test/rls-generic-policy-audit.test.ts`

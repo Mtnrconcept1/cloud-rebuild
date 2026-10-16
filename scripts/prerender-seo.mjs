@@ -614,20 +614,23 @@ const PUBLIC_SEO_PAGES = [
     priority: "0.8",
     changefreq: "weekly",
     staticContent: {
-      heading: "La plateforme restaurateur pour transformer la demande locale à Genève.",
+      heading: "Réservations, commandes et fidélité : votre restaurant réuni dans TOK.",
       paragraphs: [
-        "TOK centralise les réservations, les commandes, les offres anti-gaspi, les ventes flash, les actualités, les photos IA, les Miamz et les campagnes dans un dashboard pensé pour les restaurants genevois.",
-        "La page Genève présente la solution complète : onboarding, fiche publique, services ouverts, pilotage commercial, cas d'usage par type de restaurant et FAQ locale.",
+        "TOK est une plateforme en ligne pour découvrir un restaurant, réserver ou commander. Le restaurateur gère réservations, commandes, offres anti-gaspi, ventes flash, actualités, photos IA, fidélité Miamz et campagnes dans son espace de gestion.",
+        "Une table désigne une réservation honorée ; un couvert désigne une personne. Le coût des réservations est l'abonnement mensuel plus 5 CHF par table servie. Une annulation ou une absence ne déclenche pas les 5 CHF, mais l'abonnement reste dû.",
       ],
       sections: [
         {
           heading: "Plan d'activation Genève",
           items: [
-            "Tables par mois",
-            "Commandes par mois",
+            "Tables réellement servies par mois et addition moyenne par table",
+            "Commandes distinctes par mois et montant moyen par commande",
             "Actualités par semaine",
             "Pack d'accompagnement",
-            "Photos IA et contenus de lancement",
+            "Ventes simulées = tables servies × addition moyenne + commandes × montant moyen",
+            "Budget marketing facultatif = ventes simulées × 12 %, ni facture ni dépense automatique",
+            "Actions indicatives = publications hebdomadaires × 4 + arrondi(tables/20) + arrondi(commandes/30)",
+            "Photos IA et délais de lancement indicatifs à confirmer dans le pack",
           ],
         },
         {
@@ -711,28 +714,36 @@ const PUBLIC_SEO_PAGES = [
         mainEntity: [
           {
             "@type": "Question",
-            name: "TOK est-il seulement un outil de réservation ?",
-            acceptedAnswer: {
+            "name": "TOK est-il seulement un outil de réservation ?",
+            "acceptedAnswer": {
               "@type": "Answer",
-              text: "Non. TOK réunit réservations, commandes, offres anti-gaspi, ventes flash, actualités, photos IA, Miamz, campagnes et pilotage restaurateur dans un même espace.",
-            },
+              "text": "Non. TOK réunit réservations, commandes, offres anti-gaspi, ventes flash, actualités, photos IA, Miamz, campagnes et pilotage restaurateur dans un même espace."
+            }
           },
           {
             "@type": "Question",
-            name: "Comment se passe l'onboarding restaurateur ?",
-            acceptedAnswer: {
+            "name": "Quel type de restaurant genevois peut utiliser TOK ?",
+            "acceptedAnswer": {
               "@type": "Answer",
-              text: "TOK commence par un audit, configure la fiche et le dashboard, prépare les contenus utiles, branche les liens publics puis suit les performances avec le restaurateur.",
-            },
+              "text": "La plateforme convient aux bistrots, restaurants premium, cuisines rapides qualitatives, hôtels et concepts locaux qui veulent mieux convertir leur demande locale."
+            }
           },
           {
             "@type": "Question",
-            name: "Les Miamz servent-ils aussi aux restaurateurs ?",
-            acceptedAnswer: {
+            "name": "Comment se passe l'onboarding restaurateur ?",
+            "acceptedAnswer": {
               "@type": "Answer",
-              text: "Oui. Les Miamz donnent des signaux de fidélité et peuvent soutenir des avantages comme la priorité, des tables VIP ou des expériences réservées aux clients engagés.",
-            },
+              "text": "TOK commence par un audit, configure la fiche et le dashboard, prépare les contenus utiles, branche les liens publics puis suit les performances avec le restaurateur."
+            }
           },
+          {
+            "@type": "Question",
+            "name": "Les Miamz servent-ils aussi aux restaurateurs ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Oui. Les Miamz donnent des signaux de fidélité et peuvent soutenir des avantages comme la priorité, des tables VIP ou des expériences réservées aux clients engagés."
+            }
+          }
         ],
       },
     ],
@@ -745,10 +756,10 @@ const PUBLIC_SEO_PAGES = [
     priority: "0.8",
     changefreq: "weekly",
     staticContent: {
-      heading: "Transformez votre fiche Google Business en canal direct.",
+      heading: "Depuis Google, aidez vos clients à réserver chez vous.",
       paragraphs: [
         "Les clients vous trouvent déjà sur Google. TOK aide à brancher un bouton de réservation traçable, suivre les clics Google Maps et convertir cette intention en tables, commandes et relation client.",
-        "Cette page est tactique : elle traite le canal Google Business, les liens UTM, la checklist de bascule et les conversions mesurées depuis Google Search ou Maps.",
+        "La fiche Google est gratuite. TOK est un service distinct payant. Le client suit le lien de Google vers la fiche TOK, réserve un créneau puis vient au restaurant. Un clic, une réservation et une table servie sont des étapes différentes.",
       ],
       sections: [
         {
@@ -758,7 +769,10 @@ const PUBLIC_SEO_PAGES = [
             "Couverts moyens par table",
             "Commission comparée par couvert",
             "Coût par conversion",
-            "Écart annuel estimé",
+            "Total TOK = abonnement mensuel sélectionné + tables servies × 5 CHF",
+            "Coût au couvert = tables servies × personnes par table × frais par personne",
+            "Écart = coût au couvert moins total TOK ; négatif signifie un surcoût TOK",
+            "Écart annuel estimé = écart mensuel × 12 mois identiques",
           ],
         },
         {
@@ -772,7 +786,7 @@ const PUBLIC_SEO_PAGES = [
           ],
         },
         {
-          heading: "Checklist de bascule",
+          heading: "Mise en place pas à pas",
           items: [
             "Relever le lien actuel",
             "Créer un lien TOK traçable",
@@ -838,28 +852,44 @@ const PUBLIC_SEO_PAGES = [
         mainEntity: [
           {
             "@type": "Question",
-            name: "Pourquoi créer une page dédiée à Google Business ?",
-            acceptedAnswer: {
+            "name": "La fiche Google est-elle payante ? Et TOK ?",
+            "acceptedAnswer": {
               "@type": "Answer",
-              text: "Parce que les clients qui arrivent depuis Google ont déjà une intention forte. TOK aide à convertir ces clics en réservations, commandes et données mesurables.",
-            },
+              "text": "La fiche Google Business est gratuite. TOK est un service distinct avec un abonnement mensuel et des frais de 5 CHF par table honorée. L'accompagnement Google est inclus ou optionnel selon le pack ; une prestation optionnelle nécessite un devis."
+            }
           },
           {
             "@type": "Question",
-            name: "Comment mesurer les clics Google avec TOK ?",
-            acceptedAnswer: {
+            "name": "TOK peut-il remplacer le bouton de réservation Google Business ?",
+            "acceptedAnswer": {
               "@type": "Answer",
-              text: "Les liens peuvent porter une source Google Business, puis les conversions sont rapprochées des réservations, commandes, paiements et demandes de contact.",
-            },
+              "text": "TOK fournit un lien vers votre page restaurant et les services activés. Vous pouvez l'ajouter dans votre fiche lorsque Google le permet, ou mandater TOK par écrit avec un accès gestionnaire. Il ne s'agit pas d'une intégration automatique à tous les boutons Google."
+            }
           },
           {
             "@type": "Question",
-            name: "Faut-il abandonner les autres plateformes immédiatement ?",
-            acceptedAnswer: {
+            "name": "Comment mesurer les clics Google avec TOK ?",
+            "acceptedAnswer": {
               "@type": "Answer",
-              text: "Non. La page Google Business sert d'abord à tester un canal direct, mesurer la conversion et réduire progressivement la dépendance si les chiffres le justifient.",
-            },
+              "text": "Un lien identifié Google Business aide à retrouver les visites et les réservations venant de Google lorsque les données sont disponibles. Les clics, réservations, commandes, paiements et demandes de contact restent des événements distincts ; aucun ne prouve à lui seul une table servie."
+            }
           },
+          {
+            "@type": "Question",
+            "name": "Faut-il abandonner les autres plateformes immédiatement ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Non. La page Google Business sert d'abord à tester un canal direct, mesurer la conversion et réduire progressivement la dépendance si les chiffres le justifient."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "TOK garantit-il un meilleur classement Google ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Non. Google contrôle le classement, l'affichage, les fonctionnalités et les suspensions. TOK optimise le périmètre convenu et mesure les conversions disponibles, sans garantir de rang ni de volume."
+            }
+          }
         ],
       },
     ],
@@ -874,8 +904,8 @@ const PUBLIC_SEO_PAGES = [
     staticContent: {
       heading: "Commission par couvert : comparez avant de choisir.",
       paragraphs: [
-        "Une commission par couvert peut sembler simple, mais elle change avec les groupes, les no-shows, le ticket moyen et le volume.",
-        "Cette page comparative aide le restaurateur à lire le coût d'acquisition, la marge, les scénarios de salle et les objections avant de déplacer ses ventes.",
+        "Un couvert désigne une personne, une table une réservation honorée par un groupe. TOK facture un abonnement mensuel plus 5 CHF par table servie ; un modèle au couvert multiplie les personnes servies par la commission saisie.",
+        "Tables servies estimées = réservations prévues × (1 − absences/100). Personnes servies = tables servies × personnes moyennes. Les décimales sont conservées pour la prévision, les montants affichés sont arrondis au centime. Ce comparatif mesure des frais, pas la marge.",
       ],
       sections: [
         {
@@ -885,7 +915,9 @@ const PUBLIC_SEO_PAGES = [
             "Couverts par table",
             "Commission par couvert",
             "No-show et annulations",
-            "Coût TOK par couvert honoré",
+            "Total TOK = abonnement + tables servies × 5 CHF",
+            "Différence = coût au couvert moins total TOK ; positif indique moins de frais avec TOK",
+            "Coût TOK par personne non calculable sans personne servie",
           ],
         },
         {
@@ -956,28 +988,36 @@ const PUBLIC_SEO_PAGES = [
         mainEntity: [
           {
             "@type": "Question",
-            name: "Qu'est-ce qu'une commission par couvert ?",
-            acceptedAnswer: {
+            "name": "Qu'est-ce qu'une commission par couvert ?",
+            "acceptedAnswer": {
               "@type": "Answer",
-              text: "C'est un modèle où le coût varie selon le nombre de personnes assises ou apportées par le canal. Il peut vite changer selon les groupes, le ticket moyen et le volume.",
-            },
+              "text": "C'est un modèle où le coût varie selon le nombre de personnes assises ou apportées par le canal. Il peut vite changer selon les groupes, le ticket moyen et le volume."
+            }
           },
           {
             "@type": "Question",
-            name: "Comment intégrer les no-shows dans le calcul ?",
-            acceptedAnswer: {
+            "name": "Pourquoi comparer avec un tarif fixe par table ?",
+            "acceptedAnswer": {
               "@type": "Answer",
-              text: "Il faut comparer le coût du canal, les tables réellement honorées, les annulations, les acomptes éventuels et la capacité perdue pendant le service.",
-            },
+              "text": "TOK facture un forfait de 5.- par réservation honorée, sans plafond, sans distinction de canal et sans dépendre du montant de l'addition."
+            }
           },
           {
             "@type": "Question",
-            name: "TOK doit-il remplacer immédiatement une plateforme existante ?",
-            acceptedAnswer: {
+            "name": "Comment intégrer les no-shows dans le calcul ?",
+            "acceptedAnswer": {
               "@type": "Answer",
-              text: "Non. Le restaurateur peut tester TOK sur un canal direct, mesurer le coût d'acquisition et décider ensuite s'il déplace plus de volume.",
-            },
+              "text": "Il faut comparer le coût du canal, les tables réellement honorées, les annulations, les acomptes éventuels et la capacité perdue pendant le service."
+            }
           },
+          {
+            "@type": "Question",
+            "name": "TOK doit-il remplacer immédiatement une plateforme existante ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Non. Le restaurateur peut tester TOK sur un canal direct, mesurer le coût d'acquisition et décider ensuite s'il déplace plus de volume."
+            }
+          }
         ],
       },
     ],
