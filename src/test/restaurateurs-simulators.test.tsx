@@ -16,7 +16,8 @@ function table(name: string) {
 }
 
 function row(name: string, label: string) {
-  return table(name).getByRole("row", { name: new RegExp(label) }).textContent!.replace(/[\u202f\u00a0]/g, " ");
+  // ICU uses narrow spaces on Windows and apostrophes on some Linux builds.
+  return table(name).getByRole("row", { name: new RegExp(label) }).textContent!.replace(/[\u202f\u00a0'’]/g, " ");
 }
 
 describe("Public restaurant simulations", () => {
