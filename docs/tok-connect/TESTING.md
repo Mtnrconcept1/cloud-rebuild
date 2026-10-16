@@ -75,8 +75,9 @@ clé ni donnée de production n'est nécessaire à cet aperçu.
 
 Vérifier les cinq cartes, l'ouverture d'une fiche, les créneaux fictifs, le retour
 à la sélection, une seconde recherche et le comportement sur petit écran. Le
-bouton de réservation émet seulement une intention vers l'hôte de prévisualisation.
-Il ne réserve pas de table et ne déclenche pas Stripe.
+bouton de réservation ouvre le formulaire du widget, mais l'hôte de prévisualisation
+refuse explicitement les outils de commerce. Il ne réserve pas de table et ne
+déclenche pas Stripe ; une action refusée doit sortir de son état de chargement.
 
 ## Recette ChatGPT
 
@@ -90,11 +91,35 @@ Créer une conversation en sélectionnant explicitement **TOK Connect — Test**
 4. Lire les capacités authentifiées. Vérifier l'absence de demande de connexion
    supplémentaire, sans exécuter les capacités de mutation décrites par le catalogue.
 
-## Transactions restant à valider
+## Outils transactionnels client
 
-Le MCP publié expose 27 outils en lecture/aperçu. La PR #869 contient des travaux
-transactionnels distincts, encore non fusionnés lors de cette recette ; elle
-contient également TOK Équipe, hors périmètre du correctif présent.
+L'intégration commerce isolée de la PR #869 ajoute neuf outils au catalogue
+initial de 27 outils. TOK Équipe reste hors périmètre. Quatre mutations précises
+sont accessibles uniquement au widget : `tok_book_table`,
+`tok_cancel_my_reservation`, `tok_checkout_customer_cart` et
+`tok_cancel_cart_payment_attempt`. Les mutations génériques restent exclues.
+
+Les écritures exigent un JWT utilisateur, le rôle client, un accord explicite et
+une clé d'idempotence. L'historique reste filtré par propriétaire, même pour un
+compte possédant aussi des rôles administratifs. Le restaurant doit être actif,
+hors démo, avec `tok_connect_mcp_enabled=true` ; ne pas changer ces flags pour
+contourner un refus. Les fonctions métier existantes recontrôlent les services,
+la disponibilité, les prix et la garantie bancaire.
+
+Pour une recette réelle autorisée : ouvrir la fiche du bon établissement,
+sélectionner date/heure/convives, lire la garantie éventuelle, puis confirmer dans
+le widget. Vérifier l'identifiant et la réservation persistée avec le même compte.
+Rejouer la même clé ne doit pas créer de seconde réservation. Après accord de
+l'utilisateur, annuler via « Mes tables » et vérifier le statut persistant.
+Le test de référence demandé est La Gazelle d'Or, rue de Lyon 55, le 18 octobre
+2026 à 19 h pour deux personnes, avec annulation après vérification. Ce protocole
+ne vaut pas preuve d'exécution : conserver séparément les résultats observés.
+
+Une URL Checkout ou une garantie à finaliser n'est jamais une réservation
+confirmée ou une commande payée. En cas de réponse incertaine, garder la tentative
+et sa clé ; consulter l'historique/statut sans créer une nouvelle tentative.
+
+## Paiements restant à valider
 
 Le projet Supabase **TOK Commercial Demo** existe, mais son existence et ses
 tables ne prouvent pas un checkout client MCP en mode Stripe Test. Avant toute

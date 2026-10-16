@@ -167,6 +167,14 @@ export default function TokConnectMcpWidget() {
           }, "*");
         }
       }
+      if (data.type === "tok_preview_call" && data.name !== "get_restaurant_details") {
+        // Commerce belongs to the authenticated ChatGPT host, never this preview.
+        pushLog("Action indisponible dans l’aperçu", String(data.name || ""));
+        frame.contentWindow?.postMessage({
+          type: "tok_preview_result", id: String(data.id || ""),
+          error: "Cet aperçu n’exécute aucune transaction. Ouvrez TOK Connect dans ChatGPT pour continuer.",
+        }, "*");
+      }
     };
 
     window.addEventListener("message", handler);
