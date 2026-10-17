@@ -111,3 +111,44 @@ Before declaring a new client integration production-ready, verify the complete 
 8. cancellation preview and explicit cancellation when appropriate;
 9. token expiry/refresh behavior;
 10. audit logs and restaurant grant enforcement.
+
+## Restaurant marketing and dish-photo actions (proposed)
+
+These tools are available only to an authenticated owner of a restaurant where
+`tok_connect_mcp_enabled` is true. Select an actual restaurant with
+`tok_list_my_restaurants` before making a restaurant-specific request.
+
+| Natural-language intention | Dedicated MCP action | Authoritative TOK backend |
+| --- | --- | --- |
+| "Show my marketing studio drafts" | `tok_list_restaurant_campaign_studio_drafts` | RLS read of `campaign_studio_runs` |
+| "Prepare a marketing campaign for lunch" | `tok_create_restaurant_campaign_studio_draft` | `ai-campaign-studio`, action `generate` |
+| "Generate a branded marketing visual" | `tok_create_restaurant_marketing_visual` | `ai-image-enhance`, `campaign_visual` |
+| "Create a photograph for this dish" | `tok_create_restaurant_dish_photo` | `ai-image-enhance`, `menu_visual` |
+| "Use the generated photograph in this dish's menu entry" | `tok_update_restaurant_menu_item_photo` | RLS-scoped `menu_items.image_url` |
+
+Menu creation already uses `tok_create_restaurant_menu_item` with a real
+price in CHF. To add a dish with a photo through natural language, first
+create the dish, then generate a photo for its returned `menu_item_id`,
+and finally attach the **stored** PhotoPro `assetId`. The menu is not
+modified if generation fails. Without an actual source image, the generated
+photo is illustrative and must be verified by the restaurateur.
+
+All generated images and campaign drafts require a separate human
+confirmation and a stable idempotency key because TOK AI credits are
+consumed. Replays must keep the same key and payload. If an image call times
+out, check the restaurant's existing PhotoPro gallery before attempting
+another generation, rather than risking a second charge. These actions do
+not schedule, approve or publish social posts and do not initiate paid
+advertising. When no advertising budget is supplied the Studio plan is
+capped at **CHF 0**; even a larger requested maximum creates only a
+draft with `manual_approval_required=true`.
+
+The creative tool result uses the existing TOK action-window MCP Apps UI
+resource. It displays native Studio/PhotoPro results with a stored image
+preview when provided, not a mocked preview.
+
+Remaining separately protected surfaces: advertising checkout and
+publication, social-network publishing, raw user file upload inside the
+ChatGPT widget, arbitrary menu batch changes and general admin tools.
+The MCP should not advertise these as executable until their dedicated
+authorization and idempotency contracts have passed end-to-end testing.

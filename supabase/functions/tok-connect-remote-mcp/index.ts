@@ -27,7 +27,7 @@ const INTERNAL_MCP_PROTOCOL_VERSION = "2025-11-25";
 const CLAUDE_ORIGIN = "https://claude.ai";
 const OAUTH_SECURITY = [{ type: "oauth2", scopes: OIDC_SCOPES }];
 const REMOTE_SERVER_INFO = { name: "TOK Connect Remote MCP", version: "6.0.0" } as const;
-const REMOTE_INSTRUCTIONS = "TOK Connect operates the authenticated customer's and restaurant operator's TOK account through targeted tools. For restaurant discovery, call discover_restaurants with the user's request verbatim; its widget shows ranked clickable cards. To reserve a table, resolve the restaurant, then call prepare_customer_reservation with the requested local date, time and exact party_size. Ask for missing information or an ambiguous restaurant; never invent a time or guest count. The preparation opens the booking widget and checks availability. An explicit request to book a fully specified table authorizes tok_book_table; otherwise show the summary and ask the user. Read the guarantee quote and obtain explicit acceptance of any card guarantee first. Keep the same idempotency_key and identical arguments for retries of the same intent, including after OAuth reconnection. If the outcome is uncertain, read the customer's reservations and reconcile the reference; never generate a new key to bypass an in-progress operation. A created pending reservation is a request awaiting the restaurant, not an accepted booking. Report the actual returned status, reference and any payment requirement; a checkout URL is never proof of payment or confirmation. Cancellation also requires the user's explicit request. Restaurant operations require an owned restaurant selected from tok_list_my_restaurants; never infer ownership from a user-supplied role. All actions use the user's JWT, native TOK business services, ownership checks and audit. The commercial role remains isolated behind its guarded backend and is unavailable through the public MCP. Generic CRUD, arbitrary RPCs, admin, service-role, scheduler and webhook operations remain unavailable. Host authentication, confirmation and payment controls still apply.";
+const REMOTE_INSTRUCTIONS = "TOK Connect operates the authenticated customer's and restaurant operator's TOK account through targeted tools. For restaurant discovery, call discover_restaurants with the user's request verbatim; its widget shows ranked clickable cards. To reserve a table, resolve the restaurant, then call prepare_customer_reservation with the requested local date, time and exact party_size. Ask for missing information or an ambiguous restaurant; never invent a time or guest count. The preparation opens the booking widget and checks availability. An explicit request to book a fully specified table authorizes tok_book_table; otherwise show the summary and ask the user. Read the guarantee quote and obtain explicit acceptance of any card guarantee first. Keep the same idempotency_key and identical arguments for retries of the same intent, including after OAuth reconnection. If the outcome is uncertain, read the customer's reservations and reconcile the reference; never generate a new key to bypass an in-progress operation. A created pending reservation is a request awaiting the restaurant, not an accepted booking. Report the actual returned status, reference and any payment requirement; a checkout URL is never proof of payment or confirmation. Cancellation also requires the user's explicit request. Restaurant operations require an owned restaurant selected from tok_list_my_restaurants; never infer ownership from a user-supplied role. All actions use the user's JWT, native TOK business services, ownership checks and audit. The commercial role remains isolated behind its guarded backend and is unavailable through the public MCP. Generic CRUD, arbitrary RPCs, admin, service-role, scheduler and webhook operations remain unavailable. For restaurant marketing requests, use the owned restaurant and the dedicated TOK campaign-studio/photo tools. Campaign Studio creates a draft, never publishes or spends advertising budget. AI image and campaign generation can debit TOK credits and requires human confirmation plus an idempotency key. For a dish with a photo, create the menu item, generate its photo for that owned item, then attach the returned stored asset; if generation is uncertain, inspect the existing restaurant gallery and do not retry under a new key. Host authentication, confirmation and payment controls still apply.";
 const MODERN_CACHEABLE_METHODS = new Set([
   "tools/list",
   "prompts/list",
@@ -163,10 +163,25 @@ const TOK_CLIENT_WIDGET_META = {
   "openai/outputTemplate": "ui://tok-connect/restaurant-discovery-v1.html",
 } as const;
 
+const RESTAURANT_CREATIVE_TOOLS = new Set([
+  "tok_list_restaurant_campaign_studio_drafts",
+  "tok_create_restaurant_campaign_studio_draft",
+  "tok_create_restaurant_marketing_visual",
+  "tok_create_restaurant_dish_photo",
+  "tok_update_restaurant_menu_item_photo",
+]);
+const ACTION_WINDOW_RESOURCE_URI = "ui://tok-connect/actions-window-v1.html";
 const TOK_ROLE_TOOLS = TOK_ROLE_OPERATION_TOOLS.map((tool) => ({
   ...tool,
   securitySchemes: OAUTH_SECURITY,
-  _meta: { securitySchemes: OAUTH_SECURITY },
+  _meta: RESTAURANT_CREATIVE_TOOLS.has(tool.name)
+    ? {
+      securitySchemes: OAUTH_SECURITY,
+      ui: { resourceUri: ACTION_WINDOW_RESOURCE_URI, visibility: ["model", "app"] },
+      "openai/outputTemplate": ACTION_WINDOW_RESOURCE_URI,
+      "openai/widgetAccessible": true,
+    }
+    : { securitySchemes: OAUTH_SECURITY },
 }));
 const TOK_ROLE_TOOL_NAMES = new Set(TOK_ROLE_TOOLS.map((tool) => tool.name));
 const TOK_CUSTOMER_OPERATION_PUBLIC_TOOLS = TOK_CUSTOMER_OPERATION_TOOLS.map((tool) => ({
@@ -669,7 +684,7 @@ async function callAppBridge(req: Request, rpc: McpJsonRpcRequest, name: string)
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
   if (anonKey) headers.set("apikey", anonKey);
   const targetUrl = name === "tok_commercial" ? COMMERCIAL_BRIDGE_URL : APP_BRIDGE_URL;
-  const response = await fetch(targetUrl, { method: "POST", headers, body: JSON.stringify(bridgeToolBody(name, args)), signal: AbortSignal.timeout(55_000) });
+  const response = await fetch(targetUrl, { method: "POST", headers, body: JSON.stringify(bridgeToolBody(name, args)), signal: AbortSignal.timeout(RESTAURANT_CREATIVE_TOOLS.has(name) ? 190_000 : 55_000) });
   const bridgePayload = await response.json().catch(() => ({ ok: false, error: { code: "tok_connect_bridge_invalid_response", message: "tok_connect_bridge_invalid_response" } })) as JsonRecord;
   if (response.status === 401) return jsonRpcResult(rpc.id, authToolResult());
   const payload = projectTokCustomerResult(name, args, bridgePayload);
