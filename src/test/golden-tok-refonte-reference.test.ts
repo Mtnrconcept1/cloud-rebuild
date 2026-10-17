@@ -38,4 +38,24 @@ describe("La Tok d’Or — refonte conforme aux références", () => {
     expect(page).not.toContain("  Play,");
     expect(page).toContain("golden-tok-alert-action");
   });
+  it("keeps the Golden TOK header and hero typography readable across sizes", () => {
+    const css = source("src/styles/golden-tok-chefs-table-v6.css");
+    const fixture = source("src/test/fixtures/golden-tok-preview.tsx");
+    const browser = source("scripts/test-golden-tok-responsive.mjs");
+
+    expect(css).not.toContain("translateY(-23px)");
+    expect(css).toContain("max-height: 76px !important");
+    expect(css).toContain("padding-right: .15em !important");
+    expect(css).toContain("letter-spacing: normal !important");
+    expect(css).toContain("margin-left: auto !important");
+    expect(css).toContain("@media (max-width: 359px)");
+    expect(fixture).toContain('className="tok-site-header tok-golden-nav');
+    expect(fixture).toContain('className="golden-tok-route-menu');
+    expect(browser).toContain("headerLogoContained");
+    expect(browser).toContain("goldLastGlyphVisible");
+    expect(browser).toContain("ctaDoesNotCoverQuote");
+    expect(browser).toContain("mobileNavigationNotOverlapping");
+    expect(browser).toContain("mobileDescriptionReadable");
+  });
+
 });

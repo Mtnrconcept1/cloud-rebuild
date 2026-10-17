@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "daf9c9ee138e9b85737aeb1fbf015382c0aaa5abdc4605c3e1506917d4c51c57",
+ "sourceDigest": "d75ff6abf6b8155beee1df00e12d3586e51f03bc8fcf714b8701081dcc93b2fb",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -15118,7 +15118,7 @@
      },
      {
       "path": "src/test/fixtures/golden-tok-preview.tsx",
-      "line": 48
+      "line": 55
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -87445,7 +87445,7 @@
      "GOLDEN_TOK_TEST_URL"
     ],
     "integrations": [],
-    "lineCount": 125
+    "lineCount": 173
    },
    {
     "path": "scripts/test-print-protocol-postgres.mjs",
@@ -109735,7 +109735,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 95
+    "lineCount": 105
    },
    {
     "path": "src/test/flat-fee-on-arrival.test.ts",
@@ -109893,7 +109893,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 42
+    "lineCount": 62
    },
    {
     "path": "src/test/golden-tok-shell-logo.test.ts",
@@ -137217,7 +137217,7 @@
    "id": "code-module:f473faa38d50",
    "type": "code-module",
    "title": "scripts/test-golden-tok-responsive.mjs",
-   "description": "Module de 125 lignes; exports: aucun export statique.",
+   "description": "Module de 173 lignes; exports: aucun export statique.",
    "path": "scripts/test-golden-tok-responsive.mjs",
    "line": 1,
    "surface": null,
@@ -137225,7 +137225,7 @@
     "CHROME_BIN",
     "GOLDEN_TOK_TEST_URL"
    ],
-   "detailRef": "fcac48fb5ba3"
+   "detailRef": "1e0b9c536514"
   },
   {
    "id": "code-module:325f58f098fe",
@@ -151502,12 +151502,12 @@
    "id": "code-module:3b8920a68c2c",
    "type": "code-module",
    "title": "src/test/fixtures/golden-tok-preview.tsx",
-   "description": "Module de 95 lignes; exports: aucun export statique.",
+   "description": "Module de 105 lignes; exports: aucun export statique.",
    "path": "src/test/fixtures/golden-tok-preview.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "533353725bc5"
+   "detailRef": "a956fbc5064b"
   },
   {
    "id": "code-module:dd8bbe6f1929",
@@ -151735,12 +151735,12 @@
    "id": "code-module:6a60619f8392",
    "type": "code-module",
    "title": "src/test/golden-tok-refonte-reference.test.ts",
-   "description": "Module de 42 lignes; exports: aucun export statique.",
+   "description": "Module de 62 lignes; exports: aucun export statique.",
    "path": "src/test/golden-tok-refonte-reference.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "5c36a2b6453e"
+   "detailRef": "ecf9f4edd67f"
   },
   {
    "id": "code-module:af90a689e08c",
@@ -363987,7 +363987,7 @@
     "src/test/fixtures/golden-tok-preview.tsx",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "1a8113eed3d0"
+   "detailRef": "9e491bd6a4a6"
   },
   {
    "id": "path-literal:63609ef8a554",
