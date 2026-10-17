@@ -1,0 +1,33 @@
+name: TOK isolated Stripe Test backend
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        type: choice
+        options: [preflight, configure]
+        required: true
+        default: preflight
+permissions:
+  contents: read
+concurrency:
+  group: tok-isolated-test-backend
+  cancel-in-progress: false
+jobs:
+  isolated-test:
+    if: github.ref == 'refs/heads/codex/tok-mcp-test-env-20261017'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: Production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Configure authorized temporary Test project only
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          STRIPE_SECRET_KEY_TEST: ${{ secrets.STRIPEE_SECRET_KEY_TEST }}
+          SUPABASE_PROJECT_REF: esmsehyxenyqewdfawie
+          TOK_ISOLATED_TEST_MODE: 'true'
+          OPERATION: ${{ inputs.operation }}
+        run: node scripts/configure-isolated-test-backend.mjs "$OPERATION"

@@ -1,3 +1,4 @@
+import { nativeStripeMode } from "../_shared/isolated-test-environment.ts";
 import {
   HttpError,
   authenticateRequest,
@@ -163,11 +164,11 @@ Deno.serve(async (req) => {
 
     if (action === "finalize") {
       const checkoutSessionId = String(body.checkout_session_id || "").trim();
-      if (!/^cs_live_[a-zA-Z0-9_]+$/.test(checkoutSessionId)) {
+      if (!new RegExp(`^cs_${nativeStripeMode()}_[a-zA-Z0-9_]+$`).test(checkoutSessionId)) {
         throw new HttpError(400, "Session de garantie bancaire invalide.");
       }
       const runtime = getStripeRuntimeForCheckoutKind("reservation");
-      if (runtime.mode !== "live") throw new HttpError(503, "Paiement sécurisé non configuré.");
+      if (runtime.mode !== nativeStripeMode()) throw new HttpError(503, "Paiement sécurisé non configuré.");
       const result = await finalizeReservationCardGuarantee({
         adminClient: actor.adminClient,
         stripe: runtime.stripe,
@@ -435,7 +436,7 @@ Deno.serve(async (req) => {
 
       try {
         const runtime = getStripeRuntimeForCheckoutKind("reservation");
-        if (runtime.mode !== "live") throw new HttpError(503, "Stripe Live indisponible.");
+        if (runtime.mode !== nativeStripeMode()) throw new HttpError(503, "Stripe Live indisponible.");
         const email = await getAuthUserEmail(actor.adminClient, actor.userId);
         const customer = await runtime.stripe.customers.create({
           email: email || undefined,
@@ -454,7 +455,7 @@ Deno.serve(async (req) => {
             reservation_card_guarantee_setup_id: setup.id,
             user_id: actor.userId,
             restaurant_id: restaurantId,
-            stripe_mode: "live",
+            stripe_mode: runtime.mode,
             fee_amount_cents: String(partySize * 1000),
             policy_version: "reservation-cancellation-v1",
           },

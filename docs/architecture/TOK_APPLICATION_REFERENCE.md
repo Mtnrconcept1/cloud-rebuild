@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b00bc0b17aa08ac3ac87d07f96aa56a2c3e3dee16878ba496501201426fcaf66`
+- Empreinte SHA-256 des sources indexées : `c7372ca9254b59562f4ffb781f357f78a4fdc440d1e525b790218176299392e1`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,30 +29,30 @@
 | cronJobs | 34 |
 | databaseContract | 228 |
 | databaseObjects | 2903 |
-| documents | 208 |
+| documents | 209 |
 | edgeFunctions | 118 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3615 |
+| exportedSymbols | 3622 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 549 |
-| modules | 1627 |
+| modules | 1632 |
 | pages | 133 |
-| pathLiterals | 758 |
+| pathLiterals | 760 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 111 |
-| records | 17273 |
-| repositoryFiles | 3268 |
+| records | 17297 |
+| repositoryFiles | 3275 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 29 |
+| workflows | 30 |
 
 ## État distant observé
 
@@ -1467,7 +1467,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/ventes-flash | 8 | [src/App.tsx:637](../../src/App.tsx#L637) |
 | /data/geneva-commercial-prospects.json | 2 | [src/data/genevaCommercialProspects.ts:39](../../src/data/genevaCommercialProspects.ts#L39) |
 | /data/thefork-geneva-commercial-prospects.json | 1 | [src/data/theForkCommercialProspects.ts:7](../../src/data/theForkCommercialProspects.ts#L7) |
-| /database/query | 1 | [src/test/production-preflight-hardening.test.ts:204](../../src/test/production-preflight-hardening.test.ts#L204) |
+| /database/query | 2 | [src/test/isolated-test-configuration.test.ts:37](../../src/test/isolated-test-configuration.test.ts#L37) |
 | /demo-restaurant.jpg | 1 | [src/test/commercial-demo-client-data-isolation.test.ts:19](../../src/test/commercial-demo-client-data-isolation.test.ts#L19) |
 | /desig%20app/tok-ch- | 2 | [src/lib/homeCantonHero.ts:72](../../src/lib/homeCantonHero.ts#L72) |
 | /desig%20app/tok-ch-ju.webp | 1 | [src/test/home-hero-search.test.tsx:44](../../src/test/home-hero-search.test.tsx#L44) |
@@ -1955,6 +1955,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /user_roles? | 4 | [src/test/marketing-agent-bff.test.ts:28](../../src/test/marketing-agent-bff.test.ts#L28) |
 | /users/[email] | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /users/private%40example.test#token | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
+| /v1/account | 1 | [src/test/isolated-test-configuration.test.ts:38](../../src/test/isolated-test-configuration.test.ts#L38) |
 | /v1/appScreenshotSets | 1 | [scripts/app-store-connect-upload-screenshots.mjs:216](../../scripts/app-store-connect-upload-screenshots.mjs#L216) |
 | /v1/appScreenshots | 1 | [scripts/app-store-connect-upload-screenshots.mjs:283](../../scripts/app-store-connect-upload-screenshots.mjs#L283) |
 | /v1/appStoreReviewDetails | 1 | [scripts/app-store-connect-finalize-v1.mjs:248](../../scripts/app-store-connect-finalize-v1.mjs#L248) |
@@ -1976,6 +1977,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /v1/reviewSubmissionItems | 2 | [scripts/app-store-availability-submit-v5.mjs:203](../../scripts/app-store-availability-submit-v5.mjs#L203) |
 | /v1/reviewSubmissions | 2 | [scripts/app-store-availability-submit-v5.mjs:180](../../scripts/app-store-availability-submit-v5.mjs#L180) |
 | /v1/territories?limit=200 | 1 | [scripts/app-store-availability-submit-v5.mjs:91](../../scripts/app-store-availability-submit-v5.mjs#L91) |
+| /v1/webhook_endpoints | 2 | [src/test/isolated-test-configuration.test.ts:39](../../src/test/isolated-test-configuration.test.ts#L39) |
 | /v2/appAvailabilities | 2 | [scripts/app-store-availability-submit-v5.mjs:120](../../scripts/app-store-availability-submit-v5.mjs#L120) |
 | /v3/BatchAvailabilityLookup/ | 2 | [src/test/google-actions-center-readiness.test.ts:47](../../src/test/google-actions-center-readiness.test.ts#L47) |
 | /v3/CreateBooking/ | 3 | [src/test/application-search-index.test.ts:92](../../src/test/application-search-index.test.ts#L92) |
@@ -6302,6 +6304,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Restaurant Image Truth Backfill | backfill | [.github/workflows/restaurant-image-truth-backfill.yml](../../.github/workflows/restaurant-image-truth-backfill.yml) |
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
+| TOK isolated Stripe Test backend | isolated-test | [.github/workflows/tok-isolated-test-backend.yml](../../.github/workflows/tok-isolated-test-backend.yml) |
 | TOK Workforce PostgreSQL Integration | migration-and-tenant-isolation | [.github/workflows/tok-workforce-postgres.yml](../../.github/workflows/tok-workforce-postgres.yml) |
 
 ### Dépendances
@@ -6415,10 +6418,10 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Google | 119 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Openai | 128 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Resend | 35 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Resend | 36 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 263 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 734 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 267 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 738 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6429,9 +6432,9 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 210 |
-| automation-script | 69 |
+| automation-script | 70 |
 | documentation | 6 |
-| edge-function-source | 207 |
+| edge-function-source | 208 |
 | frontend-component | 274 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
@@ -6439,7 +6442,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 649 |
+| test | 652 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6519,6 +6522,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Supabase Backend Review | 6 | [codex-skills/mobile-fullstack-architect/references/supabase-backend.md:1](../../codex-skills/mobile-fullstack-architect/references/supabase-backend.md#L1) |
 | Centre d’opérations marketing TheTOK | 11 | [docs/MARKETING_OPERATIONS_CENTER.md:1](../../docs/MARKETING_OPERATIONS_CENTER.md#L1) |
 | Print fulfillment protocol — controlled rollout and recovery | 5 | [docs/PRINT_FULFILLMENT_PROTOCOL.md:1](../../docs/PRINT_FULFILLMENT_PROTOCOL.md#L1) |
+| Backend temporaire Stripe Test | 1 | [docs/TOK_ISOLATED_TEST_BACKEND.md:1](../../docs/TOK_ISOLATED_TEST_BACKEND.md#L1) |
 | État d’exécution TOK observé le 3 octobre 2026 | 6 | [docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md:1](../../docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md#L1) |
 | Audit Execution Plan | 22 | [docs/audit-execution-plan.md:1](../../docs/audit-execution-plan.md#L1) |
 | Supabase production audit — project `wwcrtyoueexyxkkikaos` (Tok) | 12 | [docs/audits/2026-04-18-supabase-production-audit.md:1](../../docs/audits/2026-04-18-supabase-production-audit.md#L1) |
@@ -6936,7 +6940,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (78)</summary>
+<details><summary>automation-script (79)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -6956,6 +6960,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/ci-pnpm-audit.sh`
 - `scripts/codex-auto-post-edit-validation.mjs`
 - `scripts/codex-auto-pre-edit.mjs`
+- `scripts/configure-isolated-test-backend.mjs`
 - `scripts/contracts/tok-connect-public-mutations.json`
 - `scripts/ensure-supabase-auth-security.mjs`
 - `scripts/ensure-supabase-auth-smtp.mjs`
@@ -7019,7 +7024,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (29)</summary>
+<details><summary>ci-workflow (30)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -7049,6 +7054,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/restaurant-image-truth-backfill.yml`
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
+- `.github/workflows/tok-isolated-test-backend.yml`
 - `.github/workflows/tok-workforce-postgres.yml`
 
 </details>
@@ -7607,10 +7613,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (161)</summary>
+<details><summary>documentation (162)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
+- `docs/TOK_ISOLATED_TEST_BACKEND.md`
 - `docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md`
 - `docs/architecture/tok-runtime-evidence-2026-10-03.json`
 - `docs/assets-archive/intro.mp4`
@@ -7773,7 +7780,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (207)</summary>
+<details><summary>edge-function-source (208)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7791,6 +7798,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/feature-flags.ts`
 - `supabase/functions/_shared/incident-intelligence.ts`
 - `supabase/functions/_shared/intelligence.ts`
+- `supabase/functions/_shared/isolated-test-environment.ts`
 - `supabase/functions/_shared/logging.ts`
 - `supabase/functions/_shared/marketing-ai-plan.ts`
 - `supabase/functions/_shared/marketing-ai.ts`
@@ -9341,7 +9349,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (649)</summary>
+<details><summary>test (652)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9627,6 +9635,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/ios-app-store-readiness.test.ts`
 - `src/test/ios-commerce-policy.test.ts`
 - `src/test/ios-storekit-subscription-management.test.ts`
+- `src/test/isolated-test-configuration.test.ts`
+- `src/test/isolated-test-environment.test.ts`
+- `src/test/isolated-test-replay.test.ts`
 - `src/test/la-gazelle-dor-seed.test.ts`
 - `src/test/la-tok-dor-naming.test.ts`
 - `src/test/launch-anonymous-browsing.test.ts`

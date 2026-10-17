@@ -2,37 +2,37 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b00bc0b17aa08ac3ac87d07f96aa56a2c3e3dee16878ba496501201426fcaf66",
+ "sourceDigest": "c7372ca9254b59562f4ffb781f357f78a4fdc440d1e525b790218176299392e1",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2903,
-  "documents": 208,
+  "documents": 209,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3615,
+  "exportedSymbols": 3622,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 549,
-  "modules": 1627,
+  "modules": 1632,
   "pages": 133,
-  "pathLiterals": 758,
+  "pathLiterals": 760,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 111,
-  "records": 17273,
-  "repositoryFiles": 3268,
+  "records": 17297,
+  "repositoryFiles": 3275,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 29
+  "workflows": 30
  },
  "catalogs": {
   "frontendRoutes": [
@@ -20476,7 +20476,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2130
+      "line": 2131
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -20724,7 +20724,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1772
+      "line": 1773
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -21382,11 +21382,11 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 1896
+      "line": 1897
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2269
+      "line": 2270
      }
     ]
    },
@@ -21498,7 +21498,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2410
+      "line": 2411
      }
     ]
    },
@@ -22060,6 +22060,10 @@
     "value": "/database/query",
     "sources": [
      {
+      "path": "src/test/isolated-test-configuration.test.ts",
+      "line": 37
+     },
+     {
       "path": "src/test/production-preflight-hardening.test.ts",
       "line": 204
      }
@@ -22543,7 +22547,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 540
+      "line": 541
      }
     ]
    },
@@ -26745,7 +26749,7 @@
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
-      "line": 2880
+      "line": 2881
      }
     ]
    },
@@ -30185,6 +30189,15 @@
     ]
    },
    {
+    "value": "/v1/account",
+    "sources": [
+     {
+      "path": "src/test/isolated-test-configuration.test.ts",
+      "line": 38
+     }
+    ]
+   },
+   {
     "value": "/v1/appScreenshotSets",
     "sources": [
      {
@@ -30482,6 +30495,19 @@
      {
       "path": "scripts/app-store-availability-submit-v5.mjs",
       "line": 91
+     }
+    ]
+   },
+   {
+    "value": "/v1/webhook_endpoints",
+    "sources": [
+     {
+      "path": "src/test/isolated-test-configuration.test.ts",
+      "line": 39
+     },
+     {
+      "path": "src/test/isolated-test-configuration.test.ts",
+      "line": 46
      }
     ]
    },
@@ -33079,6 +33105,7 @@
      "src/test/deploy-production-secret-scope.test.ts",
      "src/test/email-provider-reconciliation.test.ts",
      "src/test/incident-intelligence-routing.test.ts",
+     "src/test/isolated-test-configuration.test.ts",
      "src/test/marketing-ai-agent.test.ts",
      "src/test/marketing-one-click-unsubscribe.test.ts",
      "src/test/marketing-orchestrator-schema.test.ts",
@@ -33122,6 +33149,7 @@
      "scripts/ci-change-plan.test.mjs",
      "scripts/ci-critical-tests.mjs",
      "scripts/ci-critical-tests.test.mjs",
+     "scripts/configure-isolated-test-backend.mjs",
      "scripts/launch-10k-load-check.mjs",
      "scripts/release-readiness-core.mjs",
      "scripts/release-readiness.mjs",
@@ -33242,6 +33270,8 @@
      "src/test/incident-intelligence-routing.test.ts",
      "src/test/ios-commerce-policy.test.ts",
      "src/test/ios-storekit-subscription-management.test.ts",
+     "src/test/isolated-test-configuration.test.ts",
+     "src/test/isolated-test-environment.test.ts",
      "src/test/launch-load-plan.test.ts",
      "src/test/marketing-ai-agent.test.ts",
      "src/test/marketing-print-contract.test.ts",
@@ -33309,6 +33339,7 @@
      "supabase/functions/_shared/cors.ts",
      "supabase/functions/_shared/error-code-map.ts",
      "supabase/functions/_shared/incident-intelligence.ts",
+     "supabase/functions/_shared/isolated-test-environment.ts",
      "supabase/functions/_shared/logging.ts",
      "supabase/functions/_shared/marketing-ai-plan.ts",
      "supabase/functions/_shared/marketing-ai.ts",
@@ -33397,6 +33428,7 @@
      "scripts/ci-critical-tests.test.mjs",
      "scripts/ci-migration-version-guard.mjs",
      "scripts/ci-migration-version-guard.test.mjs",
+     "scripts/configure-isolated-test-backend.mjs",
      "scripts/ensure-supabase-auth-security.mjs",
      "scripts/ensure-supabase-auth-smtp.mjs",
      "scripts/frontend-10k-readiness.mjs",
@@ -33803,6 +33835,8 @@
      "src/test/incident-native-scan-readiness.test.ts",
      "src/test/incident-secret-sync-readiness.test.ts",
      "src/test/ios-storekit-subscription-management.test.ts",
+     "src/test/isolated-test-configuration.test.ts",
+     "src/test/isolated-test-environment.test.ts",
      "src/test/la-gazelle-dor-seed.test.ts",
      "src/test/launch-anonymous-browsing.test.ts",
      "src/test/launch-artwork-countdown.test.tsx",
@@ -34044,6 +34078,7 @@
      "supabase/functions/_shared/error-diagnostics.ts",
      "supabase/functions/_shared/incident-intelligence.ts",
      "supabase/functions/_shared/intelligence.ts",
+     "supabase/functions/_shared/isolated-test-environment.ts",
      "supabase/functions/_shared/logging.ts",
      "supabase/functions/_shared/marketing-service-auth.ts",
      "supabase/functions/_shared/marketplace-finance.ts",
@@ -73720,6 +73755,13 @@
     ]
    },
    {
+    "name": "TOK isolated Stripe Test backend",
+    "path": ".github/workflows/tok-isolated-test-backend.yml",
+    "jobs": [
+     "isolated-test"
+    ]
+   },
+   {
     "name": "TOK Workforce PostgreSQL Integration",
     "path": ".github/workflows/tok-workforce-postgres.yml",
     "jobs": [
@@ -75906,6 +75948,17 @@
       "level": 2,
       "title": "Evidence",
       "line": 30
+     }
+    ]
+   },
+   {
+    "path": "docs/TOK_ISOLATED_TEST_BACKEND.md",
+    "title": "Backend temporaire Stripe Test",
+    "headings": [
+     {
+      "level": 1,
+      "title": "Backend temporaire Stripe Test",
+      "line": 1
      }
     ]
    },
@@ -86250,6 +86303,32 @@
      "vercel"
     ],
     "lineCount": 103
+   },
+   {
+    "path": "scripts/configure-isolated-test-backend.mjs",
+    "exports": [
+     {
+      "name": "TEST_REF",
+      "line": 3,
+      "kind": "variable"
+     },
+     {
+      "name": "assertReplayDisabled",
+      "line": 4,
+      "kind": "function"
+     },
+     {
+      "name": "configureIsolatedTestBackend",
+      "line": 8,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 72
    },
    {
     "path": "scripts/dependabot-policy.test.mjs",
@@ -109958,6 +110037,34 @@
     "lineCount": 41
    },
    {
+    "path": "src/test/isolated-test-configuration.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "resend",
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 51
+   },
+   {
+    "path": "src/test/isolated-test-environment.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 27
+   },
+   {
+    "path": "src/test/isolated-test-replay.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 12
+   },
+   {
     "path": "src/test/la-gazelle-dor-seed.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -114014,6 +114121,37 @@
     "lineCount": 85
    },
    {
+    "path": "supabase/functions/_shared/isolated-test-environment.ts",
+    "exports": [
+     {
+      "name": "ISOLATED_TEST_PROJECT_REF",
+      "line": 2,
+      "kind": "variable"
+     },
+     {
+      "name": "resolveIsolatedTestEnvironment",
+      "line": 4,
+      "kind": "function"
+     },
+     {
+      "name": "isIsolatedTestEnvironment",
+      "line": 19,
+      "kind": "function"
+     },
+     {
+      "name": "nativeStripeMode",
+      "line": 23,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 26
+   },
+   {
     "path": "supabase/functions/_shared/logging.ts",
     "exports": [
      {
@@ -115759,7 +115897,7 @@
     "exports": [
      {
       "name": "finalizeReservationCardGuarantee",
-      "line": 109,
+      "line": 110,
       "kind": "function"
      }
     ],
@@ -115771,7 +115909,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 200
+    "lineCount": 201
    },
    {
     "path": "supabase/functions/_shared/restaurant-credits.ts",
@@ -115942,77 +116080,77 @@
     "exports": [
      {
       "name": "STRIPE_API_VERSION",
-      "line": 5,
+      "line": 6,
       "kind": "variable"
      },
      {
       "name": "StripeRuntimeMode",
-      "line": 7,
+      "line": 8,
       "kind": "typealias"
      },
      {
       "name": "StripeRuntime",
-      "line": 9,
+      "line": 10,
       "kind": "typealias"
      },
      {
       "name": "StripeWebhookSigningSecret",
-      "line": 16,
+      "line": 17,
       "kind": "typealias"
      },
      {
       "name": "mergeStripeWebhookSigningSecrets",
-      "line": 69,
+      "line": 70,
       "kind": "function"
      },
      {
       "name": "stripeWebhookEventMatchesExpectedMode",
-      "line": 87,
+      "line": 88,
       "kind": "function"
      },
      {
       "name": "inferStripeRuntimeMode",
-      "line": 100,
+      "line": 101,
       "kind": "function"
      },
      {
       "name": "createStripeClient",
-      "line": 104,
+      "line": 105,
       "kind": "function"
      },
      {
       "name": "getStripeRuntimeForCheckoutKind",
-      "line": 139,
+      "line": 140,
       "kind": "function"
      },
      {
       "name": "getStripeRuntimeForCheckoutKindAndMode",
-      "line": 175,
+      "line": 177,
       "kind": "function"
      },
      {
       "name": "getCommercialDemoStripeRuntime",
-      "line": 215,
+      "line": 221,
       "kind": "function"
      },
      {
       "name": "getTokOneStripeRuntime",
-      "line": 234,
+      "line": 240,
       "kind": "function"
      },
      {
       "name": "getTokOneStripeRuntimeForCheckoutSession",
-      "line": 271,
+      "line": 281,
       "kind": "function"
      },
      {
       "name": "getStripeVerificationRuntime",
-      "line": 277,
+      "line": 287,
       "kind": "function"
      },
      {
       "name": "getStripeWebhookSigningSecrets",
-      "line": 291,
+      "line": 302,
       "kind": "function"
      }
     ],
@@ -116020,7 +116158,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 308
+    "lineCount": 320
    },
    {
     "path": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
@@ -117443,7 +117581,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 639
+    "lineCount": 640
    },
    {
     "path": "supabase/functions/create-social-post-boost/index.ts",
@@ -118187,7 +118325,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3510
+    "lineCount": 3511
    },
    {
     "path": "supabase/functions/stripe-worker/index.ts",
@@ -118286,7 +118424,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 952
+    "lineCount": 954
    },
    {
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
@@ -119262,6 +119400,11 @@
     "extension": ".yml"
    },
    {
+    "path": ".github/workflows/tok-isolated-test-backend.yml",
+    "category": "ci-workflow",
+    "extension": ".yml"
+   },
+   {
     "path": ".github/workflows/tok-workforce-postgres.yml",
     "category": "ci-workflow",
     "extension": ".yml"
@@ -119758,6 +119901,11 @@
    },
    {
     "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/TOK_ISOLATED_TEST_BACKEND.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -123958,6 +124106,11 @@
    },
    {
     "path": "scripts/codex-auto-pre-edit.mjs",
+    "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/configure-isolated-test-backend.mjs",
     "category": "automation-script",
     "extension": ".mjs"
    },
@@ -129097,6 +129250,21 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/isolated-test-configuration.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/isolated-test-environment.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/isolated-test-replay.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/la-gazelle-dor-seed.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -131043,6 +131211,11 @@
    },
    {
     "path": "supabase/functions/_shared/intelligence.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/isolated-test-environment.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -135861,6 +136034,23 @@
     "vercel"
    ],
    "detailRef": "9e2f86efc007"
+  },
+  {
+   "id": "code-module:602fcd8ed020",
+   "type": "code-module",
+   "title": "scripts/configure-isolated-test-backend.mjs",
+   "description": "Module de 72 lignes; exports: TEST_REF, assertReplayDisabled, configureIsolatedTestBackend.",
+   "path": "scripts/configure-isolated-test-backend.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TEST_REF",
+    "assertReplayDisabled",
+    "configureIsolatedTestBackend",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "401e92017fe0"
   },
   {
    "id": "code-module:68726476b8d6",
@@ -151616,6 +151806,46 @@
    "detailRef": "41dd8ce0414a"
   },
   {
+   "id": "code-module:7e408010a71b",
+   "type": "code-module",
+   "title": "src/test/isolated-test-configuration.test.ts",
+   "description": "Module de 51 lignes; exports: aucun export statique.",
+   "path": "src/test/isolated-test-configuration.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "resend",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "7cfd590ad04d"
+  },
+  {
+   "id": "code-module:578b5f75fcd6",
+   "type": "code-module",
+   "title": "src/test/isolated-test-environment.test.ts",
+   "description": "Module de 27 lignes; exports: aucun export statique.",
+   "path": "src/test/isolated-test-environment.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "ae886d0718c7"
+  },
+  {
+   "id": "code-module:dfcc0baa5810",
+   "type": "code-module",
+   "title": "src/test/isolated-test-replay.test.ts",
+   "description": "Module de 12 lignes; exports: aucun export statique.",
+   "path": "src/test/isolated-test-replay.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "5fa36928c369"
+  },
+  {
    "id": "code-module:8ea3a210878d",
    "type": "code-module",
    "title": "src/test/la-gazelle-dor-seed.test.ts",
@@ -156614,6 +156844,24 @@
    "detailRef": "2f7b097ce0cc"
   },
   {
+   "id": "code-module:d2206945559a",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/isolated-test-environment.ts",
+   "description": "Module de 26 lignes; exports: ISOLATED_TEST_PROJECT_REF, resolveIsolatedTestEnvironment, isIsolatedTestEnvironment, nativeStripeMode.",
+   "path": "supabase/functions/_shared/isolated-test-environment.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "ISOLATED_TEST_PROJECT_REF",
+    "isIsolatedTestEnvironment",
+    "nativeStripeMode",
+    "resolveIsolatedTestEnvironment",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "27afa882dd86"
+  },
+  {
    "id": "code-module:d4ebeef714db",
    "type": "code-module",
    "title": "supabase/functions/_shared/logging.ts",
@@ -157443,7 +157691,7 @@
    "id": "code-module:df56e5f71846",
    "type": "code-module",
    "title": "supabase/functions/_shared/reservation-card-guarantee.ts",
-   "description": "Module de 200 lignes; exports: finalizeReservationCardGuarantee.",
+   "description": "Module de 201 lignes; exports: finalizeReservationCardGuarantee.",
    "path": "supabase/functions/_shared/reservation-card-guarantee.ts",
    "line": 1,
    "surface": null,
@@ -157454,7 +157702,7 @@
     "finalizeReservationCardGuarantee",
     "stripe"
    ],
-   "detailRef": "c19d2011f2e0"
+   "detailRef": "699899fde4bc"
   },
   {
    "id": "code-module:7e94167c321f",
@@ -157548,7 +157796,7 @@
    "id": "code-module:b31bfc8d4a7c",
    "type": "code-module",
    "title": "supabase/functions/_shared/stripe-client.ts",
-   "description": "Module de 308 lignes; exports: STRIPE_API_VERSION, StripeRuntimeMode, StripeRuntime, StripeWebhookSigningSecret, mergeStripeWebhookSigningSecrets, stripeWebhookEventMatchesExpectedMode, inferStripeRuntimeMode, createStripeClient, getStripeRuntimeForCheckoutKind, getStripeRuntimeForCheckoutKindAndMode, getCommercialDemoStripeRuntime, getTokOneStripeRuntime, getTokOneStripeRuntimeForCheckoutSession, getStripeVerificationRuntime, getStripeWebhookSigningSecrets.",
+   "description": "Module de 320 lignes; exports: STRIPE_API_VERSION, StripeRuntimeMode, StripeRuntime, StripeWebhookSigningSecret, mergeStripeWebhookSigningSecrets, stripeWebhookEventMatchesExpectedMode, inferStripeRuntimeMode, createStripeClient, getStripeRuntimeForCheckoutKind, getStripeRuntimeForCheckoutKindAndMode, getCommercialDemoStripeRuntime, getTokOneStripeRuntime, getTokOneStripeRuntimeForCheckoutSession, getStripeVerificationRuntime, getStripeWebhookSigningSecrets.",
    "path": "supabase/functions/_shared/stripe-client.ts",
    "line": 1,
    "surface": null,
@@ -157570,7 +157818,7 @@
     "stripe",
     "stripeWebhookEventMatchesExpectedMode"
    ],
-   "detailRef": "d6d0c2d69d0b"
+   "detailRef": "6d7a00fbecfc"
   },
   {
    "id": "code-module:259a3faa5408",
@@ -158513,7 +158761,7 @@
    "id": "code-module:2de82e4df11d",
    "type": "code-module",
    "title": "supabase/functions/create-reservation/index.ts",
-   "description": "Module de 639 lignes; exports: aucun export statique.",
+   "description": "Module de 640 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-reservation/index.ts",
    "line": 1,
    "surface": null,
@@ -158524,7 +158772,7 @@
     "google",
     "stripe"
    ],
-   "detailRef": "1091e1d1f0e5"
+   "detailRef": "255ecd4b2ef3"
   },
   {
    "id": "code-module:9d76768ca095",
@@ -159414,7 +159662,7 @@
    "id": "code-module:9ac355dfd729",
    "type": "code-module",
    "title": "supabase/functions/stripe-webhook/index.ts",
-   "description": "Module de 3510 lignes; exports: aucun export statique.",
+   "description": "Module de 3511 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-webhook/index.ts",
    "line": 1,
    "surface": null,
@@ -159422,7 +159670,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "e90925d5f20d"
+   "detailRef": "ddbe67aa3d62"
   },
   {
    "id": "code-module:f3fa7c18e7bc",
@@ -159508,7 +159756,7 @@
    "id": "code-module:5f5eb07543f1",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-app-bridge/index.ts",
-   "description": "Module de 952 lignes; exports: aucun export statique.",
+   "description": "Module de 954 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-app-bridge/index.ts",
    "line": 1,
    "surface": null,
@@ -159519,7 +159767,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "014d02953971"
+   "detailRef": "1aeb873812a6"
   },
   {
    "id": "code-module:4266f84831a7",
@@ -213834,6 +214082,20 @@
    "detailRef": "67d0dcff2e1d"
   },
   {
+   "id": "document-section:ffa05f210c19",
+   "type": "document-section",
+   "title": "Backend temporaire Stripe Test",
+   "description": "Section de Backend temporaire Stripe Test.",
+   "path": "docs/TOK_ISOLATED_TEST_BACKEND.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Backend temporaire Stripe Test",
+    "h1"
+   ],
+   "detailRef": "baa56d94ad48"
+  },
+  {
    "id": "document-section:d44f8b2c1d18",
    "type": "document-section",
    "title": "Backend-specific checks",
@@ -239048,6 +239310,19 @@
    "detailRef": "d962e550c699"
   },
   {
+   "id": "document:ffa05f210c19",
+   "type": "document",
+   "title": "Backend temporaire Stripe Test",
+   "description": "Document Markdown avec 1 section(s).",
+   "path": "docs/TOK_ISOLATED_TEST_BACKEND.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Backend temporaire Stripe Test"
+   ],
+   "detailRef": "23bd2d8fce88"
+  },
+  {
    "id": "document:58a378e72fb9",
    "type": "document",
    "title": "Batch INSERT Statements for Bulk Data",
@@ -258381,6 +258656,21 @@
    "detailRef": "b1ff39e9f9e7"
   },
   {
+   "id": "exported-symbol:530878c3b23f",
+   "type": "exported-symbol",
+   "title": "ISOLATED_TEST_PROJECT_REF",
+   "description": "Export variable de supabase/functions/_shared/isolated-test-environment.ts.",
+   "path": "supabase/functions/_shared/isolated-test-environment.ts",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase",
+    "variable"
+   ],
+   "detailRef": "01b8277a8c47"
+  },
+  {
    "id": "exported-symbol:9ee1c2b83093",
    "type": "exported-symbol",
    "title": "ImageContext",
@@ -266191,18 +266481,18 @@
    "detailRef": "ee5777ea575d"
   },
   {
-   "id": "exported-symbol:72eafaff757f",
+   "id": "exported-symbol:76d69b762e7a",
    "type": "exported-symbol",
    "title": "STRIPE_API_VERSION",
    "description": "Export variable de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 5,
+   "line": 6,
    "surface": null,
    "tags": [
     "stripe",
     "variable"
    ],
-   "detailRef": "cef6fed78ff2"
+   "detailRef": "8babaf0a68e1"
   },
   {
    "id": "exported-symbol:999864a5d2df",
@@ -267964,46 +268254,46 @@
    "detailRef": "c67903f237fc"
   },
   {
-   "id": "exported-symbol:8a54cb6b4cfe",
+   "id": "exported-symbol:6087a0e91f8a",
    "type": "exported-symbol",
    "title": "StripeRuntime",
    "description": "Export typealias de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 9,
+   "line": 10,
    "surface": null,
    "tags": [
     "stripe",
     "typealias"
    ],
-   "detailRef": "430583c873d4"
+   "detailRef": "0d1e3e62f74b"
   },
   {
-   "id": "exported-symbol:ff09057ca3c8",
+   "id": "exported-symbol:9484f5d4b806",
    "type": "exported-symbol",
    "title": "StripeRuntimeMode",
    "description": "Export typealias de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 7,
+   "line": 8,
    "surface": null,
    "tags": [
     "stripe",
     "typealias"
    ],
-   "detailRef": "21e38b7ff3c7"
+   "detailRef": "48c170ccd63a"
   },
   {
-   "id": "exported-symbol:3f3cefcc7702",
+   "id": "exported-symbol:b1c3771a277c",
    "type": "exported-symbol",
    "title": "StripeWebhookSigningSecret",
    "description": "Export typealias de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 16,
+   "line": 17,
    "surface": null,
    "tags": [
     "stripe",
     "typealias"
    ],
-   "detailRef": "fc31a291ed68"
+   "detailRef": "5fcb6204d21d"
   },
   {
    "id": "exported-symbol:27de1cce521a",
@@ -268166,6 +268456,21 @@
     "variable"
    ],
    "detailRef": "f74cd9c81a22"
+  },
+  {
+   "id": "exported-symbol:cd0aeb8b3a98",
+   "type": "exported-symbol",
+   "title": "TEST_REF",
+   "description": "Export variable de scripts/configure-isolated-test-backend.mjs.",
+   "path": "scripts/configure-isolated-test-backend.mjs",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase",
+    "variable"
+   ],
+   "detailRef": "55dd72be0c5a"
   },
   {
    "id": "exported-symbol:563715b90061",
@@ -271772,6 +272077,21 @@
    "detailRef": "f6d46ee72eb7"
   },
   {
+   "id": "exported-symbol:e41b15730f02",
+   "type": "exported-symbol",
+   "title": "assertReplayDisabled",
+   "description": "Export function de scripts/configure-isolated-test-backend.mjs.",
+   "path": "scripts/configure-isolated-test-backend.mjs",
+   "line": 4,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "e64caef71b8f"
+  },
+  {
    "id": "exported-symbol:e152074ac8fc",
    "type": "exported-symbol",
    "title": "assertSafeFileUpload",
@@ -275269,6 +275589,21 @@
    "detailRef": "a023b66b1eba"
   },
   {
+   "id": "exported-symbol:788a618582d4",
+   "type": "exported-symbol",
+   "title": "configureIsolatedTestBackend",
+   "description": "Export function de scripts/configure-isolated-test-backend.mjs.",
+   "path": "scripts/configure-isolated-test-backend.mjs",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "b7fb0f2c676f"
+  },
+  {
    "id": "exported-symbol:9d492d6e0526",
    "type": "exported-symbol",
    "title": "confirmCommercialDemoCheckout",
@@ -275895,18 +276230,18 @@
    "detailRef": "e15985922898"
   },
   {
-   "id": "exported-symbol:fac50baa4933",
+   "id": "exported-symbol:d99c81d3610e",
    "type": "exported-symbol",
    "title": "createStripeClient",
    "description": "Export function de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 104,
+   "line": 105,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "3f0956f8e260"
+   "detailRef": "cf118db03123"
   },
   {
    "id": "exported-symbol:4f3f0c53fd1a",
@@ -282024,18 +282359,18 @@
    "detailRef": "2d0cc640f5cb"
   },
   {
-   "id": "exported-symbol:55c25e31a5de",
+   "id": "exported-symbol:3423fd9ec867",
    "type": "exported-symbol",
    "title": "finalizeReservationCardGuarantee",
    "description": "Export function de supabase/functions/_shared/reservation-card-guarantee.ts.",
    "path": "supabase/functions/_shared/reservation-card-guarantee.ts",
-   "line": 109,
+   "line": 110,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "beb24b26d45e"
+   "detailRef": "4ea6c903ce2f"
   },
   {
    "id": "exported-symbol:162e1ae94a54",
@@ -283875,18 +284210,18 @@
    "detailRef": "12276da89578"
   },
   {
-   "id": "exported-symbol:32d7ef1e56a7",
+   "id": "exported-symbol:ff40b56a08f2",
    "type": "exported-symbol",
    "title": "getCommercialDemoStripeRuntime",
    "description": "Export function de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 215,
+   "line": 221,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "c268f76172b3"
+   "detailRef": "f5d38b09bca8"
   },
   {
    "id": "exported-symbol:2450dd45cb9a",
@@ -287070,60 +287405,60 @@
    "detailRef": "a3929b9a3010"
   },
   {
-   "id": "exported-symbol:5c7f71e3dbc0",
+   "id": "exported-symbol:d4d1dc02eb94",
    "type": "exported-symbol",
    "title": "getStripeRuntimeForCheckoutKind",
    "description": "Export function de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 139,
+   "line": 140,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "4f318d358ac2"
+   "detailRef": "8226b91579eb"
   },
   {
-   "id": "exported-symbol:49bcdbacfcc0",
+   "id": "exported-symbol:d9a89524b03a",
    "type": "exported-symbol",
    "title": "getStripeRuntimeForCheckoutKindAndMode",
    "description": "Export function de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 175,
+   "line": 177,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "855b1a7635ce"
+   "detailRef": "e3f0d34eee04"
   },
   {
-   "id": "exported-symbol:95beb0ec7c1f",
+   "id": "exported-symbol:4bd28d570e12",
    "type": "exported-symbol",
    "title": "getStripeVerificationRuntime",
    "description": "Export function de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 277,
+   "line": 287,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "f17c7214b2a9"
+   "detailRef": "94252242ec48"
   },
   {
-   "id": "exported-symbol:30ed4cee1a23",
+   "id": "exported-symbol:9dc84f1f1db3",
    "type": "exported-symbol",
    "title": "getStripeWebhookSigningSecrets",
    "description": "Export function de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 291,
+   "line": 302,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "1cc29eed8a23"
+   "detailRef": "f375fe4da719"
   },
   {
    "id": "exported-symbol:65ae634bf12f",
@@ -287473,32 +287808,32 @@
    "detailRef": "95bc2c688a0d"
   },
   {
-   "id": "exported-symbol:240dfd8bb0cc",
+   "id": "exported-symbol:88ef5d9b76c6",
    "type": "exported-symbol",
    "title": "getTokOneStripeRuntime",
    "description": "Export function de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 234,
+   "line": 240,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "c412e0d70362"
+   "detailRef": "461bb80710c8"
   },
   {
-   "id": "exported-symbol:85c19b0c9da6",
+   "id": "exported-symbol:828ddfc2feff",
    "type": "exported-symbol",
    "title": "getTokOneStripeRuntimeForCheckoutSession",
    "description": "Export function de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 271,
+   "line": 281,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "916335be58de"
+   "detailRef": "0d90beccf876"
   },
   {
    "id": "exported-symbol:4fab5984627c",
@@ -288105,18 +288440,18 @@
    "detailRef": "0cb21f82112c"
   },
   {
-   "id": "exported-symbol:41f3da934f78",
+   "id": "exported-symbol:3453746bb35f",
    "type": "exported-symbol",
    "title": "inferStripeRuntimeMode",
    "description": "Export function de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 100,
+   "line": 101,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "117774fd9759"
+   "detailRef": "2e48ecb84281"
   },
   {
    "id": "exported-symbol:b67d2ec8e324",
@@ -289253,6 +289588,21 @@
     "supabase"
    ],
    "detailRef": "b5f6d4be28f1"
+  },
+  {
+   "id": "exported-symbol:04a3ba5b135b",
+   "type": "exported-symbol",
+   "title": "isIsolatedTestEnvironment",
+   "description": "Export function de supabase/functions/_shared/isolated-test-environment.ts.",
+   "path": "supabase/functions/_shared/isolated-test-environment.ts",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "0c478fbf2120"
   },
   {
    "id": "exported-symbol:dde8b4b32cd0",
@@ -291318,18 +291668,18 @@
    "detailRef": "792ad31f6bf8"
   },
   {
-   "id": "exported-symbol:ebc79e1fcdb6",
+   "id": "exported-symbol:65e7c5457778",
    "type": "exported-symbol",
    "title": "mergeStripeWebhookSigningSecrets",
    "description": "Export function de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 69,
+   "line": 70,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "b59648e22ecf"
+   "detailRef": "22922241f7bc"
   },
   {
    "id": "exported-symbol:579d1a47a3ba",
@@ -291344,6 +291694,21 @@
     "supabase"
    ],
    "detailRef": "fe8990c204b3"
+  },
+  {
+   "id": "exported-symbol:8eefac9fda1e",
+   "type": "exported-symbol",
+   "title": "nativeStripeMode",
+   "description": "Export function de supabase/functions/_shared/isolated-test-environment.ts.",
+   "path": "supabase/functions/_shared/isolated-test-environment.ts",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "cbb381de0f73"
   },
   {
    "id": "exported-symbol:c0b552d6c0fd",
@@ -294285,6 +294650,21 @@
    "detailRef": "dc0e945fb1d6"
   },
   {
+   "id": "exported-symbol:018ab30aa15b",
+   "type": "exported-symbol",
+   "title": "resolveIsolatedTestEnvironment",
+   "description": "Export function de supabase/functions/_shared/isolated-test-environment.ts.",
+   "path": "supabase/functions/_shared/isolated-test-environment.ts",
+   "line": 4,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "92d83e350bd9"
+  },
+  {
    "id": "exported-symbol:ab43feb62a4f",
    "type": "exported-symbol",
    "title": "resolveLiveStripePublishableKey",
@@ -296155,18 +296535,18 @@
    "detailRef": "2358f524937f"
   },
   {
-   "id": "exported-symbol:a5ab8f8cf745",
+   "id": "exported-symbol:677d3f911184",
    "type": "exported-symbol",
    "title": "stripeWebhookEventMatchesExpectedMode",
    "description": "Export function de supabase/functions/_shared/stripe-client.ts.",
    "path": "supabase/functions/_shared/stripe-client.ts",
-   "line": 87,
+   "line": 88,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "197e089f43c6"
+   "detailRef": "69f8c14ba79d"
   },
   {
    "id": "exported-symbol:2c299f136df6",
@@ -302432,6 +302812,20 @@
    "detailRef": "4641b28d0262"
   },
   {
+   "id": "file:7a4a5be529e7",
+   "type": "file",
+   "title": ".github/workflows/tok-isolated-test-backend.yml",
+   "description": "Fichier du dépôt classé ci-workflow.",
+   "path": ".github/workflows/tok-isolated-test-backend.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".yml",
+    "ci-workflow"
+   ],
+   "detailRef": "8c35130ae533"
+  },
+  {
    "id": "file:463aec1393c8",
    "type": "file",
    "title": ".github/workflows/tok-workforce-postgres.yml",
@@ -303830,6 +304224,20 @@
     "documentation"
    ],
    "detailRef": "a60b1fc7159a"
+  },
+  {
+   "id": "file:8d59f2022970",
+   "type": "file",
+   "title": "docs/TOK_ISOLATED_TEST_BACKEND.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/TOK_ISOLATED_TEST_BACKEND.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "07d192d20a93"
   },
   {
    "id": "file:7abfcbd8dd5e",
@@ -315590,6 +315998,20 @@
     "automation-script"
    ],
    "detailRef": "b9ce7ad8b484"
+  },
+  {
+   "id": "file:f05f890845f9",
+   "type": "file",
+   "title": "scripts/configure-isolated-test-backend.mjs",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/configure-isolated-test-backend.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "automation-script"
+   ],
+   "detailRef": "7438ff970369"
   },
   {
    "id": "file:9a00bcfbe6a6",
@@ -329970,6 +330392,48 @@
    "detailRef": "91368023fea6"
   },
   {
+   "id": "file:759751a894de",
+   "type": "file",
+   "title": "src/test/isolated-test-configuration.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/isolated-test-configuration.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "07d4b7449a8b"
+  },
+  {
+   "id": "file:6e3fe7e24d2f",
+   "type": "file",
+   "title": "src/test/isolated-test-environment.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/isolated-test-environment.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "bc200c3b089f"
+  },
+  {
+   "id": "file:cf959b585bd9",
+   "type": "file",
+   "title": "src/test/isolated-test-replay.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/isolated-test-replay.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "82ad0aec6c5e"
+  },
+  {
    "id": "file:6bf9878db1f1",
    "type": "file",
    "title": "src/test/la-gazelle-dor-seed.test.ts",
@@ -335428,6 +335892,20 @@
     "edge-function-source"
    ],
    "detailRef": "920ae854a806"
+  },
+  {
+   "id": "file:974f60200173",
+   "type": "file",
+   "title": "supabase/functions/_shared/isolated-test-environment.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/isolated-test-environment.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "d7b02490acb1"
   },
   {
    "id": "file:8233e2fdc92a",
@@ -349576,7 +350054,7 @@
    "id": "integration:7bccba38bd87",
    "type": "integration",
    "title": "Resend",
-   "description": "Intégration externe détectée dans 35 module(s).",
+   "description": "Intégration externe détectée dans 36 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -349599,6 +350077,7 @@
     "src/test/deploy-production-secret-scope.test.ts",
     "src/test/email-provider-reconciliation.test.ts",
     "src/test/incident-intelligence-routing.test.ts",
+    "src/test/isolated-test-configuration.test.ts",
     "src/test/marketing-ai-agent.test.ts",
     "src/test/marketing-one-click-unsubscribe.test.ts",
     "src/test/marketing-orchestrator-schema.test.ts",
@@ -349618,7 +350097,7 @@
     "supabase/functions/marketing-orchestrator/index.ts",
     "supabase/functions/send-email/index.ts"
    ],
-   "detailRef": "8b35a7da516a"
+   "detailRef": "f8ad4c482b2d"
   },
   {
    "id": "integration:4ec2685ad9fc",
@@ -349646,7 +350125,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 263 module(s).",
+   "description": "Intégration externe détectée dans 267 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -349657,6 +350136,7 @@
     "scripts/ci-change-plan.test.mjs",
     "scripts/ci-critical-tests.mjs",
     "scripts/ci-critical-tests.test.mjs",
+    "scripts/configure-isolated-test-backend.mjs",
     "scripts/launch-10k-load-check.mjs",
     "scripts/release-readiness-core.mjs",
     "scripts/release-readiness.mjs",
@@ -349777,6 +350257,8 @@
     "src/test/incident-intelligence-routing.test.ts",
     "src/test/ios-commerce-policy.test.ts",
     "src/test/ios-storekit-subscription-management.test.ts",
+    "src/test/isolated-test-configuration.test.ts",
+    "src/test/isolated-test-environment.test.ts",
     "src/test/launch-load-plan.test.ts",
     "src/test/marketing-ai-agent.test.ts",
     "src/test/marketing-print-contract.test.ts",
@@ -349845,6 +350327,7 @@
     "supabase/functions/_shared/cors.ts",
     "supabase/functions/_shared/error-code-map.ts",
     "supabase/functions/_shared/incident-intelligence.ts",
+    "supabase/functions/_shared/isolated-test-environment.ts",
     "supabase/functions/_shared/logging.ts",
     "supabase/functions/_shared/marketing-ai-plan.ts",
     "supabase/functions/_shared/marketing-ai.ts",
@@ -349916,13 +350399,13 @@
     "supabase/functions/tok-connect-remote-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "bfa5facc4ab3"
+   "detailRef": "7045d4ea14cd"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 734 module(s).",
+   "description": "Intégration externe détectée dans 738 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -349940,6 +350423,7 @@
     "scripts/ci-critical-tests.test.mjs",
     "scripts/ci-migration-version-guard.mjs",
     "scripts/ci-migration-version-guard.test.mjs",
+    "scripts/configure-isolated-test-backend.mjs",
     "scripts/ensure-supabase-auth-security.mjs",
     "scripts/ensure-supabase-auth-smtp.mjs",
     "scripts/frontend-10k-readiness.mjs",
@@ -350346,6 +350830,8 @@
     "src/test/incident-native-scan-readiness.test.ts",
     "src/test/incident-secret-sync-readiness.test.ts",
     "src/test/ios-storekit-subscription-management.test.ts",
+    "src/test/isolated-test-configuration.test.ts",
+    "src/test/isolated-test-environment.test.ts",
     "src/test/la-gazelle-dor-seed.test.ts",
     "src/test/launch-anonymous-browsing.test.ts",
     "src/test/launch-artwork-countdown.test.tsx",
@@ -350588,6 +351074,7 @@
     "supabase/functions/_shared/error-diagnostics.ts",
     "supabase/functions/_shared/incident-intelligence.ts",
     "supabase/functions/_shared/intelligence.ts",
+    "supabase/functions/_shared/isolated-test-environment.ts",
     "supabase/functions/_shared/logging.ts",
     "supabase/functions/_shared/marketing-service-auth.ts",
     "supabase/functions/_shared/marketplace-finance.ts",
@@ -350663,7 +351150,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "964ce2c31402"
+   "detailRef": "8fa28a2f76c3"
   },
   {
    "id": "integration:c20910a79a78",
@@ -365070,7 +365557,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "278811443753"
+   "detailRef": "957e8829e57f"
   },
   {
    "id": "path-literal:b59833a7879c",
@@ -365397,7 +365884,7 @@
     "src/test/tok-ai-tools.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "50f9d820fd12"
+   "detailRef": "cd27d33c957d"
   },
   {
    "id": "path-literal:8e90d21ef2e8",
@@ -365464,7 +365951,7 @@
     "src/test/feature-flags.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "ce071b06c285"
+   "detailRef": "465cab1b4171"
   },
   {
    "id": "path-literal:69a2a90c642c",
@@ -365788,7 +366275,7 @@
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "f40a7028027f"
+   "detailRef": "599d6bd41339"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -365818,17 +366305,18 @@
    "detailRef": "da13c70c0ab0"
   },
   {
-   "id": "path-literal:21e021ab9ff9",
+   "id": "path-literal:22ee259c1c05",
    "type": "path-literal",
    "title": "/database/query",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/production-preflight-hardening.test.ts",
-   "line": 204,
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/isolated-test-configuration.test.ts",
+   "line": 37,
    "surface": null,
    "tags": [
+    "src/test/isolated-test-configuration.test.ts",
     "src/test/production-preflight-hardening.test.ts"
    ],
-   "detailRef": "a77c0b4299fd"
+   "detailRef": "658f729668da"
   },
   {
    "id": "path-literal:725fbf96674f",
@@ -366175,7 +366663,7 @@
     "src/test/marketing-agent-bff.test.ts",
     "supabase/functions/tok-connect-app-bridge/index.ts"
    ],
-   "detailRef": "103475c55ca8"
+   "detailRef": "013cdda27d0d"
   },
   {
    "id": "path-literal:4d3338389c80",
@@ -370225,7 +370713,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "cbf9e885f94b"
+   "detailRef": "85925043a5a2"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -372783,6 +373271,19 @@
    "detailRef": "477540d8f557"
   },
   {
+   "id": "path-literal:3df71ee17e91",
+   "type": "path-literal",
+   "title": "/v1/account",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/isolated-test-configuration.test.ts",
+   "line": 38,
+   "surface": null,
+   "tags": [
+    "src/test/isolated-test-configuration.test.ts"
+   ],
+   "detailRef": "b254f7d2d558"
+  },
+  {
    "id": "path-literal:e029d6ca54c2",
    "type": "path-literal",
    "title": "/v1/appScreenshotSets",
@@ -373082,6 +373583,19 @@
     "scripts/app-store-availability-submit-v5.mjs"
    ],
    "detailRef": "986179585e55"
+  },
+  {
+   "id": "path-literal:3f146ce246d5",
+   "type": "path-literal",
+   "title": "/v1/webhook_endpoints",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/isolated-test-configuration.test.ts",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "src/test/isolated-test-configuration.test.ts"
+   ],
+   "detailRef": "027c2fbb6e69"
   },
   {
    "id": "path-literal:f2ced209377b",
@@ -386084,6 +386598,19 @@
     "migration-and-tenant-isolation"
    ],
    "detailRef": "56102a87e1c5"
+  },
+  {
+   "id": "workflow:c1588570e6ec",
+   "type": "workflow",
+   "title": "TOK isolated Stripe Test backend",
+   "description": "Workflow GitHub Actions; jobs: isolated-test.",
+   "path": ".github/workflows/tok-isolated-test-backend.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "isolated-test"
+   ],
+   "detailRef": "1beaea3fd95e"
   },
   {
    "id": "workflow:449ccb0fe621",

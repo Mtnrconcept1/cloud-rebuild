@@ -1,3 +1,4 @@
+import { nativeStripeMode } from "./isolated-test-environment.ts";
 import type Stripe from "npm:stripe@22.3.2";
 
 import { HttpError } from "./auth.ts";
@@ -112,7 +113,7 @@ export async function finalizeReservationCardGuarantee(input: {
   checkoutSessionId: string;
   authenticatedUserId?: string | null;
 }) {
-  if (!/^cs_live_[a-zA-Z0-9_]+$/.test(input.checkoutSessionId)) {
+  if (!new RegExp(`^cs_${nativeStripeMode()}_[a-zA-Z0-9_]+$`).test(input.checkoutSessionId)) {
     throw new HttpError(400, "Session Stripe invalide.");
   }
   const session = await input.stripe.checkout.sessions.retrieve(input.checkoutSessionId);
@@ -122,7 +123,7 @@ export async function finalizeReservationCardGuarantee(input: {
     || checkoutKind !== "reservation-card-guarantee"
     || session.mode !== "setup"
     || session.status !== "complete"
-    || (session as Stripe.Checkout.Session & { livemode?: boolean }).livemode === false) {
+    || (session as Stripe.Checkout.Session & { livemode?: boolean }).livemode !== (nativeStripeMode() === "live")) {
     throw new HttpError(409, "Garantie bancaire Stripe non validée.");
   }
 

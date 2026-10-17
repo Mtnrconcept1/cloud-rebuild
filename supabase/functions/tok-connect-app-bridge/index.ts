@@ -1,3 +1,4 @@
+import { isIsolatedTestEnvironment } from "../_shared/isolated-test-environment.ts";
 import {
   HttpError,
   authenticateRequest,
@@ -804,9 +805,10 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
   }
 
   const kind = input.journey === "zero-attente" ? "zero-attente" : "order";
+  const appOrigin = isIsolatedTestEnvironment() ? "http://localhost:5173" : "https://www.thetok.ch";
   const fixedReturnUrl = input.journey === "zero-attente"
-    ? "https://www.thetok.ch/zero-attente"
-    : "https://www.thetok.ch/commande/confirmation";
+    ? `${appOrigin}/zero-attente`
+    : `${appOrigin}/commande/confirmation`;
   const downstream = await postCustomerTokFunction(req, "create-checkout", {
     payment_attempt_id: paymentAttemptId,
     checkout_kind: kind,

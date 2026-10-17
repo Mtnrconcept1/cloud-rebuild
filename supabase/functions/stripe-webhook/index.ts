@@ -1,3 +1,4 @@
+import { isIsolatedTestEnvironment, nativeStripeMode } from "../_shared/isolated-test-environment.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "npm:stripe@22.3.2";
 import { getEnv, writeAuditLog } from "../_shared/auth.ts";
@@ -1294,7 +1295,7 @@ Deno.serve(async (req) => {
 
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
-  const managedWebhookSecrets = await getManagedWebhookSigningSecrets(supabaseAdmin);
+  const managedWebhookSecrets = isIsolatedTestEnvironment() ? [] : await getManagedWebhookSigningSecrets(supabaseAdmin);
   let webhookSecrets: StripeWebhookSigningSecret[];
   try {
     webhookSecrets = mergeStripeWebhookSigningSecrets([
@@ -1519,7 +1520,7 @@ Deno.serve(async (req) => {
         || event.type.startsWith("customer.subscription.")
         || event.type.startsWith("invoice.")
       );
-    if (event.livemode === false && !isAuthorizedTokOneTestEvent) {
+    if (event.livemode === false && !isAuthorizedTokOneTestEvent && !isIsolatedTestEnvironment()) {
       log.info("stripe_test_event_ignored_by_live_webhook", {
         eventType: event.type,
         stripeObjectId: stripeObject.id || null,
@@ -1663,7 +1664,7 @@ Deno.serve(async (req) => {
         if (checkoutKind === "reservation-card-guarantee") {
           // Checkout setup has no payment currency or amount. Never apply the
           // payment-session integrity check to a successful SetupIntent.
-          if (session.mode !== "setup" || session.status !== "complete" || !event.livemode) {
+          if (session.mode !== "setup" || session.status !== "complete" || event.livemode !== (nativeStripeMode() === "live")) {
             throw new Error("RESERVATION_CARD_SETUP_SESSION_INVALID");
           }
           const guarantee = await finalizeReservationCardGuarantee({

@@ -1,4 +1,5 @@
 import Stripe from "npm:stripe@22.3.2";
+import { isIsolatedTestEnvironment } from "./isolated-test-environment.ts";
 
 import { getEnv, HttpError } from "./auth.ts";
 
@@ -137,6 +138,7 @@ function selectRuntime(input: {
 }
 
 export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
+  if (isIsolatedTestEnvironment()) return selectRuntime({ names: ["STRIPE_SECRET_KEY_TEST"], purpose: "Isolated Stripe Test", expectedMode: "test" });
   const kind = normalizeCheckoutKind(checkoutKind);
   if (kind === "commercial-demo-order") {
     throw new HttpError(400, "DEMO_CHECKOUT_REQUIRES_TEST_ENDPOINT");
@@ -179,6 +181,10 @@ export function getStripeRuntimeForCheckoutKindAndMode(
   const kind = normalizeCheckoutKind(checkoutKind);
   const mode = normalizeRuntimeMode(preferredMode);
   if (!mode) throw new HttpError(400, "Invalid Stripe runtime mode");
+  if (isIsolatedTestEnvironment()) {
+    if (mode !== "test") throw new HttpError(400, "ISOLATED_TEST_MODE_REQUIRED");
+    return getStripeRuntimeForCheckoutKind(kind);
+  }
 
   if (kind === "commercial-demo-order" || kind === "commercial_demo_order") {
     if (mode !== "test") throw new HttpError(400, "Commercial demo requires Stripe Test");
@@ -232,6 +238,10 @@ export function getCommercialDemoStripeRuntime() {
 }
 
 export function getTokOneStripeRuntime(preferredMode?: unknown) {
+  if (isIsolatedTestEnvironment()) {
+    if (preferredMode && normalizeRuntimeMode(preferredMode) !== "test") throw new HttpError(400, "ISOLATED_TEST_MODE_REQUIRED");
+    return getStripeRuntimeForCheckoutKind("tok-one");
+  }
   const mode = normalizeRuntimeMode(preferredMode);
 
   if (mode === "test") {
@@ -275,6 +285,7 @@ export function getTokOneStripeRuntimeForCheckoutSession(sessionId: string) {
 }
 
 export function getStripeVerificationRuntime() {
+  if (isIsolatedTestEnvironment()) return selectRuntime({ names: ["STRIPE_SECRET_KEY_TEST"], purpose: "Isolated Stripe Test", expectedMode: "test" });
   return selectRuntime({
     names: [
       "STRIPE_PERSONNAL_SECRET_KEY",
@@ -289,6 +300,7 @@ export function getStripeVerificationRuntime() {
 }
 
 export function getStripeWebhookSigningSecrets() {
+  if (isIsolatedTestEnvironment()) return readWebhookSigningSecrets(["STRIPE_ISOLATED_TEST_WEBHOOK_SECRET"], "test");
   return mergeStripeWebhookSigningSecrets([
     ...readWebhookSigningSecrets([
       "STRIPE_LIVE_WEBHOOK",
