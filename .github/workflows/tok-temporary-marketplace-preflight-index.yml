@@ -1,0 +1,79 @@
+name: Temporary TOK Marketplace Preflight Generated Index
+on:
+  push:
+    branches:
+      - codex/tok-connect-marketplace-preflight-20261017
+
+concurrency:
+  group: tok-marketplace-preflight-index-20261017
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Install pinned dependencies without lifecycle scripts
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+          pnpm install --frozen-lockfile --ignore-scripts
+      - name: Generate canonical indexes without the temporary workflow
+        run: |
+          set -euo pipefail
+          git rm --quiet .github/workflows/tok-temporary-marketplace-preflight-index.yml
+          node scripts/generate-error-code-map.mjs
+          node scripts/generate-application-index.mjs
+          node scripts/generate-application-index.mjs --check
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tok-marketplace-generated-docs
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            supabase/functions/_shared/error-code-map.ts
+            docs/architecture/TOK_APPLICATION_REFERENCE.md
+            docs/architecture/tok-application-search-index.json
+            src/data/tok-user-guide-catalog.generated.ts
+
+  commit:
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: codex/tok-connect-marketplace-preflight-20261017
+          persist-credentials: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: tok-marketplace-generated-docs
+          path: .
+      - name: Commit generated docs only and self-remove
+        shell: bash
+        env:
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/codex/tok-connect-marketplace-preflight-20261017"
+          test "$(git branch --show-current)" = "codex/tok-connect-marketplace-preflight-20261017"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          git rm --quiet .github/workflows/tok-temporary-marketplace-preflight-index.yml
+          git add supabase/functions/_shared/error-code-map.ts
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json
+          git add src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(tok): sync canonical indexes for financial checkout preflight"
+          git push origin HEAD:refs/heads/codex/tok-connect-marketplace-preflight-20261017
