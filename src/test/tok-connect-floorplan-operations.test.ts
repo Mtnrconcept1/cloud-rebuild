@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { invokeTokRoleOperation, validateTokRoleOperation, TOK_ROLE_OPERATION_TOOLS, TOK_ROLE_OPERATION_COVERAGE } from "../../supabase/functions/_shared/tok-connect-role-operations";
+import { invokeTokRoleOperation, TOK_ROLE_OPERATION_TOOLS, TOK_ROLE_OPERATION_COVERAGE } from "../../supabase/functions/_shared/tok-connect-role-operations";
 import type { RequestActor } from "../../supabase/functions/_shared/auth";
-import { DEFAULT_SERVICE_SETTINGS, getConfiguredServiceSettings, generateTimeSlotsForService } from "../lib/serviceSettings";
+import { DEFAULT_SERVICE_SETTINGS } from "../lib/serviceSettings";
 
 const restaurant = "10000000-0000-4000-8000-000000000001";
 const reservation = "20000000-0000-4000-8000-000000000001";
