@@ -2882,7 +2882,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_cart_action_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 755
+      "line": 764
     }
   ],
   "tok_cart_availability_unavailable": [
@@ -2906,7 +2906,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_cart_checkout_url_unavailable": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 875
+      "line": 884
     }
   ],
   "tok_cart_delivery_unavailable": [
@@ -2918,7 +2918,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_cart_free_takeaway_requires_tok": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 829
+      "line": 838
     }
   ],
   "tok_cart_menu_or_service_unavailable": [
@@ -2936,17 +2936,17 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_cart_pending_order_missing": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 856
+      "line": 865
     }
   ],
   "tok_cart_price_changed_refresh_quote": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 817
+      "line": 826
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 853
+      "line": 862
     }
   ],
   "tok_cart_restaurant_id_invalid": [
@@ -3022,7 +3022,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_bridge_mode_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 978
+      "line": 987
     }
   ],
   "tok_connect_capability_method_not_allowed": [
@@ -3074,13 +3074,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_customer_history_kind_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 902
+      "line": 911
     }
   ],
   "tok_connect_customer_history_unavailable": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 915
+      "line": 924
     }
   ],
   "tok_connect_daily_reservation_limit_exceeded": [
@@ -3366,11 +3366,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 900
+      "line": 909
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 931
+      "line": 940
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
