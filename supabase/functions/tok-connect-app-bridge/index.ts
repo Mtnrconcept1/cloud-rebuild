@@ -15,6 +15,7 @@ import { sha256Base64Url } from "../_shared/tok-connect.ts";
 import { resolveTokDeliveryAddress } from "../_shared/tok-connect-delivery-address.ts";
 import { buildVerifiedOrderPricing, isClientCheckoutRestaurantEligible } from "../_shared/order-pricing.ts";
 import { getEffectiveFeatureFlagSet } from "../_shared/feature-flags.ts";
+import { resolveMarketplaceRouting } from "../_shared/marketplace-finance.ts";
 import {
   normalizeTokCustomerCart,
   assertTokCartAmountUnchanged,
@@ -828,6 +829,19 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
   if (input.journey !== "zero-attente" && customer_quote.total_cents === 0) {
     throw new HttpError(409, "tok_cart_free_takeaway_requires_tok");
   }
+
+  // Check the same authoritative routing gate used by create-checkout BEFORE
+  // creating the provisional order. Never leave an unpaid orphan when Stripe
+  // Connect has not yet been enabled or the restaurant is not verified.
+  // The downstream Checkout performs the same check again to close races.
+  await resolveMarketplaceRouting({
+    adminClient: actor.adminClient,
+    checkoutKind: input.journey === "zero-attente" ? "zero-attente" : "order",
+    restaurantId: input.restaurant_id,
+    grossCents: customer_quote.total_cents,
+    stripeMode: "live",
+  });
+
   const paymentAttemptId = input.payment_attempt_id!;
   const orderReference = (input.journey === "zero-attente" ? "ZA-" : "CMD-")
     + paymentAttemptId.slice(0, 13).toUpperCase();
