@@ -93,6 +93,38 @@ describe("TOK authenticated payment status and recovery", () => {
     });
   });
 
+  it("never reopens a cancelled database attempt after stale Stripe open data", () => {
+    expect(resolveTokPaymentStatus({
+      ...base,
+      persistedState: "cancelled",
+      observedState: "session_bound",
+      checkoutUrl,
+    })).toEqual({
+      state: "cancelled",
+      paymentReceived: false,
+      finalized: false,
+      indeterminate: false,
+      retryable: false,
+      checkoutUrl: null,
+    });
+  });
+
+  it("never reopens a failed or expired database attempt after a stale remote response", () => {
+    for (const persistedState of ["failed", "expired"]) {
+      expect(resolveTokPaymentStatus({
+        ...base,
+        persistedState,
+        observedState: "session_bound",
+        checkoutUrl,
+      })).toMatchObject({
+        state: persistedState,
+        finalized: false,
+        retryable: false,
+        checkoutUrl: null,
+      });
+    }
+  });
+
   it("does not infer a payment from an expired session", () => {
     expect(resolveTokPaymentStatus({
       ...base,
