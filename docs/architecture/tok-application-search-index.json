@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "4a1f23dbd4609d3f3123ffa54c00246e723f7d7debc49ba144a42c9ba4ae5289",
+ "sourceDigest": "dd9f486e1605f677e1923a9c3d004aebbda0e16ea5cbf6533cd3baaa1392ac88",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2907,
-  "documents": 209,
+  "documents": 210,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3623,
+  "exportedSymbols": 3626,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 550,
-  "modules": 1634,
+  "modules": 1636,
   "pages": 133,
   "pathLiterals": 758,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 111,
-  "records": 17310,
-  "repositoryFiles": 3278,
+  "records": 17326,
+  "repositoryFiles": 3281,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -33298,6 +33298,7 @@
      "src/test/tok-connect-customer-result.test.ts",
      "src/test/tok-connect-delivery-commerce.test.ts",
      "src/test/tok-connect-model-commerce-widget.test.ts",
+     "src/test/tok-connect-payment-state.test.ts",
      "src/test/tok-connect-reservation-intent.test.ts",
      "src/test/tok-connect-special-offers-commerce.test.ts",
      "src/test/tok-one-management-handler.test.ts",
@@ -33334,6 +33335,7 @@
      "supabase/functions/_shared/tok-connect-customer-operations.ts",
      "supabase/functions/_shared/tok-connect-customer-result.ts",
      "supabase/functions/_shared/tok-connect-discovery-widget.ts",
+     "supabase/functions/_shared/tok-connect-payment-status.ts",
      "supabase/functions/_shared/tok-connect-role-operations.ts",
      "supabase/functions/_shared/tok-one-recurring-quote.ts",
      "supabase/functions/_shared/tok-one.ts",
@@ -34023,6 +34025,7 @@
      "src/test/tok-connect-mcp-http.test.ts",
      "src/test/tok-connect-mcp-migration.test.ts",
      "src/test/tok-connect-model-commerce-widget.test.ts",
+     "src/test/tok-connect-payment-state.test.ts",
      "src/test/tok-connect-preview-sandbox.test.tsx",
      "src/test/tok-connect-public-actions.test.ts",
      "src/test/tok-connect-reservation-intent.test.ts",
@@ -85011,6 +85014,47 @@
     ]
    },
    {
+    "path": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
+    "title": "TOK Connect — acceptation d'un vrai paiement",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK Connect — acceptation d'un vrai paiement",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Éléments vérifiés en lecture seule",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Paiement reçu versus commande finalisée",
+      "line": 17
+     },
+     {
+      "level": 2,
+      "title": "Mise en place d'un bac à sable dédié",
+      "line": 31
+     },
+     {
+      "level": 2,
+      "title": "Recette obligatoire avant ouverture commerciale",
+      "line": 39
+     },
+     {
+      "level": 2,
+      "title": "Critères de refus de mise en production",
+      "line": 51
+     },
+     {
+      "level": 2,
+      "title": "Retour arrière",
+      "line": 55
+     }
+    ]
+   },
+   {
     "path": "docs/tok-connect/PUBLICATION.md",
     "title": "Publication Suisse",
     "headings": [
@@ -113001,6 +113045,16 @@
     "lineCount": 17
    },
    {
+    "path": "src/test/tok-connect-payment-state.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 157
+   },
+   {
     "path": "src/test/tok-connect-preview-sandbox.test.tsx",
     "exports": [],
     "environmentNames": [],
@@ -116669,6 +116723,31 @@
     "lineCount": 101
    },
    {
+    "path": "supabase/functions/_shared/tok-connect-payment-status.ts",
+    "exports": [
+     {
+      "name": "TokPaymentStatusInput",
+      "line": 11,
+      "kind": "typealias"
+     },
+     {
+      "name": "TokPaymentStatusOutcome",
+      "line": 19,
+      "kind": "typealias"
+     },
+     {
+      "name": "resolveTokPaymentStatus",
+      "line": 28,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe"
+    ],
+    "lineCount": 50
+   },
+   {
     "path": "supabase/functions/_shared/tok-connect-reservation-intent.ts",
     "exports": [
      {
@@ -118061,7 +118140,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 157
+    "lineCount": 166
    },
    {
     "path": "supabase/functions/print-admin/index.ts",
@@ -118488,7 +118567,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1007
+    "lineCount": 1016
    },
    {
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
@@ -120750,6 +120829,11 @@
    },
    {
     "path": "docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -130979,6 +131063,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-connect-payment-state.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/tok-connect-preview-sandbox.test.tsx",
     "category": "test",
     "extension": ".tsx"
@@ -131575,6 +131664,11 @@
    },
    {
     "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/tok-connect-payment-status.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -156143,6 +156237,20 @@
    "detailRef": "325aaf576d42"
   },
   {
+   "id": "code-module:8f48303d2f6d",
+   "type": "code-module",
+   "title": "src/test/tok-connect-payment-state.test.ts",
+   "description": "Module de 157 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-payment-state.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "8e56e1af3e08"
+  },
+  {
    "id": "code-module:122ee8701470",
    "type": "code-module",
    "title": "src/test/tok-connect-preview-sandbox.test.tsx",
@@ -158105,6 +158213,22 @@
    "detailRef": "0f77f030ed65"
   },
   {
+   "id": "code-module:843c0a76fe5b",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/tok-connect-payment-status.ts",
+   "description": "Module de 50 lignes; exports: TokPaymentStatusInput, TokPaymentStatusOutcome, resolveTokPaymentStatus.",
+   "path": "supabase/functions/_shared/tok-connect-payment-status.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TokPaymentStatusInput",
+    "TokPaymentStatusOutcome",
+    "resolveTokPaymentStatus",
+    "stripe"
+   ],
+   "detailRef": "2297c89fcdd9"
+  },
+  {
    "id": "code-module:17414fdd34cb",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-reservation-intent.ts",
@@ -159360,14 +159484,14 @@
    "id": "code-module:2211a7151f18",
    "type": "code-module",
    "title": "supabase/functions/payment-attempt-status/index.ts",
-   "description": "Module de 157 lignes; exports: aucun export statique.",
+   "description": "Module de 166 lignes; exports: aucun export statique.",
    "path": "supabase/functions/payment-attempt-status/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "stripe"
    ],
-   "detailRef": "d5aab0c47246"
+   "detailRef": "22f462b96591"
   },
   {
    "id": "code-module:897e9a24ce1c",
@@ -159868,7 +159992,7 @@
    "id": "code-module:5f5eb07543f1",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-app-bridge/index.ts",
-   "description": "Module de 1007 lignes; exports: aucun export statique.",
+   "description": "Module de 1016 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-app-bridge/index.ts",
    "line": 1,
    "surface": null,
@@ -159879,7 +160003,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "339b7d749ef1"
+   "detailRef": "d225ec130027"
   },
   {
    "id": "code-module:4266f84831a7",
@@ -217334,6 +217458,20 @@
    "detailRef": "40b4139a88e5"
   },
   {
+   "id": "document-section:7ad585ddfe98",
+   "type": "document-section",
+   "title": "Critères de refus de mise en production",
+   "description": "Section de TOK Connect — acceptation d'un vrai paiement.",
+   "path": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "TOK Connect — acceptation d'un vrai paiement",
+    "h2"
+   ],
+   "detailRef": "4809aeec230d"
+  },
+  {
    "id": "document-section:cd7ae87c7210",
    "type": "document-section",
    "title": "Critères de réussite",
@@ -223088,6 +223226,20 @@
    "detailRef": "14a985396663"
   },
   {
+   "id": "document-section:580a31889f9e",
+   "type": "document-section",
+   "title": "Mise en place d'un bac à sable dédié",
+   "description": "Section de TOK Connect — acceptation d'un vrai paiement.",
+   "path": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "TOK Connect — acceptation d'un vrai paiement",
+    "h2"
+   ],
+   "detailRef": "ccc52b17eb9e"
+  },
+  {
    "id": "document-section:698dded1914f",
    "type": "document-section",
    "title": "Mise en place pour TOK",
@@ -225594,6 +225746,20 @@
    "detailRef": "39e1532d509c"
   },
   {
+   "id": "document-section:88d264a62d9f",
+   "type": "document-section",
+   "title": "Paiement reçu versus commande finalisée",
+   "description": "Section de TOK Connect — acceptation d'un vrai paiement.",
+   "path": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
+   "line": 17,
+   "surface": null,
+   "tags": [
+    "TOK Connect — acceptation d'un vrai paiement",
+    "h2"
+   ],
+   "detailRef": "cb50f82fc14a"
+  },
+  {
    "id": "document-section:6d73a3e96910",
    "type": "document-section",
    "title": "Paiements et abonnements",
@@ -228072,6 +228238,20 @@
    "detailRef": "2349ca73d704"
   },
   {
+   "id": "document-section:91bf492234f5",
+   "type": "document-section",
+   "title": "Recette obligatoire avant ouverture commerciale",
+   "description": "Section de TOK Connect — acceptation d'un vrai paiement.",
+   "path": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "TOK Connect — acceptation d'un vrai paiement",
+    "h2"
+   ],
+   "detailRef": "fadfbf91b34b"
+  },
+  {
    "id": "document-section:380a888f618f",
    "type": "document-section",
    "title": "Recette production du 17 octobre 2026",
@@ -229246,6 +229426,20 @@
     "h2"
    ],
    "detailRef": "173bb12a27c5"
+  },
+  {
+   "id": "document-section:e6e7066df094",
+   "type": "document-section",
+   "title": "Retour arrière",
+   "description": "Section de TOK Connect — acceptation d'un vrai paiement.",
+   "path": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
+   "line": 55,
+   "surface": null,
+   "tags": [
+    "TOK Connect — acceptation d'un vrai paiement",
+    "h2"
+   ],
+   "detailRef": "188db80f6235"
   },
   {
    "id": "document-section:3230479b4fe2",
@@ -232676,6 +232870,20 @@
     "h1"
    ],
    "detailRef": "b5cb62861893"
+  },
+  {
+   "id": "document-section:8de3456f2c56",
+   "type": "document-section",
+   "title": "TOK Connect — acceptation d'un vrai paiement",
+   "description": "Section de TOK Connect — acceptation d'un vrai paiement.",
+   "path": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK Connect — acceptation d'un vrai paiement",
+    "h1"
+   ],
+   "detailRef": "4a6253b4c41b"
   },
   {
    "id": "document-section:6866b44da949",
@@ -238572,6 +238780,20 @@
    "detailRef": "7c701cf6707d"
   },
   {
+   "id": "document-section:7d4f0a9d8952",
+   "type": "document-section",
+   "title": "Éléments vérifiés en lecture seule",
+   "description": "Section de TOK Connect — acceptation d'un vrai paiement.",
+   "path": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "TOK Connect — acceptation d'un vrai paiement",
+    "h2"
+   ],
+   "detailRef": "6585a7ad3eaf"
+  },
+  {
    "id": "document-section:2eb7a1299239",
    "type": "document-section",
    "title": "Émetteur légal TOK (registre du commerce de Genève)",
@@ -242345,6 +242567,25 @@
     "What an agent can really do"
    ],
    "detailRef": "77d1658ee3fb"
+  },
+  {
+   "id": "document:8de3456f2c56",
+   "type": "document",
+   "title": "TOK Connect — acceptation d'un vrai paiement",
+   "description": "Document Markdown avec 7 section(s).",
+   "path": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Critères de refus de mise en production",
+    "Mise en place d'un bac à sable dédié",
+    "Paiement reçu versus commande finalisée",
+    "Recette obligatoire avant ouverture commerciale",
+    "Retour arrière",
+    "TOK Connect — acceptation d'un vrai paiement",
+    "Éléments vérifiés en lecture seule"
+   ],
+   "detailRef": "a6f454ebaba9"
   },
   {
    "id": "document:6866b44da949",
@@ -271085,6 +271326,34 @@
    "detailRef": "9e5d16417733"
   },
   {
+   "id": "exported-symbol:e8799bab8ec4",
+   "type": "exported-symbol",
+   "title": "TokPaymentStatusInput",
+   "description": "Export typealias de supabase/functions/_shared/tok-connect-payment-status.ts.",
+   "path": "supabase/functions/_shared/tok-connect-payment-status.ts",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "3cd6afd0bff7"
+  },
+  {
+   "id": "exported-symbol:4cd35767b509",
+   "type": "exported-symbol",
+   "title": "TokPaymentStatusOutcome",
+   "description": "Export typealias de supabase/functions/_shared/tok-connect-payment-status.ts.",
+   "path": "supabase/functions/_shared/tok-connect-payment-status.ts",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "b0654dfbf50f"
+  },
+  {
    "id": "exported-symbol:e3fa637c77bf",
    "type": "exported-symbol",
    "title": "TokRestaurantRow",
@@ -295116,6 +295385,20 @@
    "detailRef": "dce2186bb66a"
   },
   {
+   "id": "exported-symbol:0e8bbc457b02",
+   "type": "exported-symbol",
+   "title": "resolveTokPaymentStatus",
+   "description": "Export function de supabase/functions/_shared/tok-connect-payment-status.ts.",
+   "path": "supabase/functions/_shared/tok-connect-payment-status.ts",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe"
+   ],
+   "detailRef": "3466c8e30e20"
+  },
+  {
    "id": "exported-symbol:87043024a296",
    "type": "exported-symbol",
    "title": "resolveWorldArt",
@@ -306677,6 +306960,20 @@
     "documentation"
    ],
    "detailRef": "46130c1a5ee2"
+  },
+  {
+   "id": "file:496d5ffd7e26",
+   "type": "file",
+   "title": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/tok-connect/LIVE_PAYMENT_ACCEPTANCE.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "39494d25f837"
   },
   {
    "id": "file:b1e2a33ff3d5",
@@ -335309,6 +335606,20 @@
    "detailRef": "c4695d298926"
   },
   {
+   "id": "file:191b2cbc567f",
+   "type": "file",
+   "title": "src/test/tok-connect-payment-state.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-payment-state.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "c302f11fa7a8"
+  },
+  {
    "id": "file:8bbad2f6eb34",
    "type": "file",
    "title": "src/test/tok-connect-preview-sandbox.test.tsx",
@@ -336987,6 +337298,20 @@
     "edge-function-source"
    ],
    "detailRef": "92930d79a737"
+  },
+  {
+   "id": "file:594ad856206d",
+   "type": "file",
+   "title": "supabase/functions/_shared/tok-connect-payment-status.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/tok-connect-payment-status.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "291b1e7ac388"
   },
   {
    "id": "file:df5ab67802e1",
@@ -350423,7 +350748,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 264 module(s).",
+   "description": "Intégration externe détectée dans 266 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -350603,6 +350928,7 @@
     "src/test/tok-connect-customer-result.test.ts",
     "src/test/tok-connect-delivery-commerce.test.ts",
     "src/test/tok-connect-model-commerce-widget.test.ts",
+    "src/test/tok-connect-payment-state.test.ts",
     "src/test/tok-connect-reservation-intent.test.ts",
     "src/test/tok-connect-special-offers-commerce.test.ts",
     "src/test/tok-one-management-handler.test.ts",
@@ -350640,6 +350966,7 @@
     "supabase/functions/_shared/tok-connect-customer-operations.ts",
     "supabase/functions/_shared/tok-connect-customer-result.ts",
     "supabase/functions/_shared/tok-connect-discovery-widget.ts",
+    "supabase/functions/_shared/tok-connect-payment-status.ts",
     "supabase/functions/_shared/tok-connect-role-operations.ts",
     "supabase/functions/_shared/tok-one-recurring-quote.ts",
     "supabase/functions/_shared/tok-one.ts",
@@ -350694,13 +351021,13 @@
     "supabase/functions/tok-connect-remote-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "1946a0cc69a8"
+   "detailRef": "81c26a293760"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 739 module(s).",
+   "description": "Intégration externe détectée dans 740 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -351336,6 +351663,7 @@
     "src/test/tok-connect-mcp-http.test.ts",
     "src/test/tok-connect-mcp-migration.test.ts",
     "src/test/tok-connect-model-commerce-widget.test.ts",
+    "src/test/tok-connect-payment-state.test.ts",
     "src/test/tok-connect-preview-sandbox.test.tsx",
     "src/test/tok-connect-public-actions.test.ts",
     "src/test/tok-connect-reservation-intent.test.ts",
@@ -351446,7 +351774,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "9e22abec5244"
+   "detailRef": "8d95db5f324f"
   },
   {
    "id": "integration:c20910a79a78",
