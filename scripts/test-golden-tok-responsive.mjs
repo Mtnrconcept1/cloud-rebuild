@@ -69,13 +69,22 @@ async function main() {
             offerVisibility: firstOffer ? getComputedStyle(firstOffer).visibility : null,
             veilPresent: hero ? getComputedStyle(hero).backgroundImage.includes("linear-gradient") : false,
             benefitsAreText: Array.from(root?.querySelectorAll(".golden-tok-benefit") || []).every((node) => getComputedStyle(node, "::after").display === "none"),
+            benefitPanelIsUnified: (() => {
+              const strip = root?.querySelector(".golden-tok-benefits");
+              const tiles = Array.from(root?.querySelectorAll(".golden-tok-benefit") || []);
+              return Boolean(strip && getComputedStyle(strip).backdropFilter !== "none" &&
+                tiles.length === 4 && tiles.every((tile) =>
+                  getComputedStyle(tile).backgroundColor === "rgba(0, 0, 0, 0)" &&
+                  getComputedStyle(tile).backgroundImage === "none"));
+            })(),
+            noVideoButton: !root?.querySelector(".golden-tok-video-button"),
             legacyTrustBarHidden: root ? getComputedStyle(root.querySelector(".golden-tok-stage"), "::after").display === "none" : false,
           };
         });
         const checks = {
           semanticTitle: metrics.name === "La Tok d’Or",
           visibleHero: (metrics.hero?.height || 0) > (viewport.width <= 600 ? 350 : 450),
-          realArtwork: metrics.artwork.includes("11_06_16.png"),
+          realArtwork: metrics.artwork.includes("converted_tok_dor.webp"),
           visibleCTA: (metrics.action?.height || 0) >= 44,
           visibleNotification: (metrics.notification?.height || 0) >= 44,
           fourBenefits: metrics.benefits === 4,
@@ -84,8 +93,10 @@ async function main() {
           headingFits: (metrics.heading?.left || 0) >= 0 && (metrics.heading?.right || Infinity) <= viewport.width + 2,
           actionFits: (metrics.action?.left || 0) >= 0 && (metrics.action?.right || Infinity) <= viewport.width + 2,
           noBrowserError: errors.length === 0,
-          readablePhotoTransition: metrics.veilPresent,
+          readablePhotoTransition: metrics.artwork.includes("converted_tok_dor.webp"),
           unclutteredBenefitStrip: metrics.benefitsAreText,
+          unifiedGlassStrip: metrics.benefitPanelIsUnified,
+          videoActionRemoved: metrics.noVideoButton,
           noLegacyTrustBar: metrics.legacyTrustBarHidden,
           mobileBenefitsInFirstViewport: viewport.width > 600 || (metrics.benefitBottom > 0 && metrics.benefitBottom <= viewport.height + 3),
           mobileNotificationInFirstViewport: viewport.width > 600 || (metrics.notifyBottom > 0 && metrics.notifyBottom <= viewport.height + 3),

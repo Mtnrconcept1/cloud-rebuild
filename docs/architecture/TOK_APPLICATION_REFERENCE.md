@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `45f1e5e2730eadf403e459aebbc0e946bb173fd6af140f697a23342ce48010c6`
+- Empreinte SHA-256 des sources indexées : `2a5b71498a6551df1b0943084e70120ef349a68c15b0b341e45e414d4bb5cb46`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 550 |
-| modules | 1638 |
+| modules | 1639 |
 | pages | 133 |
 | pathLiterals | 758 |
-| publicAssets | 581 |
-| publicEntries | 606 |
+| publicAssets | 582 |
+| publicEntries | 607 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 111 |
-| records | 17336 |
-| repositoryFiles | 3284 |
+| records | 17341 |
+| repositoryFiles | 3287 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -774,6 +774,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/calzone.webp | media | [public/images/calzone.webp](../../public/images/calzone.webp) |
 | /images/chicken-bucket-fries.jpeg | media | [public/images/chicken-bucket-fries.jpeg](../../public/images/chicken-bucket-fries.jpeg) |
 | /images/churros.jpg | media | [public/images/churros.jpg](../../public/images/churros.jpg) |
+| /images/converted_tok_dor.webp | media | [public/images/converted_tok_dor.webp](../../public/images/converted_tok_dor.webp) |
 | /images/crispy-chicken.jpeg | media | [public/images/crispy-chicken.jpeg](../../public/images/crispy-chicken.jpeg) |
 | /images/dashboard-3d/admin-ai-operations.webp | media | [public/images/dashboard-3d/admin-ai-operations.webp](../../public/images/dashboard-3d/admin-ai-operations.webp) |
 | /images/dashboard-3d/admin-audit.webp | media | [public/images/dashboard-3d/admin-audit.webp](../../public/images/dashboard-3d/admin-audit.webp) |
@@ -2091,7 +2092,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | restaurant | /zero-attente | 1 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
 | restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 1 | [supabase/functions/tok-connect-api/index.ts:819](../../supabase/functions/tok-connect-api/index.ts#L819) |
 | scope | /actualites | 3 | [src/pages/Actualites.tsx:249](../../src/pages/Actualites.tsx#L249) |
-| session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:692](../../src/pages/ChefsTable.tsx#L692) |
+| session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:691](../../src/pages/ChefsTable.tsx#L691) |
 | signup_operation_id | /auth, /auth/callback, /auth/demo | 2 | [src/pages/Auth.tsx:133](../../src/pages/Auth.tsx#L133) |
 | slug | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:172](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L172) |
 | sort | /recherche | 1 | [src/pages/Recherche.tsx:249](../../src/pages/Recherche.tsx#L249) |
@@ -6444,7 +6445,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 656 |
+| test | 657 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -8453,7 +8454,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (40)</summary>
+<details><summary>frontend-source (41)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -8489,6 +8490,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/styles/golden-tok-chefs-table-v3.css`
 - `src/styles/golden-tok-chefs-table-v4.css`
 - `src/styles/golden-tok-chefs-table-v5.css`
+- `src/styles/golden-tok-chefs-table-v6.css`
 - `src/styles/golden-tok-chefs-table.css`
 - `src/styles/workforce-report-print.css`
 - `src/test/fixtures/golden-tok-preview.tsx`
@@ -8548,7 +8550,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (606)</summary>
+<details><summary>public-asset (607)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -8696,6 +8698,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/calzone.webp`
 - `public/images/chicken-bucket-fries.jpeg`
 - `public/images/churros.jpg`
+- `public/images/converted_tok_dor.webp`
 - `public/images/crispy-chicken.jpeg`
 - `public/images/dashboard-3d/admin-ai-operations.webp`
 - `public/images/dashboard-3d/admin-audit.webp`
@@ -9358,7 +9361,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (656)</summary>
+<details><summary>test (657)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9607,6 +9610,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/geolocation-native.test.ts`
 - `src/test/git-auto-sync-scripts.test.ts`
 - `src/test/golden-tok-accreditation.test.ts`
+- `src/test/golden-tok-refonte-reference.test.ts`
 - `src/test/golden-tok-shell-logo.test.ts`
 - `src/test/google-actions-center-feed-exporter.test.ts`
 - `src/test/google-actions-center-outbox.test.ts`

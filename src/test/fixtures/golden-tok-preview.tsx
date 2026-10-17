@@ -10,6 +10,7 @@ import "@/styles/golden-tok-chefs-table-v3.css";
 import "@/styles/golden-tok-chefs-table-hero.css";
 import "@/styles/golden-tok-chefs-table-v4.css";
 import "@/styles/golden-tok-chefs-table-v5.css";
+import "@/styles/golden-tok-chefs-table-v6.css";
 
 
 const sampleDrop: ComponentProps<typeof ChefTableDropCard>["drop"] = {

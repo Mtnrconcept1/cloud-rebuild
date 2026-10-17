@@ -201,7 +201,7 @@ export default function Navbar() {
     <>
       {/* ─── Top utility bar ─── */}
       {showClientSurface ? (
-        <div ref={utilityBarRef} className={`w-full border-b border-border/60 bg-muted dark:border-white/10 dark:bg-slate-950 ${isDesktopHomeReference ? "block lg:hidden" : "hidden lg:block"}`}>
+        <div ref={utilityBarRef} className={`w-full border-b border-border/60 bg-muted dark:border-white/10 dark:bg-slate-950 ${isGoldenTokRoute ? "tok-golden-utility" : ""} ${isDesktopHomeReference ? "block lg:hidden" : "hidden lg:block"}`}>
           <div className={isDesktopHomeReference
             ? "container flex h-9 items-center justify-end gap-1.5 px-2 text-[10px] text-muted-foreground min-[380px]:gap-2 min-[380px]:text-xs sm:gap-3"
             : "container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground"}>
@@ -218,8 +218,12 @@ export default function Navbar() {
                 </Link>
               </>
             ) : null}
-            <span className="text-border">|</span>
-            <Link to="/guide" className="shrink-0 whitespace-nowrap transition-colors hover:text-foreground">Guide</Link>
+            {!isGoldenTokRoute ? (
+              <>
+                <span className="text-border">|</span>
+                <Link to="/guide" className="shrink-0 whitespace-nowrap transition-colors hover:text-foreground">Guide</Link>
+              </>
+            ) : null}
             <span className="text-border">|</span>
             <Link to="/aide" className="shrink-0 whitespace-nowrap transition-colors hover:text-foreground">Aide</Link>
             {isDesktopHomeReference ? (
@@ -385,7 +389,7 @@ export default function Navbar() {
                 onMouseDown={preserveNavbarActionScrollPosition}
                 className="hidden h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground 2xl:inline-flex"
               >
-                <Store className="h-4 w-4" />
+                {isGoldenTokRoute ? <ChefHat className="h-4 w-4" /> : <Store className="h-4 w-4" />}
                 Restaurateurs
               </Link>
             ) : null}

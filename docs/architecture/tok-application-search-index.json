@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "45f1e5e2730eadf403e459aebbc0e946bb173fd6af140f697a23342ce48010c6",
+ "sourceDigest": "2a5b71498a6551df1b0943084e70120ef349a68c15b0b341e45e414d4bb5cb46",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 550,
-  "modules": 1638,
+  "modules": 1639,
   "pages": 133,
   "pathLiterals": 758,
-  "publicAssets": 581,
-  "publicEntries": 606,
+  "publicAssets": 582,
+  "publicEntries": 607,
   "publicNavigableRoutes": 2,
   "queryParameters": 111,
-  "records": 17336,
-  "repositoryFiles": 3284,
+  "records": 17341,
+  "repositoryFiles": 3287,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -3108,12 +3108,12 @@
     "exports": [
      {
       "name": "ChefTableDropCard",
-      "line": 130,
+      "line": 129,
       "kind": "function"
      },
      {
       "name": "default",
-      "line": 417,
+      "line": 416,
       "kind": "function"
      }
     ],
@@ -11600,6 +11600,11 @@
     "kind": "media"
    },
    {
+    "route": "/images/converted_tok_dor.webp",
+    "path": "public/images/converted_tok_dor.webp",
+    "kind": "media"
+   },
+   {
     "route": "/images/crispy-chicken.jpeg",
     "path": "public/images/crispy-chicken.jpeg",
     "kind": "media"
@@ -15113,7 +15118,7 @@
      },
      {
       "path": "src/test/fixtures/golden-tok-preview.tsx",
-      "line": 47
+      "line": 48
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -15274,7 +15279,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 625
+      "line": 629
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -15429,19 +15434,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 267
+      "line": 271
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 340
+      "line": 344
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 446
+      "line": 450
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 519
+      "line": 523
      },
      {
       "path": "src/data/userGuideFeatureDetails.ts",
@@ -17069,7 +17074,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 224
+      "line": 228
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -17147,11 +17152,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 275
+      "line": 279
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 508
+      "line": 512
      },
      {
       "path": "src/components/PromoCarousel.tsx",
@@ -17503,7 +17508,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 462
+      "line": 466
      },
      {
       "path": "src/components/ProtectedRoute.tsx",
@@ -17607,7 +17612,7 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 768
+      "line": 767
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -18177,7 +18182,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 631
+      "line": 635
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -18716,19 +18721,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 422
+      "line": 426
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 424
+      "line": 428
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 597
+      "line": 601
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 600
+      "line": 604
      },
      {
       "path": "src/components/commercial/CommercialDemoActorOverview.tsx",
@@ -19611,7 +19616,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 628
+      "line": 632
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -19680,7 +19685,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 637
+      "line": 641
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -20079,11 +20084,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 451
+      "line": 455
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 591
+      "line": 595
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -22743,7 +22748,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 222
+      "line": 224
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -24745,11 +24750,11 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 485
+      "line": 484
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 524
+      "line": 523
      },
      {
       "path": "src/pages/TokOne.tsx",
@@ -24757,7 +24762,7 @@
      },
      {
       "path": "src/test/fixtures/golden-tok-preview.tsx",
-      "line": 29
+      "line": 30
      },
      {
       "path": "src/test/transactional-email-templates.test.ts",
@@ -26409,11 +26414,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 417
+      "line": 421
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 585
+      "line": 589
      },
      {
       "path": "src/components/commercial/CommercialDemoBrowserGrid.tsx",
@@ -26646,19 +26651,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 438
+      "line": 442
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 440
+      "line": 444
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 611
+      "line": 615
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 614
+      "line": 618
      },
      {
       "path": "src/components/commercial/CommercialDemoActorOverview.tsx",
@@ -26993,15 +26998,15 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 360
+      "line": 364
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 368
+      "line": 372
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 532
+      "line": 536
      },
      {
       "path": "src/components/OrderConflictDialog.tsx",
@@ -27049,11 +27054,11 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 747
+      "line": 746
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 864
+      "line": 863
      },
      {
       "path": "src/pages/Commandes.tsx",
@@ -27257,7 +27262,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 634
+      "line": 638
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -27649,15 +27654,15 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 260
+      "line": 264
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 354
+      "line": 358
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 502
+      "line": 506
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -27961,19 +27966,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 430
+      "line": 434
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 432
+      "line": 436
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 604
+      "line": 608
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 607
+      "line": 611
      },
      {
       "path": "src/components/ReservationDialog.tsx",
@@ -28009,11 +28014,11 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 872
+      "line": 871
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 1098
+      "line": 1088
      },
      {
       "path": "src/pages/ClientDashboardHome.tsx",
@@ -29256,11 +29261,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 384
+      "line": 388
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 540
+      "line": 544
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -29802,7 +29807,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 545
+      "line": 549
      },
      {
       "path": "src/data/userGuideContent.ts",
@@ -29976,11 +29981,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 291
+      "line": 295
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 525
+      "line": 529
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -30020,7 +30025,7 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 778
+      "line": 777
      },
      {
       "path": "src/pages/Panier.tsx",
@@ -30739,11 +30744,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 283
+      "line": 287
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 513
+      "line": 517
      },
      {
       "path": "src/components/home/HeroSection.tsx",
@@ -32322,7 +32327,7 @@
     "sources": [
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 692
+      "line": 691
      },
      {
       "path": "src/pages/TokOne.tsx",
@@ -32451,7 +32456,7 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 691
+      "line": 690
      },
      {
       "path": "src/pages/TokOne.tsx",
@@ -87405,7 +87410,7 @@
      "GOLDEN_TOK_TEST_URL"
     ],
     "integrations": [],
-    "lineCount": 114
+    "lineCount": 125
    },
    {
     "path": "scripts/test-print-protocol-postgres.mjs",
@@ -88133,28 +88138,28 @@
      },
      {
       "name": "FeatureWizard",
-      "line": 667,
+      "line": 668,
       "kind": "function"
      },
      {
       "name": "WizardBackButton",
-      "line": 755,
+      "line": 756,
       "kind": "function"
      },
      {
       "name": "WizardNextButton",
-      "line": 759,
+      "line": 760,
       "kind": "function"
      },
      {
       "name": "WizardCartSummary",
-      "line": 763,
+      "line": 764,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 774
+    "lineCount": 775
    },
    {
     "path": "src/components/FormulaDetector.tsx",
@@ -88256,7 +88261,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 651
+    "lineCount": 655
    },
    {
     "path": "src/components/NearbyRestaurantsMap.tsx",
@@ -104388,7 +104393,7 @@
     "integrations": [
      "vercel"
     ],
-    "lineCount": 56
+    "lineCount": 57
    },
    {
     "path": "src/marketing/MarketingSessionContext.tsx",
@@ -105501,12 +105506,12 @@
     "exports": [
      {
       "name": "ChefTableDropCard",
-      "line": 130,
+      "line": 129,
       "kind": "function"
      },
      {
       "name": "default",
-      "line": 417,
+      "line": 416,
       "kind": "function"
      }
     ],
@@ -105514,7 +105519,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 1126
+    "lineCount": 1116
    },
    {
     "path": "src/pages/ClientDashboardHome.tsx",
@@ -109670,7 +109675,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 94
+    "lineCount": 95
    },
    {
     "path": "src/test/flat-fee-on-arrival.test.ts",
@@ -109822,6 +109827,13 @@
      "supabase"
     ],
     "lineCount": 95
+   },
+   {
+    "path": "src/test/golden-tok-refonte-reference.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 42
    },
    {
     "path": "src/test/golden-tok-shell-logo.test.ts",
@@ -121893,6 +121905,11 @@
     "extension": ".jpg"
    },
    {
+    "path": "public/images/converted_tok_dor.webp",
+    "category": "public-asset",
+    "extension": ".webp"
+   },
+   {
     "path": "public/images/crispy-chicken.jpeg",
     "category": "public-asset",
     "extension": ".jpeg"
@@ -128063,6 +128080,11 @@
     "extension": ".css"
    },
    {
+    "path": "src/styles/golden-tok-chefs-table-v6.css",
+    "category": "frontend-source",
+    "extension": ".css"
+   },
+   {
     "path": "src/styles/golden-tok-chefs-table.css",
     "category": "frontend-source",
     "extension": ".css"
@@ -129259,6 +129281,11 @@
    },
    {
     "path": "src/test/golden-tok-accreditation.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/golden-tok-refonte-reference.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -137080,7 +137107,7 @@
    "id": "code-module:f473faa38d50",
    "type": "code-module",
    "title": "scripts/test-golden-tok-responsive.mjs",
-   "description": "Module de 114 lignes; exports: aucun export statique.",
+   "description": "Module de 125 lignes; exports: aucun export statique.",
    "path": "scripts/test-golden-tok-responsive.mjs",
    "line": 1,
    "surface": null,
@@ -137088,7 +137115,7 @@
     "CHROME_BIN",
     "GOLDEN_TOK_TEST_URL"
    ],
-   "detailRef": "12741bd893f8"
+   "detailRef": "fcac48fb5ba3"
   },
   {
    "id": "code-module:325f58f098fe",
@@ -137658,7 +137685,7 @@
    "id": "code-module:85f5000ebdde",
    "type": "code-module",
    "title": "src/components/FeatureWizard.tsx",
-   "description": "Module de 774 lignes; exports: WizardStep, FeatureWizardProps, FeatureWizard, WizardBackButton, WizardNextButton, WizardCartSummary.",
+   "description": "Module de 775 lignes; exports: WizardStep, FeatureWizardProps, FeatureWizard, WizardBackButton, WizardNextButton, WizardCartSummary.",
    "path": "src/components/FeatureWizard.tsx",
    "line": 1,
    "surface": null,
@@ -137670,7 +137697,7 @@
     "WizardNextButton",
     "WizardStep"
    ],
-   "detailRef": "dae005d07281"
+   "detailRef": "88049a6c0ca2"
   },
   {
    "id": "code-module:76fe9c5d8c58",
@@ -137758,14 +137785,14 @@
    "id": "code-module:d8013874702d",
    "type": "code-module",
    "title": "src/components/Navbar.tsx",
-   "description": "Module de 651 lignes; exports: default.",
+   "description": "Module de 655 lignes; exports: default.",
    "path": "src/components/Navbar.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "b2bcdfa1e362"
+   "detailRef": "72bb0ca181dd"
   },
   {
    "id": "code-module:bcb7d2dbc4fa",
@@ -146239,14 +146266,14 @@
    "id": "code-module:8512888d2e35",
    "type": "code-module",
    "title": "src/main.tsx",
-   "description": "Module de 56 lignes; exports: aucun export statique.",
+   "description": "Module de 57 lignes; exports: aucun export statique.",
    "path": "src/main.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "vercel"
    ],
-   "detailRef": "fb6d202317ee"
+   "detailRef": "6832c2d392fd"
   },
   {
    "id": "code-module:e4eff306ba69",
@@ -146757,7 +146784,7 @@
    "id": "code-module:5e810c8845db",
    "type": "code-module",
    "title": "src/pages/ChefsTable.tsx",
-   "description": "Module de 1126 lignes; exports: ChefTableDropCard, default.",
+   "description": "Module de 1116 lignes; exports: ChefTableDropCard, default.",
    "path": "src/pages/ChefsTable.tsx",
    "line": 1,
    "surface": null,
@@ -146766,7 +146793,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "e28287672e58"
+   "detailRef": "17adf0b75477"
   },
   {
    "id": "code-module:5ce6b49e4fe6",
@@ -151349,12 +151376,12 @@
    "id": "code-module:3b8920a68c2c",
    "type": "code-module",
    "title": "src/test/fixtures/golden-tok-preview.tsx",
-   "description": "Module de 94 lignes; exports: aucun export statique.",
+   "description": "Module de 95 lignes; exports: aucun export statique.",
    "path": "src/test/fixtures/golden-tok-preview.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "f69b5cbf21c8"
+   "detailRef": "533353725bc5"
   },
   {
    "id": "code-module:dd8bbe6f1929",
@@ -151577,6 +151604,17 @@
     "supabase"
    ],
    "detailRef": "bba580b9cb6f"
+  },
+  {
+   "id": "code-module:6a60619f8392",
+   "type": "code-module",
+   "title": "src/test/golden-tok-refonte-reference.test.ts",
+   "description": "Module de 42 lignes; exports: aucun export statique.",
+   "path": "src/test/golden-tok-refonte-reference.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "5c36a2b6453e"
   },
   {
    "id": "code-module:af90a689e08c",
@@ -253977,18 +254015,18 @@
    "detailRef": "63950ba29772"
   },
   {
-   "id": "exported-symbol:153bad2dc92d",
+   "id": "exported-symbol:230bcde18b0c",
    "type": "exported-symbol",
    "title": "ChefTableDropCard",
    "description": "Export function de src/pages/ChefsTable.tsx.",
    "path": "src/pages/ChefsTable.tsx",
-   "line": 130,
+   "line": 129,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "69384ab2490d"
+   "detailRef": "44009fda4251"
   },
   {
    "id": "exported-symbol:d3a0563df7f0",
@@ -257858,17 +257896,17 @@
    "detailRef": "443046d7c4d9"
   },
   {
-   "id": "exported-symbol:b8318c45ad7e",
+   "id": "exported-symbol:9f17f2a34fa8",
    "type": "exported-symbol",
    "title": "FeatureWizard",
    "description": "Export function de src/components/FeatureWizard.tsx.",
    "path": "src/components/FeatureWizard.tsx",
-   "line": 667,
+   "line": 668,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "d91806f0d674"
+   "detailRef": "7fe9f4dbb061"
   },
   {
    "id": "exported-symbol:14ecaf31c0b0",
@@ -271858,43 +271896,43 @@
    "detailRef": "46ad9db778a7"
   },
   {
-   "id": "exported-symbol:b6ee1d743dba",
+   "id": "exported-symbol:2ca479f81cc6",
    "type": "exported-symbol",
    "title": "WizardBackButton",
    "description": "Export function de src/components/FeatureWizard.tsx.",
    "path": "src/components/FeatureWizard.tsx",
-   "line": 755,
+   "line": 756,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "05166f135f0f"
+   "detailRef": "8aae3ace5371"
   },
   {
-   "id": "exported-symbol:9515fea153ac",
+   "id": "exported-symbol:79a85ebac11d",
    "type": "exported-symbol",
    "title": "WizardCartSummary",
    "description": "Export function de src/components/FeatureWizard.tsx.",
    "path": "src/components/FeatureWizard.tsx",
-   "line": 763,
+   "line": 764,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "91db75fa5410"
+   "detailRef": "242ef2e5b552"
   },
   {
-   "id": "exported-symbol:6984ae561c61",
+   "id": "exported-symbol:914b1ee31d3b",
    "type": "exported-symbol",
    "title": "WizardNextButton",
    "description": "Export function de src/components/FeatureWizard.tsx.",
    "path": "src/components/FeatureWizard.tsx",
-   "line": 759,
+   "line": 760,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "a1d804af46bc"
+   "detailRef": "561981a3dd19"
   },
   {
    "id": "exported-symbol:312a08117dbd",
@@ -280086,18 +280124,18 @@
    "detailRef": "68d9ef797954"
   },
   {
-   "id": "exported-symbol:71040151a665",
+   "id": "exported-symbol:75aac54c9ecb",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/ChefsTable.tsx.",
    "path": "src/pages/ChefsTable.tsx",
-   "line": 417,
+   "line": 416,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "90b20a3208dc"
+   "detailRef": "9f35d6dd3d8e"
   },
   {
    "id": "exported-symbol:c456abfce601",
@@ -309966,6 +310004,20 @@
    "detailRef": "2955d036408e"
   },
   {
+   "id": "file:db2d8a98908d",
+   "type": "file",
+   "title": "public/images/converted_tok_dor.webp",
+   "description": "Fichier du dépôt classé public-asset.",
+   "path": "public/images/converted_tok_dor.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".webp",
+    "public-asset"
+   ],
+   "detailRef": "a83afe84b5e8"
+  },
+  {
    "id": "file:6a53616eaef1",
    "type": "file",
    "title": "public/images/crispy-chicken.jpeg",
@@ -327242,6 +327294,20 @@
    "detailRef": "f69c8502915a"
   },
   {
+   "id": "file:84fafe019968",
+   "type": "file",
+   "title": "src/styles/golden-tok-chefs-table-v6.css",
+   "description": "Fichier du dépôt classé frontend-source.",
+   "path": "src/styles/golden-tok-chefs-table-v6.css",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".css",
+    "frontend-source"
+   ],
+   "detailRef": "1e6bf154762e"
+  },
+  {
    "id": "file:7572d5fca89a",
    "type": "file",
    "title": "src/styles/golden-tok-chefs-table.css",
@@ -330600,6 +330666,20 @@
     "test"
    ],
    "detailRef": "f0a9bea36287"
+  },
+  {
+   "id": "file:87f8560123a8",
+   "type": "file",
+   "title": "src/test/golden-tok-refonte-reference.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/golden-tok-refonte-reference.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "b1eb9a2ee351"
   },
   {
    "id": "file:13a495a5209c",
@@ -361899,7 +361979,7 @@
     "/chefs-table",
     "supabase"
    ],
-   "detailRef": "14a8ea06e069"
+   "detailRef": "365c6b534ec0"
   },
   {
    "id": "page:6889a2b1b469",
@@ -363535,7 +363615,7 @@
     "src/test/fixtures/golden-tok-preview.tsx",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "f0b2ac4495f4"
+   "detailRef": "1a8113eed3d0"
   },
   {
    "id": "path-literal:63609ef8a554",
@@ -363707,7 +363787,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "f332699e027a"
+   "detailRef": "13b41a302c40"
   },
   {
    "id": "path-literal:b93cc2bbc5bc",
@@ -363844,7 +363924,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "4854f11bf56e"
+   "detailRef": "7c85b49c9ef9"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -364668,7 +364748,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "39ea22b811dc"
+   "detailRef": "c5e2049d9090"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -364712,7 +364792,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "895baa745d6e"
+   "detailRef": "50d19bb925ac"
   },
   {
    "id": "path-literal:b8366dc7f0ad",
@@ -365172,7 +365252,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "32d8fcdcd04a"
+   "detailRef": "8634ed158966"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -365357,7 +365437,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "ee7eddfa6314"
+   "detailRef": "394c0830fa0c"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -365678,7 +365758,7 @@
     "src/test/tok-connect-oauth-routing.test.ts",
     "supabase/functions/courier-portal/index.ts"
    ],
-   "detailRef": "2ff09bfa0479"
+   "detailRef": "91c7ba0de92b"
   },
   {
    "id": "path-literal:7997d6c00f84",
@@ -366076,7 +366156,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "9fbba4cfa7b5"
+   "detailRef": "9f9f19c5feea"
   },
   {
    "id": "path-literal:f89974639b3c",
@@ -366103,7 +366183,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "d8af6e083516"
+   "detailRef": "78c190ca2a59"
   },
   {
    "id": "path-literal:61d8f5f4f3f0",
@@ -366211,7 +366291,7 @@
     "src/lib/featureCatalog.ts",
     "src/pages/courier/CourierHome.tsx"
    ],
-   "detailRef": "26ca95357cad"
+   "detailRef": "348a8739412a"
   },
   {
    "id": "path-literal:a7bb9de03d1b",
@@ -367732,7 +367812,7 @@
     "src/pages/Aide.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "6c91108fa042"
+   "detailRef": "83df956680c8"
   },
   {
    "id": "path-literal:2d96b55a8fd1",
@@ -370023,7 +370103,7 @@
     "src/test/transactional-email-templates.test.ts",
     "supabase/functions/_shared/transactional-emails.ts"
    ],
-   "detailRef": "57f43f8a95ca"
+   "detailRef": "48e2790c56ca"
   },
   {
    "id": "path-literal:1761b539fab6",
@@ -371450,7 +371530,7 @@
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "8c4cef6ce10f"
+   "detailRef": "c23c4af9fa2b"
   },
   {
    "id": "path-literal:920a4e2a4f51",
@@ -371557,7 +371637,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "cbf9e885f94b"
+   "detailRef": "397d07f738ef"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -371756,7 +371836,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "57175a99bf8f"
+   "detailRef": "c444fd594135"
   },
   {
    "id": "path-literal:b9bd524c18de",
@@ -371841,7 +371921,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "903d8217f2fb"
+   "detailRef": "64e569b4a5fe"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -372117,7 +372197,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "58312084efc0"
+   "detailRef": "a8eeaf7935a2"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -372241,7 +372321,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "17df57b2b910"
+   "detailRef": "143b37cf5056"
   },
   {
    "id": "path-literal:0af02260597a",
@@ -373452,7 +373532,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "570416318f41"
+   "detailRef": "f24f180daf07"
   },
   {
    "id": "path-literal:c00d444c62cc",
@@ -373953,7 +374033,7 @@
     "src/pages/TokConnect.tsx",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "a04e5b10684e"
+   "detailRef": "1c09c89448c1"
   },
   {
    "id": "path-literal:9b50a6f5fb1d",
@@ -373986,7 +374066,7 @@
     "src/test/navbar-action-stability.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "cf1c140cbd1d"
+   "detailRef": "fe75ae51c637"
   },
   {
    "id": "path-literal:d01a3ea49721",
@@ -374666,7 +374746,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "eb276801a801"
+   "detailRef": "ed5f167a1063"
   },
   {
    "id": "path-literal:57ce8756e2b5",
@@ -376793,6 +376873,20 @@
     "public"
    ],
    "detailRef": "8548f9523e76"
+  },
+  {
+   "id": "public-asset:c45ddb63d78a",
+   "type": "public-asset",
+   "title": "/images/converted_tok_dor.webp",
+   "description": "Ressource media servie depuis le dossier public.",
+   "path": "public/images/converted_tok_dor.webp",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "media",
+    "public"
+   ],
+   "detailRef": "8677c9da4318"
   },
   {
    "id": "public-asset:0d306f3be1c8",
@@ -384278,12 +384372,12 @@
    "detailRef": "426137aba722"
   },
   {
-   "id": "query-parameter:2f4d911ba66e",
+   "id": "query-parameter:39f1fcc7c252",
    "type": "query-parameter",
    "title": "session_id",
    "description": "Paramètre d’URL détecté dans 8 emplacement(s).",
    "path": "src/pages/ChefsTable.tsx",
-   "line": 692,
+   "line": 691,
    "surface": null,
    "tags": [
     "src/pages/ChefsTable.tsx",
@@ -384295,7 +384389,7 @@
     "src/test/payment-attempt-state.test.ts",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "646f4c6f9610"
+   "detailRef": "cb8bac0a02b5"
   },
   {
    "id": "query-parameter:32944e8d118e",
@@ -384395,7 +384489,7 @@
     "src/pages/dashboard/DashboardHome.tsx",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "ca8a128ebd30"
+   "detailRef": "706076d05ba6"
   },
   {
    "id": "query-parameter:04069271d1b6",
