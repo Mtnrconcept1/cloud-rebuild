@@ -83,4 +83,5 @@ jobs:
         if: always()
         env:
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
-        run: echo "Anonymous smoke outcome: $SMOKE_OUTCOME"
+        run: |
+          echo "Anonymous smoke outcome: $SMOKE_OUTCOME"
