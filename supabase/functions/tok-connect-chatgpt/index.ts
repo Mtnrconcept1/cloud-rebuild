@@ -194,11 +194,78 @@ const ACTION_WINDOW_HTML = `<!doctype html>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
 :root{color-scheme:light dark;--orange:#f56a12;--gold:#f2b748;--green:#36b878;--bg:#fffdfa;--card:#fff;--text:#17120e;--muted:#6c6257;--line:#eadcca} @media(prefers-color-scheme:dark){:root{--bg:#0a0908;--card:#14120f;--text:#fff5e5;--muted:#c7bbaa;--line:#403526}}
-*{box-sizing:border-box}body{margin:0;font:14px/1.45 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 85% 0,rgba(245,106,18,.18),transparent 34%),var(--bg);color:var(--text)}main{padding:18px;min-height:100vh}.top{display:flex;align-items:center;gap:12px;margin-bottom:14px}.logo{display:grid;place-items:center;width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,var(--gold),var(--orange));color:#1a1004;font-weight:950;box-shadow:0 12px 32px rgba(245,106,18,.25)}h1{font-size:22px;line-height:1.05;margin:0}.muted{color:var(--muted)}.card{border:1px solid var(--line);border-radius:20px;background:color-mix(in srgb,var(--card) 92%,transparent);padding:15px;box-shadow:0 16px 45px rgba(50,25,0,.08)}.status{display:inline-flex;gap:7px;align-items:center;border-radius:999px;padding:6px 10px;background:rgba(54,184,120,.12);color:var(--green);font-weight:800;font-size:12px}.dot{width:8px;height:8px;border-radius:50%;background:currentColor}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.metric{border:1px solid var(--line);border-radius:15px;padding:11px}.metric b{display:block;font-size:18px}.actions{margin-top:12px;display:grid;gap:8px}.action{padding:10px 12px;border-radius:14px;background:rgba(245,106,18,.09);border:1px solid rgba(245,106,18,.18)}pre{white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto;margin:12px 0 0;padding:11px;border-radius:14px;background:rgba(0,0,0,.06);font-size:11px}@media(max-width:520px){main{padding:12px}.grid{grid-template-columns:1fr}}
+*{box-sizing:border-box}body{margin:0;font:14px/1.45 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 85% 0,rgba(245,106,18,.18),transparent 34%),var(--bg);color:var(--text)}main{padding:18px;min-height:100vh}.top{display:flex;align-items:center;gap:12px;margin-bottom:14px}.logo{display:grid;place-items:center;width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,var(--gold),var(--orange));color:#1a1004;font-weight:950;box-shadow:0 12px 32px rgba(245,106,18,.25)}h1{font-size:22px;line-height:1.05;margin:0}.muted{color:var(--muted)}.card{border:1px solid var(--line);border-radius:20px;background:color-mix(in srgb,var(--card) 92%,transparent);padding:15px;box-shadow:0 16px 45px rgba(50,25,0,.08)}.status{display:inline-flex;gap:7px;align-items:center;border-radius:999px;padding:6px 10px;background:rgba(54,184,120,.12);color:var(--green);font-weight:800;font-size:12px}.dot{width:8px;height:8px;border-radius:50%;background:currentColor}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.metric{border:1px solid var(--line);border-radius:15px;padding:11px}.metric b{display:block;font-size:18px}.actions{margin-top:12px;display:grid;gap:8px}.action{padding:10px 12px;border-radius:14px;background:rgba(245,106,18,.09);border:1px solid rgba(245,106,18,.18)}.creative{display:grid;gap:9px;margin-top:15px;padding:13px;border:1px solid rgba(245,106,18,.25);border-radius:16px;background:rgba(245,106,18,.05)}.creative[hidden]{display:none}.creative img{display:block;max-width:100%;max-height:440px;object-fit:contain;border-radius:12px;background:var(--card)}.creative strong{font-size:16px}.creative .kind{color:var(--orange);font-weight:800}.creative .note{color:var(--muted);font-size:12px}.creative .slot{padding:8px;border:1px solid var(--line);border-radius:11px}pre{white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto;margin:12px 0 0;padding:11px;border-radius:14px;background:rgba(0,0,0,.06);font-size:11px}@media(max-width:520px){main{padding:12px}.grid{grid-template-columns:1fr}}
 </style>
 </head>
-<body><main><div class="top"><div class="logo">TOK</div><div><h1>TOK Connect</h1><div class="muted">ChatGPT × TOK · console sécurisée</div></div></div><section class="card"><span class="status"><span class="dot"></span>Connecteur prêt</span><div class="grid"><div class="metric"><b id="tool">Action TOK</b><span class="muted">outil courant</span></div><div class="metric"><b>Confirmation</b><span class="muted">mutations sensibles contrôlées</span></div></div><div class="actions" id="actions"><div class="action">Recherche, disponibilités, menus, performances et parcours TOK.</div><div class="action">Réservations réelles uniquement après confirmation explicite et idempotence.</div><div class="action">Paiements, remboursements, publications et admin restent dans les flux TOK protégés.</div></div><pre id="payload" hidden></pre></section></main><script>
-function render(data){const sc=data&&typeof data==='object'?(data.structuredContent||data):{};const current=sc.current_action||sc.reservation||sc.cancellation||null;if(current){document.getElementById('tool').textContent=current.title||current.name||'Action TOK'}const p=document.getElementById('payload');if(sc&&Object.keys(sc).length){p.hidden=false;p.textContent=JSON.stringify(sc,null,2)}}
+<body><main><div class="top"><div class="logo">TOK</div><div><h1>TOK Connect</h1><div class="muted">ChatGPT × TOK · console sécurisée</div></div></div><section class="card"><span class="status"><span class="dot"></span>Connecteur prêt</span><div class="grid"><div class="metric"><b id="tool">Action TOK</b><span class="muted">outil courant</span></div><div class="metric"><b>Confirmation</b><span class="muted">mutations sensibles contrôlées</span></div></div><div class="actions" id="actions"><div class="action">Recherche, disponibilités, menus, performances et parcours TOK.</div><div class="action">Réservations réelles uniquement après confirmation explicite et idempotence.</div><div class="action">Paiements, remboursements, publications et admin restent dans les flux TOK protégés.</div></div><div class="creative" id="creative" hidden></div><pre id="payload" hidden></pre></section></main><script>
+function render(data){
+  const sc=data&&typeof data==='object'?(data.structuredContent||data):{};
+  const result=sc.data&&typeof sc.data==='object'&&!Array.isArray(sc.data)?sc.data:sc;
+  const current=sc.current_action||sc.reservation||sc.cancellation||null;
+  const creative=document.getElementById('creative');
+  const raw=document.getElementById('payload');
+  creative.replaceChildren();
+  creative.hidden=true;
+  const add=function(tag,value,className){
+    const el=document.createElement(tag);
+    if(value!==undefined&&value!==null)el.textContent=String(value);
+    if(className)el.className=className;
+    creative.appendChild(el);
+    return el;
+  };
+  const safeImage=function(candidate){
+    if(typeof candidate!=='string')return;
+    try{
+      const url=new URL(candidate);
+      if(url.protocol!=='https:'||url.hostname!=='wwcrtyoueexyxkkikaos.supabase.co'||url.username||url.password)return;
+      if(!url.pathname.startsWith('/storage/v1/object/public/restaurant-images/'))return;
+      const img=add('img');
+      img.src=url.href;img.alt='Visuel PhotoPro TOK';img.loading='lazy';
+    }catch(_error){}
+  };
+  const run=result.run&&typeof result.run==='object'?result.run:null;
+  const item=result.item&&typeof result.item==='object'?result.item:null;
+  if(run){
+    creative.hidden=false;
+    add('div','Studio Marketing · TOK','kind');
+    add('strong',run.plan&&run.plan.title||run.objective||'Brouillon de campagne');
+    add('div','Statut réel : '+(run.status||'non déterminé'));
+    if(run.plan&&run.plan.summary)add('p',run.plan.summary);
+    if(run.guardrails&&typeof run.guardrails.max_budget_chf==='number')add('div','Budget de diffusion maximal prévu : '+run.guardrails.max_budget_chf+' CHF');
+    add('div','Brouillon uniquement : aucune publication ni dépense publicitaire.','note');
+    document.getElementById('tool').textContent='Studio Marketing';
+  }else if(typeof result.gallery_image_url==='string'||typeof result.generated_image_url==='string'){
+    creative.hidden=false;
+    add('div','PhotoPro · TOK','kind');
+    add('strong',result.title||'Visuel généré dans TOK');
+    safeImage(result.gallery_image_url);
+    if(result.assetId)add('div','Référence photo : '+result.assetId,'note');
+    if(result.credit_units!==undefined)add('div','Crédits TOK : '+result.credit_units);
+    add('div','Visuel enregistré. La publication et la modification du menu restent des actions distinctes.','note');
+    document.getElementById('tool').textContent='PhotoPro';
+  }else if(item&&typeof item.image_url==='string'){
+    creative.hidden=false;
+    add('div','Menu restaurant · TOK','kind');
+    add('strong',item.name||'Plat mis à jour');
+    safeImage(item.image_url);
+    add('div','Photo associée au plat dans le menu.','note');
+    document.getElementById('tool').textContent='Menu TOK';
+  }else if(Array.isArray(result.items)&&result.source==='campaign_studio_runs'){
+    creative.hidden=false;
+    add('div','Studio Marketing · TOK','kind');
+    add('strong',result.items.length+' brouillon(s) sur cette page');
+    result.items.slice(0,10).forEach(function(entry){
+      const info=document.createElement('div');info.className='slot';
+      info.textContent=(entry.plan&&entry.plan.title||entry.objective||'Campagne')+' · '+(entry.status||'inconnu');
+      creative.appendChild(info);
+    });
+    document.getElementById('tool').textContent='Studio Marketing';
+  }else if(current){
+    document.getElementById('tool').textContent=current.title||current.name||'Action TOK';
+  }
+  raw.hidden=!sc||!Object.keys(sc).length||!creative.hidden;
+  if(!raw.hidden)raw.textContent=JSON.stringify(sc,null,2);
+}
 render(window.openai?.toolOutput||{});window.addEventListener('openai:set_globals',e=>render(e.detail?.globals?.toolOutput||e.detail?.toolOutput||{}));
 </script></body></html>`;
 
@@ -467,7 +534,7 @@ function cleanActionResource(id: JsonRpcRequest["id"]) {
         "openai/widgetDescription": "Console TOK Connect sécurisée pour les parcours et actions TOK dans ChatGPT.",
         "openai/widgetCSP": {
           connect_domains: [PUBLIC_ORIGIN, SUPABASE_URL],
-          resource_domains: [PUBLIC_ORIGIN],
+          resource_domains: [PUBLIC_ORIGIN, SUPABASE_URL],
         },
       },
     }],

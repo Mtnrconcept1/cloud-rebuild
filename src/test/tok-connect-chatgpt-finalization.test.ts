@@ -57,6 +57,16 @@ describe("TOK Connect ChatGPT finalization", () => {
     expect(gateway).toContain("openai/outputTemplate");
   });
 
+  it("renders authentic generated menu photos and campaign drafts in the TOK Apps resource", () => {
+    expect(gateway).toContain("gallery_image_url");
+    expect(gateway).toContain("campaign_studio_runs");
+    expect(gateway).toContain("restaurant-images/");
+    expect(gateway).toContain("Studio Marketing");
+    expect(gateway).toContain("PhotoPro");
+    expect(gateway).toContain("resource_domains: [PUBLIC_ORIGIN, SUPABASE_URL]");
+    expect(remoteGateway).toContain("RESTAURANT_CREATIVE_TOOLS");
+    expect(remoteGateway).toContain("ACTION_WINDOW_RESOURCE_URI");
+  });
   it("contains no unresolved merge conflict marker in the canonical MCP", () => {
     expect(canonical).not.toContain("<<<<<<<");
     expect(canonical).not.toContain("=======");

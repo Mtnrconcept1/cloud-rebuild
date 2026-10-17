@@ -55,6 +55,41 @@ describe("public TOK actions through the actual HTTP router", () => {
       expect(denied.body.error.message).toBe("public_mcp_read_only");
     }
   });
+  it("advertises genuine owner-scoped creative actions with the TOK app widget, not generic write APIs", async () => {
+    const { body } = await rpc("tools/list");
+    for (const name of [
+      "tok_list_restaurant_campaign_studio_drafts",
+      "tok_create_restaurant_campaign_studio_draft",
+      "tok_create_restaurant_marketing_visual",
+      "tok_create_restaurant_dish_photo",
+      "tok_update_restaurant_menu_item_photo",
+    ]) {
+      const tool = body.result.tools.find((entry: { name: string }) => entry.name === name);
+      expect(tool).toBeDefined();
+      expect(tool._meta.ui).toMatchObject({
+        resourceUri: "ui://tok-connect/actions-window-v1.html",
+        visibility: ["model", "app"],
+      });
+      expect(tool._meta["openai/outputTemplate"]).toBe("ui://tok-connect/actions-window-v1.html");
+    }
+    const request = {
+      restaurant_id: restaurant,
+      prompt: "Créer une campagne pour les repas du midi",
+      confirmed_by_user: true,
+      idempotency_key: "studio-request-20261017",
+    };
+    const executed = await rpc("tools/call", {
+      name: "tok_create_restaurant_campaign_studio_draft", arguments: request,
+    }, true);
+    expect(executed.body.result.isError).toBeUndefined();
+    expect(upstreamCalls.at(-1)?.body).toEqual({
+      mode: "role_operation", operation: "tok_create_restaurant_campaign_studio_draft", args: request,
+    });
+    const denied = await rpc("tools/call", {
+      name: "tok_create_restaurant_campaign_studio_draft", arguments: request,
+    });
+    expect(denied.body.result.isError).toBe(true);
+  });
   it("pins the anonymous smoke mutation allowlist to the reviewed public contracts", () => {
     const names = ["tok_book_table", "tok_cancel_my_reservation", "tok_checkout_customer_cart", "tok_cancel_cart_payment_attempt",
       ...[...TOK_ROLE_OPERATION_TOOLS, ...TOK_CUSTOMER_OPERATION_TOOLS].filter((tool) => !tool.annotations.readOnlyHint).map((tool) => tool.name)];
