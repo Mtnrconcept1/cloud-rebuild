@@ -134,6 +134,38 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("context = result.context");
   });
 
+
+  it("exposes native Studio Marketing generation only through a confirmed OAuth restaurant bridge", () => {
+    const mcp = read("supabase/functions/tok-connect-mcp/index.ts");
+    const roles = read("supabase/functions/_shared/tok-connect-role-operations.ts");
+    const bridge = read("supabase/functions/tok-connect-app-bridge/index.ts");
+
+    for (const name of ["tok_generate_restaurant_marketing_visual", "tok_generate_restaurant_campaign_draft"]) {
+      expect(mcp).toContain(name);
+      expect(roles).toContain(name);
+    }
+    expect(mcp).toContain("TOK_ROLE_OPERATION_TOOLS");
+    expect(mcp).toContain("TOK_MARKETING_ROLE_MCP_TOOLS");
+    expect(mcp).toContain("...TOK_MARKETING_ROLE_MCP_TOOLS");
+    expect(mcp).toContain('requiredScopes: ["campaigns:preview", "credits:read"]');
+    expect(mcp).toContain('context.authMode !== "supabase_oauth"');
+    expect(mcp).toContain('context.environment !== "production"');
+    expect(mcp).toContain("args.confirmed_by_user !== true");
+    expect(mcp).toContain('assertTokConnectRestaurantGrant(context, restaurantId, "campaigns:preview", { requireMcp: true })');
+    expect(mcp).toContain('mode: "role_operation"');
+    expect(mcp).toContain('operation: name');
+    expect(mcp).toContain('idempotency_key: args.idempotency_key');
+    expect(mcp).toContain("tok-connect-app-bridge");
+    expect(mcp).toContain("tok_connect_marketing_status_indeterminate_reuse_same_key");
+    expect(mcp).toContain("publication_requires_separate_confirmation: true");
+    expect(mcp).toContain("callTool(req, context, toolName, args)");
+    expect(mcp).not.toContain('"SUPABASE_SERVICE_ROLE_KEY"');
+    expect(bridge).toContain('authenticateRequest(req, { allowServiceRole: false })');
+    expect(bridge).toContain("claimIdempotency");
+    expect(roles).toContain("await ownRestaurant(id)");
+    expect(roles).toContain('capability: "restaurant.ai.image"');
+  });
+
   it("exposes a ChatGPT Apps action window for visible MCP actions", () => {
     const source = read("supabase/functions/tok-connect-mcp/index.ts");
 

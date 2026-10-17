@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 457 error codes mapped from supabase/functions/**.
+// 463 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -1200,7 +1200,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "idempotency_key_reused_with_different_arguments": [
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1976
+      "line": 2001
     }
   ],
   "idempotency_key_reused_with_different_body": [
@@ -1738,7 +1738,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2861
+      "line": 2974
     }
   ],
   "mcp_prompt_not_found": [
@@ -1748,7 +1748,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2834
+      "line": 2947
     }
   ],
   "mcp_tool_not_found": [
@@ -1762,11 +1762,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2562
+      "line": 2675
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2606
+      "line": 2719
     }
   ],
   "media_id_required": [
@@ -3141,6 +3141,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
       "line": 86
+    },
+    {
+      "file": "supabase/functions/tok-connect-mcp/index.ts",
+      "line": 2351
     }
   ],
   "tok_connect_idempotency_key_required": [
@@ -3177,6 +3181,46 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
       "line": 538
+    }
+  ],
+  "tok_connect_marketing_invalid_response": [
+    {
+      "file": "supabase/functions/tok-connect-mcp/index.ts",
+      "line": 2394
+    },
+    {
+      "file": "supabase/functions/tok-connect-mcp/index.ts",
+      "line": 2396
+    }
+  ],
+  "tok_connect_marketing_invalid_result": [
+    {
+      "file": "supabase/functions/tok-connect-mcp/index.ts",
+      "line": 2408
+    }
+  ],
+  "tok_connect_marketing_response_too_large": [
+    {
+      "file": "supabase/functions/tok-connect-mcp/index.ts",
+      "line": 2392
+    }
+  ],
+  "tok_connect_marketing_restaurateur_oauth_required": [
+    {
+      "file": "supabase/functions/tok-connect-mcp/index.ts",
+      "line": 2348
+    }
+  ],
+  "tok_connect_marketing_service_unavailable": [
+    {
+      "file": "supabase/functions/tok-connect-mcp/index.ts",
+      "line": 2359
+    }
+  ],
+  "tok_connect_marketing_status_indeterminate_reuse_same_key": [
+    {
+      "file": "supabase/functions/tok-connect-mcp/index.ts",
+      "line": 2388
     }
   ],
   "tok_connect_mcp_grant_required": [
@@ -3313,6 +3357,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/_shared/tok-connect-auth.ts",
       "line": 257
+    },
+    {
+      "file": "supabase/functions/tok-connect-mcp/index.ts",
+      "line": 2354
     }
   ],
   "tok_connect_token_scope_revoked": [
