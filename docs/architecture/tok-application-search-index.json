@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "2a5b71498a6551df1b0943084e70120ef349a68c15b0b341e45e414d4bb5cb46",
+ "sourceDigest": "daf9c9ee138e9b85737aeb1fbf015382c0aaa5abdc4605c3e1506917d4c51c57",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2907,
-  "documents": 211,
+  "documents": 212,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3625,
+  "exportedSymbols": 3630,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 550,
-  "modules": 1639,
+  "modules": 1642,
   "pages": 133,
   "pathLiterals": 758,
   "publicAssets": 582,
   "publicEntries": 607,
   "publicNavigableRoutes": 2,
   "queryParameters": 111,
-  "records": 17341,
-  "repositoryFiles": 3287,
+  "records": 17359,
+  "repositoryFiles": 3291,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -5309,7 +5309,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 101,
+      "line": 103,
       "kind": "function"
      }
     ],
@@ -33183,6 +33183,7 @@
      "src/lib/securityUrls.ts",
      "src/lib/sessionCleanup.ts",
      "src/lib/statusLocks.ts",
+     "src/lib/stripeConnectOnboarding.ts",
      "src/lib/stripeReturn.ts",
      "src/lib/tokConnect.ts",
      "src/lib/userFacingErrors.ts",
@@ -33289,6 +33290,7 @@
      "src/test/security-audit-p0-remediation.test.ts",
      "src/test/security-edge-functions.test.ts",
      "src/test/security-url-helpers.test.ts",
+     "src/test/stripe-connect-platform-profile.test.ts",
      "src/test/stripe-developer-share-routing.test.ts",
      "src/test/stripe-paid-invoice-payment.test.ts",
      "src/test/stripe-return.test.ts",
@@ -33336,6 +33338,7 @@
      "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
      "supabase/functions/_shared/restaurant-subscription-billing.ts",
      "supabase/functions/_shared/stripe-client.ts",
+     "supabase/functions/_shared/stripe-connect-platform-profile.ts",
      "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
      "supabase/functions/_shared/tok-connect-customer-commerce.ts",
      "supabase/functions/_shared/tok-connect-customer-operations.ts",
@@ -33984,6 +33987,7 @@
      "src/test/social-post-boost-resilience.test.ts",
      "src/test/space-help-chat.test.ts",
      "src/test/sponsored-event-signing.test.ts",
+     "src/test/stripe-connect-platform-profile.test.ts",
      "src/test/stripe-developer-share-routing.test.ts",
      "src/test/stripe-paid-invoice-payment.test.ts",
      "src/test/stripe-security-hardening.test.ts",
@@ -79324,6 +79328,37 @@
     ]
    },
    {
+    "path": "docs/runbooks/tok-stripe-connect-platform-profile-20261017.md",
+    "title": "TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet)",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet)",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Incident du 17 octobre 2026",
+      "line": 3
+     },
+     {
+      "level": 2,
+      "title": "Action requise par l'administrateur de TOK",
+      "line": 13
+     },
+     {
+      "level": 2,
+      "title": "Correctif produit",
+      "line": 24
+     },
+     {
+      "level": 2,
+      "title": "Contrôles",
+      "line": 32
+     }
+    ]
+   },
+   {
     "path": "docs/security/SEO_BOT_PROTECTION_RUNBOOK.md",
     "title": "Protection SEO et anti-scraping de TOK",
     "headings": [
@@ -103594,6 +103629,31 @@
     "lineCount": 128
    },
    {
+    "path": "src/lib/stripeConnectOnboarding.ts",
+    "exports": [
+     {
+      "name": "TOK_STRIPE_CONNECT_PLATFORM_PROFILE_URL",
+      "line": 6,
+      "kind": "variable"
+     },
+     {
+      "name": "StripeConnectOnboardingIssue",
+      "line": 9,
+      "kind": "typealias"
+     },
+     {
+      "name": "getStripeConnectOnboardingIssue",
+      "line": 11,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe"
+    ],
+    "lineCount": 29
+   },
+   {
     "path": "src/lib/stripeReturn.ts",
     "exports": [
      {
@@ -107395,7 +107455,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 101,
+      "line": 103,
       "kind": "function"
      }
     ],
@@ -107406,7 +107466,7 @@
      "supabase",
      "twint"
     ],
-    "lineCount": 958
+    "lineCount": 1017
    },
    {
     "path": "src/pages/dashboard/DashboardService.tsx",
@@ -112579,6 +112639,16 @@
     "lineCount": 40
    },
    {
+    "path": "src/test/stripe-connect-platform-profile.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 130
+   },
+   {
     "path": "src/test/stripe-developer-share-routing.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -116300,6 +116370,26 @@
     "lineCount": 308
    },
    {
+    "path": "supabase/functions/_shared/stripe-connect-platform-profile.ts",
+    "exports": [
+     {
+      "name": "STRIPE_CONNECT_PLATFORM_PROFILE_REQUIRED",
+      "line": 8,
+      "kind": "variable"
+     },
+     {
+      "name": "isStripeConnectPlatformProfileRequired",
+      "line": 11,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe"
+    ],
+    "lineCount": 23
+   },
+   {
     "path": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
     "exports": [
      {
@@ -118486,7 +118576,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 213
+    "lineCount": 227
    },
    {
     "path": "supabase/functions/stripe-connect-status/index.ts",
@@ -120546,6 +120636,11 @@
    },
    {
     "path": "docs/runbooks/tok-developer-bank-payouts.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/runbooks/tok-stripe-connect-platform-profile-20261017.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -127220,6 +127315,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/lib/stripeConnectOnboarding.ts",
+    "category": "application-library",
+    "extension": ".ts"
+   },
+   {
     "path": "src/lib/stripeReturn.ts",
     "category": "application-library",
     "extension": ".ts"
@@ -130870,6 +130970,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/stripe-connect-platform-profile.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/stripe-developer-share-routing.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -131711,6 +131816,11 @@
    },
    {
     "path": "supabase/functions/_shared/stripe-client.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/stripe-connect-platform-profile.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -145922,6 +146032,22 @@
    "detailRef": "4c589a3a30d8"
   },
   {
+   "id": "code-module:0b6370808aff",
+   "type": "code-module",
+   "title": "src/lib/stripeConnectOnboarding.ts",
+   "description": "Module de 29 lignes; exports: TOK_STRIPE_CONNECT_PLATFORM_PROFILE_URL, StripeConnectOnboardingIssue, getStripeConnectOnboardingIssue.",
+   "path": "src/lib/stripeConnectOnboarding.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "StripeConnectOnboardingIssue",
+    "TOK_STRIPE_CONNECT_PLATFORM_PROFILE_URL",
+    "getStripeConnectOnboardingIssue",
+    "stripe"
+   ],
+   "detailRef": "fde2709722cc"
+  },
+  {
    "id": "code-module:0f741fc78b5b",
    "type": "code-module",
    "title": "src/lib/stripeReturn.ts",
@@ -148371,7 +148497,7 @@
    "id": "code-module:6261c9a72668",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardRestaurant.tsx",
-   "description": "Module de 958 lignes; exports: default.",
+   "description": "Module de 1017 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardRestaurant.tsx",
    "line": 1,
    "surface": null,
@@ -148382,7 +148508,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "0b1528b1666a"
+   "detailRef": "ac7128a51052"
   },
   {
    "id": "code-module:a943d339b690",
@@ -155610,6 +155736,20 @@
    "detailRef": "a882aad6d8ad"
   },
   {
+   "id": "code-module:fcc350d7b4bb",
+   "type": "code-module",
+   "title": "src/test/stripe-connect-platform-profile.test.ts",
+   "description": "Module de 130 lignes; exports: aucun export statique.",
+   "path": "src/test/stripe-connect-platform-profile.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "5e5746edb339"
+  },
+  {
    "id": "code-module:55fb3709c695",
    "type": "code-module",
    "title": "src/test/stripe-developer-share-routing.test.ts",
@@ -158147,6 +158287,21 @@
    "detailRef": "d6d0c2d69d0b"
   },
   {
+   "id": "code-module:2bbc6cd21404",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/stripe-connect-platform-profile.ts",
+   "description": "Module de 23 lignes; exports: STRIPE_CONNECT_PLATFORM_PROFILE_REQUIRED, isStripeConnectPlatformProfileRequired.",
+   "path": "supabase/functions/_shared/stripe-connect-platform-profile.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "STRIPE_CONNECT_PLATFORM_PROFILE_REQUIRED",
+    "isStripeConnectPlatformProfileRequired",
+    "stripe"
+   ],
+   "detailRef": "0b22bd4c8600"
+  },
+  {
    "id": "code-module:259a3faa5408",
    "type": "code-module",
    "title": "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
@@ -159967,14 +160122,14 @@
    "id": "code-module:f91e747f20a4",
    "type": "code-module",
    "title": "supabase/functions/stripe-connect-onboard/index.ts",
-   "description": "Module de 213 lignes; exports: aucun export statique.",
+   "description": "Module de 227 lignes; exports: aucun export statique.",
    "path": "supabase/functions/stripe-connect-onboard/index.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "stripe"
    ],
-   "detailRef": "83a41909a74e"
+   "detailRef": "5cabc67ce8a8"
   },
   {
    "id": "code-module:eade42f9d90f",
@@ -213185,6 +213340,20 @@
    "detailRef": "a98b380981f7"
   },
   {
+   "id": "document-section:f1a9a69ff78a",
+   "type": "document-section",
+   "title": "Action requise par l'administrateur de TOK",
+   "description": "Section de TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet).",
+   "path": "docs/runbooks/tok-stripe-connect-platform-profile-20261017.md",
+   "line": 13,
+   "surface": null,
+   "tags": [
+    "TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet)",
+    "h2"
+   ],
+   "detailRef": "0764b46713e7"
+  },
+  {
    "id": "document-section:0a6544a8d1f7",
    "type": "document-section",
    "title": "Actions Search Console à effectuer manuellement",
@@ -217301,6 +217470,20 @@
    "detailRef": "8cd4f45b74c8"
   },
   {
+   "id": "document-section:043c129293c2",
+   "type": "document-section",
+   "title": "Contrôles",
+   "description": "Section de TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet).",
+   "path": "docs/runbooks/tok-stripe-connect-platform-profile-20261017.md",
+   "line": 32,
+   "surface": null,
+   "tags": [
+    "TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet)",
+    "h2"
+   ],
+   "detailRef": "7146ac4c6250"
+  },
+  {
    "id": "document-section:02e7e137f476",
    "type": "document-section",
    "title": "Conversion confirmée côté serveur",
@@ -217341,6 +217524,20 @@
     "h3"
    ],
    "detailRef": "112785eaf852"
+  },
+  {
+   "id": "document-section:0d030221d8be",
+   "type": "document-section",
+   "title": "Correctif produit",
+   "description": "Section de TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet).",
+   "path": "docs/runbooks/tok-stripe-connect-platform-profile-20261017.md",
+   "line": 24,
+   "surface": null,
+   "tags": [
+    "TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet)",
+    "h2"
+   ],
+   "detailRef": "2fb273957c05"
   },
   {
    "id": "document-section:aafbf59a93e7",
@@ -221681,6 +221878,20 @@
     "h2"
    ],
    "detailRef": "f230483c21d5"
+  },
+  {
+   "id": "document-section:f45b5517fcf8",
+   "type": "document-section",
+   "title": "Incident du 17 octobre 2026",
+   "description": "Section de TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet).",
+   "path": "docs/runbooks/tok-stripe-connect-platform-profile-20261017.md",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet)",
+    "h2"
+   ],
+   "detailRef": "5158e8e24fed"
   },
   {
    "id": "document-section:abe66ab1a810",
@@ -233443,6 +233654,20 @@
    "detailRef": "1ca3e8ee7b31"
   },
   {
+   "id": "document-section:0f84e46526b4",
+   "type": "document-section",
+   "title": "TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet)",
+   "description": "Section de TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet).",
+   "path": "docs/runbooks/tok-stripe-connect-platform-profile-20261017.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet)",
+    "h1"
+   ],
+   "detailRef": "3969ed8c3649"
+  },
+  {
    "id": "document-section:b049beb7baaa",
    "type": "document-section",
    "title": "TOK — audit des notifications et du temps réel",
@@ -243254,6 +243479,23 @@
     "Vérifications réalisées"
    ],
    "detailRef": "9f86480894bc"
+  },
+  {
+   "id": "document:0f84e46526b4",
+   "type": "document",
+   "title": "TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet)",
+   "description": "Document Markdown avec 5 section(s).",
+   "path": "docs/runbooks/tok-stripe-connect-platform-profile-20261017.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Action requise par l'administrateur de TOK",
+    "Contrôles",
+    "Correctif produit",
+    "Incident du 17 octobre 2026",
+    "TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet)"
+   ],
+   "detailRef": "0a50c7cc2cf7"
   },
   {
    "id": "document:b049beb7baaa",
@@ -267183,6 +267425,20 @@
    "detailRef": "cef6fed78ff2"
   },
   {
+   "id": "exported-symbol:67e4577855ec",
+   "type": "exported-symbol",
+   "title": "STRIPE_CONNECT_PLATFORM_PROFILE_REQUIRED",
+   "description": "Export variable de supabase/functions/_shared/stripe-connect-platform-profile.ts.",
+   "path": "supabase/functions/_shared/stripe-connect-platform-profile.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "variable"
+   ],
+   "detailRef": "92f42d0a4e80"
+  },
+  {
    "id": "exported-symbol:999864a5d2df",
    "type": "exported-symbol",
    "title": "SUPABASE_PUBLISHABLE_KEY",
@@ -268928,6 +269184,20 @@
    "detailRef": "eb43af2497ee"
   },
   {
+   "id": "exported-symbol:81e62194cc13",
+   "type": "exported-symbol",
+   "title": "StripeConnectOnboardingIssue",
+   "description": "Export typealias de src/lib/stripeConnectOnboarding.ts.",
+   "path": "src/lib/stripeConnectOnboarding.ts",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "typealias"
+   ],
+   "detailRef": "eb8dd63776b8"
+  },
+  {
    "id": "exported-symbol:fc711c0b79d0",
    "type": "exported-symbol",
    "title": "StripeReturnStatus",
@@ -270173,6 +270443,20 @@
     "variable"
    ],
    "detailRef": "502e069a4f7f"
+  },
+  {
+   "id": "exported-symbol:3552351857f9",
+   "type": "exported-symbol",
+   "title": "TOK_STRIPE_CONNECT_PLATFORM_PROFILE_URL",
+   "description": "Export variable de src/lib/stripeConnectOnboarding.ts.",
+   "path": "src/lib/stripeConnectOnboarding.ts",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "variable"
+   ],
+   "detailRef": "289d950a8960"
   },
   {
    "id": "exported-symbol:ea01f2c7f944",
@@ -281612,12 +281896,12 @@
    "detailRef": "6fb7c184e5aa"
   },
   {
-   "id": "exported-symbol:a73fa4c7ec10",
+   "id": "exported-symbol:baecaca79b34",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardRestaurant.tsx.",
    "path": "src/pages/dashboard/DashboardRestaurant.tsx",
-   "line": 101,
+   "line": 103,
    "surface": null,
    "tags": [
     "function",
@@ -281626,7 +281910,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "5cdf9b564f59"
+   "detailRef": "cc466a34cc73"
   },
   {
    "id": "exported-symbol:53734f4b6cbb",
@@ -288106,6 +288390,20 @@
    "detailRef": "edf0600e0d6b"
   },
   {
+   "id": "exported-symbol:21509d7130a1",
+   "type": "exported-symbol",
+   "title": "getStripeConnectOnboardingIssue",
+   "description": "Export function de src/lib/stripeConnectOnboarding.ts.",
+   "path": "src/lib/stripeConnectOnboarding.ts",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe"
+   ],
+   "detailRef": "6cc0a1afb0ee"
+  },
+  {
    "id": "exported-symbol:84a9bbbebf9e",
    "type": "exported-symbol",
    "title": "getStripePaymentMethodDetails",
@@ -291065,6 +291363,20 @@
     "function"
    ],
    "detailRef": "797912cda685"
+  },
+  {
+   "id": "exported-symbol:fe8b43030644",
+   "type": "exported-symbol",
+   "title": "isStripeConnectPlatformProfileRequired",
+   "description": "Export function de supabase/functions/_shared/stripe-connect-platform-profile.ts.",
+   "path": "supabase/functions/_shared/stripe-connect-platform-profile.ts",
+   "line": 11,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe"
+   ],
+   "detailRef": "18d4afc9800e"
   },
   {
    "id": "exported-symbol:36e1a4f11808",
@@ -306208,6 +306520,20 @@
     "documentation"
    ],
    "detailRef": "e3eb9a77679a"
+  },
+  {
+   "id": "file:fa1931957bbc",
+   "type": "file",
+   "title": "docs/runbooks/tok-stripe-connect-platform-profile-20261017.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/runbooks/tok-stripe-connect-platform-profile-20261017.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "88ebcac623e0"
   },
   {
    "id": "file:75f415953a86",
@@ -324886,6 +325212,20 @@
    "detailRef": "9a7c2cc51cea"
   },
   {
+   "id": "file:ecdf9c89de57",
+   "type": "file",
+   "title": "src/lib/stripeConnectOnboarding.ts",
+   "description": "Fichier du dépôt classé application-library.",
+   "path": "src/lib/stripeConnectOnboarding.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "application-library"
+   ],
+   "detailRef": "ca4e0cf32550"
+  },
+  {
    "id": "file:c90cd9ad422a",
    "type": "file",
    "title": "src/lib/stripeReturn.ts",
@@ -335106,6 +335446,20 @@
    "detailRef": "be87cf7aaae4"
   },
   {
+   "id": "file:2649d5585f60",
+   "type": "file",
+   "title": "src/test/stripe-connect-platform-profile.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/stripe-connect-platform-profile.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "6035da1205db"
+  },
+  {
    "id": "file:e0e58ad6154a",
    "type": "file",
    "title": "src/test/stripe-developer-share-routing.test.ts",
@@ -337470,6 +337824,20 @@
     "edge-function-source"
    ],
    "detailRef": "fce7fb81f49a"
+  },
+  {
+   "id": "file:b4883eaa85c5",
+   "type": "file",
+   "title": "supabase/functions/_shared/stripe-connect-platform-profile.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/stripe-connect-platform-profile.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "66a4b22fe82a"
   },
   {
    "id": "file:2273edb465b5",
@@ -351033,7 +351401,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 265 module(s).",
+   "description": "Intégration externe détectée dans 268 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -351092,6 +351460,7 @@
     "src/lib/securityUrls.ts",
     "src/lib/sessionCleanup.ts",
     "src/lib/statusLocks.ts",
+    "src/lib/stripeConnectOnboarding.ts",
     "src/lib/stripeReturn.ts",
     "src/lib/tokConnect.ts",
     "src/lib/userFacingErrors.ts",
@@ -351198,6 +351567,7 @@
     "src/test/security-audit-p0-remediation.test.ts",
     "src/test/security-edge-functions.test.ts",
     "src/test/security-url-helpers.test.ts",
+    "src/test/stripe-connect-platform-profile.test.ts",
     "src/test/stripe-developer-share-routing.test.ts",
     "src/test/stripe-paid-invoice-payment.test.ts",
     "src/test/stripe-return.test.ts",
@@ -351246,6 +351616,7 @@
     "supabase/functions/_shared/restaurant-stripe-price-catalog.ts",
     "supabase/functions/_shared/restaurant-subscription-billing.ts",
     "supabase/functions/_shared/stripe-client.ts",
+    "supabase/functions/_shared/stripe-connect-platform-profile.ts",
     "supabase/functions/_shared/stripe-paid-invoice-payment.ts",
     "supabase/functions/_shared/tok-connect-customer-commerce.ts",
     "supabase/functions/_shared/tok-connect-customer-operations.ts",
@@ -351305,13 +351676,13 @@
     "supabase/functions/tok-connect-remote-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "8db7ca9227fd"
+   "detailRef": "208693c7342b"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 742 module(s).",
+   "description": "Intégration externe détectée dans 743 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -351901,6 +352272,7 @@
     "src/test/social-post-boost-resilience.test.ts",
     "src/test/space-help-chat.test.ts",
     "src/test/sponsored-event-signing.test.ts",
+    "src/test/stripe-connect-platform-profile.test.ts",
     "src/test/stripe-developer-share-routing.test.ts",
     "src/test/stripe-paid-invoice-payment.test.ts",
     "src/test/stripe-security-hardening.test.ts",
@@ -352060,7 +352432,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "0171273262dd"
+   "detailRef": "21ce8ebb9012"
   },
   {
    "id": "integration:c20910a79a78",
@@ -362631,7 +363003,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "558c942a808f"
+   "detailRef": "9a07a15172c1"
   },
   {
    "id": "page:90ca9a43070d",
