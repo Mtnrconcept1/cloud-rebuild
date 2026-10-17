@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "0f34144c5c957bd88acfda8e9b17837f5f03281ad0c3307de8e31807f9b3db60",
+ "sourceDigest": "2a5b71498a6551df1b0943084e70120ef349a68c15b0b341e45e414d4bb5cb46",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2907,
-  "documents": 209,
+  "documents": 211,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3623,
+  "exportedSymbols": 3625,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 550,
-  "modules": 1635,
+  "modules": 1639,
   "pages": 133,
   "pathLiterals": 758,
   "publicAssets": 582,
   "publicEntries": 607,
   "publicNavigableRoutes": 2,
   "queryParameters": 111,
-  "records": 17315,
-  "repositoryFiles": 3281,
+  "records": 17341,
+  "repositoryFiles": 3287,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -20880,7 +20880,7 @@
      },
      {
       "path": "supabase/functions/validate-order/index.ts",
-      "line": 550
+      "line": 572
      }
     ]
    },
@@ -22553,7 +22553,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 543
+      "line": 544
      }
     ]
    },
@@ -33007,6 +33007,7 @@
      "src/test/tok-connect-edge-functions.test.ts",
      "src/test/tok-connect-full-app-mcp.test.ts",
      "src/test/tok-connect-model-commerce-widget.test.ts",
+     "src/test/tok-connect-official-branding.test.ts",
      "src/test/tok-connect-public-actions.test.ts",
      "src/test/tok-connect-reservation-intent.test.ts",
      "src/test/tok-connect-smoke.test.ts",
@@ -33302,6 +33303,7 @@
      "src/test/tok-connect-customer-operations.test.ts",
      "src/test/tok-connect-customer-result.test.ts",
      "src/test/tok-connect-delivery-commerce.test.ts",
+     "src/test/tok-connect-marketplace-preflight.test.ts",
      "src/test/tok-connect-model-commerce-widget.test.ts",
      "src/test/tok-connect-reservation-intent.test.ts",
      "src/test/tok-connect-special-offers-commerce.test.ts",
@@ -34025,9 +34027,11 @@
      "src/test/tok-connect-floorplan-operations.test.ts",
      "src/test/tok-connect-frontend.test.ts",
      "src/test/tok-connect-full-app-mcp.test.ts",
+     "src/test/tok-connect-marketplace-preflight.test.ts",
      "src/test/tok-connect-mcp-http.test.ts",
      "src/test/tok-connect-mcp-migration.test.ts",
      "src/test/tok-connect-model-commerce-widget.test.ts",
+     "src/test/tok-connect-official-branding.test.ts",
      "src/test/tok-connect-preview-sandbox.test.tsx",
      "src/test/tok-connect-public-actions.test.ts",
      "src/test/tok-connect-reservation-intent.test.ts",
@@ -34039,6 +34043,7 @@
      "src/test/tok-connect-sql.test.ts",
      "src/test/tok-connect-universal-mcp.test.ts",
      "src/test/tok-intelligence-suite.test.ts",
+     "src/test/tok-mcp-pickup-slot-capacity.test.ts",
      "src/test/tok-one-management-handler.test.ts",
      "src/test/tok-one-recurring-quote.test.ts",
      "src/test/tok-one-stripe-test-mode.test.ts",
@@ -85016,6 +85021,78 @@
     ]
    },
    {
+    "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+    "title": "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Problème reproduit",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Correctif technique",
+      "line": 23
+     },
+     {
+      "level": 2,
+      "title": "Déblocage opérationnel réel",
+      "line": 37
+     },
+     {
+      "level": 2,
+      "title": "Critères de recette",
+      "line": 47
+     },
+     {
+      "level": 2,
+      "title": "Retour arrière",
+      "line": 55
+     }
+    ]
+   },
+   {
+    "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+    "title": "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK Connect — échec Checkout à emporter hors horaire de service",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Preuve de l'incident",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Correction applicative proposée",
+      "line": 22
+     },
+     {
+      "level": 2,
+      "title": "Acceptation et non-régression",
+      "line": 30
+     },
+     {
+      "level": 2,
+      "title": "Tentative précédente à traiter distinctement",
+      "line": 36
+     },
+     {
+      "level": 2,
+      "title": "Retour arrière",
+      "line": 42
+     }
+    ]
+   },
+   {
     "path": "docs/tok-connect/PUBLICATION.md",
     "title": "Publication Suisse",
     "headings": [
@@ -112845,7 +112922,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 83
+    "lineCount": 92
    },
    {
     "path": "src/test/tok-connect-commercial-bridge.test.ts",
@@ -112917,7 +112994,7 @@
      "supabase",
      "twint"
     ],
-    "lineCount": 116
+    "lineCount": 125
    },
    {
     "path": "src/test/tok-connect-discovery.test.ts",
@@ -112977,6 +113054,16 @@
     "lineCount": 79
    },
    {
+    "path": "src/test/tok-connect-marketplace-preflight.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 50
+   },
+   {
     "path": "src/test/tok-connect-mcp-http.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -113011,6 +113098,16 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 17
+   },
+   {
+    "path": "src/test/tok-connect-official-branding.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 91
    },
    {
     "path": "src/test/tok-connect-preview-sandbox.test.tsx",
@@ -113088,7 +113185,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 233
+    "lineCount": 234
    },
    {
     "path": "src/test/tok-connect-sql.test.ts",
@@ -113139,6 +113236,15 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 45
+   },
+   {
+    "path": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 91
    },
    {
     "path": "src/test/tok-one-management-handler.test.ts",
@@ -113974,7 +114080,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3606,
+      "line": 3618,
       "kind": "function"
      }
     ],
@@ -113986,7 +114092,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3611
+    "lineCount": 3623
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -115288,6 +115394,19 @@
     "lineCount": 666
    },
    {
+    "path": "supabase/functions/_shared/order-pickup-scheduling.ts",
+    "exports": [
+     {
+      "name": "resolveVerifiedPickupScheduledAt",
+      "line": 10,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 50
+   },
+   {
     "path": "supabase/functions/_shared/order-pricing.ts",
     "exports": [
      {
@@ -116385,28 +116504,33 @@
       "kind": "variable"
      },
      {
-      "name": "TOK_DISCOVERY_RESOURCE_DOMAINS",
+      "name": "TOK_DISCOVERY_OFFICIAL_LOGO_URL",
       "line": 19,
       "kind": "variable"
      },
      {
+      "name": "TOK_DISCOVERY_RESOURCE_DOMAINS",
+      "line": 22,
+      "kind": "variable"
+     },
+     {
       "name": "TOK_DISCOVERY_WIDGET_HTML",
-      "line": 29,
+      "line": 32,
       "kind": "variable"
      },
      {
       "name": "buildTokDiscoveryResourceDescriptor",
-      "line": 1892,
-      "kind": "function"
-     },
-     {
-      "name": "buildTokDiscoveryResourceContents",
       "line": 1921,
       "kind": "function"
      },
      {
+      "name": "buildTokDiscoveryResourceContents",
+      "line": 1950,
+      "kind": "function"
+     },
+     {
       "name": "buildTokDiscoveryToolMeta",
-      "line": 1932,
+      "line": 1961,
       "kind": "function"
      }
     ],
@@ -116419,7 +116543,7 @@
      "twint",
      "vercel"
     ],
-    "lineCount": 1942
+    "lineCount": 1971
    },
    {
     "path": "supabase/functions/_shared/tok-connect-discovery.ts",
@@ -118500,7 +118624,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1007
+    "lineCount": 1021
    },
    {
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
@@ -118669,7 +118793,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 617
+    "lineCount": 639
    },
    {
     "path": "supabase/functions/verify-directory-commercial-names/index.ts",
@@ -120762,6 +120886,16 @@
    },
    {
     "path": "docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -130986,6 +131120,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-connect-marketplace-preflight.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/tok-connect-mcp-http.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -131002,6 +131141,11 @@
    },
    {
     "path": "src/test/tok-connect-oauth-routing.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-official-branding.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -131072,6 +131216,11 @@
    },
    {
     "path": "src/test/tok-logo-calendar.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -131432,6 +131581,11 @@
    },
    {
     "path": "supabase/functions/_shared/order-checkout.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/order-pickup-scheduling.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -155937,7 +156091,7 @@
    "id": "code-module:59f63392cb50",
    "type": "code-module",
    "title": "src/test/tok-connect-commerce-handler.test.ts",
-   "description": "Module de 83 lignes; exports: aucun export statique.",
+   "description": "Module de 92 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-commerce-handler.test.ts",
    "line": 1,
    "surface": null,
@@ -155945,7 +156099,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "986a9c6c60d9"
+   "detailRef": "75806ae1c7ce"
   },
   {
    "id": "code-module:42d6d5992482",
@@ -156035,7 +156189,7 @@
    "id": "code-module:a955c6e67517",
    "type": "code-module",
    "title": "src/test/tok-connect-delivery-commerce.test.ts",
-   "description": "Module de 116 lignes; exports: aucun export statique.",
+   "description": "Module de 125 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-delivery-commerce.test.ts",
    "line": 1,
    "surface": null,
@@ -156045,7 +156199,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "3cad0ffb174f"
+   "detailRef": "298af96b5148"
   },
   {
    "id": "code-module:5ba8bcabdf99",
@@ -156129,6 +156283,20 @@
    "detailRef": "7c7ccebdbc62"
   },
   {
+   "id": "code-module:6161a354551c",
+   "type": "code-module",
+   "title": "src/test/tok-connect-marketplace-preflight.test.ts",
+   "description": "Module de 50 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-marketplace-preflight.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "a75c0a35847b"
+  },
+  {
    "id": "code-module:50497a84ed7b",
    "type": "code-module",
    "title": "src/test/tok-connect-mcp-http.test.ts",
@@ -156179,6 +156347,20 @@
    "surface": null,
    "tags": [],
    "detailRef": "325aaf576d42"
+  },
+  {
+   "id": "code-module:b3f2ca14710d",
+   "type": "code-module",
+   "title": "src/test/tok-connect-official-branding.test.ts",
+   "description": "Module de 91 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-official-branding.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "f359460aa4f8"
   },
   {
    "id": "code-module:122ee8701470",
@@ -156279,7 +156461,7 @@
    "id": "code-module:8fb56bb571aa",
    "type": "code-module",
    "title": "src/test/tok-connect-special-offers-commerce.test.ts",
-   "description": "Module de 233 lignes; exports: aucun export statique.",
+   "description": "Module de 234 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-special-offers-commerce.test.ts",
    "line": 1,
    "surface": null,
@@ -156288,7 +156470,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "4b7e13eef905"
+   "detailRef": "fd4169c91d81"
   },
   {
    "id": "code-module:7d5cd1586d20",
@@ -156363,6 +156545,19 @@
    "surface": null,
    "tags": [],
    "detailRef": "1f2d77002dbe"
+  },
+  {
+   "id": "code-module:57c104a23075",
+   "type": "code-module",
+   "title": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
+   "description": "Module de 91 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "20c573e78fbf"
   },
   {
    "id": "code-module:e51647e35b4b",
@@ -156876,7 +157071,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3611 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3623 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -156890,7 +157085,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "b161beca41e0"
+   "detailRef": "8fc40c42b387"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -157488,6 +157683,19 @@
    "detailRef": "fae68b9b8664"
   },
   {
+   "id": "code-module:f2046b850def",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/order-pickup-scheduling.ts",
+   "description": "Module de 50 lignes; exports: resolveVerifiedPickupScheduledAt.",
+   "path": "supabase/functions/_shared/order-pickup-scheduling.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "resolveVerifiedPickupScheduledAt"
+   ],
+   "detailRef": "628a84a5fecd"
+  },
+  {
    "id": "code-module:8b958dc2ca39",
    "type": "code-module",
    "title": "supabase/functions/_shared/order-pricing.ts",
@@ -158048,11 +158256,12 @@
    "id": "code-module:38f3af390908",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "description": "Module de 1942 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
+   "description": "Module de 1971 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_OFFICIAL_LOGO_URL, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
    "line": 1,
    "surface": null,
    "tags": [
+    "TOK_DISCOVERY_OFFICIAL_LOGO_URL",
     "TOK_DISCOVERY_RESOURCE_DOMAINS",
     "TOK_DISCOVERY_RESOURCE_URI",
     "TOK_DISCOVERY_WIDGET_HTML",
@@ -158066,7 +158275,7 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "3accaa637bdb"
+   "detailRef": "3581803c2425"
   },
   {
    "id": "code-module:bd4199664d50",
@@ -159906,7 +160115,7 @@
    "id": "code-module:5f5eb07543f1",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-app-bridge/index.ts",
-   "description": "Module de 1007 lignes; exports: aucun export statique.",
+   "description": "Module de 1021 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-app-bridge/index.ts",
    "line": 1,
    "surface": null,
@@ -159917,7 +160126,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "339b7d749ef1"
+   "detailRef": "0a925f5154e7"
   },
   {
    "id": "code-module:4266f84831a7",
@@ -160103,7 +160312,7 @@
    "id": "code-module:dabf444b526f",
    "type": "code-module",
    "title": "supabase/functions/validate-order/index.ts",
-   "description": "Module de 617 lignes; exports: aucun export statique.",
+   "description": "Module de 639 lignes; exports: aucun export statique.",
    "path": "supabase/functions/validate-order/index.ts",
    "line": 1,
    "surface": null,
@@ -160113,7 +160322,7 @@
     "SITE_URL",
     "stripe"
    ],
-   "detailRef": "dbe835b0bbaf"
+   "detailRef": "49421b37e724"
   },
   {
    "id": "code-module:0d10b9ae90cd",
@@ -212836,6 +213045,20 @@
    "detailRef": "cc36ddd18096"
   },
   {
+   "id": "document-section:f5b9f6c20493",
+   "type": "document-section",
+   "title": "Acceptation et non-régression",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h2"
+   ],
+   "detailRef": "e38a6908ead9"
+  },
+  {
    "id": "document-section:e78d634b166e",
    "type": "document-section",
    "title": "Accessoires — `props.png`",
@@ -217120,6 +217343,20 @@
    "detailRef": "112785eaf852"
   },
   {
+   "id": "document-section:aafbf59a93e7",
+   "type": "document-section",
+   "title": "Correctif technique",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h2"
+   ],
+   "detailRef": "cbf85125f1ef"
+  },
+  {
    "id": "document-section:e84620675bcf",
    "type": "document-section",
    "title": "Correctifs appliqués",
@@ -217132,6 +217369,20 @@
     "h2"
    ],
    "detailRef": "f63546eeb689"
+  },
+  {
+   "id": "document-section:59bd7c42cb3d",
+   "type": "document-section",
+   "title": "Correction applicative proposée",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 22,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h2"
+   ],
+   "detailRef": "dcf258f51a5f"
   },
   {
    "id": "document-section:fa806afa1747",
@@ -217370,6 +217621,20 @@
     "h2"
    ],
    "detailRef": "40b4139a88e5"
+  },
+  {
+   "id": "document-section:16547eac911f",
+   "type": "document-section",
+   "title": "Critères de recette",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 47,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h2"
+   ],
+   "detailRef": "be95bf4941a6"
   },
   {
    "id": "document-section:cd7ae87c7210",
@@ -218266,6 +218531,20 @@
     "h3"
    ],
    "detailRef": "92d853f54e34"
+  },
+  {
+   "id": "document-section:798f7c43a00e",
+   "type": "document-section",
+   "title": "Déblocage opérationnel réel",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 37,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h2"
+   ],
+   "detailRef": "345d7aab52be"
   },
   {
    "id": "document-section:2c3703b5f485",
@@ -227144,6 +227423,20 @@
    "detailRef": "14ed5ff11453"
   },
   {
+   "id": "document-section:4575870ef38f",
+   "type": "document-section",
+   "title": "Preuve de l'incident",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h2"
+   ],
+   "detailRef": "ceeeded12228"
+  },
+  {
    "id": "document-section:3653dc2817fe",
    "type": "document-section",
    "title": "Preuves d'environnement obtenues",
@@ -227394,6 +227687,20 @@
     "h2"
    ],
    "detailRef": "bab9abba72c9"
+  },
+  {
+   "id": "document-section:499e8efb16c2",
+   "type": "document-section",
+   "title": "Problème reproduit",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h2"
+   ],
+   "detailRef": "561eb61c18b4"
   },
   {
    "id": "document-section:8b8f5c09c141",
@@ -229284,6 +229591,34 @@
     "h2"
    ],
    "detailRef": "173bb12a27c5"
+  },
+  {
+   "id": "document-section:a32f47df9a45",
+   "type": "document-section",
+   "title": "Retour arrière",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 55,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h2"
+   ],
+   "detailRef": "188db80f6235"
+  },
+  {
+   "id": "document-section:69de885eca0d",
+   "type": "document-section",
+   "title": "Retour arrière",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 42,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h2"
+   ],
+   "detailRef": "4d031da342b6"
   },
   {
    "id": "document-section:3230479b4fe2",
@@ -232716,6 +233051,34 @@
    "detailRef": "b5cb62861893"
   },
   {
+   "id": "document-section:0d71a5960f7b",
+   "type": "document-section",
+   "title": "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h1"
+   ],
+   "detailRef": "ad8c25f98a60"
+  },
+  {
+   "id": "document-section:3796e90600be",
+   "type": "document-section",
+   "title": "TOK Connect — échec Checkout à emporter hors horaire de service",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h1"
+   ],
+   "detailRef": "78b225971f1b"
+  },
+  {
    "id": "document-section:6866b44da949",
    "type": "document-section",
    "title": "TOK Connect",
@@ -235388,6 +235751,20 @@
     "h3"
    ],
    "detailRef": "571ec8e6f36c"
+  },
+  {
+   "id": "document-section:2a40e7024b22",
+   "type": "document-section",
+   "title": "Tentative précédente à traiter distinctement",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h2"
+   ],
+   "detailRef": "6a82cc71380a"
   },
   {
    "id": "document-section:436403c38713",
@@ -242383,6 +242760,42 @@
     "What an agent can really do"
    ],
    "detailRef": "77d1658ee3fb"
+  },
+  {
+   "id": "document:0d71a5960f7b",
+   "type": "document",
+   "title": "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+   "description": "Document Markdown avec 6 section(s).",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Correctif technique",
+    "Critères de recette",
+    "Déblocage opérationnel réel",
+    "Problème reproduit",
+    "Retour arrière",
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect"
+   ],
+   "detailRef": "13a6ca625919"
+  },
+  {
+   "id": "document:3796e90600be",
+   "type": "document",
+   "title": "TOK Connect — échec Checkout à emporter hors horaire de service",
+   "description": "Document Markdown avec 6 section(s).",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Acceptation et non-régression",
+    "Correction applicative proposée",
+    "Preuve de l'incident",
+    "Retour arrière",
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "Tentative précédente à traiter distinctement"
+   ],
+   "detailRef": "2988c06ff515"
   },
   {
    "id": "document:6866b44da949",
@@ -269105,9 +269518,9 @@
    "detailRef": "2b9b13293ee2"
   },
   {
-   "id": "exported-symbol:1bd171250d15",
+   "id": "exported-symbol:32b250834b71",
    "type": "exported-symbol",
-   "title": "TOK_DISCOVERY_RESOURCE_DOMAINS",
+   "title": "TOK_DISCOVERY_OFFICIAL_LOGO_URL",
    "description": "Export variable de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
    "line": 19,
@@ -269121,7 +269534,26 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "106b0e9a07db"
+   "detailRef": "412cfe1bd6f0"
+  },
+  {
+   "id": "exported-symbol:1710c3fc74ec",
+   "type": "exported-symbol",
+   "title": "TOK_DISCOVERY_RESOURCE_DOMAINS",
+   "description": "Export variable de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
+   "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
+   "line": 22,
+   "surface": null,
+   "tags": [
+    "google",
+    "openai",
+    "stripe",
+    "supabase",
+    "twint",
+    "variable",
+    "vercel"
+   ],
+   "detailRef": "31f39aa01309"
   },
   {
    "id": "exported-symbol:0735ef9a8f0e",
@@ -269143,12 +269575,12 @@
    "detailRef": "befed9b9a47c"
   },
   {
-   "id": "exported-symbol:be35cf0ce784",
+   "id": "exported-symbol:c5a4d64c81a2",
    "type": "exported-symbol",
    "title": "TOK_DISCOVERY_WIDGET_HTML",
    "description": "Export variable de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 29,
+   "line": 32,
    "surface": null,
    "tags": [
     "google",
@@ -269159,7 +269591,7 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "117c0a783f9d"
+   "detailRef": "3de0ed8dac32"
   },
   {
    "id": "exported-symbol:09a980fb1767",
@@ -274393,9 +274825,28 @@
    "detailRef": "82f9e612ba62"
   },
   {
-   "id": "exported-symbol:7f0bc7eec72a",
+   "id": "exported-symbol:a8fae02663f3",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryResourceContents",
+   "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
+   "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
+   "line": 1950,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "openai",
+    "stripe",
+    "supabase",
+    "twint",
+    "vercel"
+   ],
+   "detailRef": "15ad6472e065"
+  },
+  {
+   "id": "exported-symbol:9e6e351c9071",
+   "type": "exported-symbol",
+   "title": "buildTokDiscoveryResourceDescriptor",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
    "line": 1921,
@@ -274409,34 +274860,15 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "8c2d06f25978"
+   "detailRef": "4347f3cb2507"
   },
   {
-   "id": "exported-symbol:332b37806700",
-   "type": "exported-symbol",
-   "title": "buildTokDiscoveryResourceDescriptor",
-   "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
-   "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 1892,
-   "surface": null,
-   "tags": [
-    "function",
-    "google",
-    "openai",
-    "stripe",
-    "supabase",
-    "twint",
-    "vercel"
-   ],
-   "detailRef": "9068bbb514a7"
-  },
-  {
-   "id": "exported-symbol:311a4a605c32",
+   "id": "exported-symbol:862be1caddb4",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryToolMeta",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 1932,
+   "line": 1961,
    "surface": null,
    "tags": [
     "function",
@@ -274447,7 +274879,7 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "65fe64e6b000"
+   "detailRef": "596362cc8e43"
   },
   {
    "id": "exported-symbol:c48bb56c3e9c",
@@ -291244,12 +291676,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:8cfee33f5a65",
+   "id": "exported-symbol:d9a96cccea94",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3606,
+   "line": 3618,
    "surface": null,
    "tags": [
     "firebase",
@@ -291259,7 +291691,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "37070fd0e2e8"
+   "detailRef": "b2b77206f959"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -295152,6 +295584,19 @@
     "supabase"
    ],
    "detailRef": "dce2186bb66a"
+  },
+  {
+   "id": "exported-symbol:2b7f46c19b33",
+   "type": "exported-symbol",
+   "title": "resolveVerifiedPickupScheduledAt",
+   "description": "Export function de supabase/functions/_shared/order-pickup-scheduling.ts.",
+   "path": "supabase/functions/_shared/order-pickup-scheduling.ts",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "3963d4e02b45"
   },
   {
    "id": "exported-symbol:87043024a296",
@@ -306715,6 +307160,34 @@
     "documentation"
    ],
    "detailRef": "46130c1a5ee2"
+  },
+  {
+   "id": "file:33bcd46846c7",
+   "type": "file",
+   "title": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "fcd74608a19d"
+  },
+  {
+   "id": "file:616a160034dd",
+   "type": "file",
+   "title": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "fb9611584b29"
   },
   {
    "id": "file:b1e2a33ff3d5",
@@ -335333,6 +335806,20 @@
    "detailRef": "072bf5ec4c30"
   },
   {
+   "id": "file:13ae580ffc7e",
+   "type": "file",
+   "title": "src/test/tok-connect-marketplace-preflight.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-marketplace-preflight.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "5b4f7991fd59"
+  },
+  {
    "id": "file:2afe1aeab7da",
    "type": "file",
    "title": "src/test/tok-connect-mcp-http.test.ts",
@@ -335387,6 +335874,20 @@
     "test"
    ],
    "detailRef": "c4695d298926"
+  },
+  {
+   "id": "file:dc36768c5aab",
+   "type": "file",
+   "title": "src/test/tok-connect-official-branding.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-official-branding.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "35b900864a9a"
   },
   {
    "id": "file:8bbad2f6eb34",
@@ -335583,6 +336084,20 @@
     "test"
    ],
    "detailRef": "de1f0c84e1a1"
+  },
+  {
+   "id": "file:824dab4f9fe8",
+   "type": "file",
+   "title": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "f7c404f8c469"
   },
   {
    "id": "file:80950af8b6a3",
@@ -336591,6 +337106,20 @@
     "edge-function-source"
    ],
    "detailRef": "054fa56b403f"
+  },
+  {
+   "id": "file:e74993157416",
+   "type": "file",
+   "title": "supabase/functions/_shared/order-pickup-scheduling.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/order-pickup-scheduling.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "5cf12cd649de"
   },
   {
    "id": "file:543eca711a3c",
@@ -350270,7 +350799,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 130 module(s).",
+   "description": "Intégration externe détectée dans 131 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -350356,6 +350885,7 @@
     "src/test/tok-connect-edge-functions.test.ts",
     "src/test/tok-connect-full-app-mcp.test.ts",
     "src/test/tok-connect-model-commerce-widget.test.ts",
+    "src/test/tok-connect-official-branding.test.ts",
     "src/test/tok-connect-public-actions.test.ts",
     "src/test/tok-connect-reservation-intent.test.ts",
     "src/test/tok-connect-smoke.test.ts",
@@ -350407,7 +350937,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "8880b70ae813"
+   "detailRef": "83aa48d13608"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -350503,7 +351033,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 264 module(s).",
+   "description": "Intégration externe détectée dans 265 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -350682,6 +351212,7 @@
     "src/test/tok-connect-customer-operations.test.ts",
     "src/test/tok-connect-customer-result.test.ts",
     "src/test/tok-connect-delivery-commerce.test.ts",
+    "src/test/tok-connect-marketplace-preflight.test.ts",
     "src/test/tok-connect-model-commerce-widget.test.ts",
     "src/test/tok-connect-reservation-intent.test.ts",
     "src/test/tok-connect-special-offers-commerce.test.ts",
@@ -350774,13 +351305,13 @@
     "supabase/functions/tok-connect-remote-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "1946a0cc69a8"
+   "detailRef": "8db7ca9227fd"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 739 module(s).",
+   "description": "Intégration externe détectée dans 742 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -351413,9 +351944,11 @@
     "src/test/tok-connect-floorplan-operations.test.ts",
     "src/test/tok-connect-frontend.test.ts",
     "src/test/tok-connect-full-app-mcp.test.ts",
+    "src/test/tok-connect-marketplace-preflight.test.ts",
     "src/test/tok-connect-mcp-http.test.ts",
     "src/test/tok-connect-mcp-migration.test.ts",
     "src/test/tok-connect-model-commerce-widget.test.ts",
+    "src/test/tok-connect-official-branding.test.ts",
     "src/test/tok-connect-preview-sandbox.test.tsx",
     "src/test/tok-connect-public-actions.test.ts",
     "src/test/tok-connect-reservation-intent.test.ts",
@@ -351427,6 +351960,7 @@
     "src/test/tok-connect-sql.test.ts",
     "src/test/tok-connect-universal-mcp.test.ts",
     "src/test/tok-intelligence-suite.test.ts",
+    "src/test/tok-mcp-pickup-slot-capacity.test.ts",
     "src/test/tok-one-management-handler.test.ts",
     "src/test/tok-one-recurring-quote.test.ts",
     "src/test/tok-one-stripe-test-mode.test.ts",
@@ -351526,7 +352060,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "9e22abec5244"
+   "detailRef": "0171273262dd"
   },
   {
    "id": "integration:c20910a79a78",
@@ -365997,7 +366531,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "c5d7569db21f"
+   "detailRef": "73c79eaae648"
   },
   {
    "id": "path-literal:dca61cdb37fa",
@@ -367053,7 +367587,7 @@
     "src/test/marketing-agent-bff.test.ts",
     "supabase/functions/tok-connect-app-bridge/index.ts"
    ],
-   "detailRef": "84343f380036"
+   "detailRef": "575589210385"
   },
   {
    "id": "path-literal:4d3338389c80",
