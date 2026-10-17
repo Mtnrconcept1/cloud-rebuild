@@ -41,6 +41,7 @@ function harness(options: { owner?: string; roles?: string[]; reservationRestaur
   }, rpc: vi.fn(() => Object.assign(Promise.resolve({ data: null, error: null }), { range: async () => ({ data: [{ restaurant_id: restaurant, plan: "pro" }], error: null }) })) };
   const actor = { userId: "caller", userClient: client, roles: options.roles || ["restaurateur", "client"], isAdmin: false, isServiceRole: false } as unknown as RequestActor;
   const cached = new Map<string, { signature: string; result: unknown }>();
+  const inProgress = new Map<string, string>();
   const deps = {
     authorizeMutation: vi.fn(async () => {}),
     invokeEdge: vi.fn(async (body: Row) => ({ statusCode: 200, payload: { ok: true, native: body } })),
@@ -49,11 +50,13 @@ function harness(options: { owner?: string; roles?: string[]; reservationRestaur
       const key = String(args.idempotency_key), signature = JSON.stringify(args), previous = cached.get(key);
       if (previous && previous.signature !== signature) throw new Error("idempotency_conflict");
       if (previous) return previous.result as { statusCode: number; payload: Row };
-      const result = await run(); cached.set(key, { signature, result }); return result;
+      if (inProgress.has(key)) throw new Error(inProgress.get(key) === signature ? "idempotency_in_progress" : "idempotency_conflict");
+      inProgress.set(key, signature);
+      const result = await run(); cached.set(key, { signature, result }); inProgress.delete(key); return result;
     }),
   };
   const run = (name: string, args: Row = {}) => invokeTokRoleOperation(actor, { operation: name, args }, deps);
-  return { actor, rows, writes, deps, run, client };
+  return { actor, rows, writes, deps, run, client, cached, inProgress };
 }
 
 describe("TOK governed restaurant special offers", () => {
@@ -105,9 +108,23 @@ describe("TOK governed restaurant special offers", () => {
     expect(await h.run("tok_create_restaurant_anti_waste", anti)).toMatchObject({ statusCode: 409, payload: { ok: false } });
     await h.run("tok_create_restaurant_anti_waste", anti); expect(h.client.rpc).toHaveBeenCalledTimes(1);
     h.client.rpc.mockResolvedValueOnce({ data: null, error: { code: "08006", message: "Network" } } as never);
-    expect(await h.run("tok_create_restaurant_anti_waste", { ...anti, idempotency_key: "network-error" })).toMatchObject({ statusCode: 503, payload: { ok: false } });
+    await expect(h.run("tok_create_restaurant_anti_waste", { ...anti, idempotency_key: "network-error" })).rejects.toThrow("reconciliation_required");
     h.client.rpc.mockResolvedValueOnce({ data: { restaurant_id: other }, error: null } as never);
     await expect(h.run("tok_create_restaurant_anti_waste", { ...anti, idempotency_key: "different-key" })).rejects.toThrow("reconciliation_required");
+  });
+  it.each(["", "08006"])("preserves an indeterminate claim after a possibly committed RPC transport error %s", async (code) => {
+    const h = harness(), input = { ...anti, idempotency_key: "lost-rpc-response" };
+    let nativeCommits = 0;
+    h.client.rpc.mockImplementationOnce((async () => {
+      nativeCommits += 1;
+      return { data: null, error: { code, message: "Connection lost after commit" } };
+    }) as never);
+    await expect(h.run("tok_create_restaurant_anti_waste", input)).rejects.toThrow("reconciliation_required");
+    expect(h.cached.has(input.idempotency_key)).toBe(false);
+    expect(h.inProgress.has(input.idempotency_key)).toBe(true);
+    await expect(h.run("tok_create_restaurant_anti_waste", input)).rejects.toThrow("idempotency_in_progress");
+    expect(h.client.rpc).toHaveBeenCalledTimes(1);
+    expect(nativeCommits).toBe(1);
   });
   it("completes invalid authoritative price failures and replays without a stuck claim", async () => {
     const h = harness(); const bad = { ...anti, discounted_price_chf: 13 };

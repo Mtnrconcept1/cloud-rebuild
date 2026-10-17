@@ -64,7 +64,8 @@ export async function invokeTokSpecialOfferOperation(name: string, args: Row, co
     const { data, error } = await client.rpc(rpcName, rpcArgs);
     if (error) {
       const business = ["P0001", "23514", "23505", "23503", "42501"].includes(String(error.code || ""));
-      return { statusCode: business ? 409 : 503, payload: { ok: false, error: business ? "tok_connect_special_offer_native_rejected" : "tok_connect_special_offer_native_unavailable" } };
+      if (!business) return fail(503, "tok_connect_special_offer_reconciliation_required");
+      return rejected(409, "tok_connect_special_offer_native_rejected");
     }
     const row = (Array.isArray(data) ? data[0] : data) as Row | null;
     if (!row || row.restaurant_id !== id) return fail(503, "tok_connect_special_offer_reconciliation_required");
