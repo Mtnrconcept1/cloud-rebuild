@@ -15,7 +15,6 @@ import {
   Crown,
   LockKeyhole,
   MapPin,
-  Play,
   ShoppingCart,
   Sparkles,
   Star,
@@ -903,15 +902,6 @@ export default function ChefsTable() {
         currentStepId={confirmed ? "confirm" : "selection"}
         headerAction={
           <>
-          <Button
-            type="button"
-            variant="outline"
-            className="golden-tok-video-button"
-            onClick={() => toast({ title: "La Tok d’Or en vidéo", description: "La présentation vidéo sera bientôt disponible." })}
-          >
-            <Play className="h-4 w-4 fill-current" aria-hidden="true" />
-            <span>Voir la vidéo</span>
-          </Button>
           <Button
             variant={notifyAll ? "default" : "outline"}
             onClick={async () => {

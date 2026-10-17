@@ -565,11 +565,14 @@ function GoldenTokFeatureWizard({
                 Des créations d’exception imaginées par nos chefs, avec des ingrédients rares
                 et d’exception. Une expérience culinaire unique, seulement chez TOK.
               </p>
-              <p className="golden-tok-hero-script">Plus qu’un plat, une expérience.</p>
             </div>
+            <p className="golden-tok-hero-script">Plus qu’un plat, une expérience.</p>
             <div className="golden-tok-hero-seal" aria-hidden="true">
               <ChefHat size={22} strokeWidth={1.4} />
               <span>CUISINE<br />D’EXCEPTION</span>
+            </div>
+            <div className="golden-tok-hero-virtues" aria-hidden="true">
+              <span>Rareté</span><span>Passion</span><span>Savoir-faire</span><span>Émotion</span>
             </div>
             <div className="golden-tok-hero-actions">
               <a href="#la-tok-dor-offres" className="golden-tok-discover">
@@ -581,13 +584,13 @@ function GoldenTokFeatureWizard({
                 <div className="golden-tok-header-action">{headerAction}</div>
               ) : null}
             </div>
-          </div>
-
-          <section className="golden-tok-story" aria-label="L’expérience La Tok d’Or">
-            <div className="golden-tok-story-quote">
+            <div className="golden-tok-hero-quote">
               <p>« Quand la créativité culinaire rencontre l’exception. »</p>
               <span>TOK × LES CHEFS</span>
             </div>
+          </div>
+
+          <section className="golden-tok-story" aria-label="L’expérience La Tok d’Or">
             <div className="golden-tok-story-detail">
               <span className="golden-tok-story-marker">ÉDITION ULTRA-LIMITÉE</span>
               <p>Des saveurs rares, pensées par nos chefs partenaires. Découvrez les créations disponibles et réservez votre expérience.</p>
@@ -640,12 +643,10 @@ function GoldenTokFeatureWizard({
 
           <div className="golden-tok-benefits">
             <div className="grid grid-cols-2 xl:grid-cols-4">
-              {GOLDEN_TOK_BENEFITS.map(({ title: benefitTitle, description, icon: BenefitIcon }, index) => (
+              {GOLDEN_TOK_BENEFITS.map(({ title: benefitTitle, description, icon: BenefitIcon }) => (
                 <div
                   key={benefitTitle}
-                  className={`golden-tok-benefit flex flex-col items-center gap-3 px-3 py-5 text-center xl:flex-row xl:items-center xl:px-4 xl:text-left ${
-                    index >= 2 ? "border-t xl:border-t-0" : ""
-                  } ${index % 2 === 1 ? "border-l" : ""}`}
+                  className="golden-tok-benefit flex flex-col items-center gap-3 px-3 py-5 text-center xl:flex-row xl:items-center xl:px-4 xl:text-left"
                 >
                   <span className="golden-tok-benefit-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-full xl:h-11 xl:w-11">
                     <BenefitIcon className="h-5 w-5" strokeWidth={1.7} />
