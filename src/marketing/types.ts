@@ -541,6 +541,8 @@ export type MarketingCampaignDraft = {
   name: string;
   objective: string;
   message: string;
+  /** Fixed, approved creative preset for restaurant outreach (not user-authored HTML). */
+  emailTemplateId?: string | null;
   audienceId: string;
   audienceName?: string;
   audienceFilter?: Record<string, unknown>;
