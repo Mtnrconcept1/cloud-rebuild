@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   TOK_RESTAURANT_ACQUISITION_CAMPAIGN,
@@ -63,4 +65,26 @@ describe("TOK Geneva restaurateur acquisition email", () => {
     expect(() => renderTokRestaurantAcquisitionCampaign({ ...brand, unsubscribeUrl: "http://unsafe.example/" })).toThrow(/unsubscribe/);
     expect(() => renderTokRestaurantAcquisitionCampaign({ ...brand, senderAddress: "" })).toThrow(/sender/);
   });
+  it("is selected by the marketing campaign wizard and persists as an approved draft item", () => {
+    const wizard = readFileSync(resolve(process.cwd(), "src/components/marketing/views/MarketingCampaignsView.tsx"), "utf8");
+    const operations = readFileSync(resolve(process.cwd(), "src/marketing/useMarketingOperations.ts"), "utf8");
+    expect(wizard).toContain("openTokRestaurantEmail");
+    expect(wizard).toContain('channels: ["email"]');
+    expect(wizard).toContain('emailTemplateId: wizard.emailTemplateId');
+    expect(operations).toContain('draft.emailTemplateId === TOK_RESTAURANT_ACQUISITION_CAMPAIGN.id');
+    expect(operations).toContain('audienceFilter.canton !== "GE"');
+    expect(operations).toContain("template_id: TOK_RESTAURANT_ACQUISITION_CAMPAIGN.id");
+    expect(operations).toContain('status: "draft"');
+    expect(operations).toContain('approval_status: "pending"');
+  });
+
+  it("uses the existing send adapter and signed per-delivery unsubscribe token", () => {
+    const orchestrator = readFileSync(resolve(process.cwd(), "supabase/functions/marketing-orchestrator/index.ts"), "utf8");
+    expect(orchestrator).toContain("renderTokRestaurantAcquisitionCampaign({");
+    expect(orchestrator).toContain("creative.template_id === TOK_RESTAURANT_ACQUISITION_CAMPAIGN.id");
+    expect(orchestrator).toContain("await buildUnsubscribeToken(delivery.id, signingSecret)");
+    expect(orchestrator).toContain("sendViaResend(prepared, delivery.id, signingSecret)");
+    expect(orchestrator).toContain('marketingItem?.channel !== "email"');
+  });
+
 });
