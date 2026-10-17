@@ -3,10 +3,9 @@ on:
   push:
     branches:
       - codex/tok-stripe-test-webhook-readiness-20261017
-  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   export:
@@ -15,6 +14,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: codex/tok-stripe-test-webhook-readiness-20261017
+          persist-credentials: true
       - uses: actions/setup-node@v6
         with:
           node-version: 22
@@ -22,20 +24,18 @@ jobs:
         run: corepack enable && corepack prepare pnpm@10.28.1 --activate
       - name: Install dependencies without secrets
         run: pnpm install --frozen-lockfile
-      - name: Generate target-branch index without this temporary workflow
+      - name: Generate and commit canonical index to the dedicated branch only
         shell: bash
         run: |
           set -euo pipefail
-          git rm --cached --quiet .github/workflows/tok-temporary-index-export.yml
-          rm -f .github/workflows/tok-temporary-index-export.yml
+          test "$GITHUB_REF" = "refs/heads/codex/tok-stripe-test-webhook-readiness-20261017"
+          test "$(git branch --show-current)" = "codex/tok-stripe-test-webhook-readiness-20261017"
+          git rm --quiet .github/workflows/tok-temporary-index-export.yml
           node scripts/generate-application-index.mjs
           node scripts/generate-application-index.mjs --check
-      - uses: actions/upload-artifact@v4
-        with:
-          name: tok-temporary-canonical-index
-          path: |
-            docs/architecture/tok-application-search-index.json
-            docs/architecture/TOK_APPLICATION_REFERENCE.md
-            src/data/tok-user-guide-catalog.generated.ts
-          retention-days: 1
-          if-no-files-found: error
+          git add docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git diff --cached --check
+          git commit -m "docs(tok): regenerate canonical application index for isolated Stripe Test gate"
+          git push origin HEAD:refs/heads/codex/tok-stripe-test-webhook-readiness-20261017
