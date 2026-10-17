@@ -33,8 +33,9 @@ jobs:
             ["mcp-get", "https://www.thetok.ch/mcp", "GET"],
             ["mcp-init-legacy", "https://www.thetok.ch/mcp", "POST", "initialize", "2025-11-25"],
             ["mcp-list-legacy", "https://www.thetok.ch/mcp", "POST", "tools/list", "2025-11-25"],
-            ["mcp-init-modern", "https://www.thetok.ch/mcp", "POST", "initialize", "2026-07-28"],
+            ["mcp-discover-modern", "https://www.thetok.ch/mcp", "POST", "server/discover", "2026-07-28"],
             ["mcp-list-modern", "https://www.thetok.ch/mcp", "POST", "tools/list", "2026-07-28"],
+            ["mcp-anon-read-modern", "https://www.thetok.ch/mcp", "POST", "tools/call", "2026-07-28"],
             ["edge-init", "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp", "POST", "initialize", "2025-11-25"],
             ["edge-list", "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp", "POST", "tools/list", "2025-11-25"],
           ];
@@ -43,15 +44,17 @@ jobs:
             const controller=new AbortController();
             const timeout=setTimeout(()=>controller.abort(),13000);
             try {
+              const modern=protocol==="2026-07-28";
+              const meta=modern?{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{},"io.modelcontextprotocol/clientInfo":{"name":"tok-anonymous-smoke","version":"1.0"}}:{};
               const response=await fetch(url,{
                 method,redirect:"manual",signal:controller.signal,
                 headers:{
                   accept:"application/json, text/event-stream",
-                  ...(rpcMethod?{"content-type":"application/json","mcp-protocol-version":protocol}:{})
+                  ...(rpcMethod?{"content-type":"application/json","mcp-protocol-version":protocol,...(modern?{"mcp-method":rpcMethod}:{}),...(rpcMethod==="tools/call"?{"mcp-name":"tok_list_capabilities"}:{})}:{})
                 },
                 ...(rpcMethod?{body:JSON.stringify({
                   jsonrpc:"2.0",id:100,method:rpcMethod,
-                  params:rpcMethod==="initialize"?{protocolVersion:protocol,capabilities:{},clientInfo:{name:"anon-probe",version:"1.0"}}:{}
+                  params:rpcMethod==="initialize"?{protocolVersion:protocol,capabilities:{},clientInfo:{name:"anon-probe",version:"1.0"}}:rpcMethod==="tools/call"?{name:"tok_list_capabilities",arguments:{},_meta:meta}:{_meta:meta}
                 })}:{})
               });
               const body=(await response.text()).slice(0,500000);
@@ -71,7 +74,7 @@ jobs:
                 bodyIsJson:body.trim().startsWith("{")
               };
               console.log(JSON.stringify(result));
-              if (response.status>=500) fails++;
+              if (response.status>=500 || (rpcMethod!=="tools/call" && rpcMethod && response.status!==200)) fails++;
             } catch(e) {
               console.log(JSON.stringify({label,error:e?.name||"network_error"}));
               fails++;
