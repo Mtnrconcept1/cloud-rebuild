@@ -83,8 +83,16 @@ export async function invokeTokFloorplanOperation(name: string, args: Row, deps:
         }
       }
     } catch { return rejected(503, "tok_connect_floorplan_validation_unavailable"); }
-    const { data, error } = await client.rpc(rpcName, rpcArgs);
-    if (error) return rejected(["P0001", "23514", "23505", "23503", "42501"].includes(String(error.code)) ? 409 : 503, "tok_connect_floorplan_native_rejected");
+    let outcome;
+    try { outcome = await client.rpc(rpcName, rpcArgs); }
+    catch { return fail(503, "tok_connect_floorplan_reconciliation_required"); }
+    const { data, error } = outcome;
+    if (error) {
+      if (["P0001", "23514", "23505", "23503", "42501"].includes(String(error.code))) return rejected(409, "tok_connect_floorplan_native_rejected");
+      // A lost RPC response can hide a committed mutation. Keep the claim
+      // indeterminate so retries cannot execute the mutation a second time.
+      return fail(503, "tok_connect_floorplan_reconciliation_required");
+    }
     if (!data || typeof data !== "object") return fail(503, "tok_connect_floorplan_reconciliation_required");
     // Do not forward customer identifiers from the native preferred-table result.
     return success({ restaurant_id: restaurant, branch_id: branch, ...(preferred ? { table_id: clear ? null : args.table_id } : { result: data }) });

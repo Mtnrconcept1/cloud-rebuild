@@ -116,6 +116,30 @@ describe("TOK native floor-plan operations", () => {
     const h = harness(); h.client.rpc.mockResolvedValue({ data: null, error: { code: "P0001", message: "Retirez d'abord les clients" } } as never);
     expect(await h.run("tok_delete_table_restaurant_floor_plan", { ...base, table_id: other })).toMatchObject({ statusCode: 409, payload: { ok: false } }); expect(h.writes).toEqual([]);
   });
+  it.each(["unknown", "08006", "PGRST000", "thrown-network-error"])("keeps %s RPC response failures indeterminate without completing or re-executing the claim", async (code) => {
+    const h = harness(); const completed = vi.fn(); const claimed = new Set<string>();
+    h.deps.mutate.mockImplementation(async (_operation, args, run) => {
+      const key = String(args.idempotency_key);
+      if (claimed.has(key)) throw new Error("tok_connect_action_in_progress");
+      claimed.add(key);
+      const result = await run();
+      completed(result); return result;
+    });
+    if (code === "thrown-network-error") h.client.rpc.mockRejectedValue(new Error("Network disconnected"));
+    else h.client.rpc.mockResolvedValue({ data: null, error: { code, message: "Response lost after commit" } } as never);
+    const args = { ...base, table_id: other };
+    await expect(h.run("tok_delete_table_restaurant_floor_plan", args)).rejects.toThrow("reconciliation_required");
+    expect(completed).not.toHaveBeenCalled();
+    await expect(h.run("tok_delete_table_restaurant_floor_plan", args)).rejects.toThrow("action_in_progress");
+    expect(h.client.rpc).toHaveBeenCalledTimes(1); expect(h.writes).toEqual([]);
+  });
+  it("completes a native business rollback as a deterministic refusal", async () => {
+    const h = harness(); const completed = vi.fn();
+    h.deps.mutate.mockImplementation(async (_operation, _args, run) => { const result = await run(); completed(result); return result; });
+    h.client.rpc.mockResolvedValue({ data: null, error: { code: "P0001", message: "Occupied table" } } as never);
+    expect(await h.run("tok_delete_table_restaurant_floor_plan", { ...base, table_id: other })).toMatchObject({ statusCode: 409 });
+    expect(completed).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 409, payload: { ok: false, error: "tok_connect_floorplan_native_rejected" } }));
+  });
   it("validates bounded inputs, full layout intent and reason before claim", async () => {
     const h = harness();
     for (const args of [{ table_id: other, capacity: 31 }, { table_id: other, x: -1 }, { table_id: other, shape: "triangle" }, { table_id: other, owner_id: "fake" }, { table_id: other, reason: "      " }]) await expect(h.run("tok_save_table_restaurant_floor_plan", { ...base, ...args })).rejects.toThrow();
