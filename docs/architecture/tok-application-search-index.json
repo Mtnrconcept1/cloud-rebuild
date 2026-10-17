@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "4a1f23dbd4609d3f3123ffa54c00246e723f7d7debc49ba144a42c9ba4ae5289",
+ "sourceDigest": "9e66b48ff4156ee206f74fd4e949a01f1035a9f9d4bc702b81f23c6dcfad8070",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2907,
-  "documents": 209,
+  "documents": 210,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3623,
+  "exportedSymbols": 3627,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 550,
-  "modules": 1634,
+  "modules": 1636,
   "pages": 133,
   "pathLiterals": 758,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
-  "queryParameters": 111,
-  "records": 17310,
-  "repositoryFiles": 3278,
+  "queryParameters": 112,
+  "records": 17326,
+  "repositoryFiles": 3281,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -22631,8 +22631,28 @@
     "value": "/functions/v1/stripe-webhook",
     "sources": [
      {
+      "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+      "line": 32
+     },
+     {
       "path": "src/test/checkout-stripe-guards.test.ts",
       "line": 182
+     },
+     {
+      "path": "src/test/tok-stripe-test-webhook-readiness.test.ts",
+      "line": 21
+     },
+     {
+      "path": "src/test/tok-stripe-test-webhook-readiness.test.ts",
+      "line": 65
+     },
+     {
+      "path": "src/test/tok-stripe-test-webhook-readiness.test.ts",
+      "line": 75
+     },
+     {
+      "path": "src/test/tok-stripe-test-webhook-readiness.test.ts",
+      "line": 113
      }
     ]
    },
@@ -31687,6 +31707,10 @@
       "line": 98
      },
      {
+      "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+      "line": 63
+     },
+     {
       "path": "src/test/address-autocomplete-location-bias.test.tsx",
       "line": 79
      },
@@ -32425,6 +32449,16 @@
     "routes": []
    },
    {
+    "name": "starting_after",
+    "sources": [
+     {
+      "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+      "line": 64
+     }
+    ],
+    "routes": []
+   },
+   {
     "name": "state",
     "sources": [
      {
@@ -33137,6 +33171,7 @@
      "scripts/test-checkout-security-postgres.mjs",
      "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
      "scripts/tok-connect-smoke.mjs",
+     "scripts/verify-tok-stripe-test-webhooks.mjs",
      "scripts/write-commercial-demo-secrets-env.mjs",
      "scripts/write-production-env.mjs",
      "scripts/write-supabase-secrets-env.mjs",
@@ -33304,6 +33339,7 @@
      "src/test/tok-one-recurring-quote.test.ts",
      "src/test/tok-one-stripe-test-mode.test.ts",
      "src/test/tok-stripe-price-catalog.test.ts",
+     "src/test/tok-stripe-test-webhook-readiness.test.ts",
      "src/test/user-facing-errors.test.ts",
      "src/test/user-guide.test.ts",
      "src/test/vercel-rewrites.test.ts",
@@ -33438,6 +33474,7 @@
      "scripts/test-tok-special-offer-stock-postgres.mjs",
      "scripts/tok-connect-smoke.mjs",
      "scripts/verify-supabase-runtime-security.mjs",
+     "scripts/verify-tok-stripe-test-webhooks.mjs",
      "scripts/write-commercial-demo-secrets-env.mjs",
      "scripts/write-production-env.mjs",
      "scripts/write-production-supabase-keys-env.mjs",
@@ -34039,6 +34076,7 @@
      "src/test/tok-one-stripe-test-mode.test.ts",
      "src/test/tok-pulse-native-widget.test.ts",
      "src/test/tok-stripe-price-catalog.test.ts",
+     "src/test/tok-stripe-test-webhook-readiness.test.ts",
      "src/test/tokWorkforceClock.test.ts",
      "src/test/tokWorkforceMigration.test.ts",
      "src/test/transactional-email-templates.test.ts",
@@ -85179,6 +85217,37 @@
     ]
    },
    {
+    "path": "docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md",
+    "title": "TOK Connect — contrôle des webhooks Stripe Test",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK Connect — contrôle des webhooks Stripe Test",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Situation vérifiée",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Vérification sans mutation",
+      "line": 15
+     },
+     {
+      "level": 2,
+      "title": "Conditions restantes avant une recette transactionnelle complète",
+      "line": 39
+     },
+     {
+      "level": 2,
+      "title": "Retour arrière",
+      "line": 50
+     }
+    ]
+   },
+   {
     "path": "docs/tok-connect/TESTING.md",
     "title": "Recette TOK Connect dans ChatGPT",
     "headings": [
@@ -87458,6 +87527,37 @@
      "supabase"
     ],
     "lineCount": 379
+   },
+   {
+    "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+    "exports": [
+     {
+      "name": "PRODUCTION_SUPABASE_REF",
+      "line": 5,
+      "kind": "variable"
+     },
+     {
+      "name": "REQUIRED_CHECKOUT_EVENTS",
+      "line": 6,
+      "kind": "variable"
+     },
+     {
+      "name": "assertStripeTestTarget",
+      "line": 14,
+      "kind": "function"
+     },
+     {
+      "name": "inspectStripeTestWebhooks",
+      "line": 51,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 132
    },
    {
     "path": "scripts/write-apple-app-site-association.mjs",
@@ -113178,6 +113278,16 @@
     "lineCount": 93
    },
    {
+    "path": "src/test/tok-stripe-test-webhook-readiness.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 146
+   },
+   {
     "path": "src/test/tokWorkforce.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -120769,6 +120879,11 @@
     "extension": ".md"
    },
    {
+    "path": "docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
     "path": "docs/tok-connect/TESTING.md",
     "category": "documentation",
     "extension": ".md"
@@ -124480,6 +124595,11 @@
    },
    {
     "path": "scripts/verify-supabase-runtime-security.mjs",
+    "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
     "category": "automation-script",
     "extension": ".mjs"
    },
@@ -131074,6 +131194,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-stripe-test-webhook-readiness.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/tokWorkforce.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -137073,6 +137198,24 @@
     "writeGithubOutputs"
    ],
    "detailRef": "2324081b03fc"
+  },
+  {
+   "id": "code-module:76cf949ea791",
+   "type": "code-module",
+   "title": "scripts/verify-tok-stripe-test-webhooks.mjs",
+   "description": "Module de 132 lignes; exports: PRODUCTION_SUPABASE_REF, REQUIRED_CHECKOUT_EVENTS, assertStripeTestTarget, inspectStripeTestWebhooks.",
+   "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "PRODUCTION_SUPABASE_REF",
+    "REQUIRED_CHECKOUT_EVENTS",
+    "assertStripeTestTarget",
+    "inspectStripeTestWebhooks",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "f7e8af09f941"
   },
   {
    "id": "code-module:c7d60f1f1a3c",
@@ -156394,6 +156537,20 @@
     "supabase"
    ],
    "detailRef": "2e3024065935"
+  },
+  {
+   "id": "code-module:7ad9e011c7de",
+   "type": "code-module",
+   "title": "src/test/tok-stripe-test-webhook-readiness.test.ts",
+   "description": "Module de 146 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-stripe-test-webhook-readiness.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "4cdea81b860e"
   },
   {
    "id": "code-module:023abe7e2772",
@@ -216270,6 +216427,20 @@
    "detailRef": "9e212e402633"
   },
   {
+   "id": "document-section:4d76d3a67c83",
+   "type": "document-section",
+   "title": "Conditions restantes avant une recette transactionnelle complète",
+   "description": "Section de TOK Connect — contrôle des webhooks Stripe Test.",
+   "path": "docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "TOK Connect — contrôle des webhooks Stripe Test",
+    "h2"
+   ],
+   "detailRef": "a2d352f34671"
+  },
+  {
    "id": "document-section:2f3bb5fb3255",
    "type": "document-section",
    "title": "Configuration dans ChatGPT",
@@ -229248,6 +229419,20 @@
    "detailRef": "173bb12a27c5"
   },
   {
+   "id": "document-section:a359cadfc7fb",
+   "type": "document-section",
+   "title": "Retour arrière",
+   "description": "Section de TOK Connect — contrôle des webhooks Stripe Test.",
+   "path": "docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md",
+   "line": 50,
+   "surface": null,
+   "tags": [
+    "TOK Connect — contrôle des webhooks Stripe Test",
+    "h2"
+   ],
+   "detailRef": "3ac26bf993e8"
+  },
+  {
    "id": "document-section:3230479b4fe2",
    "type": "document-section",
    "title": "Retrait et fin",
@@ -231432,6 +231617,20 @@
    "detailRef": "58e32fbc305b"
   },
   {
+   "id": "document-section:06c7842d30a9",
+   "type": "document-section",
+   "title": "Situation vérifiée",
+   "description": "Section de TOK Connect — contrôle des webhooks Stripe Test.",
+   "path": "docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "TOK Connect — contrôle des webhooks Stripe Test",
+    "h2"
+   ],
+   "detailRef": "cd3f8a8cee33"
+  },
+  {
    "id": "document-section:88b272617082",
    "type": "document-section",
    "title": "Skill Feedback",
@@ -232676,6 +232875,20 @@
     "h1"
    ],
    "detailRef": "b5cb62861893"
+  },
+  {
+   "id": "document-section:d40052b31d04",
+   "type": "document-section",
+   "title": "TOK Connect — contrôle des webhooks Stripe Test",
+   "description": "Section de TOK Connect — contrôle des webhooks Stripe Test.",
+   "path": "docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK Connect — contrôle des webhooks Stripe Test",
+    "h1"
+   ],
+   "detailRef": "c4062495bd3b"
   },
   {
    "id": "document-section:6866b44da949",
@@ -237184,6 +237397,20 @@
     "h3"
    ],
    "detailRef": "c73ce3e07235"
+  },
+  {
+   "id": "document-section:b60b90348333",
+   "type": "document-section",
+   "title": "Vérification sans mutation",
+   "description": "Section de TOK Connect — contrôle des webhooks Stripe Test.",
+   "path": "docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md",
+   "line": 15,
+   "surface": null,
+   "tags": [
+    "TOK Connect — contrôle des webhooks Stripe Test",
+    "h2"
+   ],
+   "detailRef": "821e1422da59"
   },
   {
    "id": "document-section:b19dfb9a0c3f",
@@ -242345,6 +242572,23 @@
     "What an agent can really do"
    ],
    "detailRef": "77d1658ee3fb"
+  },
+  {
+   "id": "document:d40052b31d04",
+   "type": "document",
+   "title": "TOK Connect — contrôle des webhooks Stripe Test",
+   "description": "Document Markdown avec 5 section(s).",
+   "path": "docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Conditions restantes avant une recette transactionnelle complète",
+    "Retour arrière",
+    "Situation vérifiée",
+    "TOK Connect — contrôle des webhooks Stripe Test",
+    "Vérification sans mutation"
+   ],
+   "detailRef": "b7b9ce9233db"
   },
   {
    "id": "document:6866b44da949",
@@ -263131,6 +263375,21 @@
    "detailRef": "8af8e8297e37"
   },
   {
+   "id": "exported-symbol:6c6ea4a160a5",
+   "type": "exported-symbol",
+   "title": "PRODUCTION_SUPABASE_REF",
+   "description": "Export variable de scripts/verify-tok-stripe-test-webhooks.mjs.",
+   "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase",
+    "variable"
+   ],
+   "detailRef": "e9a97052ac34"
+  },
+  {
    "id": "exported-symbol:502efd4fa31b",
    "type": "exported-symbol",
    "title": "PROGRESSIVE_OFFER_REENTRY_MESSAGE",
@@ -264469,6 +264728,21 @@
     "vercel"
    ],
    "detailRef": "800ab5fb345b"
+  },
+  {
+   "id": "exported-symbol:4d4864abc2a4",
+   "type": "exported-symbol",
+   "title": "REQUIRED_CHECKOUT_EVENTS",
+   "description": "Export variable de scripts/verify-tok-stripe-test-webhooks.mjs.",
+   "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+   "line": 6,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase",
+    "variable"
+   ],
+   "detailRef": "d7da0e5d8e40"
   },
   {
    "id": "exported-symbol:c67494d26837",
@@ -272414,6 +272688,21 @@
     "function"
    ],
    "detailRef": "26e846f0cd81"
+  },
+  {
+   "id": "exported-symbol:c31f035af141",
+   "type": "exported-symbol",
+   "title": "assertStripeTestTarget",
+   "description": "Export function de scripts/verify-tok-stripe-test-webhooks.mjs.",
+   "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "c56b47891d83"
   },
   {
    "id": "exported-symbol:e5318642b88e",
@@ -288800,6 +289089,21 @@
     "stripe"
    ],
    "detailRef": "c3a89d7bd295"
+  },
+  {
+   "id": "exported-symbol:07d2c79bd3b7",
+   "type": "exported-symbol",
+   "title": "inspectStripeTestWebhooks",
+   "description": "Export function de scripts/verify-tok-stripe-test-webhooks.mjs.",
+   "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "12f901c69709"
   },
   {
    "id": "exported-symbol:d357b9b33df9",
@@ -306721,6 +307025,20 @@
    "detailRef": "54557ed81177"
   },
   {
+   "id": "file:5104301ae2ce",
+   "type": "file",
+   "title": "docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "062b5a145a2c"
+  },
+  {
    "id": "file:e7b277c0efb3",
    "type": "file",
    "title": "docs/tok-connect/TESTING.md",
@@ -317121,6 +317439,20 @@
     "automation-script"
    ],
    "detailRef": "7b183038b9ec"
+  },
+  {
+   "id": "file:4d8694c79edb",
+   "type": "file",
+   "title": "scripts/verify-tok-stripe-test-webhooks.mjs",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "automation-script"
+   ],
+   "detailRef": "b5138f7aed20"
   },
   {
    "id": "file:5b0e967f5872",
@@ -335575,6 +335907,20 @@
    "detailRef": "fdc1e0773a17"
   },
   {
+   "id": "file:8d443b22ec5d",
+   "type": "file",
+   "title": "src/test/tok-stripe-test-webhook-readiness.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-stripe-test-webhook-readiness.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "a9093d28ff51"
+  },
+  {
    "id": "file:26a3e728a4f6",
    "type": "file",
    "title": "src/test/tokWorkforce.test.ts",
@@ -350423,7 +350769,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 264 module(s).",
+   "description": "Intégration externe détectée dans 266 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -350442,6 +350788,7 @@
     "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
     "scripts/tok-connect-smoke.mjs",
+    "scripts/verify-tok-stripe-test-webhooks.mjs",
     "scripts/write-commercial-demo-secrets-env.mjs",
     "scripts/write-production-env.mjs",
     "scripts/write-supabase-secrets-env.mjs",
@@ -350609,6 +350956,7 @@
     "src/test/tok-one-recurring-quote.test.ts",
     "src/test/tok-one-stripe-test-mode.test.ts",
     "src/test/tok-stripe-price-catalog.test.ts",
+    "src/test/tok-stripe-test-webhook-readiness.test.ts",
     "src/test/user-facing-errors.test.ts",
     "src/test/user-guide.test.ts",
     "src/test/vercel-rewrites.test.ts",
@@ -350694,13 +351042,13 @@
     "supabase/functions/tok-connect-remote-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "1946a0cc69a8"
+   "detailRef": "e124ceb33c2e"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 739 module(s).",
+   "description": "Intégration externe détectée dans 741 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -350751,6 +351099,7 @@
     "scripts/test-tok-special-offer-stock-postgres.mjs",
     "scripts/tok-connect-smoke.mjs",
     "scripts/verify-supabase-runtime-security.mjs",
+    "scripts/verify-tok-stripe-test-webhooks.mjs",
     "scripts/write-commercial-demo-secrets-env.mjs",
     "scripts/write-production-env.mjs",
     "scripts/write-production-supabase-keys-env.mjs",
@@ -351352,6 +351701,7 @@
     "src/test/tok-one-stripe-test-mode.test.ts",
     "src/test/tok-pulse-native-widget.test.ts",
     "src/test/tok-stripe-price-catalog.test.ts",
+    "src/test/tok-stripe-test-webhook-readiness.test.ts",
     "src/test/tokWorkforceClock.test.ts",
     "src/test/tokWorkforceMigration.test.ts",
     "src/test/transactional-email-templates.test.ts",
@@ -351446,7 +351796,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "9e22abec5244"
+   "detailRef": "98a6d7616dd0"
   },
   {
    "id": "integration:c20910a79a78",
@@ -367054,17 +367404,19 @@
    "detailRef": "7a8dfeb3bae4"
   },
   {
-   "id": "path-literal:86307d07f589",
+   "id": "path-literal:1ef2c966c3f4",
    "type": "path-literal",
    "title": "/functions/v1/stripe-webhook",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "src/test/checkout-stripe-guards.test.ts",
-   "line": 182,
+   "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+   "line": 32,
    "surface": null,
    "tags": [
-    "src/test/checkout-stripe-guards.test.ts"
+    "scripts/verify-tok-stripe-test-webhooks.mjs",
+    "src/test/checkout-stripe-guards.test.ts",
+    "src/test/tok-stripe-test-webhook-readiness.test.ts"
    ],
-   "detailRef": "15e535ce6f54"
+   "detailRef": "ba130b5e20e4"
   },
   {
    "id": "path-literal:1446f9e0091d",
@@ -383178,7 +383530,7 @@
    "id": "query-parameter:2c0948ce234d",
    "type": "query-parameter",
    "title": "limit",
-   "description": "Paramètre d’URL détecté dans 13 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 14 emplacement(s).",
    "path": "scripts/app-store-connect-preflight.mjs",
    "line": 77,
    "surface": null,
@@ -383188,10 +383540,11 @@
     "scripts/google-actions-center-export-feeds.mjs",
     "scripts/prerender-stoppin-restaurants-bounded.mjs",
     "scripts/prerender-stoppin-restaurants.mjs",
+    "scripts/verify-tok-stripe-test-webhooks.mjs",
     "src/test/address-autocomplete-location-bias.test.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "406ed0ff9663"
+   "detailRef": "07a09d230682"
   },
   {
    "id": "query-parameter:c65ed1a49ef6",
@@ -383827,6 +384180,19 @@
     "src/test/home-canton-hero.test.ts"
    ],
    "detailRef": "62a417d9045c"
+  },
+  {
+   "id": "query-parameter:4bcf9cbd3505",
+   "type": "query-parameter",
+   "title": "starting_after",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "scripts/verify-tok-stripe-test-webhooks.mjs",
+   "line": 64,
+   "surface": null,
+   "tags": [
+    "scripts/verify-tok-stripe-test-webhooks.mjs"
+   ],
+   "detailRef": "141119c01bf4"
   },
   {
    "id": "query-parameter:3bfca3e02fd5",
