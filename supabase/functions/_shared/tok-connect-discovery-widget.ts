@@ -15,6 +15,9 @@
 /** URI de la ressource UI branchée sur les outils de découverte. */
 export const TOK_DISCOVERY_RESOURCE_URI = "ui://tok-connect/restaurant-discovery-v1.html";
 
+/** Image officielle déjà servie par TOK, partagée avec le tableau de bord. */
+export const TOK_DISCOVERY_OFFICIAL_LOGO_URL = "https://www.thetok.ch/logotok.png";
+
 /** Domaines autorisés par la CSP du widget (images restaurant + application). */
 export const TOK_DISCOVERY_RESOURCE_DOMAINS = [
   "https://www.thetok.ch",
@@ -35,7 +38,7 @@ export const TOK_DISCOVERY_WIDGET_HTML = `<!doctype html>
 <style>
 :root{
   color-scheme:light dark;
-  --tok-orange:#f56a12; --tok-orange-soft:rgba(245,106,18,.12); --tok-gold:#f2b748;
+  --tok-orange:#ff6a1a; --tok-orange-soft:rgba(255,106,26,.13); --tok-gold:#f2b748;
   --tok-green:#16a06a; --tok-green-soft:rgba(22,160,106,.12);
   --bg:#fbf8f4; --bg-veil:rgba(255,255,255,.72);
   --card:#ffffff; --card-2:#fffaf4;
@@ -78,16 +81,22 @@ img{display:block;max-width:100%}
 .hidden{display:none!important}
 
 /* ---------- en-tête ---------- */
-.hero{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.hero{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:center;column-gap:10px;row-gap:10px;margin-bottom:14px}
 .mark{
-  flex:0 0 auto;width:42px;height:42px;border-radius:14px;display:grid;place-items:center;
-  background:linear-gradient(140deg,var(--tok-gold),var(--tok-orange));color:#22140a;
-  font-weight:900;font-size:13px;letter-spacing:.02em;box-shadow:0 10px 24px -10px rgba(245,106,18,.9);
+  width:56px;height:56px;display:grid;place-items:center;min-width:0;
+  border-radius:12px;overflow:visible;
+}
+.mark img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 5px 8px rgba(126,54,7,.16))}
+.mark.logo-fallback{color:var(--tok-orange);font-weight:900;letter-spacing:.03em;background:var(--tok-orange-soft);border:1px solid var(--line)}
+@media(min-width:760px){
+  .hero{grid-template-columns:64px minmax(0,1fr) auto;gap:12px}
+  .mark{width:64px;height:64px}
+  .hero-side{grid-column:auto;justify-content:flex-end}
 }
 .hero-text{min-width:0;flex:1}
 .hero h1{margin:0;font-size:19px;line-height:1.25;font-weight:800;letter-spacing:-.015em}
 .hero p{margin:3px 0 0;font-size:12.5px;color:var(--muted)}
-.hero-side{display:flex;align-items:center;gap:6px;flex:0 0 auto;padding-top:2px}
+.hero-side{grid-column:1/-1;min-width:0;display:flex;align-items:center;flex-wrap:wrap;gap:6px;padding-top:2px}
 .pill{
   display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 10px;
   font-size:11.5px;font-weight:700;border:1px solid var(--line);background:var(--card);white-space:nowrap
@@ -190,6 +199,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
 /* ---------- fiche détaillée ---------- */
 .detail{display:flex;flex-direction:column;gap:14px}
 .detail-top{display:flex;align-items:center;gap:10px}
+.detail-top .mark{margin-left:auto;width:46px;height:46px}
 .back{
   display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);
   border-radius:11px;padding:7px 12px;font-size:12.5px;font-weight:800;color:var(--text-2)
@@ -341,6 +351,24 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       el.appendChild(typeof child === 'object' ? child : document.createTextNode(String(child)));
     });
     return el;
+  }
+
+  // The same official TOK asset is used in the search, details and account views.
+  function officialTokMark() {
+    return h('div', { class: 'mark', title: 'TOK · logo officiel' }, [
+      h('img', {
+        src: '${TOK_DISCOVERY_OFFICIAL_LOGO_URL}',
+        alt: 'TOK, logo officiel avec toque de chef et moustache',
+        width: '56', height: '56', decoding: 'async',
+        onError: function (event) {
+          var image = event && event.currentTarget;
+          var container = image && image.parentNode;
+          if (!container) return;
+          container.textContent = 'TOK';
+          container.classList.add('logo-fallback');
+        }
+      })
+    ]);
   }
 
   function safeHttpUrl(value) {
@@ -568,7 +596,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       : cards.filter(function (card) { return card.group_key === state.filter; });
 
     var head = h('header', { class: 'hero' }, [
-      h('div', { class: 'mark', text: 'TOK' }),
+      officialTokMark(),
       h('div', { class: 'hero-text' }, [
         h('h1', { text: payload.title || 'Sélection TOK' }),
         h('p', { text: payload.subtitle || 'Restaurants TOK classés par note' })
@@ -1483,7 +1511,8 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     return h('div', { class: 'detail' }, [
       h('div', { class: 'detail-top' }, [
         h('button', { class: 'back', type: 'button', onClick: closeDetail }, [svg(ICON_BACK, 14), h('span', { text: 'Retour à la sélection' })]),
-        detail.rank ? h('span', { class: 'pill', text: 'Classé #' + detail.rank }) : null
+        detail.rank ? h('span', { class: 'pill', text: 'Classé #' + detail.rank }) : null,
+        officialTokMark()
       ]),
       hero,
       detail.description ? h('section', { class: 'panel' }, [

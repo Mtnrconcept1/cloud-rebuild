@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "60a4247a7a730fd2c11609ff4ce18871429b660636c115e4ea21c0419ecd20db",
+ "sourceDigest": "45f1e5e2730eadf403e459aebbc0e946bb173fd6af140f697a23342ce48010c6",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -12,21 +12,21 @@
   "documents": 211,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3624,
+  "exportedSymbols": 3625,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 550,
-  "modules": 1637,
+  "modules": 1638,
   "pages": 133,
   "pathLiterals": 758,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 111,
-  "records": 17333,
-  "repositoryFiles": 3283,
+  "records": 17336,
+  "repositoryFiles": 3284,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -33002,6 +33002,7 @@
      "src/test/tok-connect-edge-functions.test.ts",
      "src/test/tok-connect-full-app-mcp.test.ts",
      "src/test/tok-connect-model-commerce-widget.test.ts",
+     "src/test/tok-connect-official-branding.test.ts",
      "src/test/tok-connect-public-actions.test.ts",
      "src/test/tok-connect-reservation-intent.test.ts",
      "src/test/tok-connect-smoke.test.ts",
@@ -34025,6 +34026,7 @@
      "src/test/tok-connect-mcp-http.test.ts",
      "src/test/tok-connect-mcp-migration.test.ts",
      "src/test/tok-connect-model-commerce-widget.test.ts",
+     "src/test/tok-connect-official-branding.test.ts",
      "src/test/tok-connect-preview-sandbox.test.tsx",
      "src/test/tok-connect-public-actions.test.ts",
      "src/test/tok-connect-reservation-intent.test.ts",
@@ -113086,6 +113088,16 @@
     "lineCount": 17
    },
    {
+    "path": "src/test/tok-connect-official-branding.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 91
+   },
+   {
     "path": "src/test/tok-connect-preview-sandbox.test.tsx",
     "exports": [],
     "environmentNames": [],
@@ -116480,28 +116492,33 @@
       "kind": "variable"
      },
      {
-      "name": "TOK_DISCOVERY_RESOURCE_DOMAINS",
+      "name": "TOK_DISCOVERY_OFFICIAL_LOGO_URL",
       "line": 19,
       "kind": "variable"
      },
      {
+      "name": "TOK_DISCOVERY_RESOURCE_DOMAINS",
+      "line": 22,
+      "kind": "variable"
+     },
+     {
       "name": "TOK_DISCOVERY_WIDGET_HTML",
-      "line": 29,
+      "line": 32,
       "kind": "variable"
      },
      {
       "name": "buildTokDiscoveryResourceDescriptor",
-      "line": 1892,
-      "kind": "function"
-     },
-     {
-      "name": "buildTokDiscoveryResourceContents",
       "line": 1921,
       "kind": "function"
      },
      {
+      "name": "buildTokDiscoveryResourceContents",
+      "line": 1950,
+      "kind": "function"
+     },
+     {
       "name": "buildTokDiscoveryToolMeta",
-      "line": 1932,
+      "line": 1961,
       "kind": "function"
      }
     ],
@@ -116514,7 +116531,7 @@
      "twint",
      "vercel"
     ],
-    "lineCount": 1942
+    "lineCount": 1971
    },
    {
     "path": "supabase/functions/_shared/tok-connect-discovery.ts",
@@ -131097,6 +131114,11 @@
    },
    {
     "path": "src/test/tok-connect-oauth-routing.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-official-branding.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -156289,6 +156311,20 @@
    "detailRef": "325aaf576d42"
   },
   {
+   "id": "code-module:b3f2ca14710d",
+   "type": "code-module",
+   "title": "src/test/tok-connect-official-branding.test.ts",
+   "description": "Module de 91 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-official-branding.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "f359460aa4f8"
+  },
+  {
    "id": "code-module:122ee8701470",
    "type": "code-module",
    "title": "src/test/tok-connect-preview-sandbox.test.tsx",
@@ -158182,11 +158218,12 @@
    "id": "code-module:38f3af390908",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "description": "Module de 1942 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
+   "description": "Module de 1971 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_OFFICIAL_LOGO_URL, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
    "line": 1,
    "surface": null,
    "tags": [
+    "TOK_DISCOVERY_OFFICIAL_LOGO_URL",
     "TOK_DISCOVERY_RESOURCE_DOMAINS",
     "TOK_DISCOVERY_RESOURCE_URI",
     "TOK_DISCOVERY_WIDGET_HTML",
@@ -158200,7 +158237,7 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "3accaa637bdb"
+   "detailRef": "3581803c2425"
   },
   {
    "id": "code-module:bd4199664d50",
@@ -269443,9 +269480,9 @@
    "detailRef": "2b9b13293ee2"
   },
   {
-   "id": "exported-symbol:1bd171250d15",
+   "id": "exported-symbol:32b250834b71",
    "type": "exported-symbol",
-   "title": "TOK_DISCOVERY_RESOURCE_DOMAINS",
+   "title": "TOK_DISCOVERY_OFFICIAL_LOGO_URL",
    "description": "Export variable de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
    "line": 19,
@@ -269459,7 +269496,26 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "106b0e9a07db"
+   "detailRef": "412cfe1bd6f0"
+  },
+  {
+   "id": "exported-symbol:1710c3fc74ec",
+   "type": "exported-symbol",
+   "title": "TOK_DISCOVERY_RESOURCE_DOMAINS",
+   "description": "Export variable de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
+   "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
+   "line": 22,
+   "surface": null,
+   "tags": [
+    "google",
+    "openai",
+    "stripe",
+    "supabase",
+    "twint",
+    "variable",
+    "vercel"
+   ],
+   "detailRef": "31f39aa01309"
   },
   {
    "id": "exported-symbol:0735ef9a8f0e",
@@ -269481,12 +269537,12 @@
    "detailRef": "befed9b9a47c"
   },
   {
-   "id": "exported-symbol:be35cf0ce784",
+   "id": "exported-symbol:c5a4d64c81a2",
    "type": "exported-symbol",
    "title": "TOK_DISCOVERY_WIDGET_HTML",
    "description": "Export variable de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 29,
+   "line": 32,
    "surface": null,
    "tags": [
     "google",
@@ -269497,7 +269553,7 @@
     "variable",
     "vercel"
    ],
-   "detailRef": "117c0a783f9d"
+   "detailRef": "3de0ed8dac32"
   },
   {
    "id": "exported-symbol:09a980fb1767",
@@ -274731,9 +274787,28 @@
    "detailRef": "82f9e612ba62"
   },
   {
-   "id": "exported-symbol:7f0bc7eec72a",
+   "id": "exported-symbol:a8fae02663f3",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryResourceContents",
+   "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
+   "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
+   "line": 1950,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "openai",
+    "stripe",
+    "supabase",
+    "twint",
+    "vercel"
+   ],
+   "detailRef": "15ad6472e065"
+  },
+  {
+   "id": "exported-symbol:9e6e351c9071",
+   "type": "exported-symbol",
+   "title": "buildTokDiscoveryResourceDescriptor",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
    "line": 1921,
@@ -274747,34 +274822,15 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "8c2d06f25978"
+   "detailRef": "4347f3cb2507"
   },
   {
-   "id": "exported-symbol:332b37806700",
-   "type": "exported-symbol",
-   "title": "buildTokDiscoveryResourceDescriptor",
-   "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
-   "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 1892,
-   "surface": null,
-   "tags": [
-    "function",
-    "google",
-    "openai",
-    "stripe",
-    "supabase",
-    "twint",
-    "vercel"
-   ],
-   "detailRef": "9068bbb514a7"
-  },
-  {
-   "id": "exported-symbol:311a4a605c32",
+   "id": "exported-symbol:862be1caddb4",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryToolMeta",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 1932,
+   "line": 1961,
    "surface": null,
    "tags": [
     "function",
@@ -274785,7 +274841,7 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "65fe64e6b000"
+   "detailRef": "596362cc8e43"
   },
   {
    "id": "exported-symbol:c48bb56c3e9c",
@@ -335740,6 +335796,20 @@
    "detailRef": "c4695d298926"
   },
   {
+   "id": "file:dc36768c5aab",
+   "type": "file",
+   "title": "src/test/tok-connect-official-branding.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-official-branding.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "35b900864a9a"
+  },
+  {
    "id": "file:8bbad2f6eb34",
    "type": "file",
    "title": "src/test/tok-connect-preview-sandbox.test.tsx",
@@ -350649,7 +350719,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 130 module(s).",
+   "description": "Intégration externe détectée dans 131 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -350735,6 +350805,7 @@
     "src/test/tok-connect-edge-functions.test.ts",
     "src/test/tok-connect-full-app-mcp.test.ts",
     "src/test/tok-connect-model-commerce-widget.test.ts",
+    "src/test/tok-connect-official-branding.test.ts",
     "src/test/tok-connect-public-actions.test.ts",
     "src/test/tok-connect-reservation-intent.test.ts",
     "src/test/tok-connect-smoke.test.ts",
@@ -350786,7 +350857,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "8880b70ae813"
+   "detailRef": "83aa48d13608"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -351160,7 +351231,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 741 module(s).",
+   "description": "Intégration externe détectée dans 742 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -351797,6 +351868,7 @@
     "src/test/tok-connect-mcp-http.test.ts",
     "src/test/tok-connect-mcp-migration.test.ts",
     "src/test/tok-connect-model-commerce-widget.test.ts",
+    "src/test/tok-connect-official-branding.test.ts",
     "src/test/tok-connect-preview-sandbox.test.tsx",
     "src/test/tok-connect-public-actions.test.ts",
     "src/test/tok-connect-reservation-intent.test.ts",
@@ -351908,7 +351980,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f2b2e6cf0c79"
+   "detailRef": "0171273262dd"
   },
   {
    "id": "integration:c20910a79a78",

@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `60a4247a7a730fd2c11609ff4ce18871429b660636c115e4ea21c0419ecd20db`
+- Empreinte SHA-256 des sources indexées : `45f1e5e2730eadf403e459aebbc0e946bb173fd6af140f697a23342ce48010c6`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 211 |
 | edgeFunctions | 118 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3624 |
+| exportedSymbols | 3625 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 550 |
-| modules | 1637 |
+| modules | 1638 |
 | pages | 133 |
 | pathLiterals | 758 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 111 |
-| records | 17333 |
-| repositoryFiles | 3283 |
+| records | 17336 |
+| repositoryFiles | 3284 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6418,12 +6418,12 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 119 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 130 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 131 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 35 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 265 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 741 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 742 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6444,7 +6444,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 655 |
+| test | 656 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -9358,7 +9358,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (655)</summary>
+<details><summary>test (656)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9976,6 +9976,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-mcp-migration.test.ts`
 - `src/test/tok-connect-model-commerce-widget.test.ts`
 - `src/test/tok-connect-oauth-routing.test.ts`
+- `src/test/tok-connect-official-branding.test.ts`
 - `src/test/tok-connect-preview-sandbox.test.tsx`
 - `src/test/tok-connect-public-actions.test.ts`
 - `src/test/tok-connect-reservation-intent.test.ts`
