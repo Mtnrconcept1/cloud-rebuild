@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "cbaa513babe3d75209ee12552cafb82fbcbd2c7d92ff6a2031eb27991fca3869",
+ "sourceDigest": "4a1f23dbd4609d3f3123ffa54c00246e723f7d7debc49ba144a42c9ba4ae5289",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2903,
-  "documents": 208,
+  "databaseObjects": 2907,
+  "documents": 209,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3615,
+  "exportedSymbols": 3623,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 549,
-  "modules": 1627,
+  "migrations": 550,
+  "modules": 1634,
   "pages": 133,
   "pathLiterals": 758,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 111,
-  "records": 17273,
-  "repositoryFiles": 3268,
+  "records": 17310,
+  "repositoryFiles": 3278,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -9286,6 +9286,7 @@
      "insert",
      "list",
      "select",
+     "special_offers",
      "status",
      "update"
     ],
@@ -14758,6 +14759,10 @@
      {
       "path": "src/test/tok-connect-preview-sandbox.test.tsx",
       "line": 9
+     },
+     {
+      "path": "src/test/tok-connect-special-offers-commerce.test.ts",
+      "line": 38
      },
      {
       "path": "src/test/tok-logo-calendar.test.ts",
@@ -20850,7 +20855,7 @@
      },
      {
       "path": "supabase/functions/_shared/order-checkout.ts",
-      "line": 616
+      "line": 543
      },
      {
       "path": "supabase/functions/courier-portal/index.ts",
@@ -22543,7 +22548,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 540
+      "line": 543
      }
     ]
    },
@@ -32641,7 +32646,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
-      "line": 715
+      "line": 725
      }
     ],
     "routes": []
@@ -33000,8 +33005,10 @@
      "src/test/tok-connect-public-actions.test.ts",
      "src/test/tok-connect-reservation-intent.test.ts",
      "src/test/tok-connect-smoke.test.ts",
+     "src/test/tok-connect-special-offers-commerce.test.ts",
      "src/test/tok-intelligence-suite.test.ts",
      "src/test/vercel-rewrites.test.ts",
+     "src/test/widget-access-state.test.ts",
      "supabase/functions/_shared/ai-pricing.ts",
      "supabase/functions/_shared/ai-security.ts",
      "supabase/functions/_shared/commercial-demo-ai.ts",
@@ -33292,6 +33299,7 @@
      "src/test/tok-connect-delivery-commerce.test.ts",
      "src/test/tok-connect-model-commerce-widget.test.ts",
      "src/test/tok-connect-reservation-intent.test.ts",
+     "src/test/tok-connect-special-offers-commerce.test.ts",
      "src/test/tok-one-management-handler.test.ts",
      "src/test/tok-one-recurring-quote.test.ts",
      "src/test/tok-one-stripe-test-mode.test.ts",
@@ -33427,6 +33435,7 @@
      "scripts/test-print-protocol-runner.test.mjs",
      "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
      "scripts/test-reservation-notifications-postgres.mjs",
+     "scripts/test-tok-special-offer-stock-postgres.mjs",
      "scripts/tok-connect-smoke.mjs",
      "scripts/verify-supabase-runtime-security.mjs",
      "scripts/write-commercial-demo-secrets-env.mjs",
@@ -34008,6 +34017,7 @@
      "src/test/tok-connect-delivery-commerce.test.ts",
      "src/test/tok-connect-discovery.test.ts",
      "src/test/tok-connect-edge-functions.test.ts",
+     "src/test/tok-connect-floorplan-operations.test.ts",
      "src/test/tok-connect-frontend.test.ts",
      "src/test/tok-connect-full-app-mcp.test.ts",
      "src/test/tok-connect-mcp-http.test.ts",
@@ -34019,6 +34029,8 @@
      "src/test/tok-connect-role-operations.test.ts",
      "src/test/tok-connect-runtime.test.ts",
      "src/test/tok-connect-smoke.test.ts",
+     "src/test/tok-connect-special-offer-operations.test.ts",
+     "src/test/tok-connect-special-offers-commerce.test.ts",
      "src/test/tok-connect-sql.test.ts",
      "src/test/tok-connect-universal-mcp.test.ts",
      "src/test/tok-intelligence-suite.test.ts",
@@ -34032,6 +34044,7 @@
      "src/test/transactional-email-templates.test.ts",
      "src/test/user-facing-errors.test.ts",
      "src/test/vercel-rewrites.test.ts",
+     "src/test/widget-access-state.test.ts",
      "src/test/zero-attente-finalization-governance.test.ts",
      "src/test/zero-attente-free-miamz.test.ts",
      "supabase/functions/_shared/ai-security.ts",
@@ -37515,6 +37528,12 @@
     "path": "supabase/migrations/20261017000200_reservation_guarantee_request_idempotency.sql",
     "lineCount": 66,
     "objectCount": 3
+   },
+   {
+    "name": "20261017004243 Atomic Order Special Offer Stock Restore",
+    "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+    "lineCount": 338,
+    "objectCount": 5
    }
   ],
   "databaseObjects": [
@@ -41325,6 +41344,10 @@
      {
       "path": "supabase/migrations/20260330120000_global_feature_flag_enforcement.sql",
       "line": 358
+     },
+     {
+      "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+      "line": 11
      }
     ]
    },
@@ -42991,6 +43014,16 @@
      {
       "path": "supabase/migrations/20261014110000_restaurant_preactivation_weekly_ai_credits.sql",
       "line": 519
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.guard_special_offer_stock_capture",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+      "line": 316
      }
     ]
    },
@@ -45539,6 +45572,16 @@
      {
       "path": "supabase/migrations/20260902060000_directory_cuisine_osm_backfill.sql",
       "line": 264
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.restore_order_special_offer_stock",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+      "line": 279
      }
     ]
    },
@@ -64938,6 +64981,16 @@
    },
    {
     "type": "table",
+    "name": "public.order_special_offer_stock_reservations",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+      "line": 2
+     }
+    ]
+   },
+   {
+    "type": "table",
     "name": "public.order_status_history",
     "sources": [
      {
@@ -67347,6 +67400,16 @@
      {
       "path": "supabase/migrations/20260717220000_deferred_subscription_commission_lifecycle.sql",
       "line": 4285
+     }
+    ]
+   },
+   {
+    "type": "trigger",
+    "name": "guard_special_offer_stock_capture",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+      "line": 336
      }
     ]
    },
@@ -75906,6 +75969,22 @@
       "level": 2,
       "title": "Evidence",
       "line": 30
+     }
+    ]
+   },
+   {
+    "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+    "title": "MCP — plan de salle restaurateur",
+    "headings": [
+     {
+      "level": 1,
+      "title": "MCP — plan de salle restaurateur",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Limites",
+      "line": 32
      }
     ]
    },
@@ -84918,6 +84997,16 @@
       "level": 2,
       "title": "Références utilisées",
       "line": 94
+     },
+     {
+      "level": 2,
+      "title": "Recette production du 17 octobre 2026",
+      "line": 102
+     },
+     {
+      "level": 2,
+      "title": "Lot offres et correctifs widget",
+      "line": 110
      }
     ]
    },
@@ -87306,6 +87395,24 @@
      "supabase"
     ],
     "lineCount": 137
+   },
+   {
+    "path": "scripts/test-tok-special-offer-stock-postgres.mjs",
+    "exports": [],
+    "environmentNames": [
+     "PGDATABASE",
+     "PGHOST",
+     "PGHOSTADDR",
+     "PGPORT",
+     "PGSERVICE",
+     "PGSERVICEFILE",
+     "PSQL_BIN",
+     "TOK_SPECIAL_OFFER_STOCK_DISPOSABLE"
+    ],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 102
    },
    {
     "path": "scripts/tok-connect-smoke.mjs",
@@ -108342,7 +108449,7 @@
      "supabase",
      "twint"
     ],
-    "lineCount": 410
+    "lineCount": 408
    },
    {
     "path": "src/test/chef-table-checkout-hold-governance.test.ts",
@@ -112823,6 +112930,15 @@
     "lineCount": 279
    },
    {
+    "path": "src/test/tok-connect-floorplan-operations.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 160
+   },
+   {
     "path": "src/test/tok-connect-frontend.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -112941,6 +113057,26 @@
      "supabase"
     ],
     "lineCount": 51
+   },
+   {
+    "path": "src/test/tok-connect-special-offer-operations.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 145
+   },
+   {
+    "path": "src/test/tok-connect-special-offers-commerce.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 233
    },
    {
     "path": "src/test/tok-connect-sql.test.ts",
@@ -113113,6 +113249,16 @@
      "vercel"
     ],
     "lineCount": 281
+   },
+   {
+    "path": "src/test/widget-access-state.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 85
    },
    {
     "path": "src/test/zero-attente-finalization-governance.test.ts",
@@ -113816,7 +113962,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3578,
+      "line": 3606,
       "kind": "function"
      }
     ],
@@ -113828,7 +113974,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3583
+    "lineCount": 3611
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -115090,32 +115236,32 @@
      },
      {
       "name": "allocateAmounts",
-      "line": 157,
+      "line": 84,
       "kind": "function"
      },
      {
       "name": "findOrdersForSession",
-      "line": 252,
+      "line": 179,
       "kind": "function"
      },
      {
       "name": "persistOrderCheckoutSessionMapping",
-      "line": 266,
+      "line": 193,
       "kind": "function"
      },
      {
       "name": "getStripePaymentMethodDetails",
-      "line": 302,
+      "line": 229,
       "kind": "function"
      },
      {
       "name": "finalizePaidOrderCheckout",
-      "line": 402,
+      "line": 329,
       "kind": "function"
      },
      {
       "name": "markOrderCheckoutSessionState",
-      "line": 689,
+      "line": 616,
       "kind": "function"
      }
     ],
@@ -115127,7 +115273,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 738
+    "lineCount": 666
    },
    {
     "path": "supabase/functions/_shared/order-pricing.ts",
@@ -115144,13 +115290,13 @@
      },
      {
       "name": "buildVerifiedOrderPricing",
-      "line": 888,
+      "line": 899,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 1250
+    "lineCount": 1291
    },
    {
     "path": "supabase/functions/_shared/pack-entitlements.ts",
@@ -116106,23 +116252,33 @@
       "kind": "typealias"
      },
      {
-      "name": "TokCustomerCommerceError",
+      "name": "tokCustomerCartItemMetadata",
       "line": 31,
+      "kind": "function"
+     },
+     {
+      "name": "assertTokCustomerOfferSlot",
+      "line": 38,
+      "kind": "function"
+     },
+     {
+      "name": "TokCustomerCommerceError",
+      "line": 46,
       "kind": "class"
      },
      {
       "name": "normalizeTokCustomerCart",
-      "line": 56,
+      "line": 71,
       "kind": "function"
      },
      {
       "name": "assertTokCartAmountUnchanged",
-      "line": 159,
+      "line": 176,
       "kind": "function"
      },
      {
       "name": "safeTokCommerceCheckoutUrl",
-      "line": 165,
+      "line": 182,
       "kind": "function"
      }
     ],
@@ -116131,7 +116287,7 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 175
+    "lineCount": 192
    },
    {
     "path": "supabase/functions/_shared/tok-connect-customer-operations.ts",
@@ -116228,17 +116384,17 @@
      },
      {
       "name": "buildTokDiscoveryResourceDescriptor",
-      "line": 1829,
+      "line": 1892,
       "kind": "function"
      },
      {
       "name": "buildTokDiscoveryResourceContents",
-      "line": 1858,
+      "line": 1921,
       "kind": "function"
      },
      {
       "name": "buildTokDiscoveryToolMeta",
-      "line": 1869,
+      "line": 1932,
       "kind": "function"
      }
     ],
@@ -116251,7 +116407,7 @@
      "twint",
      "vercel"
     ],
-    "lineCount": 1879
+    "lineCount": 1942
    },
    {
     "path": "supabase/functions/_shared/tok-connect-discovery.ts",
@@ -116490,6 +116646,29 @@
     "lineCount": 1419
    },
    {
+    "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+    "exports": [
+     {
+      "name": "TOK_FLOORPLAN_OPERATION_TOOLS",
+      "line": 12,
+      "kind": "variable"
+     },
+     {
+      "name": "TOK_FLOORPLAN_OPERATION_NAMES",
+      "line": 21,
+      "kind": "variable"
+     },
+     {
+      "name": "invokeTokFloorplanOperation",
+      "line": 24,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 101
+   },
+   {
     "path": "supabase/functions/_shared/tok-connect-reservation-intent.ts",
     "exports": [
      {
@@ -116517,27 +116696,27 @@
     "exports": [
      {
       "name": "TokRoleOperationError",
-      "line": 12,
+      "line": 14,
       "kind": "class"
      },
      {
       "name": "TOK_ROLE_OPERATION_TOOLS",
-      "line": 25,
+      "line": 27,
       "kind": "variable"
      },
      {
       "name": "TOK_ROLE_OPERATION_COVERAGE",
-      "line": 78,
+      "line": 82,
       "kind": "variable"
      },
      {
       "name": "validateTokRoleOperation",
-      "line": 93,
+      "line": 99,
       "kind": "function"
      },
      {
       "name": "invokeTokRoleOperation",
-      "line": 126,
+      "line": 132,
       "kind": "function"
      }
     ],
@@ -116545,7 +116724,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 304
+    "lineCount": 312
    },
    {
     "path": "supabase/functions/_shared/tok-connect-service-settings-operations.ts",
@@ -116569,6 +116748,29 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 55
+   },
+   {
+    "path": "supabase/functions/_shared/tok-connect-special-offer-operations.ts",
+    "exports": [
+     {
+      "name": "TOK_SPECIAL_OFFER_TOOLS",
+      "line": 8,
+      "kind": "variable"
+     },
+     {
+      "name": "TOK_SPECIAL_OFFER_NAMES",
+      "line": 16,
+      "kind": "variable"
+     },
+     {
+      "name": "invokeTokSpecialOfferOperation",
+      "line": 19,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 75
    },
    {
     "path": "supabase/functions/_shared/tok-connect.ts",
@@ -117420,7 +117622,7 @@
      "stripe",
      "twint"
     ],
-    "lineCount": 2797
+    "lineCount": 2799
    },
    {
     "path": "supabase/functions/create-chefs-table-reservation/index.ts",
@@ -118286,7 +118488,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 952
+    "lineCount": 1007
    },
    {
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
@@ -118395,7 +118597,7 @@
      "supabase",
      "twint"
     ],
-    "lineCount": 751
+    "lineCount": 761
    },
    {
     "path": "supabase/functions/tok-connect-webhook-dispatch/index.ts",
@@ -119758,6 +119960,11 @@
    },
    {
     "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -124182,6 +124389,11 @@
     "extension": ".mjs"
    },
    {
+    "path": "scripts/sql/tok-special-offer-legacy-preflight.sql",
+    "category": "automation-script",
+    "extension": ".sql"
+   },
+   {
     "path": "scripts/stoppin-venue-seo.test.mjs",
     "category": "test",
     "extension": ".mjs"
@@ -124253,6 +124465,11 @@
    },
    {
     "path": "scripts/test-reservation-notifications-postgres.mjs",
+    "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
+    "path": "scripts/test-tok-special-offer-stock-postgres.mjs",
     "category": "automation-script",
     "extension": ".mjs"
    },
@@ -130722,6 +130939,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-connect-floorplan-operations.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/tok-connect-frontend.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -130783,6 +131005,16 @@
    },
    {
     "path": "src/test/tok-connect-smoke.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-special-offer-operations.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-special-offers-commerce.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -130878,6 +131110,11 @@
    },
    {
     "path": "src/test/vercel-rewrites.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/widget-access-state.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -131337,6 +131574,11 @@
     "extension": ".ts"
    },
    {
+    "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
     "path": "supabase/functions/_shared/tok-connect-reservation-intent.ts",
     "category": "edge-function-source",
     "extension": ".ts"
@@ -131348,6 +131590,11 @@
    },
    {
     "path": "supabase/functions/_shared/tok-connect-service-settings-operations.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/tok-connect-special-offer-operations.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -134752,6 +134999,11 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/actualites_billing_identity_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -136762,6 +137014,27 @@
     "supabase"
    ],
    "detailRef": "a2bb9ed6ecd4"
+  },
+  {
+   "id": "code-module:9afe3de0be18",
+   "type": "code-module",
+   "title": "scripts/test-tok-special-offer-stock-postgres.mjs",
+   "description": "Module de 102 lignes; exports: aucun export statique.",
+   "path": "scripts/test-tok-special-offer-stock-postgres.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "PGDATABASE",
+    "PGHOST",
+    "PGHOSTADDR",
+    "PGPORT",
+    "PGSERVICE",
+    "PGSERVICEFILE",
+    "PSQL_BIN",
+    "TOK_SPECIAL_OFFER_STOCK_DISPOSABLE",
+    "supabase"
+   ],
+   "detailRef": "9675bd1e9f37"
   },
   {
    "id": "code-module:885b49131091",
@@ -149257,7 +149530,7 @@
    "id": "code-module:2b6bd4f9ac10",
    "type": "code-module",
    "title": "src/test/checkout-stripe-guards.test.ts",
-   "description": "Module de 410 lignes; exports: aucun export statique.",
+   "description": "Module de 408 lignes; exports: aucun export statique.",
    "path": "src/test/checkout-stripe-guards.test.ts",
    "line": 1,
    "surface": null,
@@ -149268,7 +149541,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "cbc6413f4d97"
+   "detailRef": "583e91b9f08e"
   },
   {
    "id": "code-module:57fd77395586",
@@ -155767,6 +156040,19 @@
    "detailRef": "414424f4b99f"
   },
   {
+   "id": "code-module:48b5053c0155",
+   "type": "code-module",
+   "title": "src/test/tok-connect-floorplan-operations.test.ts",
+   "description": "Module de 160 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-floorplan-operations.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "7d0cd3f0d1ec"
+  },
+  {
    "id": "code-module:6955f6e6a37b",
    "type": "code-module",
    "title": "src/test/tok-connect-frontend.test.ts",
@@ -155937,6 +156223,34 @@
     "supabase"
    ],
    "detailRef": "ee1b1f0bc122"
+  },
+  {
+   "id": "code-module:ce808df5ef50",
+   "type": "code-module",
+   "title": "src/test/tok-connect-special-offer-operations.test.ts",
+   "description": "Module de 145 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-special-offer-operations.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "a9106bdb0ab2"
+  },
+  {
+   "id": "code-module:8fb56bb571aa",
+   "type": "code-module",
+   "title": "src/test/tok-connect-special-offers-commerce.test.ts",
+   "description": "Module de 233 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-special-offers-commerce.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "4b7e13eef905"
   },
   {
    "id": "code-module:7d5cd1586d20",
@@ -156185,6 +156499,20 @@
     "vercel"
    ],
    "detailRef": "41ae93af4942"
+  },
+  {
+   "id": "code-module:0ca0268d775f",
+   "type": "code-module",
+   "title": "src/test/widget-access-state.test.ts",
+   "description": "Module de 85 lignes; exports: aucun export statique.",
+   "path": "src/test/widget-access-state.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "43cd868eba24"
   },
   {
    "id": "code-module:fb4ccd67ca33",
@@ -156510,7 +156838,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3583 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3611 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -156524,7 +156852,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "ed80794436cf"
+   "detailRef": "b161beca41e0"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -157100,7 +157428,7 @@
    "id": "code-module:cfa7b5f25b20",
    "type": "code-module",
    "title": "supabase/functions/_shared/order-checkout.ts",
-   "description": "Module de 738 lignes; exports: OrderLookupRow, FinalizedOrderSummary, restoreReservedSpecialOfferStock, allocateAmounts, findOrdersForSession, persistOrderCheckoutSessionMapping, getStripePaymentMethodDetails, finalizePaidOrderCheckout, markOrderCheckoutSessionState.",
+   "description": "Module de 666 lignes; exports: OrderLookupRow, FinalizedOrderSummary, restoreReservedSpecialOfferStock, allocateAmounts, findOrdersForSession, persistOrderCheckoutSessionMapping, getStripePaymentMethodDetails, finalizePaidOrderCheckout, markOrderCheckoutSessionState.",
    "path": "supabase/functions/_shared/order-checkout.ts",
    "line": 1,
    "surface": null,
@@ -157119,13 +157447,13 @@
     "restoreReservedSpecialOfferStock",
     "stripe"
    ],
-   "detailRef": "aa139356eef2"
+   "detailRef": "fae68b9b8664"
   },
   {
    "id": "code-module:8b958dc2ca39",
    "type": "code-module",
    "title": "supabase/functions/_shared/order-pricing.ts",
-   "description": "Module de 1250 lignes; exports: isClientCheckoutRestaurantEligible, VerifiedOrderPricing, buildVerifiedOrderPricing.",
+   "description": "Module de 1291 lignes; exports: isClientCheckoutRestaurantEligible, VerifiedOrderPricing, buildVerifiedOrderPricing.",
    "path": "supabase/functions/_shared/order-pricing.ts",
    "line": 1,
    "surface": null,
@@ -157134,7 +157462,7 @@
     "buildVerifiedOrderPricing",
     "isClientCheckoutRestaurantEligible"
    ],
-   "detailRef": "2cbfa12a53fd"
+   "detailRef": "7194e5669d1d"
   },
   {
    "id": "code-module:aa5e84477dc8",
@@ -157611,7 +157939,7 @@
    "id": "code-module:079f909ea9f2",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
-   "description": "Module de 175 lignes; exports: TokCustomerJourney, TokCustomerCartItem, TokCustomerCartInput, TokCustomerCommerceError, normalizeTokCustomerCart, assertTokCartAmountUnchanged, safeTokCommerceCheckoutUrl.",
+   "description": "Module de 192 lignes; exports: TokCustomerJourney, TokCustomerCartItem, TokCustomerCartInput, tokCustomerCartItemMetadata, assertTokCustomerOfferSlot, TokCustomerCommerceError, normalizeTokCustomerCart, assertTokCartAmountUnchanged, safeTokCommerceCheckoutUrl.",
    "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
    "line": 1,
    "surface": null,
@@ -157621,12 +157949,14 @@
     "TokCustomerCommerceError",
     "TokCustomerJourney",
     "assertTokCartAmountUnchanged",
+    "assertTokCustomerOfferSlot",
     "normalizeTokCustomerCart",
     "safeTokCommerceCheckoutUrl",
     "stripe",
+    "tokCustomerCartItemMetadata",
     "twint"
    ],
-   "detailRef": "d618fcf0d687"
+   "detailRef": "27687ee39f0d"
   },
   {
    "id": "code-module:6cfd78410285",
@@ -157680,7 +158010,7 @@
    "id": "code-module:38f3af390908",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "description": "Module de 1879 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
+   "description": "Module de 1942 lignes; exports: TOK_DISCOVERY_RESOURCE_URI, TOK_DISCOVERY_RESOURCE_DOMAINS, TOK_DISCOVERY_WIDGET_HTML, buildTokDiscoveryResourceDescriptor, buildTokDiscoveryResourceContents, buildTokDiscoveryToolMeta.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
    "line": 1,
    "surface": null,
@@ -157698,7 +158028,7 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "38027dee00e0"
+   "detailRef": "3accaa637bdb"
   },
   {
    "id": "code-module:bd4199664d50",
@@ -157760,6 +158090,21 @@
    "detailRef": "813da122cd48"
   },
   {
+   "id": "code-module:bb5357e1b2a2",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "description": "Module de 101 lignes; exports: TOK_FLOORPLAN_OPERATION_TOOLS, TOK_FLOORPLAN_OPERATION_NAMES, invokeTokFloorplanOperation.",
+   "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK_FLOORPLAN_OPERATION_NAMES",
+    "TOK_FLOORPLAN_OPERATION_TOOLS",
+    "invokeTokFloorplanOperation"
+   ],
+   "detailRef": "0f77f030ed65"
+  },
+  {
    "id": "code-module:17414fdd34cb",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-reservation-intent.ts",
@@ -157778,7 +158123,7 @@
    "id": "code-module:57f22077f88e",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "description": "Module de 304 lignes; exports: TokRoleOperationError, TOK_ROLE_OPERATION_TOOLS, TOK_ROLE_OPERATION_COVERAGE, validateTokRoleOperation, invokeTokRoleOperation.",
+   "description": "Module de 312 lignes; exports: TokRoleOperationError, TOK_ROLE_OPERATION_TOOLS, TOK_ROLE_OPERATION_COVERAGE, validateTokRoleOperation, invokeTokRoleOperation.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
    "line": 1,
    "surface": null,
@@ -157790,7 +158135,7 @@
     "stripe",
     "validateTokRoleOperation"
    ],
-   "detailRef": "7b88a27d4462"
+   "detailRef": "c3c6d1cfdb01"
   },
   {
    "id": "code-module:91bea2d2965d",
@@ -157806,6 +158151,21 @@
     "prepareTokServiceSettings"
    ],
    "detailRef": "27d30b2e57e6"
+  },
+  {
+   "id": "code-module:4e2d97394d72",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/tok-connect-special-offer-operations.ts",
+   "description": "Module de 75 lignes; exports: TOK_SPECIAL_OFFER_TOOLS, TOK_SPECIAL_OFFER_NAMES, invokeTokSpecialOfferOperation.",
+   "path": "supabase/functions/_shared/tok-connect-special-offer-operations.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK_SPECIAL_OFFER_NAMES",
+    "TOK_SPECIAL_OFFER_TOOLS",
+    "invokeTokSpecialOfferOperation"
+   ],
+   "detailRef": "90f59147329f"
   },
   {
    "id": "code-module:fc6a15fb9307",
@@ -158486,7 +158846,7 @@
    "id": "code-module:ee34f3a570c0",
    "type": "code-module",
    "title": "supabase/functions/create-checkout/index.ts",
-   "description": "Module de 2797 lignes; exports: aucun export statique.",
+   "description": "Module de 2799 lignes; exports: aucun export statique.",
    "path": "supabase/functions/create-checkout/index.ts",
    "line": 1,
    "surface": null,
@@ -158494,7 +158854,7 @@
     "stripe",
     "twint"
    ],
-   "detailRef": "c8b797e083bd"
+   "detailRef": "f4a0d3281d77"
   },
   {
    "id": "code-module:4160ab4db106",
@@ -159508,7 +159868,7 @@
    "id": "code-module:5f5eb07543f1",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-app-bridge/index.ts",
-   "description": "Module de 952 lignes; exports: aucun export statique.",
+   "description": "Module de 1007 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-app-bridge/index.ts",
    "line": 1,
    "surface": null,
@@ -159519,7 +159879,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "014d02953971"
+   "detailRef": "339b7d749ef1"
   },
   {
    "id": "code-module:4266f84831a7",
@@ -159625,7 +159985,7 @@
    "id": "code-module:a6d1c05c1a13",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-remote-mcp/index.ts",
-   "description": "Module de 751 lignes; exports: aucun export statique.",
+   "description": "Module de 761 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
    "line": 1,
    "surface": null,
@@ -159639,7 +159999,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "9297afc360e2"
+   "detailRef": "6e4331a78c95"
   },
   {
    "id": "code-module:61c89ba4dc3b",
@@ -166441,6 +166801,21 @@
     "trigger"
    ],
    "detailRef": "4faa47fe1329"
+  },
+  {
+   "id": "database-object:00cf00b75046",
+   "type": "database-object",
+   "title": "guard_special_offer_stock_capture",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+   "line": 336,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "09178ea8501c"
   },
   {
    "id": "database-object:1d6b848d8b2b",
@@ -182283,19 +182658,19 @@
    "detailRef": "a9b8446172f6"
   },
   {
-   "id": "database-object:6a207f4707c6",
+   "id": "database-object:ca93a2c82023",
    "type": "database-object",
    "title": "public.create_order_with_items",
-   "description": "Objet PostgreSQL de type function; 6 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260330120000_global_feature_flag_enforcement.sql",
-   "line": 358,
+   "description": "Objet PostgreSQL de type function; 7 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+   "line": 11,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "543de2584016"
+   "detailRef": "e26ae4ebb008"
   },
   {
    "id": "database-object:e981341bd49e",
@@ -186138,6 +186513,21 @@
    "detailRef": "4e090e482c27"
   },
   {
+   "id": "database-object:dcb8681697da",
+   "type": "database-object",
+   "title": "public.guard_special_offer_stock_capture",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+   "line": 316,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "f6d6344a1e80"
+  },
+  {
    "id": "database-object:214beb06dd25",
    "type": "database-object",
    "title": "public.handle_email_confirmation",
@@ -189586,6 +189976,21 @@
     "table"
    ],
    "detailRef": "2e3cf16d60c7"
+  },
+  {
+   "id": "database-object:00eb6b0d4219",
+   "type": "database-object",
+   "title": "public.order_special_offer_stock_reservations",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "5313b0d5ca54"
   },
   {
    "id": "database-object:cba8ad3647df",
@@ -195766,6 +196171,21 @@
     "supabase"
    ],
    "detailRef": "78c5e2c95b75"
+  },
+  {
+   "id": "database-object:845473cf7028",
+   "type": "database-object",
+   "title": "public.restore_order_special_offer_stock",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+   "line": 279,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "f4df38b46c7c"
   },
   {
    "id": "database-object:750db47cf40a",
@@ -221870,6 +222290,20 @@
    "detailRef": "62153b37edb8"
   },
   {
+   "id": "document-section:44a444be70fa",
+   "type": "document-section",
+   "title": "Limites",
+   "description": "Section de MCP — plan de salle restaurateur.",
+   "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+   "line": 32,
+   "surface": null,
+   "tags": [
+    "MCP — plan de salle restaurateur",
+    "h2"
+   ],
+   "detailRef": "1c1334834637"
+  },
+  {
    "id": "document-section:ad187357d470",
    "type": "document-section",
    "title": "Limites",
@@ -222080,6 +222514,20 @@
    "detailRef": "624397b1bde4"
   },
   {
+   "id": "document-section:94bfeb275a98",
+   "type": "document-section",
+   "title": "Lot offres et correctifs widget",
+   "description": "Section de Livraison de la parité fonctionnelle TOK Connect.",
+   "path": "docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md",
+   "line": 110,
+   "surface": null,
+   "tags": [
+    "Livraison de la parité fonctionnelle TOK Connect",
+    "h2"
+   ],
+   "detailRef": "0db4ecc564ae"
+  },
+  {
    "id": "document-section:ed02acc0384f",
    "type": "document-section",
    "title": "Low Findings And Hardening Items",
@@ -222120,6 +222568,20 @@
     "h2"
    ],
    "detailRef": "155a8d173adf"
+  },
+  {
+   "id": "document-section:1863ba4f3565",
+   "type": "document-section",
+   "title": "MCP — plan de salle restaurateur",
+   "description": "Section de MCP — plan de salle restaurateur.",
+   "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "MCP — plan de salle restaurateur",
+    "h1"
+   ],
+   "detailRef": "d90f59eb5bc1"
   },
   {
    "id": "document-section:2e57965f8947",
@@ -227608,6 +228070,20 @@
     "h2"
    ],
    "detailRef": "2349ca73d704"
+  },
+  {
+   "id": "document-section:380a888f618f",
+   "type": "document-section",
+   "title": "Recette production du 17 octobre 2026",
+   "description": "Section de Livraison de la parité fonctionnelle TOK Connect.",
+   "path": "docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md",
+   "line": 102,
+   "surface": null,
+   "tags": [
+    "Livraison de la parité fonctionnelle TOK Connect",
+    "h2"
+   ],
+   "detailRef": "68d941f6128e"
   },
   {
    "id": "document-section:0b47cdbe0bf9",
@@ -240103,7 +240579,7 @@
    "id": "document:559889ec6654",
    "type": "document",
    "title": "Livraison de la parité fonctionnelle TOK Connect",
-   "description": "Document Markdown avec 8 section(s).",
+   "description": "Document Markdown avec 10 section(s).",
    "path": "docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md",
    "line": 1,
    "surface": null,
@@ -240112,12 +240588,14 @@
     "Fichiers et frontières",
     "Limites et recette restante",
     "Livraison de la parité fonctionnelle TOK Connect",
+    "Lot offres et correctifs widget",
+    "Recette production du 17 octobre 2026",
     "Retour arrière",
     "Références utilisées",
     "Validations requises",
     "État de validation avant PR"
    ],
-   "detailRef": "e26473cfaf27"
+   "detailRef": "0d8484176efc"
   },
   {
    "id": "document:17d4758632fe",
@@ -240151,6 +240629,20 @@
     "Sources et maintenance"
    ],
    "detailRef": "e0cafe3dbde2"
+  },
+  {
+   "id": "document:1863ba4f3565",
+   "type": "document",
+   "title": "MCP — plan de salle restaurateur",
+   "description": "Document Markdown avec 2 section(s).",
+   "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Limites",
+    "MCP — plan de salle restaurateur"
+   ],
+   "detailRef": "4a7b17541b30"
   },
   {
    "id": "document:37fcb86d1133",
@@ -244457,6 +244949,20 @@
    "detailRef": "7dbbf52d07c5"
   },
   {
+   "id": "edge-action:a456a579147a",
+   "type": "edge-action",
+   "title": "special_offers",
+   "description": "Action statiquement détectée dans la fonction Edge tok-connect-app-bridge.",
+   "path": "supabase/functions/tok-connect-app-bridge/index.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "/functions/v1/tok-connect-app-bridge",
+    "tok-connect-app-bridge"
+   ],
+   "detailRef": "a96c6662e83f"
+  },
+  {
    "id": "edge-action:408d8ab3e254",
    "type": "edge-action",
    "title": "status",
@@ -246485,12 +246991,13 @@
     "insert",
     "list",
     "select",
+    "special_offers",
     "status",
     "stripe",
     "supabase",
     "update"
    ],
-   "detailRef": "2721c8bc7789"
+   "detailRef": "9dee13a8e621"
   },
   {
    "id": "edge-function:4ae45b142614",
@@ -248018,7 +248525,7 @@
    "id": "environment-variable:670d8f7b3247",
    "type": "environment-variable",
    "title": "PGDATABASE",
-   "description": "Nom de variable d’environnement référencé dans 5 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 6 module(s); aucune valeur n’est indexée.",
    "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
@@ -248027,15 +248534,16 @@
     "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs",
     "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
-    "scripts/test-reservation-notifications-postgres.mjs"
+    "scripts/test-reservation-notifications-postgres.mjs",
+    "scripts/test-tok-special-offer-stock-postgres.mjs"
    ],
-   "detailRef": "898c75093f86"
+   "detailRef": "aeb8704ccbda"
   },
   {
    "id": "environment-variable:c6ea23345aa4",
    "type": "environment-variable",
    "title": "PGHOST",
-   "description": "Nom de variable d’environnement référencé dans 5 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 6 module(s); aucune valeur n’est indexée.",
    "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
@@ -248044,15 +248552,16 @@
     "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs",
     "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
-    "scripts/test-reservation-notifications-postgres.mjs"
+    "scripts/test-reservation-notifications-postgres.mjs",
+    "scripts/test-tok-special-offer-stock-postgres.mjs"
    ],
-   "detailRef": "c0e912b295b1"
+   "detailRef": "b7d6ab83ba6c"
   },
   {
    "id": "environment-variable:5af9045fcde7",
    "type": "environment-variable",
    "title": "PGHOSTADDR",
-   "description": "Nom de variable d’environnement référencé dans 5 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 6 module(s); aucune valeur n’est indexée.",
    "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
@@ -248061,15 +248570,16 @@
     "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs",
     "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
-    "scripts/test-reservation-notifications-postgres.mjs"
+    "scripts/test-reservation-notifications-postgres.mjs",
+    "scripts/test-tok-special-offer-stock-postgres.mjs"
    ],
-   "detailRef": "9a29f05c4a49"
+   "detailRef": "f0a14aecf744"
   },
   {
    "id": "environment-variable:267c30222831",
    "type": "environment-variable",
    "title": "PGPORT",
-   "description": "Nom de variable d’environnement référencé dans 5 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 6 module(s); aucune valeur n’est indexée.",
    "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
@@ -248078,15 +248588,16 @@
     "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs",
     "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
-    "scripts/test-reservation-notifications-postgres.mjs"
+    "scripts/test-reservation-notifications-postgres.mjs",
+    "scripts/test-tok-special-offer-stock-postgres.mjs"
    ],
-   "detailRef": "2916ec246eb0"
+   "detailRef": "0233dd2d2f04"
   },
   {
    "id": "environment-variable:7328174092f4",
    "type": "environment-variable",
    "title": "PGSERVICE",
-   "description": "Nom de variable d’environnement référencé dans 5 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 6 module(s); aucune valeur n’est indexée.",
    "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
@@ -248095,15 +248606,16 @@
     "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs",
     "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
-    "scripts/test-reservation-notifications-postgres.mjs"
+    "scripts/test-reservation-notifications-postgres.mjs",
+    "scripts/test-tok-special-offer-stock-postgres.mjs"
    ],
-   "detailRef": "7e95798e5897"
+   "detailRef": "7a63f95c4bec"
   },
   {
    "id": "environment-variable:898d6ee58a05",
    "type": "environment-variable",
    "title": "PGSERVICEFILE",
-   "description": "Nom de variable d’environnement référencé dans 5 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 6 module(s); aucune valeur n’est indexée.",
    "path": "scripts/test-actualites-billing-postgres.mjs",
    "line": null,
    "surface": null,
@@ -248112,9 +248624,10 @@
     "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs",
     "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
-    "scripts/test-reservation-notifications-postgres.mjs"
+    "scripts/test-reservation-notifications-postgres.mjs",
+    "scripts/test-tok-special-offer-stock-postgres.mjs"
    ],
-   "detailRef": "987fc412f84a"
+   "detailRef": "2cfeebcea882"
   },
   {
    "id": "environment-variable:4845b14157f8",
@@ -248161,7 +248674,7 @@
    "id": "environment-variable:378e90cb4be1",
    "type": "environment-variable",
    "title": "PSQL_BIN",
-   "description": "Nom de variable d’environnement référencé dans 4 module(s); aucune valeur n’est indexée.",
+   "description": "Nom de variable d’environnement référencé dans 5 module(s); aucune valeur n’est indexée.",
    "path": "scripts/test-checkout-security-postgres.mjs",
    "line": null,
    "surface": null,
@@ -248169,9 +248682,10 @@
     "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs",
     "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
-    "scripts/test-reservation-notifications-postgres.mjs"
+    "scripts/test-reservation-notifications-postgres.mjs",
+    "scripts/test-tok-special-offer-stock-postgres.mjs"
    ],
-   "detailRef": "33d16db0f097"
+   "detailRef": "0e0476d5a8bd"
   },
   {
    "id": "environment-variable:515b6d80092e",
@@ -249121,6 +249635,19 @@
     "scripts/write-commercial-demo-secrets-env.mjs"
    ],
    "detailRef": "b4a2d3960c72"
+  },
+  {
+   "id": "environment-variable:b3c17c89659f",
+   "type": "environment-variable",
+   "title": "TOK_SPECIAL_OFFER_STOCK_DISPOSABLE",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-tok-special-offer-stock-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-tok-special-offer-stock-postgres.mjs"
+   ],
+   "detailRef": "bb49a73f7a5b"
   },
   {
    "id": "environment-variable:00a51eab0cb4",
@@ -268597,6 +269124,32 @@
    "detailRef": "117c0a783f9d"
   },
   {
+   "id": "exported-symbol:09a980fb1767",
+   "type": "exported-symbol",
+   "title": "TOK_FLOORPLAN_OPERATION_NAMES",
+   "description": "Export variable de supabase/functions/_shared/tok-connect-floorplan-operations.ts.",
+   "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "line": 21,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "8a8774b68dc6"
+  },
+  {
+   "id": "exported-symbol:f910bc22c060",
+   "type": "exported-symbol",
+   "title": "TOK_FLOORPLAN_OPERATION_TOOLS",
+   "description": "Export variable de supabase/functions/_shared/tok-connect-floorplan-operations.ts.",
+   "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "line": 12,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "47f1d07d16a6"
+  },
+  {
    "id": "exported-symbol:d54668b335f5",
    "type": "exported-symbol",
    "title": "TOK_IMAGE_BASE_COST_CHF",
@@ -269070,32 +269623,32 @@
    "detailRef": "fb4022c83cb2"
   },
   {
-   "id": "exported-symbol:201d734ab109",
+   "id": "exported-symbol:96969cc801fd",
    "type": "exported-symbol",
    "title": "TOK_ROLE_OPERATION_COVERAGE",
    "description": "Export variable de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 78,
+   "line": 82,
    "surface": null,
    "tags": [
     "stripe",
     "variable"
    ],
-   "detailRef": "57345c6b0554"
+   "detailRef": "6a4c74b001c8"
   },
   {
-   "id": "exported-symbol:00dc2d1efb38",
+   "id": "exported-symbol:224ef99ee99a",
    "type": "exported-symbol",
    "title": "TOK_ROLE_OPERATION_TOOLS",
    "description": "Export variable de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 25,
+   "line": 27,
    "surface": null,
    "tags": [
     "stripe",
     "variable"
    ],
-   "detailRef": "0738991874ab"
+   "detailRef": "95631d2cb804"
   },
   {
    "id": "exported-symbol:9334a2988542",
@@ -269124,6 +269677,32 @@
     "variable"
    ],
    "detailRef": "ea696005f2a0"
+  },
+  {
+   "id": "exported-symbol:9d4083a31b24",
+   "type": "exported-symbol",
+   "title": "TOK_SPECIAL_OFFER_NAMES",
+   "description": "Export variable de supabase/functions/_shared/tok-connect-special-offer-operations.ts.",
+   "path": "supabase/functions/_shared/tok-connect-special-offer-operations.ts",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "7b8a2802a8c0"
+  },
+  {
+   "id": "exported-symbol:7718a0613753",
+   "type": "exported-symbol",
+   "title": "TOK_SPECIAL_OFFER_TOOLS",
+   "description": "Export variable de supabase/functions/_shared/tok-connect-special-offer-operations.ts.",
+   "path": "supabase/functions/_shared/tok-connect-special-offer-operations.ts",
+   "line": 8,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "502e069a4f7f"
   },
   {
    "id": "exported-symbol:ea01f2c7f944",
@@ -270004,19 +270583,19 @@
    "detailRef": "7f936c8d91ab"
   },
   {
-   "id": "exported-symbol:b106d55544d8",
+   "id": "exported-symbol:edb3da613d0d",
    "type": "exported-symbol",
    "title": "TokCustomerCommerceError",
    "description": "Export class de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
    "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
-   "line": 31,
+   "line": 46,
    "surface": null,
    "tags": [
     "class",
     "stripe",
     "twint"
    ],
-   "detailRef": "7a1309d88364"
+   "detailRef": "79dbb0327b73"
   },
   {
    "id": "exported-symbol:a1644dcc594c",
@@ -270521,18 +271100,18 @@
    "detailRef": "0e21932977ac"
   },
   {
-   "id": "exported-symbol:fa6fd80f9bbc",
+   "id": "exported-symbol:f9866a525b4b",
    "type": "exported-symbol",
    "title": "TokRoleOperationError",
    "description": "Export class de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 12,
+   "line": 14,
    "surface": null,
    "tags": [
     "class",
     "stripe"
    ],
-   "detailRef": "1a3736513489"
+   "detailRef": "8d519792f95e"
   },
   {
    "id": "exported-symbol:b8dc97fecdc7",
@@ -271161,18 +271740,18 @@
    "detailRef": "591477999630"
   },
   {
-   "id": "exported-symbol:fb72f904f9ac",
+   "id": "exported-symbol:2ac2bd343ebe",
    "type": "exported-symbol",
    "title": "allocateAmounts",
    "description": "Export function de supabase/functions/_shared/order-checkout.ts.",
    "path": "supabase/functions/_shared/order-checkout.ts",
-   "line": 157,
+   "line": 84,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "0c69f56e5feb"
+   "detailRef": "6cc5d5b7e649"
   },
   {
    "id": "exported-symbol:82a20a170bd5",
@@ -271837,19 +272416,19 @@
    "detailRef": "26e846f0cd81"
   },
   {
-   "id": "exported-symbol:3fa08ec2343a",
+   "id": "exported-symbol:e5318642b88e",
    "type": "exported-symbol",
    "title": "assertTokCartAmountUnchanged",
    "description": "Export function de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
    "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
-   "line": 159,
+   "line": 176,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "twint"
    ],
-   "detailRef": "00be06904d3d"
+   "detailRef": "d05a172b59e0"
   },
   {
    "id": "exported-symbol:7821919afaa1",
@@ -271906,6 +272485,21 @@
     "supabase"
    ],
    "detailRef": "6ec43b6a9119"
+  },
+  {
+   "id": "exported-symbol:139ddce5e462",
+   "type": "exported-symbol",
+   "title": "assertTokCustomerOfferSlot",
+   "description": "Export function de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 38,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "2c72e647d506"
   },
   {
    "id": "exported-symbol:0a0e1e84b03f",
@@ -273761,12 +274355,12 @@
    "detailRef": "82f9e612ba62"
   },
   {
-   "id": "exported-symbol:9c4593d5e37d",
+   "id": "exported-symbol:7f0bc7eec72a",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryResourceContents",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 1858,
+   "line": 1921,
    "surface": null,
    "tags": [
     "function",
@@ -273777,15 +274371,15 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "af8296079f46"
+   "detailRef": "8c2d06f25978"
   },
   {
-   "id": "exported-symbol:3871b92f2e63",
+   "id": "exported-symbol:332b37806700",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryResourceDescriptor",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 1829,
+   "line": 1892,
    "surface": null,
    "tags": [
     "function",
@@ -273796,15 +274390,15 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "8cac41338ad1"
+   "detailRef": "9068bbb514a7"
   },
   {
-   "id": "exported-symbol:2162b9e774cb",
+   "id": "exported-symbol:311a4a605c32",
    "type": "exported-symbol",
    "title": "buildTokDiscoveryToolMeta",
    "description": "Export function de supabase/functions/_shared/tok-connect-discovery-widget.ts.",
    "path": "supabase/functions/_shared/tok-connect-discovery-widget.ts",
-   "line": 1869,
+   "line": 1932,
    "surface": null,
    "tags": [
     "function",
@@ -273815,7 +274409,7 @@
     "twint",
     "vercel"
    ],
-   "detailRef": "ccf439545db8"
+   "detailRef": "65fe64e6b000"
   },
   {
    "id": "exported-symbol:c48bb56c3e9c",
@@ -273939,17 +274533,17 @@
    "detailRef": "69cfd439cf1b"
   },
   {
-   "id": "exported-symbol:d1880956c998",
+   "id": "exported-symbol:7acb2273b2f6",
    "type": "exported-symbol",
    "title": "buildVerifiedOrderPricing",
    "description": "Export function de supabase/functions/_shared/order-pricing.ts.",
    "path": "supabase/functions/_shared/order-pricing.ts",
-   "line": 888,
+   "line": 899,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "70193af842e0"
+   "detailRef": "5c53cc62ccfe"
   },
   {
    "id": "exported-symbol:b99719113ba8",
@@ -281996,18 +282590,18 @@
    "detailRef": "0d4971c66d89"
   },
   {
-   "id": "exported-symbol:ef6bec841751",
+   "id": "exported-symbol:d2738d8c8877",
    "type": "exported-symbol",
    "title": "finalizePaidOrderCheckout",
    "description": "Export function de supabase/functions/_shared/order-checkout.ts.",
    "path": "supabase/functions/_shared/order-checkout.ts",
-   "line": 402,
+   "line": 329,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "866a30f53a92"
+   "detailRef": "522f4dd289fc"
   },
   {
    "id": "exported-symbol:f24392529c3a",
@@ -282126,18 +282720,18 @@
    "detailRef": "bfe4ec94cb14"
   },
   {
-   "id": "exported-symbol:e749dfa1a6b9",
+   "id": "exported-symbol:0ff5d5db268d",
    "type": "exported-symbol",
    "title": "findOrdersForSession",
    "description": "Export function de supabase/functions/_shared/order-checkout.ts.",
    "path": "supabase/functions/_shared/order-checkout.ts",
-   "line": 252,
+   "line": 179,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "0499571317ab"
+   "detailRef": "78e4a1af25b3"
   },
   {
    "id": "exported-symbol:2c0260741c33",
@@ -287042,18 +287636,18 @@
    "detailRef": "edf0600e0d6b"
   },
   {
-   "id": "exported-symbol:df93f96d2324",
+   "id": "exported-symbol:84a9bbbebf9e",
    "type": "exported-symbol",
    "title": "getStripePaymentMethodDetails",
    "description": "Export function de supabase/functions/_shared/order-checkout.ts.",
    "path": "supabase/functions/_shared/order-checkout.ts",
-   "line": 302,
+   "line": 229,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "99b10f3d2d50"
+   "detailRef": "edaebae1d20a"
   },
   {
    "id": "exported-symbol:6612dc51d114",
@@ -288333,18 +288927,44 @@
    "detailRef": "d8a9f6ab7a65"
   },
   {
-   "id": "exported-symbol:e608a33df0c7",
+   "id": "exported-symbol:2eb7ab5c1fbb",
+   "type": "exported-symbol",
+   "title": "invokeTokFloorplanOperation",
+   "description": "Export function de supabase/functions/_shared/tok-connect-floorplan-operations.ts.",
+   "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "line": 24,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "28937ba2da7a"
+  },
+  {
+   "id": "exported-symbol:d76b4649c3b7",
    "type": "exported-symbol",
    "title": "invokeTokRoleOperation",
    "description": "Export function de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 126,
+   "line": 132,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "7987f26a25da"
+   "detailRef": "c4c1ac854c54"
+  },
+  {
+   "id": "exported-symbol:ab95680e2083",
+   "type": "exported-symbol",
+   "title": "invokeTokSpecialOfferOperation",
+   "description": "Export function de supabase/functions/_shared/tok-connect-special-offer-operations.ts.",
+   "path": "supabase/functions/_shared/tok-connect-special-offer-operations.ts",
+   "line": 19,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "d144ac8367bc"
   },
   {
    "id": "exported-symbol:03f91f3d5b32",
@@ -290586,12 +291206,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:af0ae6e192c7",
+   "id": "exported-symbol:8cfee33f5a65",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3578,
+   "line": 3606,
    "surface": null,
    "tags": [
     "firebase",
@@ -290601,7 +291221,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "dc843dea9cef"
+   "detailRef": "37070fd0e2e8"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -290791,18 +291411,18 @@
    "detailRef": "d82dca866fb8"
   },
   {
-   "id": "exported-symbol:d94140d2ee25",
+   "id": "exported-symbol:320cbf473262",
    "type": "exported-symbol",
    "title": "markOrderCheckoutSessionState",
    "description": "Export function de supabase/functions/_shared/order-checkout.ts.",
    "path": "supabase/functions/_shared/order-checkout.ts",
-   "line": 689,
+   "line": 616,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "e20fc2439d70"
+   "detailRef": "ec07da614072"
   },
   {
    "id": "exported-symbol:4c8122a33d63",
@@ -292183,19 +292803,19 @@
    "detailRef": "07d2a17d6dc9"
   },
   {
-   "id": "exported-symbol:15280782847e",
+   "id": "exported-symbol:513808981970",
    "type": "exported-symbol",
    "title": "normalizeTokCustomerCart",
    "description": "Export function de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
    "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
-   "line": 56,
+   "line": 71,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "twint"
    ],
-   "detailRef": "ec82f16743ac"
+   "detailRef": "7abb24561aec"
   },
   {
    "id": "exported-symbol:5214b0eeca56",
@@ -292749,18 +293369,18 @@
    "detailRef": "01d6dc1aafa9"
   },
   {
-   "id": "exported-symbol:8a691dbc5274",
+   "id": "exported-symbol:65fc9fe211e2",
    "type": "exported-symbol",
    "title": "persistOrderCheckoutSessionMapping",
    "description": "Export function de supabase/functions/_shared/order-checkout.ts.",
    "path": "supabase/functions/_shared/order-checkout.ts",
-   "line": 266,
+   "line": 193,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "ffc9ac84c137"
+   "detailRef": "2a34459c3ba8"
   },
   {
    "id": "exported-symbol:490531923a5e",
@@ -294918,19 +295538,19 @@
    "detailRef": "1fd7b4cdde6c"
   },
   {
-   "id": "exported-symbol:94bf91df524f",
+   "id": "exported-symbol:fc820f37c20d",
    "type": "exported-symbol",
    "title": "safeTokCommerceCheckoutUrl",
    "description": "Export function de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
    "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
-   "line": 165,
+   "line": 182,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "twint"
    ],
-   "detailRef": "5437da688e22"
+   "detailRef": "f921ed719cda"
   },
   {
    "id": "exported-symbol:b094beb5e72f",
@@ -296827,6 +297447,21 @@
     "variable"
    ],
    "detailRef": "f22e6ba79c6d"
+  },
+  {
+   "id": "exported-symbol:6589363b8641",
+   "type": "exported-symbol",
+   "title": "tokCustomerCartItemMetadata",
+   "description": "Export function de supabase/functions/_shared/tok-connect-customer-commerce.ts.",
+   "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "function",
+    "stripe",
+    "twint"
+   ],
+   "detailRef": "bc3ee35c9e0a"
   },
   {
    "id": "exported-symbol:fdcaf62ba59e",
@@ -298946,18 +299581,18 @@
    "detailRef": "7ed77cc1654d"
   },
   {
-   "id": "exported-symbol:f704175d1f6b",
+   "id": "exported-symbol:540d8a38a407",
    "type": "exported-symbol",
    "title": "validateTokRoleOperation",
    "description": "Export function de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 93,
+   "line": 99,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "bfbbdf97893a"
+   "detailRef": "f7ecb577ee7a"
   },
   {
    "id": "exported-symbol:38b68734a360",
@@ -303830,6 +304465,20 @@
     "documentation"
    ],
    "detailRef": "a60b1fc7159a"
+  },
+  {
+   "id": "file:34ae1ad52a57",
+   "type": "file",
+   "title": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "0aa4b0d84a26"
   },
   {
    "id": "file:7abfcbd8dd5e",
@@ -316208,6 +316857,20 @@
    "detailRef": "c87c6a01f393"
   },
   {
+   "id": "file:9bab7c537ac4",
+   "type": "file",
+   "title": "scripts/sql/tok-special-offer-legacy-preflight.sql",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/sql/tok-special-offer-legacy-preflight.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "automation-script"
+   ],
+   "detailRef": "f74139edf145"
+  },
+  {
    "id": "file:3a52b29441d8",
    "type": "file",
    "title": "scripts/stoppin-venue-seo.test.mjs",
@@ -316416,6 +317079,20 @@
     "automation-script"
    ],
    "detailRef": "e0b7a8bda19d"
+  },
+  {
+   "id": "file:ea061bf19d8c",
+   "type": "file",
+   "title": "scripts/test-tok-special-offer-stock-postgres.mjs",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/test-tok-special-offer-stock-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "automation-script"
+   ],
+   "detailRef": "598ec37d3bcc"
   },
   {
    "id": "file:b1c27aa3f085",
@@ -334520,6 +335197,20 @@
    "detailRef": "9966bd5078c4"
   },
   {
+   "id": "file:8112fb5bb103",
+   "type": "file",
+   "title": "src/test/tok-connect-floorplan-operations.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-floorplan-operations.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "a60451da4f72"
+  },
+  {
    "id": "file:537d4eb1483b",
    "type": "file",
    "title": "src/test/tok-connect-frontend.test.ts",
@@ -334700,6 +335391,34 @@
     "test"
    ],
    "detailRef": "1c56e25b6b5f"
+  },
+  {
+   "id": "file:0ec874e10cc0",
+   "type": "file",
+   "title": "src/test/tok-connect-special-offer-operations.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-special-offer-operations.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "67528246a23b"
+  },
+  {
+   "id": "file:9d4002eb7ad2",
+   "type": "file",
+   "title": "src/test/tok-connect-special-offers-commerce.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-special-offers-commerce.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "c44357daa7d5"
   },
   {
    "id": "file:a14ecd8177d5",
@@ -334966,6 +335685,20 @@
     "test"
    ],
    "detailRef": "61fbe28d4e03"
+  },
+  {
+   "id": "file:8b0388f323e9",
+   "type": "file",
+   "title": "src/test/widget-access-state.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/widget-access-state.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "8fad8055db6a"
   },
   {
    "id": "file:67565aed6ac7",
@@ -336242,6 +336975,20 @@
    "detailRef": "8386e97329b9"
   },
   {
+   "id": "file:3732bbd754e3",
+   "type": "file",
+   "title": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "92930d79a737"
+  },
+  {
    "id": "file:df5ab67802e1",
    "type": "file",
    "title": "supabase/functions/_shared/tok-connect-reservation-intent.ts",
@@ -336282,6 +337029,20 @@
     "edge-function-source"
    ],
    "detailRef": "1dc2eb3fe901"
+  },
+  {
+   "id": "file:e52e04d5f29e",
+   "type": "file",
+   "title": "supabase/functions/_shared/tok-connect-special-offer-operations.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/tok-connect-special-offer-operations.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "b73d3c20d37d"
   },
   {
    "id": "file:013f7ae113e1",
@@ -345804,6 +346565,20 @@
    "detailRef": "028a84525b1a"
   },
   {
+   "id": "file:9f4efef637b8",
+   "type": "file",
+   "title": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "2f223c174f9d"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -349415,7 +350190,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 128 module(s).",
+   "description": "Intégration externe détectée dans 130 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -349504,8 +350279,10 @@
     "src/test/tok-connect-public-actions.test.ts",
     "src/test/tok-connect-reservation-intent.test.ts",
     "src/test/tok-connect-smoke.test.ts",
+    "src/test/tok-connect-special-offers-commerce.test.ts",
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/vercel-rewrites.test.ts",
+    "src/test/widget-access-state.test.ts",
     "supabase/functions/_shared/ai-pricing.ts",
     "supabase/functions/_shared/ai-security.ts",
     "supabase/functions/_shared/commercial-demo-ai.ts",
@@ -349550,7 +350327,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f022c9281b73"
+   "detailRef": "8880b70ae813"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -349646,7 +350423,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 263 module(s).",
+   "description": "Intégration externe détectée dans 264 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -349827,6 +350604,7 @@
     "src/test/tok-connect-delivery-commerce.test.ts",
     "src/test/tok-connect-model-commerce-widget.test.ts",
     "src/test/tok-connect-reservation-intent.test.ts",
+    "src/test/tok-connect-special-offers-commerce.test.ts",
     "src/test/tok-one-management-handler.test.ts",
     "src/test/tok-one-recurring-quote.test.ts",
     "src/test/tok-one-stripe-test-mode.test.ts",
@@ -349916,13 +350694,13 @@
     "supabase/functions/tok-connect-remote-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "bfa5facc4ab3"
+   "detailRef": "1946a0cc69a8"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 734 module(s).",
+   "description": "Intégration externe détectée dans 739 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -349970,6 +350748,7 @@
     "scripts/test-print-protocol-runner.test.mjs",
     "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
     "scripts/test-reservation-notifications-postgres.mjs",
+    "scripts/test-tok-special-offer-stock-postgres.mjs",
     "scripts/tok-connect-smoke.mjs",
     "scripts/verify-supabase-runtime-security.mjs",
     "scripts/write-commercial-demo-secrets-env.mjs",
@@ -350551,6 +351330,7 @@
     "src/test/tok-connect-delivery-commerce.test.ts",
     "src/test/tok-connect-discovery.test.ts",
     "src/test/tok-connect-edge-functions.test.ts",
+    "src/test/tok-connect-floorplan-operations.test.ts",
     "src/test/tok-connect-frontend.test.ts",
     "src/test/tok-connect-full-app-mcp.test.ts",
     "src/test/tok-connect-mcp-http.test.ts",
@@ -350562,6 +351342,8 @@
     "src/test/tok-connect-role-operations.test.ts",
     "src/test/tok-connect-runtime.test.ts",
     "src/test/tok-connect-smoke.test.ts",
+    "src/test/tok-connect-special-offer-operations.test.ts",
+    "src/test/tok-connect-special-offers-commerce.test.ts",
     "src/test/tok-connect-sql.test.ts",
     "src/test/tok-connect-universal-mcp.test.ts",
     "src/test/tok-intelligence-suite.test.ts",
@@ -350575,6 +351357,7 @@
     "src/test/transactional-email-templates.test.ts",
     "src/test/user-facing-errors.test.ts",
     "src/test/vercel-rewrites.test.ts",
+    "src/test/widget-access-state.test.ts",
     "src/test/zero-attente-finalization-governance.test.ts",
     "src/test/zero-attente-free-miamz.test.ts",
     "supabase",
@@ -350663,7 +351446,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "964ce2c31402"
+   "detailRef": "9e22abec5244"
   },
   {
    "id": "integration:c20910a79a78",
@@ -359037,6 +359820,20 @@
    "detailRef": "eaf78fddf7c2"
   },
   {
+   "id": "migration:56a79afa3569",
+   "type": "migration",
+   "title": "20261017004243 Atomic Order Special Offer Stock Restore",
+   "description": "Migration SQL de 338 lignes, 5 objets CREATE détectés.",
+   "path": "supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "a0e1989671a7"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -361993,7 +362790,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 248 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 249 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -362099,6 +362896,7 @@
     "src/test/tok-connect-commerce-handler.test.ts",
     "src/test/tok-connect-delivery-commerce.test.ts",
     "src/test/tok-connect-preview-sandbox.test.tsx",
+    "src/test/tok-connect-special-offers-commerce.test.ts",
     "src/test/tok-logo-calendar.test.ts",
     "src/test/vercel-rewrites.test.ts",
     "supabase/functions/_shared/auth.ts",
@@ -362122,7 +362920,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "37ebaa734a05"
+   "detailRef": "bed8fa25072c"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -365119,7 +365917,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "800fdeb3b93c"
+   "detailRef": "c5d7569db21f"
   },
   {
    "id": "path-literal:dca61cdb37fa",
@@ -366175,7 +366973,7 @@
     "src/test/marketing-agent-bff.test.ts",
     "supabase/functions/tok-connect-app-bridge/index.ts"
    ],
-   "detailRef": "103475c55ca8"
+   "detailRef": "84343f380036"
   },
   {
    "id": "path-literal:4d3338389c80",
@@ -383163,7 +383961,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/tok-connect-remote-mcp/index.ts"
    ],
-   "detailRef": "4aaebe600b3f"
+   "detailRef": "3335986b127d"
   },
   {
    "id": "query-parameter:53f1f1bd6ea8",

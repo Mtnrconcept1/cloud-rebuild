@@ -233,7 +233,13 @@ function isTimeInWindow(target: number, start: number, end: number) {
 }
 
 function toIsoDateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return restaurantLocalDateTime(date).slice(0, 10);
+}
+
+function restaurantLocalDateTime(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Zurich", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).formatToParts(date);
+  const part = (type: string) => parts.find((value) => value.type === type)?.value || "";
+  return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}:${part("second")}`;
 }
 
 function buildLocalDateTime(dateValue: unknown, timeValue: unknown) {
@@ -241,8 +247,10 @@ function buildLocalDateTime(dateValue: unknown, timeValue: unknown) {
   const timeText = String(timeValue || "").trim();
   if (!dateText || !timeText) return null;
 
-  const parsed = new Date(`${dateText}T${timeText}`);
-  return Number.isFinite(parsed.getTime()) ? parsed : null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateText) || !/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?$/.test(timeText)) return null;
+  const parsed = new Date(dateText + "T12:00:00Z");
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== dateText) return null;
+  return dateText + "T" + (timeText.length === 5 ? timeText + ":00" : timeText.slice(0, 8));
 }
 
 function sumQuantitiesByMetadata(items: Array<{ quantity: number; metadata: Record<string, unknown> }>, keys: string[]) {
@@ -263,11 +271,12 @@ function validateAntiWasteOfferAvailability(input: {
   offer: any;
   requestedQuantity: number;
   now: Date;
+  reservedQuantity?: number;
 }) {
   if (!input.offer || !input.offer.is_active) {
     throw new Error("Offre anti-gaspi invalide ou expiree.");
   }
-  if (Number(input.offer.quantity_available || 0) < input.requestedQuantity) {
+  if (Number(input.offer.quantity_available || 0) + (input.reservedQuantity || 0) < input.requestedQuantity) {
     throw new Error("Stock anti-gaspi insuffisant pour cette offre.");
   }
   if (!input.offer.available_date || !input.offer.pickup_start || !input.offer.pickup_end) {
@@ -285,7 +294,7 @@ function validateAntiWasteOfferAvailability(input: {
   if (!pickupStart || !pickupEnd || pickupEnd <= pickupStart) {
     throw new Error("Fenetre de retrait anti-gaspi invalide.");
   }
-  if (availableDate === today && pickupEnd <= input.now) {
+  if (availableDate === today && pickupEnd <= restaurantLocalDateTime(input.now)) {
     throw new Error("Offre anti-gaspi expiree.");
   }
 }
@@ -295,11 +304,12 @@ function validateFlashSaleAvailability(input: {
   requestedQuantity: number;
   now: Date;
   isDeliveryJourney: boolean;
+  reservedQuantity?: number;
 }) {
   if (!input.sale || !input.sale.is_active) {
     throw new Error("Vente flash invalide ou expiree.");
   }
-  if (Number(input.sale.quantity_available || 0) < input.requestedQuantity) {
+  if (Number(input.sale.quantity_available || 0) + (input.reservedQuantity || 0) < input.requestedQuantity) {
     throw new Error("Stock vente flash insuffisant pour cette offre.");
   }
   if (input.isDeliveryJourney && input.sale.delivery_available === false) {
@@ -317,7 +327,8 @@ function validateFlashSaleAvailability(input: {
   if (!saleStart || !saleEnd || saleEnd <= saleStart) {
     throw new Error("Fenetre de vente flash invalide.");
   }
-  if (input.now < saleStart || input.now >= saleEnd) {
+  const localNow = restaurantLocalDateTime(input.now);
+  if (localNow < saleStart || localNow >= saleEnd) {
     throw new Error("Vente flash expiree ou pas encore active.");
   }
 }
@@ -895,6 +906,9 @@ export async function buildVerifiedOrderPricing(input: {
   context?: "cart" | "zero-attente";
   reservationDate?: string;
   reservationTime?: string;
+  // Internal checkout context only; never read reservation credit from metadata.
+  reservedStockCheckoutId?: string;
+  reservedStockOrderId?: string;
 }) : Promise<VerifiedOrderPricing> {
   const requestedDeliveryFee = roundCurrency(Math.max(0, toNumber(input.deliveryFee)));
   const metadata = (input.metadata && typeof input.metadata === "object" && !Array.isArray(input.metadata))
@@ -932,6 +946,31 @@ export async function buildVerifiedOrderPricing(input: {
   ));
   const antiWasteQuantities = sumQuantitiesByMetadata(items, ["anti_waste_offer_id", "offer_id"]);
   const flashSaleQuantities = sumQuantitiesByMetadata(items, ["flash_sale_id"]);
+  const reservedQuantities = new Map<string, number>();
+  if (input.reservedStockCheckoutId && (antiWasteOfferIds.length || flashSaleIds.length)) {
+    if (context !== "cart" || !UUID_REGEX.test(input.reservedStockCheckoutId)) throw new Error("ORDER_RESERVED_STOCK_CONTEXT_INVALID");
+    let orderQuery = input.adminClient.from("orders").select("id,user_id,restaurant_id,checkout_id,status,payment_status")
+      .eq("checkout_id", input.reservedStockCheckoutId).eq("user_id", input.userId).eq("restaurant_id", input.restaurantId);
+    if (input.reservedStockOrderId) orderQuery = orderQuery.eq("id", input.reservedStockOrderId);
+    const { data: reservedOrder, error: orderError } = await orderQuery.maybeSingle();
+    if (orderError || !reservedOrder || reservedOrder.user_id !== input.userId || reservedOrder.restaurant_id !== input.restaurantId
+      || reservedOrder.checkout_id !== input.reservedStockCheckoutId || reservedOrder.status !== "pending_payment"
+      || !["pending", "unpaid", "pending_payment", null].includes(reservedOrder.payment_status)) throw new Error("ORDER_RESERVED_STOCK_IDENTITY_MISMATCH");
+    const { data: reservations, error: ledgerError } = await input.adminClient.from("order_special_offer_stock_reservations")
+      .select("order_id,restaurant_id,kind,offer_id,quantity,restored_at").eq("order_id", reservedOrder.id);
+    if (ledgerError || !reservations?.length) throw new Error("ORDER_RESERVED_STOCK_PROVENANCE_MISSING");
+    const requested = new Map<string, number>([
+      ...Array.from(antiWasteQuantities, ([id, quantity]) => [`anti_waste:${id}`, quantity] as const),
+      ...Array.from(flashSaleQuantities, ([id, quantity]) => [`flash:${id}`, quantity] as const),
+    ]);
+    for (const reservation of reservations) {
+      const key = `${reservation.kind}:${reservation.offer_id}`, quantity = Number(reservation.quantity);
+      if (reservation.order_id !== reservedOrder.id || reservation.restaurant_id !== input.restaurantId || reservation.restored_at !== null
+        || !Number.isSafeInteger(quantity) || quantity <= 0 || requested.get(key) !== quantity || reservedQuantities.has(key)) throw new Error("ORDER_RESERVED_STOCK_QUANTITY_MISMATCH");
+      reservedQuantities.set(key, quantity);
+    }
+    if (reservedQuantities.size !== requested.size) throw new Error("ORDER_RESERVED_STOCK_QUANTITY_MISMATCH");
+  }
 
   const [restaurantRes, activeFlags, menuItemsRes, antiWasteRes, flashSalesRes, formulasRes, promotionsRes, profileRes] = await Promise.all([
     input.adminClient
@@ -1068,6 +1107,7 @@ export async function buildVerifiedOrderPricing(input: {
       if (!offer) throw new Error("Offre anti-gaspi invalide ou expiree.");
       validateAntiWasteOfferAvailability({
         offer,
+        reservedQuantity: reservedQuantities.get(`anti_waste:${antiWasteOfferId}`),
         requestedQuantity: antiWasteQuantities.get(antiWasteOfferId) || item.quantity,
         now,
       });
@@ -1090,6 +1130,7 @@ export async function buildVerifiedOrderPricing(input: {
       if (!sale) throw new Error("Vente flash invalide ou expiree.");
       validateFlashSaleAvailability({
         sale,
+        reservedQuantity: reservedQuantities.get(`flash:${flashSaleId}`),
         requestedQuantity: flashSaleQuantities.get(flashSaleId) || item.quantity,
         now,
         isDeliveryJourney,

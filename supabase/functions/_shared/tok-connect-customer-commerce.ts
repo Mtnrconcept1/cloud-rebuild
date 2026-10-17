@@ -27,6 +27,21 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PAYMENT_ATTEMPT_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const LOCAL_TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+const SPECIAL_ITEM = /^(antigaspi|flash)-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+export function tokCustomerCartItemMetadata(item: TokCustomerCartItem): Record<string, unknown> {
+  const special = SPECIAL_ITEM.exec(item.menu_item_id);
+  if (!special) return {};
+  return special[1].toLowerCase() === "antigaspi"
+    ? { is_anti_gaspi: true, anti_waste_offer_id: special[2].toLowerCase() }
+    : { is_flash_sale: true, flash_sale_id: special[2].toLowerCase() };
+}
+export function assertTokCustomerOfferSlot(input: Pick<TokCustomerCartInput, "journey" | "date" | "time">, offer: Record<string, unknown>, kind: "antigaspi" | "flash") {
+  if (input.journey === "zero-attente" || kind === "antigaspi" && input.journey !== "takeaway") invalid("tok_cart_special_offer_journey_invalid");
+  const date = String(kind === "antigaspi" ? offer.available_date : offer.sale_date);
+  const start = String(kind === "antigaspi" ? offer.pickup_start : offer.sale_start).slice(0, 5);
+  const end = String(kind === "antigaspi" ? offer.pickup_end : offer.sale_end).slice(0, 5);
+  if (!LOCAL_TIME.test(start) || !LOCAL_TIME.test(end) || start >= end || input.date !== date || input.time < start || input.time >= end) invalid("tok_cart_special_offer_pickup_window_invalid");
+}
 
 export class TokCustomerCommerceError extends Error {
   constructor(public readonly status: number, message: string) {
@@ -86,12 +101,14 @@ export function normalizeTokCustomerCart(
   for (const candidate of data.items as unknown[]) {
     if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) invalid("tok_cart_item_invalid");
     const item = candidate as Record<string, unknown>;
-    const id = typeof item.menu_item_id === "string" ? item.menu_item_id.trim() : "";
+    const id = typeof item.menu_item_id === "string" ? item.menu_item_id.trim().toLowerCase() : "";
     const quantity = item.quantity;
-    if (!UUID.test(id) || seen.has(id) || typeof quantity !== "number"
+    if (SPECIAL_ITEM.test(id) && Object.keys(item).some((key) => !["menu_item_id", "quantity"].includes(key))) invalid("tok_cart_item_server_fields_only");
+    if (!(UUID.test(id) || SPECIAL_ITEM.test(id)) || seen.has(id) || typeof quantity !== "number"
       || !Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
       invalid("tok_cart_item_invalid");
     }
+    if (SPECIAL_ITEM.test(id) && (journey === "zero-attente" || id.startsWith("antigaspi-") && journey !== "takeaway")) invalid("tok_cart_special_offer_journey_invalid");
     seen.add(id);
     quantityTotal += quantity;
     items.push({ menu_item_id: id, quantity });

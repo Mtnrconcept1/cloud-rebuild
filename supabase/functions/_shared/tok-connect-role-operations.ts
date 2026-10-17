@@ -1,3 +1,5 @@
+import { TOK_SPECIAL_OFFER_TOOLS, TOK_SPECIAL_OFFER_NAMES, invokeTokSpecialOfferOperation } from "./tok-connect-special-offer-operations.ts";
+import { TOK_FLOORPLAN_OPERATION_TOOLS, TOK_FLOORPLAN_OPERATION_NAMES, invokeTokFloorplanOperation } from "./tok-connect-floorplan-operations.ts";
 import type { RequestActor } from "./auth.ts";
 import { TOK_SERVICE_SETTINGS_FIELDS, TOK_NEW_SERVICE_REQUIRED_FIELDS, prepareTokServiceSettings } from "./tok-connect-service-settings-operations.ts";
 
@@ -23,6 +25,8 @@ function tool(name: string, description: string, properties: RecordValue, requir
   return { name, description, inputSchema: { type: "object", properties: { ...properties, ...(write ? confirmation : {}) }, required: [...required, ...(write ? ["confirmed_by_user", "idempotency_key"] : [])], additionalProperties: false }, annotations: { readOnlyHint: !write, destructiveHint: write, idempotentHint: true, openWorldHint: externalEffects.includes(name) } };
 }
 export const TOK_ROLE_OPERATION_TOOLS = [
+  ...TOK_SPECIAL_OFFER_TOOLS,
+  ...TOK_FLOORPLAN_OPERATION_TOOLS,
   tool("tok_list_my_restaurants", "Lister les restaurants dont je suis propriétaire pour choisir le contexte restaurateur. Aucun accès administratif implicite.", page),
   tool("tok_list_restaurant_reservations", "Consulter les réservations d'un restaurant dont je suis propriétaire, avec leur vrai statut TOK.", { ...restaurant, ...page, date: { type: "string", format: "date" } }, ["restaurant_id"]),
   tool("tok_accept_restaurant_reservation", "Accepter une réservation en attente dans mon restaurant par la mutation native TOK, avec ses notifications. Nécessite une demande explicite de l'utilisateur.", { ...restaurant, reservation_id: uuid }, ["restaurant_id", "reservation_id"], true),
@@ -76,6 +80,8 @@ export const TOK_ROLE_OPERATION_TOOLS = [
 // This inventory deliberately separates backend availability from callable tools.
 // Discovery must never advertise a generic executor as feature parity.
 export const TOK_ROLE_OPERATION_COVERAGE = [
+  { domain: "restaurant.special_offers", status: "partial", tools: TOK_SPECIAL_OFFER_TOOLS.map((tool) => tool.name), remaining: ["offer_edit"] },
+  { domain: "restaurant.floorplan", status: "partial", tools: TOK_FLOORPLAN_OPERATION_TOOLS.map((tool) => tool.name), remaining: ["atomic_multi_reservation_swaps", "decorative_objects", "floorplan_ai", "staff_branch_access", "table_billing_closure"] },
   { domain: "restaurant.reservations", status: "partial", tools: ["tok_list_restaurant_reservations", "tok_accept_restaurant_reservation", "tok_refuse_restaurant_reservation", "tok_update_restaurant_reservation_status"], remaining: ["rescheduling", "billable_table_closure", "floorplan_mutations"] },
   { domain: "restaurant.orders", status: "partial", tools: ["tok_list_restaurant_orders", "tok_update_restaurant_order_status"], remaining: ["refunds", "delivery_completion_by_courier"] },
   { domain: "restaurant.menu_hours_promotions", status: "partial", tools: ["tok_list_restaurant_menu", "tok_create_restaurant_menu_item", "tok_update_restaurant_menu_item", "tok_delete_restaurant_menu_item", "tok_list_restaurant_hours", "tok_update_restaurant_hours", "tok_list_restaurant_promotions", "tok_create_restaurant_promotion", "tok_delete_restaurant_promotion", "tok_set_restaurant_promotion_active"], remaining: ["exceptional_closures", "menu_photos", "promotion_edit"] },
@@ -153,9 +159,11 @@ export async function invokeTokRoleOperation(actor: RequestActor, body: RecordVa
     if (!actor.roles.includes("restaurateur")) return fail(403, "tok_connect_restaurateur_required");
     return ok({ items: await read(client.from("restaurant_subscription_plans").select("id,slug,name,description,price_monthly_chf,currency,features").eq("is_active", true).order("position").range(offset, offset + limit - 1)), limit, offset });
   }
-  if (/^tok_(get|list|update|create|delete|accept|refuse|contact|reply|report)_restaurant_/.test(name) || name === "tok_set_restaurant_promotion_active") {
+  if (/^tok_(get|list|update|create|delete|accept|refuse|contact|reply|report)_restaurant_/.test(name) || name === "tok_set_restaurant_promotion_active" || TOK_SPECIAL_OFFER_NAMES.has(name) || TOK_FLOORPLAN_OPERATION_NAMES.has(name)) {
     const id = String(args.restaurant_id);
     await ownRestaurant(id);
+    if (TOK_SPECIAL_OFFER_NAMES.has(name)) return invokeTokSpecialOfferOperation(name, args, { read, client, mutate: deps.mutate, fail });
+    if (TOK_FLOORPLAN_OPERATION_NAMES.has(name)) return invokeTokFloorplanOperation(name, args, { actor, read, fail, mutate: deps.mutate });
     if (name === "tok_list_restaurant_subscriptions") return ok({ items: await read(client.rpc("get_my_restaurant_ai_subscriptions", { p_restaurant_ids: [id] }).range(offset, offset + limit - 1)), limit, offset });
     if (name === "tok_contact_restaurant_support") return deps.invokeEdge({ confirmed_by_user: args.confirmed_by_user, idempotency_key: args.idempotency_key, capability: "support.contact", payload: { source: "restaurant_dashboard", restaurantId: id, subject: args.subject, message: args.message } });
     if (["tok_get_restaurant_profile", "tok_get_restaurant_delivery_settings", "tok_update_restaurant_profile", "tok_update_restaurant_delivery_settings"].includes(name)) {

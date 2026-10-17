@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `cbaa513babe3d75209ee12552cafb82fbcbd2c7d92ff6a2031eb27991fca3869`
+- Empreinte SHA-256 des sources indexées : `4a1f23dbd4609d3f3123ffa54c00246e723f7d7debc49ba144a42c9ba4ae5289`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2903 |
-| documents | 208 |
+| databaseObjects | 2907 |
+| documents | 209 |
 | edgeFunctions | 118 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3615 |
+| exportedSymbols | 3623 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 549 |
-| modules | 1627 |
+| migrations | 550 |
+| modules | 1634 |
 | pages | 133 |
 | pathLiterals | 758 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 111 |
-| records | 17273 |
-| repositoryFiles | 3268 |
+| records | 17310 |
+| repositoryFiles | 3278 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -572,7 +572,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | sync-apple-storekit | [supabase/functions/sync-apple-storekit/index.ts:1](../../supabase/functions/sync-apple-storekit/index.ts#L1) | oui ([supabase/config.toml:281](../../supabase/config.toml#L281)) | false | POST | — | — |
 | tok-connect-admin | [supabase/functions/tok-connect-admin/index.ts:1](../../supabase/functions/tok-connect-admin/index.ts#L1) | oui ([supabase/config.toml:341](../../supabase/config.toml#L341)) | false | POST | admin-overview, admin-restaurants, set-restaurant-mcp-access | supabase |
 | tok-connect-api | [supabase/functions/tok-connect-api/index.ts:1](../../supabase/functions/tok-connect-api/index.ts#L1) | oui ([supabase/config.toml:329](../../supabase/config.toml#L329)) | false | GET, POST | — | — |
-| tok-connect-app-bridge | [supabase/functions/tok-connect-app-bridge/index.ts:1](../../supabase/functions/tok-connect-app-bridge/index.ts#L1) | oui ([supabase/config.toml:347](../../supabase/config.toml#L347)) | false | GET, POST | cancel_attempt, checkout, insert, list, select, status, update | stripe, supabase |
+| tok-connect-app-bridge | [supabase/functions/tok-connect-app-bridge/index.ts:1](../../supabase/functions/tok-connect-app-bridge/index.ts#L1) | oui ([supabase/config.toml:347](../../supabase/config.toml#L347)) | false | GET, POST | cancel_attempt, checkout, insert, list, select, special_offers, status, update | stripe, supabase |
 | tok-connect-chatgpt | [supabase/functions/tok-connect-chatgpt/index.ts:1](../../supabase/functions/tok-connect-chatgpt/index.ts#L1) | oui ([supabase/config.toml:350](../../supabase/config.toml#L350)) | false | GET, POST | — | openai, supabase |
 | tok-connect-commercial-bridge | [supabase/functions/tok-connect-commercial-bridge/index.ts:1](../../supabase/functions/tok-connect-commercial-bridge/index.ts#L1) | oui ([supabase/config.toml:353](../../supabase/config.toml#L353)) | false | POST | demo_session, list, read, rpc | supabase |
 | tok-connect-full-app-mcp | [supabase/functions/tok-connect-full-app-mcp/index.ts:1](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L1) | oui ([supabase/config.toml:335](../../supabase/config.toml#L335)) | false | GET, POST | — | google, openai, stripe, supabase, vercel |
@@ -1239,7 +1239,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 248 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 249 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:81](../../src/test/application-search-index.test.ts#L81) |
@@ -2413,7 +2413,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (792)</summary>
+<details><summary>function (794)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2743,7 +2743,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.count_restaurant_actualites_like_audience` (1 définition(s))
 - `public.create_chef_table_checkout_hold` (1 définition(s))
 - `public.create_match_group` (3 définition(s))
-- `public.create_order_with_items` (6 définition(s))
+- `public.create_order_with_items` (7 définition(s))
 - `public.create_order_with_items_idempotent` (1 définition(s))
 - `public.create_premium_actualites_banner` (1 définition(s))
 - `public.create_social_post_boost_atomic` (1 définition(s))
@@ -2865,6 +2865,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.guard_reservation_table_slot` (1 définition(s))
 - `public.guard_restaurant_image_client_writes` (1 définition(s))
 - `public.guard_restaurant_tok_credit_spend` (2 définition(s))
+- `public.guard_special_offer_stock_capture` (1 définition(s))
 - `public.handle_email_confirmation` (2 définition(s))
 - `public.handle_new_user` (8 définition(s))
 - `public.has_role` (1 définition(s))
@@ -3077,6 +3078,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restaurant_upsert_anti_waste_offer` (1 définition(s))
 - `public.restaurant_upsert_flash_sale` (1 définition(s))
 - `public.restaurants_enqueue_directory_cuisine_osm_research` (1 définition(s))
+- `public.restore_order_special_offer_stock` (1 définition(s))
 - `public.restore_restaurant_commission_dispute` (1 définition(s))
 - `public.restore_special_offer_stock` (1 définition(s))
 - `public.resume_fair_growth_module` (1 définition(s))
@@ -4707,7 +4709,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (367)</summary>
+<details><summary>table (368)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -4897,6 +4899,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.order_items` (2 définition(s))
 - `public.order_notes` (1 définition(s))
 - `public.order_refunds` (1 définition(s))
+- `public.order_special_offer_stock_reservations` (1 définition(s))
 - `public.order_status_history` (1 définition(s))
 - `public.order_taxes` (1 définition(s))
 - `public.orders` (1 définition(s))
@@ -5079,7 +5082,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (250)</summary>
+<details><summary>trigger (251)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -5129,6 +5132,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `guard_reservation_card_guarantee_insert` (1 définition(s))
 - `guard_restaurant_image_client_writes_on_write` (1 définition(s))
 - `guard_restaurateur_signup_approval_payment` (1 définition(s))
+- `guard_special_offer_stock_capture` (1 définition(s))
 - `guard_tok_credit_spend_ad_campaigns` (1 définition(s))
 - `guard_tok_credit_spend_ai_usage_logs` (1 définition(s))
 - `invalidate_commercial_signup_referrals` (1 définition(s))
@@ -6192,6 +6196,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261016234832 Reservation Request Idempotency | 75 | 3 | [supabase/migrations/20261016234832_reservation_request_idempotency.sql:1](../../supabase/migrations/20261016234832_reservation_request_idempotency.sql#L1) |
 | 20261017000033 Email Provider Delivery Reconciliation | 27 | 2 | [supabase/migrations/20261017000033_email_provider_delivery_reconciliation.sql:1](../../supabase/migrations/20261017000033_email_provider_delivery_reconciliation.sql#L1) |
 | 20261017000200 Reservation Guarantee Request Idempotency | 66 | 3 | [supabase/migrations/20261017000200_reservation_guarantee_request_idempotency.sql:1](../../supabase/migrations/20261017000200_reservation_guarantee_request_idempotency.sql#L1) |
+| 20261017004243 Atomic Order Special Offer Stock Restore | 338 | 5 | [supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql:1](../../supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6413,12 +6418,12 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 119 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 128 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 130 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 35 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 263 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 734 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 264 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 739 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6429,9 +6434,9 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 210 |
-| automation-script | 69 |
+| automation-script | 70 |
 | documentation | 6 |
-| edge-function-source | 207 |
+| edge-function-source | 209 |
 | frontend-component | 274 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
@@ -6439,7 +6444,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 649 |
+| test | 653 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6519,6 +6524,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Supabase Backend Review | 6 | [codex-skills/mobile-fullstack-architect/references/supabase-backend.md:1](../../codex-skills/mobile-fullstack-architect/references/supabase-backend.md#L1) |
 | Centre d’opérations marketing TheTOK | 11 | [docs/MARKETING_OPERATIONS_CENTER.md:1](../../docs/MARKETING_OPERATIONS_CENTER.md#L1) |
 | Print fulfillment protocol — controlled rollout and recovery | 5 | [docs/PRINT_FULFILLMENT_PROTOCOL.md:1](../../docs/PRINT_FULFILLMENT_PROTOCOL.md#L1) |
+| MCP — plan de salle restaurateur | 2 | [docs/TOK_MCP_FLOORPLAN_OPERATIONS.md:1](../../docs/TOK_MCP_FLOORPLAN_OPERATIONS.md#L1) |
 | État d’exécution TOK observé le 3 octobre 2026 | 6 | [docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md:1](../../docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md#L1) |
 | Audit Execution Plan | 22 | [docs/audit-execution-plan.md:1](../../docs/audit-execution-plan.md#L1) |
 | Supabase production audit — project `wwcrtyoueexyxkkikaos` (Tok) | 12 | [docs/audits/2026-04-18-supabase-production-audit.md:1](../../docs/audits/2026-04-18-supabase-production-audit.md#L1) |
@@ -6641,7 +6647,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Recette de sécurité checkout et menus — issue #710 | 8 | [docs/testing/checkout-security-710.md:1](../../docs/testing/checkout-security-710.md#L1) |
 | Plan de tests lancement 10k | 6 | [docs/testing/launch-10k-load-plan.md:1](../../docs/testing/launch-10k-load-plan.md#L1) |
 | Tests de garde Supabase / RPC | 7 | [docs/testing/supabase-rpc-guards.md:1](../../docs/testing/supabase-rpc-guards.md#L1) |
-| Livraison de la parité fonctionnelle TOK Connect | 8 | [docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md:1](../../docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md#L1) |
+| Livraison de la parité fonctionnelle TOK Connect | 10 | [docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md:1](../../docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md#L1) |
 | Publication Suisse | 3 | [docs/tok-connect/PUBLICATION.md:1](../../docs/tok-connect/PUBLICATION.md#L1) |
 | TOK Connect | 18 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
 | TOK Connect Remote MCP | 9 | [docs/tok-connect/REMOTE_MCP.md:1](../../docs/tok-connect/REMOTE_MCP.md#L1) |
@@ -6936,7 +6942,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (78)</summary>
+<details><summary>automation-script (80)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -6998,6 +7004,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/scale-readiness-check.mjs`
 - `scripts/search-application-index.mjs`
 - `scripts/seo-query-retry.mjs`
+- `scripts/sql/tok-special-offer-legacy-preflight.sql`
 - `scripts/supabase-ci-retry.sh`
 - `scripts/supabase-db-push.mjs`
 - `scripts/supabase-doctor.mjs`
@@ -7009,6 +7016,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/test-print-protocol-postgres.mjs`
 - `scripts/test-reservation-guarantee-idempotency-postgres.mjs`
 - `scripts/test-reservation-notifications-postgres.mjs`
+- `scripts/test-tok-special-offer-stock-postgres.mjs`
 - `scripts/tok-connect-smoke.mjs`
 - `scripts/verify-supabase-runtime-security.mjs`
 - `scripts/write-apple-app-site-association.mjs`
@@ -7053,7 +7061,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (549)</summary>
+<details><summary>database-migration (550)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7604,13 +7612,15 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261016234832_reservation_request_idempotency.sql`
 - `supabase/migrations/20261017000033_email_provider_delivery_reconciliation.sql`
 - `supabase/migrations/20261017000200_reservation_guarantee_request_idempotency.sql`
+- `supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql`
 
 </details>
 
-<details><summary>documentation (161)</summary>
+<details><summary>documentation (162)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
+- `docs/TOK_MCP_FLOORPLAN_OPERATIONS.md`
 - `docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md`
 - `docs/architecture/tok-runtime-evidence-2026-10-03.json`
 - `docs/assets-archive/intro.mp4`
@@ -7773,7 +7783,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (207)</summary>
+<details><summary>edge-function-source (209)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7849,9 +7859,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/tok-connect-delivery-address.ts`
 - `supabase/functions/_shared/tok-connect-discovery-widget.ts`
 - `supabase/functions/_shared/tok-connect-discovery.ts`
+- `supabase/functions/_shared/tok-connect-floorplan-operations.ts`
 - `supabase/functions/_shared/tok-connect-reservation-intent.ts`
 - `supabase/functions/_shared/tok-connect-role-operations.ts`
 - `supabase/functions/_shared/tok-connect-service-settings-operations.ts`
+- `supabase/functions/_shared/tok-connect-special-offer-operations.ts`
 - `supabase/functions/_shared/tok-connect.ts`
 - `supabase/functions/_shared/tok-one-recurring-quote.ts`
 - `supabase/functions/_shared/tok-one.ts`
@@ -9341,7 +9353,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (649)</summary>
+<details><summary>test (653)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9950,6 +9962,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-delivery-commerce.test.ts`
 - `src/test/tok-connect-discovery.test.ts`
 - `src/test/tok-connect-edge-functions.test.ts`
+- `src/test/tok-connect-floorplan-operations.test.ts`
 - `src/test/tok-connect-frontend.test.ts`
 - `src/test/tok-connect-full-app-mcp.test.ts`
 - `src/test/tok-connect-legal-content.test.ts`
@@ -9963,6 +9976,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-role-operations.test.ts`
 - `src/test/tok-connect-runtime.test.ts`
 - `src/test/tok-connect-smoke.test.ts`
+- `src/test/tok-connect-special-offer-operations.test.ts`
+- `src/test/tok-connect-special-offers-commerce.test.ts`
 - `src/test/tok-connect-sql.test.ts`
 - `src/test/tok-connect-universal-mcp.test.ts`
 - `src/test/tok-connect.test.ts`
@@ -9982,6 +9997,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/user-facing-errors.test.ts`
 - `src/test/user-guide.test.ts`
 - `src/test/vercel-rewrites.test.ts`
+- `src/test/widget-access-state.test.ts`
 - `src/test/zero-attente-finalization-governance.test.ts`
 - `src/test/zero-attente-free-miamz.test.ts`
 - `src/test/zero-attente-reservation-context.test.ts`

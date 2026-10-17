@@ -759,17 +759,24 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     return 'tok-widget-' + String(Date.now()) + '-' + Math.random().toString(36).slice(2);
   }
 
-  function startBooking(detail, slot) {
+  function bookingErrorMessage(error) {
+    var message = String(error && error.message || error || 'Action TOK indisponible.');
+    if ((/required_roles|roles_required|actual_roles|Forbidden/i.test(message) && /client/i.test(message))
+      || /client_required|client_role_required/i.test(message)) return 'Utilisez un compte client TOK pour réserver';
+    return message;
+  }
+
+  function startBooking(detail, slot, intent) {
     if (!detail || !detail.id) return;
     var current = state.booking;
     if (current && ['processing', 'uncertain', 'guarantee'].indexOf(current.step) >= 0) {
       state.selectedId = current.restaurantId; state.view = 'detail'; render(); return;
     }
-    var date = detail.availability && detail.availability.date || state.payload && state.payload.date || '';
+    var date = intent && intent.date || detail.availability && detail.availability.date || state.payload && state.payload.date || '';
     state.booking = {
-      restaurantId: detail.id, name: detail.name,
+      restaurantId: detail.id, name: detail.name, bookingUnavailable: detail.supports_reservation === false,
       date: date, time: slot && slot.time || '', timezone: 'Europe/Zurich',
-      partySize: Math.max(1, Math.min(20, Number(state.payload && state.payload.party_size) || 2)),
+      partySize: Math.max(1, Math.min(20, Number(intent && intent.party_size || state.payload && state.payload.party_size) || 2)),
       slots: detail.availability && Array.isArray(detail.availability.slots) ? detail.availability.slots : [],
       step: 'draft', quote: null, quoteLoading: false, loadingSlots: false,
       quoteError: null, guaranteeAccepted: false, error: null, result: null, idempotencyKey: null
@@ -778,13 +785,14 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       state.booking.partySize = current.partySize;
     }
     render();
+    if (state.booking.bookingUnavailable) return;
     loadBookingQuote();
     if (!state.booking.slots.length && date) loadBookingSlots(detail);
   }
 
   function loadBookingQuote() {
     var booking = state.booking;
-    if (!booking || booking.quoteLoading) return;
+    if (!booking || booking.bookingUnavailable || booking.quoteLoading) return;
     booking.quoteLoading = true; booking.quoteError = null; booking.quote = null;
     var capturedSize = booking.partySize;
     render();
@@ -792,7 +800,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       if (state.booking === booking && booking.partySize === capturedSize) booking.quote = quote;
     }).catch(function (error) {
       if (state.booking === booking && booking.partySize === capturedSize)
-        booking.quoteError = String(error.message || error);
+        booking.quoteError = bookingErrorMessage(error);
     }).finally(function () {
       if (state.booking === booking) { booking.quoteLoading = false; render(); }
     });
@@ -800,7 +808,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
 
   function loadBookingSlots(detail) {
     var booking = state.booking;
-    if (!booking || booking.loadingSlots || !booking.date) return;
+    if (!booking || booking.bookingUnavailable || detail.supports_reservation === false || booking.loadingSlots || !booking.date) return;
     booking.loadingSlots = true; booking.error = null;
     var date = booking.date;
     var size = booking.partySize;
@@ -818,7 +826,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         };
       }).filter(function (slot) { return /^\\d{2}:\\d{2}$/.test(slot.time); });
     }).catch(function (error) {
-      if (state.booking === booking) booking.error = String(error.message || error);
+      if (state.booking === booking) booking.error = bookingErrorMessage(error);
     }).finally(function () {
       if (state.booking === booking) { booking.loadingSlots = false; render(); }
     });
@@ -835,7 +843,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
 
   function confirmBooking() {
     var booking = state.booking;
-    if (!booking || ['draft', 'uncertain'].indexOf(booking.step) < 0 || !booking.quote || !booking.date || !booking.time
+    if (!booking || booking.bookingUnavailable || ['draft', 'uncertain'].indexOf(booking.step) < 0 || !booking.quote || !booking.date || !booking.time
       || !/^\\d{4}-\\d{2}-\\d{2}$/.test(booking.date) || !/^\\d{2}:\\d{2}$/.test(booking.time)) return;
     if (booking.quote.required && !booking.guaranteeAccepted) {
       booking.error = 'Acceptez les conditions de garantie bancaire avant de continuer.';
@@ -863,7 +871,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       if (state.booking === booking) {
         booking.step = error.retrySafe === true ? 'draft' : 'uncertain';
         if (error.retrySafe === true) { booking.idempotencyKey = null; booking.quote = null; }
-        booking.error = String(error.message || error);
+        booking.error = bookingErrorMessage(error);
       }
     }).finally(function () { if (state.booking === booking) { persist(); render(); } });
   }
@@ -923,7 +931,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         })
       ])
     ]));
-    inputs.push(h('button', { class: 'btn', type: 'button', disabled: booking.loadingSlots || !booking.date,
+    inputs.push(h('button', { class: 'btn', type: 'button', disabled: booking.bookingUnavailable || booking.loadingSlots || !booking.date,
       onClick: function () { loadBookingSlots(detail); }
     }, booking.loadingSlots ? 'Vérification…' : 'Actualiser les créneaux'));
     var slots = Array.isArray(booking.slots) ? booking.slots : [];
@@ -939,6 +947,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     if (booking.date && booking.time) inputs.push(h('p', { class: 'booking-message',
       text: booking.partySize + ' personne(s) · ' + formatDate(booking.date) + ' · ' + booking.time
     }));
+    if (booking.bookingUnavailable || detail.supports_reservation === false) inputs.push(h('p', { class: 'booking-error', role: 'alert', text: 'Ce restaurant n’accepte pas les réservations de table sur TOK.' }));
     if (booking.quoteLoading) inputs.push(h('p', { class: 'booking-message', text: 'Vérification de la garantie bancaire…' }));
     if (booking.quoteError) inputs.push(h('p', { class: 'booking-error', text: booking.quoteError }));
     if (booking.quote && booking.quote.required) {
@@ -954,7 +963,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     }
     if (booking.error) inputs.push(h('p', { class: 'booking-error', role: 'alert', text: booking.error }));
     inputs.push(h('button', { class: 'btn primary', type: 'button',
-      disabled: booking.step === 'processing' || !booking.quote || !booking.time || !booking.date
+      disabled: booking.bookingUnavailable || detail.supports_reservation === false || booking.step === 'processing' || !booking.quote || !booking.time || !booking.date
         || (booking.quote.required && !booking.guaranteeAccepted),
       onClick: confirmBooking
     }, booking.step === 'processing' ? 'Confirmation TOK en cours…' : 'Confirmer cette réservation'));
@@ -1084,6 +1093,32 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     return Object.keys(cart.items).map(function (id) {
       return { menu_item_id: id, quantity: Number(cart.items[id]) };
     }).filter(function (item) { return Number.isInteger(item.quantity) && item.quantity > 0; });
+  }
+
+  function loadSpecialOffers(detail) {
+    invokeTokTool('tok_list_customer_special_offers', { restaurant_id: detail.id }).then(function (result) {
+      ingestModelCommerce(result.commerce_result || result); render();
+    }).catch(function (error) { state.errorId = String(error.message || error); render(); });
+  }
+  function specialOffersPanel(detail) {
+    var offers = state.specialOffers && state.specialOffers[detail.id];
+    if (!Array.isArray(offers)) return null;
+    return h('section', { class: 'panel' }, [h('h3', { text: 'Offres anti-gaspi et ventes flash' }),
+      h('p', { text: 'Stocks indicatifs, revérifiés par TOK avant paiement. Aucun stock réservé à ce stade.' })].concat(offers.map(function (offer) {
+      return h('div', { class: 'tok-cart-line' }, [h('div', null, [h('strong', { text: offer.name }),
+        h('p', { text: formatPrice(offer.unit_amount_cents / 100, 'CHF') + ' · ' + formatDate(offer.date) + ' · ' + offer.start_time + '–' + offer.end_time })]),
+        h('button', { class: 'btn', type: 'button', disabled: state.cart && !!state.cart.attemptId,
+          onClick: function () {
+            if (state.cart && state.cart.attemptId) return;
+            state.cart = { restaurantId: detail.id, journey: offer.takeaway_available ? 'takeaway' : 'delivery',
+              date: offer.date, time: '', partySize: 1, paymentMethod: 'card', deliveryAddress: '', notes: '',
+              items: {}, menu: [{ id: offer.menu_item_id, name: offer.name, price: offer.unit_amount_cents / 100 }],
+              quote: null, quoteLoading: false, menuLoading: false, stage: 'draft', attemptId: null,
+              checkoutUrl: null, error: null, message: 'Choisissez votre heure dans la fenêtre ' + offer.start_time + '–' + offer.end_time + ', puis vérifiez le prix.' };
+            state.cart.items[offer.menu_item_id] = 1; persist(); render();
+          }
+        }, 'Choisir cette offre')]);
+    })));
   }
   function cartArguments(cart) {
     return { restaurant_id: cart.restaurantId, journey: cart.journey,
@@ -1420,6 +1455,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     }
 
     var actions = [];
+    actions.push(h('button', { class: 'btn', type: 'button', onClick: function () { loadSpecialOffers(detail); } }, 'Offres anti-gaspi et flash'));
     if (detail.supports_reservation) {
       actions.push(h('button', {
         class: 'btn primary', type: 'button',
@@ -1456,6 +1492,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       ]) : null,
       h('div', { class: 'detail-grid' }, [infoPanel(detail), hoursPanel(detail), availabilityPanel(detail), menuPanel(detail), tagsPanel(detail)].filter(Boolean)),
       bookingPanel(detail),
+      specialOffersPanel(detail),
       cartPanel(detail),
       actions.length ? h('div', { class: 'detail-actions' }, actions) : null
     ]);
@@ -1609,7 +1646,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     if (snapshot.items && typeof snapshot.items === 'object' && !Array.isArray(snapshot.items)) {
       Object.keys(snapshot.items).slice(0, 24).forEach(function (key) {
         var amount = snapshot.items[key];
-        if (/^[0-9a-f-]{36}$/i.test(key) && Number.isInteger(amount) && amount > 0 && amount <= 20) {
+        if (/^(?:(?:antigaspi|flash)-)?[0-9a-f-]{36}$/i.test(key) && Number.isInteger(amount) && amount > 0 && amount <= 20) {
           items[key] = amount;
         }
       });
@@ -1642,6 +1679,17 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         return item && typeof item.id === 'string' && /^[0-9a-f-]{36}$/i.test(item.id)
           && item.is_available !== false && isFinite(Number(item.price));
       }).slice(0, 100);
+      var specialIds = Object.keys(restored.items).filter(function (key) { return /^(?:antigaspi|flash)-/.test(key); });
+      if (specialIds.length) return invokeTokTool('tok_list_customer_special_offers', { restaurant_id: id }).then(function (offersResult) {
+        if (state.cart !== restored) return;
+        var offers = Array.isArray(offersResult.offers) ? offersResult.offers : [];
+        offers.filter(function (offer) { return specialIds.indexOf(offer.menu_item_id) >= 0 && Number.isSafeInteger(offer.unit_amount_cents); }).forEach(function (offer) {
+          restored.menu.push({ id: offer.menu_item_id, name: offer.name, price: offer.unit_amount_cents / 100 });
+        });
+        if (specialIds.some(function (key) { return !restored.menu.some(function (item) { return item.id === key; }); })) {
+          restored.error = 'Une offre sélectionnée n’est plus disponible. La tentative existante reste verrouillée jusqu’à sa vérification ou annulation.';
+        }
+      });
     }).catch(function (error) {
       if (state.cart === restored) restored.error = String(error.message || error);
     }).finally(function () {
@@ -1667,6 +1715,17 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       existing.error = 'Une tentative de paiement existe déjà. Vérifiez-la ou annulez-la avant de changer de panier.';
       state.selectedId = existing.restaurantId; state.view = 'detail'; return;
     }
+    if (result.action === 'special_offers' && /^[0-9a-f-]{36}$/i.test(result.restaurant_id || '')) {
+      var offerDetail = state.details[result.restaurant_id] || { id: result.restaurant_id, name: result.restaurant_name || 'Restaurant TOK', kind: 'restaurant_detail' };
+      state.details[result.restaurant_id] = offerDetail;
+      state.payload = state.payload || { restaurants: [], detail: offerDetail, groups: [], notes: [] };
+      state.specialOffers = state.specialOffers || {};
+      state.specialOffers[result.restaurant_id] = (Array.isArray(result.offers) ? result.offers : []).filter(function (offer) {
+        return offer && /^(?:antigaspi|flash)-[0-9a-f-]{36}$/i.test(offer.menu_item_id || '') && Number.isSafeInteger(offer.unit_amount_cents)
+          && offer.unit_amount_cents >= 0 && (offer.takeaway_available || offer.delivery_available);
+      });
+      state.selectedId = result.restaurant_id; state.view = 'detail'; return;
+    }
     if (result.action === 'quote' || result.action === 'checkout') {
       var source = quote || context;
       var id = String(source.restaurant_id || context.restaurant_id || '');
@@ -1674,7 +1733,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       var chosen = Array.isArray(source.items) ? source.items : [];
       var items = {}, menu = [];
       chosen.slice(0, 24).forEach(function (item) {
-        if (!item || !/^[0-9a-f-]{36}$/i.test(item.menu_item_id || '')
+        if (!item || !/^(?:(?:antigaspi|flash)-)?[0-9a-f-]{36}$/i.test(item.menu_item_id || '')
           || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 20) return;
         items[item.menu_item_id] = item.quantity;
         if (typeof item.name === 'string' && Number.isSafeInteger(item.unit_amount_cents)) {
@@ -1727,6 +1786,10 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     }
 
     var rawOutput = unwrap(globals.toolOutput);
+    if (rawOutput && rawOutput.ok !== false && rawOutput.kind === 'reservations' && Array.isArray(rawOutput.items)) {
+      state.historyItems = rawOutput.items.filter(function (item) { return item && typeof item === 'object' && typeof item.id === 'string'; }).map(function (item) { return Object.assign({}, item); });
+      state.historyLoading = false; state.historyError = null; state.view = 'history';
+    }
     var commerceOutput = rawOutput && rawOutput.commerce_result;
     if (commerceOutput && typeof commerceOutput === 'object') ingestModelCommerce(commerceOutput);
     var next = toPayload(globals.toolOutput);
@@ -1744,7 +1807,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         if (intent && intent.restaurant_id === next.detail.id && state.preparedIntentKey !== intentKey
           && (!state.booking || ['draft', 'confirmed'].indexOf(state.booking.step) >= 0)) {
           state.preparedIntentKey = intentKey;
-          startBooking(next.detail, intent.time ? { time: intent.time } : null);
+          startBooking(next.detail, intent.time ? { time: intent.time } : null, intent);
           state.booking.partySize = intent.party_size;
           state.booking.date = intent.date;
           state.booking.timezone = intent.timezone || 'Europe/Zurich';
