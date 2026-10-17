@@ -743,12 +743,21 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
     const status = await postCustomerTokFunction(req, "payment-attempt-status", {
       payment_attempt_id: id,
     });
-    const url = safeTokCommerceCheckoutUrl(status.url);
+    // Stripe can have received funds while TOK is still persisting the order.
+    // A signed and finalized TOK webhook is a different fact from "Stripe paid".
+    const tokFinalized = status.webhook_received === true && status.state === "finalized";
+    const paymentReceived = tokFinalized || status.payment_received === true
+      || status.payment_status === "paid" || status.state === "paid" || status.state === "finalized";
+    const url = paymentReceived ? null : safeTokCommerceCheckoutUrl(status.url);
     return {
       statusCode: 200,
       payload: { ok: true, action: "status", payment_attempt_id: id,
         state: status.state || status.status || null,
-        checkout_url: url, paid: status.payment_status === "paid" || status.state === "paid" || status.state === "finalized" },
+        checkout_url: url,
+        paid: paymentReceived,
+        tok_finalized: tokFinalized,
+        reconciliation_pending: paymentReceived && !tokFinalized,
+        provider_indeterminate: status.indeterminate === true && !tokFinalized },
     };
   }
   if (action !== "quote" && action !== "checkout") {
