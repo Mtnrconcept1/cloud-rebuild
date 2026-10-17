@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `4a1f23dbd4609d3f3123ffa54c00246e723f7d7debc49ba144a42c9ba4ae5289`
+- Empreinte SHA-256 des sources indexées : `9e66b48ff4156ee206f74fd4e949a01f1035a9f9d4bc702b81f23c6dcfad8070`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,24 +29,24 @@
 | cronJobs | 34 |
 | databaseContract | 228 |
 | databaseObjects | 2907 |
-| documents | 209 |
+| documents | 210 |
 | edgeFunctions | 118 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3623 |
+| exportedSymbols | 3627 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 550 |
-| modules | 1634 |
+| modules | 1636 |
 | pages | 133 |
 | pathLiterals | 758 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
-| queryParameters | 111 |
-| records | 17310 |
-| repositoryFiles | 3278 |
+| queryParameters | 112 |
+| records | 17326 |
+| repositoryFiles | 3281 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1497,7 +1497,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /functions/v1/daily-dish-ai?user=891a6eef-5be3-4d4a-9887-2e4f27bf39ee | 1 | [src/test/incident-intelligence-routing.test.ts:95](../../src/test/incident-intelligence-routing.test.ts#L95) |
 | /functions/v1/dispatch-order | 1 | [src/test/dispatch-client-fallback.test.ts:18](../../src/test/dispatch-client-fallback.test.ts#L18) |
 | /functions/v1/marketing-orchestrator | 1 | [src/test/marketing-meta-bff.test.ts:6](../../src/test/marketing-meta-bff.test.ts#L6) |
-| /functions/v1/stripe-webhook | 1 | [src/test/checkout-stripe-guards.test.ts:182](../../src/test/checkout-stripe-guards.test.ts#L182) |
+| /functions/v1/stripe-webhook | 6 | [scripts/verify-tok-stripe-test-webhooks.mjs:32](../../scripts/verify-tok-stripe-test-webhooks.mjs#L32) |
 | /functions/v1/tok-pulse-widget | 2 | [src/pages/TokPulse.tsx:57](../../src/pages/TokPulse.tsx#L57) |
 | /galerie | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
 | /gallery | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
@@ -2049,7 +2049,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | lat | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 2 | [src/pages/LocalRestaurants.tsx:475](../../src/pages/LocalRestaurants.tsx#L475) |
 | layer | — | 1 | [src/test/tok-connect-delivery-address.test.ts:16](../../src/test/tok-connect-delivery-address.test.ts#L16) |
 | layers | — | 1 | [src/test/home-canton-hero.test.ts:58](../../src/test/home-canton-hero.test.ts#L58) |
-| limit | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 13 | [scripts/app-store-connect-preflight.mjs:77](../../scripts/app-store-connect-preflight.mjs#L77) |
+| limit | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 14 | [scripts/app-store-connect-preflight.mjs:77](../../scripts/app-store-connect-preflight.mjs#L77) |
 | lng | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 1 | [src/pages/LocalRestaurants.tsx:478](../../src/pages/LocalRestaurants.tsx#L478) |
 | lon | — | 1 | [src/test/address-autocomplete-location-bias.test.tsx:78](../../src/test/address-autocomplete-location-bias.test.tsx#L78) |
 | match_group_authorized | /match-groupes | 2 | [src/pages/MatchGroupes.tsx:389](../../src/pages/MatchGroupes.tsx#L389) |
@@ -2097,6 +2097,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | sort | /recherche | 1 | [src/pages/Recherche.tsx:249](../../src/pages/Recherche.tsx#L249) |
 | source | /mon-espace | 1 | [public/manifest.json:50](../../public/manifest.json#L50) |
 | sr | — | 1 | [src/test/home-canton-hero.test.ts:56](../../src/test/home-canton-hero.test.ts#L56) |
+| starting_after | — | 1 | [scripts/verify-tok-stripe-test-webhooks.mjs:64](../../scripts/verify-tok-stripe-test-webhooks.mjs#L64) |
 | state | — | 2 | [supabase/functions/tok-connect-oauth/index.ts:222](../../supabase/functions/tok-connect-oauth/index.ts#L222) |
 | status | /chefs-table, /dashboard, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 12 | [src/lib/iosCommerceFetch.ts:137](../../src/lib/iosCommerceFetch.ts#L137) |
 | stripe_session_id | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:81](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L81) |
@@ -6422,8 +6423,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 35 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 264 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 739 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 266 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 741 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6434,7 +6435,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 210 |
-| automation-script | 70 |
+| automation-script | 71 |
 | documentation | 6 |
 | edge-function-source | 209 |
 | frontend-component | 274 |
@@ -6444,7 +6445,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 653 |
+| test | 654 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6651,6 +6652,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Publication Suisse | 3 | [docs/tok-connect/PUBLICATION.md:1](../../docs/tok-connect/PUBLICATION.md#L1) |
 | TOK Connect | 18 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
 | TOK Connect Remote MCP | 9 | [docs/tok-connect/REMOTE_MCP.md:1](../../docs/tok-connect/REMOTE_MCP.md#L1) |
+| TOK Connect — contrôle des webhooks Stripe Test | 5 | [docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md:1](../../docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md#L1) |
 | Recette TOK Connect dans ChatGPT | 8 | [docs/tok-connect/TESTING.md:1](../../docs/tok-connect/TESTING.md#L1) |
 | TOK Connect Full App MCP (surface historique interne) | 9 | [docs/tok-connect/full-app-mcp.md:1](../../docs/tok-connect/full-app-mcp.md#L1) |
 | Espace Comptabilité Administrateur | 11 | [implementation_plan_compta.md:1](../../implementation_plan_compta.md#L1) |
@@ -6942,7 +6944,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (80)</summary>
+<details><summary>automation-script (81)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7019,6 +7021,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/test-tok-special-offer-stock-postgres.mjs`
 - `scripts/tok-connect-smoke.mjs`
 - `scripts/verify-supabase-runtime-security.mjs`
+- `scripts/verify-tok-stripe-test-webhooks.mjs`
 - `scripts/write-apple-app-site-association.mjs`
 - `scripts/write-commercial-demo-secrets-env.mjs`
 - `scripts/write-production-env.mjs`
@@ -7616,7 +7619,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (162)</summary>
+<details><summary>documentation (163)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7778,6 +7781,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/tok-connect/PUBLICATION.md`
 - `docs/tok-connect/README.md`
 - `docs/tok-connect/REMOTE_MCP.md`
+- `docs/tok-connect/STRIPE_TEST_WEBHOOK_READINESS.md`
 - `docs/tok-connect/TESTING.md`
 - `docs/tok-connect/full-app-mcp.md`
 
@@ -9353,7 +9357,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (653)</summary>
+<details><summary>test (654)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9989,6 +9993,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-one-stripe-test-mode.test.ts`
 - `src/test/tok-pulse-native-widget.test.ts`
 - `src/test/tok-stripe-price-catalog.test.ts`
+- `src/test/tok-stripe-test-webhook-readiness.test.ts`
 - `src/test/tokWorkforce.test.ts`
 - `src/test/tokWorkforceClock.test.ts`
 - `src/test/tokWorkforceMigration.test.ts`
