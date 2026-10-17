@@ -98,3 +98,23 @@ pas que le backend de production peut exécuter une commande isolée en mode tes
 - https://developers.openai.com/plugins/build/mcp-server
 - https://developers.openai.com/plugins/build/chatgpt-ui
 - https://developers.openai.com/plugins/deploy/submission
+
+## Recette production du 17 octobre 2026
+
+Le lot initial est fusionné par PR #877 (`eee311a6c6a62739c17603faae9bc1da65f49029`). La CI complète a validé 632 fichiers de tests et le pipeline normal a déployé frontend et Supabase. Les quatre migrations sont présentes ; les six smokes publics passent avec 96 outils.
+
+Le propriétaire connecté a choisi Les Brasseurs pour la recette. Avec son accord explicite, réservation publique et rôle client ont été activés temporairement. Dans ChatGPT, CSP active : création de RES-A69ZM1 (18 octobre, 19 h Europe/Zurich, deux convives), acceptation propriétaire, puis annulation client par les outils MCP. Les statuts natifs `pending`, `confirmed`, `cancelled` ont été relus. Le dashboard restaurateur affichait la confirmation. Les six emails des trois transitions sont `delivered` chez Resend ; les notifications en application existent pour les deux rôles. Les deux rôles utilisaient le même compte : deux boîtes distinctes ne sont pas démontrées.
+
+Après annulation, la réservation publique est de nouveau désactivée et seul le rôle client temporaire a été supprimé. Le rôle restaurateur et l'opt-in MCP sont conservés. La réservation annulée reste dans l'historique.
+
+## Lot offres et correctifs widget
+
+Branche dédiée `codex/tok-mcp-special-offers-20261017`, basée sur le merge précédent. Le périmètre ajoute consultation/création/activation/archivage anti-gaspi et flash via les RPC natifs audités ; côté client, découverte, sélection et devis/checkout avec prix et stock serveur. L'édition complète d'une offre reste hors contrat. Fenêtres calendaires en Europe/Zurich ; ni stock garanti par le devis ni livraison anti-gaspi.
+
+Le stock débité par la création native est prouvé dans un ledger service-only avec RLS. Restitution et marqueur sont atomiques ; une capture tardive reprend le stock sous verrou ou reste en réconciliation explicite si celui-ci a été revendu. Aucune provenance historique n'est inventée depuis les métadonnées client. Exécuter `scripts/sql/tok-special-offer-legacy-preflight.sql` immédiatement avant rollout : toute commande historique impayée sans preuve doit être traitée explicitement et bloque le rollout automatique.
+
+Le repricing checkout crédite uniquement le ledger non restauré de la commande, du compte, du restaurant, de la tentative et des quantités exactes. Cela évite le refus des derniers exemplaires déjà réservés. Les tests exécutent le vrai handler et le vrai pricing jusqu'à la frontière prestataire ; ils ne constituent pas une transaction Stripe Test réelle.
+
+Le widget refuse clairement les restaurants non réservables, explique le rôle client requis et rend l'historique fourni à l'outil avec ses statuts. Il ne déclenche aucune mutation supplémentaire pour cet affichage.
+
+La branche Supabase Test payante a été supprimée après son arrêt sur une migration historique manquante. Les migrations ultérieures contiennent des appels HTTP de production ; leur replay automatique reste bloqué sans quarantaine démontrée. Aucun webhook Test n'a été créé et aucun paiement Stripe Test de bout en bout n'est encore validé. Le code d'isolation reste un lot Draft séparé, non déployé.

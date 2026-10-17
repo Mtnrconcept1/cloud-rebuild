@@ -14,11 +14,14 @@ import { invokeTokCustomerOperation, TokCustomerOperationError, TOK_CUSTOMER_OPE
 import { sha256Base64Url } from "../_shared/tok-connect.ts";
 import { resolveTokDeliveryAddress } from "../_shared/tok-connect-delivery-address.ts";
 import { buildVerifiedOrderPricing, isClientCheckoutRestaurantEligible } from "../_shared/order-pricing.ts";
+import { getEffectiveFeatureFlagSet } from "../_shared/feature-flags.ts";
 import {
   normalizeTokCustomerCart,
   assertTokCartAmountUnchanged,
   safeTokCommerceCheckoutUrl,
   TokCustomerCommerceError,
+  tokCustomerCartItemMetadata,
+  assertTokCustomerOfferSlot,
   type TokCustomerCartInput,
 } from "../_shared/tok-connect-customer-commerce.ts";
 
@@ -568,6 +571,19 @@ async function assertCustomerRestaurant(actor: RequestActor, restaurantId: strin
 async function priceCustomerCart(actor: RequestActor, input: TokCustomerCartInput) {
   if (!actor.userId) throw new HttpError(401, "tok_connect_user_required");
   const restaurant = await assertCustomerRestaurant(actor, input.restaurant_id);
+  for (const kind of ["antigaspi", "flash"] as const) {
+    const ids = input.items.filter((item) => item.menu_item_id.startsWith(kind + "-")).map((item) => item.menu_item_id.slice(kind.length + 1));
+    if (!ids.length) continue;
+    const { data: offers, error } = await actor.adminClient.from(kind === "antigaspi" ? "anti_waste_offers" : "flash_sales")
+      .select(kind === "antigaspi" ? "id,restaurant_id,available_date,pickup_start,pickup_end" : "id,restaurant_id,sale_date,sale_start,sale_end")
+      .eq("restaurant_id", input.restaurant_id).in("id", ids);
+    if (error) throw new HttpError(503, "tok_cart_special_offers_unavailable");
+    for (const id of ids) {
+      const offer = (offers || []).find((row: JsonRecord) => row.id === id);
+      if (!offer) throw new HttpError(409, "tok_cart_special_offer_not_found");
+      assertTokCustomerOfferSlot(input, offer, kind);
+    }
+  }
   const configuredDeliveryFee = input.journey === "delivery" ? Number(restaurant.delivery_fee) : 0;
   if (input.journey === "delivery" && (restaurant.delivery_available !== true || !Number.isFinite(configuredDeliveryFee) || configuredDeliveryFee < 0)) throw new HttpError(409, "tok_cart_delivery_unavailable");
   const metadata: JsonRecord = {
@@ -587,7 +603,7 @@ async function priceCustomerCart(actor: RequestActor, input: TokCustomerCartInpu
       items: input.items.map((item) => ({
         menu_item_id: item.menu_item_id, quantity: item.quantity,
         // These placeholders are ignored by the authoritative menu lookup.
-        unit_price: 0, metadata: {},
+        unit_price: 0, metadata: tokCustomerCartItemMetadata(item),
       })),
       deliveryFee: configuredDeliveryFee, metadata,
       context: input.journey === "zero-attente" ? "zero-attente" : "cart",
@@ -628,7 +644,7 @@ async function priceCustomerCart(actor: RequestActor, input: TokCustomerCartInpu
     menu_item_id: item.menuItemId, restaurant_id: input.restaurant_id,
     name: item.name, price: item.unitPrice, quantity: item.quantity,
     restaurant_name: String(restaurant.name || ""),
-    metadata: {},
+    metadata: item.metadata,
   }));
   return {
     pricing,
@@ -659,6 +675,41 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
   assertRoles(actor, ["client"]);
   if (!actor.userId) throw new HttpError(401, "tok_connect_user_required");
   const action = String(body.action || "");
+  if (action === "special_offers") {
+    if (body.kind !== undefined && !["all", "antigaspi", "flash"].includes(String(body.kind))) throw new HttpError(400, "tok_cart_special_offer_kind_invalid");
+    const id = String(body.restaurant_id || "");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) throw new HttpError(400, "tok_cart_restaurant_id_invalid");
+    const restaurant = await assertCustomerRestaurant(actor, id);
+    const flags = await getEffectiveFeatureFlagSet(actor.adminClient);
+    const dateParts = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Zurich", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date());
+    const part = (key: string) => dateParts.find((value) => value.type === key)?.value || "";
+    const today = `${part("year")}-${part("month")}-${part("day")}`, time = `${part("hour")}:${part("minute")}`;
+    const offers: JsonRecord[] = [];
+    for (const kind of ["antigaspi", "flash"] as const) {
+      if (body.kind && body.kind !== "all" && body.kind !== kind) continue;
+      if (!flags.has(kind === "antigaspi" ? "anti-gaspi" : "ventes-flash")) continue;
+      const { data, error } = await actor.adminClient.from(kind === "antigaspi" ? "anti_waste_offers" : "flash_sales")
+        .select(kind === "antigaspi" ? "id,title,discounted_price,quantity_available,available_date,pickup_start,pickup_end" : "id,title,discounted_price,quantity_available,sale_date,sale_start,sale_end,delivery_available,takeaway_available")
+        .eq("restaurant_id", id).eq("is_active", true).gt("quantity_available", 0)
+        .gte(kind === "antigaspi" ? "available_date" : "sale_date", today).order("id").limit(25);
+      if (error) throw new HttpError(503, "tok_cart_special_offers_unavailable");
+      for (const row of (data || []) as unknown as JsonRecord[]) {
+        const date = String(kind === "antigaspi" ? row.available_date : row.sale_date);
+        const start = String(kind === "antigaspi" ? row.pickup_start : row.sale_start).slice(0, 5), end = String(kind === "antigaspi" ? row.pickup_end : row.sale_end).slice(0, 5);
+        const cents = Math.round(Number(row.discounted_price) * 100);
+        const takeaway = flags.has("emporter") && (kind === "antigaspi" || row.takeaway_available !== false);
+        const delivery = flags.has("livraison") && kind === "flash" && row.delivery_available === true && restaurant.delivery_available === true;
+        if (!flags.has("commandes") || !takeaway && !delivery || !Number.isSafeInteger(cents) || cents <= 0
+          || Number(row.quantity_available) < 1 || !/^([01]\d|2[0-3]):[0-5]\d$/.test(start) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(end) || start >= end
+          || date === today && time >= end || kind === "flash" && (date !== today || time < start)) continue;
+        offers.push({ menu_item_id: kind + "-" + row.id, kind, name: row.title, unit_amount_cents: cents, quantity_available: row.quantity_available,
+          date, start_time: start, end_time: end, takeaway_available: takeaway,
+          delivery_available: delivery,
+          stock_reserved: false });
+      }
+    }
+    return { statusCode: 200, payload: { ok: true, action: "special_offers", restaurant_id: id, restaurant_name: restaurant.name, offers, stock_reserved: false } };
+  }
   if (action === "status" || action === "cancel_attempt") {
     const id = String(body.payment_attempt_id || "");
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
@@ -718,6 +769,10 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
     restaurant_id: input.restaurant_id,
     checkout_kind: input.journey === "zero-attente" ? "zero-attente" : "order",
     payment_method: input.payment_method,
+    has_anti_gaspi: pricing.validatedItems.some((item) => item.source === "anti_waste"),
+    has_flash_sale: pricing.validatedItems.some((item) => item.source === "flash_sale"),
+    ...(pricing.validatedItems.some((item) => item.source === "anti_waste") ? { feature: "anti-gaspi" }
+      : pricing.validatedItems.some((item) => item.source === "flash_sale") ? { feature: "ventes-flash" } : {}),
     pre_discount_subtotal: pricing.subtotal,
     authoritative_total: pricing.total,
     formula_applied: pricing.formulaName,
@@ -750,7 +805,7 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
     items: items.map((item) => ({
       menu_item_id: item.menu_item_id, restaurant_id: item.restaurant_id,
       quantity: item.quantity, unit_price: item.price,
-      total_price: item.price * item.quantity, metadata: {},
+      total_price: item.price * item.quantity, metadata: item.metadata,
     })),
     metadata: orderMetadata,
   };

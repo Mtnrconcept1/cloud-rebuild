@@ -20,7 +20,7 @@ export function projectTokCustomerResult(name: string, args: JsonRecord, payload
       party_size: data.party_size ?? args.party_size, timezone: "Europe/Zurich",
     } };
   }
-  if (["tok_quote_customer_cart", "tok_checkout_customer_cart", "tok_customer_payment_status", "tok_cancel_cart_payment_attempt"].includes(name)) {
+  if (["tok_list_customer_special_offers", "tok_quote_customer_cart", "tok_checkout_customer_cart", "tok_customer_payment_status", "tok_cancel_cart_payment_attempt"].includes(name)) {
     return { ...payload, commerce_result: {
       ...payload,
       context: ["tok_quote_customer_cart", "tok_checkout_customer_cart"].includes(name)

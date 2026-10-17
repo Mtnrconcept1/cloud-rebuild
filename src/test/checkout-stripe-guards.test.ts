@@ -365,10 +365,8 @@ describe("checkout and Stripe webhook safety guards", () => {
 
   it("restores reserved Anti-Gaspi and flash sale stock when an online checkout expires", () => {
     expect(orderCheckoutSource).toContain("restoreReservedSpecialOfferStock");
-    expect(orderCheckoutSource).toContain('from("order_items")');
-    expect(orderCheckoutSource).toContain("itemMetadata.anti_waste_offer_id || itemMetadata.offer_id");
-    expect(orderCheckoutSource).toContain("itemMetadata.flash_sale_id");
-    expect(orderCheckoutSource).toContain('input.adminClient.rpc("restore_special_offer_stock"');
+    expect(orderCheckoutSource).toContain('input.adminClient.rpc("restore_order_special_offer_stock"');
+    expect(orderCheckoutSource).not.toContain('input.adminClient.rpc("restore_special_offer_stock"');
     expect(orderCheckoutSource).toContain("special_offer_stock_restored_at");
     expect(restoreStockMigration).toContain("CREATE OR REPLACE FUNCTION public.restore_special_offer_stock");
     expect(restoreStockMigration).toContain("SET quantity_available = quantity_available + p_qty");

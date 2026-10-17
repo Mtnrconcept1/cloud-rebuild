@@ -71,87 +71,14 @@ export async function restoreReservedSpecialOfferStock(input: {
   metadata: JsonRecord;
   log?: LoggerLike;
 }) {
-  if (input.metadata.special_offer_stock_restored_at) {
-    return input.metadata;
-  }
-
-  const { data: rows, error } = await input.adminClient
-    .from("order_items")
-    .select("quantity, metadata")
-    .eq("order_id", input.order.id);
-
+  const { data, error } = await input.adminClient.rpc("restore_order_special_offer_stock", { p_order_id: input.order.id });
   if (error) {
-    input.log?.error?.("special_offer_stock_restore_lookup_failed", {
-      orderId: input.order.id,
-      message: error.message,
-    });
+    input.log?.error?.("special_offer_stock_restore_failed", { orderId: input.order.id, message: error.message });
     throw error;
   }
-
-  const antiWasteQuantities = new Map<string, number>();
-  const flashSaleQuantities = new Map<string, number>();
-
-  for (const row of rows || []) {
-    const itemMetadata = isJsonRecord(row.metadata) ? row.metadata : {};
-    const quantity = Math.max(1, Number(row.quantity || 1));
-    const antiWasteOfferId = parseUuid(itemMetadata.anti_waste_offer_id || itemMetadata.offer_id);
-    const flashSaleId = parseUuid(itemMetadata.flash_sale_id);
-
-    if (antiWasteOfferId) {
-      antiWasteQuantities.set(antiWasteOfferId, (antiWasteQuantities.get(antiWasteOfferId) || 0) + quantity);
-    }
-    if (flashSaleId) {
-      flashSaleQuantities.set(flashSaleId, (flashSaleQuantities.get(flashSaleId) || 0) + quantity);
-    }
-  }
-
-  const restoreCalls = [
-    ...Array.from(antiWasteQuantities.entries()).map(([id, quantity]) => ({
-      table: "anti_waste_offers",
-      id,
-      quantity,
-    })),
-    ...Array.from(flashSaleQuantities.entries()).map(([id, quantity]) => ({
-      table: "flash_sales",
-      id,
-      quantity,
-    })),
-  ];
-
-  if (restoreCalls.length === 0) {
-    return {
-      ...input.metadata,
-      special_offer_stock_restored_at: new Date().toISOString(),
-      special_offer_stock_restored: false,
-    };
-  }
-
-  for (const call of restoreCalls) {
-    const { error: restoreError } = await input.adminClient.rpc("restore_special_offer_stock", {
-      p_table: call.table,
-      p_id: call.id,
-      p_qty: call.quantity,
-    });
-
-    if (restoreError) {
-      input.log?.error?.("special_offer_stock_restore_failed", {
-        orderId: input.order.id,
-        table: call.table,
-        id: call.id,
-        quantity: call.quantity,
-        message: restoreError.message,
-      });
-      throw restoreError;
-    }
-  }
-
-  return {
-    ...input.metadata,
-    special_offer_stock_restored_at: new Date().toISOString(),
-    special_offer_stock_restored: true,
-    restored_anti_waste_offer_count: antiWasteQuantities.size,
-    restored_flash_sale_count: flashSaleQuantities.size,
-  };
+  // The database owns special_offer_stock_restored_at and the atomic debit ledger.
+  if (!isJsonRecord(data)) throw new Error("ORDER_STOCK_RESTORE_INVALID_RESULT");
+  return data;
 }
 
 export function allocateAmounts(totalAmount: number, rows: Array<{ amount: number }>) {
@@ -522,7 +449,7 @@ export async function finalizePaidOrderCheckout(input: {
       .eq("id", order.id)
       .select("id")
       .maybeSingle();
-    if (orderUpdateError) throw orderUpdateError;
+    if (orderUpdateError) throw new Error(orderUpdateError.message || "ORDER_FINALIZE_UPDATE_FAILED", { cause: orderUpdateError });
     if (!updatedOrder?.id) throw new Error(`ORDER_FINALIZE_NOT_UPDATED:${order.id}`);
 
     await recordOrderChargeIfMissing({
@@ -725,6 +652,7 @@ export async function markOrderCheckoutSessionState(input: {
         updated_at: new Date().toISOString(),
       })
       .eq("id", order.id)
+      .neq("payment_status", "captured")
       .select("id")
       .maybeSingle();
     if (updateError) throw updateError;

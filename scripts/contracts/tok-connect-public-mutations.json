@@ -1,6 +1,8 @@
 {
   "mutation_names": [
     "tok_accept_restaurant_reservation",
+    "tok_archive_restaurant_anti_waste",
+    "tok_archive_restaurant_flash_sale",
     "tok_book_table",
     "tok_cancel_cart_payment_attempt",
     "tok_cancel_my_reservation",
@@ -10,6 +12,8 @@
     "tok_claim_my_gift_points",
     "tok_contact_restaurant_support",
     "tok_create_my_support_incident",
+    "tok_create_restaurant_anti_waste",
+    "tok_create_restaurant_flash_sale",
     "tok_create_restaurant_floor_table",
     "tok_create_restaurant_hours",
     "tok_create_restaurant_menu_item",
@@ -25,6 +29,8 @@
     "tok_send_my_gift_points",
     "tok_set_my_favorite",
     "tok_set_restaurant_promotion_active",
+    "tok_set_status_restaurant_anti_waste",
+    "tok_set_status_restaurant_flash_sale",
     "tok_submit_my_verified_review",
     "tok_update_my_profile",
     "tok_update_restaurant_delivery_settings",

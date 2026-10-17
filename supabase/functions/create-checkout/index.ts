@@ -1521,6 +1521,8 @@ Deno.serve(async (req) => {
           deliveryFee: deliveryFeeShare,
           metadata: groupMetadata,
           context: effectiveKind === "zero-attente" ? "zero-attente" : "cart",
+          reservedStockCheckoutId: effectiveKind === "order" ? clientPaymentAttemptId : undefined,
+          reservedStockOrderId: effectiveKind === "order" ? String(order_metadata?.primary_order_id || "") || undefined : undefined,
         });
 
         lineItems.push(

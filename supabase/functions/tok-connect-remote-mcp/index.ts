@@ -176,6 +176,15 @@ const TOK_CUSTOMER_OPERATION_NAMES = new Set(TOK_CUSTOMER_OPERATION_PUBLIC_TOOLS
 
 const TOK_CLIENT_TOOLS = [
   {
+    name: "tok_list_customer_special_offers",
+    title: "Offres anti-gaspi et flash TOK",
+    description: "Afficher les offres anti-gaspi et ventes flash commandables d'un restaurant TOK, leurs identifiants canoniques, prix CHF, quantités et fenêtres locales Europe/Zurich. Le stock reste indicatif et n'est pas réservé par cette lecture. Utiliser exactement ces identifiants avec tok_quote_customer_cart ; anti-gaspi uniquement à emporter, ventes flash selon leurs modes autorisés.",
+    securitySchemes: OAUTH_SECURITY,
+    inputSchema: { type: "object", required: ["restaurant_id"], properties: { restaurant_id: { type: "string", format: "uuid" }, kind: { type: "string", enum: ["all", "antigaspi", "flash"] } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
+  },
+  {
     name: "tok_quote_reservation",
     title: "Vérifier les conditions de réservation TOK",
     description: "Read card guarantee requirements for the authenticated customer before asking them to confirm a table.",
@@ -247,7 +256,7 @@ const TOK_CLIENT_TOOLS = [
           items: {
             type: "object", required: ["menu_item_id", "quantity"],
             properties: {
-              menu_item_id: { type: "string", format: "uuid" },
+              menu_item_id: { type: "string", pattern: "^(?:(?:antigaspi|flash)-)?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", description: "Menu UUID, or exact canonical antigaspi-UUID / flash-UUID returned by tok_list_customer_special_offers. No invented offer identifiers or client prices." },
               quantity: { type: "integer", minimum: 1, maximum: 20 },
             },
             additionalProperties: false,
@@ -281,7 +290,7 @@ const TOK_CLIENT_TOOLS = [
           items: {
             type: "object", required: ["menu_item_id", "quantity"],
             properties: {
-              menu_item_id: { type: "string", format: "uuid" },
+              menu_item_id: { type: "string", pattern: "^(?:(?:antigaspi|flash)-)?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" },
               quantity: { type: "integer", minimum: 1, maximum: 20 },
             },
             additionalProperties: false,
@@ -576,6 +585,7 @@ function bridgeToolBody(name: string, args: JsonRecord) {
   if (TOK_CUSTOMER_OPERATION_NAMES.has(name)) return { mode: "customer_operation", operation: name, args };
   if (TOK_CLIENT_TOOL_NAMES.has(name as typeof TOK_CLIENT_TOOLS[number]["name"])) {
     assertTokClientArgs(name, args);
+    if (name === "tok_list_customer_special_offers") return { mode: "customer_commerce", action: "special_offers", restaurant_id: args.restaurant_id, kind: args.kind };
     if (name === "tok_quote_customer_cart" || name === "tok_checkout_customer_cart") {
       return {
         mode: "customer_commerce",
