@@ -15,6 +15,7 @@ import {
 } from "../_shared/payment-attempts.ts";
 import { getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
 import { isCompletedNoCostZeroAttenteSession } from "../_shared/zero-cost-checkout.ts";
+import { resolveTokPaymentStatus } from "../_shared/tok-connect-payment-status.ts";
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
@@ -49,8 +50,8 @@ Deno.serve(async (req) => {
     let setupIntentStatus: string | null = null;
 
     if (attempt.stripe_checkout_session_id) {
-      const runtime = getStripeRuntimeForCheckoutKindAndMode(attempt.kind, attempt.mode);
       try {
+        const runtime = getStripeRuntimeForCheckoutKindAndMode(attempt.kind, attempt.mode);
         const session = await runtime.stripe.checkout.sessions.retrieve(attempt.stripe_checkout_session_id);
         if (String(session.metadata?.user_id || "") !== actor.userId) {
           throw new HttpError(409, "La session Stripe n'appartient pas a cet utilisateur");
@@ -97,21 +98,29 @@ Deno.serve(async (req) => {
       }
     }
 
-    const terminal = ["finalized", "cancelled", "failed"].includes(state);
+    const outcome = resolveTokPaymentStatus({
+      persistedState: attempt.state,
+      observedState: state,
+      stripePaymentStatus: paymentStatus,
+      checkoutUrl: url,
+      providerLookupIndeterminate: indeterminate,
+    });
     const payload = {
       payment_attempt_id: clientPaymentAttemptId,
       server_payment_attempt_id: attempt.id,
-      state: indeterminate ? "indeterminate" : state,
+      state: outcome.state,
       sessionId: attempt.stripe_checkout_session_id,
       session_id: attempt.stripe_checkout_session_id,
-      url,
+      url: outcome.checkoutUrl,
       payment_status: paymentStatus,
       stripe_status: stripeStatus,
-      indeterminate,
-      error_code: indeterminate ? "PAYMENT_ATTEMPT_INDETERMINATE" : null,
-      retryable: !terminal,
+      indeterminate: outcome.indeterminate,
+      error_code: outcome.indeterminate ? "PAYMENT_ATTEMPT_INDETERMINATE" : null,
+      retryable: outcome.retryable,
+      payment_received: outcome.paymentReceived,
+      payment_finalized: outcome.finalized,
       setup_intent_status: setupIntentStatus,
-      webhook_received: attempt.state === "finalized",
+      webhook_received: outcome.finalized,
       browser_return_received: browserReturnReceived,
       last_error_code: attempt.last_error_code || null,
       last_error_message: attempt.last_error_message || null,
@@ -128,7 +137,7 @@ Deno.serve(async (req) => {
       targetEntityId: attempt.id,
       metadata: {
         state: payload.state,
-        indeterminate,
+        indeterminate: outcome.indeterminate,
         browser_return_received: browserReturnReceived,
         webhook_received: payload.webhook_received,
         setup_intent_status: setupIntentStatus,
