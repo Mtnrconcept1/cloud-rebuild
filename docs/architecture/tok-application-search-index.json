@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "4e9627a43ec17467b5bcc800e17a26acdacd26f0bcd8674c314b449caf59d4d6",
+ "sourceDigest": "035c1c680d70697986d87e8eb363e232e28e03ea2c705f9f3ed6c3524a730b3d",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2907,
-  "documents": 208,
+  "documents": 209,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3620,
+  "exportedSymbols": 3623,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 550,
-  "modules": 1632,
+  "modules": 1634,
   "pages": 133,
   "pathLiterals": 758,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 111,
-  "records": 17299,
-  "repositoryFiles": 3275,
+  "records": 17310,
+  "repositoryFiles": 3278,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -34017,6 +34017,7 @@
      "src/test/tok-connect-delivery-commerce.test.ts",
      "src/test/tok-connect-discovery.test.ts",
      "src/test/tok-connect-edge-functions.test.ts",
+     "src/test/tok-connect-floorplan-operations.test.ts",
      "src/test/tok-connect-frontend.test.ts",
      "src/test/tok-connect-full-app-mcp.test.ts",
      "src/test/tok-connect-mcp-http.test.ts",
@@ -75972,6 +75973,22 @@
     ]
    },
    {
+    "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+    "title": "MCP — plan de salle restaurateur",
+    "headings": [
+     {
+      "level": 1,
+      "title": "MCP — plan de salle restaurateur",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Limites",
+      "line": 32
+     }
+    ]
+   },
+   {
     "path": "docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md",
     "title": "État d’exécution TOK observé le 3 octobre 2026",
     "headings": [
@@ -112913,6 +112930,15 @@
     "lineCount": 279
    },
    {
+    "path": "src/test/tok-connect-floorplan-operations.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 160
+   },
+   {
     "path": "src/test/tok-connect-frontend.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -113039,7 +113065,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 128
+    "lineCount": 145
    },
    {
     "path": "src/test/tok-connect-special-offers-commerce.test.ts",
@@ -116620,6 +116646,29 @@
     "lineCount": 1419
    },
    {
+    "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+    "exports": [
+     {
+      "name": "TOK_FLOORPLAN_OPERATION_TOOLS",
+      "line": 12,
+      "kind": "variable"
+     },
+     {
+      "name": "TOK_FLOORPLAN_OPERATION_NAMES",
+      "line": 21,
+      "kind": "variable"
+     },
+     {
+      "name": "invokeTokFloorplanOperation",
+      "line": 24,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 101
+   },
+   {
     "path": "supabase/functions/_shared/tok-connect-reservation-intent.ts",
     "exports": [
      {
@@ -116647,27 +116696,27 @@
     "exports": [
      {
       "name": "TokRoleOperationError",
-      "line": 13,
+      "line": 14,
       "kind": "class"
      },
      {
       "name": "TOK_ROLE_OPERATION_TOOLS",
-      "line": 26,
+      "line": 27,
       "kind": "variable"
      },
      {
       "name": "TOK_ROLE_OPERATION_COVERAGE",
-      "line": 80,
+      "line": 82,
       "kind": "variable"
      },
      {
       "name": "validateTokRoleOperation",
-      "line": 96,
+      "line": 99,
       "kind": "function"
      },
      {
       "name": "invokeTokRoleOperation",
-      "line": 129,
+      "line": 132,
       "kind": "function"
      }
     ],
@@ -116675,7 +116724,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 308
+    "lineCount": 312
    },
    {
     "path": "supabase/functions/_shared/tok-connect-service-settings-operations.ts",
@@ -116721,7 +116770,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 74
+    "lineCount": 75
    },
    {
     "path": "supabase/functions/_shared/tok-connect.ts",
@@ -119911,6 +119960,11 @@
    },
    {
     "path": "docs/PRINT_FULFILLMENT_PROTOCOL.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -130885,6 +130939,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-connect-floorplan-operations.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/tok-connect-frontend.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -131511,6 +131570,11 @@
    },
    {
     "path": "supabase/functions/_shared/tok-connect-discovery.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -155976,6 +156040,19 @@
    "detailRef": "414424f4b99f"
   },
   {
+   "id": "code-module:48b5053c0155",
+   "type": "code-module",
+   "title": "src/test/tok-connect-floorplan-operations.test.ts",
+   "description": "Module de 160 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-floorplan-operations.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "7d0cd3f0d1ec"
+  },
+  {
    "id": "code-module:6955f6e6a37b",
    "type": "code-module",
    "title": "src/test/tok-connect-frontend.test.ts",
@@ -156151,14 +156228,14 @@
    "id": "code-module:ce808df5ef50",
    "type": "code-module",
    "title": "src/test/tok-connect-special-offer-operations.test.ts",
-   "description": "Module de 128 lignes; exports: aucun export statique.",
+   "description": "Module de 145 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-special-offer-operations.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "5aab0747db42"
+   "detailRef": "a9106bdb0ab2"
   },
   {
    "id": "code-module:8fb56bb571aa",
@@ -158013,6 +158090,21 @@
    "detailRef": "813da122cd48"
   },
   {
+   "id": "code-module:bb5357e1b2a2",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "description": "Module de 101 lignes; exports: TOK_FLOORPLAN_OPERATION_TOOLS, TOK_FLOORPLAN_OPERATION_NAMES, invokeTokFloorplanOperation.",
+   "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK_FLOORPLAN_OPERATION_NAMES",
+    "TOK_FLOORPLAN_OPERATION_TOOLS",
+    "invokeTokFloorplanOperation"
+   ],
+   "detailRef": "0f77f030ed65"
+  },
+  {
    "id": "code-module:17414fdd34cb",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-reservation-intent.ts",
@@ -158031,7 +158123,7 @@
    "id": "code-module:57f22077f88e",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "description": "Module de 308 lignes; exports: TokRoleOperationError, TOK_ROLE_OPERATION_TOOLS, TOK_ROLE_OPERATION_COVERAGE, validateTokRoleOperation, invokeTokRoleOperation.",
+   "description": "Module de 312 lignes; exports: TokRoleOperationError, TOK_ROLE_OPERATION_TOOLS, TOK_ROLE_OPERATION_COVERAGE, validateTokRoleOperation, invokeTokRoleOperation.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
    "line": 1,
    "surface": null,
@@ -158043,7 +158135,7 @@
     "stripe",
     "validateTokRoleOperation"
    ],
-   "detailRef": "a751d12d2a35"
+   "detailRef": "c3c6d1cfdb01"
   },
   {
    "id": "code-module:91bea2d2965d",
@@ -158064,7 +158156,7 @@
    "id": "code-module:4e2d97394d72",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-special-offer-operations.ts",
-   "description": "Module de 74 lignes; exports: TOK_SPECIAL_OFFER_TOOLS, TOK_SPECIAL_OFFER_NAMES, invokeTokSpecialOfferOperation.",
+   "description": "Module de 75 lignes; exports: TOK_SPECIAL_OFFER_TOOLS, TOK_SPECIAL_OFFER_NAMES, invokeTokSpecialOfferOperation.",
    "path": "supabase/functions/_shared/tok-connect-special-offer-operations.ts",
    "line": 1,
    "surface": null,
@@ -158073,7 +158165,7 @@
     "TOK_SPECIAL_OFFER_TOOLS",
     "invokeTokSpecialOfferOperation"
    ],
-   "detailRef": "9eafaba84014"
+   "detailRef": "90f59147329f"
   },
   {
    "id": "code-module:fc6a15fb9307",
@@ -222198,6 +222290,20 @@
    "detailRef": "62153b37edb8"
   },
   {
+   "id": "document-section:44a444be70fa",
+   "type": "document-section",
+   "title": "Limites",
+   "description": "Section de MCP — plan de salle restaurateur.",
+   "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+   "line": 32,
+   "surface": null,
+   "tags": [
+    "MCP — plan de salle restaurateur",
+    "h2"
+   ],
+   "detailRef": "1c1334834637"
+  },
+  {
    "id": "document-section:ad187357d470",
    "type": "document-section",
    "title": "Limites",
@@ -222462,6 +222568,20 @@
     "h2"
    ],
    "detailRef": "155a8d173adf"
+  },
+  {
+   "id": "document-section:1863ba4f3565",
+   "type": "document-section",
+   "title": "MCP — plan de salle restaurateur",
+   "description": "Section de MCP — plan de salle restaurateur.",
+   "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "MCP — plan de salle restaurateur",
+    "h1"
+   ],
+   "detailRef": "d90f59eb5bc1"
   },
   {
    "id": "document-section:2e57965f8947",
@@ -240509,6 +240629,20 @@
     "Sources et maintenance"
    ],
    "detailRef": "e0cafe3dbde2"
+  },
+  {
+   "id": "document:1863ba4f3565",
+   "type": "document",
+   "title": "MCP — plan de salle restaurateur",
+   "description": "Document Markdown avec 2 section(s).",
+   "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Limites",
+    "MCP — plan de salle restaurateur"
+   ],
+   "detailRef": "4a7b17541b30"
   },
   {
    "id": "document:37fcb86d1133",
@@ -268990,6 +269124,32 @@
    "detailRef": "117c0a783f9d"
   },
   {
+   "id": "exported-symbol:09a980fb1767",
+   "type": "exported-symbol",
+   "title": "TOK_FLOORPLAN_OPERATION_NAMES",
+   "description": "Export variable de supabase/functions/_shared/tok-connect-floorplan-operations.ts.",
+   "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "line": 21,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "8a8774b68dc6"
+  },
+  {
+   "id": "exported-symbol:f910bc22c060",
+   "type": "exported-symbol",
+   "title": "TOK_FLOORPLAN_OPERATION_TOOLS",
+   "description": "Export variable de supabase/functions/_shared/tok-connect-floorplan-operations.ts.",
+   "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "line": 12,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "47f1d07d16a6"
+  },
+  {
    "id": "exported-symbol:d54668b335f5",
    "type": "exported-symbol",
    "title": "TOK_IMAGE_BASE_COST_CHF",
@@ -269463,32 +269623,32 @@
    "detailRef": "fb4022c83cb2"
   },
   {
-   "id": "exported-symbol:dd4d8af4ed0b",
+   "id": "exported-symbol:96969cc801fd",
    "type": "exported-symbol",
    "title": "TOK_ROLE_OPERATION_COVERAGE",
    "description": "Export variable de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 80,
+   "line": 82,
    "surface": null,
    "tags": [
     "stripe",
     "variable"
    ],
-   "detailRef": "14375b95933f"
+   "detailRef": "6a4c74b001c8"
   },
   {
-   "id": "exported-symbol:1c39bef32160",
+   "id": "exported-symbol:224ef99ee99a",
    "type": "exported-symbol",
    "title": "TOK_ROLE_OPERATION_TOOLS",
    "description": "Export variable de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 26,
+   "line": 27,
    "surface": null,
    "tags": [
     "stripe",
     "variable"
    ],
-   "detailRef": "b17e783d5b66"
+   "detailRef": "95631d2cb804"
   },
   {
    "id": "exported-symbol:9334a2988542",
@@ -270940,18 +271100,18 @@
    "detailRef": "0e21932977ac"
   },
   {
-   "id": "exported-symbol:05eb8d8839c8",
+   "id": "exported-symbol:f9866a525b4b",
    "type": "exported-symbol",
    "title": "TokRoleOperationError",
    "description": "Export class de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 13,
+   "line": 14,
    "surface": null,
    "tags": [
     "class",
     "stripe"
    ],
-   "detailRef": "b722e2b8dfd0"
+   "detailRef": "8d519792f95e"
   },
   {
    "id": "exported-symbol:b8dc97fecdc7",
@@ -288767,18 +288927,31 @@
    "detailRef": "d8a9f6ab7a65"
   },
   {
-   "id": "exported-symbol:ce3dc3692f71",
+   "id": "exported-symbol:2eb7ab5c1fbb",
+   "type": "exported-symbol",
+   "title": "invokeTokFloorplanOperation",
+   "description": "Export function de supabase/functions/_shared/tok-connect-floorplan-operations.ts.",
+   "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "line": 24,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "28937ba2da7a"
+  },
+  {
+   "id": "exported-symbol:d76b4649c3b7",
    "type": "exported-symbol",
    "title": "invokeTokRoleOperation",
    "description": "Export function de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 129,
+   "line": 132,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "aca5c667cc3c"
+   "detailRef": "c4c1ac854c54"
   },
   {
    "id": "exported-symbol:ab95680e2083",
@@ -299408,18 +299581,18 @@
    "detailRef": "7ed77cc1654d"
   },
   {
-   "id": "exported-symbol:40c28ec7a478",
+   "id": "exported-symbol:540d8a38a407",
    "type": "exported-symbol",
    "title": "validateTokRoleOperation",
    "description": "Export function de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 96,
+   "line": 99,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "9eb7f70b1674"
+   "detailRef": "f7ecb577ee7a"
   },
   {
    "id": "exported-symbol:38b68734a360",
@@ -304292,6 +304465,20 @@
     "documentation"
    ],
    "detailRef": "a60b1fc7159a"
+  },
+  {
+   "id": "file:34ae1ad52a57",
+   "type": "file",
+   "title": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/TOK_MCP_FLOORPLAN_OPERATIONS.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "0aa4b0d84a26"
   },
   {
    "id": "file:7abfcbd8dd5e",
@@ -335010,6 +335197,20 @@
    "detailRef": "9966bd5078c4"
   },
   {
+   "id": "file:8112fb5bb103",
+   "type": "file",
+   "title": "src/test/tok-connect-floorplan-operations.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-floorplan-operations.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "a60451da4f72"
+  },
+  {
    "id": "file:537d4eb1483b",
    "type": "file",
    "title": "src/test/tok-connect-frontend.test.ts",
@@ -336772,6 +336973,20 @@
     "edge-function-source"
    ],
    "detailRef": "8386e97329b9"
+  },
+  {
+   "id": "file:3732bbd754e3",
+   "type": "file",
+   "title": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/tok-connect-floorplan-operations.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "92930d79a737"
   },
   {
    "id": "file:df5ab67802e1",
@@ -350485,7 +350700,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 738 module(s).",
+   "description": "Intégration externe détectée dans 739 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -351115,6 +351330,7 @@
     "src/test/tok-connect-delivery-commerce.test.ts",
     "src/test/tok-connect-discovery.test.ts",
     "src/test/tok-connect-edge-functions.test.ts",
+    "src/test/tok-connect-floorplan-operations.test.ts",
     "src/test/tok-connect-frontend.test.ts",
     "src/test/tok-connect-full-app-mcp.test.ts",
     "src/test/tok-connect-mcp-http.test.ts",
@@ -351230,7 +351446,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "77777c387c41"
+   "detailRef": "9e22abec5244"
   },
   {
    "id": "integration:c20910a79a78",

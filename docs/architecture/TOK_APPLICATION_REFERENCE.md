@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `4e9627a43ec17467b5bcc800e17a26acdacd26f0bcd8674c314b449caf59d4d6`
+- Empreinte SHA-256 des sources indexées : `035c1c680d70697986d87e8eb363e232e28e03ea2c705f9f3ed6c3524a730b3d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,24 +29,24 @@
 | cronJobs | 34 |
 | databaseContract | 228 |
 | databaseObjects | 2907 |
-| documents | 208 |
+| documents | 209 |
 | edgeFunctions | 118 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3620 |
+| exportedSymbols | 3623 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 550 |
-| modules | 1632 |
+| modules | 1634 |
 | pages | 133 |
 | pathLiterals | 758 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 111 |
-| records | 17299 |
-| repositoryFiles | 3275 |
+| records | 17310 |
+| repositoryFiles | 3278 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6423,7 +6423,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 35 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 264 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 738 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 739 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6436,7 +6436,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 210 |
 | automation-script | 70 |
 | documentation | 6 |
-| edge-function-source | 208 |
+| edge-function-source | 209 |
 | frontend-component | 274 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
@@ -6444,7 +6444,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 652 |
+| test | 653 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6524,6 +6524,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Supabase Backend Review | 6 | [codex-skills/mobile-fullstack-architect/references/supabase-backend.md:1](../../codex-skills/mobile-fullstack-architect/references/supabase-backend.md#L1) |
 | Centre d’opérations marketing TheTOK | 11 | [docs/MARKETING_OPERATIONS_CENTER.md:1](../../docs/MARKETING_OPERATIONS_CENTER.md#L1) |
 | Print fulfillment protocol — controlled rollout and recovery | 5 | [docs/PRINT_FULFILLMENT_PROTOCOL.md:1](../../docs/PRINT_FULFILLMENT_PROTOCOL.md#L1) |
+| MCP — plan de salle restaurateur | 2 | [docs/TOK_MCP_FLOORPLAN_OPERATIONS.md:1](../../docs/TOK_MCP_FLOORPLAN_OPERATIONS.md#L1) |
 | État d’exécution TOK observé le 3 octobre 2026 | 6 | [docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md:1](../../docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md#L1) |
 | Audit Execution Plan | 22 | [docs/audit-execution-plan.md:1](../../docs/audit-execution-plan.md#L1) |
 | Supabase production audit — project `wwcrtyoueexyxkkikaos` (Tok) | 12 | [docs/audits/2026-04-18-supabase-production-audit.md:1](../../docs/audits/2026-04-18-supabase-production-audit.md#L1) |
@@ -7615,10 +7616,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (161)</summary>
+<details><summary>documentation (162)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
+- `docs/TOK_MCP_FLOORPLAN_OPERATIONS.md`
 - `docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md`
 - `docs/architecture/tok-runtime-evidence-2026-10-03.json`
 - `docs/assets-archive/intro.mp4`
@@ -7781,7 +7783,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (208)</summary>
+<details><summary>edge-function-source (209)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7857,6 +7859,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/tok-connect-delivery-address.ts`
 - `supabase/functions/_shared/tok-connect-discovery-widget.ts`
 - `supabase/functions/_shared/tok-connect-discovery.ts`
+- `supabase/functions/_shared/tok-connect-floorplan-operations.ts`
 - `supabase/functions/_shared/tok-connect-reservation-intent.ts`
 - `supabase/functions/_shared/tok-connect-role-operations.ts`
 - `supabase/functions/_shared/tok-connect-service-settings-operations.ts`
@@ -9350,7 +9353,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (652)</summary>
+<details><summary>test (653)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9959,6 +9962,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-delivery-commerce.test.ts`
 - `src/test/tok-connect-discovery.test.ts`
 - `src/test/tok-connect-edge-functions.test.ts`
+- `src/test/tok-connect-floorplan-operations.test.ts`
 - `src/test/tok-connect-frontend.test.ts`
 - `src/test/tok-connect-full-app-mcp.test.ts`
 - `src/test/tok-connect-legal-content.test.ts`
