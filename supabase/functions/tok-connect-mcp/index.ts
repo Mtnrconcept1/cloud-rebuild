@@ -46,6 +46,7 @@ import {
   buildTokDiscoveryResourceDescriptor,
   buildTokDiscoveryToolMeta,
 } from "../_shared/tok-connect-discovery-widget.ts";
+import { TOK_CUSTOMER_RESERVATION_INPUT_SCHEMA, buildTokReservationPreparation, validateTokReservationIntent } from "../_shared/tok-connect-reservation-intent.ts";
 
 type McpHandleResult = {
   payload: Record<string, unknown>;
@@ -1669,6 +1670,16 @@ const TOK_CONNECT_RESTAURANT_DETAILS_TOOL: TokConnectMcpTool = {
 const MCP_TOOLS: TokConnectMcpTool[] = [
   TOK_CONNECT_DISCOVERY_TOOL,
   TOK_CONNECT_RESTAURANT_DETAILS_TOOL,
+  {
+    name: "prepare_customer_reservation",
+    title: "Préparer ma réservation TOK",
+    description: "Prépare et ouvre le widget pour réserver une table sur le compte client TOK : restaurant identifié, date locale, heure et nombre exact de convives. Ne crée aucune réservation. Si l'heure manque, demander le créneau ou proposer les disponibilités ; ne jamais inventer une heure ou un nombre de convives. Après demande explicite de réserver, vérifier la garantie via tok_quote_reservation puis utiliser tok_book_table avec les mêmes paramètres et une clé d'idempotence conservée pour tout rejeu de cette intention. Une création en attente doit être présentée comme une demande reçue, pas comme acceptée par le restaurant.",
+    requiredScopes: ["restaurants:read"],
+    inputSchema: TOK_CUSTOMER_RESERVATION_INPUT_SCHEMA,
+    outputSchema: { type: "object", required: ["detail", "booking_intent"], properties: { detail: { type: "object" }, booking_intent: { type: "object" } }, additionalProperties: true },
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+    _meta: buildTokDiscoveryToolMeta({ invoking: "Préparation de votre réservation TOK…", invoked: "Votre réservation est prête à vérifier" }),
+  },
   ...SAFE_TOK_CONNECT_MCP_TOOLS.map((tool) =>
     tool.name === "search_restaurants"
       ? {
@@ -2306,6 +2317,7 @@ async function callTool(
   // fixture historique de `search_restaurants` ne porte pas les champs de carte.
   const rendersDiscoveryModule = name === "discover_restaurants"
     || name === "get_restaurant_details"
+    || name === "prepare_customer_reservation"
     || name === "search_restaurants";
   if (context.environment === "sandbox" && !rendersDiscoveryModule) {
     const sandboxResult = getTokConnectSandboxMcpToolResult(name, args);
@@ -2318,6 +2330,16 @@ async function callTool(
 
     case "get_restaurant_details":
       return await buildRestaurantDetailResult(context, args);
+
+    case "prepare_customer_reservation": {
+      try {
+        validateTokReservationIntent(args);
+        const detail = context.environment === "sandbox"
+          ? buildSandboxRestaurantDetail(args, TOK_CONNECT_PUBLIC_ORIGIN)
+          : await runTokRestaurantDetail({ client: toDiscoveryClient(context), args: { ...args, include_availability: true }, origin: TOK_CONNECT_PUBLIC_ORIGIN });
+        return buildTokConnectMcpJsonResult(buildTokReservationPreparation(detail, args));
+      } catch (error) { throw toHttpError(error); }
+    }
 
     case "search_restaurants": {
       const limit = Math.min(Number(args.limit || 10), 25);

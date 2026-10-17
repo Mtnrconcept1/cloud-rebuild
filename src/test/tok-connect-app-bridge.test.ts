@@ -118,6 +118,6 @@ describe("TOK Connect authenticated application bridge", () => {
     expect(remote).toContain("public_mcp_read_only");
     expect(remote).toContain("callAppBridge");
     expect(remote).toContain("annotations?.readOnlyHint === true");
-    expect(remote).toContain("Service-role, scheduler-only and webhook-only operations are never exposed");
+    expect(remote).toContain("Generic CRUD, arbitrary RPCs, admin, service-role, scheduler and webhook operations remain unavailable");
   });
 });

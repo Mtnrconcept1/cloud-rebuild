@@ -34,6 +34,10 @@ function harness(options: {
   totalAmount?: number;
   feature?: string;
   cancellationRejected?: boolean;
+  transportLost?: boolean;
+  nativeResult?: Record<string, unknown> | null;
+  guaranteeResult?: Record<string, unknown> | null;
+  guaranteeResponse?: boolean;
 } = {}) {
   const records = new Map<string, Record<string, unknown>>();
   const adminClient = {
@@ -66,8 +70,10 @@ function harness(options: {
     },
   };
   const ownerFilters: Record<string, unknown>[] = [];
-  const rpc = vi.fn(async () => ({
-    data: [{ ok: !options.cancellationRejected, error_code: options.cancellationRejected ? "too_late" : null }],
+  const rpc = vi.fn(async (name: string) => ({
+    data: name === "get_my_reservation_request_result" ? options.nativeResult || null
+      : name === "get_my_reservation_guarantee_request_result" ? options.guaranteeResult || null
+      : [{ ok: !options.cancellationRejected, error_code: options.cancellationRejected ? "too_late" : null }],
     error: null,
   }));
   const userClient = {
@@ -79,7 +85,7 @@ function harness(options: {
         eq: (field: string, value: unknown) => { filters[field] = value; return query; },
         maybeSingle: async () => ({
           data: filters.id === reservationId && filters.user_id === (options.reservationOwner || "customer-1")
-            ? { id: reservationId, feature: options.feature || "classique", total_amount: options.totalAmount || 0 }
+            ? { id: reservationId, restaurant_id: restaurantId, date: "2026-10-20", time: "19:00", party_size: 2, status: "pending", feature: options.feature || "classique", total_amount: options.totalAmount || 0 }
             : null,
           error: null,
         }),
@@ -88,9 +94,13 @@ function harness(options: {
     },
     rpc,
   };
-  const fetch = vi.fn(async () => Response.json(options.businessRejected
+  const fetch = vi.fn(async () => {
+    if (options.transportLost && fetch.mock.calls.length === 1) throw new Error("network_response_lost");
+    return Response.json(options.businessRejected
     ? { ok: false, error_code: "no_capacity", error_message: "Complet" }
-    : { ok: true, reservation_id: reservationId }));
+    : options.guaranteeResponse ? { ok: true, requires_card_guarantee: true, checkout_url: "https://checkout.stripe.com/c/pay/cs_test_fixture", fee_amount_cents: 7000 }
+      : { ok: true, reservation_id: reservationId });
+  });
   const dependencies = {
     HttpError, fetch,
     Deno: { env: { get: () => "https://tok.test" }, serve: () => {} },
@@ -99,6 +109,7 @@ function harness(options: {
     },
     sha256Base64Url: async (value: string) => createHash("sha256").update(value).digest("hex"),
     isClientCheckoutRestaurantEligible: (value: unknown) => Boolean(value),
+    safeTokCommerceCheckoutUrl: (value: unknown) => typeof value === "string" && value.startsWith("https://checkout.stripe.com/") ? value : null,
   };
   const handlers = new Function(...Object.keys(dependencies), `${compiled};return { invokeEdge, invokeRpc };`)(...Object.values(dependencies));
   const actor = { userId: "customer-1", roles: ["client"], adminClient, userClient };
@@ -156,13 +167,56 @@ describe("TOK authenticated customer booking bridge", () => {
     expect(await h.book()).toMatchObject({ statusCode: 409, payload: { ok: false, retry_safe: true } });
     expect(h.fetch).not.toHaveBeenCalled();
   });
+
+  it("recovers an exact native committed result after a lost response without creating again", async () => {
+    const h = harness({ transportLost: true, nativeResult: { reservation_id: reservationId } });
+    await expect(h.book()).rejects.toThrow("network_response_lost");
+    const recovered = await h.book();
+    expect(recovered.payload).toMatchObject({ ok: true, reconciled: true, replayed: true, data: { reservation_id: reservationId, status: "pending" } });
+    expect(h.rpc).toHaveBeenCalledWith("get_my_reservation_request_result", { p_request_key: booking.idempotency_key });
+    expect(h.fetch).toHaveBeenCalledOnce();
+    await expect(h.book({ ...booking, payload: { ...booking.payload, time: "20:00" } })).rejects.toThrow("different_body");
+    expect(h.fetch).toHaveBeenCalledOnce();
+  });
+
+  it("keeps a pending or another owner's outcome locked and never starts another card setup", async () => {
+    for (const options of [{ nativeResult: null }, { nativeResult: { reservation_id: reservationId }, reservationOwner: "customer-2" }]) {
+      const h = harness({ transportLost: true, ...options });
+      await expect(h.book()).rejects.toThrow("network_response_lost");
+      await expect(h.book()).rejects.toThrow("request_in_progress");
+      expect(h.fetch).toHaveBeenCalledOnce();
+    }
+  });
+
+  it("recovers the exact existing guarantee checkout after a lost response", async () => {
+    const h = harness({ transportLost: true, guaranteeResult: { status: "checkout_ready", checkout_url: "https://checkout.stripe.com/c/pay/cs_test_fixture", fee_amount_cents: 7000 } });
+    await expect(h.book()).rejects.toThrow("network_response_lost");
+    expect((await h.book()).payload).toMatchObject({ ok: true, reconciled: true, data: { requires_card_guarantee: true, fee_amount_cents: 7000 } });
+    expect(h.fetch).toHaveBeenCalledOnce();
+  });
+
+  it("resumes a proven durable setup binding using the same key, never a new attempt", async () => {
+    const h = harness({ transportLost: true, guaranteeResult: { status: "pending" }, guaranteeResponse: true });
+    await expect(h.book()).rejects.toThrow("network_response_lost");
+    expect((await h.book()).payload).toMatchObject({ ok: true, data: { requires_card_guarantee: true } });
+    expect(h.fetch).toHaveBeenCalledTimes(2);
+    expect(h.fetch.mock.calls.map((call) => new Headers((call as unknown as [string, RequestInit])[1].headers).get("idempotency-key"))).toEqual([booking.idempotency_key, booking.idempotency_key]);
+  });
+
+  it("reads the actual reservation status after guarantee completion instead of treating bank setup as acceptance", async () => {
+    const h = harness({ transportLost: true, guaranteeResult: { status: "confirmed", reservation_id: reservationId } });
+    await expect(h.book()).rejects.toThrow("network_response_lost");
+    expect((await h.book()).payload).toMatchObject({ data: { reservation_id: reservationId, status: "pending" } });
+    expect(h.fetch).toHaveBeenCalledOnce();
+  });
 });
 
 describe("TOK customer cancellation bridge", () => {
   it("filters by the authenticated owner and cancels an unpaid classic booking once", async () => {
     const h = harness();
     expect(await h.cancel()).toMatchObject({ statusCode: 200, payload: { ok: true } });
-    expect(h.ownerFilters).toEqual([{ id: reservationId, user_id: h.actor.userId }]);
+    expect(h.ownerFilters.length).toBeGreaterThanOrEqual(1);
+    expect(h.ownerFilters.every((filter) => filter.id === reservationId && filter.user_id === h.actor.userId)).toBe(true);
     expect(h.rpc).toHaveBeenCalledWith("cancel_reservation_by_customer", { p_reservation_id: reservationId });
     expect(await h.cancel()).toMatchObject({ payload: { replayed: true } });
     expect(h.rpc).toHaveBeenCalledOnce();

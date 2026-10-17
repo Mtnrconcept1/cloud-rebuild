@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildOrderConfirmationEmail,
   buildReservationConfirmationEmail,
+  queueReservationConfirmationEmails,
 } from "../../supabase/functions/_shared/transactional-emails";
 
 function read(path: string) {
@@ -85,6 +86,7 @@ describe("transactional order and reservation emails", () => {
   it("renders an accessible responsive TOK booking email for customers", () => {
     const email = buildReservationConfirmationEmail({
       audience: "customer", reservationId: "4a8d821b-5b92-4e6f-bbf3-c436f0557b4c",
+      status: "confirmed",
       customerName: "Raph", restaurantName: "La Gazelle d’Or",
       restaurantAddress: "Rue de Lyon 55", restaurantCity: "Genève",
       date: "2026-10-20", time: "19:00", partySize: 2,
@@ -125,6 +127,37 @@ describe("transactional order and reservation emails", () => {
     expect([...image.subarray(0, 3)]).toEqual([0xff, 0xd8, 0xff]);
     expect(image.length).toBeGreaterThan(20_000);
     expect(image.length).toBeLessThan(500_000);
+  });
+
+  it("never announces restaurant acceptance for a new pending request", () => {
+    const email = buildReservationConfirmationEmail({
+      audience: "customer", reservationId: "pending-1", restaurantName: "La Gazelle d’Or",
+      date: "2026-10-20", time: "19:00", partySize: 7,
+      featureLabel: "Réservation classique", items: [],
+      detailUrl: "https://www.thetok.ch/reservations", status: "pending",
+    });
+    expect(email.subject).toContain("Demande de réservation enregistrée");
+    expect(email.bodyText).toContain("en attente de la réponse du restaurant");
+    expect(email.bodyHtml).toContain("7 convive(s)");
+    expect(email.bodyHtml).not.toContain("confirmée !");
+    expect(email.bodyHtml).not.toContain("est confirmée");
+    expect(email.bodyHtml).not.toContain("tok-reservation-hero.jpg");
+  });
+
+  it("does not enqueue a second email when native creation already owns delivery", async () => {
+    const tables: string[] = [];
+    const query = {
+      select: () => query, eq: () => query, filter: () => query, limit: () => query,
+      maybeSingle: async () => ({ data: { id: "durable-native-intent" }, error: null }),
+    };
+    await queueReservationConfirmationEmails({
+      adminClient: { from: (name: string) => { tables.push(name); return query; } },
+      reservation: { id: "reservation-1", date: "2026-10-20", time: "19:00", party_size: 7 },
+      restaurant: { id: "restaurant-1", name: "Gazelle" },
+      customer: { email: "client@example.test" }, restaurantEmail: "owner@example.test",
+      featureLabel: "Réservation classique", items: [],
+    });
+    expect(tables).toEqual(["notifications"]);
   });
 
   it("escapes variable HTML and shows preorders and notes only when present", () => {

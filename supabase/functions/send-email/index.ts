@@ -9,6 +9,8 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { buildReservationConfirmationEmail } from "../_shared/transactional-emails.ts";
+import { reconcileEmailProviderStatuses } from "../_shared/email-provider-reconciliation.ts";
 
 async function sendEmailMessage(
   resendApiKey: string | null,
@@ -17,6 +19,7 @@ async function sendEmailMessage(
     subject: string;
     text?: string | null;
     html?: string | null;
+    idempotencyKey: string;
   },
 ) {
   if (resendApiKey) {
@@ -25,7 +28,9 @@ async function sendEmailMessage(
       headers: {
         Authorization: `Bearer ${resendApiKey}`,
         "Content-Type": "application/json",
+        "Idempotency-Key": payload.idempotencyKey,
       },
+      signal: AbortSignal.timeout(20_000),
       body: JSON.stringify({
         from: Deno.env.get("EMAIL_FROM") || "Tok <noreply@thetok.ch>",
         to: payload.to,
@@ -36,11 +41,12 @@ async function sendEmailMessage(
     });
 
     if (!resendResponse.ok) {
-      const errorBody = await resendResponse.text();
-      throw new Error(`Resend API error: ${resendResponse.status} - ${errorBody}`);
+      throw new Error(`Resend API error: ${resendResponse.status}`);
     }
 
-    return;
+    const result = await resendResponse.json();
+    if (typeof result?.id !== "string" || !result.id) throw new Error("Resend acceptance reference missing");
+    return result.id as string;
   }
 
   throw new Error("RESEND_API_KEY not configured");
@@ -51,19 +57,43 @@ function buildNotificationEmailBody(notification: any) {
     ? notification.data
     : {};
   const rawUrl = typeof data.url === "string" ? data.url : null;
-  const appBaseUrl = Deno.env.get("APP_BASE_URL") || Deno.env.get("PUBLIC_APP_URL") || Deno.env.get("SITE_URL") || "";
+  const appBaseUrl = Deno.env.get("APP_BASE_URL") || Deno.env.get("PUBLIC_APP_URL") || Deno.env.get("SITE_URL") || "https://www.thetok.ch";
   const fullUrl = rawUrl
     ? (/^https?:\/\//.test(rawUrl) ? rawUrl : `${appBaseUrl}${rawUrl}`)
     : null;
+
+  if (data.reservation_event_key && data.event === "created") {
+    const items = Array.isArray(data.preorder_items) ? data.preorder_items : [];
+    const receipt = buildReservationConfirmationEmail({
+      audience: data.recipient_role === "restaurant" ? "restaurant" : "customer",
+      appBaseUrl,
+      reservationId: String(data.reservation_id),
+      status: String(data.status || "pending"),
+      restaurantName: String(data.restaurant_name || "Restaurant TOK"),
+      restaurantAddress: data.restaurant_address,
+      restaurantCity: data.restaurant_city,
+      customerName: data.customer_name,
+      date: String(data.date), time: String(data.time).slice(0, 5),
+      partySize: Number(data.party_size), featureLabel: String(data.feature || "Réservation classique"),
+      notes: data.notes, total: Number(data.total_amount || 0),
+      detailUrl: fullUrl || `${appBaseUrl}/reservations`,
+      items: items.map((item: any) => ({
+        name: String(item.name || "Article précommandé"), quantity: Math.max(1, Number(item.quantity || 1)),
+        unitPrice: Number(item.unit_price || 0), totalPrice: Number(item.total_price || 0),
+      })),
+    });
+    return { text: receipt.bodyText, html: receipt.bodyHtml };
+  }
 
   const textParts = [notification.body];
   if (fullUrl) {
     textParts.push(`Voir le detail : ${fullUrl}`);
   }
 
-  const htmlParts = [`<p>${notification.body}</p>`];
+  const escapeHtml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+  const htmlParts = [`<p>${escapeHtml(String(notification.body || ""))}</p>`];
   if (fullUrl) {
-    htmlParts.push(`<p><a href="${fullUrl}">Voir le detail</a></p>`);
+    htmlParts.push(`<p><a href="${escapeHtml(fullUrl)}">Voir le detail</a></p>`);
   }
 
   return {
@@ -81,8 +111,15 @@ async function settleNotificationDelivery(
     terminal?: boolean;
     terminalStatus?: "failed" | "skipped";
     lastError?: string | null;
+    providerMessageId?: string;
   },
 ) {
+  if (input.providerMessageId) {
+    const { error: referenceError } = await supabaseAdmin.from("notification_deliveries")
+      .update({ provider_message_id: input.providerMessageId })
+      .eq("id", input.id).eq("lease_token", input.leaseToken).eq("status", "leased");
+    if (referenceError) throw referenceError;
+  }
   const { error } = await supabaseAdmin.rpc("settle_notification_delivery", {
     p_delivery_id: input.id,
     p_lease_token: input.leaseToken,
@@ -119,7 +156,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const resendApiKey = Deno.env.get("RESEND_API_KEY") || null;
 
     const { data: emails, error } = userIdFilter
       ? { data: [], error: null }
@@ -144,6 +181,9 @@ Deno.serve(async (req) => {
     if (notificationEmailError) throw notificationEmailError;
 
     if ((!emails || emails.length === 0) && (!notificationEmails || notificationEmails.length === 0)) {
+      const providerReconciliation = await reconcileEmailProviderStatuses({
+        adminClient: supabaseAdmin, apiKey: resendApiKey, userId: userIdFilter,
+      });
       await writeAuditLog({
         adminClient: actor.adminClient,
         actor,
@@ -157,9 +197,10 @@ Deno.serve(async (req) => {
           notification_processed: 0,
           processed: 0,
           user_id: userIdFilter,
+          provider_reconciliation: providerReconciliation,
         },
       });
-      return jsonResponse({ processed: 0 }, 200, corsHeaders);
+      return jsonResponse({ processed: 0, provider_reconciliation: providerReconciliation }, 200, corsHeaders);
     }
 
     let queuedProcessed = 0;
@@ -182,16 +223,17 @@ Deno.serve(async (req) => {
         if (claimError) throw claimError;
         if (!claimed) continue;
 
-        await sendEmailMessage(resendApiKey, {
+        const providerMessageId = await sendEmailMessage(resendApiKey, {
           to: email.to_email,
           subject: email.subject,
           html: email.body_html || undefined,
           text: email.body_text || email.body || undefined,
+          idempotencyKey: `tok:email-queue:${email.id}`,
         });
 
         await supabaseAdmin
           .from("email_queue")
-          .update({ status: "sent", sent_at: new Date().toISOString() })
+          .update({ status: "sent", sent_at: new Date().toISOString(), provider_message_id: providerMessageId })
           .eq("id", email.id);
 
         queuedProcessed++;
@@ -228,17 +270,19 @@ Deno.serve(async (req) => {
 
       try {
         const body = buildNotificationEmailBody(notification);
-        await sendEmailMessage(resendApiKey, {
+        const providerMessageId = await sendEmailMessage(resendApiKey, {
           to: target,
           subject: notification.title,
           text: body.text,
           html: body.html,
+          idempotencyKey: `tok:notification:${delivery.id}`,
         });
 
         await settleNotificationDelivery(supabaseAdmin, {
           id: delivery.id,
           leaseToken: delivery.lease_token,
           success: true,
+          providerMessageId,
         });
 
         notificationProcessed++;
@@ -263,6 +307,9 @@ Deno.serve(async (req) => {
     }
 
     const failed = queuedFailed + notificationFailed;
+    const providerReconciliation = await reconcileEmailProviderStatuses({
+      adminClient: supabaseAdmin, apiKey: resendApiKey, userId: userIdFilter,
+    });
 
     await writeAuditLog({
       adminClient: actor.adminClient,
@@ -282,6 +329,7 @@ Deno.serve(async (req) => {
         sent: queuedProcessed + notificationProcessed,
         failed,
         user_id: userIdFilter,
+        provider_reconciliation: providerReconciliation,
       },
     });
 
@@ -294,6 +342,7 @@ Deno.serve(async (req) => {
         notification_processed: notificationProcessed,
         queued_failed: queuedFailed,
         notification_failed: notificationFailed,
+        provider_reconciliation: providerReconciliation,
       },
       200,
       corsHeaders,

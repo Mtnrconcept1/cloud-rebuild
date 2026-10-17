@@ -174,8 +174,13 @@ Deno.serve(async (req) => {
         checkoutSessionId,
         authenticatedUserId: actor.userId,
       });
+      const finalizedReservation = result.ok && result.reservationId
+        ? await actor.adminClient.from("reservations").select("status")
+          .eq("id", result.reservationId).eq("user_id", actor.userId).maybeSingle()
+        : null;
       return jsonResponse(result.ok
-        ? { ok: true, reservation_id: result.reservationId, reservationId: result.reservationId }
+        ? { ok: true, reservation_id: result.reservationId, reservationId: result.reservationId,
+          status: finalizedReservation?.data?.status || "pending" }
         : { ok: false, error_code: result.errorCode, error_message: result.errorMessage },
         200, corsHeaders);
     }
@@ -304,6 +309,68 @@ Deno.serve(async (req) => {
       }
     }
 
+    const requestKey = req.headers.get("Idempotency-Key")?.trim() || null;
+    if (requestKey && (requestKey.length < 8 || requestKey.length > 200)) {
+      throw new HttpError(400, "Clé de réservation invalide.");
+    }
+    const reservationArgs = {
+      p_restaurant_id: restaurantId, p_date: date, p_time: time, p_party_size: partySize,
+      p_feature: feature,
+      p_metadata: {
+        ...metadata, acquisition_source: acquisitionSource,
+        ...(acquisitionChannelId ? { acquisition_channel_id: acquisitionChannelId } : {}),
+        ...(acquisitionSource === "google" ? { acquisition_channel_token: acquisitionChannelToken } : {}),
+        _internal_user_id: actor.userId,
+      },
+      p_notes: notes, p_progressive_offer_id: progressiveOfferId,
+    };
+    // A completed request is recovered before recalculating guarantees. The RPC
+    // compares the complete normalized payload and can never create in replay mode.
+    if (requestKey) {
+      const { data: replayData, error: replayError } = await actor.adminClient.rpc(
+        "validate_and_create_reservation_idempotent", {
+          ...reservationArgs, p_request_key: requestKey, p_user_id: actor.userId, p_replay_only: true,
+        },
+      );
+      if (replayError) throw new HttpError(503, "Reprise de réservation indisponible.");
+      const replay = getFirstRow<{ reservation_id: string | null; error_code: string | null; error_message: string | null }>(replayData);
+      if (replay) {
+        if (replay.error_message) return jsonResponse({ ok: false, error_code: replay.error_code, error_message: replay.error_message }, 200, corsHeaders);
+        const { data: saved, error: savedError } = await actor.adminClient.from("reservations")
+          .select("id, status, restaurant_id, date, time, party_size")
+          .eq("id", replay.reservation_id).eq("user_id", actor.userId).maybeSingle();
+        if (savedError || !saved) throw new HttpError(503, "Réservation enregistrée temporairement indisponible.");
+        await writeAuditLog({ adminClient: actor.adminClient, actor, request: req,
+          functionName: "create-reservation", action: "validate_and_create_reservation", status: "success",
+          targetEntityType: "reservations", targetEntityId: saved.id, metadata: { idempotent_replay: true } });
+        return jsonResponse({ ok: true, reservation_id: saved.id, reservationId: saved.id,
+          status: saved.status, restaurant_id: saved.restaurant_id, date: saved.date,
+          time: String(saved.time).slice(0, 5), party_size: saved.party_size }, 200, corsHeaders);
+      }
+    }
+
+    const guaranteeRequestPayload = { ...reservationArgs, acquisition_channel_token: acquisitionChannelToken || null };
+    let guaranteeRequest: { id: string; status: string; error_code: string | null; reservation_id: string | null; checkout_url: string | null; fee_amount_cents: number } | null = null;
+    if (requestKey) {
+      const { data: savedGuarantee, error: savedGuaranteeError } = await actor.adminClient.rpc("claim_reservation_guarantee_request", {
+        p_user_id: actor.userId, p_request_key: requestKey, p_request_payload: guaranteeRequestPayload, p_create: false,
+      });
+      if (savedGuaranteeError) throw new HttpError(savedGuaranteeError.code === "22023" ? 409 : 503, savedGuaranteeError.code === "22023" ? "guarantee_idempotency_conflict" : "Reprise de garantie indisponible.");
+      guaranteeRequest = savedGuarantee;
+      if (guaranteeRequest?.status === "failed" && guaranteeRequest.error_code !== "checkout_setup_failed") {
+        return jsonResponse({ ok: false, error_code: guaranteeRequest.error_code || "reservation_unavailable", error_message: "La réservation n'a pas pu être créée. Consultez TOK avant une nouvelle demande." }, 200, corsHeaders);
+      }
+      if (guaranteeRequest?.reservation_id) {
+        const { data: saved, error: savedError } = await actor.adminClient.from("reservations")
+          .select("id,status,restaurant_id,date,time,party_size").eq("id", guaranteeRequest.reservation_id).eq("user_id", actor.userId).maybeSingle();
+        if (savedError || !saved) throw new HttpError(503, "Réservation garantie temporairement indisponible.");
+        return jsonResponse({ ok: true, reservation_id: saved.id, reservationId: saved.id, status: saved.status,
+          restaurant_id: saved.restaurant_id, date: saved.date, time: String(saved.time).slice(0, 5), party_size: saved.party_size }, 200, corsHeaders);
+      }
+      if (guaranteeRequest?.checkout_url) return jsonResponse({ ok: true, requires_card_guarantee: true,
+        checkout_url: guaranteeRequest.checkout_url, fee_amount_cents: guaranteeRequest.fee_amount_cents }, 200, corsHeaders);
+    }
+
     // The quote is recalculated server-side at creation. A browser-provided
     // party size, cancellation count or "payment complete" flag is never trusted.
     let guaranteeQuote: {
@@ -323,8 +390,8 @@ Deno.serve(async (req) => {
     }
 
     const freeTableReservation = !["zero-attente", "chefs_table"].includes(feature.toLowerCase());
-    if (freeTableReservation && guaranteeQuote.is_required) {
-      if (body.guarantee_accepted !== true) {
+    if (freeTableReservation && (guaranteeQuote.is_required || guaranteeRequest)) {
+      if (!guaranteeRequest && body.guarantee_accepted !== true) {
         return jsonResponse({
           ok: false,
           error_code: "card_guarantee_consent_required",
@@ -333,7 +400,11 @@ Deno.serve(async (req) => {
       }
       if (notes && notes.length > 1500) throw new HttpError(400, "Notes trop longues.");
 
-      const { data: setup, error: setupError } = await actor.adminClient
+      const { data: setup, error: setupError } = requestKey
+        ? await actor.adminClient.rpc("claim_reservation_guarantee_request", {
+          p_user_id: actor.userId, p_request_key: requestKey, p_request_payload: guaranteeRequestPayload, p_create: true,
+        })
+        : await actor.adminClient
         .from("reservation_card_guarantee_setups")
         .insert({
           user_id: actor.userId,
@@ -358,7 +429,9 @@ Deno.serve(async (req) => {
         })
         .select("id")
         .single();
-      if (setupError || !setup?.id) throw new HttpError(500, "Impossible d'initialiser la garantie bancaire.");
+      if (setupError || !setup?.id) throw new HttpError(setupError?.code === "22023" ? 409 : 500, setupError?.code === "22023" ? "guarantee_idempotency_conflict" : "Impossible d'initialiser la garantie bancaire.");
+      if (setup.checkout_url) return jsonResponse({ ok: true, requires_card_guarantee: true,
+        checkout_url: setup.checkout_url, fee_amount_cents: partySize * 1000 }, 200, corsHeaders);
 
       try {
         const runtime = getStripeRuntimeForCheckoutKind("reservation");
@@ -393,10 +466,12 @@ Deno.serve(async (req) => {
           .update({
             stripe_customer_id: customer.id,
             stripe_checkout_session_id: session.id,
+            stripe_checkout_url: session.url,
             status: "checkout_ready",
+            error_code: null,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", setup.id).eq("user_id", actor.userId).eq("status", "pending");
+          .eq("id", setup.id).eq("user_id", actor.userId).in("status", ["pending", "failed", "checkout_ready"]);
         if (bindingError) throw new Error("Checkout binding failed");
 
         return jsonResponse({
@@ -413,21 +488,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { data, error } = await actor.adminClient.rpc("validate_and_create_reservation_safe", {
-      p_restaurant_id: restaurantId,
-      p_date: date,
-      p_time: time,
-      p_party_size: partySize,
-      p_feature: feature,
-      p_metadata: {
-        ...metadata,
-        acquisition_source: acquisitionSource,
-        ...(acquisitionChannelId ? { acquisition_channel_id: acquisitionChannelId } : {}),
-        ...(acquisitionSource === "google" ? { acquisition_channel_token: acquisitionChannelToken } : {}),
-        _internal_user_id: actor.userId,
-      },
-      p_notes: notes,
-      p_progressive_offer_id: progressiveOfferId,
+    const { data, error } = await actor.adminClient.rpc(
+      requestKey ? "validate_and_create_reservation_idempotent" : "validate_and_create_reservation_safe", {
+      ...(requestKey ? { p_request_key: requestKey, p_user_id: actor.userId } : {}),
+      ...reservationArgs,
     });
 
     if (error) throw new HttpError(500, error.message);
@@ -451,7 +515,7 @@ Deno.serve(async (req) => {
 
     const { data: reservation } = await actor.adminClient
       .from("reservations")
-      .select("id, restaurant_id, date, time, party_size, feature, total_amount, notes, preorder_items")
+      .select("id, restaurant_id, date, time, party_size, feature, total_amount, notes, preorder_items, status")
       .eq("id", result.reservation_id)
       .maybeSingle();
     const { data: restaurant } = await actor.adminClient
@@ -483,6 +547,7 @@ Deno.serve(async (req) => {
           feature: String(reservation?.feature || feature),
           total_amount: Number(reservation?.total_amount || 0),
           notes: typeof reservation?.notes === "string" ? reservation.notes : notes,
+          status: reservation?.status || "pending",
         },
         restaurant: {
           id: restaurantId,
@@ -543,6 +608,11 @@ Deno.serve(async (req) => {
       ok: true,
       reservation_id: result.reservation_id,
       reservationId: result.reservation_id,
+      status: reservation?.status || "pending",
+      restaurant_id: restaurantId,
+      date: reservation?.date || date,
+      time: String(reservation?.time || time).slice(0, 5),
+      party_size: Number(reservation?.party_size || partySize),
     }, 200, corsHeaders);
   } catch (error) {
     log.error("create-reservation error", { message: error instanceof Error ? error.message : "unknown" });

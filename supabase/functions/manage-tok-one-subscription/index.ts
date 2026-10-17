@@ -1,4 +1,4 @@
-import Stripe from "npm:stripe@18.5.0";
+import type Stripe from "npm:stripe@22.3.2";
 
 import {
   HttpError,
@@ -11,20 +11,24 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { getTokOneStripeRuntime, getTokOneStripeRuntimeForCheckoutSession } from "../_shared/stripe-client.ts";
+import { TokOneQuoteError, assertTokOneSubscriptionSelection, buildTokOneRecurringQuote, assertTokOneRecurringQuoteAccepted } from "../_shared/tok-one-recurring-quote.ts";
 import {
   getLatestTokOneSubscription,
   isTokOneEntitledStatus,
   syncTokOneSubscriptionRecord,
 } from "../_shared/tok-one.ts";
 
-type SubscriptionAction = "cancel" | "resume" | "sync_checkout_session";
+type SubscriptionAction = "cancel" | "resume" | "quote" | "sync_checkout_session";
 
 const SUBSCRIPTION_CANCELLATION_NOTICE_DAYS = 3;
 const SUBSCRIPTION_CANCELLATION_NOTICE_MS = SUBSCRIPTION_CANCELLATION_NOTICE_DAYS * 24 * 60 * 60 * 1000;
 
 function normalizeAction(value: unknown): SubscriptionAction {
   if (value === "sync_checkout_session") return "sync_checkout_session";
-  return value === "resume" ? "resume" : "cancel";
+  if (value === "quote") return "quote";
+  if (value === "resume") return "resume";
+  if (value === undefined || value === "cancel") return "cancel";
+  throw new HttpError(400, "tok_one_action_invalid");
 }
 
 function getSubscriptionFromCheckoutSession(session: Stripe.Checkout.Session) {
@@ -35,6 +39,7 @@ function getSubscriptionFromCheckoutSession(session: Stripe.Checkout.Session) {
 
 function getAuditAction(action: SubscriptionAction) {
   if (action === "sync_checkout_session") return "sync_tok_one_subscription_checkout";
+  if (action === "quote") return "quote_tok_one_subscription";
   return action === "cancel" ? "cancel_tok_one_subscription" : "resume_tok_one_subscription";
 }
 
@@ -140,6 +145,7 @@ Deno.serve(async (req) => {
     if (!subscription) {
       throw new HttpError(404, "Aucun abonnement Tok One introuvable");
     }
+    assertTokOneSubscriptionSelection(subscription.id, body.subscription_id);
 
     if (!isTokOneEntitledStatus(subscription.status) && action === "cancel") {
       throw new HttpError(409, "Aucun abonnement actif a resilier");
@@ -158,6 +164,13 @@ Deno.serve(async (req) => {
 
     if (subscription.stripe_subscription_id) {
       const stripeRuntime = getTokOneStripeRuntime(subscription.stripe_mode);
+
+      if (action === "quote" || action === "resume") {
+        const current = await stripeRuntime.stripe.subscriptions.retrieve(subscription.stripe_subscription_id, { expand: ["items.data.price"] });
+        const quote = buildTokOneRecurringQuote({ subscriptionId: subscription.id, stripeMode: stripeRuntime.mode, userId: actor.userId, stripeSubscription: current });
+        if (action === "quote") return jsonResponse({ ok: true, quote }, 200, corsHeaders);
+        assertTokOneRecurringQuoteAccepted(quote, body);
+      }
 
       const stripeSubscription = await stripeRuntime.stripe.subscriptions.update(
         subscription.stripe_subscription_id,
@@ -197,6 +210,8 @@ Deno.serve(async (req) => {
         subscription: syncResult.row,
       }, 200, corsHeaders);
     }
+
+    if (action === "quote" || action === "resume") throw new HttpError(409, "tok_one_recurring_price_not_verifiable");
 
     const localPayload = {
       cancel_at_period_end: action === "cancel",
@@ -244,7 +259,7 @@ Deno.serve(async (req) => {
       errorMessage: error instanceof Error ? error.message : "Erreur interne",
     });
 
-    if (error instanceof HttpError) {
+    if (error instanceof HttpError || error instanceof TokOneQuoteError) {
       return jsonResponse({ error: error.message }, error.status, corsHeaders);
     }
 

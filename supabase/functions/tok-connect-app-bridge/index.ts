@@ -1,6 +1,7 @@
 import {
   HttpError,
   authenticateRequest,
+  assertProductionFlowAllowed,
   jsonResponse,
   requireUserRole,
   writeAuditLog,
@@ -8,7 +9,10 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight, isRequestOriginAllowed } from "../_shared/cors.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
+import { invokeTokRoleOperation, TokRoleOperationError, TOK_ROLE_OPERATION_COVERAGE } from "../_shared/tok-connect-role-operations.ts";
+import { invokeTokCustomerOperation, TokCustomerOperationError, TOK_CUSTOMER_OPERATION_COVERAGE } from "../_shared/tok-connect-customer-operations.ts";
 import { sha256Base64Url } from "../_shared/tok-connect.ts";
+import { resolveTokDeliveryAddress } from "../_shared/tok-connect-delivery-address.ts";
 import { buildVerifiedOrderPricing, isClientCheckoutRestaurantEligible } from "../_shared/order-pricing.ts";
 import {
   normalizeTokCustomerCart,
@@ -19,7 +23,7 @@ import {
 } from "../_shared/tok-connect-customer-commerce.ts";
 
 type JsonRecord = Record<string, unknown>;
-type BridgeMode = "edge" | "rpc" | "data" | "customer_history" | "customer_commerce";
+type BridgeMode = "edge" | "rpc" | "data" | "customer_history" | "customer_commerce" | "role_operation" | "customer_operation";
 type DataOperation = "select" | "insert" | "update" | "delete";
 type FilterOperator = "eq" | "neq" | "is" | "in";
 type BridgeFilter = { column: string; operator?: FilterOperator; value: unknown };
@@ -59,6 +63,8 @@ const EDGE_CAPABILITIES: Record<string, EdgeCapability> = {
   "reservations.zero_attente.create": { functionName: "create-zero-attente-reservation", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "reservations", description: "Créer une réservation Zéro Attente réelle." },
   "reservations.golden_tok.create": { functionName: "create-chefs-table-reservation", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "reservations", description: "Créer une réservation La Tok d'Or réelle." },
   "subscription.tok_one.manage": { functionName: "manage-tok-one-subscription", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "subscriptions", description: "Gérer l'abonnement client TOK One." },
+  "subscription.tok_one.quote": { functionName: "manage-tok-one-subscription", roles: ["client"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "subscriptions", description: "Lire le récapitulatif natif TOK One avant toute gestion de renouvellement." },
+  "subscription.tok_one.checkout": { functionName: "create-checkout", roles: ["client"], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "subscriptions", description: "Créer un checkout TOK One après vérification native du plan et de son prix accepté." },
   "account.delete": { functionName: "delete-account", roles: [], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "account", description: "Supprimer le compte de l'utilisateur authentifié via le flux RGPD TOK." },
   "support.contact": { functionName: "contact-support", roles: [], methods: ["POST"], confirmationRequired: true, idempotencyRequired: true, category: "support", description: "Créer une demande de support via le backend TOK." },
   "ai.client.chat": { functionName: "ai-client-chat", roles: ["client"], methods: ["POST"], confirmationRequired: false, idempotencyRequired: false, category: "ai", description: "Utiliser l'assistant IA client TOK." },
@@ -200,9 +206,58 @@ async function claimIdempotency(actor: RequestActor, key: string, operation: str
 
 async function completeIdempotency(actor: RequestActor, key: string, responseBody: JsonRecord, statusCode: number) {
   if (!actor.userId) return;
-  await actor.adminClient.from(IDEMPOTENCY_TABLE).update({ response_body: responseBody, status_code: statusCode })
+  const { error } = await actor.adminClient.from(IDEMPOTENCY_TABLE).update({ response_body: responseBody, status_code: statusCode })
     .eq("user_id", actor.userId)
     .eq("idempotency_key", key);
+  if (error) throw new HttpError(503, "tok_connect_result_persistence_unavailable");
+}
+
+/** Reconcile only a transactionally recorded result for this actor and key. */
+async function recoverCustomerReservation(actor: RequestActor, key: string) {
+  if (!actor.userClient || !actor.userId) return null;
+  const { data: saved, error } = await actor.userClient.rpc("get_my_reservation_request_result", { p_request_key: key });
+  if (error || !isRecord(saved)) return null;
+  if (typeof saved.error_code === "string" && saved.error_code) {
+    return { statusCode: 422, payload: { ok: false, retry_safe: true, replayed: true,
+      data: { ok: false, error_code: saved.error_code, error_message: saved.error_message } } as JsonRecord };
+  }
+  if (typeof saved.reservation_id !== "string") return null;
+  const { data: reservation, error: readError } = await actor.userClient.from("reservations")
+    .select("id,restaurant_id,date,time,party_size,status")
+    .eq("id", saved.reservation_id).eq("user_id", actor.userId).maybeSingle();
+  if (readError || !reservation) return null;
+  return { statusCode: 200, payload: { ok: true, replayed: true, reconciled: true,
+    data: { ok: true, reservation_id: reservation.id, ...reservation } } as JsonRecord };
+}
+
+async function recoverCustomerGuarantee(actor: RequestActor, key: string): Promise<
+  { kind: "result"; statusCode: number; payload: JsonRecord } | { kind: "retry" } | null
+> {
+  if (!actor.userClient || !actor.userId) return null;
+  const { data: saved, error } = await actor.userClient.rpc("get_my_reservation_guarantee_request_result", { p_request_key: key });
+  if (error || !isRecord(saved)) return null;
+  if (typeof saved.reservation_id === "string") {
+    const { data: row, error: readError } = await actor.userClient.from("reservations")
+      .select("id,restaurant_id,date,time,party_size,status")
+      .eq("id", saved.reservation_id).eq("user_id", actor.userId).maybeSingle();
+    if (readError || !row) return null;
+    return { kind: "result", statusCode: 200, payload: { ok: true, replayed: true, reconciled: true,
+      data: { ok: true, reservation_id: row.id, ...row } } as JsonRecord };
+  }
+  const url = safeTokCommerceCheckoutUrl(saved.checkout_url);
+  if (saved.status === "checkout_ready" && url) return {
+    kind: "result", statusCode: 200, payload: { ok: true, replayed: true, reconciled: true,
+      data: { ok: true, requires_card_guarantee: true, checkout_url: url,
+        fee_amount_cents: saved.fee_amount_cents } } as JsonRecord,
+  };
+  // A native request row with stable setup UUID and Stripe idempotency keys
+  // exists. Re-entering that exact request can finish a lost session binding.
+  if (saved.status === "pending" || (saved.status === "failed" && saved.error_code === "checkout_setup_failed")) {
+    return { kind: "retry" };
+  }
+  if (saved.status === "failed") return { kind: "result", statusCode: 409, payload: { ok: false, replayed: true,
+    error: { code: "tok_guarantee_finalization_failed", message: "La garantie n'a pas permis de finaliser la réservation. Vérifiez son statut dans TOK." } } as JsonRecord };
+  return null;
 }
 
 function publicCapabilities(actor: RequestActor) {
@@ -252,8 +307,41 @@ async function invokeEdge(req: Request, actor: RequestActor, body: JsonRecord) {
   const idempotencyKey = readIdempotencyKey(body, capability.idempotencyRequired);
   const requestHash = await sha256Base64Url(stableStringify({ mode: "edge", capability: capabilityName, method, payload }));
   if (idempotencyKey) {
-    const decision = await claimIdempotency(actor, idempotencyKey, `edge:${capabilityName}`, requestHash);
-    if (decision.replay) return { statusCode: decision.statusCode, payload: { ...decision.responseBody, replayed: true } };
+    try {
+      const decision = await claimIdempotency(actor, idempotencyKey, `edge:${capabilityName}`, requestHash);
+      if (decision.replay) {
+        if (capabilityName === "reservations.classic.create" && isRecord(decision.responseBody.data)
+          && decision.responseBody.data.requires_card_guarantee === true) {
+          const current = await recoverCustomerGuarantee(actor, idempotencyKey);
+          if (current?.kind === "result") return current;
+        }
+        return { statusCode: decision.statusCode, payload: { ...decision.responseBody, replayed: true } };
+      }
+    } catch (error) {
+      // claimIdempotency has already compared the full body hash. Never use a
+      // key lookup to accept different arguments or to retry a card setup.
+      if (capabilityName === "reservations.classic.create" && error instanceof HttpError
+        && error.message === "tok_connect_idempotency_request_in_progress") {
+        const recovered = await recoverCustomerReservation(actor, idempotencyKey);
+        if (recovered) {
+          await completeIdempotency(actor, idempotencyKey, recovered.payload, recovered.statusCode);
+          return recovered;
+        }
+        const guarantee = await recoverCustomerGuarantee(actor, idempotencyKey);
+        if (guarantee?.kind === "result") {
+          await completeIdempotency(actor, idempotencyKey, guarantee.payload, guarantee.statusCode);
+          return guarantee;
+        }
+        if (guarantee?.kind === "retry") {
+          // The existing server-side setup is the only permitted retry path.
+          // Do not replace its key, restaurant, guest count or accepted terms.
+        } else {
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
   }
 
   const headers = new Headers({ accept: "application/json, text/plain, text/event-stream" });
@@ -308,6 +396,9 @@ async function invokeEdge(req: Request, actor: RequestActor, body: JsonRecord) {
 
 function rpcRole(name: string) {
   if (name === "cancel_reservation_by_customer") return ["client"];
+  if (["submit_verified_review", "create_support_incident", "send_gift_points_v2", "claim_gift_points_v2", "donate_points_for_meal"].includes(name)) return ["client"];
+  if (name === "update_client_profile") return [];
+  if (name === "update_restaurant_reservation_status_safe" || name === "cancel_reservation_by_restaurant") return ["restaurateur"];
   if (name.startsWith("admin_")) return ["admin"];
   if (name.startsWith("restaurant_")) return ["restaurateur", "admin"];
   throw new HttpError(403, "tok_connect_rpc_not_allowlisted");
@@ -331,7 +422,7 @@ async function invokeRpc(actor: RequestActor, body: JsonRecord) {
     if (!/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(reservationId)) throw new HttpError(400, "reservation_id_invalid");
     const { data: reservation, error: reservationError } = await actor.userClient
       .from("reservations")
-      .select("id,feature,total_amount")
+      .select("id,restaurant_id,date,time,party_size,status,feature,total_amount")
       .eq("id", reservationId)
       .eq("user_id", actor.userId)
       .maybeSingle();
@@ -350,8 +441,18 @@ async function invokeRpc(actor: RequestActor, body: JsonRecord) {
   // refused (late cancellation, wrong owner, invalid state). Surface that.
   const deniedCancellation = rpcName === "cancel_reservation_by_customer"
     && Array.isArray(data) && isRecord(data[0]) && data[0].ok === false;
-  const statusCode = error ? 400 : deniedCancellation ? 409 : 200;
-  if (deniedCancellation) result.ok = false;
+  const refusedRestaurantMutation = ["update_restaurant_reservation_status_safe", "cancel_reservation_by_restaurant"].includes(rpcName)
+    && (!Array.isArray(data) || !isRecord(data[0]) || (rpcName === "update_restaurant_reservation_status_safe" ? data[0].updated !== true : data[0].ok !== true));
+  const refusedBusinessResult = isRecord(data) && data.ok === false;
+  const statusCode = error ? 400 : deniedCancellation || refusedRestaurantMutation || refusedBusinessResult ? 409 : 200;
+  if (deniedCancellation || refusedRestaurantMutation || refusedBusinessResult) result.ok = false;
+  if (!error && !deniedCancellation && rpcName === "cancel_reservation_by_customer") {
+    const { data: booking, error: bookingError } = await actor.userClient.from("reservations")
+      .select("id,restaurant_id,date,time,party_size,status")
+      .eq("id", String(args.p_reservation_id)).eq("user_id", actor.userId).maybeSingle();
+    if (bookingError || !booking) throw new HttpError(503, "reservation_cancellation_reconciliation_required");
+    result.booking_result = { reservation_id: booking.id, restaurant_id: booking.restaurant_id, date: booking.date, time: booking.time, party_size: booking.party_size, status: booking.status };
+  }
   await completeIdempotency(actor, idempotencyKey, result, statusCode);
   return { statusCode, payload: result };
 }
@@ -453,7 +554,7 @@ async function assertCustomerRestaurant(actor: RequestActor, restaurantId: strin
   if (!actor.userId) throw new HttpError(401, "tok_connect_user_required");
   const { data: restaurant, error: restaurantError } = await actor.adminClient
     .from("restaurants")
-    .select("id,name,is_active,status,is_demo,tok_connect_mcp_enabled")
+    .select("id,name,is_active,status,is_demo,tok_connect_mcp_enabled,delivery_available,delivery_fee")
     .eq("id", restaurantId)
     .maybeSingle();
   if (restaurantError) throw new HttpError(503, "tok_cart_restaurant_unavailable");
@@ -467,9 +568,13 @@ async function assertCustomerRestaurant(actor: RequestActor, restaurantId: strin
 async function priceCustomerCart(actor: RequestActor, input: TokCustomerCartInput) {
   if (!actor.userId) throw new HttpError(401, "tok_connect_user_required");
   const restaurant = await assertCustomerRestaurant(actor, input.restaurant_id);
+  const configuredDeliveryFee = input.journey === "delivery" ? Number(restaurant.delivery_fee) : 0;
+  if (input.journey === "delivery" && (restaurant.delivery_available !== true || !Number.isFinite(configuredDeliveryFee) || configuredDeliveryFee < 0)) throw new HttpError(409, "tok_cart_delivery_unavailable");
   const metadata: JsonRecord = {
     payment_method: input.payment_method,
-    ...(input.journey === "zero-attente"
+    ...(input.journey === "delivery"
+      ? { delivery_address: input.delivery_address, delivery_schedule_mode: "scheduled", delivery_date: input.date, delivery_time: input.time, fulfillment: "delivery", type: "delivery" }
+      : input.journey === "zero-attente"
       ? { arrival_date: input.date, arrival_time: input.time, party_size: input.party_size }
       : { pickup_date: input.date, pickup_time: input.time }),
   };
@@ -484,13 +589,20 @@ async function priceCustomerCart(actor: RequestActor, input: TokCustomerCartInpu
         // These placeholders are ignored by the authoritative menu lookup.
         unit_price: 0, metadata: {},
       })),
-      deliveryFee: 0, metadata,
+      deliveryFee: configuredDeliveryFee, metadata,
       context: input.journey === "zero-attente" ? "zero-attente" : "cart",
       reservationDate: input.date, reservationTime: input.time,
     });
   } catch {
     throw new HttpError(409, "tok_cart_menu_or_service_unavailable");
   }
+  const deliveryLocation = input.journey === "delivery" ? await resolveTokDeliveryAddress(input.delivery_address!, {
+    beforeFetch: async () => {
+      const limiter = createRateLimiter(actor.adminClient, "tok-connect-delivery-geocoding");
+      await limiter.consume("global", { maxRequests: 60, windowSeconds: 60 });
+      await limiter.consume("user:" + actor.userId, { maxRequests: 15, windowSeconds: 60 });
+    },
+  }) : null;
 
   if (input.journey === "zero-attente") {
     const { data: rawSlots, error: slotError } = await actor.adminClient.rpc(
@@ -521,11 +633,15 @@ async function priceCustomerCart(actor: RequestActor, input: TokCustomerCartInpu
   return {
     pricing,
     items,
+    delivery_location: deliveryLocation,
     customer_quote: {
       restaurant_id: input.restaurant_id, restaurant_name: String(restaurant.name || ""),
       journey: input.journey, date: input.date, time: input.time,
       party_size: input.party_size, payment_method: input.payment_method,
       currency: "CHF", subtotal_cents: Math.round(pricing.subtotal * 100),
+      delivery_fee_cents: Math.round(Number(pricing.deliveryFee || 0) * 100),
+      quality_fee_cents: Math.round(Number(pricing.qualityFee || 0) * 100),
+      ...(deliveryLocation ? { delivery_address: input.delivery_address, delivery_location: deliveryLocation, delivery_schedule_mode: "scheduled", supported_countries: ["CH"], delivery_validation: "server_geocoded_exact_address_native_dispatch_rules_apply" } : {}),
       discount_cents: Math.round(pricing.discountAmount * 100),
       total_cents: totalCents,
       items: items.map((item) => ({
@@ -596,7 +712,7 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
   }
   let mutationStarted = false;
   try {
-  const { pricing, items, customer_quote } = await priceCustomerCart(actor, input);
+  const { pricing, items, customer_quote, delivery_location } = await priceCustomerCart(actor, input);
 
   const orderMetadata: JsonRecord = {
     restaurant_id: input.restaurant_id,
@@ -614,8 +730,11 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
     tok_one_discount_percent: pricing.tokOneDiscountPercent,
     points_to_redeem: 0,
     points_discount_amount: 0,
-    delivery_fee: 0,
-    ...(input.journey === "zero-attente"
+    delivery_fee: pricing.deliveryFee || 0,
+    ...(delivery_location ? { delivery_lat: delivery_location.latitude, delivery_lng: delivery_location.longitude, delivery_city: delivery_location.city, delivery_geocode_address: delivery_location.formatted_address, delivery_geocode_provider: delivery_location.provider, delivery_geocode_checked_at: delivery_location.checked_at } : {}),
+    ...(input.journey === "delivery"
+      ? { delivery_address: input.delivery_address, delivery_schedule_mode: "scheduled", delivery_date: input.date, delivery_time: input.time, fulfillment: "delivery", type: "delivery" }
+      : input.journey === "zero-attente"
       ? { arrival_date: input.date, arrival_time: input.time, party_size: input.party_size }
       : { pickup_date: input.date, pickup_time: input.time }),
   };
@@ -624,8 +743,8 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
   // with the existing business endpoint; this preview cannot write an order.
   const orderPayload: JsonRecord = {
     restaurant_id: input.restaurant_id,
-    delivery_address: "",
-    delivery_fee: 0,
+    delivery_address: input.journey === "delivery" ? input.delivery_address : "",
+    delivery_fee: pricing.deliveryFee || 0,
     total_amount: pricing.total,
     notes: input.notes,
     items: items.map((item) => ({
@@ -635,7 +754,7 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
     })),
     metadata: orderMetadata,
   };
-  if (input.journey === "takeaway") {
+  if (input.journey !== "zero-attente") {
     const preview = await postCustomerTokFunction(req, "validate-order", {
       ...orderPayload, preview_only: true,
     });
@@ -651,7 +770,7 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
   }
   // No business mutation until the customer has approved a fresh server total.
   assertTokCartAmountUnchanged(customer_quote.total_cents, input.expected_total_cents!);
-  if (input.journey === "takeaway" && customer_quote.total_cents === 0) {
+  if (input.journey !== "zero-attente" && customer_quote.total_cents === 0) {
     throw new HttpError(409, "tok_cart_free_takeaway_requires_tok");
   }
   const paymentAttemptId = input.payment_attempt_id!;
@@ -666,7 +785,7 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
 
   mutationStarted = true;
   let preparedOrderId: string | null = null;
-  if (input.journey === "takeaway") {
+  if (input.journey !== "zero-attente") {
     const prepared = await postCustomerTokFunction(req, "validate-order", {
       ...orderPayload,
       checkout_id: paymentAttemptId,
@@ -704,6 +823,8 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
     ok: true, action: "checkout", checkout_url: checkoutUrl,
     checkout_kind: kind, payment_attempt_id: paymentAttemptId,
     order_id: preparedOrderId, total_cents: customer_quote.total_cents,
+    delivery_fee_cents: customer_quote.delivery_fee_cents,
+    ...(input.journey === "delivery" ? { delivery_address: input.delivery_address, journey: "delivery" } : {}),
     currency: "CHF", payment_status: "pending", reservation_confirmed: false,
   } };
   await completeIdempotency(actor, input.idempotency_key!, result.payload, 200);
@@ -760,7 +881,7 @@ Deno.serve(async (req) => {
 
     if (mode === "edge" && body.action === "list") {
       const catalog = publicCapabilities(actor);
-      return jsonResponse({ ok: true, capabilities: catalog.capabilities, rpc_prefixes: catalog.rpcPrefixes, data_surfaces: catalog.dataSurfaces }, 200, corsHeaders);
+      return jsonResponse({ ok: true, capabilities: catalog.capabilities, rpc_prefixes: catalog.rpcPrefixes, data_surfaces: catalog.dataSurfaces, role_operation_coverage: TOK_ROLE_OPERATION_COVERAGE, customer_operation_coverage: TOK_CUSTOMER_OPERATION_COVERAGE, backend_capabilities_are_not_public_tools: true }, 200, corsHeaders);
     }
 
     let result: { statusCode: number; payload: JsonRecord };
@@ -779,6 +900,25 @@ Deno.serve(async (req) => {
     } else if (mode === "customer_commerce") {
       auditAction = "customer_commerce:" + String(body.action || "unknown");
       result = await invokeCustomerCommerce(req, actor, body);
+    } else if (mode === "role_operation" || mode === "customer_operation") {
+      auditAction = mode + ":" + String(body.operation || "unknown");
+      const operationActor = actor;
+      const invoke = mode === "role_operation" ? invokeTokRoleOperation : invokeTokCustomerOperation;
+      result = await invoke(actor, body, {
+        authorizeMutation: () => assertProductionFlowAllowed(operationActor, "opération MCP réelle"),
+        invokeEdge: (input) => invokeEdge(req, operationActor, input),
+        invokeRpc: (input) => invokeRpc(operationActor, input),
+        mutate: async (operation, args, run) => {
+          assertConfirmation(args, true);
+          const key = readIdempotencyKey(args, true)!;
+          const requestHash = await sha256Base64Url(stableStringify({ mode, operation, args }));
+          const decision = await claimIdempotency(operationActor, key, operation, requestHash);
+          if (decision.replay) return { statusCode: decision.statusCode, payload: { ...decision.responseBody, replayed: true } };
+          const response = await run();
+          await completeIdempotency(operationActor, key, response.payload, response.statusCode);
+          return response;
+        },
+      });
     } else {
       throw new HttpError(400, "tok_connect_bridge_mode_invalid");
     }
@@ -794,7 +934,7 @@ Deno.serve(async (req) => {
     });
     return jsonResponse(result.payload, result.statusCode, corsHeaders);
   } catch (error) {
-    const statusCode = error instanceof HttpError || error instanceof TokCustomerCommerceError ? error.status : 500;
+    const statusCode = error instanceof HttpError || error instanceof TokCustomerCommerceError || error instanceof TokRoleOperationError || error instanceof TokCustomerOperationError ? error.status : 500;
     const message = error instanceof Error ? error.message : "tok_connect_app_bridge_error";
     if (actor) await writeAuditLog({
       adminClient: actor.adminClient,

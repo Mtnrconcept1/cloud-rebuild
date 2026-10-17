@@ -368,9 +368,11 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     try {
       var cart = state.cart;
       setWidgetState({ view: state.view, selectedId: state.selectedId, filter: state.filter,
+        unresolvedCommerceAttempt: state.unresolvedCommerceAttempt || null,
         booking: state.booking && state.booking.idempotencyKey ? { restaurantId: state.booking.restaurantId, name: state.booking.name, date: state.booking.date, time: state.booking.time, partySize: state.booking.partySize, guaranteeAccepted: state.booking.guaranteeAccepted, idempotencyKey: state.booking.idempotencyKey } : null,
         cart: cart ? { restaurantId: cart.restaurantId, journey: cart.journey,
           date: cart.date, time: cart.time, partySize: cart.partySize,
+          deliveryAddress: cart.deliveryAddress || '',
           paymentMethod: cart.paymentMethod, items: cart.items,
           attemptId: cart.attemptId, stage: cart.stage } : null
       });
@@ -401,7 +403,15 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     if (!value) return null;
     if (Array.isArray(value.restaurants)) return value;
     if (value.detail && typeof value.detail === 'object') {
-      return { kind: 'restaurant_selection', title: value.detail.name || 'Fiche TOK', restaurants: [], detail: value.detail, groups: [], notes: [] };
+      return Object.assign({}, value, { kind: 'restaurant_selection', title: value.detail.name || 'Fiche TOK', restaurants: [], detail: value.detail, groups: [], notes: [] });
+    }
+    if (value.booking_result && value.booking_result.restaurant_id) {
+      return Object.assign({}, value, { kind: 'restaurant_selection', restaurants: [], groups: [], notes: [],
+        detail: { id: value.booking_result.restaurant_id, name: value.booking_result.restaurant_name || 'Restaurant TOK', kind: 'restaurant_detail' } });
+    }
+    if (value.booking_guarantee && value.booking_guarantee.context && value.booking_guarantee.context.restaurant_id) {
+      return Object.assign({}, value, { kind: 'restaurant_selection', restaurants: [], groups: [], notes: [],
+        detail: { id: value.booking_guarantee.context.restaurant_id, name: value.booking_guarantee.context.restaurant_name || 'Restaurant TOK', kind: 'restaurant_detail' } });
     }
     if (value.kind === 'restaurant_detail' && value.id) {
       return { kind: 'restaurant_selection', title: value.name || 'Fiche TOK', restaurants: [], detail: value, groups: [], notes: [] };
@@ -758,7 +768,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     var date = detail.availability && detail.availability.date || state.payload && state.payload.date || '';
     state.booking = {
       restaurantId: detail.id, name: detail.name,
-      date: date, time: slot && slot.time || '',
+      date: date, time: slot && slot.time || '', timezone: 'Europe/Zurich',
       partySize: Math.max(1, Math.min(20, Number(state.payload && state.payload.party_size) || 2)),
       slots: detail.availability && Array.isArray(detail.availability.slots) ? detail.availability.slots : [],
       step: 'draft', quote: null, quoteLoading: false, loadingSlots: false,
@@ -845,7 +855,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         booking.step = 'guarantee'; booking.result = { url: safePaymentUrl(response.checkout_url) };
       } else if (response.reservation_id || response.reservationId) {
         booking.step = 'confirmed';
-        booking.result = { id: String(response.reservation_id || response.reservationId) };
+        booking.result = { id: String(response.reservation_id || response.reservationId), status: response.status || 'pending' };
       } else {
         throw new Error('TOK n’a pas confirmé la réservation : vérifiez votre historique avant de réessayer.');
       }
@@ -864,8 +874,9 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     var inputs = [];
     if (booking.step === 'confirmed') {
       return h('section', { class: 'panel tok-booking' }, [
-        h('h3', { text: 'Réservation confirmée par TOK' }),
+        h('h3', { text: booking.result.status === 'confirmed' ? 'Réservation acceptée par le restaurant' : booking.result.status === 'cancelled' ? 'Réservation annulée' : 'Demande de réservation enregistrée' }),
         h('p', { class: 'booking-message', text: 'Votre réservation est enregistrée. Référence : ' + booking.result.id }),
+        h('p', { class: 'booking-message', text: booking.result.status === 'confirmed' ? 'Le restaurant a accepté votre réservation.' : booking.result.status === 'cancelled' ? 'Cette réservation est annulée dans TOK.' : 'En attente de l’acceptation du restaurant. Consultez votre espace TOK pour suivre son statut.' }),
         h('button', { class: 'btn', type: 'button', onClick: function () { loadCustomerHistory(); } }, 'Mes réservations')
       ]);
     }
@@ -882,6 +893,8 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     if (booking.step === 'guarantee') {
       return h('section', { class: 'panel tok-booking' }, [
         h('h3', { text: 'Empreinte bancaire à finaliser' }),
+        h('p', { class: 'booking-message', text: booking.partySize + ' convive(s) · ' + formatDate(booking.date) + ' · ' + booking.time }),
+        booking.result.feeAmountCents != null ? h('p', { class: 'booking-message', text: 'Garantie d’annulation : ' + formatPrice(booking.result.feeAmountCents / 100, 'CHF') + ' au total. Aucune réservation acceptée à ce stade.' }) : null,
         h('p', { class: 'booking-message', text: 'La table n’est pas encore confirmée. Terminez la garantie bancaire via le paiement sécurisé TOK, puis vérifiez le statut de votre réservation.' }),
         h('button', { class: 'btn primary', type: 'button',
           onClick: function () { openLink(booking.result.url); }
@@ -1037,7 +1050,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       time: detail.availability && detail.availability.slots && detail.availability.slots[0]
         ? String(detail.availability.slots[0].time || '') : '',
       partySize: Math.max(1, Math.min(20, Number(state.payload && state.payload.party_size) || 2)),
-      paymentMethod: 'card', items: {}, menu: [], notes: '',
+      paymentMethod: 'card', items: {}, menu: [], notes: '', deliveryAddress: '',
       quote: null, quoteLoading: false, menuLoading: true,
       stage: 'draft', attemptId: null, checkoutUrl: null, message: null, error: null
     };
@@ -1076,6 +1089,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     return { restaurant_id: cart.restaurantId, journey: cart.journey,
       items: selectedCartItems(cart), date: cart.date, time: cart.time,
       party_size: cart.journey === 'zero-attente' ? cart.partySize : 1,
+      ...(cart.journey === 'delivery' ? { delivery_address: cart.deliveryAddress || '' } : {}),
       payment_method: cart.paymentMethod, notes: cart.notes || '' };
   }
 
@@ -1083,8 +1097,10 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     var cart = state.cart;
     if (!cart || !cartEditable(cart) || !selectedCartItems(cart).length || !cart.date || !cart.time) return;
     cart.quote = null; cart.error = null; cart.quoteLoading = true; render();
-    invokeTokTool('tok_quote_customer_cart', cartArguments(cart)).then(function (response) {
+    var requestedArguments = cartArguments(cart);
+    invokeTokTool('tok_quote_customer_cart', requestedArguments).then(function (response) {
       if (state.cart !== cart) return;
+      if (JSON.stringify(cartArguments(cart)) !== JSON.stringify(requestedArguments)) return;
       if (!response.quote || !Number.isSafeInteger(response.quote.total_cents))
         throw new Error('Le devis du serveur TOK est invalide.');
       cart.quote = response.quote; cart.stage = 'quoted';
@@ -1098,6 +1114,10 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
   function payCart() {
     var cart = state.cart;
     if (!cart || cart.stage !== 'quoted' || !cart.quote) return;
+    if (cart.journey === 'delivery' && (cart.quote.delivery_address !== String(cart.deliveryAddress || '').trim()
+      || !Number.isSafeInteger(cart.quote.delivery_fee_cents) || cart.quote.delivery_fee_cents < 0)) {
+      cart.quote = null; cart.stage = 'draft'; cart.error = 'Vérifiez de nouveau l’adresse et les frais de livraison.'; render(); return;
+    }
     var checkedAt = Date.parse(cart.quote.checked_at || '');
     if (!isFinite(checkedAt) || Math.abs(Date.now() - checkedAt) > 300000) {
       cart.quote = null; cart.stage = 'draft';
@@ -1235,7 +1255,10 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       } }, 'À emporter'),
       h('button', { class: 'btn', type: 'button', onClick: function () {
         cart.journey = 'zero-attente'; cartChanged(cart);
-      } }, 'Zéro Attente')
+      } }, 'Zéro Attente'),
+      detail.delivery_available ? h('button', { class: 'btn', type: 'button', onClick: function () {
+        cart.journey = 'delivery'; cartChanged(cart);
+      } }, 'Livraison') : null
     ]));
     if (cart.menuLoading) nodes.push(h('p', { class: 'booking-message', text: 'Chargement de la carte…' }));
     if (cart.menu.length) nodes.push(h('div', { class: 'tok-cart-list' }, cart.menu.map(function (item) {
@@ -1262,13 +1285,13 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     if (editable) {
       nodes.push(h('div', { class: 'booking-fields' }, [
         h('label', { class: 'booking-field' }, [
-          h('span', { text: cart.journey === 'zero-attente' ? 'Date d’arrivée' : 'Date de retrait' }),
+          h('span', { text: cart.journey === 'delivery' ? 'Date de livraison' : cart.journey === 'zero-attente' ? 'Date d’arrivée' : 'Date de retrait' }),
           h('input', { type: 'date', value: cart.date, onChange: function (event) {
             cart.date = event.target.value; cartChanged(cart);
           } })
         ]),
         h('label', { class: 'booking-field' }, [
-          h('span', { text: cart.journey === 'zero-attente' ? 'Heure d’arrivée' : 'Heure de retrait' }),
+          h('span', { text: cart.journey === 'delivery' ? 'Heure de livraison' : cart.journey === 'zero-attente' ? 'Heure d’arrivée' : 'Heure de retrait' }),
           h('input', { type: 'time', value: cart.time, onChange: function (event) {
             cart.time = event.target.value; cartChanged(cart);
           } })
@@ -1281,6 +1304,11 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
               if (!Number.isInteger(next) || next < 1 || next > 20) return;
               cart.partySize = next; cartChanged(cart);
             } })
+        ]) : null,
+        cart.journey === 'delivery' ? h('label', { class: 'booking-field' }, [
+          h('span', { text: 'Adresse de livraison complète' }),
+          h('input', { type: 'text', maxLength: 300, value: cart.deliveryAddress || '', placeholder: 'Rue, numéro, code postal et ville',
+            onChange: function (event) { cart.deliveryAddress = event.target.value; cartChanged(cart); } })
         ]) : null,
         h('label', { class: 'booking-field' }, [
           h('span', { text: 'Paiement' }),
@@ -1297,6 +1325,8 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         onClick: quoteCart
       }, cart.quoteLoading ? 'Vérification TOK…' : 'Vérifier le prix'));
       if (cart.quote) {
+        if (cart.journey === 'delivery') nodes.push(h('p', { class: 'booking-message', text: 'Livraison à : ' + String(cart.quote.delivery_address || '')
+          + ' · Frais : ' + formatPrice(Number(cart.quote.delivery_fee_cents || 0) / 100, 'CHF') }));
         nodes.push(h('div', { class: 'tok-cart-total' }, [
           h('span', { text: 'Total confirmé par TOK' }),
           h('span', { text: formatPrice(cart.quote.total_cents / 100, 'CHF') })
@@ -1306,6 +1336,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         }, 'Confirmer et payer sur Stripe'));
       }
     }
+    if (!editable && cart.journey === 'delivery' && cart.deliveryAddress) nodes.push(h('p', { class: 'booking-message', text: 'Adresse de cette tentative : ' + cart.deliveryAddress }));
     if (cart.message) nodes.push(h('p', { class: 'booking-message', text: cart.message }));
     if (cart.error) nodes.push(h('p', { class: 'booking-error', role: 'alert', text: cart.error }));
     if (cart.checkoutUrl) nodes.push(h('button', { class: 'btn primary', type: 'button',
@@ -1400,6 +1431,9 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     if (detail.supports_pickup) actions.push(h('button', {
       class: 'btn', type: 'button', onClick: function () { startCart(detail, 'takeaway'); }
     }, 'Commander à emporter'));
+    if (detail.delivery_available) actions.push(h('button', {
+      class: 'btn', type: 'button', onClick: function () { startCart(detail, 'delivery'); }
+    }, 'Commander en livraison'));
     if (detail.supports_reservation && detail.supports_dinein) actions.push(h('button', {
       class: 'btn', type: 'button', onClick: function () { startCart(detail, 'zero-attente'); }
     }, 'Zéro Attente'));
@@ -1509,6 +1543,20 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     var payload = state.payload;
     root.textContent = '';
 
+    if (state.view === 'commerce-result' && state.commerceResult) {
+      var commerce = state.commerceResult;
+      var completed = commerce.paid === true && commerce.state === 'finalized';
+      var cancelled = commerce.cancelled === true && commerce.state === 'cancelled';
+      var nodes = [h('h2', { text: completed ? 'Paiement finalisé par TOK' : cancelled ? 'Tentative de paiement annulée' : 'Suivi du paiement TOK' }),
+        h('p', { text: 'Référence : ' + String(commerce.payment_attempt_id || '') }),
+        h('p', { text: completed ? 'Consultez votre commande ou réservation dans TOK.' : cancelled ? 'Cette tentative est annulée.' : commerce.paid === true ? 'Paiement reçu. TOK finalise la commande ; ne lancez pas un autre paiement.' : 'Le paiement reste en attente de vérification. Aucun nouveau paiement n’a été lancé.' })];
+      var checkout = commerce.paid === true ? null : safePaymentUrl(commerce.checkout_url);
+      if (checkout && !cancelled) nodes.push(h('button', { class: 'btn', type: 'button', onClick: function () { openLink(checkout); } }, 'Reprendre le paiement Stripe'));
+      nodes.push(h('button', { class: 'btn', type: 'button', onClick: loadMyOrders }, 'Mes commandes'));
+      root.appendChild(h('section', { class: 'panel tok-cart' }, nodes));
+      return;
+    }
+
     if (state.view === 'history') {
       root.appendChild(renderHistory());
       return;
@@ -1569,12 +1617,13 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     var attemptId = typeof snapshot.attemptId === 'string'
       && /^[0-9a-f-]{36}$/i.test(snapshot.attemptId) ? snapshot.attemptId : null;
     state.cart = {
-      restaurantId: id, journey: snapshot.journey === 'zero-attente' ? 'zero-attente' : 'takeaway',
+      restaurantId: id, journey: snapshot.journey === 'delivery' ? 'delivery' : snapshot.journey === 'zero-attente' ? 'zero-attente' : 'takeaway',
       date: /^\\d{4}-\\d{2}-\\d{2}$/.test(snapshot.date || '') ? snapshot.date : tokTodayInZurich(),
       time: /^([01]\\d|2[0-3]):[0-5]\\d$/.test(snapshot.time || '') ? snapshot.time : '',
       partySize: Number.isInteger(snapshot.partySize) && snapshot.partySize >= 1 && snapshot.partySize <= 20
         ? snapshot.partySize : 2,
       paymentMethod: snapshot.paymentMethod === 'twint' ? 'twint' : 'card',
+      deliveryAddress: typeof snapshot.deliveryAddress === 'string' && snapshot.deliveryAddress.length <= 300 ? snapshot.deliveryAddress : '',
       items: items, menu: [], notes: '', quote: null, quoteLoading: false,
       menuLoading: true, stage: attemptId ? 'pending' : 'draft',
       attemptId: attemptId, checkoutUrl: null,
@@ -1600,11 +1649,86 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
     });
   }
 
+  function ingestModelCommerce(result) {
+    var fingerprint = JSON.stringify(result);
+    if (state.commerceFingerprint === fingerprint) return;
+    state.commerceFingerprint = fingerprint;
+    var context = result.context || {};
+    var quote = result.quote;
+    var attemptId = typeof result.payment_attempt_id === 'string' && /^[0-9a-f-]{36}$/i.test(result.payment_attempt_id)
+      ? result.payment_attempt_id : null;
+    var existing = state.cart;
+    if (state.unresolvedCommerceAttempt && state.unresolvedCommerceAttempt !== attemptId) {
+      state.view = 'commerce-result'; return;
+    }
+    // A model refresh/another quote must not replace an ambiguous payable
+    // attempt. Only its authoritative status/cancellation can release it.
+    if (existing && existing.attemptId && existing.attemptId !== attemptId) {
+      existing.error = 'Une tentative de paiement existe déjà. Vérifiez-la ou annulez-la avant de changer de panier.';
+      state.selectedId = existing.restaurantId; state.view = 'detail'; return;
+    }
+    if (result.action === 'quote' || result.action === 'checkout') {
+      var source = quote || context;
+      var id = String(source.restaurant_id || context.restaurant_id || '');
+      if (!/^[0-9a-f-]{36}$/i.test(id)) return;
+      var chosen = Array.isArray(source.items) ? source.items : [];
+      var items = {}, menu = [];
+      chosen.slice(0, 24).forEach(function (item) {
+        if (!item || !/^[0-9a-f-]{36}$/i.test(item.menu_item_id || '')
+          || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 20) return;
+        items[item.menu_item_id] = item.quantity;
+        if (typeof item.name === 'string' && Number.isSafeInteger(item.unit_amount_cents)) {
+          menu.push({ id: item.menu_item_id, name: item.name, price: item.unit_amount_cents / 100 });
+        }
+      });
+      var restaurant = state.details[id] || { id: id, name: source.restaurant_name || 'Restaurant TOK', kind: 'restaurant_detail' };
+      state.details[id] = restaurant;
+      state.payload = state.payload || { restaurants: [], detail: restaurant, groups: [], notes: [] };
+      state.cart = { restaurantId: id, journey: source.journey === 'delivery' ? 'delivery' : source.journey === 'zero-attente' ? 'zero-attente' : 'takeaway',
+        date: source.date || '', time: source.time || '', partySize: source.party_size || 1,
+        paymentMethod: source.payment_method === 'twint' ? 'twint' : 'card', notes: context.notes || '',
+        deliveryAddress: typeof source.delivery_address === 'string' ? source.delivery_address.slice(0, 300) : '',
+        items: items, menu: menu.length ? menu : existing && existing.restaurantId === id ? existing.menu : [],
+        quote: quote && Number.isSafeInteger(quote.total_cents) ? quote : null,
+        quoteLoading: false, menuLoading: false, stage: attemptId ? 'pending' : 'quoted',
+        attemptId: attemptId, checkoutUrl: attemptId ? safePaymentUrl(result.checkout_url) : null,
+        message: attemptId ? 'Paiement Stripe à finaliser. La commande ou la table n’est pas encore confirmée.' : null,
+        error: null };
+      state.selectedId = id; state.view = 'detail'; persist(); return;
+    }
+    state.commerceResult = result;
+    state.view = 'commerce-result';
+    state.unresolvedCommerceAttempt = attemptId && !(result.cancelled === true && result.state === 'cancelled')
+      && !(result.retry_safe === true && result.state === 'rejected')
+      && !(result.paid === true && result.state === 'finalized') ? attemptId : null;
+    if (existing && existing.attemptId === attemptId) {
+      if (result.cancelled === true && result.state === 'cancelled'
+        || result.retry_safe === true && result.state === 'rejected') {
+        existing.attemptId = null; existing.checkoutUrl = null; existing.quote = null; existing.stage = 'draft';
+      } else {
+        existing.checkoutUrl = result.paid === true ? null : safePaymentUrl(result.checkout_url);
+        existing.paymentFinalized = result.paid === true && result.state === 'finalized';
+      }
+    }
+    persist();
+  }
+
   function ingest(globals) {
     if (!globals || typeof globals !== 'object') return;
     if (globals.theme) applyTheme(globals.theme);
     if (globals.maxHeight) applyMaxHeight(globals.maxHeight);
 
+    var restoredAttempt = globals.widgetState && globals.widgetState.unresolvedCommerceAttempt;
+    if (state.unresolvedCommerceAttempt === undefined && typeof restoredAttempt === 'string'
+      && /^[0-9a-f-]{36}$/i.test(restoredAttempt)) {
+      state.unresolvedCommerceAttempt = restoredAttempt;
+      state.commerceResult = { payment_attempt_id: restoredAttempt, state: 'indeterminate', paid: false };
+      state.view = 'commerce-result';
+    }
+
+    var rawOutput = unwrap(globals.toolOutput);
+    var commerceOutput = rawOutput && rawOutput.commerce_result;
+    if (commerceOutput && typeof commerceOutput === 'object') ingestModelCommerce(commerceOutput);
     var next = toPayload(globals.toolOutput);
     if (next) {
       var previousId = state.payload && state.payload.query;
@@ -1613,6 +1737,31 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
         state.details[next.detail.id] = next.detail;
         state.view = 'detail';
         state.selectedId = next.detail.id;
+        var intent = next.booking_intent;
+        // Repeated host globals must not reset edits, consent or a running
+        // attempt. A different explicit preparation may replace only a draft.
+        var intentKey = intent ? [intent.restaurant_id, intent.date, intent.time || '', intent.party_size].join('|') : '';
+        if (intent && intent.restaurant_id === next.detail.id && state.preparedIntentKey !== intentKey
+          && (!state.booking || ['draft', 'confirmed'].indexOf(state.booking.step) >= 0)) {
+          state.preparedIntentKey = intentKey;
+          startBooking(next.detail, intent.time ? { time: intent.time } : null);
+          state.booking.partySize = intent.party_size;
+          state.booking.date = intent.date;
+          state.booking.timezone = intent.timezone || 'Europe/Zurich';
+        }
+        if (next.booking_result && next.booking_result.reservation_id) {
+          var result = next.booking_result;
+          state.booking = { restaurantId: result.restaurant_id, name: next.detail.name,
+            date: result.date || '', time: result.time || '', partySize: result.party_size,
+            step: 'confirmed', result: { id: result.reservation_id, status: result.status || 'pending' } };
+        }
+        if (next.booking_guarantee && safePaymentUrl(next.booking_guarantee.checkout_url)) {
+          var guarantee = next.booking_guarantee;
+          var context = guarantee.context;
+          state.booking = { restaurantId: context.restaurant_id, name: next.detail.name,
+            date: context.date || '', time: context.time || '', partySize: context.party_size,
+            step: 'guarantee', result: { url: safePaymentUrl(guarantee.checkout_url), feeAmountCents: Number.isSafeInteger(guarantee.fee_amount_cents) ? guarantee.fee_amount_cents : null } };
+        }
       } else if (previousId !== next.query) {
         state.view = 'list';
         state.selectedId = null;
