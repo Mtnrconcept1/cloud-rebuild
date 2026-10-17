@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `2a5b71498a6551df1b0943084e70120ef349a68c15b0b341e45e414d4bb5cb46`
+- Empreinte SHA-256 des sources indexées : `daf9c9ee138e9b85737aeb1fbf015382c0aaa5abdc4605c3e1506917d4c51c57`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,24 +29,24 @@
 | cronJobs | 34 |
 | databaseContract | 228 |
 | databaseObjects | 2907 |
-| documents | 211 |
+| documents | 212 |
 | edgeFunctions | 118 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3625 |
+| exportedSymbols | 3630 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 550 |
-| modules | 1639 |
+| modules | 1642 |
 | pages | 133 |
 | pathLiterals | 758 |
 | publicAssets | 582 |
 | publicEntries | 607 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 111 |
-| records | 17341 |
-| repositoryFiles | 3287 |
+| records | 17359 |
+| repositoryFiles | 3291 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6423,8 +6423,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 35 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 265 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 742 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 268 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 743 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6434,10 +6434,10 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 210 |
+| application-library | 211 |
 | automation-script | 70 |
 | documentation | 6 |
-| edge-function-source | 210 |
+| edge-function-source | 211 |
 | frontend-component | 274 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
@@ -6445,7 +6445,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 657 |
+| test | 658 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6582,6 +6582,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Runbook release production securisee | 8 | [docs/runbooks/production-release-readiness.md:1](../../docs/runbooks/production-release-readiness.md#L1) |
 | Runbook Stripe et reconciliation financiere | 8 | [docs/runbooks/stripe-financial-ops.md:1](../../docs/runbooks/stripe-financial-ops.md#L1) |
 | Versement développeur sans Stripe Connect : PostFinance | 4 | [docs/runbooks/tok-developer-bank-payouts.md:1](../../docs/runbooks/tok-developer-bank-payouts.md#L1) |
+| TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet) | 5 | [docs/runbooks/tok-stripe-connect-platform-profile-20261017.md:1](../../docs/runbooks/tok-stripe-connect-platform-profile-20261017.md#L1) |
 | Protection SEO et anti-scraping de TOK | 10 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
 | Tok audit readiness — plan 10/10 | 5 | [docs/security/audit-readiness-10-10.md:1](../../docs/security/audit-readiness-10-10.md#L1) |
 | Audit d’intégrité des paiements — 15 juillet 2026 | 15 | [docs/security/payment-integrity-audit-2026-07-15.md:1](../../docs/security/payment-integrity-audit-2026-07-15.md#L1) |
@@ -6730,7 +6731,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (210)</summary>
+<details><summary>application-library (211)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/actualitesFeedOrdering.ts`
@@ -6925,6 +6926,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/sponsoredCampaignAi.ts`
 - `src/lib/sponsoredPlacement.ts`
 - `src/lib/statusLocks.ts`
+- `src/lib/stripeConnectOnboarding.ts`
 - `src/lib/stripeReturn.ts`
 - `src/lib/subscriptionCheckout.ts`
 - `src/lib/subscriptionEntitlements.ts`
@@ -7619,7 +7621,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (164)</summary>
+<details><summary>documentation (165)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7710,6 +7712,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/runbooks/production-release-readiness.md`
 - `docs/runbooks/stripe-financial-ops.md`
 - `docs/runbooks/tok-developer-bank-payouts.md`
+- `docs/runbooks/tok-stripe-connect-platform-profile-20261017.md`
 - `docs/security/SEO_BOT_PROTECTION_RUNBOOK.md`
 - `docs/security/audit-readiness-10-10.md`
 - `docs/security/payment-integrity-audit-2026-07-15.md`
@@ -7788,7 +7791,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (210)</summary>
+<details><summary>edge-function-source (211)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7857,6 +7860,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/return-url.ts`
 - `supabase/functions/_shared/safe-public-fetch.ts`
 - `supabase/functions/_shared/stripe-client.ts`
+- `supabase/functions/_shared/stripe-connect-platform-profile.ts`
 - `supabase/functions/_shared/stripe-paid-invoice-payment.ts`
 - `supabase/functions/_shared/tok-connect-auth.ts`
 - `supabase/functions/_shared/tok-connect-customer-commerce.ts`
@@ -9361,7 +9365,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (657)</summary>
+<details><summary>test (658)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9925,6 +9929,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/sponsored-placement.test.ts`
 - `src/test/stoppin-thetok-routes.test.ts`
 - `src/test/stoppin-venue-dedupe.test.ts`
+- `src/test/stripe-connect-platform-profile.test.ts`
 - `src/test/stripe-developer-share-routing.test.ts`
 - `src/test/stripe-paid-invoice-payment.test.ts`
 - `src/test/stripe-return.test.ts`
