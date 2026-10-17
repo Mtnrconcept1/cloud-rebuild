@@ -172,6 +172,14 @@ describe("TOK explicit role operations", () => {
     expect(h.rows.reservation_tables[0]).toMatchObject({ capacity: 4, sector: "Terrasse" });
     expect(() => validateTokRoleOperation("tok_update_restaurant_floor_table", { restaurant_id: restaurant, branch_id: reservation, table_id: other, capacity: 1, ...confirmation })).toThrow("unknown_argument");
   });
+  it("refuses existing-table activation changes before any update and only creates active tables", async () => {
+    const h = harness();
+    await expect(h.run("tok_update_restaurant_floor_table", { restaurant_id: restaurant, branch_id: reservation, table_id: other, is_active: false, ...confirmation })).rejects.toThrow("unknown_argument");
+    await expect(h.run("tok_create_restaurant_floor_table", { restaurant_id: restaurant, branch_id: reservation, table_number: "2", capacity: 4, sector: "Salle", is_active: false, ...confirmation })).rejects.toThrow("is_active_invalid");
+    expect(h.writes).toHaveLength(0);
+    await h.run("tok_create_restaurant_floor_table", { restaurant_id: restaurant, branch_id: reservation, table_number: "2", capacity: 4, sector: "Salle", is_active: true, ...confirmation });
+    expect(h.rows.reservation_tables).toContainEqual(expect.objectContaining({ table_number: "2", is_active: true }));
+  });
   it("blocks all role mutations when the native commercial/demo guard rejects", async () => {
     const h = harness(); h.deps.authorizeMutation.mockRejectedValueOnce(new Error("COMMERCIAL_DEMO_PRODUCTION_FLOW_BLOCKED"));
     await expect(h.run("tok_create_restaurant_news_draft", { restaurant_id: restaurant, body: "Menu", post_type: "plat", ...confirmation })).rejects.toThrow("COMMERCIAL_DEMO");

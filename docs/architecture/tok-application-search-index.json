@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "fded5927a21e58032e2ba318b676faa59b56b4a0abaceca1f9d821df486dd969",
+ "sourceDigest": "b00bc0b17aa08ac3ac87d07f96aa56a2c3e3dee16878ba496501201426fcaf66",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -112921,7 +112921,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 222
+    "lineCount": 230
    },
    {
     "path": "src/test/tok-connect-runtime.test.ts",
@@ -155902,14 +155902,14 @@
    "id": "code-module:cc97177317ac",
    "type": "code-module",
    "title": "src/test/tok-connect-role-operations.test.ts",
-   "description": "Module de 222 lignes; exports: aucun export statique.",
+   "description": "Module de 230 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-role-operations.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "a6dabbeda4d5"
+   "detailRef": "5207b982b422"
   },
   {
    "id": "code-module:a99b1a425a3e",
