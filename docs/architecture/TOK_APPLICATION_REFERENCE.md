@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b1d784a2d6c255e116790ad08bc08c7a059ed84eaa7e26f298a5a93c4233516e`
+- Empreinte SHA-256 des sources indexées : `b00bc0b17aa08ac3ac87d07f96aa56a2c3e3dee16878ba496501201426fcaf66`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2894 |
-| documents | 206 |
+| databaseObjects | 2903 |
+| documents | 208 |
 | edgeFunctions | 118 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3588 |
+| exportedSymbols | 3615 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 545 |
-| modules | 1603 |
+| migrations | 549 |
+| modules | 1627 |
 | pages | 133 |
 | pathLiterals | 758 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
-| queryParameters | 109 |
-| records | 17156 |
-| repositoryFiles | 3234 |
+| queryParameters | 111 |
+| records | 17273 |
+| repositoryFiles | 3268 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -529,7 +529,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | google-actions-center | [supabase/functions/google-actions-center/index.ts:1](../../supabase/functions/google-actions-center/index.ts#L1) | oui ([supabase/config.toml:173](../../supabase/config.toml#L173)) | false | GET, POST | — | google, stripe |
 | google-actions-center-sync | [supabase/functions/google-actions-center-sync/index.ts:1](../../supabase/functions/google-actions-center-sync/index.ts#L1) | oui ([supabase/config.toml:176](../../supabase/config.toml#L176)) | false | POST | — | google, supabase |
 | manage-restaurant-subscription | [supabase/functions/manage-restaurant-subscription/index.ts:1](../../supabase/functions/manage-restaurant-subscription/index.ts#L1) | oui ([supabase/config.toml:218](../../supabase/config.toml#L218)) | false | ANY | accept_commission_mandate, cancel, change_plan, commission_mandate_status, resume | stripe |
-| manage-tok-one-subscription | [supabase/functions/manage-tok-one-subscription/index.ts:1](../../supabase/functions/manage-tok-one-subscription/index.ts#L1) | oui ([supabase/config.toml:215](../../supabase/config.toml#L215)) | false | ANY | cancel, sync_checkout_session | stripe |
+| manage-tok-one-subscription | [supabase/functions/manage-tok-one-subscription/index.ts:1](../../supabase/functions/manage-tok-one-subscription/index.ts#L1) | oui ([supabase/config.toml:215](../../supabase/config.toml#L215)) | false | ANY | cancel, quote, resume, sync_checkout_session | stripe |
 | marketing-orchestrator | [supabase/functions/marketing-orchestrator/index.ts:1](../../supabase/functions/marketing-orchestrator/index.ts#L1) | oui ([supabase/config.toml:287](../../supabase/config.toml#L287)) | false | POST | check_meta, run_item | google, resend, supabase |
 | marketing-provider-webhook | [supabase/functions/marketing-provider-webhook/index.ts:1](../../supabase/functions/marketing-provider-webhook/index.ts#L1) | oui ([supabase/config.toml:290](../../supabase/config.toml#L290)) | false | POST | — | — |
 | marketing-unsubscribe | [supabase/functions/marketing-unsubscribe/index.ts:1](../../supabase/functions/marketing-unsubscribe/index.ts#L1) | oui ([supabase/config.toml:293](../../supabase/config.toml#L293)) | false | GET, POST | — | — |
@@ -1239,7 +1239,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 245 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 248 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:81](../../src/test/application-search-index.test.ts#L81) |
@@ -1260,7 +1260,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /Outlines | 2 | [src/test/guide-pdf.test.ts:19](../../src/test/guide-pdf.test.ts#L19) |
 | /[^/]+ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /^[0-9a-f-]{36}$/i.test(deliveryId) | 1 | [src/test/marketing-one-click-unsubscribe.test.ts:69](../../src/test/marketing-one-click-unsubscribe.test.ts#L69) |
-| /^\d{4}-\d{2}-\d{2}$/ | 1 | [src/test/tok-connect-customer-journey.test.ts:164](../../src/test/tok-connect-customer-journey.test.ts#L164) |
+| /^\d{4}-\d{2}-\d{2}$/ | 1 | [src/test/tok-connect-customer-journey.test.ts:166](../../src/test/tok-connect-customer-journey.test.ts#L166) |
 | /__campaign-layout | 2 | [scripts/check-campaign-layout.mjs:59](../../scripts/check-campaign-layout.mjs#L59) |
 | /__campaign-layout-test.tsx | 1 | [scripts/check-campaign-layout.mjs:12](../../scripts/check-campaign-layout.mjs#L12) |
 | /__commercial-map | 2 | [scripts/check-commercial-map.mjs:42](../../scripts/check-commercial-map.mjs#L42) |
@@ -1325,7 +1325,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /aide | 15 | [scripts/prerender-seo.mjs:1126](../../scripts/prerender-seo.mjs#L1126) |
 | /aligro-catalog-sync | 1 | [src/test/supplier-catalog-sync.test.ts:82](../../src/test/supplier-catalog-sync.test.ts#L82) |
 | /anti-gaspi | 22 | [scripts/prerender-seo.mjs:341](../../scripts/prerender-seo.mjs#L341) |
-| /api | 1 | [vite.config.ts:97](../../vite.config.ts#L97) |
+| /api | 2 | [src/test/tok-connect-delivery-address.test.ts:14](../../src/test/tok-connect-delivery-address.test.ts#L14) |
 | /api-keys?reveal=true | 1 | [src/test/restaurant-image-backfill-auth.test.ts:15](../../src/test/restaurant-image-backfill-auth.test.ts#L15) |
 | /api/ | 1 | [src/lib/commercialDemoEffects.ts:80](../../src/lib/commercialDemoEffects.ts#L80) |
 | /api/embed | 2 | [src/test/image-metadata-ai.test.ts:131](../../src/test/image-metadata-ai.test.ts#L131) |
@@ -1368,7 +1368,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /carte | 2 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
 | /cgu | 22 | [scripts/prerender-seo.mjs:1215](../../scripts/prerender-seo.mjs#L1215) |
 | /chef.png | 1 | [src/test/marketing-email-template.test.ts:25](../../src/test/marketing-email-template.test.ts#L25) |
-| /chef2.png | 3 | [src/test/transactional-email-templates.test.ts:101](../../src/test/transactional-email-templates.test.ts#L101) |
+| /chef2.png | 3 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
 | /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:671](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L671) |
 | /chefs-table | 26 | [scripts/prerender-seo.mjs:1038](../../scripts/prerender-seo.mjs#L1038) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
@@ -1561,8 +1561,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-tok-connect.webp | 1 | [src/lib/dashboardIllustrations.ts:38](../../src/lib/dashboardIllustrations.ts#L38) |
 | /images/doner-kebab-plate.jpeg | 2 | [src/lib/menu-item-images.ts:48](../../src/lib/menu-item-images.ts#L48) |
 | /images/edamame.webp | 1 | [src/lib/menu-item-images.ts:49](../../src/lib/menu-item-images.ts#L49) |
-| /images/emails/tok-reservation-hero.jpg | 2 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
-| /images/emails/tok-reservation-hero.webp | 1 | [src/test/transactional-email-templates.test.ts:104](../../src/test/transactional-email-templates.test.ts#L104) |
+| /images/emails/tok-reservation-hero.jpg | 2 | [src/test/transactional-email-templates.test.ts:105](../../src/test/transactional-email-templates.test.ts#L105) |
+| /images/emails/tok-reservation-hero.webp | 1 | [src/test/transactional-email-templates.test.ts:106](../../src/test/transactional-email-templates.test.ts#L106) |
 | /images/fattouche.webp | 5 | [src/lib/menu-item-images.ts:21](../../src/lib/menu-item-images.ts#L21) |
 | /images/fondue%20moiti%C3%A9%20moiti%C3%A9.jpg | 2 | [src/test/menu-item-images.test.ts:9](../../src/test/menu-item-images.test.ts#L9) |
 | /images/fondue-moitie-moitie.jpg | 5 | [src/lib/securityUrls.ts:26](../../src/lib/securityUrls.ts#L26) |
@@ -1678,7 +1678,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/mochi-glaces.jpg | 7 | [src/lib/menu-item-images.ts:52](../../src/lib/menu-item-images.ts#L52) |
 | /images/moshi%20glac%C3%A9s.jpg | 1 | [src/test/security-url-helpers.test.ts:23](../../src/test/security-url-helpers.test.ts#L23) |
 | /images/octopus-fine-dining-fast.webp | 1 | [src/components/PromoCarousel.tsx:32](../../src/components/PromoCarousel.tsx#L32) |
-| /images/octopus-fine-dining.jpeg | 10 | [src/components/AntiWasteCard.tsx:36](../../src/components/AntiWasteCard.tsx#L36) |
+| /images/octopus-fine-dining.jpeg | 11 | [src/components/AntiWasteCard.tsx:36](../../src/components/AntiWasteCard.tsx#L36) |
 | /images/pannacotta.webp | 3 | [src/lib/menu-item-images.ts:20](../../src/lib/menu-item-images.ts#L20) |
 | /images/pasta-assortment.jpeg | 5 | [src/components/AntiWasteCard.tsx:38](../../src/components/AntiWasteCard.tsx#L38) |
 | /images/poke-bowls.jpeg | 8 | [src/components/AntiWasteCard.tsx:37](../../src/components/AntiWasteCard.tsx#L37) |
@@ -1822,7 +1822,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /recherche?q=sushi&city=Genève | 2 | [src/test/restaurant-search-preview.test.tsx:30](../../src/test/restaurant-search-preview.test.tsx#L30) |
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
 | /reseaux-sociaux | 1 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
-| /reservations | 25 | [scripts/prerender-seo.mjs:1262](../../scripts/prerender-seo.mjs#L1262) |
+| /reservations | 27 | [scripts/prerender-seo.mjs:1262](../../scripts/prerender-seo.mjs#L1262) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
 | /rest/v1/ | 3 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
 | /rest/v1/rpc/ | 2 | [src/lib/commercialDemoEffects.ts:20](../../src/lib/commercialDemoEffects.ts#L20) |
@@ -2021,6 +2021,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:914](../../src/pages/Auth.tsx#L914) |
 | commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:280](../../src/pages/CommercialComptabilite.tsx#L280) |
 | confirmed | /auth, /auth/callback, /auth/demo | 2 | [src/pages/Auth.tsx:131](../../src/pages/Auth.tsx#L131) |
+| countrycode | — | 1 | [src/test/tok-connect-delivery-address.test.ts:15](../../src/test/tok-connect-delivery-address.test.ts#L15) |
 | cuisine | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/pages/Recherche.tsx:240](../../src/pages/Recherche.tsx#L240) |
 | cursor | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 1 | [supabase/functions/tok-connect-api/index.ts:210](../../supabase/functions/tok-connect-api/index.ts#L210) |
 | date | /restaurant/:id, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/lib/zeroAttenteReservationContext.ts:76](../../src/lib/zeroAttenteReservationContext.ts#L76) |
@@ -2046,6 +2047,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | incident | /admin/guardian, /admin/sinistres, /admin/support-resolution | 4 | [src/pages/admin/AdminGuardian.tsx:106](../../src/pages/admin/AdminGuardian.tsx#L106) |
 | job | /courier/jobs | 1 | [src/pages/courier/CourierJobs.tsx:54](../../src/pages/courier/CourierJobs.tsx#L54) |
 | lat | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 2 | [src/pages/LocalRestaurants.tsx:475](../../src/pages/LocalRestaurants.tsx#L475) |
+| layer | — | 1 | [src/test/tok-connect-delivery-address.test.ts:16](../../src/test/tok-connect-delivery-address.test.ts#L16) |
 | layers | — | 1 | [src/test/home-canton-hero.test.ts:58](../../src/test/home-canton-hero.test.ts#L58) |
 | limit | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 13 | [scripts/app-store-connect-preflight.mjs:77](../../scripts/app-store-connect-preflight.mjs#L77) |
 | lng | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 1 | [src/pages/LocalRestaurants.tsx:478](../../src/pages/LocalRestaurants.tsx#L478) |
@@ -2411,7 +2413,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (788)</summary>
+<details><summary>function (792)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2682,6 +2684,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.claim_notification_deliveries` (1 définition(s))
 - `public.claim_print_fulfillment_jobs` (2 définition(s))
 - `public.claim_reservation_cancellation_fees` (1 définition(s))
+- `public.claim_reservation_guarantee_request` (1 définition(s))
 - `public.claim_restaurant_commission_collections` (1 définition(s))
 - `public.claim_restaurant_daily_dish_run` (2 définition(s))
 - `public.claim_restaurant_image_discovery_jobs` (2 définition(s))
@@ -2814,6 +2817,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.get_match_group_public_feed` (4 définition(s))
 - `public.get_meal_formula_service_availability` (2 définition(s))
 - `public.get_meal_formula_service_key` (1 définition(s))
+- `public.get_my_reservation_guarantee_request_result` (1 définition(s))
+- `public.get_my_reservation_request_result` (1 définition(s))
 - `public.get_my_restaurant_ai_subscriptions` (1 définition(s))
 - `public.get_order_customers` (1 définition(s))
 - `public.get_payable_invoice_lines` (2 définition(s))
@@ -3179,7 +3184,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.trigger_order_status_notification` (3 définition(s))
 - `public.trigger_recompute_review_stats` (1 définition(s))
 - `public.trigger_refresh_kpis` (1 définition(s))
-- `public.trigger_reservation_notifications` (2 définition(s))
+- `public.trigger_reservation_notifications` (3 définition(s))
 - `public.trigger_restaurant_review_notification` (1 définition(s))
 - `public.trigger_review_reply_notification` (1 définition(s))
 - `public.trigger_review_report_admin_notification` (1 définition(s))
@@ -3195,6 +3200,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.user_has_miamz_benefit` (1 définition(s))
 - `public.user_has_verified_restaurant_consumption` (1 définition(s))
 - `public.validate_and_create_reservation` (14 définition(s))
+- `public.validate_and_create_reservation_idempotent` (1 définition(s))
 - `public.validate_and_create_reservation_safe` (4 définition(s))
 - `public.validate_commercial_compensation_profile` (2 définition(s))
 - `public.validate_service_settings_json` (1 définition(s))
@@ -3204,7 +3210,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (684)</summary>
+<details><summary>index (688)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3289,6 +3295,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `customer_memory_items_user_key_uidx` (1 définition(s))
 - `customer_memory_items_user_status_idx` (1 définition(s))
 - `daily_slot_spins_user_request_uidx` (1 définition(s))
+- `email_queue_provider_reconciliation_idx` (1 définition(s))
 - `feature_flag_audit_logs_flag_created_idx` (1 définition(s))
 - `flash_sales_archive_restaurant_idx` (1 définition(s))
 - `gift_points_claim_code_lower_unique` (1 définition(s))
@@ -3692,6 +3699,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `notification_deliveries_notification_channel_unique` (1 définition(s))
 - `notification_deliveries_queue_claim_idx` (1 définition(s))
 - `notification_deliveries_retry_claim_idx` (1 définition(s))
+- `notification_email_provider_reconciliation_idx` (1 définition(s))
+- `notifications_reservation_event_recipient_uidx` (1 définition(s))
 - `ops_guardian_assessments_evidence_cache_idx` (1 définition(s))
 - `ops_guardian_assessments_incident_created_idx` (1 définition(s))
 - `ops_guardian_assessments_severity_created_idx` (1 définition(s))
@@ -3712,6 +3721,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `reservation_fee_charges_reservation_restaurant_idx` (1 définition(s))
 - `reservation_fee_charges_restaurant_idx` (1 définition(s))
 - `reservation_fee_charges_zero_revenue_reviewer_idx` (1 définition(s))
+- `reservation_guarantee_request_user_key_uidx` (1 définition(s))
 - `reservations_acquisition_channel_idx` (1 définition(s))
 - `reservations_fair_growth_invoice_idx` (1 définition(s))
 - `reservations_id_restaurant_uidx` (1 définition(s))
@@ -4697,7 +4707,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (366)</summary>
+<details><summary>table (367)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -4925,6 +4935,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.reservation_fee_charges` (1 définition(s))
 - `public.reservation_flat_fee_charges` (1 définition(s))
 - `public.reservation_progressive_offers` (1 définition(s))
+- `public.reservation_request_idempotency` (1 définition(s))
 - `public.reservation_slots` (1 définition(s))
 - `public.reservation_status_history` (1 définition(s))
 - `public.reservation_table_layout_overrides` (1 définition(s))
@@ -6177,6 +6188,10 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261014165500 Tok Workforce Restaurants | 312 | 49 | [supabase/migrations/20261014165500_tok_workforce_restaurants.sql:1](../../supabase/migrations/20261014165500_tok_workforce_restaurants.sql#L1) |
 | 20261014180000 Tok Workforce Clock Teams | 439 | 34 | [supabase/migrations/20261014180000_tok_workforce_clock_teams.sql:1](../../supabase/migrations/20261014180000_tok_workforce_clock_teams.sql#L1) |
 | 20261015090000 Admin Security Guardian Approval Guardrails | 124 | 2 | [supabase/migrations/20261015090000_admin_security_guardian_approval_guardrails.sql:1](../../supabase/migrations/20261015090000_admin_security_guardian_approval_guardrails.sql#L1) |
+| 20261016234805 Reservation Transactional Notifications | 87 | 2 | [supabase/migrations/20261016234805_reservation_transactional_notifications.sql:1](../../supabase/migrations/20261016234805_reservation_transactional_notifications.sql#L1) |
+| 20261016234832 Reservation Request Idempotency | 75 | 3 | [supabase/migrations/20261016234832_reservation_request_idempotency.sql:1](../../supabase/migrations/20261016234832_reservation_request_idempotency.sql#L1) |
+| 20261017000033 Email Provider Delivery Reconciliation | 27 | 2 | [supabase/migrations/20261017000033_email_provider_delivery_reconciliation.sql:1](../../supabase/migrations/20261017000033_email_provider_delivery_reconciliation.sql#L1) |
+| 20261017000200 Reservation Guarantee Request Idempotency | 66 | 3 | [supabase/migrations/20261017000200_reservation_guarantee_request_idempotency.sql:1](../../supabase/migrations/20261017000200_reservation_guarantee_request_idempotency.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6398,13 +6413,13 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 119 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 125 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Photon | 4 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Resend | 31 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 128 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Resend | 35 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 249 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 718 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
-| Twint | 27 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Stripe | 263 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 734 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
@@ -6414,9 +6429,9 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 210 |
-| automation-script | 67 |
+| automation-script | 69 |
 | documentation | 6 |
-| edge-function-source | 199 |
+| edge-function-source | 207 |
 | frontend-component | 274 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
@@ -6424,7 +6439,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 635 |
+| test | 649 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6626,6 +6641,8 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Recette de sécurité checkout et menus — issue #710 | 8 | [docs/testing/checkout-security-710.md:1](../../docs/testing/checkout-security-710.md#L1) |
 | Plan de tests lancement 10k | 6 | [docs/testing/launch-10k-load-plan.md:1](../../docs/testing/launch-10k-load-plan.md#L1) |
 | Tests de garde Supabase / RPC | 7 | [docs/testing/supabase-rpc-guards.md:1](../../docs/testing/supabase-rpc-guards.md#L1) |
+| Livraison de la parité fonctionnelle TOK Connect | 8 | [docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md:1](../../docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md#L1) |
+| Publication Suisse | 3 | [docs/tok-connect/PUBLICATION.md:1](../../docs/tok-connect/PUBLICATION.md#L1) |
 | TOK Connect | 18 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
 | TOK Connect Remote MCP | 9 | [docs/tok-connect/REMOTE_MCP.md:1](../../docs/tok-connect/REMOTE_MCP.md#L1) |
 | Recette TOK Connect dans ChatGPT | 8 | [docs/tok-connect/TESTING.md:1](../../docs/tok-connect/TESTING.md#L1) |
@@ -6919,7 +6936,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (75)</summary>
+<details><summary>automation-script (78)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -6939,6 +6956,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/ci-pnpm-audit.sh`
 - `scripts/codex-auto-post-edit-validation.mjs`
 - `scripts/codex-auto-pre-edit.mjs`
+- `scripts/contracts/tok-connect-public-mutations.json`
 - `scripts/ensure-supabase-auth-security.mjs`
 - `scripts/ensure-supabase-auth-smtp.mjs`
 - `scripts/fixtures/golden-tok-preview.html`
@@ -6989,6 +7007,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/test-checkout-security-postgres.mjs`
 - `scripts/test-golden-tok-responsive.mjs`
 - `scripts/test-print-protocol-postgres.mjs`
+- `scripts/test-reservation-guarantee-idempotency-postgres.mjs`
+- `scripts/test-reservation-notifications-postgres.mjs`
 - `scripts/tok-connect-smoke.mjs`
 - `scripts/verify-supabase-runtime-security.mjs`
 - `scripts/write-apple-app-site-association.mjs`
@@ -7033,7 +7053,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (545)</summary>
+<details><summary>database-migration (549)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7580,10 +7600,14 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261014165500_tok_workforce_restaurants.sql`
 - `supabase/migrations/20261014180000_tok_workforce_clock_teams.sql`
 - `supabase/migrations/20261015090000_admin_security_guardian_approval_guardrails.sql`
+- `supabase/migrations/20261016234805_reservation_transactional_notifications.sql`
+- `supabase/migrations/20261016234832_reservation_request_idempotency.sql`
+- `supabase/migrations/20261017000033_email_provider_delivery_reconciliation.sql`
+- `supabase/migrations/20261017000200_reservation_guarantee_request_idempotency.sql`
 
 </details>
 
-<details><summary>documentation (159)</summary>
+<details><summary>documentation (161)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7740,6 +7764,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/testing/checkout-security-710.md`
 - `docs/testing/launch-10k-load-plan.md`
 - `docs/testing/supabase-rpc-guards.md`
+- `docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md`
+- `docs/tok-connect/PUBLICATION.md`
 - `docs/tok-connect/README.md`
 - `docs/tok-connect/REMOTE_MCP.md`
 - `docs/tok-connect/TESTING.md`
@@ -7747,7 +7773,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (199)</summary>
+<details><summary>edge-function-source (207)</summary>
 
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
@@ -7759,6 +7785,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/commercial-demo-host.ts`
 - `supabase/functions/_shared/cors.ts`
 - `supabase/functions/_shared/delivery-dispatch.ts`
+- `supabase/functions/_shared/email-provider-reconciliation.ts`
 - `supabase/functions/_shared/error-code-map.ts`
 - `supabase/functions/_shared/error-diagnostics.ts`
 - `supabase/functions/_shared/feature-flags.ts`
@@ -7817,9 +7844,16 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/stripe-paid-invoice-payment.ts`
 - `supabase/functions/_shared/tok-connect-auth.ts`
 - `supabase/functions/_shared/tok-connect-customer-commerce.ts`
+- `supabase/functions/_shared/tok-connect-customer-operations.ts`
+- `supabase/functions/_shared/tok-connect-customer-result.ts`
+- `supabase/functions/_shared/tok-connect-delivery-address.ts`
 - `supabase/functions/_shared/tok-connect-discovery-widget.ts`
 - `supabase/functions/_shared/tok-connect-discovery.ts`
+- `supabase/functions/_shared/tok-connect-reservation-intent.ts`
+- `supabase/functions/_shared/tok-connect-role-operations.ts`
+- `supabase/functions/_shared/tok-connect-service-settings-operations.ts`
 - `supabase/functions/_shared/tok-connect.ts`
+- `supabase/functions/_shared/tok-one-recurring-quote.ts`
 - `supabase/functions/_shared/tok-one.ts`
 - `supabase/functions/_shared/transactional-emails.ts`
 - `supabase/functions/_shared/user-storage-cleanup.ts`
@@ -9108,7 +9142,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>repository-file (152)</summary>
+<details><summary>repository-file (155)</summary>
 
 - `.agents/skills/stripe-best-practices/SKILL.md`
 - `.agents/skills/stripe-best-practices/references/billing.md`
@@ -9227,6 +9261,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `middleware.js`
 - `package.json`
 - `patches/braces@3.0.3.patch`
+- `plugins/tok-connect/assets/icon.png`
+- `plugins/tok-connect/mcp.json`
+- `plugins/tok-connect/plugin.json`
 - `pnpm-lock.yaml`
 - `pnpm-workspace.yaml`
 - `postcss.config.js`
@@ -9304,7 +9341,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (635)</summary>
+<details><summary>test (649)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9523,6 +9560,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/edge-audit-write.test.ts`
 - `src/test/edge-function-undeclared-identifiers.test.ts`
 - `src/test/edge-rate-limits-10k.test.ts`
+- `src/test/email-provider-reconciliation.test.ts`
 - `src/test/error-boundary-chunk-recovery.test.ts`
 - `src/test/error-code-map-case.test.ts`
 - `src/test/example.test.ts`
@@ -9754,9 +9792,12 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/reservation-branch-rls-visibility.test.ts`
 - `src/test/reservation-card-guarantee.test.ts`
 - `src/test/reservation-confirmation-deposit-ops.test.ts`
+- `src/test/reservation-email-delivery.test.ts`
 - `src/test/reservation-fee-integrity.test.ts`
+- `src/test/reservation-guarantee-request-handler.test.ts`
 - `src/test/reservation-inventory-health.test.ts`
 - `src/test/reservation-queue.test.tsx`
+- `src/test/reservation-request-replay.test.ts`
 - `src/test/reservation-service-capacity.test.ts`
 - `src/test/responsive-seo-regressions.test.ts`
 - `src/test/restaurant-ai-controlled-edits.test.ts`
@@ -9903,6 +9944,10 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-commercial-bridge.test.ts`
 - `src/test/tok-connect-customer-commerce.test.ts`
 - `src/test/tok-connect-customer-journey.test.ts`
+- `src/test/tok-connect-customer-operations.test.ts`
+- `src/test/tok-connect-customer-result.test.ts`
+- `src/test/tok-connect-delivery-address.test.ts`
+- `src/test/tok-connect-delivery-commerce.test.ts`
 - `src/test/tok-connect-discovery.test.ts`
 - `src/test/tok-connect-edge-functions.test.ts`
 - `src/test/tok-connect-frontend.test.ts`
@@ -9910,8 +9955,12 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-legal-content.test.ts`
 - `src/test/tok-connect-mcp-http.test.ts`
 - `src/test/tok-connect-mcp-migration.test.ts`
+- `src/test/tok-connect-model-commerce-widget.test.ts`
 - `src/test/tok-connect-oauth-routing.test.ts`
 - `src/test/tok-connect-preview-sandbox.test.tsx`
+- `src/test/tok-connect-public-actions.test.ts`
+- `src/test/tok-connect-reservation-intent.test.ts`
+- `src/test/tok-connect-role-operations.test.ts`
 - `src/test/tok-connect-runtime.test.ts`
 - `src/test/tok-connect-smoke.test.ts`
 - `src/test/tok-connect-sql.test.ts`
@@ -9920,6 +9969,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-intelligence-suite.test.ts`
 - `src/test/tok-invoice-print-visibility.test.ts`
 - `src/test/tok-logo-calendar.test.ts`
+- `src/test/tok-one-management-handler.test.ts`
+- `src/test/tok-one-recurring-quote.test.ts`
 - `src/test/tok-one-stripe-test-mode.test.ts`
 - `src/test/tok-pulse-native-widget.test.ts`
 - `src/test/tok-stripe-price-catalog.test.ts`

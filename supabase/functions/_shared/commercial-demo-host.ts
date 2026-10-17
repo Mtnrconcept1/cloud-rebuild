@@ -1,6 +1,6 @@
 export const COMMERCIAL_DEMO_HOSTNAME = "commercial.thetok.ch";
 
-function hostnameFromUrl(value: string | null) {
+function hostnameFromUrl(value: string | null | undefined) {
   if (!value) return "";
   try {
     return new URL(value).hostname.toLowerCase().replace(/\.$/, "");

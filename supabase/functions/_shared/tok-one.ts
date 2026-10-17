@@ -1,7 +1,7 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "npm:stripe@18.5.0";
+import type { EdgeSupabaseClient } from "./auth.ts";
+import type Stripe from "npm:stripe@22.3.2";
 
-type AdminClient = ReturnType<typeof createClient>;
+type AdminClient = EdgeSupabaseClient;
 
 const TOK_ONE_ENTITLED_STATUSES = new Set(["active", "trialing"]);
 

@@ -1,4 +1,7 @@
 import { buildCorsHeaders, handleCorsPreflight, isRequestOriginAllowed } from "../_shared/cors.ts";
+import { TOK_ROLE_OPERATION_TOOLS } from "../_shared/tok-connect-role-operations.ts";
+import { TOK_CUSTOMER_OPERATION_TOOLS } from "../_shared/tok-connect-customer-operations.ts";
+import { projectTokCustomerResult } from "../_shared/tok-connect-customer-result.ts";
 import {
   MCP_LATEST_PROTOCOL_VERSION,
   McpProtocolError,
@@ -23,8 +26,8 @@ const MODERN_MCP_PROTOCOL_VERSION = "2026-07-28";
 const INTERNAL_MCP_PROTOCOL_VERSION = "2025-11-25";
 const CLAUDE_ORIGIN = "https://claude.ai";
 const OAUTH_SECURITY = [{ type: "oauth2", scopes: OIDC_SCOPES }];
-const REMOTE_SERVER_INFO = { name: "TOK Connect Remote MCP", version: "5.3.0" } as const;
-const REMOTE_INSTRUCTIONS = "TOK Connect is a provider-neutral remote MCP server for Claude, ChatGPT and other MCP clients. The public endpoint offers read-only discovery, customer-owned reservations and widget-only Stripe checkout for takeaway and Zero Attente. When the user asks for restaurants, a shortlist or a selection of places to eat - including compound requests such as '3 pizzerias and 2 sushi restaurants in Geneva' - call discover_restaurants and pass their request verbatim in `request`: it opens the TOK restaurant module with ranked, clickable cards, so answer with a short sentence instead of repeating the list. get_restaurant_details opens one venue's full card. Authenticated reads still run under the user's JWT and RLS. Only explicit customer actions are published for widget-confirmed mutations. Generic payment, refund, publication, restaurant and admin mutations remain unavailable. The commercial role remains isolated behind its guarded backend. Service-role, scheduler-only and webhook-only operations are never exposed.";
+const REMOTE_SERVER_INFO = { name: "TOK Connect Remote MCP", version: "6.0.0" } as const;
+const REMOTE_INSTRUCTIONS = "TOK Connect operates the authenticated customer's and restaurant operator's TOK account through targeted tools. For restaurant discovery, call discover_restaurants with the user's request verbatim; its widget shows ranked clickable cards. To reserve a table, resolve the restaurant, then call prepare_customer_reservation with the requested local date, time and exact party_size. Ask for missing information or an ambiguous restaurant; never invent a time or guest count. The preparation opens the booking widget and checks availability. An explicit request to book a fully specified table authorizes tok_book_table; otherwise show the summary and ask the user. Read the guarantee quote and obtain explicit acceptance of any card guarantee first. Keep the same idempotency_key and identical arguments for retries of the same intent, including after OAuth reconnection. If the outcome is uncertain, read the customer's reservations and reconcile the reference; never generate a new key to bypass an in-progress operation. A created pending reservation is a request awaiting the restaurant, not an accepted booking. Report the actual returned status, reference and any payment requirement; a checkout URL is never proof of payment or confirmation. Cancellation also requires the user's explicit request. Restaurant operations require an owned restaurant selected from tok_list_my_restaurants; never infer ownership from a user-supplied role. All actions use the user's JWT, native TOK business services, ownership checks and audit. The commercial role remains isolated behind its guarded backend and is unavailable through the public MCP. Generic CRUD, arbitrary RPCs, admin, service-role, scheduler and webhook operations remain unavailable. Host authentication, confirmation and payment controls still apply.";
 const MODERN_CACHEABLE_METHODS = new Set([
   "tools/list",
   "prompts/list",
@@ -40,7 +43,7 @@ const APP_BRIDGE_TOOLS = [
   {
     name: "tok_list_capabilities",
     title: "List authenticated TOK capabilities",
-    description: "List the real TOK application capabilities, RPC families and RLS-backed data surfaces available to the authenticated user's roles.",
+    description: "List which TOK actions are executable through this MCP for the authenticated account, and distinguish backend-only functions from supported tools. This catalogue does not itself execute any action.",
     securitySchemes: OAUTH_SECURITY,
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -160,11 +163,16 @@ const TOK_CLIENT_WIDGET_META = {
   "openai/outputTemplate": "ui://tok-connect/restaurant-discovery-v1.html",
 } as const;
 
-const TOK_CLIENT_PRIVATE_META = {
-  ui: { visibility: ["app"] },
-  "openai/widgetAccessible": true,
-  "openai/visibility": "private",
-} as const;
+const TOK_ROLE_TOOLS = TOK_ROLE_OPERATION_TOOLS.map((tool) => ({
+  ...tool,
+  securitySchemes: OAUTH_SECURITY,
+  _meta: { securitySchemes: OAUTH_SECURITY },
+}));
+const TOK_ROLE_TOOL_NAMES = new Set(TOK_ROLE_TOOLS.map((tool) => tool.name));
+const TOK_CUSTOMER_OPERATION_PUBLIC_TOOLS = TOK_CUSTOMER_OPERATION_TOOLS.map((tool) => ({
+  ...tool, securitySchemes: OAUTH_SECURITY, _meta: { securitySchemes: OAUTH_SECURITY },
+}));
+const TOK_CUSTOMER_OPERATION_NAMES = new Set(TOK_CUSTOMER_OPERATION_PUBLIC_TOOLS.map((tool) => tool.name));
 
 const TOK_CLIENT_TOOLS = [
   {
@@ -184,7 +192,7 @@ const TOK_CLIENT_TOOLS = [
   {
     name: "tok_book_table",
     title: "Réserver une table chez TOK",
-    description: "Create a real classic table booking for the authenticated TOK customer after their explicit approval. The TOK backend rechecks availability and any card guarantee; a possible checkout URL is not a confirmed booking.",
+    description: "Use when the user explicitly asks to reserve a specific table for a date, time and guest count. Call prepare_customer_reservation first and use its exact details. Check the guarantee quote and obtain acceptance if required. Creates one real reservation under the signed-in customer's identity; pending means awaiting restaurant acceptance. Preserve the same idempotency_key for retries and after reauthentication. Never treat a checkout URL as a completed booking.",
     securitySchemes: OAUTH_SECURITY,
     inputSchema: {
       type: "object",
@@ -202,7 +210,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_PRIVATE_META },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
   },
   {
     name: "tok_my_reservations",
@@ -225,14 +233,15 @@ const TOK_CLIENT_TOOLS = [
   {
     name: "tok_quote_customer_cart",
     title: "Vérifier le prix d'une commande TOK",
-    description: "Preview an authenticated TOK customer's restaurant cart with authoritative server prices and available service options. No payment or order is created.",
+    description: "Prepare the customer's takeaway, delivery or Zero Attente cart with server-authoritative prices and service conditions. Delivery requires the exact Swiss delivery_address; show the address, delivery fees and total for approval before checkout. No payment or order is created.",
     securitySchemes: OAUTH_SECURITY,
     inputSchema: {
       type: "object",
       required: ["restaurant_id", "journey", "items", "date", "time"],
       properties: {
         restaurant_id: { type: "string", format: "uuid" },
-        journey: { type: "string", enum: ["takeaway", "zero-attente"] },
+        journey: { type: "string", enum: ["takeaway", "delivery", "zero-attente"] },
+        delivery_address: { type: "string", minLength: 10, maxLength: 300, description: "Required for delivery: exact Swiss street, building number, postal code and city confirmed by the customer." },
         items: {
           type: "array", minItems: 1, maxItems: 24,
           items: {
@@ -258,14 +267,15 @@ const TOK_CLIENT_TOOLS = [
   {
     name: "tok_checkout_customer_cart",
     title: "Confirmer et payer une commande TOK",
-    description: "Start the existing idempotent TOK Stripe Checkout only after a customer explicitly confirms a recent server-priced cart. This never confirms an order before payment/webhook processing.",
+    description: "Start TOK Stripe Checkout only after explicit approval of a fresh server-priced cart, including delivery_address and delivery fees for delivery. Keep payment_attempt_id and idempotency_key stable on retries. The Stripe link is a pending payment, never proof of a paid order or accepted table.",
     securitySchemes: OAUTH_SECURITY,
     inputSchema: {
       type: "object",
       required: ["restaurant_id", "journey", "items", "date", "time", "expected_total_cents", "payment_attempt_id", "idempotency_key", "confirmed_by_user"],
       properties: {
         restaurant_id: { type: "string", format: "uuid" },
-        journey: { type: "string", enum: ["takeaway", "zero-attente"] },
+        journey: { type: "string", enum: ["takeaway", "delivery", "zero-attente"] },
+        delivery_address: { type: "string", minLength: 10, maxLength: 300, description: "Required for delivery; preserve the exact address from the accepted quote." },
         items: {
           type: "array", minItems: 1, maxItems: 24,
           items: {
@@ -290,7 +300,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_PRIVATE_META },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
   },
   {
     name: "tok_customer_payment_status",
@@ -303,7 +313,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_PRIVATE_META },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
   },
   {
     name: "tok_cancel_cart_payment_attempt",
@@ -320,12 +330,12 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_PRIVATE_META },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
   },
   {
     name: "tok_cancel_my_reservation",
     title: "Annuler ma réservation classique TOK",
-    description: "Cancel an owned, unpaid classic reservation after explicit confirmation. Paid reservations require the dedicated TOK support/refund flow.",
+    description: "Use when the customer explicitly asks to cancel one of their own unpaid classic reservations. Resolve the reference from tok_my_reservations when necessary. Preserve the same idempotency_key on retries. Paid reservations require TOK's dedicated refund flow.",
     securitySchemes: OAUTH_SECURITY,
     inputSchema: {
       type: "object",
@@ -338,7 +348,7 @@ const TOK_CLIENT_TOOLS = [
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
-    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_PRIVATE_META },
+    _meta: { securitySchemes: OAUTH_SECURITY, ...TOK_CLIENT_WIDGET_META },
   },
 ] as const;
 const TOK_CLIENT_TOOL_NAMES = new Set(TOK_CLIENT_TOOLS.map((tool) => tool.name));
@@ -367,7 +377,7 @@ function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
-const APP_BRIDGE_TOOL_NAMES = new Set([...APP_BRIDGE_TOOLS.map((tool) => tool.name), ...TOK_CLIENT_TOOL_NAMES]);
+const APP_BRIDGE_TOOL_NAMES = new Set([...APP_BRIDGE_TOOLS.map((tool) => tool.name), ...TOK_CLIENT_TOOL_NAMES, ...TOK_ROLE_TOOL_NAMES, ...TOK_CUSTOMER_OPERATION_NAMES]);
 const PUBLIC_READ_ONLY_TOOL_NAMES = new Set<string>();
 
 function isReadOnlyTool(tool: unknown) {
@@ -383,14 +393,16 @@ function filterPublicReadOnlyTools(payload: unknown) {
   if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
   const upstreamTools = Array.isArray((result as JsonRecord).tools) ? (result as JsonRecord).tools as unknown[] : [];
   const seen = new Set(upstreamTools.map((tool) => tool && typeof tool === "object" ? String((tool as JsonRecord).name || "") : ""));
-  const additions = [...APP_BRIDGE_TOOLS.filter(isReadOnlyTool), ...TOK_CLIENT_TOOLS]
+  const additions = [...APP_BRIDGE_TOOLS.filter(isReadOnlyTool), ...TOK_CLIENT_TOOLS, ...TOK_ROLE_TOOLS, ...TOK_CUSTOMER_OPERATION_PUBLIC_TOOLS]
     .filter((tool) => !seen.has(tool.name));
   // Explicitly named client writes only. All generic RPC, admin, payment and
   // restaurant tools remain undiscoverable and blocked by default.
   const tools = [...upstreamTools, ...additions].filter((tool) => (
     isReadOnlyTool(tool) || (
       Boolean(tool && typeof tool === "object")
-      && TOK_CLIENT_MUTATION_NAMES.has(String((tool as JsonRecord).name || ""))
+      && (TOK_CLIENT_MUTATION_NAMES.has(String((tool as JsonRecord).name || ""))
+        || TOK_ROLE_TOOL_NAMES.has(String((tool as JsonRecord).name || ""))
+        || TOK_CUSTOMER_OPERATION_NAMES.has(String((tool as JsonRecord).name || "")))
     )
   ));
 
@@ -546,8 +558,8 @@ async function resolvePublicReadOnlyToolNames(req: Request) {
   }
 
   if (PUBLIC_READ_ONLY_TOOL_NAMES.size === 0) {
-    for (const tool of [...APP_BRIDGE_TOOLS, ...TOK_CLIENT_TOOLS]) {
-      if (isReadOnlyTool(tool) || TOK_CLIENT_MUTATION_NAMES.has(tool.name))
+    for (const tool of [...APP_BRIDGE_TOOLS, ...TOK_CLIENT_TOOLS, ...TOK_ROLE_TOOLS, ...TOK_CUSTOMER_OPERATION_PUBLIC_TOOLS]) {
+      if (isReadOnlyTool(tool) || TOK_CLIENT_MUTATION_NAMES.has(tool.name) || TOK_ROLE_TOOL_NAMES.has(tool.name) || TOK_CUSTOMER_OPERATION_NAMES.has(tool.name))
         PUBLIC_READ_ONLY_TOOL_NAMES.add(tool.name);
     }
   }
@@ -560,6 +572,8 @@ function authToolResult(message = "Connexion TOK requise pour cette action.") {
 }
 
 function bridgeToolBody(name: string, args: JsonRecord) {
+  if (TOK_ROLE_TOOL_NAMES.has(name)) return { mode: "role_operation", operation: name, args };
+  if (TOK_CUSTOMER_OPERATION_NAMES.has(name)) return { mode: "customer_operation", operation: name, args };
   if (TOK_CLIENT_TOOL_NAMES.has(name as typeof TOK_CLIENT_TOOLS[number]["name"])) {
     assertTokClientArgs(name, args);
     if (name === "tok_quote_customer_cart" || name === "tok_checkout_customer_cart") {
@@ -567,6 +581,7 @@ function bridgeToolBody(name: string, args: JsonRecord) {
         mode: "customer_commerce",
         action: name === "tok_quote_customer_cart" ? "quote" : "checkout",
         restaurant_id: args.restaurant_id, journey: args.journey,
+        delivery_address: args.delivery_address,
         items: args.items, date: args.date, time: args.time,
         party_size: args.party_size, payment_method: args.payment_method,
         notes: args.notes, expected_total_cents: args.expected_total_cents,
@@ -645,8 +660,9 @@ async function callAppBridge(req: Request, rpc: McpJsonRpcRequest, name: string)
   if (anonKey) headers.set("apikey", anonKey);
   const targetUrl = name === "tok_commercial" ? COMMERCIAL_BRIDGE_URL : APP_BRIDGE_URL;
   const response = await fetch(targetUrl, { method: "POST", headers, body: JSON.stringify(bridgeToolBody(name, args)), signal: AbortSignal.timeout(55_000) });
-  const payload = await response.json().catch(() => ({ ok: false, error: { code: "tok_connect_bridge_invalid_response", message: "tok_connect_bridge_invalid_response" } })) as JsonRecord;
+  const bridgePayload = await response.json().catch(() => ({ ok: false, error: { code: "tok_connect_bridge_invalid_response", message: "tok_connect_bridge_invalid_response" } })) as JsonRecord;
   if (response.status === 401) return jsonRpcResult(rpc.id, authToolResult());
+  const payload = projectTokCustomerResult(name, args, bridgePayload);
   const text = payload.ok === false
     ? String((payload.error as JsonRecord | undefined)?.message || (payload.error as JsonRecord | undefined)?.code || "TOK action failed")
     : JSON.stringify(payload);

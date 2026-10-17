@@ -3,6 +3,8 @@ import { JSDOM } from "jsdom";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { TOK_DISCOVERY_WIDGET_HTML } from "../../supabase/functions/_shared/tok-connect-discovery-widget.ts";
+import { TOK_ROLE_OPERATION_TOOLS } from "../../supabase/functions/_shared/tok-connect-role-operations.ts";
+import { TOK_CUSTOMER_OPERATION_TOOLS } from "../../supabase/functions/_shared/tok-connect-customer-operations.ts";
 
 const remote = readFileSync("supabase/functions/tok-connect-remote-mcp/index.ts", "utf8");
 const bridge = readFileSync("supabase/functions/tok-connect-app-bridge/index.ts", "utf8");
@@ -78,7 +80,7 @@ function setupWidget(options: { quoteRequiresGuarantee?: boolean; bookingDenied?
 }
 
 describe("TOK Connect customer MCP security", () => {
-  it("keeps app-only tools callable without declaring a second widget output", () => {
+  it("makes targeted customer actions model-callable with the shared widget", () => {
     const start = remote.indexOf("const TOK_CLIENT_WIDGET_META =");
     const end = remote.indexOf("const TOK_CLIENT_TOOL_NAMES =");
     expect(start).toBeGreaterThan(0);
@@ -86,12 +88,11 @@ describe("TOK Connect customer MCP security", () => {
     const compiled = ts.transpileModule(remote.slice(start, end), {
       compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None },
     }).outputText;
-    const tools = new Function("OAUTH_SECURITY", compiled + ";return TOK_CLIENT_TOOLS;")([]);
-    const privateTools = tools.filter((tool: { _meta: Record<string, unknown> }) => tool._meta["openai/visibility"] === "private");
-    expect(privateTools).toHaveLength(5);
-    for (const tool of privateTools) {
-      expect(tool._meta.ui).toEqual({ visibility: ["app"] });
-      expect(tool._meta["openai/outputTemplate"]).toBeUndefined();
+    const tools = new Function("OAUTH_SECURITY", "TOK_ROLE_OPERATION_TOOLS", "TOK_CUSTOMER_OPERATION_TOOLS", compiled + ";return TOK_CLIENT_TOOLS;")([], TOK_ROLE_OPERATION_TOOLS, TOK_CUSTOMER_OPERATION_TOOLS);
+    expect(tools.some((tool: { _meta: Record<string, unknown> }) => tool._meta["openai/visibility"] === "private")).toBe(false);
+    for (const tool of tools) {
+      expect(tool._meta.ui.visibility).toEqual(["model", "app"]);
+      expect(tool._meta["openai/outputTemplate"]).toBe("ui://tok-connect/restaurant-discovery-v1.html");
       expect(tool._meta["openai/widgetAccessible"]).toBe(true);
     }
   });
@@ -110,14 +111,15 @@ describe("TOK Connect customer MCP security", () => {
     expect(remote).toContain('confirmed_by_user: true, idempotency_key: args.idempotency_key');
   });
 
-  it("requires app-only user interaction for booking and cancelling instead of exposing writes to the model", () => {
+  it("exposes only explicit customer writes to the model with required confirmation and idempotency", () => {
     for (const name of ["tok_book_table", "tok_cancel_my_reservation", "tok_checkout_customer_cart", "tok_cancel_cart_payment_attempt"]) {
       const start = remote.indexOf('name: "' + name + '"');
       expect(start).toBeGreaterThan(-1);
       const end = remote.indexOf("},\n  {", start);
       const definition = remote.slice(start, end > start ? end : undefined);
-      expect(definition).toContain("...TOK_CLIENT_PRIVATE_META");
-      expect(definition).not.toContain("...TOK_CLIENT_WIDGET_META");
+      expect(definition).toContain("...TOK_CLIENT_WIDGET_META");
+      expect(definition).toContain("confirmed_by_user");
+      expect(definition).toContain("idempotency_key");
     }
   });
 
@@ -183,7 +185,7 @@ describe("TOK Connect transactional widget", () => {
         confirmed_by_user: true,
       });
       expect(String(bookingCall?.args.idempotency_key)).toMatch(/^tok-widget-/);
-      expect(widget.dom.window.document.querySelector("#root")?.textContent).toContain("Réservation confirmée par TOK");
+      expect(widget.dom.window.document.querySelector("#root")?.textContent).toContain("Demande de réservation enregistrée");
     } finally {
       widget.dom.window.close();
     }

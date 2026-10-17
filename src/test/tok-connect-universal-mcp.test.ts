@@ -54,7 +54,7 @@ describe("TOK Connect universal remote MCP", () => {
     expect(remoteGateway).toContain('headers.set("mcp-method", rpc.method)');
     expect(remoteGateway).toContain('headers.set("mcp-name", toolName)');
     expect(remoteGateway).toContain('name: "TOK Connect Remote MCP"');
-    expect(remoteGateway).toContain("Claude, ChatGPT and other MCP clients");
+    expect(remoteGateway).toContain("TOK Connect operates the authenticated customer's and restaurant operator's TOK account");
     expect(remoteGateway).toContain("tok-connect-chatgpt");
     expect(remoteGateway).toContain("mcp_protocol_versions_supported");
   });

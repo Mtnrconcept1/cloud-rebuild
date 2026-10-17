@@ -83,7 +83,8 @@ describe("TOK Connect secured customer commerce contract", () => {
     expect(remote).toContain('name: "tok_quote_customer_cart"');
     expect(remote).toContain('name: "tok_checkout_customer_cart"');
     expect(remote).toContain('name: "tok_customer_payment_status"');
-    expect(remote).toContain('"openai/visibility": "private"');
+    expect(remote).toContain('visibility: ["model", "app"]');
+    expect(remote).not.toContain('"openai/visibility": "private"');
     expect(remote).toContain("TOK_CLIENT_MUTATION_NAMES");
     expect(remote).toContain("PUBLIC_MCP_READ_ONLY_ERROR");
     expect(bridge).toContain("buildVerifiedOrderPricing");
@@ -99,7 +100,7 @@ describe("TOK Connect secured customer commerce contract", () => {
   });
 });
 
-function widgetHarness(options: { reject?: boolean; restoredCart?: unknown; differentSearch?: boolean; paidFinalized?: boolean; safeReject?: boolean; expired?: boolean } = {}) {
+function widgetHarness(options: { reject?: boolean; restoredCart?: unknown; differentSearch?: boolean; paidFinalized?: boolean; safeReject?: boolean; expired?: boolean; delivery?: boolean } = {}) {
   const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
   const links: string[] = [];
   const selection = {
@@ -107,7 +108,7 @@ function widgetHarness(options: { reject?: boolean; restoredCart?: unknown; diff
     date, party_size: 2, groups: [], notes: [],
     restaurants: [{ id: options.differentSearch ? "9d15e984-fd28-401c-8bf7-fc5fd085b9b1" : restaurantId,
       name: "Chez TOK", city: "Genève",
-      supports_reservation: true, supports_dinein: true, supports_pickup: true }],
+      supports_reservation: true, supports_dinein: true, supports_pickup: true, delivery_available: options.delivery === true }],
   };
   const detail = {
     ...selection.restaurants[0], kind: "restaurant_detail",
@@ -128,6 +129,7 @@ function widgetHarness(options: { reject?: boolean; restoredCart?: unknown; diff
       if (name === "tok_quote_customer_cart") return { structuredContent: {
         ok: true, quote: {
           total_cents: 4800, subtotal_cents: 4800,
+          ...(args.journey === "delivery" ? { journey: "delivery", delivery_address: args.delivery_address, delivery_fee_cents: 500 } : {}),
           checked_at: new Date().toISOString(),
         },
       } };
@@ -174,6 +176,28 @@ function widgetHarness(options: { reject?: boolean; restoredCart?: unknown; diff
 }
 
 describe("TOK customer cart embedded widget", () => {
+  it("shows the exact delivery address and server fee before consent, then locks the address for the pending attempt", async () => {
+    const ui = widgetHarness({ delivery: true });
+    try {
+      ui.press("Voir la fiche"); await ui.wait();
+      ui.press("Commander en livraison"); await ui.wait();
+      const field = ui.dom.window.document.querySelector('input[placeholder="Rue, numéro, code postal et ville"]') as HTMLInputElement;
+      expect(field).not.toBeNull();
+      field.value = "Rue de Lyon 55, 1203 Genève";
+      field.dispatchEvent(new ui.dom.window.Event("change", { bubbles: true }));
+      (ui.dom.window.document.querySelector('button[aria-label="Ajouter Risotto"]') as HTMLButtonElement).click();
+      ui.press("Vérifier le prix"); await ui.wait();
+      const quote = ui.calls.find((call) => call.name === "tok_quote_customer_cart");
+      expect(quote?.args).toMatchObject({ journey: "delivery", delivery_address: "Rue de Lyon 55, 1203 Genève" });
+      expect(quote?.args).not.toHaveProperty("delivery_fee");
+      expect(ui.dom.window.document.querySelector("#root")?.textContent).toContain("Livraison à : Rue de Lyon 55, 1203 Genève · Frais :");
+      expect(ui.calls.some((call) => call.name === "tok_checkout_customer_cart")).toBe(false);
+      ui.press("Confirmer et payer sur Stripe"); await ui.wait();
+      expect(ui.calls.find((call) => call.name === "tok_checkout_customer_cart")?.args).toMatchObject({ delivery_address: "Rue de Lyon 55, 1203 Genève", expected_total_cents: 4800, confirmed_by_user: true });
+      expect(ui.dom.window.document.querySelector('input[placeholder="Rue, numéro, code postal et ville"]')).toBeNull();
+      expect(ui.dom.window.document.querySelector("#root")?.textContent).toContain("Adresse de cette tentative : Rue de Lyon 55, 1203 Genève");
+    } finally { ui.dom.window.close(); }
+  });
   it("edits quantities, requests a server quote and opens Stripe only after explicit consent", async () => {
     const ui = widgetHarness();
     try {

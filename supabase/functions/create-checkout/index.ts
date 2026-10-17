@@ -1,4 +1,4 @@
-import Stripe from "npm:stripe@18.5.0";
+import type Stripe from "npm:stripe@22.3.2";
 
 import {
   HttpError,
@@ -64,9 +64,10 @@ import {
   persistOrderCheckoutSessionMapping,
 } from "../_shared/order-checkout.ts";
 import { isCompletedNoCostZeroAttenteSession } from "../_shared/zero-cost-checkout.ts";
+import { assertTokOnePlanPriceAccepted } from "../_shared/tok-one-recurring-quote.ts";
 
 const toMoney = (value: unknown) => Math.max(0, Number(value) || 0);
-type CheckoutItem = Record<string, unknown>;
+type CheckoutItem = Record<string, unknown> & { metadata?: Record<string, unknown> };
 const CLIENT_STRIPE_CHECKOUT_KINDS = new Set(["order", "zero-attente", "chefs-table"]);
 const RESTAURANT_CREDIT_ONLY_CHECKOUT_KINDS = new Set(["campaign"]);
 const RECOGNIZED_CHECKOUT_KINDS = new Set([
@@ -277,6 +278,7 @@ Deno.serve(async (req) => {
     }
 
     actor = await authenticateRequest(req, { allowServiceRole: false });
+    const authenticatedActor = actor;
     if (!actor.userId) {
       throw new HttpError(401, "Unauthorized");
     }
@@ -621,6 +623,7 @@ Deno.serve(async (req) => {
       if (planError) throw new HttpError(500, planError.message);
       if (!plan) throw new HttpError(404, "Plan introuvable ou inactif");
 
+
       const { data: existingSub, error: existingSubError } =
         await actor.adminClient
           .from("restaurant_ai_subscriptions")
@@ -741,7 +744,7 @@ Deno.serve(async (req) => {
         const matchingCustomer = customerSearch.data.find(
           (customer) =>
             customer.metadata?.restaurant_id === restaurantId &&
-            customer.metadata?.user_id === actor.userId,
+            customer.metadata?.user_id === authenticatedActor.userId,
         );
 
         if (matchingCustomer) {
@@ -1080,6 +1083,9 @@ Deno.serve(async (req) => {
       }
       const amount = Number(plan.price_monthly);
 
+      try { assertTokOnePlanPriceAccepted(plan, order_metadata || {}); }
+      catch { throw new HttpError(409, "tok_one_plan_price_changed_requote"); }
+
       if (amount <= 0) throw new HttpError(400, "Prix du plan invalide");
 
       // Check no existing active subscription
@@ -1186,7 +1192,7 @@ Deno.serve(async (req) => {
           tokOnePeriodEnd &&
           tokOnePeriodEnd > new Date(),
       );
-      const dropMap = new Map(
+      const dropMap = new Map<string, any>(
         (dropRows || []).map((row: any) => [row.id, row]),
       );
       const dropRestaurantIds = Array.from(
@@ -2370,7 +2376,7 @@ Deno.serve(async (req) => {
     const releaseCreatedBusinessPrerequisites = async (reason: string) => {
       if (effectiveKind === "order") {
         await markOrderCheckoutSessionState({
-          adminClient: actor.adminClient,
+          adminClient: authenticatedActor.adminClient,
           session,
           orderStatus: "cancelled",
           paymentStatus: "cancelled",
@@ -2382,7 +2388,7 @@ Deno.serve(async (req) => {
       }
 
       if (effectiveKind === "restaurant-credit-pack" && creditPackPurchaseId) {
-        const { error } = await actor.adminClient
+        const { error } = await authenticatedActor.adminClient
           .from("restaurant_credit_purchases")
           .update({ status: "cancelled", updated_at: new Date().toISOString() })
           .eq("id", creditPackPurchaseId)
@@ -2392,7 +2398,7 @@ Deno.serve(async (req) => {
       }
 
       if (effectiveKind === "zero-attente" && zeroAttenteHoldReservationId) {
-        const { error } = await actor.adminClient.rpc(
+        const { error } = await authenticatedActor.adminClient.rpc(
           "release_zero_attente_checkout_hold",
           {
             p_session_id: session.id,
@@ -2405,7 +2411,7 @@ Deno.serve(async (req) => {
       }
 
       if (effectiveKind === "chefs-table" && chefTableHoldCount > 0) {
-        const { error } = await actor.adminClient.rpc(
+        const { error } = await authenticatedActor.adminClient.rpc(
           "release_chef_table_checkout_hold",
           {
             p_session_id: session.id,
@@ -2431,7 +2437,7 @@ Deno.serve(async (req) => {
       }
       await releaseCreatedBusinessPrerequisites(reason);
       await abandonPaymentAttemptSession({
-        adminClient: actor.adminClient,
+        adminClient: authenticatedActor.adminClient,
         attemptId: acquiredAttempt.attemptId,
         sessionId: session.id,
         reason,
@@ -2439,7 +2445,7 @@ Deno.serve(async (req) => {
       });
       if (terminalCancel || effectiveKind === "order") {
         await cancelPersistedPaymentAttempt({
-          adminClient: actor.adminClient,
+          adminClient: authenticatedActor.adminClient,
           attemptId: acquiredAttempt.attemptId,
           reason,
         });

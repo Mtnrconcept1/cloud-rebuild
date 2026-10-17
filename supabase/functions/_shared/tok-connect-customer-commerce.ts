@@ -5,7 +5,7 @@
  * supplies an authoritative price, discount, delivery fee or payment status.
  * TOK's existing pricing and checkout services remain authoritative.
  */
-export type TokCustomerJourney = "takeaway" | "zero-attente";
+export type TokCustomerJourney = "takeaway" | "zero-attente" | "delivery";
 export type TokCustomerCartItem = { menu_item_id: string; quantity: number };
 export type TokCustomerCartInput = {
   restaurant_id: string;
@@ -16,6 +16,7 @@ export type TokCustomerCartInput = {
   party_size: number;
   payment_method: "card" | "twint";
   notes: string | null;
+  delivery_address: string | null;
   expected_total_cents: number | null;
   payment_attempt_id: string | null;
   idempotency_key: string | null;
@@ -62,7 +63,20 @@ export function normalizeTokCustomerCart(
   if (!UUID.test(restaurantId)) invalid("tok_cart_restaurant_id_invalid");
 
   const journey = data.journey;
-  if (journey !== "takeaway" && journey !== "zero-attente") invalid("tok_cart_journey_invalid");
+  if (journey !== "takeaway" && journey !== "zero-attente" && journey !== "delivery") invalid("tok_cart_journey_invalid");
+  let deliveryAddress: string | null = null;
+  if (journey === "delivery") {
+    const rawAddress = data.delivery_address;
+    if (typeof rawAddress !== "string" || rawAddress.length > 300
+      || Array.from(rawAddress).some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) invalid("tok_cart_delivery_address_invalid");
+    deliveryAddress = rawAddress.trim();
+    // Require an explicit street/number, postcode and locality. This is format
+    // validation, not geocoding or a promise of delivery-zone coverage.
+    if (deliveryAddress.length < 12 || !/\b[1-9]\d{3}\b/.test(deliveryAddress)
+      || (deliveryAddress.match(/\d+/g) || []).length < 2
+      || !/\p{L}{2}/u.test(deliveryAddress)) invalid("tok_cart_delivery_address_incomplete");
+    if (["delivery_fee", "delivery_fee_cents", "total_amount", "unit_price", "user_id", "delivery_lat", "delivery_lng"].some((key) => Object.hasOwn(data, key))) invalid("tok_cart_server_prices_or_identity_only");
+  }
   if (!Array.isArray(data.items) || data.items.length < 1 || data.items.length > 24) {
     invalid("tok_cart_item_count_invalid");
   }
@@ -135,7 +149,7 @@ export function normalizeTokCustomerCart(
     restaurant_id: restaurantId, journey, items, date, time,
     party_size: partySize as number,
     payment_method: paymentMethod,
-    notes: notes as string | null,
+    notes: notes as string | null, delivery_address: deliveryAddress,
     expected_total_cents: expectedTotalCents,
     payment_attempt_id: attemptId, idempotency_key: key,
     confirmed_by_user: checkout,

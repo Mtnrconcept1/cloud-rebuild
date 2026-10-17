@@ -44,6 +44,7 @@ export type ReservationConfirmationEmailInput = {
   audience: EmailAudience;
   appBaseUrl?: string | null;
   reservationId: string;
+  status?: string | null;
   customerName?: string | null;
   customerEmail?: string | null;
   restaurantName: string;
@@ -407,6 +408,11 @@ export function buildOrderConfirmationEmail(input: OrderConfirmationEmailInput):
 /** Responsive, accessible email for reservation customers; merchant/order shells stay unchanged. */
 function buildReservationCustomerShell(input: ReservationConfirmationEmailInput) {
   const base = normalizeBaseUrl(input.appBaseUrl);
+  const confirmed = input.status === "confirmed";
+  const heading = confirmed ? "Votre réservation est confirmée !" : "Votre demande de réservation est enregistrée";
+  const confirmationCopy = confirmed
+    ? `Excellente nouvelle ! Votre table chez <strong>${escapeHtml(input.restaurantName)}</strong> est bien enregistrée. Toute l'équipe a hâte de vous accueillir pour un moment gourmand et convivial.`
+    : `Votre demande de table chez <strong>${escapeHtml(input.restaurantName)}</strong> est bien enregistrée. Elle est en attente de la réponse du restaurant. Vous recevrez une confirmation après son acceptation.`;
   const logo = escapeHtml(assetUrl(base, "/logotok.png"));
   const chef = escapeHtml(assetUrl(base, "/chef2.png"));
   const hero = escapeHtml(assetUrl(base, "/images/octopus-fine-dining.jpeg"));
@@ -432,7 +438,7 @@ function buildReservationCustomerShell(input: ReservationConfirmationEmailInput)
   return `<!doctype html>
 <html lang="fr"><head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Votre réservation TOK est confirmée</title>
+  <title>${heading}</title>
   <style>
     @media only screen and (max-width:600px) {
       .tok-wrap { width:100%!important;max-width:100%!important; }
@@ -451,26 +457,26 @@ function buildReservationCustomerShell(input: ReservationConfirmationEmailInput)
   </style>
 </head>
 <body style="margin:0;padding:0;background:#f4f5f7;font-family:Arial,Helvetica,sans-serif;color:#111827;-webkit-text-size-adjust:100%;">
-  <div style="display:none;max-height:0;opacity:0;overflow:hidden;font-size:1px;">${escapeHtml(input.restaurantName)} vous attend le ${escapeHtml(dateTime)}. Tous les détails de votre réservation à l'intérieur.</div>
+  <div style="display:none;max-height:0;opacity:0;overflow:hidden;font-size:1px;">${escapeHtml(input.restaurantName)} ${confirmed ? "vous attend le" : "a reçu votre demande pour le"} ${escapeHtml(dateTime)}. Tous les détails de votre réservation à l'intérieur.</div>
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#f4f5f7" style="border-collapse:collapse;background:#f4f5f7;">
    <tr><td align="center" style="padding:20px 8px;">
     <table role="presentation" class="tok-wrap" width="700" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="width:100%;max-width:700px;background:#ffffff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;border-collapse:separate;">
       <tr class="tok-hero-desktop"><td bgcolor="#20140e" style="background-color:#20140e;">
-        <img src="${escapeHtml(assetUrl(base, "/images/emails/tok-reservation-hero.jpg"))}" alt="TOK : votre réservation est confirmée, bon appétit et à très bientôt" width="700" height="350" style="display:block;width:100%;max-width:700px;height:auto;border:0;color:#ffffff;background-color:#20140e;">
+        <img src="${escapeHtml(assetUrl(base, confirmed ? "/images/emails/tok-reservation-hero.jpg" : "/images/octopus-fine-dining.jpeg"))}" alt="${heading}" width="700" height="350" style="display:block;width:100%;max-width:700px;height:auto;border:0;color:#ffffff;background-color:#20140e;">
       </td></tr>
       <tr class="tok-desktop-intro"><td class="tok-pad" style="padding:23px 30px 0;background:#ffffff;">
-        <h2 style="margin:0 0 11px;font-size:22px;font-weight:900;color:#e94816;">Votre réservation est confirmée !</h2>
+        <h2 style="margin:0 0 11px;font-size:22px;font-weight:900;color:#e94816;">${heading}</h2>
         <p style="margin:0 0 8px;font-size:18px;color:#111827;font-weight:900;">Bonjour ${escapeHtml(input.customerName || "cher client")},</p>
-        <p style="margin:0;font-size:14px;line-height:1.65;color:#334155;">Excellente nouvelle ! Votre table chez <strong>${escapeHtml(input.restaurantName)}</strong> est bien enregistrée. Toute l'équipe a hâte de vous accueillir pour un moment gourmand et convivial.</p>
+        <p style="margin:0;font-size:14px;line-height:1.65;color:#334155;">${confirmationCopy}</p>
       </td></tr>
       <tr class="tok-hero-mobile" style="display:none;max-height:0;overflow:hidden;"><td bgcolor="#20140e" background="${hero}" style="padding:28px 32px;background-color:#20140e;background-image:url('${hero}');background-position:center;background-size:cover;">
        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
         <td class="tok-hero-copy" width="68%" valign="top" bgcolor="#20140e" style="width:68%;padding:20px 18px;background-color:rgba(20,14,10,.90);border-radius:12px;">
          <img src="${logo}" alt="TOK" width="78" height="78" style="display:block;width:78px;height:78px;object-fit:contain;border:0;">
          <div style="margin-top:12px;color:#ffffff;font-size:11px;font-weight:700;">Le goût fait maison, livré avec passion.</div>
-         <h1 class="tok-heading" style="margin:26px 0 18px;color:#ffffff;font-size:36px;line-height:1.06;">Votre réservation<br>est <span style="color:#ff5a1f;">confirmée !</span></h1>
+         <h1 class="tok-heading" style="margin:26px 0 18px;color:#ffffff;font-size:36px;line-height:1.06;">${confirmed ? "Votre réservation" : "Votre demande"}<br>est <span style="color:#ff5a1f;">${confirmed ? "confirmée !" : "enregistrée"}</span></h1>
          <p style="font-size:16px;line-height:1.4;color:#ffffff;font-weight:800;margin:0;">Bonjour ${escapeHtml(input.customerName || "cher client")},</p>
-         <p style="font-size:14px;line-height:1.6;color:#f8f0ea;margin:9px 0 0;">Excellente nouvelle ! Votre table chez <strong>${escapeHtml(input.restaurantName)}</strong> est bien enregistrée. Toute l'équipe a hâte de vous accueillir pour un moment gourmand et convivial.</p>
+         <p style="font-size:14px;line-height:1.6;color:#f8f0ea;margin:9px 0 0;">${confirmationCopy}</p>
         </td>
         <td class="tok-hero-image" width="32%" valign="bottom" align="right" style="width:32%;text-align:right;vertical-align:bottom;">
          <img src="${chef}" alt="Chef TOK" width="190" style="display:block;max-width:100%;width:190px;height:auto;border:0;margin-left:auto;">
@@ -526,7 +532,7 @@ function buildReservationCustomerShell(input: ReservationConfirmationEmailInput)
       </td></tr>
       <tr><td bgcolor="#ff4814" style="padding:17px 12px;background:#ff4814;text-align:center;font-size:13px;font-weight:900;color:#ffffff;">TOK — Le goût fait maison, livré avec passion.</td></tr>
     </table>
-    <p style="margin:15px;color:#64748b;font-size:11px;line-height:1.5;">Cet e-mail confirme une réservation effectuée sur TOK.</p>
+    <p style="margin:15px;color:#64748b;font-size:11px;line-height:1.5;">${confirmed ? "Cet e-mail confirme une réservation effectuée sur TOK." : "Cet e-mail confirme la réception de votre demande ; le restaurant doit encore l’accepter."}</p>
    </td></tr>
   </table>
 </body></html>`;
@@ -534,6 +540,7 @@ function buildReservationCustomerShell(input: ReservationConfirmationEmailInput)
 
 export function buildReservationConfirmationEmail(input: ReservationConfirmationEmailInput): TransactionalEmailContent {
   const isRestaurant = input.audience === "restaurant";
+  const isConfirmed = input.status === "confirmed";
   const title = isRestaurant ? "Nouvelle réservation reçue" : "Merci pour votre réservation !";
   const subtitle = isRestaurant
     ? "Voici le récapitulatif complet de la réservation."
@@ -581,11 +588,12 @@ export function buildReservationConfirmationEmail(input: ReservationConfirmation
   return {
     subject: isRestaurant
       ? `Nouvelle réservation ${input.reservationId}`
-      : `Confirmation de réservation ${input.restaurantName}`,
+      : `${isConfirmed ? "Confirmation de réservation" : "Demande de réservation enregistrée"} ${input.restaurantName}`,
     bodyHtml: html,
     bodyText: [
       title,
       `Réservation ${input.reservationId}`,
+      isConfirmed ? "Statut : confirmée par le restaurant." : "Statut : en attente de la réponse du restaurant.",
       `Client: ${input.customerName || "-"}${input.customerEmail ? ` (${input.customerEmail})` : ""}`,
       `Restaurant: ${input.restaurantName}${textAddress(input.restaurantAddress, input.restaurantCity) ? ` - ${textAddress(input.restaurantAddress, input.restaurantCity)}` : ""}`,
       `Date: ${dateTime}`,
@@ -742,6 +750,7 @@ export async function queueReservationConfirmationEmails(input: {
     feature?: string | null;
     total_amount?: number | null;
     notes?: string | null;
+    status?: string | null;
   };
   restaurant: {
     id: string;
@@ -758,12 +767,31 @@ export async function queueReservationConfirmationEmails(input: {
   featureLabel: string;
   items: TransactionalEmailItem[];
 }) {
+  // New native triggers persist delivery intents in the booking transaction.
+  // Keep this fallback only for deployments predating that migration. This also
+  // covers paid Zero Attente/Tok d'Or callers without sending a second email.
+  const { data: outbox, error: outboxError } = await input.adminClient
+    .from("notifications").select("id")
+    .eq("type", "reservation")
+    .filter("data->>reservation_id", "eq", input.reservation.id)
+    .filter("data->>event", "eq", "created")
+    .limit(1).maybeSingle();
+  if (outboxError) throw outboxError;
+  if (outbox?.id) return;
+  let reservationStatus = input.reservation.status;
+  if (!reservationStatus) {
+    const { data: saved, error: statusError } = await input.adminClient.from("reservations")
+      .select("status").eq("id", input.reservation.id).maybeSingle();
+    if (statusError) throw statusError;
+    reservationStatus = saved?.status || "pending";
+  }
   const appBaseUrl = normalizeBaseUrl(input.appBaseUrl);
   const customerDetailUrl = `${appBaseUrl}/reservations`;
   const restaurantDetailUrl = `${appBaseUrl}/dashboard/reservations`;
   const common = {
     appBaseUrl,
     reservationId: input.reservation.id,
+    status: reservationStatus,
     customerName: input.customer.name || null,
     customerEmail: input.customer.email || null,
     restaurantName: input.restaurant.name || "Restaurant TOK",

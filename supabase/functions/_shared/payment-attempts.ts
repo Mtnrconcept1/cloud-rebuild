@@ -1,4 +1,4 @@
-import type Stripe from "npm:stripe@18.5.0";
+import type Stripe from "npm:stripe@22.3.2";
 
 import { HttpError } from "./auth.ts";
 

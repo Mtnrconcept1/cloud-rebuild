@@ -1,4 +1,4 @@
-import Stripe from "npm:stripe@18.5.0";
+import type Stripe from "npm:stripe@22.3.2";
 
 import {
   enrichDeliveryMetadata,
@@ -16,6 +16,7 @@ type JsonRecord = Record<string, unknown>;
 
 type LoggerLike = {
   error?: (event: string, data?: Record<string, unknown>) => void;
+  warn?: (event: string, data?: Record<string, unknown>) => void;
 };
 
 export type OrderLookupRow = {
@@ -486,7 +487,7 @@ export async function finalizePaidOrderCheckout(input: {
       metadata: existingMetadata,
       orderType: String(existingMetadata.type || ""),
     });
-    const deliveryMetadata = isDelivery ? enrichDeliveryMetadata(existingMetadata) : existingMetadata;
+    const deliveryMetadata: JsonRecord = isDelivery ? enrichDeliveryMetadata(existingMetadata) : existingMetadata;
     const scheduledAt = isDelivery
       ? String(deliveryMetadata.scheduled_delivery_at || order.scheduled_at || "") || null
       : null;

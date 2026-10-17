@@ -1,9 +1,11 @@
 import { pathToFileURL } from 'node:url';
+import mutationPolicy from './contracts/tok-connect-public-mutations.json' with { type: 'json' };
 
 const ORIGIN = 'https://www.thetok.ch';
 const ISSUER = 'https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1';
 const VERSION = '2025-11-25';
 const CLIENT_MUTATIONS = ['tok_book_table', 'tok_cancel_my_reservation', 'tok_checkout_customer_cart', 'tok_cancel_cart_payment_attempt'];
+const REVIEWED_MUTATIONS = mutationPolicy.mutation_names;
 
 /** Anonymous checks only: never accepts credentials or invokes a business write. */
 export async function runTokConnectSmoke({ fetchImpl = fetch } = {}) {
@@ -66,11 +68,16 @@ export async function runTokConnectSmoke({ fetchImpl = fetch } = {}) {
       !tool._meta?.ui?.resourceUri && !tool._meta?.['openai/outputTemplate']
     )));
     require(tools.every((tool) => tool.annotations.readOnlyHint === true || (
-      CLIENT_MUTATIONS.includes(tool.name) && tool._meta?.ui?.visibility?.length === 1
-      && tool._meta.ui.visibility[0] === 'app' && tool._meta?.['openai/visibility'] === 'private'
+      REVIEWED_MUTATIONS.includes(tool.name)
       && tool.inputSchema.required?.includes('confirmed_by_user')
       && tool.inputSchema.required?.includes('idempotency_key')
     )));
+    require(CLIENT_MUTATIONS.every((name) => {
+      const tool = tools.find((entry) => entry.name === name);
+      return tool?._meta?.ui?.visibility?.includes('model')
+        && tool._meta.ui.visibility.includes('app')
+        && tool._meta?.['openai/visibility'] !== 'private';
+    }));
   });
   await check('widget-resource', async () => {
     const tool = tools.find((entry) => entry.name === 'discover_restaurants');

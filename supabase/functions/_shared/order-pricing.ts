@@ -27,6 +27,14 @@ type ValidatedOrderItem = {
   metadata: Record<string, unknown>;
 };
 
+type PricedMenuRow = {
+  id: string; restaurant_id: string; name: string; price: unknown;
+  category: string | null; is_available: boolean;
+};
+type PricedOfferRow = {
+  id: string; restaurant_id: string; title: string; discounted_price: unknown;
+};
+
 type MealFormulaServiceAvailability = {
   enabled?: boolean;
   startTime?: string;
@@ -205,7 +213,7 @@ function resolveRequiredCourses(formula: MealFormulaRow) {
   return uniqueCourses(
     (formula.meal_formula_categories || [])
       .map((row) => toCourse(row.category))
-      .filter((course): course is string => !!course),
+      .filter((course) => course !== null),
   );
 }
 
@@ -376,11 +384,11 @@ function computeFormulaDiscount(
   reservationDate?: string,
   reservationTime?: string,
 ) {
-  const itemCourses = new Set(
+  const itemCourses = new Set<string>(
     items
       .filter((item) => item.quantity > 0)
       .map((item) => toCourse(item.category))
-      .filter((course): course is string => !!course),
+      .filter((course) => course !== null),
   );
 
   let bestMatch: { name: string; discountPercent: number; discountAmount: number; courseCount: number } | null = null;
@@ -1026,9 +1034,9 @@ export async function buildVerifiedOrderPricing(input: {
     }
   }
 
-  const menuMap = new Map((menuItemsRes.data || []).map((row: any) => [row.id, row]));
-  const antiWasteMap = new Map((antiWasteRes.data || []).map((row: any) => [row.id, row]));
-  const flashMap = new Map((flashSalesRes.data || []).map((row: any) => [row.id, row]));
+  const menuMap = new Map<string, PricedMenuRow>((menuItemsRes.data || []).map((row: PricedMenuRow) => [row.id, row]));
+  const antiWasteMap = new Map<string, PricedOfferRow>((antiWasteRes.data || []).map((row: PricedOfferRow) => [row.id, row]));
+  const flashMap = new Map<string, PricedOfferRow>((flashSalesRes.data || []).map((row: PricedOfferRow) => [row.id, row]));
 
   const validatedItems: ValidatedOrderItem[] = [];
   const now = new Date();
@@ -1057,6 +1065,7 @@ export async function buildVerifiedOrderPricing(input: {
     const antiWasteOfferId = String(item.metadata?.anti_waste_offer_id || item.metadata?.offer_id || "");
     if (antiWasteOfferId) {
       const offer = antiWasteMap.get(antiWasteOfferId);
+      if (!offer) throw new Error("Offre anti-gaspi invalide ou expiree.");
       validateAntiWasteOfferAvailability({
         offer,
         requestedQuantity: antiWasteQuantities.get(antiWasteOfferId) || item.quantity,
@@ -1078,6 +1087,7 @@ export async function buildVerifiedOrderPricing(input: {
     const flashSaleId = String(item.metadata?.flash_sale_id || "");
     if (flashSaleId) {
       const sale = flashMap.get(flashSaleId);
+      if (!sale) throw new Error("Vente flash invalide ou expiree.");
       validateFlashSaleAvailability({
         sale,
         requestedQuantity: flashSaleQuantities.get(flashSaleId) || item.quantity,
