@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `cb971ea6cf663f181cff7e84c116d4b4f632717e56f7a27e876dd406ee15b2ac`
+- Empreinte SHA-256 des sources indexées : `60a4247a7a730fd2c11609ff4ce18871429b660636c115e4ea21c0419ecd20db`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,7 +29,7 @@
 | cronJobs | 34 |
 | databaseContract | 228 |
 | databaseObjects | 2907 |
-| documents | 210 |
+| documents | 211 |
 | edgeFunctions | 118 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 3624 |
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 37 |
 | migrations | 550 |
-| modules | 1636 |
+| modules | 1637 |
 | pages | 133 |
 | pathLiterals | 758 |
 | publicAssets | 581 |
 | publicEntries | 606 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 111 |
-| records | 17323 |
-| repositoryFiles | 3281 |
+| records | 17333 |
+| repositoryFiles | 3283 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6422,8 +6422,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 35 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 264 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 740 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 265 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 741 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6444,7 +6444,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 654 |
+| test | 655 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6648,6 +6648,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Plan de tests lancement 10k | 6 | [docs/testing/launch-10k-load-plan.md:1](../../docs/testing/launch-10k-load-plan.md#L1) |
 | Tests de garde Supabase / RPC | 7 | [docs/testing/supabase-rpc-guards.md:1](../../docs/testing/supabase-rpc-guards.md#L1) |
 | Livraison de la parité fonctionnelle TOK Connect | 10 | [docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md:1](../../docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md#L1) |
+| TOK Connect — prévention des commandes fantômes avant Stripe Connect | 6 | [docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md:1](../../docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md#L1) |
 | TOK Connect — échec Checkout à emporter hors horaire de service | 6 | [docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md:1](../../docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md#L1) |
 | Publication Suisse | 3 | [docs/tok-connect/PUBLICATION.md:1](../../docs/tok-connect/PUBLICATION.md#L1) |
 | TOK Connect | 18 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
@@ -7617,7 +7618,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (163)</summary>
+<details><summary>documentation (164)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7776,6 +7777,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/testing/launch-10k-load-plan.md`
 - `docs/testing/supabase-rpc-guards.md`
 - `docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md`
+- `docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md`
 - `docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md`
 - `docs/tok-connect/PUBLICATION.md`
 - `docs/tok-connect/README.md`
@@ -9356,7 +9358,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (654)</summary>
+<details><summary>test (655)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9969,6 +9971,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-frontend.test.ts`
 - `src/test/tok-connect-full-app-mcp.test.ts`
 - `src/test/tok-connect-legal-content.test.ts`
+- `src/test/tok-connect-marketplace-preflight.test.ts`
 - `src/test/tok-connect-mcp-http.test.ts`
 - `src/test/tok-connect-mcp-migration.test.ts`
 - `src/test/tok-connect-model-commerce-widget.test.ts`
