@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "714148aa522545749db2c66747064fa220e84a8b2b074085dddd877b2045b67e",
+ "sourceDigest": "4e9627a43ec17467b5bcc800e17a26acdacd26f0bcd8674c314b449caf59d4d6",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -113050,7 +113050,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 223
+    "lineCount": 233
    },
    {
     "path": "src/test/tok-connect-sql.test.ts",
@@ -156164,7 +156164,7 @@
    "id": "code-module:8fb56bb571aa",
    "type": "code-module",
    "title": "src/test/tok-connect-special-offers-commerce.test.ts",
-   "description": "Module de 223 lignes; exports: aucun export statique.",
+   "description": "Module de 233 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-special-offers-commerce.test.ts",
    "line": 1,
    "surface": null,
@@ -156173,7 +156173,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "1d13f1f9e3c6"
+   "detailRef": "4b7e13eef905"
   },
   {
    "id": "code-module:7d5cd1586d20",

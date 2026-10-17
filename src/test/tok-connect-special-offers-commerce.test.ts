@@ -168,6 +168,16 @@ describe("MCP native special-offer purchasing", () => {
     expect(listed.payload).toMatchObject({ action: "special_offers", stock_reserved: false, offers: [{ menu_item_id: "antigaspi-" + offerId, unit_amount_cents: 800, stock_reserved: false }] });
     expect(h.writes).toEqual([]);
   });
+  it("hides pickup offers when native pickup is disabled while preserving delivery-only flash sales", async () => {
+    const h = harness();
+    h.tables.restaurants[0].supports_pickup = false;
+    expect((await h.run({ action: "special_offers", kind: "antigaspi" })).payload.offers).toEqual([]);
+    const flash = await h.run({ action: "special_offers", kind: "flash" });
+    expect(flash.payload.offers).toMatchObject([{ menu_item_id: "flash-" + offerId, takeaway_available: false, delivery_available: true }]);
+    h.tables.restaurants[0].delivery_available = false;
+    expect((await h.run({ action: "special_offers", kind: "flash" })).payload.offers).toEqual([]);
+    expect(h.writes).toEqual([]);
+  });
   it.each([{ stock: 1 }, { disabled: true }, { otherRestaurant: true }])("refuses unavailable native stock/flags/restaurant %j", async (options) => {
     const h = harness(options); expect((await h.run()).payload).toMatchObject({ ok: false, retry_safe: true }); expect(h.writes).toEqual([]);
   });

@@ -557,7 +557,7 @@ async function assertCustomerRestaurant(actor: RequestActor, restaurantId: strin
   if (!actor.userId) throw new HttpError(401, "tok_connect_user_required");
   const { data: restaurant, error: restaurantError } = await actor.adminClient
     .from("restaurants")
-    .select("id,name,is_active,status,is_demo,tok_connect_mcp_enabled,delivery_available,delivery_fee")
+    .select("id,name,is_active,status,is_demo,tok_connect_mcp_enabled,supports_pickup,delivery_available,delivery_fee")
     .eq("id", restaurantId)
     .maybeSingle();
   if (restaurantError) throw new HttpError(503, "tok_cart_restaurant_unavailable");
@@ -697,7 +697,7 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
         const date = String(kind === "antigaspi" ? row.available_date : row.sale_date);
         const start = String(kind === "antigaspi" ? row.pickup_start : row.sale_start).slice(0, 5), end = String(kind === "antigaspi" ? row.pickup_end : row.sale_end).slice(0, 5);
         const cents = Math.round(Number(row.discounted_price) * 100);
-        const takeaway = flags.has("emporter") && (kind === "antigaspi" || row.takeaway_available !== false);
+        const takeaway = restaurant.supports_pickup === true && flags.has("emporter") && (kind === "antigaspi" || row.takeaway_available !== false);
         const delivery = flags.has("livraison") && kind === "flash" && row.delivery_available === true && restaurant.delivery_available === true;
         if (!flags.has("commandes") || !takeaway && !delivery || !Number.isSafeInteger(cents) || cents <= 0
           || Number(row.quantity_available) < 1 || !/^([01]\d|2[0-3]):[0-5]\d$/.test(start) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(end) || start >= end
