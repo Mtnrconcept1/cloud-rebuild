@@ -36,6 +36,10 @@ export const TOK_ROLE_OPERATION_TOOLS = [
   tool("tok_update_restaurant_order_status", "Accepter, préparer, marquer prête ou annuler une commande de mon restaurant via restaurant-order-status natif. TOK contrôle les transitions et déclenche livraison et notifications.", { ...restaurant, order_id: uuid, status: { type: "string", enum: ["accepted", "preparing", "ready", "cancelled"] } }, ["restaurant_id", "order_id", "status"], true),
   tool("tok_list_restaurant_menu", "Consulter les plats et prix du menu de mon restaurant.", { ...restaurant, ...page }, ["restaurant_id"]),
   tool("tok_create_restaurant_menu_item", "Créer un plat dans le menu de mon restaurant avec prix CHF, nom et disponibilité, par le même stockage RLS que TOK.", { ...restaurant, ...menuFields }, ["restaurant_id", "name", "price_chf", "is_available"], true),
+  tool("tok_generate_restaurant_campaign_draft", "Créer dans TOK Campaign Studio un projet de campagne IA pour mon restaurant, sans publication ni achat publicitaire. Une génération peut consommer des crédits TOK; confirmation explicite et idempotence obligatoires. Sans budget fourni, le plafond autorisé est 0 CHF.", { ...restaurant, prompt: { type: "string", minLength: 5, maxLength: 3500 }, max_budget_chf: { type: "number", minimum: 0, maximum: 5000 }, max_daily_budget_chf: { type: "number", minimum: 0, maximum: 1000 } }, ["restaurant_id", "prompt"], true),
+  tool("tok_generate_restaurant_marketing_visual", "Générer un visuel marketing natif TOK en une seule image pour mon restaurant, conservé dans sa galerie; aucune publicité ni publication n'est lancée. Dépense possible de crédits photo TOK avec confirmation.", { ...restaurant, prompt: { type: "string", minLength: 5, maxLength: 3500 }, format: { type: "string", enum: ["square", "portrait", "landscape"] } }, ["restaurant_id", "prompt"], true),
+  tool("tok_generate_restaurant_dish_photo", "Générer via PhotoPro une photographie culinaire native pour un plat existant de mon menu. La photo source du plat, si elle existe, est lue depuis TOK; l'image générée reste en galerie jusqu'à confirmation de son association. Des crédits TOK peuvent être débités.", { ...restaurant, menu_item_id: uuid, photo_instructions: { type: "string", maxLength: 1200 }, format: { type: "string", enum: ["square", "portrait", "landscape"] } }, ["restaurant_id", "menu_item_id"], true),
+  tool("tok_attach_restaurant_dish_photo", "Associer à un plat de mon restaurant une image PhotoPro réellement générée et stockée par TOK pour mon propre compte. Vérifie identité, restaurant, type d'asset et galerie. Ne publie aucun post.", { ...restaurant, menu_item_id: uuid, asset_id: uuid }, ["restaurant_id", "menu_item_id", "asset_id"], true),
   tool("tok_delete_restaurant_menu_item", "Supprimer un plat de mon restaurant à la demande explicite du propriétaire. Préférer la désactivation si le propriétaire veut seulement masquer le plat; les contraintes natives peuvent refuser la suppression.", { ...restaurant, menu_item_id: uuid }, ["restaurant_id", "menu_item_id"], true),
   tool("tok_update_restaurant_menu_item", "Modifier le nom, descriptif, prix CHF, catégorie ou disponibilité d'un plat existant de mon restaurant, comme dans TOK. Ne crée pas de paiement.", { ...restaurant, menu_item_id: uuid, ...menuFields }, ["restaurant_id", "menu_item_id"], true),
   tool("tok_list_restaurant_hours", "Consulter les paramètres réels des services midi/soir de mon restaurant. Ces horaires canoniques contrôlent les disponibilités TOK, les créneaux réservables et les commandes.", restaurant, ["restaurant_id"]),
@@ -84,7 +88,9 @@ export const TOK_ROLE_OPERATION_COVERAGE = [
   { domain: "restaurant.floorplan", status: "partial", tools: TOK_FLOORPLAN_OPERATION_TOOLS.map((tool) => tool.name), remaining: ["atomic_multi_reservation_swaps", "decorative_objects", "floorplan_ai", "staff_branch_access", "table_billing_closure"] },
   { domain: "restaurant.reservations", status: "partial", tools: ["tok_list_restaurant_reservations", "tok_accept_restaurant_reservation", "tok_refuse_restaurant_reservation", "tok_update_restaurant_reservation_status"], remaining: ["rescheduling", "billable_table_closure", "floorplan_mutations"] },
   { domain: "restaurant.orders", status: "partial", tools: ["tok_list_restaurant_orders", "tok_update_restaurant_order_status"], remaining: ["refunds", "delivery_completion_by_courier"] },
-  { domain: "restaurant.menu_hours_promotions", status: "partial", tools: ["tok_list_restaurant_menu", "tok_create_restaurant_menu_item", "tok_update_restaurant_menu_item", "tok_delete_restaurant_menu_item", "tok_list_restaurant_hours", "tok_update_restaurant_hours", "tok_list_restaurant_promotions", "tok_create_restaurant_promotion", "tok_delete_restaurant_promotion", "tok_set_restaurant_promotion_active"], remaining: ["exceptional_closures", "menu_photos", "promotion_edit"] },
+  { domain: "restaurant.marketing_studio", status: "partial", tools: ["tok_generate_restaurant_campaign_draft", "tok_generate_restaurant_marketing_visual"], remaining: ["campaign_publication", "ad_purchase", "campaign_approval", "campaign_listing"] },
+  { domain: "restaurant.menu_photography", status: "partial", tools: ["tok_generate_restaurant_dish_photo", "tok_attach_restaurant_dish_photo"], remaining: ["bulk_image_import", "asset_gallery_management"] },
+  { domain: "restaurant.menu_hours_promotions", status: "partial", tools: ["tok_list_restaurant_menu", "tok_create_restaurant_menu_item", "tok_update_restaurant_menu_item", "tok_delete_restaurant_menu_item", "tok_list_restaurant_hours", "tok_update_restaurant_hours", "tok_list_restaurant_promotions", "tok_create_restaurant_promotion", "tok_delete_restaurant_promotion", "tok_set_restaurant_promotion_active"], remaining: ["exceptional_closures", "promotion_edit"] },
   { domain: "customer.account_favorites_notifications_reviews", status: "partial", tools: ["tok_get_my_account", "tok_update_my_profile", "tok_get_my_loyalty", "tok_list_my_notifications", "tok_mark_my_notification_read", "tok_list_my_favorites", "tok_set_my_favorite", "tok_list_my_reviews"], remaining: ["review_publication", "support_submission", "loyalty_redemption"] },
   { domain: "restaurant.management", status: "partial", tools: ["tok_list_restaurant_branches", "tok_list_restaurant_invoices", "tok_list_restaurant_staff", "tok_list_restaurant_daily_kpis", "tok_list_restaurant_subscriptions", "tok_list_restaurant_subscription_plans", "tok_list_restaurant_floor_tables", "tok_contact_restaurant_support"], remaining: ["staff_mutations", "bill_payment", "subscription_management", "floorplan_mutations"] },
   { domain: "restaurant.profile_reviews_news_floorplan", status: "partial", tools: ["tok_get_restaurant_profile", "tok_update_restaurant_profile", "tok_get_restaurant_delivery_settings", "tok_update_restaurant_delivery_settings", "tok_list_restaurant_reviews", "tok_reply_restaurant_review", "tok_report_restaurant_review", "tok_list_restaurant_news", "tok_create_restaurant_news_draft", "tok_create_restaurant_floor_table", "tok_update_restaurant_floor_table", "tok_create_restaurant_hours"], remaining: ["news_publication", "floorplan_assignments", "floorplan_layout", "floorplan_table_activation", "per_date_exceptional_closures"] },
@@ -159,11 +165,79 @@ export async function invokeTokRoleOperation(actor: RequestActor, body: RecordVa
     if (!actor.roles.includes("restaurateur")) return fail(403, "tok_connect_restaurateur_required");
     return ok({ items: await read(client.from("restaurant_subscription_plans").select("id,slug,name,description,price_monthly_chf,currency,features").eq("is_active", true).order("position").range(offset, offset + limit - 1)), limit, offset });
   }
-  if (/^tok_(get|list|update|create|delete|accept|refuse|contact|reply|report)_restaurant_/.test(name) || name === "tok_set_restaurant_promotion_active" || TOK_SPECIAL_OFFER_NAMES.has(name) || TOK_FLOORPLAN_OPERATION_NAMES.has(name)) {
+  if (/^tok_(get|list|update|create|delete|accept|refuse|contact|reply|report|generate|attach)_restaurant_/.test(name) || name === "tok_set_restaurant_promotion_active" || TOK_SPECIAL_OFFER_NAMES.has(name) || TOK_FLOORPLAN_OPERATION_NAMES.has(name)) {
     const id = String(args.restaurant_id);
     await ownRestaurant(id);
     if (TOK_SPECIAL_OFFER_NAMES.has(name)) return invokeTokSpecialOfferOperation(name, args, { read, client, mutate: deps.mutate, fail });
     if (TOK_FLOORPLAN_OPERATION_NAMES.has(name)) return invokeTokFloorplanOperation(name, args, { actor, read, fail, mutate: deps.mutate });
+    if (name === "tok_generate_restaurant_campaign_draft") {
+      const maxBudget = Number(args.max_budget_chf ?? 0);
+      const maxDailyBudget = Math.min(Number(args.max_daily_budget_chf ?? 0), maxBudget);
+      return deps.invokeEdge({
+        capability: "restaurant.ai.campaign_studio", confirmed_by_user: args.confirmed_by_user,
+        idempotency_key: args.idempotency_key,
+        payload: {
+          action: "generate", restaurantId: id, prompt: String(args.prompt).trim(),
+          idempotencyKey: args.idempotency_key,
+          guardrails: { max_budget_chf: maxBudget, max_daily_budget_chf: maxDailyBudget, manual_approval_required: true },
+        },
+      });
+    }
+    if (name === "tok_generate_restaurant_marketing_visual") {
+      return deps.invokeEdge({
+        capability: "restaurant.ai.image", confirmed_by_user: args.confirmed_by_user,
+        idempotency_key: args.idempotency_key,
+        payload: {
+          restaurantId: id, assetType: "campaign_visual", marketingAssetMode: true,
+          prompt: String(args.prompt).trim(), format: args.format || "square",
+          variantCount: 1, generateImage: true, imageOnly: true,
+        },
+      });
+    }
+    if (name === "tok_generate_restaurant_dish_photo") {
+      const dish = await read(client.from("menu_items").select("id,name,description,category,image_url").eq("id", args.menu_item_id).eq("restaurant_id", id).maybeSingle()) as RecordValue | null;
+      if (!dish) return fail(404, "tok_connect_restaurant_menu_item_not_found");
+      const dishName = String(dish.name || "").trim();
+      if (!dishName) return fail(422, "tok_connect_restaurant_menu_item_name_missing");
+      const brief = [
+        "Photographie culinaire premium pour le plat réel du restaurant.",
+        "Plat : " + dishName,
+        dish.category ? "Catégorie : " + String(dish.category).slice(0, 100) : "",
+        dish.description ? "Description : " + String(dish.description).slice(0, 1000) : "",
+        args.photo_instructions ? "Demande du restaurateur : " + String(args.photo_instructions).trim() : "",
+        "Une seule photographie, sans texte ni logo ajouté. Ne pas présenter les ingrédients comme des faits si aucune image source n'existe.",
+      ].filter(Boolean).join("\n");
+      const sourceImageUrl = typeof dish.image_url === "string" && /^https:\/\//.test(dish.image_url) ? dish.image_url : undefined;
+      return deps.invokeEdge({
+        capability: "restaurant.ai.image", confirmed_by_user: args.confirmed_by_user,
+        idempotency_key: args.idempotency_key,
+        payload: {
+          restaurantId: id, assetType: "menu_visual", dishName,
+          prompt: brief, ...(sourceImageUrl ? { sourceImageUrl } : {}),
+          format: args.format || "square", variantCount: 1,
+          generateImage: true, imageOnly: true,
+        },
+      });
+    }
+    if (name === "tok_attach_restaurant_dish_photo") {
+      await ownEntity("menu_items", String(args.menu_item_id), id);
+      return deps.mutate(name, args, async () => {
+        const asset = await read(actor.adminClient.from("ai_generated_assets")
+          .select("id,user_id,restaurant_id,asset_type,status,asset_url,metadata")
+          .eq("id", args.asset_id).eq("user_id", actor.userId).eq("restaurant_id", id).maybeSingle()) as RecordValue | null;
+        const metadata = asset?.metadata && typeof asset.metadata === "object" ? asset.metadata as RecordValue : null;
+        if (!asset || asset.asset_type !== "menu_visual" || asset.status !== "stored"
+          || metadata?.gallery_storage_bucket !== "restaurant-images"
+          || typeof asset.asset_url !== "string" || !/^https:\/\//.test(asset.asset_url)) {
+          return fail(422, "tok_connect_dish_photo_unverified");
+        }
+        const item = await read(client.from("menu_items").update({ image_url: asset.asset_url })
+          .eq("id", args.menu_item_id).eq("restaurant_id", id)
+          .select("id,restaurant_id,name,image_url").maybeSingle());
+        if (!item) return fail(404, "tok_connect_restaurant_menu_item_not_found");
+        return ok({ item, asset_id: asset.id });
+      });
+    }
     if (name === "tok_list_restaurant_subscriptions") return ok({ items: await read(client.rpc("get_my_restaurant_ai_subscriptions", { p_restaurant_ids: [id] }).range(offset, offset + limit - 1)), limit, offset });
     if (name === "tok_contact_restaurant_support") return deps.invokeEdge({ confirmed_by_user: args.confirmed_by_user, idempotency_key: args.idempotency_key, capability: "support.contact", payload: { source: "restaurant_dashboard", restaurantId: id, subject: args.subject, message: args.message } });
     if (["tok_get_restaurant_profile", "tok_get_restaurant_delivery_settings", "tok_update_restaurant_profile", "tok_update_restaurant_delivery_settings"].includes(name)) {
@@ -236,7 +310,7 @@ export async function invokeTokRoleOperation(actor: RequestActor, body: RecordVa
     const menu = name.includes("menu");
     const promotion = name.includes("promotion");
     const table = menu ? "menu_items" : promotion ? "restaurant_promotions" : name.includes("reservations") ? "reservations" : "orders";
-    const fields = menu ? "id,restaurant_id,name,description,category,price,is_available" : promotion ? "id,restaurant_id,name,promotion_type,promotion_value,start_at,end_at,active,target" : table === "reservations" ? "id,restaurant_id,date,time,party_size,status,feature,created_at" : "id,restaurant_id,status,payment_status,total_amount,created_at";
+    const fields = menu ? "id,restaurant_id,name,description,category,price,is_available,image_url" : promotion ? "id,restaurant_id,name,promotion_type,promotion_value,start_at,end_at,active,target" : table === "reservations" ? "id,restaurant_id,date,time,party_size,status,feature,created_at" : "id,restaurant_id,status,payment_status,total_amount,created_at";
     if (name.startsWith("tok_create_")) {
       const values: RecordValue = { restaurant_id: id };
       const keys = menu ? ["name", "description", "category", "is_available"] : Object.keys(promotionFields);

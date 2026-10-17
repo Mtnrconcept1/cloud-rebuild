@@ -48,6 +48,20 @@ The remote MCP is not limited to mocked responses. Depending on the authenticate
 
 Real reservation creation and cancellation remain idempotent and are revalidated server-side. A model cannot bypass restaurant grants, capacity checks, ownership rules or the required end-user confirmation by changing tool arguments.
 
+## Restaurateur : Studio Marketing et photos du menu
+
+Le MCP expose des outils ciblés, sur le restaurant appartenant au compte TOK connecté :
+
+- `tok_generate_restaurant_campaign_draft` construit un brouillon IA natif Campaign Studio, sous contrôle des crédits TOK. Budget publicitaire maximal de **0 CHF par défaut**, et approbation humaine obligatoire. Il ne publie ni n'achète de publicité.
+- `tok_generate_restaurant_marketing_visual` crée **une image native** au format demandé, enregistrée dans la galerie TOK. La campagne n'est pas automatiquement publiée.
+- `tok_create_restaurant_menu_item` crée un plat à prix confirmé, avec l'autorisation habituelle du restaurateur.
+- `tok_generate_restaurant_dish_photo` utilise PhotoPro pour un plat existant, sa vraie description et sa photo source si disponible. Il crée une image native dans la galerie, pas une publication.
+- `tok_attach_restaurant_dish_photo` associe l'image au plat uniquement après accord explicite. L'asset doit être déjà stocké dans la galerie TOK, appartenir au même utilisateur et au même restaurant.
+
+Les opérations IA peuvent consommer des crédits TOK ; le MCP impose confirmation et clé d'idempotence, l'autorisation du propriétaire et l'activation MCP du restaurant. Les résultats sont visibles dans le widget d'action TOK. Une génération terminée ne prouve ni une campagne active ni un plat publié sur les réseaux.
+
+Les générations PhotoPro longues disposent d'un délai de réponse spécifique côté bridge, sans élargir les droits ni les possibilités de paiement.
+
 ## Operations that remain protected
 
 The remote MCP deliberately does not turn every application mutation into an autonomous model action. Payments, refunds, credit spending, campaign publication, administrative mutations and other high-risk operations stay in their existing protected TOK flows unless a dedicated, audited MCP action is added later.

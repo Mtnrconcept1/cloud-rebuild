@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "d75ff6abf6b8155beee1df00e12d3586e51f03bc8fcf714b8701081dcc93b2fb",
+ "sourceDigest": "323804bf9140224b90e7c0d766296fbcd7ef1b03f97e35ccfab476b6a79c2f81",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 550,
-  "modules": 1642,
+  "modules": 1643,
   "pages": 133,
   "pathLiterals": 758,
   "publicAssets": 582,
   "publicEntries": 607,
   "publicNavigableRoutes": 2,
   "queryParameters": 111,
-  "records": 17359,
-  "repositoryFiles": 3291,
+  "records": 17362,
+  "repositoryFiles": 3292,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -30341,7 +30341,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-chatgpt/index.ts",
-      "line": 428
+      "line": 466
      }
     ]
    },
@@ -32639,7 +32639,7 @@
     "sources": [
      {
       "path": "supabase/functions/tok-connect-chatgpt/index.ts",
-      "line": 504
+      "line": 542
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -32651,7 +32651,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
-      "line": 725
+      "line": 739
      }
     ],
     "routes": []
@@ -33012,6 +33012,7 @@
      "src/test/tok-connect-reservation-intent.test.ts",
      "src/test/tok-connect-smoke.test.ts",
      "src/test/tok-connect-special-offers-commerce.test.ts",
+     "src/test/tok-connect-studio-widget.test.ts",
      "src/test/tok-intelligence-suite.test.ts",
      "src/test/vercel-rewrites.test.ts",
      "src/test/widget-access-state.test.ts",
@@ -34045,6 +34046,7 @@
      "src/test/tok-connect-special-offer-operations.test.ts",
      "src/test/tok-connect-special-offers-commerce.test.ts",
      "src/test/tok-connect-sql.test.ts",
+     "src/test/tok-connect-studio-widget.test.ts",
      "src/test/tok-connect-universal-mcp.test.ts",
      "src/test/tok-intelligence-suite.test.ts",
      "src/test/tok-mcp-pickup-slot-capacity.test.ts",
@@ -85265,33 +85267,38 @@
      },
      {
       "level": 2,
-      "title": "Operations that remain protected",
+      "title": "Restaurateur : Studio Marketing et photos du menu",
       "line": 51
      },
      {
       "level": 2,
+      "title": "Operations that remain protected",
+      "line": 65
+     },
+     {
+      "level": 2,
       "title": "Claude",
-      "line": 57
+      "line": 71
      },
      {
       "level": 2,
       "title": "ChatGPT",
-      "line": 69
+      "line": 83
      },
      {
       "level": 2,
       "title": "Other MCP clients",
-      "line": 79
+      "line": 93
      },
      {
       "level": 2,
       "title": "Security invariants",
-      "line": 90
+      "line": 104
      },
      {
       "level": 2,
       "title": "Production verification",
-      "line": 100
+      "line": 114
      }
     ]
    },
@@ -113196,7 +113203,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 90
+    "lineCount": 96
    },
    {
     "path": "src/test/tok-connect-reservation-intent.test.ts",
@@ -113216,7 +113223,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 230
+    "lineCount": 291
    },
    {
     "path": "src/test/tok-connect-runtime.test.ts",
@@ -113265,6 +113272,16 @@
      "supabase"
     ],
     "lineCount": 142
+   },
+   {
+    "path": "src/test/tok-connect-studio-widget.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "openai",
+     "supabase"
+    ],
+    "lineCount": 59
    },
    {
     "path": "src/test/tok-connect-universal-mcp.test.ts",
@@ -116932,17 +116949,17 @@
      },
      {
       "name": "TOK_ROLE_OPERATION_COVERAGE",
-      "line": 82,
+      "line": 86,
       "kind": "variable"
      },
      {
       "name": "validateTokRoleOperation",
-      "line": 99,
+      "line": 105,
       "kind": "function"
      },
      {
       "name": "invokeTokRoleOperation",
-      "line": 132,
+      "line": 138,
       "kind": "function"
      }
     ],
@@ -116950,7 +116967,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 312
+    "lineCount": 386
    },
    {
     "path": "supabase/functions/_shared/tok-connect-service-settings-operations.ts",
@@ -118729,7 +118746,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 568
+    "lineCount": 606
    },
    {
     "path": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -118823,7 +118840,7 @@
      "supabase",
      "twint"
     ],
-    "lineCount": 761
+    "lineCount": 775
    },
    {
     "path": "supabase/functions/tok-connect-webhook-dispatch/index.ts",
@@ -131296,6 +131313,11 @@
    },
    {
     "path": "src/test/tok-connect-sql.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-studio-widget.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -156519,7 +156541,7 @@
    "id": "code-module:52bfe1683c62",
    "type": "code-module",
    "title": "src/test/tok-connect-public-actions.test.ts",
-   "description": "Module de 90 lignes; exports: aucun export statique.",
+   "description": "Module de 96 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-public-actions.test.ts",
    "line": 1,
    "surface": null,
@@ -156527,7 +156549,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "4f3f4805a792"
+   "detailRef": "6fa92a0050a3"
   },
   {
    "id": "code-module:ebb9bb863683",
@@ -156548,14 +156570,14 @@
    "id": "code-module:cc97177317ac",
    "type": "code-module",
    "title": "src/test/tok-connect-role-operations.test.ts",
-   "description": "Module de 230 lignes; exports: aucun export statique.",
+   "description": "Module de 291 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-role-operations.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "5207b982b422"
+   "detailRef": "e7a94a9b9cd4"
   },
   {
    "id": "code-module:a99b1a425a3e",
@@ -156624,6 +156646,20 @@
     "supabase"
    ],
    "detailRef": "1b9a2b8c94f9"
+  },
+  {
+   "id": "code-module:8c5bacf161c7",
+   "type": "code-module",
+   "title": "src/test/tok-connect-studio-widget.test.ts",
+   "description": "Module de 59 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-studio-widget.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "openai",
+    "supabase"
+   ],
+   "detailRef": "af225f4a26eb"
   },
   {
    "id": "code-module:b31db981381b",
@@ -158525,7 +158561,7 @@
    "id": "code-module:57f22077f88e",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "description": "Module de 312 lignes; exports: TokRoleOperationError, TOK_ROLE_OPERATION_TOOLS, TOK_ROLE_OPERATION_COVERAGE, validateTokRoleOperation, invokeTokRoleOperation.",
+   "description": "Module de 386 lignes; exports: TokRoleOperationError, TOK_ROLE_OPERATION_TOOLS, TOK_ROLE_OPERATION_COVERAGE, validateTokRoleOperation, invokeTokRoleOperation.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
    "line": 1,
    "surface": null,
@@ -158537,7 +158573,7 @@
     "stripe",
     "validateTokRoleOperation"
    ],
-   "detailRef": "c3c6d1cfdb01"
+   "detailRef": "a5ec1dd095a5"
   },
   {
    "id": "code-module:91bea2d2965d",
@@ -160287,7 +160323,7 @@
    "id": "code-module:4266f84831a7",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-chatgpt/index.ts",
-   "description": "Module de 568 lignes; exports: aucun export statique.",
+   "description": "Module de 606 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-chatgpt/index.ts",
    "line": 1,
    "surface": null,
@@ -160299,7 +160335,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "807ebedacb2d"
+   "detailRef": "988937cd5b5d"
   },
   {
    "id": "code-module:7a0b59a8a72a",
@@ -160387,7 +160423,7 @@
    "id": "code-module:a6d1c05c1a13",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-remote-mcp/index.ts",
-   "description": "Module de 761 lignes; exports: aucun export statique.",
+   "description": "Module de 775 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-remote-mcp/index.ts",
    "line": 1,
    "surface": null,
@@ -160401,7 +160437,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "6e4331a78c95"
+   "detailRef": "8d77f54ad089"
   },
   {
    "id": "code-module:61c89ba4dc3b",
@@ -215692,18 +215728,18 @@
    "detailRef": "1a2cbdcd3dd1"
   },
   {
-   "id": "document-section:179ed1982033",
+   "id": "document-section:9fc66b11f9e8",
    "type": "document-section",
    "title": "ChatGPT",
    "description": "Section de TOK Connect Remote MCP.",
    "path": "docs/tok-connect/REMOTE_MCP.md",
-   "line": 69,
+   "line": 83,
    "surface": null,
    "tags": [
     "TOK Connect Remote MCP",
     "h2"
    ],
-   "detailRef": "21082b255d05"
+   "detailRef": "0d76ada7f480"
   },
   {
    "id": "document-section:42fbebd779e6",
@@ -215860,18 +215896,18 @@
    "detailRef": "0eb9c78cb2ee"
   },
   {
-   "id": "document-section:640eec320493",
+   "id": "document-section:7d4df8272cc2",
    "type": "document-section",
    "title": "Claude",
    "description": "Section de TOK Connect Remote MCP.",
    "path": "docs/tok-connect/REMOTE_MCP.md",
-   "line": 57,
+   "line": 71,
    "surface": null,
    "tags": [
     "TOK Connect Remote MCP",
     "h2"
    ],
-   "detailRef": "baac9671849d"
+   "detailRef": "f07809a74e16"
   },
   {
    "id": "document-section:ebf4e04da485",
@@ -225170,18 +225206,18 @@
    "detailRef": "cc90130bf464"
   },
   {
-   "id": "document-section:ea9c643e5494",
+   "id": "document-section:b7e929f50d5d",
    "type": "document-section",
    "title": "Operations that remain protected",
    "description": "Section de TOK Connect Remote MCP.",
    "path": "docs/tok-connect/REMOTE_MCP.md",
-   "line": 51,
+   "line": 65,
    "surface": null,
    "tags": [
     "TOK Connect Remote MCP",
     "h2"
    ],
-   "detailRef": "726e020d0b48"
+   "detailRef": "2b4bdb283941"
   },
   {
    "id": "document-section:82d401189de2",
@@ -225366,18 +225402,18 @@
    "detailRef": "ec10248e75ed"
   },
   {
-   "id": "document-section:09808943263e",
+   "id": "document-section:23cc3a9166cd",
    "type": "document-section",
    "title": "Other MCP clients",
    "description": "Section de TOK Connect Remote MCP.",
    "path": "docs/tok-connect/REMOTE_MCP.md",
-   "line": 79,
+   "line": 93,
    "surface": null,
    "tags": [
     "TOK Connect Remote MCP",
     "h2"
    ],
-   "detailRef": "54264647917e"
+   "detailRef": "b2fb3f7d1a18"
   },
   {
    "id": "document-section:b5196c71e44f",
@@ -228026,18 +228062,18 @@
    "detailRef": "fb75dcb3a47a"
   },
   {
-   "id": "document-section:85e250e783f4",
+   "id": "document-section:cab972ed9bcb",
    "type": "document-section",
    "title": "Production verification",
    "description": "Section de TOK Connect Remote MCP.",
    "path": "docs/tok-connect/REMOTE_MCP.md",
-   "line": 100,
+   "line": 114,
    "surface": null,
    "tags": [
     "TOK Connect Remote MCP",
     "h2"
    ],
-   "detailRef": "317ebeda6ef6"
+   "detailRef": "14f7f8fdc11e"
   },
   {
    "id": "document-section:905621b58e6b",
@@ -229508,6 +229544,20 @@
     "h3"
    ],
    "detailRef": "5dfba8a59640"
+  },
+  {
+   "id": "document-section:61dcc02a7063",
+   "type": "document-section",
+   "title": "Restaurateur : Studio Marketing et photos du menu",
+   "description": "Section de TOK Connect Remote MCP.",
+   "path": "docs/tok-connect/REMOTE_MCP.md",
+   "line": 51,
+   "surface": null,
+   "tags": [
+    "TOK Connect Remote MCP",
+    "h2"
+   ],
+   "detailRef": "86539f81abf0"
   },
   {
    "id": "document-section:c77b107111a1",
@@ -231778,18 +231828,18 @@
    "detailRef": "acee4b068a09"
   },
   {
-   "id": "document-section:cdf27249b4d5",
+   "id": "document-section:742a37a8e2a4",
    "type": "document-section",
    "title": "Security invariants",
    "description": "Section de TOK Connect Remote MCP.",
    "path": "docs/tok-connect/REMOTE_MCP.md",
-   "line": 90,
+   "line": 104,
    "surface": null,
    "tags": [
     "TOK Connect Remote MCP",
     "h2"
    ],
-   "detailRef": "f7922c783bf2"
+   "detailRef": "5d92a9c5e0dd"
   },
   {
    "id": "document-section:2a7c72a0e4de",
@@ -242969,7 +243019,7 @@
    "id": "document:9502eb5dc733",
    "type": "document",
    "title": "TOK Connect Remote MCP",
-   "description": "Document Markdown avec 9 section(s).",
+   "description": "Document Markdown avec 10 section(s).",
    "path": "docs/tok-connect/REMOTE_MCP.md",
    "line": 1,
    "surface": null,
@@ -242980,11 +243030,12 @@
     "Other MCP clients",
     "Production verification",
     "Protocol compatibility",
+    "Restaurateur : Studio Marketing et photos du menu",
     "Security invariants",
     "TOK Connect Remote MCP",
     "What an agent can really do"
    ],
-   "detailRef": "77d1658ee3fb"
+   "detailRef": "7424751c322c"
   },
   {
    "id": "document:0d71a5960f7b",
@@ -270363,18 +270414,18 @@
    "detailRef": "fb4022c83cb2"
   },
   {
-   "id": "exported-symbol:96969cc801fd",
+   "id": "exported-symbol:023c98b83dae",
    "type": "exported-symbol",
    "title": "TOK_ROLE_OPERATION_COVERAGE",
    "description": "Export variable de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 82,
+   "line": 86,
    "surface": null,
    "tags": [
     "stripe",
     "variable"
    ],
-   "detailRef": "6a4c74b001c8"
+   "detailRef": "2afcaef52d3e"
   },
   {
    "id": "exported-symbol:224ef99ee99a",
@@ -289708,18 +289759,18 @@
    "detailRef": "28937ba2da7a"
   },
   {
-   "id": "exported-symbol:d76b4649c3b7",
+   "id": "exported-symbol:5a5adb0ffa06",
    "type": "exported-symbol",
    "title": "invokeTokRoleOperation",
    "description": "Export function de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 132,
+   "line": 138,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "c4c1ac854c54"
+   "detailRef": "e7f79ab6b34e"
   },
   {
    "id": "exported-symbol:ab95680e2083",
@@ -300376,18 +300427,18 @@
    "detailRef": "7ed77cc1654d"
   },
   {
-   "id": "exported-symbol:540d8a38a407",
+   "id": "exported-symbol:805d1ad809bc",
    "type": "exported-symbol",
    "title": "validateTokRoleOperation",
    "description": "Export function de supabase/functions/_shared/tok-connect-role-operations.ts.",
    "path": "supabase/functions/_shared/tok-connect-role-operations.ts",
-   "line": 99,
+   "line": 105,
    "surface": null,
    "tags": [
     "function",
     "stripe"
    ],
-   "detailRef": "f7ecb577ee7a"
+   "detailRef": "c5806d153a51"
   },
   {
    "id": "exported-symbol:38b68734a360",
@@ -336370,6 +336421,20 @@
    "detailRef": "24febcd98b73"
   },
   {
+   "id": "file:98a3702ff611",
+   "type": "file",
+   "title": "src/test/tok-connect-studio-widget.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-studio-widget.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "9d4f1cce3442"
+  },
+  {
    "id": "file:6baa5553d2b0",
    "type": "file",
    "title": "src/test/tok-connect-universal-mcp.test.ts",
@@ -351167,7 +351232,7 @@
    "id": "integration:672e2c9b82f3",
    "type": "integration",
    "title": "Openai",
-   "description": "Intégration externe détectée dans 131 module(s).",
+   "description": "Intégration externe détectée dans 132 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -351258,6 +351323,7 @@
     "src/test/tok-connect-reservation-intent.test.ts",
     "src/test/tok-connect-smoke.test.ts",
     "src/test/tok-connect-special-offers-commerce.test.ts",
+    "src/test/tok-connect-studio-widget.test.ts",
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/vercel-rewrites.test.ts",
     "src/test/widget-access-state.test.ts",
@@ -351305,7 +351371,7 @@
     "workers/image-ai-worker/config.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "83aa48d13608"
+   "detailRef": "3d971490aa51"
   },
   {
    "id": "integration:9dcc64c9c777",
@@ -351682,7 +351748,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 743 module(s).",
+   "description": "Intégration externe détectée dans 744 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -352330,6 +352396,7 @@
     "src/test/tok-connect-special-offer-operations.test.ts",
     "src/test/tok-connect-special-offers-commerce.test.ts",
     "src/test/tok-connect-sql.test.ts",
+    "src/test/tok-connect-studio-widget.test.ts",
     "src/test/tok-connect-universal-mcp.test.ts",
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/tok-mcp-pickup-slot-capacity.test.ts",
@@ -352432,7 +352499,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "21ce8ebb9012"
+   "detailRef": "ad84a33c59d7"
   },
   {
    "id": "integration:c20910a79a78",
@@ -374765,7 +374832,7 @@
     "supabase/functions/tok-connect-api/index.ts",
     "supabase/functions/tok-connect-chatgpt/index.ts"
    ],
-   "detailRef": "27bffed6bb44"
+   "detailRef": "42dc583539ae"
   },
   {
    "id": "path-literal:ec05e02dfbe7",
@@ -384948,12 +385015,12 @@
    "detailRef": "215b31fffabd"
   },
   {
-   "id": "query-parameter:872c7aa1a884",
+   "id": "query-parameter:35bc24e80aab",
    "type": "query-parameter",
    "title": "tok_connect_route",
    "description": "Paramètre d’URL détecté dans 4 emplacement(s).",
    "path": "supabase/functions/tok-connect-chatgpt/index.ts",
-   "line": 504,
+   "line": 542,
    "surface": null,
    "tags": [
     "supabase/functions/tok-connect-chatgpt/index.ts",
@@ -384961,7 +385028,7 @@
     "supabase/functions/tok-connect-mcp/index.ts",
     "supabase/functions/tok-connect-remote-mcp/index.ts"
    ],
-   "detailRef": "3335986b127d"
+   "detailRef": "f14c20ab0452"
   },
   {
    "id": "query-parameter:53f1f1bd6ea8",
