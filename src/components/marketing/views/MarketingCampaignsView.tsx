@@ -41,6 +41,7 @@ import {
 } from "@/marketing/types";
 import type { MarketingUrlState } from "@/marketing/useMarketingUrlState";
 import { marketingZurichLocalDateTimeToIso } from "@/marketing/zurichTime";
+import { TOK_RESTAURANT_ACQUISITION_CAMPAIGN } from "../../../supabase/functions/_shared/marketing-restaurant-acquisition-email";
 
 const PAGE_SIZE = 8;
 const CANTONS = ["CH", "GE", "VD", "VS", "FR", "NE", "JU", "BE", "ZH", "BS", "LU", "AG", "SG", "TI"];
@@ -54,6 +55,7 @@ type WizardState = {
   name: string;
   objective: string;
   message: string;
+  emailTemplateId: string | null;
   audienceId: string;
   audienceKind: MarketingAudienceKind;
   canton: string;
@@ -66,6 +68,7 @@ const EMPTY_WIZARD: WizardState = {
   name: "",
   objective: "",
   message: "",
+  emailTemplateId: null,
   audienceId: "",
   audienceKind: "restaurant",
   canton: "CH",
@@ -187,6 +190,7 @@ export default function MarketingCampaignsView({
     ...(selectedLocation !== "CH" ? { canton: selectedLocation } : {}),
   };
   const audienceKey = JSON.stringify(currentAudienceFilter);
+  const isTokRestaurantEmail = wizard.emailTemplateId === TOK_RESTAURANT_ACQUISITION_CAMPAIGN.id;
   const recommendedChannel = channelRecommendation?.audienceKey === audienceKey
     ? channelRecommendation.channel
     : undefined;
@@ -211,6 +215,7 @@ export default function MarketingCampaignsView({
         : true;
 
   const toggleChannel = (channel: MarketingChannelId) => {
+    if (isTokRestaurantEmail) return; // This fixed creative is only valid for e-mail.
     setWizard((current) => ({
       ...current,
       channels: current.channels.includes(channel)
@@ -257,6 +262,21 @@ export default function MarketingCampaignsView({
     setStep(3);
   };
 
+  const openTokRestaurantEmail = () => {
+    setWizard({
+      ...EMPTY_WIZARD,
+      name: "TOK — Chaque table compte",
+      objective: "Présenter TOK et son offre de lancement aux restaurateurs genevois.",
+      message: "E-mail de prospection restaurateurs TOK : texte et bannière fournis, contenus fixes dans le modèle publicitaire.",
+      emailTemplateId: TOK_RESTAURANT_ACQUISITION_CAMPAIGN.id,
+      audienceKind: "restaurant",
+      canton: "GE",
+      channels: ["email"],
+    });
+    setStep(1);
+    setWizardOpen(true);
+  };
+
   const closeWizard = () => {
     setWizardOpen(false);
     setStep(1);
@@ -275,6 +295,7 @@ export default function MarketingCampaignsView({
       name: wizard.name.trim(),
       objective: wizard.objective.trim(),
       message: wizard.message.trim(),
+      emailTemplateId: wizard.emailTemplateId,
       audienceId: wizard.audienceId || `dynamic:${wizard.audienceKind}:${wizard.canton}`,
       audienceName,
       audienceFilter: {
@@ -311,6 +332,9 @@ export default function MarketingCampaignsView({
         </div>
         <div className="flex flex-wrap gap-2">
         <Button type="button" onClick={() => onFiltersChange({ view: "agent", query: "", status: "all", channel: "all", page: 1 })}><Sparkles className="mr-2 h-4 w-4" />Créer avec un modèle</Button>
+        <Button type="button" variant="outline" onClick={openTokRestaurantEmail}>
+          <Megaphone className="mr-2 h-4 w-4" />E-mail restaurateurs TOK
+        </Button>
         <Button type="button" variant="outline" onClick={() => setWizardOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Créer une campagne
         </Button>
@@ -434,19 +458,28 @@ export default function MarketingCampaignsView({
             <div className="space-y-4">
               <div><Label htmlFor="campaign-name">Nom de campagne</Label><Input id="campaign-name" className="mt-2" value={wizard.name} onChange={(event) => setWizard((current) => ({ ...current, name: event.target.value }))} maxLength={100} placeholder="Ex. Ouverture restaurants Lausanne" /></div>
               <div><Label htmlFor="campaign-objective">Objectif mesurable</Label><Textarea id="campaign-objective" className="mt-2 min-h-28" value={wizard.objective} onChange={(event) => setWizard((current) => ({ ...current, objective: event.target.value }))} maxLength={500} placeholder="Décrivez le résultat attendu et la conversion suivie…" /></div>
-              <div><Label htmlFor="campaign-message">Contenu / message</Label><Textarea id="campaign-message" className="mt-2 min-h-32" value={wizard.message} onChange={(event) => setWizard((current) => ({ ...current, message: event.target.value }))} maxLength={1600} placeholder="Rédigez le message source qui sera adapté à chaque canal…" /><p className="mt-1 text-xs text-muted-foreground">{wizard.message.trim().length}/1600 · minimum 20 caractères</p></div>
+              {isTokRestaurantEmail ? (
+                <div className="space-y-2 rounded-lg border p-3">
+                  <p className="text-sm font-semibold">Modèle publicitaire fixe · bannière fournie</p>
+                  <p className="text-xs text-muted-foreground">Le texte complet ci-dessous et sa bannière seront utilisés pour l'e-mail. Aucun contenu de confirmation de réservation.</p>
+                  <div className="max-h-48 overflow-y-auto whitespace-pre-wrap text-xs leading-5">
+                    {TOK_RESTAURANT_ACQUISITION_CAMPAIGN.body}
+                  </div>
+                </div>
+              ) : null}
+              <div><Label htmlFor="campaign-message">{isTokRestaurantEmail ? "Description interne du modèle" : "Contenu / message"}</Label><Textarea id="campaign-message" className="mt-2 min-h-32" value={wizard.message} onChange={(event) => setWizard((current) => ({ ...current, message: event.target.value }))} readOnly={isTokRestaurantEmail} maxLength={1600} placeholder="Rédigez le message source qui sera adapté à chaque canal…" /><p className="mt-1 text-xs text-muted-foreground">{wizard.message.trim().length}/1600 · minimum 20 caractères</p></div>
             </div>
           ) : null}
 
           {step === 2 ? (
             <div className="space-y-4">
-              {snapshot.audiences.length ? (
+              {snapshot.audiences.length && !isTokRestaurantEmail ? (
                 <div><Label>Aperçu calculé sur 100 contacts maximum</Label><Select value={wizard.audienceId || "dynamic"} onValueChange={(audienceId) => setWizard((current) => ({ ...current, audienceId: audienceId === "dynamic" ? "" : audienceId }))}><SelectTrigger className="mt-2"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="dynamic">Ciblage dynamique</SelectItem>{snapshot.audiences.map((audience) => <SelectItem key={audience.id} value={audience.id}>{audience.name} · {audience.total.toLocaleString("fr-CH")} profils aperçus</SelectItem>)}</SelectContent></Select><p className="mt-1 text-xs text-muted-foreground">Cet aperçu ne déclare aucune éligibilité. La taille complète sera calculée par la RPC d'estimation avant enregistrement.</p></div>
               ) : null}
               {!wizard.audienceId ? (
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div><Label>Population</Label><Select value={wizard.audienceKind} onValueChange={(audienceKind) => setWizard((current) => ({ ...current, audienceKind: audienceKind as MarketingAudienceKind }))}><SelectTrigger className="mt-2"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="restaurant">Restaurants</SelectItem><SelectItem value="client">Clients</SelectItem><SelectItem value="mixed">Mixte</SelectItem></SelectContent></Select></div>
-                  <div><Label>Canton</Label><Select value={wizard.canton} onValueChange={(canton) => setWizard((current) => ({ ...current, canton }))}><SelectTrigger className="mt-2"><SelectValue /></SelectTrigger><SelectContent>{CANTONS.map((canton) => <SelectItem key={canton} value={canton}>{canton === "CH" ? "Toute la Suisse" : canton}</SelectItem>)}</SelectContent></Select></div>
+                  <div><Label>Population</Label><Select value={wizard.audienceKind} disabled={isTokRestaurantEmail} onValueChange={(audienceKind) => setWizard((current) => ({ ...current, audienceKind: audienceKind as MarketingAudienceKind }))}><SelectTrigger className="mt-2"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="restaurant">Restaurants</SelectItem><SelectItem value="client">Clients</SelectItem><SelectItem value="mixed">Mixte</SelectItem></SelectContent></Select></div>
+                  <div><Label>Canton</Label><Select value={wizard.canton} disabled={isTokRestaurantEmail} onValueChange={(canton) => setWizard((current) => ({ ...current, canton }))}><SelectTrigger className="mt-2"><SelectValue /></SelectTrigger><SelectContent>{CANTONS.map((canton) => <SelectItem key={canton} value={canton}>{canton === "CH" ? "Toute la Suisse" : canton}</SelectItem>)}</SelectContent></Select></div>
                 </div>
               ) : null}
               <Alert><ShieldCheck className="h-4 w-4" /><AlertTitle>Éligibilité calculée côté serveur</AlertTitle><AlertDescription>Consentement, oppositions, joignabilité et déduplication seront appliqués avant tout dispatch.</AlertDescription></Alert>
@@ -469,7 +502,7 @@ export default function MarketingCampaignsView({
                 const selectable = ["available", "manual"].includes(channel.availability);
                 const selected = wizard.channels.includes(channel.id);
                 return (
-                  <button key={channel.id} type="button" aria-pressed={selected} disabled={!selectable} onClick={() => toggleChannel(channel.id)} className={cn("flex w-full min-w-0 items-center gap-3 rounded-2xl border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400", selected && "border-orange-500 bg-orange-500/5", !selectable && "cursor-not-allowed opacity-55")}>
+                  <button key={channel.id} type="button" aria-pressed={selected} disabled={!selectable || isTokRestaurantEmail} onClick={() => toggleChannel(channel.id)} className={cn("flex w-full min-w-0 items-center gap-3 rounded-2xl border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400", selected && "border-orange-500 bg-orange-500/5", !selectable && "cursor-not-allowed opacity-55")}>
                     <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border", selected ? "border-orange-500 bg-orange-500 text-white" : "bg-muted")}>{selected ? <CheckCircle2 className="h-4 w-4" /> : <Megaphone className="h-4 w-4" />}</span>
                     <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{channel.label}</span><span className="mt-1 block text-xs text-muted-foreground">{channel.reason}</span></span>
                     <MarketingStatusBadge status={channel.availability} />
