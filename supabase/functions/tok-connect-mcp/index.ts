@@ -47,6 +47,7 @@ import {
   buildTokDiscoveryToolMeta,
 } from "../_shared/tok-connect-discovery-widget.ts";
 import { TOK_CUSTOMER_RESERVATION_INPUT_SCHEMA, buildTokReservationPreparation, validateTokReservationIntent } from "../_shared/tok-connect-reservation-intent.ts";
+import { TOK_ROLE_OPERATION_TOOLS } from "../_shared/tok-connect-role-operations.ts";
 
 type McpHandleResult = {
   payload: Record<string, unknown>;
@@ -1227,8 +1228,8 @@ const TOK_CONNECT_APP_MODULES: TokConnectAppModule[] = [
     requiresHumanConfirmation: true,
     requiresPayment: false,
     requiresCredits: true,
-    relatedMcpTools: ["estimate_campaign_credit_cost", "generate_campaign_preview"],
-    safeActions: ["Lire les capacites", "Simuler le brief", "Verifier les credits requis", "Preparer une preview sans publier"],
+    relatedMcpTools: ["estimate_campaign_credit_cost", "generate_campaign_preview", "tok_generate_restaurant_campaign_draft", "tok_generate_restaurant_marketing_visual"],
+    safeActions: ["Lire les capacites", "Simuler le brief", "Verifier les credits requis", "Generer via le MCP avec OAuth et confirmation"],
     guardrails: ["Aucune generation IA reelle sans credit disponible et validation restaurateur.", "Aucun post sponsorise n'est publie par le MCP sans confirmation humaine."],
   },
   {
@@ -1667,6 +1668,29 @@ const TOK_CONNECT_RESTAURANT_DETAILS_TOOL: TokConnectMcpTool = {
   }),
 };
 
+// Reuse the exact native restaurant contracts. Do not copy their confirmation,
+// idempotency or validation schema into a weaker ChatGPT-specific definition.
+const TOK_MARKETING_ROLE_TOOL_NAMES = new Set([
+  "tok_generate_restaurant_campaign_draft",
+  "tok_generate_restaurant_marketing_visual",
+]);
+const TOK_MARKETING_ROLE_MCP_TOOLS: TokConnectMcpTool[] = TOK_ROLE_OPERATION_TOOLS
+  .filter((tool) => TOK_MARKETING_ROLE_TOOL_NAMES.has(tool.name))
+  .map((tool) => ({
+    ...tool,
+    title: tool.name === "tok_generate_restaurant_marketing_visual"
+      ? "Générer un visuel avec le Studio Marketing TOK"
+      : "Créer un brouillon dans Campaign Studio TOK",
+    requiredScopes: ["campaigns:preview", "credits:read"],
+    _meta: {
+      ui: { resourceUri: ACTION_WINDOW_RESOURCE_URI, visibility: ["model", "app"] },
+      "openai/outputTemplate": ACTION_WINDOW_RESOURCE_URI,
+      "openai/widgetAccessible": true,
+      "openai/toolInvocation/invoking": "TOK prépare la création marketing…",
+      "openai/toolInvocation/invoked": "Résultat marketing TOK",
+    },
+  }));
+
 const MCP_TOOLS: TokConnectMcpTool[] = [
   TOK_CONNECT_DISCOVERY_TOOL,
   TOK_CONNECT_RESTAURANT_DETAILS_TOOL,
@@ -1680,6 +1704,7 @@ const MCP_TOOLS: TokConnectMcpTool[] = [
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
     _meta: buildTokDiscoveryToolMeta({ invoking: "Préparation de votre réservation TOK…", invoked: "Votre réservation est prête à vérifier" }),
   },
+  ...TOK_MARKETING_ROLE_MCP_TOOLS,
   ...SAFE_TOK_CONNECT_MCP_TOOLS.map((tool) =>
     tool.name === "search_restaurants"
       ? {
@@ -2103,6 +2128,9 @@ function buildApplicationToolQueryResult(args: Record<string, unknown> = {}) {
     `Mode: ${mode}`,
     `Modules trouves: ${modules.map((module) => module.title).join(", ")}.`,
     "ChatGPT peut lire les capacites, simuler le parcours et ouvrir une sandbox visible. Les operations payantes ou mutantes restent bloquees jusqu'a confirmation via les flux TOK existants.",
+    ...(modules.some((module) => module.id === "studio_marketing")
+      ? ["Pour produire un vrai visuel, utiliser tok_generate_restaurant_marketing_visual avec une session OAuth restaurateur, un restaurant possede, confirmation explicite, cle d'idempotence et credits TOK disponibles. La sandbox reste sans mutation."]
+      : []),
   ].join(" ");
 
   return {
@@ -2307,7 +2335,88 @@ async function buildRestaurantDetailResult(context: TokConnectTokenContext, args
   }
 }
 
+// The existing app bridge performs the actual image/credit work and independently
+// checks a real user JWT, restaurant ownership, confirmation and idempotency.
+// Never call ai-image-enhance directly from an MCP bearer or grant service-role.
+async function executeNativeMarketingRoleTool(
+  req: Request,
+  context: TokConnectTokenContext,
+  name: string,
+  args: Record<string, unknown>,
+) {
+  if (context.authMode !== "supabase_oauth" || context.environment !== "production" || !context.userId) {
+    throw new HttpError(403, "tok_connect_marketing_restaurateur_oauth_required");
+  }
+  if (args.confirmed_by_user !== true) {
+    throw new HttpError(409, "tok_connect_human_confirmation_required");
+  }
+  const authorization = req.headers.get("authorization") || "";
+  if (!/^Bearer\s+\S+$/i.test(authorization)) throw new HttpError(401, "tok_connect_token_required");
+  const restaurantId = String(args.restaurant_id || "");
+  await assertTokConnectRestaurantGrant(context, restaurantId, "campaigns:preview", { requireMcp: true });
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")?.trim();
+  if (!supabaseUrl || !/^https:\/\/[a-z0-9.-]+\.supabase\.co\/?$/i.test(supabaseUrl)) {
+    throw new HttpError(503, "tok_connect_marketing_service_unavailable");
+  }
+  const headers = new Headers({
+    authorization,
+    accept: "application/json",
+    "content-type": "application/json",
+  });
+  const publishableKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
+  if (publishableKey) headers.set("apikey", publishableKey);
+
+  let response: Response;
+  try {
+    response = await fetch(supabaseUrl.replace(/\/$/, "") + "/functions/v1/tok-connect-app-bridge", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        mode: "role_operation",
+        operation: name,
+        args: {
+          ...args,
+          restaurant_id: restaurantId,
+          confirmed_by_user: true,
+          idempotency_key: args.idempotency_key,
+        },
+      }),
+      signal: AbortSignal.timeout(125_000),
+    });
+  } catch {
+    // The native operation may have started. Never silently generate a new key.
+    throw new HttpError(503, "tok_connect_marketing_status_indeterminate_reuse_same_key");
+  }
+
+  const raw = await response.text();
+  if (raw.length > 750_000) throw new HttpError(502, "tok_connect_marketing_response_too_large");
+  let decoded: unknown;
+  try { decoded = JSON.parse(raw); } catch { throw new HttpError(502, "tok_connect_marketing_invalid_response"); }
+  if (!decoded || typeof decoded !== "object" || Array.isArray(decoded)) {
+    throw new HttpError(502, "tok_connect_marketing_invalid_response");
+  }
+  const payload = decoded as Record<string, unknown>;
+  if (!response.ok || payload.ok !== true) {
+    const error = payload.error && typeof payload.error === "object" && !Array.isArray(payload.error)
+      ? (payload.error as Record<string, unknown>).code : payload.error;
+    const safeCode = typeof error === "string" && /^[a-z][a-z0-9_]{2,99}$/.test(error)
+      ? error : "tok_connect_marketing_operation_refused";
+    throw new HttpError(response.status >= 400 ? response.status : 422, safeCode);
+  }
+  const result = payload.data;
+  if (!result || typeof result !== "object" || Array.isArray(result)) {
+    throw new HttpError(502, "tok_connect_marketing_invalid_result");
+  }
+  return buildTokConnectMcpJsonResult({
+    ...(result as Record<string, unknown>),
+    restaurant_id: restaurantId,
+    native_operation: name,
+    publication_requires_separate_confirmation: true,
+  });
+}
+
 async function callTool(
+  req: Request,
   context: TokConnectTokenContext,
   name: string,
   args: Record<string, unknown>,
@@ -2322,6 +2431,10 @@ async function callTool(
   if (context.environment === "sandbox" && !rendersDiscoveryModule) {
     const sandboxResult = getTokConnectSandboxMcpToolResult(name, args);
     if (sandboxResult) return sandboxResult;
+  }
+
+  if (TOK_MARKETING_ROLE_TOOL_NAMES.has(name)) {
+    return await executeNativeMarketingRoleTool(req, context, name, args);
   }
 
   switch (name) {
@@ -2647,7 +2760,7 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
         };
       }
       const context = await authorizeMcp(req, tool.requiredScopes);
-      const result = await callTool(context, toolName, args);
+      const result = await callTool(req, context, toolName, args);
       return {
         payload: rpcResult(rpc.id, result),
         context,

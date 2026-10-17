@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `323804bf9140224b90e7c0d766296fbcd7ef1b03f97e35ccfab476b6a79c2f81`
+- Empreinte SHA-256 des sources indexées : `e076747d4bc163e2f2b3add6d65330d549119f38240acfab1ed01f87c7dfdaf3`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 550 |
 | modules | 1643 |
 | pages | 133 |
-| pathLiterals | 758 |
+| pathLiterals | 759 |
 | publicAssets | 582 |
 | publicEntries | 607 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 111 |
-| records | 17362 |
+| records | 17364 |
 | repositoryFiles | 3292 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1499,6 +1499,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /functions/v1/dispatch-order | 1 | [src/test/dispatch-client-fallback.test.ts:18](../../src/test/dispatch-client-fallback.test.ts#L18) |
 | /functions/v1/marketing-orchestrator | 1 | [src/test/marketing-meta-bff.test.ts:6](../../src/test/marketing-meta-bff.test.ts#L6) |
 | /functions/v1/stripe-webhook | 1 | [src/test/checkout-stripe-guards.test.ts:182](../../src/test/checkout-stripe-guards.test.ts#L182) |
+| /functions/v1/tok-connect-app-bridge | 1 | [supabase/functions/tok-connect-mcp/index.ts:2371](../../supabase/functions/tok-connect-mcp/index.ts#L2371) |
 | /functions/v1/tok-pulse-widget | 2 | [src/pages/TokPulse.tsx:57](../../src/pages/TokPulse.tsx#L57) |
 | /galerie | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
 | /gallery | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
@@ -6653,7 +6654,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | TOK Connect — prévention des commandes fantômes avant Stripe Connect | 6 | [docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md:1](../../docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md#L1) |
 | TOK Connect — échec Checkout à emporter hors horaire de service | 6 | [docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md:1](../../docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md#L1) |
 | Publication Suisse | 3 | [docs/tok-connect/PUBLICATION.md:1](../../docs/tok-connect/PUBLICATION.md#L1) |
-| TOK Connect | 18 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
+| TOK Connect | 19 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
 | TOK Connect Remote MCP | 10 | [docs/tok-connect/REMOTE_MCP.md:1](../../docs/tok-connect/REMOTE_MCP.md#L1) |
 | Recette TOK Connect dans ChatGPT | 8 | [docs/tok-connect/TESTING.md:1](../../docs/tok-connect/TESTING.md#L1) |
 | TOK Connect Full App MCP (surface historique interne) | 9 | [docs/tok-connect/full-app-mcp.md:1](../../docs/tok-connect/full-app-mcp.md#L1) |

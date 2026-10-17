@@ -228,6 +228,18 @@ Tools v1 autorises:
 - `generate_campaign_preview`
 - `build_autopilot_plan`
 
+
+### Studio Marketing dans ChatGPT
+
+Les outils tok_generate_restaurant_marketing_visual et tok_generate_restaurant_campaign_draft sont exposes par le MCP principal. Ils reutilisent le moteur TOK existant via tok-connect-app-bridge, sans API d'image parallele.
+
+- Connexion OAuth TOK d'un **proprietaire restaurateur**, avec la fonction MCP active sur son propre restaurant ; un client standard et un token partenaire sandbox ne peuvent pas generer pour un restaurant tiers.
+- Fournir restaurant_id, prompt, confirmed_by_user=true apres accord explicite et une idempotency_key stable. L'image accepte format=portrait, square ou landscape.
+- Une generation peut debiter des credits TOK selon le controle natif du Studio. En cas de timeout, conserver **la meme** cle d'idempotence et verifier le resultat avant toute autre tentative.
+- Le visuel natif est enregistre dans la galerie de son restaurant ; la publication sociale, l'impression et les depenses publicitaires restent des actions distinctes.
+- query_application_tool, open_application_sandbox et generate_campaign_preview restent des outils de lecture/simulation : ils ne doivent jamais etre presentes comme une generation effective.
+- Aucun acces admin, service-role ou bypass du flux natif de confirmation/credit n'est autorise par ce raccordement.
+
 ### Module visuel de decouverte
 
 `discover_restaurants` est l'outil a appeler des qu'une personne demande des restaurants. Il accepte la demande brute
