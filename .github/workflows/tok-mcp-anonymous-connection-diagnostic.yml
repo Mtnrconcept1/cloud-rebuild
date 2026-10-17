@@ -1,0 +1,86 @@
+name: TOK MCP anonymous connectivity diagnostic
+
+on:
+  push:
+    branches:
+      - diagnostic/tok-connect-mcp-anon-smoke-20261017
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout reviewed application source
+        uses: actions/checkout@v6
+      - name: Node 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Existing anonymous MCP smoke (no business mutations)
+        id: smoke
+        continue-on-error: true
+        run: node scripts/tok-connect-smoke.mjs
+      - name: Compare public domain with direct Supabase Edge endpoint
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const probes = [
+            ["website", "https://www.thetok.ch/", "GET"],
+            ["oauth-metadata", "https://www.thetok.ch/.well-known/oauth-protected-resource", "GET"],
+            ["mcp-get", "https://www.thetok.ch/mcp", "GET"],
+            ["mcp-init-legacy", "https://www.thetok.ch/mcp", "POST", "initialize", "2025-11-25"],
+            ["mcp-list-legacy", "https://www.thetok.ch/mcp", "POST", "tools/list", "2025-11-25"],
+            ["mcp-init-modern", "https://www.thetok.ch/mcp", "POST", "initialize", "2026-07-28"],
+            ["mcp-list-modern", "https://www.thetok.ch/mcp", "POST", "tools/list", "2026-07-28"],
+            ["edge-init", "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp", "POST", "initialize", "2025-11-25"],
+            ["edge-list", "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp", "POST", "tools/list", "2025-11-25"],
+          ];
+          let fails=0;
+          for (const [label,url,method,rpcMethod,protocol] of probes) {
+            const controller=new AbortController();
+            const timeout=setTimeout(()=>controller.abort(),13000);
+            try {
+              const response=await fetch(url,{
+                method,redirect:"manual",signal:controller.signal,
+                headers:{
+                  accept:"application/json, text/event-stream",
+                  ...(rpcMethod?{"content-type":"application/json","mcp-protocol-version":protocol}:{})
+                },
+                ...(rpcMethod?{body:JSON.stringify({
+                  jsonrpc:"2.0",id:100,method:rpcMethod,
+                  params:rpcMethod==="initialize"?{protocolVersion:protocol,capabilities:{},clientInfo:{name:"anon-probe",version:"1.0"}}:{}
+                })}:{})
+              });
+              const body=(await response.text()).slice(0,500000);
+              let j={};try{j=JSON.parse(body)}catch{}
+              const names=Array.isArray(j?.result?.tools)?j.result.tools.map(t=>t.name):[];
+              const loc=response.headers.get("location");
+              const result={
+                label,http:response.status,
+                contentType:response.headers.get("content-type")?.split(";")[0],
+                redirectPath:loc?new URL(loc,url).pathname:null,
+                protocol:j?.result?.protocolVersion||null,
+                toolCount:names.length,
+                hasMarketing:names.includes("tok_generate_restaurant_campaign_draft"),
+                hasMenuPhoto:names.includes("tok_generate_restaurant_dish_photo"),
+                rpcErrorCode:j?.error?.code||null,
+                rpcErrorMessage:String(j?.error?.message||"").slice(0,120),
+                bodyIsJson:body.trim().startsWith("{")
+              };
+              console.log(JSON.stringify(result));
+              if (response.status>=500) fails++;
+            } catch(e) {
+              console.log(JSON.stringify({label,error:e?.name||"network_error"}));
+              fails++;
+            } finally {clearTimeout(timeout)}
+          }
+          if (fails) process.exitCode=1;
+          NODE
+      - name: Record previous smoke outcome
+        if: always()
+        env:
+          SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+        run: echo "Anonymous smoke outcome: $SMOKE_OUTCOME"
