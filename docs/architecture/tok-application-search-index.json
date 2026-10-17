@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "4a1f23dbd4609d3f3123ffa54c00246e723f7d7debc49ba144a42c9ba4ae5289",
+ "sourceDigest": "cb971ea6cf663f181cff7e84c116d4b4f632717e56f7a27e876dd406ee15b2ac",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2907,
-  "documents": 209,
+  "documents": 210,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3623,
+  "exportedSymbols": 3624,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 550,
-  "modules": 1634,
+  "modules": 1636,
   "pages": 133,
   "pathLiterals": 758,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 111,
-  "records": 17310,
-  "repositoryFiles": 3278,
+  "records": 17323,
+  "repositoryFiles": 3281,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -20875,7 +20875,7 @@
      },
      {
       "path": "supabase/functions/validate-order/index.ts",
-      "line": 550
+      "line": 572
      }
     ]
    },
@@ -34034,6 +34034,7 @@
      "src/test/tok-connect-sql.test.ts",
      "src/test/tok-connect-universal-mcp.test.ts",
      "src/test/tok-intelligence-suite.test.ts",
+     "src/test/tok-mcp-pickup-slot-capacity.test.ts",
      "src/test/tok-one-management-handler.test.ts",
      "src/test/tok-one-recurring-quote.test.ts",
      "src/test/tok-one-stripe-test-mode.test.ts",
@@ -85011,6 +85012,42 @@
     ]
    },
    {
+    "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+    "title": "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK Connect — échec Checkout à emporter hors horaire de service",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Preuve de l'incident",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Correction applicative proposée",
+      "line": 22
+     },
+     {
+      "level": 2,
+      "title": "Acceptation et non-régression",
+      "line": 30
+     },
+     {
+      "level": 2,
+      "title": "Tentative précédente à traiter distinctement",
+      "line": 36
+     },
+     {
+      "level": 2,
+      "title": "Retour arrière",
+      "line": 42
+     }
+    ]
+   },
+   {
     "path": "docs/tok-connect/PUBLICATION.md",
     "title": "Publication Suisse",
     "headings": [
@@ -113129,6 +113166,15 @@
     "lineCount": 45
    },
    {
+    "path": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 91
+   },
+   {
     "path": "src/test/tok-one-management-handler.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -113962,7 +114008,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3606,
+      "line": 3618,
       "kind": "function"
      }
     ],
@@ -113974,7 +114020,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3611
+    "lineCount": 3623
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -115274,6 +115320,19 @@
      "stripe"
     ],
     "lineCount": 666
+   },
+   {
+    "path": "supabase/functions/_shared/order-pickup-scheduling.ts",
+    "exports": [
+     {
+      "name": "resolveVerifiedPickupScheduledAt",
+      "line": 10,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 50
    },
    {
     "path": "supabase/functions/_shared/order-pricing.ts",
@@ -118657,7 +118716,7 @@
     "integrations": [
      "stripe"
     ],
-    "lineCount": 617
+    "lineCount": 639
    },
    {
     "path": "supabase/functions/verify-directory-commercial-names/index.ts",
@@ -120750,6 +120809,11 @@
    },
    {
     "path": "docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -131049,6 +131113,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/tok-one-management-handler.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -131405,6 +131474,11 @@
    },
    {
     "path": "supabase/functions/_shared/order-checkout.ts",
+    "category": "edge-function-source",
+    "extension": ".ts"
+   },
+   {
+    "path": "supabase/functions/_shared/order-pickup-scheduling.ts",
     "category": "edge-function-source",
     "extension": ".ts"
    },
@@ -156327,6 +156401,19 @@
    "detailRef": "1f2d77002dbe"
   },
   {
+   "id": "code-module:57c104a23075",
+   "type": "code-module",
+   "title": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
+   "description": "Module de 91 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "20c573e78fbf"
+  },
+  {
    "id": "code-module:e51647e35b4b",
    "type": "code-module",
    "title": "src/test/tok-one-management-handler.test.ts",
@@ -156838,7 +156925,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3611 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3623 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -156852,7 +156939,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "b161beca41e0"
+   "detailRef": "8fc40c42b387"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -157448,6 +157535,19 @@
     "stripe"
    ],
    "detailRef": "fae68b9b8664"
+  },
+  {
+   "id": "code-module:f2046b850def",
+   "type": "code-module",
+   "title": "supabase/functions/_shared/order-pickup-scheduling.ts",
+   "description": "Module de 50 lignes; exports: resolveVerifiedPickupScheduledAt.",
+   "path": "supabase/functions/_shared/order-pickup-scheduling.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "resolveVerifiedPickupScheduledAt"
+   ],
+   "detailRef": "628a84a5fecd"
   },
   {
    "id": "code-module:8b958dc2ca39",
@@ -160065,7 +160165,7 @@
    "id": "code-module:dabf444b526f",
    "type": "code-module",
    "title": "supabase/functions/validate-order/index.ts",
-   "description": "Module de 617 lignes; exports: aucun export statique.",
+   "description": "Module de 639 lignes; exports: aucun export statique.",
    "path": "supabase/functions/validate-order/index.ts",
    "line": 1,
    "surface": null,
@@ -160075,7 +160175,7 @@
     "SITE_URL",
     "stripe"
    ],
-   "detailRef": "dbe835b0bbaf"
+   "detailRef": "49421b37e724"
   },
   {
    "id": "code-module:0d10b9ae90cd",
@@ -212798,6 +212898,20 @@
    "detailRef": "cc36ddd18096"
   },
   {
+   "id": "document-section:f5b9f6c20493",
+   "type": "document-section",
+   "title": "Acceptation et non-régression",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 30,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h2"
+   ],
+   "detailRef": "e38a6908ead9"
+  },
+  {
    "id": "document-section:e78d634b166e",
    "type": "document-section",
    "title": "Accessoires — `props.png`",
@@ -217094,6 +217208,20 @@
     "h2"
    ],
    "detailRef": "f63546eeb689"
+  },
+  {
+   "id": "document-section:59bd7c42cb3d",
+   "type": "document-section",
+   "title": "Correction applicative proposée",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 22,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h2"
+   ],
+   "detailRef": "dcf258f51a5f"
   },
   {
    "id": "document-section:fa806afa1747",
@@ -227106,6 +227234,20 @@
    "detailRef": "14ed5ff11453"
   },
   {
+   "id": "document-section:4575870ef38f",
+   "type": "document-section",
+   "title": "Preuve de l'incident",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h2"
+   ],
+   "detailRef": "ceeeded12228"
+  },
+  {
    "id": "document-section:3653dc2817fe",
    "type": "document-section",
    "title": "Preuves d'environnement obtenues",
@@ -229246,6 +229388,20 @@
     "h2"
    ],
    "detailRef": "173bb12a27c5"
+  },
+  {
+   "id": "document-section:69de885eca0d",
+   "type": "document-section",
+   "title": "Retour arrière",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 42,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h2"
+   ],
+   "detailRef": "4d031da342b6"
   },
   {
    "id": "document-section:3230479b4fe2",
@@ -232678,6 +232834,20 @@
    "detailRef": "b5cb62861893"
   },
   {
+   "id": "document-section:3796e90600be",
+   "type": "document-section",
+   "title": "TOK Connect — échec Checkout à emporter hors horaire de service",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h1"
+   ],
+   "detailRef": "78b225971f1b"
+  },
+  {
    "id": "document-section:6866b44da949",
    "type": "document-section",
    "title": "TOK Connect",
@@ -235350,6 +235520,20 @@
     "h3"
    ],
    "detailRef": "571ec8e6f36c"
+  },
+  {
+   "id": "document-section:2a40e7024b22",
+   "type": "document-section",
+   "title": "Tentative précédente à traiter distinctement",
+   "description": "Section de TOK Connect — échec Checkout à emporter hors horaire de service.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "h2"
+   ],
+   "detailRef": "6a82cc71380a"
   },
   {
    "id": "document-section:436403c38713",
@@ -242345,6 +242529,24 @@
     "What an agent can really do"
    ],
    "detailRef": "77d1658ee3fb"
+  },
+  {
+   "id": "document:3796e90600be",
+   "type": "document",
+   "title": "TOK Connect — échec Checkout à emporter hors horaire de service",
+   "description": "Document Markdown avec 6 section(s).",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Acceptation et non-régression",
+    "Correction applicative proposée",
+    "Preuve de l'incident",
+    "Retour arrière",
+    "TOK Connect — échec Checkout à emporter hors horaire de service",
+    "Tentative précédente à traiter distinctement"
+   ],
+   "detailRef": "2988c06ff515"
   },
   {
    "id": "document:6866b44da949",
@@ -291206,12 +291408,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:8cfee33f5a65",
+   "id": "exported-symbol:d9a96cccea94",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3606,
+   "line": 3618,
    "surface": null,
    "tags": [
     "firebase",
@@ -291221,7 +291423,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "37070fd0e2e8"
+   "detailRef": "b2b77206f959"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
@@ -295114,6 +295316,19 @@
     "supabase"
    ],
    "detailRef": "dce2186bb66a"
+  },
+  {
+   "id": "exported-symbol:2b7f46c19b33",
+   "type": "exported-symbol",
+   "title": "resolveVerifiedPickupScheduledAt",
+   "description": "Export function de supabase/functions/_shared/order-pickup-scheduling.ts.",
+   "path": "supabase/functions/_shared/order-pickup-scheduling.ts",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "3963d4e02b45"
   },
   {
    "id": "exported-symbol:87043024a296",
@@ -306677,6 +306892,20 @@
     "documentation"
    ],
    "detailRef": "46130c1a5ee2"
+  },
+  {
+   "id": "file:616a160034dd",
+   "type": "file",
+   "title": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "fb9611584b29"
   },
   {
    "id": "file:b1e2a33ff3d5",
@@ -335505,6 +335734,20 @@
    "detailRef": "de1f0c84e1a1"
   },
   {
+   "id": "file:824dab4f9fe8",
+   "type": "file",
+   "title": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-mcp-pickup-slot-capacity.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "f7c404f8c469"
+  },
+  {
    "id": "file:80950af8b6a3",
    "type": "file",
    "title": "src/test/tok-one-management-handler.test.ts",
@@ -336511,6 +336754,20 @@
     "edge-function-source"
    ],
    "detailRef": "054fa56b403f"
+  },
+  {
+   "id": "file:e74993157416",
+   "type": "file",
+   "title": "supabase/functions/_shared/order-pickup-scheduling.ts",
+   "description": "Fichier du dépôt classé edge-function-source.",
+   "path": "supabase/functions/_shared/order-pickup-scheduling.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "edge-function-source"
+   ],
+   "detailRef": "5cf12cd649de"
   },
   {
    "id": "file:543eca711a3c",
@@ -350700,7 +350957,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 739 module(s).",
+   "description": "Intégration externe détectée dans 740 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -351347,6 +351604,7 @@
     "src/test/tok-connect-sql.test.ts",
     "src/test/tok-connect-universal-mcp.test.ts",
     "src/test/tok-intelligence-suite.test.ts",
+    "src/test/tok-mcp-pickup-slot-capacity.test.ts",
     "src/test/tok-one-management-handler.test.ts",
     "src/test/tok-one-recurring-quote.test.ts",
     "src/test/tok-one-stripe-test-mode.test.ts",
@@ -351446,7 +351704,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "9e22abec5244"
+   "detailRef": "2d61ef273e7b"
   },
   {
    "id": "integration:c20910a79a78",
@@ -365917,7 +366175,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "c5d7569db21f"
+   "detailRef": "73c79eaae648"
   },
   {
    "id": "path-literal:dca61cdb37fa",
