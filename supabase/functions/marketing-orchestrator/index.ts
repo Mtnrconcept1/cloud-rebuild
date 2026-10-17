@@ -10,6 +10,10 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { authenticateMarketingRequest } from "../_shared/marketing-service-auth.ts";
 import { checkMetaMarketingConnections } from "../_shared/meta-marketing-health.ts";
 import { readMarketingUnsubscribeSecrets } from "../_shared/marketing-unsubscribe-secrets.ts";
+import {
+  TOK_RESTAURANT_ACQUISITION_CAMPAIGN,
+  renderTokRestaurantAcquisitionCampaign,
+} from "../_shared/marketing-restaurant-acquisition-email.ts";
 import { buildUnsubscribeToken } from "../_shared/marketing-unsubscribe-token.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import {
@@ -96,6 +100,7 @@ type PreparedEmail = {
   reason?: string;
   recipient?: string;
   subject?: string;
+  item_id?: string;
   html?: string;
   text?: string;
 };
@@ -204,6 +209,35 @@ async function processEmailDelivery(client: AdminClient, delivery: ClaimedDelive
   // recorded the outcome on the row.
   if (prepared.status !== "ready") {
     return { id: delivery.id, status: prepared.status, reason: prepared.reason };
+  }
+
+  // Only a calendar item carrying the trusted template marker may select the
+  // fixed TOK restaurateur creative. Other campaigns keep their existing HTML.
+  if (prepared.subject === TOK_RESTAURANT_ACQUISITION_CAMPAIGN.subject) {
+    const itemId = prepared.item_id || "";
+    if (!UUID_PATTERN.test(itemId)) throw new Error("Marketing email item identity is invalid");
+    const { data: marketingItem, error: itemError } = await client
+      .from("marketing_calendar_items")
+      .select("channel,content")
+      .eq("id", itemId)
+      .maybeSingle();
+    if (itemError) throw itemError;
+    const creative = asRecord(marketingItem?.content);
+    if (creative.template_id === TOK_RESTAURANT_ACQUISITION_CAMPAIGN.id) {
+      if (marketingItem?.channel !== "email") {
+        throw new Error("Restaurant acquisition template requires the email channel");
+      }
+      const token = await buildUnsubscribeToken(delivery.id, signingSecret);
+      if (!token) throw new Error("Marketing unsubscribe token generation failed");
+      const rendered = renderTokRestaurantAcquisitionCampaign({
+        siteUrl: "https://www.thetok.ch",
+        senderName: "TOK",
+        senderAddress: "Genève, Suisse",
+        unsubscribeUrl: `${UNSUBSCRIBE_BASE}?token=${encodeURIComponent(token)}`,
+      });
+      prepared.html = rendered.html;
+      prepared.text = rendered.text;
+    }
   }
 
   const sent = await sendViaResend(prepared, delivery.id, signingSecret);
