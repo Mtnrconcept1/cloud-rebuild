@@ -29,6 +29,8 @@ export type MarketingEmailContent = {
   callToActionUrl?: string | null;
   visualUrl?: string | null;
   preheader?: string | null;
+  /** Restrict visual assets to the supplied banner for acquisition campaigns. */
+  layout?: "standard" | "campaign";
 };
 
 export type MarketingEmailBrand = {
@@ -68,6 +70,23 @@ function paragraphs(body: string) {
     .join("");
 }
 
+function campaignParagraphs(body: string) {
+  return body
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .map((block) => {
+      const heading = block.match(/^(##|###) (.+)$/);
+      if (heading) {
+        const size = heading[1] === "##" ? "21px" : "17px";
+        const tag = heading[1] === "##" ? "h2" : "h3";
+        return `<${tag} style="margin:24px 0 12px;font-family:Helvetica,Arial,sans-serif;font-size:${size};line-height:1.35;color:${BRAND.ink}">${escapeHtml(heading[2])}</${tag}>`;
+      }
+      return `<p style="margin:0 0 16px;font-size:16px;line-height:1.65;color:${BRAND.ink}">${escapeHtml(block).replace(/\n/g, "<br />")}</p>`;
+    })
+    .join("");
+}
+
 export function renderMarketingEmail(
   content: MarketingEmailContent,
   brand: MarketingEmailBrand,
@@ -79,6 +98,13 @@ export function renderMarketingEmail(
   const ctaUrl = safeUrl(content.callToActionUrl) || site;
   const cta = (content.callToAction || "").trim();
   const unsubscribe = safeUrl(brand.unsubscribeUrl);
+  const campaign = content.layout === "campaign";
+  if (campaign && !unsubscribe) {
+    throw new Error("Campaign email requires a valid HTTPS unsubscribe URL");
+  }
+  if (campaign && (!brand.senderName.trim() || !brand.senderAddress.trim())) {
+    throw new Error("Campaign email requires sender identification");
+  }
 
   // Shown by the inbox next to the subject; without it clients pull the first
   // words of the body, which is usually the logo alt text.
@@ -97,12 +123,12 @@ export function renderMarketingEmail(
 <tr><td align="center">
   <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:${BRAND.surface};border:1px solid ${BRAND.border};border-radius:18px;overflow:hidden;">
 
-    <tr><td align="center" style="padding:28px 24px 8px;">
+    ${campaign ? "" : `    <tr><td align="center" style="padding:28px 24px 8px;">
       <a href="${ctaUrl}" style="text-decoration:none;">
         <img src="${logo}" width="96" height="96" alt="TOK"
              style="display:block;width:96px;height:auto;border:0;" />
       </a>
-    </td></tr>
+    </td></tr>`}
 
     <tr><td style="padding:8px 32px 0;">
       <h1 style="margin:0 0 18px;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.25;color:${BRAND.ink};text-align:center;">
@@ -120,7 +146,7 @@ export function renderMarketingEmail(
   }
 
     <tr><td style="padding:0 32px;font-family:Helvetica,Arial,sans-serif;">
-      ${paragraphs(content.body)}
+      ${campaign ? campaignParagraphs(content.body) : paragraphs(content.body)}
     </td></tr>
 
     ${
@@ -138,10 +164,10 @@ export function renderMarketingEmail(
       : ""
   }
 
-    <tr><td align="center" style="padding:16px 32px 0;">
+    ${campaign ? "" : `    <tr><td align="center" style="padding:16px 32px 0;">
       <img src="${chef}" width="150" height="auto" alt=""
            style="display:block;width:150px;height:auto;border:0;" />
-    </td></tr>
+    </td></tr>`}
 
     <tr><td style="padding:8px 32px 28px;font-family:Helvetica,Arial,sans-serif;">
       <hr style="border:0;border-top:1px solid ${BRAND.border};margin:0 0 16px;" />
@@ -166,7 +192,7 @@ export function renderMarketingEmail(
   const text = [
     content.headline,
     "",
-    content.body,
+    campaign ? content.body.replace(/^#{2,3} /gm, "") : content.body,
     cta ? `\n${cta} : ${ctaUrl}` : "",
     "",
     "—",
