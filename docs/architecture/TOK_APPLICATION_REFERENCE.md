@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b00bc0b17aa08ac3ac87d07f96aa56a2c3e3dee16878ba496501201426fcaf66`
+- Empreinte SHA-256 des sources indexées : `cbaa513babe3d75209ee12552cafb82fbcbd2c7d92ff6a2031eb27991fca3869`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -2091,7 +2091,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | restaurant | /zero-attente | 1 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
 | restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 1 | [supabase/functions/tok-connect-api/index.ts:819](../../supabase/functions/tok-connect-api/index.ts#L819) |
 | scope | /actualites | 3 | [src/pages/Actualites.tsx:249](../../src/pages/Actualites.tsx#L249) |
-| session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:691](../../src/pages/ChefsTable.tsx#L691) |
+| session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:692](../../src/pages/ChefsTable.tsx#L692) |
 | signup_operation_id | /auth, /auth/callback, /auth/demo | 2 | [src/pages/Auth.tsx:133](../../src/pages/Auth.tsx#L133) |
 | slug | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:172](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L172) |
 | sort | /recherche | 1 | [src/pages/Recherche.tsx:249](../../src/pages/Recherche.tsx#L249) |
