@@ -198,7 +198,45 @@ const ACTION_WINDOW_HTML = `<!doctype html>
 </style>
 </head>
 <body><main><div class="top"><div class="logo">TOK</div><div><h1>TOK Connect</h1><div class="muted">ChatGPT × TOK · console sécurisée</div></div></div><section class="card"><span class="status"><span class="dot"></span>Connecteur prêt</span><div class="grid"><div class="metric"><b id="tool">Action TOK</b><span class="muted">outil courant</span></div><div class="metric"><b>Confirmation</b><span class="muted">mutations sensibles contrôlées</span></div></div><div class="actions" id="actions"><div class="action">Recherche, disponibilités, menus, performances et parcours TOK.</div><div class="action">Réservations réelles uniquement après confirmation explicite et idempotence.</div><div class="action">Paiements, remboursements, publications et admin restent dans les flux TOK protégés.</div></div><pre id="payload" hidden></pre></section></main><script>
-function render(data){const sc=data&&typeof data==='object'?(data.structuredContent||data):{};const current=sc.current_action||sc.reservation||sc.cancellation||null;if(current){document.getElementById('tool').textContent=current.title||current.name||'Action TOK'}const p=document.getElementById('payload');if(sc&&Object.keys(sc).length){p.hidden=false;p.textContent=JSON.stringify(sc,null,2)}}
+function render(data){
+  const sc=data&&typeof data==='object'?(data.structuredContent||data):{};
+  const current=sc.current_action||sc.reservation||sc.cancellation||null;
+  if(current) document.getElementById('tool').textContent=current.title||current.name||'Action TOK';
+  if(!sc||!Object.keys(sc).length) return;
+  const result=sc.data&&typeof sc.data==='object'&&!Array.isArray(sc.data)?sc.data:sc;
+  const actions=document.getElementById('actions');
+  const summaries=[];
+  if(sc.ok===false){
+    document.getElementById('tool').textContent='Action refusée';
+    summaries.push('TOK a refusé cette action : vérifier les permissions ou les paramètres de la demande.');
+  }else if(result.run&&typeof result.run==='object'){
+    document.getElementById('tool').textContent='Studio Marketing';
+    summaries.push(result.run.status==='draft'?'Brouillon enregistré dans Campaign Studio.':'État réel : '+String(result.run.status||'inconnu'));
+    summaries.push('Aucune campagne publiée ou payée automatiquement. Une validation humaine reste nécessaire.');
+    if(result.run.plan&&typeof result.run.plan==='object'){
+      summaries.push(String(result.run.plan.title||result.run.plan.summary||'Plan de campagne disponible dans TOK.'));
+    }
+  }else if(result.gallery_image_url||result.generated_image_url){
+    document.getElementById('tool').textContent='Visuel TOK généré';
+    summaries.push('Image native enregistrée dans la galerie TOK. Publication et association au menu distinctes.');
+  }else if(result.item&&typeof result.item==='object'){
+    document.getElementById('tool').textContent='Menu TOK';
+    summaries.push('Plat mis à jour : '+String(result.item.name||result.item.id||'menu'));
+  }
+  if(summaries.length){
+    actions.replaceChildren();
+    summaries.forEach(function(summary){const node=document.createElement('div');node.className='action';node.textContent=summary;actions.appendChild(node)});
+    const url=result.gallery_image_url||result.generated_image_url||(result.item&&result.item.image_url);
+    if(typeof url==='string'&&url.startsWith('https://')){
+      const image=document.createElement('img');
+      image.src=url;image.alt='Visuel produit par TOK';image.loading='lazy';
+      image.style.cssText='width:100%;max-height:360px;object-fit:contain;border-radius:14px;margin-top:12px';
+      actions.appendChild(image);
+    }
+  }
+  const payload=document.getElementById('payload');payload.hidden=false;
+  payload.textContent=JSON.stringify(sc,null,2);
+}
 render(window.openai?.toolOutput||{});window.addEventListener('openai:set_globals',e=>render(e.detail?.globals?.toolOutput||e.detail?.toolOutput||{}));
 </script></body></html>`;
 
@@ -467,7 +505,7 @@ function cleanActionResource(id: JsonRpcRequest["id"]) {
         "openai/widgetDescription": "Console TOK Connect sécurisée pour les parcours et actions TOK dans ChatGPT.",
         "openai/widgetCSP": {
           connect_domains: [PUBLIC_ORIGIN, SUPABASE_URL],
-          resource_domains: [PUBLIC_ORIGIN],
+          resource_domains: [PUBLIC_ORIGIN, SUPABASE_URL],
         },
       },
     }],

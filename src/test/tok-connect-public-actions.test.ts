@@ -48,6 +48,12 @@ describe("public TOK actions through the actual HTTP router", () => {
       expect(tool._meta["openai/visibility"]).toBeUndefined();
     }
     for (const definition of TOK_ROLE_OPERATION_TOOLS) expect(tools.some((entry: { name: string }) => entry.name === definition.name)).toBe(true);
+    for (const name of ["tok_generate_restaurant_campaign_draft", "tok_generate_restaurant_marketing_visual", "tok_generate_restaurant_dish_photo", "tok_attach_restaurant_dish_photo"]) {
+      const tool = tools.find((entry: { name: string }) => entry.name === name);
+      expect(tool._meta.ui.visibility).toEqual(["model", "app"]);
+      expect(tool._meta["openai/outputTemplate"]).toBe("ui://tok-connect/actions-window-v1.html");
+      expect(tool.inputSchema.required).toEqual(expect.arrayContaining(["restaurant_id", "confirmed_by_user", "idempotency_key"]));
+    }
     for (const definition of TOK_CUSTOMER_OPERATION_TOOLS) expect(tools.some((entry: { name: string }) => entry.name === definition.name)).toBe(true);
     for (const name of ["tok_data", "tok_invoke_capability", "tok_invoke_rpc", "tok_commercial", "create_reservation"]) {
       expect(tools.some((entry: { name: string }) => entry.name === name)).toBe(false);

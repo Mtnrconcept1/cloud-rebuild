@@ -18,7 +18,8 @@ function harness(options: { owner?: string; roles?: string[]; reservationRestaur
     notifications: [{ id: reservation, user_id: "caller", title: "Mine" }, { id: other, user_id: "another", title: "Private" }],
     favorites: [], reviews: [], restaurant_branches: [{ id: reservation, restaurant_id: restaurant }],
     restaurant_hours: [{ id: other, branch_id: reservation, open_time: "12:00", close_time: "14:00", is_closed: false }],
-    menu_items: [{ id: reservation, restaurant_id: restaurant, price: 12, is_available: true }],
+    menu_items: [{ id: reservation, restaurant_id: restaurant, name: "Tibs", description: "Plat traditionnel", price: 12, is_available: true, image_url: null }],
+    ai_generated_assets: [{ id: other, user_id: "caller", restaurant_id: restaurant, status: "stored", asset_type: "menu_visual", asset_url: "https://example.invalid/restaurant-photo.png", metadata: { gallery_storage_bucket: "restaurant-images" } }],
     restaurant_promotions: [{ id: reservation, restaurant_id: restaurant, active: false }],
     reservation_tables: [{ id: other, branch_id: reservation, table_number: "1", capacity: 4 }], social_posts: [],
   };
@@ -39,7 +40,7 @@ function harness(options: { owner?: string; roles?: string[]; reservationRestaur
       },
     }; return query;
   }, rpc: vi.fn(() => Object.assign(Promise.resolve({ data: null, error: null }), { range: async () => ({ data: [{ restaurant_id: restaurant, plan: "pro" }], error: null }) })) };
-  const actor = { userId: "caller", userClient: client, roles: options.roles || ["restaurateur", "client"], isAdmin: false, isServiceRole: false } as unknown as RequestActor;
+  const actor = { userId: "caller", userClient: client, adminClient: client, roles: options.roles || ["restaurateur", "client"], isAdmin: false, isServiceRole: false } as unknown as RequestActor;
   const cached = new Map<string, { signature: string; result: unknown }>();
   const deps = {
     authorizeMutation: vi.fn(async () => {}),
@@ -184,6 +185,66 @@ describe("TOK explicit role operations", () => {
     const h = harness(); h.deps.authorizeMutation.mockRejectedValueOnce(new Error("COMMERCIAL_DEMO_PRODUCTION_FLOW_BLOCKED"));
     await expect(h.run("tok_create_restaurant_news_draft", { restaurant_id: restaurant, body: "Menu", post_type: "plat", ...confirmation })).rejects.toThrow("COMMERCIAL_DEMO");
     expect(h.writes).toHaveLength(0);
+  });
+  it("exposes explicit restaurant Studio and photo tools, not advertising publication", () => {
+    for (const name of ["tok_generate_restaurant_campaign_draft", "tok_generate_restaurant_marketing_visual", "tok_generate_restaurant_dish_photo", "tok_attach_restaurant_dish_photo"]) {
+      const tool = TOK_ROLE_OPERATION_TOOLS.find((entry) => entry.name === name);
+      expect(tool?.annotations.readOnlyHint).toBe(false);
+      expect(tool?.inputSchema.required).toEqual(expect.arrayContaining(["restaurant_id", "confirmed_by_user", "idempotency_key"]));
+    }
+    expect(TOK_ROLE_OPERATION_COVERAGE.find((entry) => entry.domain === "restaurant.marketing_studio")).toMatchObject({ status: "partial" });
+    expect(TOK_ROLE_OPERATION_COVERAGE.find((entry) => entry.domain === "restaurant.menu_photography")).toMatchObject({ status: "partial" });
+  });
+  it("generates native campaign drafts with zero CHF implicit advertising budget and mandatory manual approval", async () => {
+    const h = harness();
+    await h.run("tok_generate_restaurant_campaign_draft", { restaurant_id: restaurant, prompt: "Campagne pour nos plats du midi", ...confirmation });
+    expect(h.deps.invokeEdge).toHaveBeenCalledWith({
+      capability: "restaurant.ai.campaign_studio", ...confirmation,
+      payload: { action: "generate", restaurantId: restaurant, prompt: "Campagne pour nos plats du midi", idempotencyKey: confirmation.idempotency_key,
+        guardrails: { max_budget_chf: 0, max_daily_budget_chf: 0, manual_approval_required: true } },
+    });
+    const h2 = harness();
+    await h2.run("tok_generate_restaurant_campaign_draft", { restaurant_id: restaurant, prompt: "La carte du soir", max_budget_chf: 20, max_daily_budget_chf: 100, ...confirmation });
+    expect(h2.deps.invokeEdge).toHaveBeenCalledWith(expect.objectContaining({
+      payload: expect.objectContaining({ guardrails: { max_budget_chf: 20, max_daily_budget_chf: 20, manual_approval_required: true } }),
+    }));
+    expect(() => validateTokRoleOperation("tok_generate_restaurant_campaign_draft", { restaurant_id: restaurant, prompt: "La carte du soir", max_budget_chf: -1, ...confirmation })).toThrow("max_budget_chf_invalid");
+    expect(() => validateTokRoleOperation("tok_generate_restaurant_campaign_draft", { restaurant_id: restaurant, prompt: "La carte du soir", ...confirmation, confirmed_by_user: false })).toThrow("confirmation_required");
+    expect(h.writes).toHaveLength(0);
+  });
+  it("generates a single native campaign image in the owner's TOK gallery without publishing", async () => {
+    const h = harness();
+    await h.run("tok_generate_restaurant_marketing_visual", { restaurant_id: restaurant, prompt: "Affiche premium des plats du midi", format: "portrait", ...confirmation });
+    expect(h.deps.invokeEdge).toHaveBeenCalledWith({ capability: "restaurant.ai.image", ...confirmation,
+      payload: { restaurantId: restaurant, assetType: "campaign_visual", marketingAssetMode: true, prompt: "Affiche premium des plats du midi",
+        format: "portrait", variantCount: 1, generateImage: true, imageOnly: true } });
+  });
+  it("generates dish photos from the owned menu item and not an untrusted model URL", async () => {
+    const h = harness();
+    h.rows.menu_items[0].image_url = "https://example.invalid/original.png";
+    await h.run("tok_generate_restaurant_dish_photo", { restaurant_id: restaurant, menu_item_id: reservation, photo_instructions: "Fond de restaurant élégant", ...confirmation });
+    expect(h.deps.invokeEdge).toHaveBeenCalledWith({ capability: "restaurant.ai.image", ...confirmation, payload: expect.objectContaining({
+      restaurantId: restaurant, dishName: "Tibs", assetType: "menu_visual", sourceImageUrl: "https://example.invalid/original.png",
+      format: "square", variantCount: 1, generateImage: true, imageOnly: true,
+    }) });
+    const call = h.deps.invokeEdge.mock.calls[0][0] as Row;
+    expect(JSON.stringify((call.payload as Row).prompt)).toContain("Fond de restaurant élégant");
+    expect(() => validateTokRoleOperation("tok_generate_restaurant_dish_photo", { restaurant_id: restaurant, menu_item_id: reservation, sourceImageUrl: "https://other.invalid", ...confirmation })).toThrow("unknown_argument");
+  });
+  it("attaches only an owned, stored PhotoPro restaurant-gallery asset to an owned dish", async () => {
+    const h = harness();
+    const args = { restaurant_id: restaurant, menu_item_id: reservation, asset_id: other, ...confirmation };
+    await h.run("tok_attach_restaurant_dish_photo", args);
+    await h.run("tok_attach_restaurant_dish_photo", args);
+    expect(h.rows.menu_items[0].image_url).toBe("https://example.invalid/restaurant-photo.png");
+    expect(h.writes.filter((write) => write.table === "menu_items")).toHaveLength(1);
+    const denied = harness();
+    denied.rows.ai_generated_assets[0].user_id = "someone_else";
+    await expect(denied.run("tok_attach_restaurant_dish_photo", args)).rejects.toThrow("dish_photo_unverified");
+    expect(denied.writes).toHaveLength(0);
+    const owner = harness({ owner: "another", roles: ["restaurateur", "admin"] });
+    await expect(owner.run("tok_generate_restaurant_campaign_draft", { restaurant_id: restaurant, prompt: "Nouvelle campagne", ...confirmation })).rejects.toThrow("owned_restaurant_not_found");
+    expect(owner.deps.invokeEdge).not.toHaveBeenCalled();
   });
   it("uses native support delivery only for owned restaurants", async () => {
     const h = harness();

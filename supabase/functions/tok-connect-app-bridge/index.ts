@@ -369,7 +369,7 @@ async function invokeEdge(req: Request, actor: RequestActor, body: JsonRecord) {
   const response = await fetch(edgeUrl(capability, method, payload), {
     method,
     headers,
-    signal: AbortSignal.timeout(45_000),
+    signal: AbortSignal.timeout(capabilityName === "restaurant.ai.image" ? 120_000 : capabilityName === "restaurant.ai.campaign_studio" ? 90_000 : 45_000),
     ...(method === "POST" ? { body: JSON.stringify(payload) } : {}),
   });
   const text = (await response.text()).slice(0, MAX_RESPONSE_CHARS);
