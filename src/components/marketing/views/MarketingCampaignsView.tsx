@@ -229,6 +229,21 @@ export default function MarketingCampaignsView({
       setStep((value) => value + 1);
       return;
     }
+    if (isTokRestaurantEmail) {
+      // The acquisition copy is email-only; never switch it to a manual
+      // outreach channel merely because that channel ranks higher by default.
+      const estimate = await onRecommendChannels(currentAudienceFilter, ["email"]);
+      if (!estimate) return;
+      setChannelRecommendation({
+        audienceKey,
+        channel: "email",
+        eligible: estimate.byChannel.email ?? 0,
+        volumes: estimate.byChannel,
+      });
+      setWizard((current) => ({ ...current, channels: ["email"] }));
+      setStep(3);
+      return;
+    }
     if (channelRecommendation?.audienceKey === audienceKey) {
       setStep(3);
       return;
