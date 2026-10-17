@@ -11,6 +11,10 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
 import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import {
+  STRIPE_CONNECT_PLATFORM_PROFILE_REQUIRED,
+  isStripeConnectPlatformProfileRequired,
+} from "../_shared/stripe-connect-platform-profile.ts";
 
 function text(value: unknown) {
   return String(value || "").trim();
@@ -198,6 +202,16 @@ Deno.serve(async (req) => {
         stripe_account_id: accountId || null,
       },
     });
+
+    if (isStripeConnectPlatformProfileRequired(error)) {
+      // Legal/risk acknowledgement must be completed in the platform's
+      // authenticated Stripe Dashboard by an authorized person. Never bypass
+      // the Connect onboarding requirement or disclose Stripe API details.
+      return jsonResponse({
+        error: STRIPE_CONNECT_PLATFORM_PROFILE_REQUIRED,
+        code: "STRIPE_CONNECT_PLATFORM_PROFILE_REQUIRED",
+      }, 409, corsHeaders);
+    }
 
     if (error instanceof HttpError) {
       return jsonResponse({ error: error.message }, error.status, corsHeaders);

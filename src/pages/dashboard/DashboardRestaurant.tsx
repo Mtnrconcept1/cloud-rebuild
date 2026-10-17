@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  AlertTriangle,
   Banknote,
   CheckCircle2,
   CreditCard,
@@ -34,6 +35,7 @@ import { useAuth } from "@/lib/auth-context";
 import { SUPABASE_URL } from "@/lib/env";
 import { redirectToTrustedCheckoutUrl } from "@/lib/securityUrls";
 import { fetchWithFreshAccessToken } from "@/lib/session";
+import { getStripeConnectOnboardingIssue, TOK_STRIPE_CONNECT_PLATFORM_PROFILE_URL } from "@/lib/stripeConnectOnboarding";
 import {
   buildRestaurantCategorySearchTerms,
   formatRestaurantCategorySummary,
@@ -124,6 +126,7 @@ export default function DashboardRestaurant() {
   const saveInFlightRef = useRef(false);
   const createdRestaurantIdRef = useRef<string | null>(null);
   const [connectLoading, setConnectLoading] = useState(false);
+  const [connectIssue, setConnectIssue] = useState<"platform_profile_required" | null>(null);
   const [selectedCuisineIds, setSelectedCuisineIds] = useState<string[]>([]);
   const [disabledPaymentMethods, setDisabledPaymentMethods] = useState<
     string[]
@@ -403,6 +406,7 @@ export default function DashboardRestaurant() {
       return;
     }
     setConnectLoading(true);
+    setConnectIssue(null);
     try {
       const response = await fetchWithFreshAccessToken(
         `${SUPABASE_URL}/functions/v1/stripe-connect-onboard`,
@@ -417,15 +421,46 @@ export default function DashboardRestaurant() {
           }),
         },
       );
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Erreur");
+      const data = await response.json().catch(() => ({})) as Record<string, unknown>;
+      if (!response.ok) {
+        if (getStripeConnectOnboardingIssue(data) === "platform_profile_required") {
+          setConnectIssue("platform_profile_required");
+          toast({
+            title: "Configuration de la plateforme requise",
+            description: (
+              <span>
+                TOK doit d'abord compléter son profil de responsabilité Stripe Connect.
+                Un administrateur habilité peut{" "}
+                <a href={TOK_STRIPE_CONNECT_PLATFORM_PROFILE_URL} target="_blank" rel="noopener noreferrer" className="underline font-semibold">
+                  ouvrir les réglages de la plateforme
+                </a>.
+              </span>
+            ),
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error(typeof data.error === "string" ? data.error : "La connexion Stripe Connect est indisponible.");
+      }
+
+      // Stripe does not return an onboarding URL for an already verified account.
+      if (data.ready === true) {
+        void queryClient.invalidateQueries({ queryKey: ["my-restaurant"] });
+        toast({
+          title: "Compte de paiement déjà vérifié",
+          description: "Votre compte connecté est opérationnel.",
+        });
+        return;
+      }
+      if (typeof data.url !== "string") throw new Error("Le lien de connexion n’a pas pu être généré.");
       redirectToTrustedCheckoutUrl(data.url);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Connexion du compte impossible",
+        description: error instanceof Error ? error.message : "Réessayez dans quelques instants.",
         variant: "destructive",
       });
+    } finally {
       setConnectLoading(false);
     }
   };
@@ -905,6 +940,30 @@ export default function DashboardRestaurant() {
                 Connectez votre compte Stripe pour recevoir les paiements
                 directement sur votre compte bancaire.
               </p>
+              {connectIssue === "platform_profile_required" && (
+                <div role="alert" className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                    <div>
+                      <p className="font-semibold">Configuration Stripe de TOK à terminer</p>
+                      <p className="mt-1">
+                        Stripe n'autorise pas encore la création de comptes restaurateurs.
+                        L'administrateur de la plateforme TOK doit examiner et valider les responsabilités
+                        relatives aux pertes des comptes connectés. Aucun paiement n'a été lancé.
+                      </p>
+                      <a
+                        href={TOK_STRIPE_CONNECT_PLATFORM_PROFILE_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1 font-semibold underline underline-offset-2"
+                      >
+                        Accéder au profil Stripe Connect de TOK
+                        <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
               {(restaurant as any).stripe_account_id ? (
                 <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
                   <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />
