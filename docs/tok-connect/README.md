@@ -11,7 +11,7 @@ La valeur principale est double:
 - Pour les restaurants: plus de reservations directes, des partenaires controles par restaurant, des limites de convives et de volume, et une possibilite de couper l'acces.
 - Pour TOK: une base B2B monnayable avec abonnements, quotas, commissions par reservation, integrations enterprise et futurs agents IA, tout en gardant les mutations sensibles cote Edge Functions.
 
-Le point important: la v1 reste prudente. Les lectures, previews et reservations confirmees sont reelles. Les campagnes, offres, MIAMZ, Zero Attente et actions autonomes restent en preview ou validation humaine. Le flag `tok-connect-autopilot` reste desactive.
+Le point important: la v1 reste prudente. Les lectures, previews et reservations confirmees sont reelles. La generation d'un visuel Marketing Studio est aussi reelle apres accord explicite du restaurateur OAuth et verification des credits. Les publications de campagnes, offres, MIAMZ, Zero Attente et actions autonomes restent dans leurs propres flux de validation. Le flag `tok-connect-autopilot` reste desactive.
 
 ## Socle technique
 
@@ -368,6 +368,28 @@ corepack pnpm run supabase:doctor:prod
 ```
 
 La production reste pilotee par GitHub Actions. Ne pas pousser directement des secrets, ne pas modifier les variables d'environnement depuis Codex et ne pas appliquer de migration production a la main.
+
+## Studio Marketing natif depuis ChatGPT
+
+Le MCP canonique `tok-connect-mcp` expose `tok_generate_restaurant_marketing_visual` en reutilisant **le contrat existant** de `tok-connect-role-operations`. La passerelle publique `tok-connect-chatgpt` agrege automatiquement les outils canoniques. L'ancienne operation `generate_campaign_preview` reste une simulation de campagne et ne doit **jamais** etre confondue avec une image creee.
+
+Exemple d'appel MCP authentifie, uniquement **apres validation explicite par le restaurateur** :
+
+```json
+{
+  "restaurant_id": "10000000-0000-4000-8000-000000000001",
+  "prompt": "Une seule affiche verticale pour une soiree orientale. Mettre le texte et les elements de marque directement dans la generation native.",
+  "format": "portrait",
+  "confirmed_by_user": true,
+  "idempotency_key": "tok-visual:example-123"
+}
+```
+
+L'identifiant ci-dessus est **illustratif**, pas un restaurant de production. Le compte TOK doit etre connecte par Supabase OAuth (un jeton partenaire ou une sandbox ne permettent pas ce debit), avec autorisation `campaigns:preview`. Le serveur controle les droits du proprietaire, `tok_connect_mcp_enabled`, la confirmation et l'idempotence, puis transmet le JWT de l'utilisateur a `tok-connect-app-bridge`, qui appelle `ai-image-enhance` via la capacite `restaurant.ai.image`. Ce moteur effectue ses propres controles d'acces, des feature flags, des credits TOK et de la persistance dans `ai_generated_assets` et Storage.
+
+Un succes renvoie `marketing_visual.asset_id`, `image_url` (URL publique de la galerie TOK), `format`, `credit_units` reellement remontes par le moteur, `status: "stored"`, `publication_status: "not_published"` et `replayed` pour l'idempotence. Aucune diffusion Instagram/Facebook, campagne sponsorisee, ajout au menu ou modification de compte n'est realisee. Un echec, un timeout ou un retour sans fichier de galerie confirme n'est pas presente comme un visuel cree; ne pas relancer une tentative incertaine avec une nouvelle cle.
+
+Le deploiement de la fonction `tok-connect-mcp` doit suivre la validation des tests et le pipeline CI de la branche dediee. La presence d'un outil dans le code ou en PR ne prouve pas son deploiement ni une generation reelle en production.
 
 ## Gateway ChatGPT v3
 
