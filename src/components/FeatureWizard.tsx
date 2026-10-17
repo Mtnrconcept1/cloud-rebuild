@@ -4,10 +4,11 @@ import {
   ChefHat,
   ChevronLeft,
   ChevronRight,
-  Crown,
-  ShieldCheck,
+  Gem,
+  Heart,
   ShoppingCart,
   Sparkles,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +22,7 @@ const GOLDEN_TOK_BENEFITS = [
   {
     title: "Ingrédients rares",
     description: "Sélection d’exception",
-    icon: Sparkles,
+    icon: Gem,
   },
   {
     title: "Créations exclusives",
@@ -30,13 +31,13 @@ const GOLDEN_TOK_BENEFITS = [
   },
   {
     title: "Par nos chefs",
-    description: "Talents sélectionnés",
-    icon: Crown,
+    description: "Talents reconnus",
+    icon: Star,
   },
   {
     title: "Une expérience unique",
     description: "Seulement chez TOK",
-    icon: ShieldCheck,
+    icon: Heart,
   },
 ] as const;
 
