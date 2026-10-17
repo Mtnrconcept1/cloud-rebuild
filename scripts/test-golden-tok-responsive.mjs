@@ -37,7 +37,13 @@ async function main() {
           const root = document.querySelector("[data-golden-tok-chefs-table]");
           const hero = root?.querySelector(".golden-tok-heading");
           const heading = root?.querySelector("h1.golden-tok-hero-title");
+          const gold = heading?.querySelector(".golden-tok-hero-gold");
+          const description = root?.querySelector(".golden-tok-hero-description");
+          const quote = root?.querySelector(".golden-tok-hero-quote");
           const action = root?.querySelector(".golden-tok-discover");
+          const navHeader = document.querySelector("header.tok-golden-nav");
+          const navLogo = navHeader?.querySelector('a:first-child img');
+          const menuToggle = navHeader?.querySelector(".golden-tok-route-menu");
           const alert = root?.querySelector(".golden-tok-header-action button");
           const benefitCards = root?.querySelectorAll(".golden-tok-benefit");
           const live = root?.querySelector("#la-tok-dor-offres");
@@ -48,11 +54,42 @@ async function main() {
             const rect = node?.getBoundingClientRect();
             return rect ? { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height } : null;
           };
+          const overlap = (a, b, clearance = 0) => Boolean(a && b &&
+            a.left < b.right + clearance && b.left < a.right + clearance &&
+            a.top < b.bottom + clearance && b.top < a.bottom + clearance);
+          const visible = (node) => Boolean(node &&
+            getComputedStyle(node).display !== "none" &&
+            getComputedStyle(node).visibility !== "hidden");
+          const mobileControls = Array.from(navHeader?.querySelectorAll(
+            ".golden-tok-mobile-search, .golden-tok-mobile-cart, .golden-tok-route-account"
+          ) || []).filter(visible).map(box);
+          const menuBox = visible(menuToggle) ? box(menuToggle) : null;
+          const logoBox = box(navLogo);
+          const heroGoldBox = box(gold);
+          const textRange = document.createRange();
+          if (gold) textRange.selectNodeContents(gold);
           return {
             name: heading?.textContent?.replace(/\s+/g, " ").trim(),
             hero: box(hero),
             heading: box(heading),
+            gold: heroGoldBox,
+            goldGlyphRight: gold ? textRange.getBoundingClientRect().right : null,
+            description: box(description),
+            descriptionSize: description ? parseFloat(getComputedStyle(description).fontSize) : 0,
+            quote: box(quote),
+            quoteTracking: quote ? getComputedStyle(quote.querySelector("p")).letterSpacing : null,
             action: box(action),
+            navHeader: box(navHeader),
+            navLogo: logoBox,
+            navMenu: menuBox,
+            mobileControls,
+            mobileNavigationSeparated: !mobileControls.some((rect) =>
+              overlap(rect, logoBox, 3) || overlap(rect, menuBox, 3)) &&
+              mobileControls.every((rect, i) =>
+                mobileControls.slice(i + 1).every((other) => !overlap(rect, other, 2))) &&
+              !overlap(menuBox, logoBox, 3),
+            actionQuoteSeparated: !overlap(box(action), box(quote), 7),
+            actionDescriptionSeparated: !overlap(box(action), box(description), 7),
             notification: box(alert),
             benefits: root?.querySelectorAll(".golden-tok-benefit").length,
             artwork: hero ? getComputedStyle(hero).backgroundImage : "",
@@ -92,6 +129,17 @@ async function main() {
           noHorizontalOverflow: metrics.horizontalOverflow <= 4,
           headingFits: (metrics.heading?.left || 0) >= 0 && (metrics.heading?.right || Infinity) <= viewport.width + 2,
           actionFits: (metrics.action?.left || 0) >= 0 && (metrics.action?.right || Infinity) <= viewport.width + 2,
+          goldLastGlyphVisible: metrics.gold && metrics.goldGlyphRight <= metrics.gold.right - 4 &&
+            metrics.gold.right < viewport.width - 3,
+          ctaDoesNotCoverDescription: metrics.actionDescriptionSeparated,
+          ctaDoesNotCoverQuote: metrics.actionQuoteSeparated,
+          quotationHasNormalTracking: metrics.quoteTracking === "normal" ||
+            (Number.isFinite(parseFloat(metrics.quoteTracking)) && parseFloat(metrics.quoteTracking) <= 2),
+          mobileDescriptionReadable: viewport.width > 600 || metrics.descriptionSize >= 13,
+          headerLogoContained: metrics.navLogo && metrics.navHeader &&
+            metrics.navLogo.top >= metrics.navHeader.top + 2 &&
+            metrics.navLogo.bottom <= metrics.navHeader.bottom - 2,
+          mobileNavigationNotOverlapping: viewport.width > 600 || metrics.mobileNavigationSeparated,
           noBrowserError: errors.length === 0,
           readablePhotoTransition: metrics.artwork.includes("converted_tok_dor.webp"),
           unclutteredBenefitStrip: metrics.benefitsAreText,

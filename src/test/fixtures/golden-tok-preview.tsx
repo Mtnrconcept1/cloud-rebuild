@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import type { ComponentProps } from "react";
-import { Bell, ChefHat } from "lucide-react";
+import { Bell, ChefHat, Menu, Search, ShoppingCart, User } from "lucide-react";
 import { FeatureWizard } from "@/components/FeatureWizard";
 import { ChefTableDropCard } from "@/pages/ChefsTable";
 import "@/index.css";
@@ -43,18 +43,28 @@ const sampleDrop: ComponentProps<typeof ChefTableDropCard>["drop"] = {
 /** CI-only visual fixture: actual Golden TOK component, no auth or backend mocks. */
 createRoot(document.getElementById("root")!).render(
   <>
-    <header className="tok-site-header relative z-50 flex min-h-[80px] items-center justify-between gap-4 border-b border-amber-200 bg-[#fffdf8] px-4 md:px-10">
-      <a href="#la-tok-dor-offres" aria-label="Golden TOK" className="shrink-0">
-        <img src="/Image%20Codex%203%20sept.%202026,%2002_31_12.png" alt="Tok" width={92} height={76} className="h-14 w-auto object-contain md:h-16" />
-      </a>
-      <nav className="hidden items-center gap-7 text-sm text-stone-700 md:flex" aria-label="Navigation de démonstration">
-        <span>Explorer</span><span>Actualités</span><span>Anti-gaspi</span><span>Ventes flash</span><span>Tok One</span>
-      </nav>
-      <span className="text-xs font-semibold text-amber-800">GOLDEN TOK</span>
-    </header>
-    <div className="flex h-[50px] items-center bg-[#faf7ef] px-3" data-golden-tok-backbar>
-      <span className="rounded-full border border-amber-100 bg-white px-4 py-2 text-xs font-medium text-stone-800">← Retour</span>
+    {/* Minimal public navbar fixture, matching the route-scoped TOK header's DOM/classes. */}
+    <div className="tok-golden-utility hidden border-b lg:block">
+      <div className="mx-auto flex h-9 max-w-[1400px] items-center justify-end gap-4 px-4 text-xs">
+        <span>Pour les restaurateurs</span><span>TOK Connect</span><span>Aide</span>
+      </div>
     </div>
+    <header className="tok-site-header tok-golden-nav sticky top-0 z-[70] w-full border-b bg-background">
+      <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between gap-2 px-3 md:h-20 md:px-8">
+        <a href="#la-tok-dor-offres" aria-label="Golden TOK" className="flex min-h-11 min-w-11 shrink-0 items-center gap-2">
+          <img src="/Image%20Codex%203%20sept.%202026,%2002_31_12.png" alt="Tok" width={98} height={64} className="h-11 w-auto object-contain md:h-16" />
+        </a>
+        <nav className="hidden items-center gap-6 text-sm xl:flex" aria-label="Navigation de démonstration">
+          <span>Explorer</span><span>Actualités</span><span>Anti-gaspi</span><span>Ventes flash</span><span>Tok One</span><span>Plus</span>
+        </nav>
+        <div className="golden-tok-nav-actions flex shrink-0 items-center gap-1">
+          <a href="#la-tok-dor-offres" aria-label="Rechercher" className="golden-tok-mobile-search inline-flex h-10 w-10 items-center justify-center"><Search size={20} /></a>
+          <a href="#la-tok-dor-offres" aria-label="Panier" className="golden-tok-mobile-cart inline-flex h-10 w-10 items-center justify-center"><ShoppingCart size={20} /></a>
+          <button type="button" aria-label="Compte" className="golden-tok-route-account inline-flex h-11 w-11 items-center justify-center rounded-full"><User size={20} /></button>
+          <button type="button" aria-label="Ouvrir le menu" className="golden-tok-route-menu inline-flex h-11 w-11 items-center justify-center 2xl:hidden"><Menu size={23} /></button>
+        </div>
+      </div>
+    </header>
     <FeatureWizard
       title="La Tok d’Or"
       subtitle="Plats signature en édition ultra-limitée"
