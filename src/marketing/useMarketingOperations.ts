@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
+import { TOK_RESTAURANT_ACQUISITION_CAMPAIGN } from "../../supabase/functions/_shared/marketing-restaurant-acquisition-email";
 import {
   approveMarketingCampaign,
   approveMarketingItem,
@@ -240,6 +241,19 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
         throw new Error("Définition d'audience invalide : aucun ciblage n'a été exécuté.");
       }
       const audienceFilter = draft.audienceFilter;
+      const acquisitionTemplateSelected =
+        draft.emailTemplateId === TOK_RESTAURANT_ACQUISITION_CAMPAIGN.id;
+      if (draft.emailTemplateId && !acquisitionTemplateSelected) {
+        throw new Error("Modèle e-mail marketing inconnu.");
+      }
+      if (acquisitionTemplateSelected && (
+        draft.channels.length !== 1
+        || draft.channels[0] !== "email"
+        || audienceFilter.audience_kind !== "restaurant"
+        || audienceFilter.canton !== "GE"
+      )) {
+        throw new Error("Le modèle publicitaire TOK est réservé aux restaurateurs genevois par e-mail.");
+      }
       const audienceEstimate = await estimateMarketingAudience(audienceFilter, draft.channels);
       const unavailableChannels = draft.channels.filter((channel) => ![
         "available",
@@ -275,7 +289,18 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
         audience_size: isPublicMarketingChannel(channel)
           ? 0
           : audienceEstimate.byChannel[channel] ?? audienceEstimate.eligible,
-        content: { message: draft.message },
+        content: acquisitionTemplateSelected
+          ? {
+            template_id: TOK_RESTAURANT_ACQUISITION_CAMPAIGN.id,
+            subject: TOK_RESTAURANT_ACQUISITION_CAMPAIGN.subject,
+            headline: TOK_RESTAURANT_ACQUISITION_CAMPAIGN.headline,
+            body: TOK_RESTAURANT_ACQUISITION_CAMPAIGN.body,
+            message: TOK_RESTAURANT_ACQUISITION_CAMPAIGN.body,
+            call_to_action: TOK_RESTAURANT_ACQUISITION_CAMPAIGN.callToAction,
+            call_to_action_url: TOK_RESTAURANT_ACQUISITION_CAMPAIGN.callToActionUrl,
+            visual_url: TOK_RESTAURANT_ACQUISITION_CAMPAIGN.bannerUrl,
+          }
+          : { message: draft.message },
         approval_status: "pending",
       }));
       const bundle = await createMarketingCampaignBundle(draft, items, draft.clientRequestId);
