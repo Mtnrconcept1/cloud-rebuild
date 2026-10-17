@@ -555,6 +555,63 @@ html.dark body [data-golden-tok-chefs-table] .golden-tok-content article .text-m
     width: 100% !important;
   }
 }
+
+/* Final reference-fidelity pass, scoped to the Golden TOK route. */
+html body:has([data-golden-tok-chefs-table]) .golden-tok-video-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  min-height: 58px !important;
+  min-width: 164px !important;
+  border: 1px solid rgba(174, 123, 32, .62) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 252, 244, .92) !important;
+  color: #2a1d0f !important;
+  box-shadow: 0 10px 28px rgba(72, 42, 6, .12) !important;
+}
+html body:has([data-golden-tok-chefs-table]) .golden-tok-video-button:hover { background: #fff !important; color: #2a1d0f !important; }
+html body:has([data-golden-tok-chefs-table]) .golden-tok-alert-action {
+  position: absolute !important; width: 1px !important; height: 1px !important;
+  overflow: hidden !important; clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important; white-space: nowrap !important;
+}
+html body:has([data-golden-tok-chefs-table]) .golden-tok-hero-actions { align-items: center !important; gap: 18px !important; }
+
+@media (min-width: 821px) {
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-heading {
+    min-height: 676px !important; padding: 58px clamp(56px, 6.5vw, 126px) 122px !important;
+    background-image: linear-gradient(90deg, #fffdf8 0%, rgba(255,253,248,.98) 22%, rgba(255,253,248,.84) 35%, rgba(255,253,248,.34) 53%, rgba(255,253,248,0) 72%), url('/Image%20Codex%203%20sept.%202026,%2011_06_16.png') !important;
+    background-position: center, 63% center !important; background-size: cover, cover !important;
+  }
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-hero-copy { max-width: 570px !important; }
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-heading h1.golden-tok-hero-title { font-size: clamp(5.8rem, 8vw, 8.2rem) !important; line-height: .86 !important; letter-spacing: -.075em !important; }
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-heading p.golden-tok-hero-description { max-width: 470px !important; font-size: 1.06rem !important; line-height: 1.45 !important; }
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-video-button { min-width: 58px !important; width: 58px !important; padding: 0 !important; border-radius: 50% !important; font-size: 0 !important; }
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-video-button::after { content: 'Voir la vidéo' !important; position: absolute !important; transform: translateX(88px) !important; width: 110px !important; color: #4a3825 !important; font: 500 .9rem/1.2 ui-sans-serif, system-ui, sans-serif !important; white-space: nowrap !important; }
+}
+
+@media (max-width: 600px) {
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-nav-actions > * { display: none !important; }
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-nav-actions > .golden-tok-mobile-search,
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-nav-actions > .golden-tok-mobile-cart,
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-nav-actions > .golden-tok-route-account,
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-nav-actions > .golden-tok-route-menu { display: inline-flex !important; }
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-nav-actions { position: relative !important; z-index: 2 !important; gap: 4px !important; }
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-mobile-search,
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-mobile-cart { width: 40px !important; height: 46px !important; }
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-route-account { display: inline-flex !important; width: 46px !important; height: 46px !important; margin-left: 2px !important; }
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-heading {
+    height: 522px !important; padding: 42px 24px 90px !important;
+    background-image: linear-gradient(90deg, rgba(255,253,248,.98) 0%, rgba(255,253,248,.91) 32%, rgba(255,253,248,.54) 55%, rgba(29,20,10,.12) 100%), url('/Image%20Codex%203%20sept.%202026,%2011_06_16.png') !important;
+    background-position: center, 64% center !important; background-size: cover, auto 100% !important;
+  }
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-heading h1.golden-tok-hero-title { font-size: clamp(4.4rem, 18vw, 5.8rem) !important; line-height: .84 !important; }
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-heading p.golden-tok-hero-description { max-width: 285px !important; font-size: .88rem !important; line-height: 1.42 !important; }
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-video-button { min-width: 56px !important; width: 56px !important; height: 56px !important; min-height: 56px !important; padding: 0 !important; border-radius: 50% !important; font-size: 0 !important; }
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-video-button span { display: none !important; }
+  html body:has([data-golden-tok-chefs-table]) .golden-tok-hero-actions { gap: 12px !important; }
+}
 @media (max-width: 370px) {
   html body [data-golden-tok-chefs-table] .golden-tok-heading {
     min-height: 715px !important;

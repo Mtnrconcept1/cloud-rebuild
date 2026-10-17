@@ -334,7 +334,7 @@ export default function Navbar() {
             </NavigationMenu>
           ) : null}
 
-          <div className="flex shrink-0 items-center gap-0.5 min-[380px]:gap-1">
+          <div className={`flex shrink-0 items-center gap-0.5 min-[380px]:gap-1 ${isGoldenTokRoute ? "golden-tok-nav-actions" : ""}`}>
             {!showClientSurface && showSocialFeedSurface && actualitesEnabled ? (
               <Button variant="ghost" size="sm" asChild className="hidden gap-2 rounded-full lg:inline-flex">
                 <Link to="/actualites">
