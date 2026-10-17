@@ -2,14 +2,14 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "cb971ea6cf663f181cff7e84c116d4b4f632717e56f7a27e876dd406ee15b2ac",
+ "sourceDigest": "60a4247a7a730fd2c11609ff4ce18871429b660636c115e4ea21c0419ecd20db",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
   "databaseObjects": 2907,
-  "documents": 210,
+  "documents": 211,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
   "exportedSymbols": 3624,
@@ -18,15 +18,15 @@
   "integrations": 11,
   "marketingOperations": 37,
   "migrations": 550,
-  "modules": 1636,
+  "modules": 1637,
   "pages": 133,
   "pathLiterals": 758,
   "publicAssets": 581,
   "publicEntries": 606,
   "publicNavigableRoutes": 2,
   "queryParameters": 111,
-  "records": 17323,
-  "repositoryFiles": 3281,
+  "records": 17333,
+  "repositoryFiles": 3283,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -22548,7 +22548,7 @@
      },
      {
       "path": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 543
+      "line": 544
      }
     ]
    },
@@ -33297,6 +33297,7 @@
      "src/test/tok-connect-customer-operations.test.ts",
      "src/test/tok-connect-customer-result.test.ts",
      "src/test/tok-connect-delivery-commerce.test.ts",
+     "src/test/tok-connect-marketplace-preflight.test.ts",
      "src/test/tok-connect-model-commerce-widget.test.ts",
      "src/test/tok-connect-reservation-intent.test.ts",
      "src/test/tok-connect-special-offers-commerce.test.ts",
@@ -34020,6 +34021,7 @@
      "src/test/tok-connect-floorplan-operations.test.ts",
      "src/test/tok-connect-frontend.test.ts",
      "src/test/tok-connect-full-app-mcp.test.ts",
+     "src/test/tok-connect-marketplace-preflight.test.ts",
      "src/test/tok-connect-mcp-http.test.ts",
      "src/test/tok-connect-mcp-migration.test.ts",
      "src/test/tok-connect-model-commerce-widget.test.ts",
@@ -85012,6 +85014,42 @@
     ]
    },
    {
+    "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+    "title": "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Problème reproduit",
+      "line": 5
+     },
+     {
+      "level": 2,
+      "title": "Correctif technique",
+      "line": 23
+     },
+     {
+      "level": 2,
+      "title": "Déblocage opérationnel réel",
+      "line": 37
+     },
+     {
+      "level": 2,
+      "title": "Critères de recette",
+      "line": 47
+     },
+     {
+      "level": 2,
+      "title": "Retour arrière",
+      "line": 55
+     }
+    ]
+   },
+   {
     "path": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
     "title": "TOK Connect — échec Checkout à emporter hors horaire de service",
     "headings": [
@@ -112870,7 +112908,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 83
+    "lineCount": 92
    },
    {
     "path": "src/test/tok-connect-commercial-bridge.test.ts",
@@ -112942,7 +112980,7 @@
      "supabase",
      "twint"
     ],
-    "lineCount": 116
+    "lineCount": 125
    },
    {
     "path": "src/test/tok-connect-discovery.test.ts",
@@ -113000,6 +113038,16 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 79
+   },
+   {
+    "path": "src/test/tok-connect-marketplace-preflight.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "stripe",
+     "supabase"
+    ],
+    "lineCount": 50
    },
    {
     "path": "src/test/tok-connect-mcp-http.test.ts",
@@ -113113,7 +113161,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 233
+    "lineCount": 234
    },
    {
     "path": "src/test/tok-connect-sql.test.ts",
@@ -118547,7 +118595,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1007
+    "lineCount": 1021
    },
    {
     "path": "supabase/functions/tok-connect-chatgpt/index.ts",
@@ -120809,6 +120857,11 @@
    },
    {
     "path": "docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
+    "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
     "category": "documentation",
     "extension": ".md"
    },
@@ -131019,6 +131072,11 @@
    },
    {
     "path": "src/test/tok-connect-legal-content.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tok-connect-marketplace-preflight.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -155973,7 +156031,7 @@
    "id": "code-module:59f63392cb50",
    "type": "code-module",
    "title": "src/test/tok-connect-commerce-handler.test.ts",
-   "description": "Module de 83 lignes; exports: aucun export statique.",
+   "description": "Module de 92 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-commerce-handler.test.ts",
    "line": 1,
    "surface": null,
@@ -155981,7 +156039,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "986a9c6c60d9"
+   "detailRef": "75806ae1c7ce"
   },
   {
    "id": "code-module:42d6d5992482",
@@ -156071,7 +156129,7 @@
    "id": "code-module:a955c6e67517",
    "type": "code-module",
    "title": "src/test/tok-connect-delivery-commerce.test.ts",
-   "description": "Module de 116 lignes; exports: aucun export statique.",
+   "description": "Module de 125 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-delivery-commerce.test.ts",
    "line": 1,
    "surface": null,
@@ -156081,7 +156139,7 @@
     "supabase",
     "twint"
    ],
-   "detailRef": "3cad0ffb174f"
+   "detailRef": "298af96b5148"
   },
   {
    "id": "code-module:5ba8bcabdf99",
@@ -156163,6 +156221,20 @@
    "surface": null,
    "tags": [],
    "detailRef": "7c7ccebdbc62"
+  },
+  {
+   "id": "code-module:6161a354551c",
+   "type": "code-module",
+   "title": "src/test/tok-connect-marketplace-preflight.test.ts",
+   "description": "Module de 50 lignes; exports: aucun export statique.",
+   "path": "src/test/tok-connect-marketplace-preflight.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "a75c0a35847b"
   },
   {
    "id": "code-module:50497a84ed7b",
@@ -156315,7 +156387,7 @@
    "id": "code-module:8fb56bb571aa",
    "type": "code-module",
    "title": "src/test/tok-connect-special-offers-commerce.test.ts",
-   "description": "Module de 233 lignes; exports: aucun export statique.",
+   "description": "Module de 234 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-special-offers-commerce.test.ts",
    "line": 1,
    "surface": null,
@@ -156324,7 +156396,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "4b7e13eef905"
+   "detailRef": "fd4169c91d81"
   },
   {
    "id": "code-module:7d5cd1586d20",
@@ -159968,7 +160040,7 @@
    "id": "code-module:5f5eb07543f1",
    "type": "code-module",
    "title": "supabase/functions/tok-connect-app-bridge/index.ts",
-   "description": "Module de 1007 lignes; exports: aucun export statique.",
+   "description": "Module de 1021 lignes; exports: aucun export statique.",
    "path": "supabase/functions/tok-connect-app-bridge/index.ts",
    "line": 1,
    "surface": null,
@@ -159979,7 +160051,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "339b7d749ef1"
+   "detailRef": "0a925f5154e7"
   },
   {
    "id": "code-module:4266f84831a7",
@@ -217196,6 +217268,20 @@
    "detailRef": "112785eaf852"
   },
   {
+   "id": "document-section:aafbf59a93e7",
+   "type": "document-section",
+   "title": "Correctif technique",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h2"
+   ],
+   "detailRef": "cbf85125f1ef"
+  },
+  {
    "id": "document-section:e84620675bcf",
    "type": "document-section",
    "title": "Correctifs appliqués",
@@ -217460,6 +217546,20 @@
     "h2"
    ],
    "detailRef": "40b4139a88e5"
+  },
+  {
+   "id": "document-section:16547eac911f",
+   "type": "document-section",
+   "title": "Critères de recette",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 47,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h2"
+   ],
+   "detailRef": "be95bf4941a6"
   },
   {
    "id": "document-section:cd7ae87c7210",
@@ -218356,6 +218456,20 @@
     "h3"
    ],
    "detailRef": "92d853f54e34"
+  },
+  {
+   "id": "document-section:798f7c43a00e",
+   "type": "document-section",
+   "title": "Déblocage opérationnel réel",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 37,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h2"
+   ],
+   "detailRef": "345d7aab52be"
   },
   {
    "id": "document-section:2c3703b5f485",
@@ -227500,6 +227614,20 @@
    "detailRef": "bab9abba72c9"
   },
   {
+   "id": "document-section:499e8efb16c2",
+   "type": "document-section",
+   "title": "Problème reproduit",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h2"
+   ],
+   "detailRef": "561eb61c18b4"
+  },
+  {
    "id": "document-section:8b8f5c09c141",
    "type": "document-section",
    "title": "Problèmes détectés et corrigés",
@@ -229388,6 +229516,20 @@
     "h2"
    ],
    "detailRef": "173bb12a27c5"
+  },
+  {
+   "id": "document-section:a32f47df9a45",
+   "type": "document-section",
+   "title": "Retour arrière",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 55,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h2"
+   ],
+   "detailRef": "188db80f6235"
   },
   {
    "id": "document-section:69de885eca0d",
@@ -232832,6 +232974,20 @@
     "h1"
    ],
    "detailRef": "b5cb62861893"
+  },
+  {
+   "id": "document-section:0d71a5960f7b",
+   "type": "document-section",
+   "title": "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+   "description": "Section de TOK Connect — prévention des commandes fantômes avant Stripe Connect.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+    "h1"
+   ],
+   "detailRef": "ad8c25f98a60"
   },
   {
    "id": "document-section:3796e90600be",
@@ -242529,6 +242685,24 @@
     "What an agent can really do"
    ],
    "detailRef": "77d1658ee3fb"
+  },
+  {
+   "id": "document:0d71a5960f7b",
+   "type": "document",
+   "title": "TOK Connect — prévention des commandes fantômes avant Stripe Connect",
+   "description": "Document Markdown avec 6 section(s).",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Correctif technique",
+    "Critères de recette",
+    "Déblocage opérationnel réel",
+    "Problème reproduit",
+    "Retour arrière",
+    "TOK Connect — prévention des commandes fantômes avant Stripe Connect"
+   ],
+   "detailRef": "13a6ca625919"
   },
   {
    "id": "document:3796e90600be",
@@ -306894,6 +307068,20 @@
    "detailRef": "46130c1a5ee2"
   },
   {
+   "id": "file:33bcd46846c7",
+   "type": "file",
+   "title": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "fcd74608a19d"
+  },
+  {
    "id": "file:616a160034dd",
    "type": "file",
    "title": "docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md",
@@ -335482,6 +335670,20 @@
    "detailRef": "072bf5ec4c30"
   },
   {
+   "id": "file:13ae580ffc7e",
+   "type": "file",
+   "title": "src/test/tok-connect-marketplace-preflight.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tok-connect-marketplace-preflight.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "5b4f7991fd59"
+  },
+  {
    "id": "file:2afe1aeab7da",
    "type": "file",
    "title": "src/test/tok-connect-mcp-http.test.ts",
@@ -350680,7 +350882,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 264 module(s).",
+   "description": "Intégration externe détectée dans 265 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -350859,6 +351061,7 @@
     "src/test/tok-connect-customer-operations.test.ts",
     "src/test/tok-connect-customer-result.test.ts",
     "src/test/tok-connect-delivery-commerce.test.ts",
+    "src/test/tok-connect-marketplace-preflight.test.ts",
     "src/test/tok-connect-model-commerce-widget.test.ts",
     "src/test/tok-connect-reservation-intent.test.ts",
     "src/test/tok-connect-special-offers-commerce.test.ts",
@@ -350951,13 +351154,13 @@
     "supabase/functions/tok-connect-remote-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "1946a0cc69a8"
+   "detailRef": "8db7ca9227fd"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 740 module(s).",
+   "description": "Intégration externe détectée dans 741 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -351590,6 +351793,7 @@
     "src/test/tok-connect-floorplan-operations.test.ts",
     "src/test/tok-connect-frontend.test.ts",
     "src/test/tok-connect-full-app-mcp.test.ts",
+    "src/test/tok-connect-marketplace-preflight.test.ts",
     "src/test/tok-connect-mcp-http.test.ts",
     "src/test/tok-connect-mcp-migration.test.ts",
     "src/test/tok-connect-model-commerce-widget.test.ts",
@@ -351704,7 +351908,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "2d61ef273e7b"
+   "detailRef": "f2b2e6cf0c79"
   },
   {
    "id": "integration:c20910a79a78",
@@ -367231,7 +367435,7 @@
     "src/test/marketing-agent-bff.test.ts",
     "supabase/functions/tok-connect-app-bridge/index.ts"
    ],
-   "detailRef": "84343f380036"
+   "detailRef": "575589210385"
   },
   {
    "id": "path-literal:4d3338389c80",

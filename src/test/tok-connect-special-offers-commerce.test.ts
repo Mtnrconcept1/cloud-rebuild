@@ -48,6 +48,7 @@ function harness(options: { kind?: "antigaspi" | "flash"; now?: string; date?: s
     requireUserRole: (actor: { roles: string[] }, roles: string[]) => { if (!roles.some((role) => actor.roles.includes(role))) throw new HttpError(403, "forbidden"); },
     sha256Base64Url: async (value: string) => createHash("sha256").update(value).digest("hex"), isClientCheckoutRestaurantEligible: (row: unknown) => Boolean(row),
     getEffectiveFeatureFlagSet: async () => flags, buildVerifiedOrderPricing: pricing,
+    resolveMarketplaceRouting: async () => ({ enabled: true, mode: "stripe_connect_destination" }),
   };
   const invoke = new Function(...Object.keys(deps), bridgeSource + ";return invokeCustomerCommerce;")(...Object.values(deps));
   const input = { action: "checkout", restaurant_id: restaurant, journey: "takeaway", date, time: "19:30", items: [{ menu_item_id: kind + "-" + offerId, quantity: 2 }], expected_total_cents: 1600, payment_attempt_id: attempt, idempotency_key: "tok-cart:" + attempt, confirmed_by_user: true };

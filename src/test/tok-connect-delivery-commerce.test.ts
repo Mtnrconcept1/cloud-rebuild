@@ -13,7 +13,7 @@ const restaurant = "12f4babe-9438-4fda-8892-20c26ea7f7bb", item = "d6e50f04-5777
 const address = "Rue de Lyon 55, 1203 Genève";
 const input = { mode: "customer_commerce", action: "checkout", restaurant_id: restaurant, journey: "delivery", delivery_address: address, items: [{ menu_item_id: item, quantity: 1 }], date: "2026-10-20", time: "19:00", confirmed_by_user: true, expected_total_cents: 2900, payment_attempt_id: attempt, idempotency_key: "tok-cart:" + attempt };
 type Row = Record<string, unknown>;
-function harness(options: { flagDisabled?: boolean; restaurantDisabled?: boolean; stockUnavailable?: boolean; timeout?: boolean; wrongPaymentOwner?: boolean; geocoderUnavailable?: boolean; geocoderNoCoordinates?: boolean } = {}) {
+function harness(options: { flagDisabled?: boolean; restaurantDisabled?: boolean; stockUnavailable?: boolean; timeout?: boolean; wrongPaymentOwner?: boolean; geocoderUnavailable?: boolean; geocoderNoCoordinates?: boolean; routingBlocked?: boolean } = {}) {
   vi.useFakeTimers(); vi.setSystemTime(new Date("2026-10-16T12:00:00Z"));
   const records = new Map<string, Row>(); const writes: string[] = [];
   const restaurantRow = { id: restaurant, name: "Gazelle", is_active: true, status: "active", is_demo: false, tok_connect_mcp_enabled: true, delivery_available: !options.restaurantDisabled, delivery_fee: 5, supports_pickup: true };
@@ -44,6 +44,7 @@ function harness(options: { flagDisabled?: boolean; restaurantDisabled?: boolean
   });
   const geocodeFetch = vi.fn(async () => options.geocoderUnavailable ? Response.json({ error: "unavailable" }, { status: 503 }) : Response.json({ features: [{ type: "Feature", properties: { countrycode: "CH", street: "Rue de Lyon", housenumber: "55", postcode: "1203", city: "Genève" }, geometry: { type: "Point", coordinates: options.geocoderNoCoordinates ? null : [6.1324, 46.2097] } }] }));
   const deps = { ...contract, HttpError, fetch, Deno: { env: { get: () => "https://tok.test" }, serve: () => {} }, requireUserRole: (actor: { roles: string[] }, allowed: string[]) => { if (!actor.roles.some((role) => allowed.includes(role))) throw new HttpError(403, "forbidden"); }, sha256Base64Url: async (value: string) => createHash("sha256").update(value).digest("hex"), isClientCheckoutRestaurantEligible: (row: unknown) => Boolean(row), buildVerifiedOrderPricing: nativePricing,
+    resolveMarketplaceRouting: async () => { if(options.routingBlocked) throw new HttpError(503, "MARKETPLACE_CONNECT_ROUTING_NOT_READY"); return { enabled: true, mode: "stripe_connect_destination" }; },
     resolveTokDeliveryAddress: (raw: string, config: Parameters<typeof resolveTokDeliveryAddress>[1]) => resolveTokDeliveryAddress(raw, { ...config, fetchImpl: geocodeFetch, useCache: false }), createRateLimiter: () => ({ consume: async () => {} }),
   };
   const invoke = new Function(...Object.keys(deps), bridgeSource + ";return invokeCustomerCommerce;")(...Object.values(deps));
@@ -54,6 +55,14 @@ function harness(options: { flagDisabled?: boolean; restaurantDisabled?: boolean
 afterEach(() => vi.useRealTimers());
 
 describe("TOK delivery commerce through native pricing and checkout", () => {
+  it("does not create a delivery order or Stripe session while Connect payouts are unavailable", async () => {
+    const h = harness({ routingBlocked: true });
+    const response = await h.run();
+    expect(response).toMatchObject({ statusCode: 503, payload: { ok: false, retry_safe: true } });
+    expect(h.writes).toEqual([]);
+    expect(h.fetch.mock.calls.every(([url, init]) => url.endsWith("validate-order") && JSON.parse(String(init.body)).preview_only === true)).toBe(true);
+    expect((await h.run()).payload).toMatchObject({ replayed: true, retry_safe: true });
+  });
   it("quotes the native restaurant delivery fee and exact address without making an order or payment", async () => {
     const h = harness(); const result = await h.run({ ...input, action: "quote" });
     expect(result.payload.quote).toMatchObject({ journey: "delivery", delivery_address: address, delivery_fee_cents: 500, subtotal_cents: 2400, total_cents: 2900, supported_countries: ["CH"], delivery_location: { latitude: 46.2097, longitude: 6.1324, city: "Genève", provider: "photon" } });

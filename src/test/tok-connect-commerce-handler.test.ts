@@ -13,7 +13,7 @@ const restaurant="12f4babe-9438-4fda-8892-20c26ea7f7bb";
 const attempt="d9f6ad38-4ed7-42eb-8293-8ef38f4e6cdd";
 const item="d6e50f04-5777-4d5a-906d-c77af199dd1e";
 const input={mode:"customer_commerce",action:"checkout",restaurant_id:restaurant,journey:"takeaway",items:[{menu_item_id:item,quantity:1}],date:"2026-10-20",time:"19:00",confirmed_by_user:true,expected_total_cents:2400,payment_attempt_id:attempt,idempotency_key:"tok-cart:"+attempt};
-function harness(options:{disabled?:boolean;timeout?:boolean;state?:string}={}){
+function harness(options:{disabled?:boolean;timeout?:boolean;state?:string;routingBlocked?:boolean}={}){
  vi.useFakeTimers();vi.setSystemTime(new Date("2026-10-16T12:00:00Z"));
  const records=new Map<string,Record<string,unknown>>();const writes:string[]=[];
  const db={from:(table:string)=>{
@@ -37,6 +37,7 @@ function harness(options:{disabled?:boolean;timeout?:boolean;state?:string}={}){
   requireUserRole:(actor:{roles:string[]},roles:string[])=>{if(!actor.roles.some(r=>roles.includes(r)))throw new HttpError(403,"forbidden")},
   sha256Base64Url:async(s:string)=>createHash("sha256").update(s).digest("hex"),
   isClientCheckoutRestaurantEligible:(r:unknown)=>Boolean(r),
+  resolveMarketplaceRouting:async()=>{if(options.routingBlocked)throw new HttpError(503,"MARKETPLACE_CONNECT_ROUTING_NOT_READY");return {enabled:true,mode:"stripe_connect_destination"}},
   buildVerifiedOrderPricing:async()=>({total:24,subtotal:24,discountAmount:0,validatedItems:[{menuItemId:item,name:"Risotto",unitPrice:24,quantity:1}]}),
  };
  const invoke=new Function(...Object.keys(deps),compiled+";return invokeCustomerCommerce;")(...Object.values(deps));
@@ -46,6 +47,14 @@ function harness(options:{disabled?:boolean;timeout?:boolean;state?:string}={}){
 }
 afterEach(()=>vi.useRealTimers());
 describe("TOK customer commerce server orchestration",()=>{
+ it("rejects an unavailable Stripe Connect route before creating any provisional order, returning a safe retry status",async()=>{
+  const h=harness({routingBlocked:true});const result=await h.call();
+  expect(result).toMatchObject({statusCode:503,payload:{ok:false,retry_safe:true}});
+  expect(result.payload.error).toMatchObject({code:"MARKETPLACE_CONNECT_ROUTING_NOT_READY"});
+  expect(h.writes).toEqual([]);
+  expect((await h.call()).payload).toMatchObject({ok:false,replayed:true,retry_safe:true});
+  expect(h.writes).toEqual([]);
+ });
  it("replays a successful checkout without creating a second order or Stripe session",async()=>{
   const h=harness();expect((await h.call()).payload.ok).toBe(true);
   expect((await h.call()).payload.replayed).toBe(true);
