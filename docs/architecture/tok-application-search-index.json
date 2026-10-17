@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b0167e09946ba15ce468284fb04f341fb7661872cbee7a31f3a2e0d846cc0fba",
+ "sourceDigest": "fded5927a21e58032e2ba318b676faa59b56b4a0abaceca1f9d821df486dd969",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -113816,7 +113816,7 @@
      },
      {
       "name": "lookupErrorCodeSites",
-      "line": 3542,
+      "line": 3578,
       "kind": "function"
      }
     ],
@@ -113828,7 +113828,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3547
+    "lineCount": 3583
    },
    {
     "path": "supabase/functions/_shared/error-diagnostics.ts",
@@ -156510,7 +156510,7 @@
    "id": "code-module:4908a5b9619a",
    "type": "code-module",
    "title": "supabase/functions/_shared/error-code-map.ts",
-   "description": "Module de 3547 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
+   "description": "Module de 3583 lignes; exports: ErrorCodeSite, ERROR_CODE_SITES, lookupErrorCodeSites.",
    "path": "supabase/functions/_shared/error-code-map.ts",
    "line": 1,
    "surface": null,
@@ -156524,7 +156524,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "4570581f3a1e"
+   "detailRef": "ed80794436cf"
   },
   {
    "id": "code-module:f416f9c44895",
@@ -290586,12 +290586,12 @@
    "detailRef": "e8d58f71acfd"
   },
   {
-   "id": "exported-symbol:d862c42f4196",
+   "id": "exported-symbol:af0ae6e192c7",
    "type": "exported-symbol",
    "title": "lookupErrorCodeSites",
    "description": "Export function de supabase/functions/_shared/error-code-map.ts.",
    "path": "supabase/functions/_shared/error-code-map.ts",
-   "line": 3542,
+   "line": 3578,
    "surface": null,
    "tags": [
     "firebase",
@@ -290601,7 +290601,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "b0187c429492"
+   "detailRef": "dc843dea9cef"
   },
   {
    "id": "exported-symbol:434348d9d6b2",
