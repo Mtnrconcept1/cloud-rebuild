@@ -27,22 +27,23 @@ export type TokPaymentStatusOutcome = {
 
 export function resolveTokPaymentStatus(input: TokPaymentStatusInput): TokPaymentStatusOutcome {
   const finalized = input.persistedState === "finalized";
-  const indeterminate = input.providerLookupIndeterminate && !finalized;
+  const persistedTerminal = ["finalized", "cancelled", "failed", "expired"].includes(input.persistedState);
+  const indeterminate = input.providerLookupIndeterminate && !persistedTerminal;
   const paymentReceived = finalized || (!input.providerLookupIndeterminate && (
     input.stripePaymentStatus === "paid" || input.observedState === "paid"
   ));
-  const state = finalized
-    ? "finalized"
+  const state = persistedTerminal
+    ? input.persistedState
     : indeterminate
       ? "indeterminate"
       : input.observedState;
+  const terminal = ["finalized", "cancelled", "failed", "expired"].includes(state);
 
-  // A received or uncertain payment is never safe to start a second checkout.
-  // retryable here means that rechecking the same operation may be useful.
-  const retryable = !indeterminate && !paymentReceived
-    && !["finalized", "cancelled", "failed"].includes(state);
+  // A received, terminal or uncertain payment is never safe to start a second checkout.
+  // retryable only describes rechecking an existing, still-open operation.
+  const retryable = !indeterminate && !paymentReceived && !terminal;
 
-  // Do not offer an already-paid or ambiguous Checkout Session for reopening.
-  const checkoutUrl = paymentReceived || indeterminate ? null : input.checkoutUrl;
+  // A stale Stripe response must never reopen a cancelled/failed/expired attempt.
+  const checkoutUrl = paymentReceived || indeterminate || terminal ? null : input.checkoutUrl;
   return { state, paymentReceived, finalized, indeterminate, retryable, checkoutUrl };
 }
