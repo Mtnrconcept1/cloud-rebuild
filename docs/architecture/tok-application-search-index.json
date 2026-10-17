@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "17aa32ffea9a5839ff128d9ec84b53b9aca05374d767359001c1e7a41eb5fbac",
+ "sourceDigest": "b1d784a2d6c255e116790ad08bc08c7a059ed84eaa7e26f298a5a93c4233516e",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -14279,11 +14279,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 125
+      "line": 126
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 130
+      "line": 131
      },
      {
       "path": "src/components/commercial/CommercialWorkspaceChrome.tsx",
@@ -15086,7 +15086,7 @@
     "sources": [
      {
       "path": "src/components/FeatureWizard.tsx",
-      "line": 18
+      "line": 19
      },
      {
       "path": "src/lib/tokLogo.ts",
@@ -15255,7 +15255,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 610
+      "line": 625
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -15410,19 +15410,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 266
+      "line": 267
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 339
+      "line": 340
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 431
+      "line": 446
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 504
+      "line": 519
      },
      {
       "path": "src/data/userGuideFeatureDetails.ts",
@@ -17050,7 +17050,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 223
+      "line": 224
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -17128,11 +17128,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 274
+      "line": 275
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 493
+      "line": 508
      },
      {
       "path": "src/components/PromoCarousel.tsx",
@@ -17480,7 +17480,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 447
+      "line": 462
      },
      {
       "path": "src/components/ProtectedRoute.tsx",
@@ -18154,7 +18154,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 616
+      "line": 631
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -18307,6 +18307,10 @@
      {
       "path": "src/components/Navbar.tsx",
       "line": 93
+     },
+     {
+      "path": "src/components/Navbar.tsx",
+      "line": 123
      },
      {
       "path": "src/components/PromoCarousel.tsx",
@@ -18689,19 +18693,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 407
+      "line": 422
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 409
+      "line": 424
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 582
+      "line": 597
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 585
+      "line": 600
      },
      {
       "path": "src/components/commercial/CommercialDemoActorOverview.tsx",
@@ -18858,7 +18862,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 127
+      "line": 128
      },
      {
       "path": "src/components/admin/AdminMobileNavigation.tsx",
@@ -19584,7 +19588,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 613
+      "line": 628
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -19653,7 +19657,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 622
+      "line": 637
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -20052,11 +20056,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 436
+      "line": 451
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 576
+      "line": 591
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -22716,7 +22720,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 221
+      "line": 222
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -26378,11 +26382,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 402
+      "line": 417
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 570
+      "line": 585
      },
      {
       "path": "src/components/commercial/CommercialDemoBrowserGrid.tsx",
@@ -26615,19 +26619,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 423
+      "line": 438
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 425
+      "line": 440
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 596
+      "line": 611
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 599
+      "line": 614
      },
      {
       "path": "src/components/commercial/CommercialDemoActorOverview.tsx",
@@ -26962,11 +26966,15 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 353
+      "line": 360
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 517
+      "line": 368
+     },
+     {
+      "path": "src/components/Navbar.tsx",
+      "line": 532
      },
      {
       "path": "src/components/OrderConflictDialog.tsx",
@@ -27222,7 +27230,7 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 619
+      "line": 634
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -27614,11 +27622,15 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 259
+      "line": 260
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 487
+      "line": 354
+     },
+     {
+      "path": "src/components/Navbar.tsx",
+      "line": 502
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -27922,19 +27934,19 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 415
+      "line": 430
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 417
+      "line": 432
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 589
+      "line": 604
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 592
+      "line": 607
      },
      {
       "path": "src/components/ReservationDialog.tsx",
@@ -29205,15 +29217,15 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 207
+      "line": 208
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 369
+      "line": 384
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 525
+      "line": 540
      },
      {
       "path": "src/components/home/FooterSection.tsx",
@@ -29751,11 +29763,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 214
+      "line": 215
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 530
+      "line": 545
      },
      {
       "path": "src/data/userGuideContent.ts",
@@ -29929,11 +29941,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 290
+      "line": 291
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 510
+      "line": 525
      },
      {
       "path": "src/components/home/FeaturesSection.tsx",
@@ -30692,11 +30704,11 @@
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 282
+      "line": 283
      },
      {
       "path": "src/components/Navbar.tsx",
-      "line": 498
+      "line": 513
      },
      {
       "path": "src/components/home/HeroSection.tsx",
@@ -87613,38 +87625,38 @@
     "exports": [
      {
       "name": "WizardStep",
-      "line": 15,
-      "kind": "interface"
-     },
-     {
-      "name": "FeatureWizardProps",
       "line": 16,
       "kind": "interface"
      },
      {
+      "name": "FeatureWizardProps",
+      "line": 17,
+      "kind": "interface"
+     },
+     {
       "name": "FeatureWizard",
-      "line": 666,
+      "line": 667,
       "kind": "function"
      },
      {
       "name": "WizardBackButton",
-      "line": 754,
+      "line": 755,
       "kind": "function"
      },
      {
       "name": "WizardNextButton",
-      "line": 758,
+      "line": 759,
       "kind": "function"
      },
      {
       "name": "WizardCartSummary",
-      "line": 762,
+      "line": 763,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 773
+    "lineCount": 774
    },
    {
     "path": "src/components/FormulaDetector.tsx",
@@ -87746,7 +87758,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 636
+    "lineCount": 651
    },
    {
     "path": "src/components/NearbyRestaurantsMap.tsx",
@@ -136337,7 +136349,7 @@
    "id": "code-module:85f5000ebdde",
    "type": "code-module",
    "title": "src/components/FeatureWizard.tsx",
-   "description": "Module de 773 lignes; exports: WizardStep, FeatureWizardProps, FeatureWizard, WizardBackButton, WizardNextButton, WizardCartSummary.",
+   "description": "Module de 774 lignes; exports: WizardStep, FeatureWizardProps, FeatureWizard, WizardBackButton, WizardNextButton, WizardCartSummary.",
    "path": "src/components/FeatureWizard.tsx",
    "line": 1,
    "surface": null,
@@ -136349,7 +136361,7 @@
     "WizardNextButton",
     "WizardStep"
    ],
-   "detailRef": "af7747de3d7a"
+   "detailRef": "dae005d07281"
   },
   {
    "id": "code-module:76fe9c5d8c58",
@@ -136437,14 +136449,14 @@
    "id": "code-module:d8013874702d",
    "type": "code-module",
    "title": "src/components/Navbar.tsx",
-   "description": "Module de 636 lignes; exports: default.",
+   "description": "Module de 651 lignes; exports: default.",
    "path": "src/components/Navbar.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "fff235e34e9c"
+   "detailRef": "b2bcdfa1e362"
   },
   {
    "id": "code-module:bcb7d2dbc4fa",
@@ -255302,30 +255314,30 @@
    "detailRef": "443046d7c4d9"
   },
   {
-   "id": "exported-symbol:bca5d9d8f70c",
+   "id": "exported-symbol:b8318c45ad7e",
    "type": "exported-symbol",
    "title": "FeatureWizard",
    "description": "Export function de src/components/FeatureWizard.tsx.",
    "path": "src/components/FeatureWizard.tsx",
-   "line": 666,
+   "line": 667,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "a37d80642598"
+   "detailRef": "d91806f0d674"
   },
   {
-   "id": "exported-symbol:03c2bf562a01",
+   "id": "exported-symbol:14ecaf31c0b0",
    "type": "exported-symbol",
    "title": "FeatureWizardProps",
    "description": "Export interface de src/components/FeatureWizard.tsx.",
    "path": "src/components/FeatureWizard.tsx",
-   "line": 16,
+   "line": 17,
    "surface": null,
    "tags": [
     "interface"
    ],
-   "detailRef": "4a871009f169"
+   "detailRef": "1c37fd0c352a"
   },
   {
    "id": "exported-symbol:0d9332643151",
@@ -269066,56 +269078,56 @@
    "detailRef": "46ad9db778a7"
   },
   {
-   "id": "exported-symbol:0a5730fef095",
+   "id": "exported-symbol:b6ee1d743dba",
    "type": "exported-symbol",
    "title": "WizardBackButton",
    "description": "Export function de src/components/FeatureWizard.tsx.",
    "path": "src/components/FeatureWizard.tsx",
-   "line": 754,
+   "line": 755,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "851a2cab193c"
+   "detailRef": "05166f135f0f"
   },
   {
-   "id": "exported-symbol:d2f884b0c7b0",
+   "id": "exported-symbol:9515fea153ac",
    "type": "exported-symbol",
    "title": "WizardCartSummary",
    "description": "Export function de src/components/FeatureWizard.tsx.",
    "path": "src/components/FeatureWizard.tsx",
-   "line": 762,
+   "line": 763,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "f81b0f938d20"
+   "detailRef": "91db75fa5410"
   },
   {
-   "id": "exported-symbol:36e771c3c62b",
+   "id": "exported-symbol:6984ae561c61",
    "type": "exported-symbol",
    "title": "WizardNextButton",
    "description": "Export function de src/components/FeatureWizard.tsx.",
    "path": "src/components/FeatureWizard.tsx",
-   "line": 758,
+   "line": 759,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "4986817d60e0"
+   "detailRef": "a1d804af46bc"
   },
   {
-   "id": "exported-symbol:94d40adf05bc",
+   "id": "exported-symbol:312a08117dbd",
    "type": "exported-symbol",
    "title": "WizardStep",
    "description": "Export interface de src/components/FeatureWizard.tsx.",
    "path": "src/components/FeatureWizard.tsx",
-   "line": 15,
+   "line": 16,
    "surface": null,
    "tags": [
     "interface"
    ],
-   "detailRef": "7c37ad5ab2a9"
+   "detailRef": "7748f4c94ea7"
   },
   {
    "id": "exported-symbol:adf44084520b",
@@ -359559,7 +359571,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "e23e11a1ac63"
+   "detailRef": "cc94a4e5e197"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -359627,12 +359639,12 @@
    "detailRef": "26f196955bb6"
   },
   {
-   "id": "path-literal:1d9f0654171b",
+   "id": "path-literal:47407763a8df",
    "type": "path-literal",
    "title": "/Image%20Codex%203%20sept.%202026,%2002_31_12.png",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/components/FeatureWizard.tsx",
-   "line": 18,
+   "line": 19,
    "surface": null,
    "tags": [
     "src/components/FeatureWizard.tsx",
@@ -359640,7 +359652,7 @@
     "src/test/fixtures/golden-tok-preview.tsx",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "8e8f1f1494c6"
+   "detailRef": "f0b2ac4495f4"
   },
   {
    "id": "path-literal:63609ef8a554",
@@ -359812,7 +359824,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "536b9ec6cb64"
+   "detailRef": "f332699e027a"
   },
   {
    "id": "path-literal:b93cc2bbc5bc",
@@ -359949,7 +359961,7 @@
     "src/test/role-route-wiring.test.ts",
     "src/test/seo-crawl-hardening.test.ts"
    ],
-   "detailRef": "35c1ba559950"
+   "detailRef": "4854f11bf56e"
   },
   {
    "id": "path-literal:11ea0938a9bb",
@@ -360773,7 +360785,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "8c3e787395c2"
+   "detailRef": "39ea22b811dc"
   },
   {
    "id": "path-literal:28ac392eb8ee",
@@ -360817,7 +360829,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "4b4ceb0136c5"
+   "detailRef": "895baa745d6e"
   },
   {
    "id": "path-literal:b8366dc7f0ad",
@@ -361276,7 +361288,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "52d5305b8ec0"
+   "detailRef": "a8e1eca26966"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -361461,7 +361473,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "c477cda2e354"
+   "detailRef": "ee7eddfa6314"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -361535,7 +361547,7 @@
    "id": "path-literal:b4432ae3d91d",
    "type": "path-literal",
    "title": "/chefs-table",
-   "description": "Chemin référencé dans 25 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 26 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1038,
    "surface": null,
@@ -361564,7 +361576,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "6797d14b2089"
+   "detailRef": "864fac18ca62"
   },
   {
    "id": "path-literal:189dd2480ec5",
@@ -361782,7 +361794,7 @@
     "src/test/tok-connect-oauth-routing.test.ts",
     "supabase/functions/courier-portal/index.ts"
    ],
-   "detailRef": "5ef4dedcf874"
+   "detailRef": "2ff09bfa0479"
   },
   {
    "id": "path-literal:7997d6c00f84",
@@ -362081,7 +362093,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "e580ed32b4f9"
+   "detailRef": "97abec118f55"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -362180,7 +362192,7 @@
     "supabase/functions/discover-thefork-official-sites/index.ts",
     "supabase/functions/verify-directory-commercial-names/index.ts"
    ],
-   "detailRef": "a051903d49c7"
+   "detailRef": "9fbba4cfa7b5"
   },
   {
    "id": "path-literal:f89974639b3c",
@@ -362207,7 +362219,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "0ebe3767d485"
+   "detailRef": "d8af6e083516"
   },
   {
    "id": "path-literal:61d8f5f4f3f0",
@@ -362315,7 +362327,7 @@
     "src/lib/featureCatalog.ts",
     "src/pages/courier/CourierHome.tsx"
    ],
-   "detailRef": "0d311bb23429"
+   "detailRef": "26ca95357cad"
   },
   {
    "id": "path-literal:a7bb9de03d1b",
@@ -363836,7 +363848,7 @@
     "src/pages/Aide.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "77a3747bd1a4"
+   "detailRef": "6c91108fa042"
   },
   {
    "id": "path-literal:2d96b55a8fd1",
@@ -367554,7 +367566,7 @@
     "src/test/role-access.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "e09a79e79845"
+   "detailRef": "8c4cef6ce10f"
   },
   {
    "id": "path-literal:920a4e2a4f51",
@@ -367661,7 +367673,7 @@
     "src/test/route-wiring.test.ts",
     "supabase/functions/stripe-webhook/index.ts"
    ],
-   "detailRef": "d40378580567"
+   "detailRef": "cbf9e885f94b"
   },
   {
    "id": "path-literal:dc6c86ebcdd4",
@@ -367819,7 +367831,7 @@
    "id": "path-literal:f15ac1b71119",
    "type": "path-literal",
    "title": "/panier",
-   "description": "Chemin référencé dans 44 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 45 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/launch-10k-load-check.mjs",
    "line": 25,
    "surface": null,
@@ -367860,7 +367872,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "17e4e82b77a5"
+   "detailRef": "ab0b0a614786"
   },
   {
    "id": "path-literal:b9bd524c18de",
@@ -367945,7 +367957,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "1ca121bfea4d"
+   "detailRef": "903d8217f2fb"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -368171,7 +368183,7 @@
    "id": "path-literal:f7a8242103a1",
    "type": "path-literal",
    "title": "/recherche",
-   "description": "Chemin référencé dans 71 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 72 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/seo-trust-runtime.js",
    "line": 138,
    "surface": null,
@@ -368221,7 +368233,7 @@
     "src/test/seo-crawl-hardening.test.ts",
     "src/test/tok-logo-calendar.test.ts"
    ],
-   "detailRef": "bab79b3ca7b5"
+   "detailRef": "58312084efc0"
   },
   {
    "id": "path-literal:49d0b4698b16",
@@ -368344,7 +368356,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "0f21292d02cd"
+   "detailRef": "ca88a1ac6260"
   },
   {
    "id": "path-literal:0af02260597a",
@@ -369555,7 +369567,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/seo-growth.test.ts"
    ],
-   "detailRef": "c43c6f47bc33"
+   "detailRef": "570416318f41"
   },
   {
    "id": "path-literal:c00d444c62cc",
@@ -370056,7 +370068,7 @@
     "src/pages/TokConnect.tsx",
     "src/test/tok-connect.test.ts"
    ],
-   "detailRef": "96b1a9b03d4a"
+   "detailRef": "a04e5b10684e"
   },
   {
    "id": "path-literal:9b50a6f5fb1d",
@@ -370089,7 +370101,7 @@
     "src/test/navbar-action-stability.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "09f353e65874"
+   "detailRef": "059df32e72da"
   },
   {
    "id": "path-literal:d01a3ea49721",
@@ -370769,7 +370781,7 @@
     "src/test/navbar-action-stability.test.ts",
     "src/test/role-route-wiring.test.ts"
    ],
-   "detailRef": "09769031cee5"
+   "detailRef": "eb276801a801"
   },
   {
    "id": "path-literal:57ce8756e2b5",

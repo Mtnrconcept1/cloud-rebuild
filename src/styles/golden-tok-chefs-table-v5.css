@@ -828,3 +828,102 @@ html body [data-golden-tok-chefs-table] [data-golden-tok-offers] article > div:f
   color: #ffffff !important;
   text-shadow: 0 1px 5px rgba(0, 0, 0, .85) !important;
 }
+
+/* Approved Golden TOK references: let the editorial hero own the viewport and
+   keep the generic route affordance out of this deliberately composed shell. */
+html body:has([data-golden-tok-chefs-table]) [aria-label="Retour à l'écran précédent"] {
+  display: none !important;
+}
+html body:has([data-golden-tok-chefs-table]) .golden-tok-mobile-search,
+html body:has([data-golden-tok-chefs-table]) .golden-tok-mobile-cart {
+  display: none !important;
+}
+
+@media (min-width: 821px) {
+  html body [data-golden-tok-chefs-table] > div.relative.mx-auto.grid {
+    max-width: none !important;
+    padding-inline: 0 !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-stage {
+    padding: 0 0 34px !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading {
+    min-height: min(680px, calc(100vh - var(--tok-public-navbar-height, 116px) - 12px)) !important;
+    border-radius: 0 !important;
+    padding: 64px clamp(56px, 6.5vw, 126px) 132px !important;
+    background-image:
+      linear-gradient(90deg, #fffdf8 0%, rgba(255,253,248,.97) 23%,
+        rgba(255,253,248,.79) 36%, rgba(255,253,248,.40) 49%,
+        rgba(255,253,248,.06) 67%, rgba(255,253,248,0) 100%),
+      url('/Image%20Codex%203%20sept.%202026,%2011_06_16.png') !important;
+    background-position: center, 65% center !important;
+    background-size: cover, cover !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-benefits {
+    width: calc(100% - clamp(56px, 5.7vw, 108px)) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav {
+    min-height: 96px !important;
+  }
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav > div {
+    height: 96px !important;
+    max-width: none !important;
+    padding-inline: 14px !important;
+  }
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav > div > a:first-child img {
+    height: 80px !important;
+    max-width: 128px !important;
+  }
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-route-menu {
+    position: absolute !important;
+    left: 12px !important;
+    display: inline-flex !important;
+    order: 0 !important;
+  }
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-route-menu svg {
+    width: 30px !important;
+    height: 30px !important;
+  }
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav button[aria-label="Mode sombre"],
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav button[aria-label="Notifications"],
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-route-account span {
+    display: none !important;
+  }
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-mobile-search,
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-mobile-cart {
+    display: inline-flex !important;
+    color: #17130e !important;
+  }
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-route-account {
+    width: 46px !important;
+    height: 46px !important;
+    padding: 0 !important;
+    border: 1px solid rgba(177, 126, 39, .42) !important;
+    background: transparent !important;
+    color: #17130e !important;
+    box-shadow: none !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading {
+    min-height: 0 !important;
+    height: clamp(470px, 116vw, 520px) !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    padding: 28px 24px 105px !important;
+    background-image:
+      linear-gradient(180deg, rgba(255,253,248,.96) 0%, rgba(255,253,248,.83) 27%,
+        rgba(255,253,248,.40) 51%, rgba(29,20,10,.08) 73%, rgba(29,20,10,.38) 100%),
+      url('/Image%20Codex%203%20sept.%202026,%2011_06_16.png') !important;
+    background-position: center, 58% center !important;
+    background-size: cover, cover !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading h1.golden-tok-hero-title {
+    font-size: clamp(4rem, 16vw, 5rem) !important;
+  }
+  html body [data-golden-tok-chefs-table] .golden-tok-heading p.golden-tok-hero-description {
+    max-width: 290px !important;
+    font-size: .84rem !important;
+  }
+}

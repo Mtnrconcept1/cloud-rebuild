@@ -892,7 +892,7 @@ export default function ChefsTable() {
     <>
       <FeatureWizard
         title="La Tok d’Or"
-        subtitle="Plats off-menu en édition ultra-limitée"
+        subtitle="Plats signature en édition ultra-limitée"
         icon={ChefHat}
         colorClass="amber-500"
         steps={[

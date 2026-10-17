@@ -120,6 +120,7 @@ export default function Navbar() {
   const visibleFeatures = FEATURES.filter((feature) => activeFeatures.has(feature.feature));
   const discoveryFeatures = visibleFeatures.slice(0, 3);
   const showClientSurface = canShowClientSurface({ activeRole: role, roles });
+  const isGoldenTokRoute = location.pathname === "/chefs-table";
   const showSocialFeedSurface = canShowSocialFeedSurface({ activeRole: role, roles });
   const homeTarget = showClientSurface
     ? "/"
@@ -241,7 +242,7 @@ export default function Navbar() {
       {/* ─── Main header ─── */}
       <header
         ref={headerRef}
-        className={`tok-site-header sticky top-0 z-[70] w-full border-b bg-background shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out dark:bg-slate-950 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border dark:border-border" : "border-border/80 dark:border-white/20 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
+        className={`tok-site-header ${isGoldenTokRoute ? "tok-golden-nav" : ""} sticky top-0 z-[70] w-full border-b bg-background shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out dark:bg-slate-950 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border dark:border-border" : "border-border/80 dark:border-white/20 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
         style={{
           opacity: isHeaderVisible ? 1 : 0,
           transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
@@ -348,7 +349,21 @@ export default function Navbar() {
               className={`${isMobileHomeHeader ? "text-foreground hover:bg-transparent hover:text-foreground" : ""} hidden min-[380px]:inline-flex`}
             />
 
-            {showCartShortcut ? (
+            {isGoldenTokRoute ? (
+              <Button variant="ghost" size="icon" asChild aria-label="Rechercher" className="golden-tok-mobile-search">
+                <Link to="/recherche"><Search className="h-5 w-5" /></Link>
+              </Button>
+            ) : null}
+
+            {isGoldenTokRoute ? (
+              <Button variant="ghost" size="icon" asChild aria-label="Panier" className="golden-tok-mobile-cart">
+                <Link to="/panier">
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="sr-only">Panier</span>
+                  {itemCount > 0 ? <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center p-0 text-[10px]">{itemCount}</Badge> : null}
+                </Link>
+              </Button>
+            ) : showCartShortcut ? (
               <Button variant="ghost" size="icon" asChild aria-label="Panier" onMouseDown={preserveNavbarActionScrollPosition} className="relative">
                 <Link to="/panier">
                   <ShoppingCart className="h-5 w-5" />
@@ -383,11 +398,11 @@ export default function Navbar() {
                     size={isMobileHomeHeader ? "sm" : "icon"}
                     aria-label="Compte"
                     onMouseDown={preserveNavbarActionScrollPosition}
-                    className={
+                    className={`golden-tok-route-account ${
                       isMobileHomeHeader
                         ? "order-3 h-[48px] w-[48px] rounded-full bg-orange-700 p-0 text-[0.88rem] font-bold text-primary-foreground shadow-[0_10px_22px_rgba(255,107,28,0.24)] hover:bg-orange-800 min-[380px]:w-auto min-[380px]:px-5"
                         : "rounded-full"
-                    }
+                    }`}
                   >
                     <User className="h-5 w-5" />
                     <span className={isMobileHomeHeader ? "hidden min-[380px]:ml-2 min-[380px]:inline" : "sr-only"}>
@@ -443,7 +458,7 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild size="sm" className={`${isMobileHomeHeader ? "order-3 h-[48px] rounded-full px-5 text-[0.88rem] shadow-[0_10px_22px_rgba(255,107,28,0.24)]" : "min-h-[44px] px-3 min-[380px]:px-5"} rounded-full bg-primary font-bold text-primary-foreground shadow-md hover:bg-primary/90`}>
+              <Button asChild size="sm" className={`golden-tok-route-account ${isMobileHomeHeader ? "order-3 h-[48px] rounded-full px-5 text-[0.88rem] shadow-[0_10px_22px_rgba(255,107,28,0.24)]" : "min-h-[44px] px-3 min-[380px]:px-5"} rounded-full bg-primary font-bold text-primary-foreground shadow-md hover:bg-primary/90`}>
                 <Link to="/auth" className="flex items-center gap-2">
                   <User className={`${isMobileHomeHeader ? "h-5 w-5" : "h-4 w-4"}`} />
                   <span className={isMobileHomeHeader ? "inline" : "hidden min-[380px]:inline"}>Connexion</span>
@@ -460,7 +475,7 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`${isMobileHomeHeader ? "order-2 text-foreground hover:bg-transparent" : ""} ${showSignedInDesktopHomeMenu ? "xl:inline-flex" : "2xl:hidden"}`}
+                  className={`golden-tok-route-menu ${isMobileHomeHeader ? "order-2 text-foreground hover:bg-transparent" : ""} ${showSignedInDesktopHomeMenu ? "xl:inline-flex" : "2xl:hidden"}`}
                 >
                   <Menu className={`${isMobileHomeHeader ? "h-8 w-8" : "h-5 w-5"}`} />
                   <span className="sr-only">Ouvrir le menu</span>
