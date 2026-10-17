@@ -55,3 +55,7 @@ Ne jamais assigner le compte Stripe personnel d'un tiers au restaurant, activer 
 ## Retour arrière
 
 Revenir au commit précédant cette PR ou fermer la branche ; aucune migration SQL, aucun secret, aucun compte Stripe et aucun paramètre financier global n'est changé par ce patch.
+
+## Rapprochement supplémentaire
+
+Une autre tentative identique a créé la commande provisoire `b20675bc-3520-4a35-b075-d7c451065a41`. La tentative `f3564b93-5e8f-4a8b-ab01-60cc4539fc96` a reçu le même refus 503, sans session Stripe ni entrée `payment_attempts`, `payment_transactions` ou réserve de stock. Après vérification des invariants, l'ordre a été clôturé avec `status=payment_failed`, `payment_status=failed` et une trace de la cause `marketplace_connect_routing_not_ready`. Aucune recette payante n'est annoncée.
