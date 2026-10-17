@@ -619,7 +619,7 @@ html body:has([data-golden-tok-chefs-table]) [data-golden-tok-chefs-table] .gold
 }
 @media (max-width: 359px) {
   /* At 320px the search action remains available in the hamburger menu. */
-  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-mobile-search {
+  html body:has([data-golden-tok-chefs-table]) header.tok-golden-nav .golden-tok-nav-actions > .golden-tok-mobile-search {
     display: none !important;
   }
 }
