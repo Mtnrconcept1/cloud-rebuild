@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 457 error codes mapped from supabase/functions/**.
+// 458 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -1200,7 +1200,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "idempotency_key_reused_with_different_arguments": [
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 1976
+      "line": 2072
     }
   ],
   "idempotency_key_reused_with_different_body": [
@@ -1738,7 +1738,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2861
+      "line": 2995
     }
   ],
   "mcp_prompt_not_found": [
@@ -1748,7 +1748,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2834
+      "line": 2968
     }
   ],
   "mcp_tool_not_found": [
@@ -1762,11 +1762,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2562
+      "line": 2660
     },
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
-      "line": 2606
+      "line": 2704
     }
   ],
   "media_id_required": [
@@ -3141,6 +3141,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
       "line": 86
+    },
+    {
+      "file": "supabase/functions/tok-connect-mcp/index.ts",
+      "line": 2753
     }
   ],
   "tok_connect_idempotency_key_required": [
@@ -3405,6 +3409,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
       "line": 245
+    }
+  ],
+  "tok_marketing_oauth_restaurateur_required": [
+    {
+      "file": "supabase/functions/tok-connect-mcp/index.ts",
+      "line": 2750
     }
   ],
   "tok_one_action_invalid": [

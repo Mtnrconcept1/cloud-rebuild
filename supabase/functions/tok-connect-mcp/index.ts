@@ -47,6 +47,11 @@ import {
   buildTokDiscoveryToolMeta,
 } from "../_shared/tok-connect-discovery-widget.ts";
 import { TOK_CUSTOMER_RESERVATION_INPUT_SCHEMA, buildTokReservationPreparation, validateTokReservationIntent } from "../_shared/tok-connect-reservation-intent.ts";
+import { TOK_ROLE_OPERATION_TOOLS } from "../_shared/tok-connect-role-operations.ts";
+import {
+  generateTokMarketingVisualThroughBridge,
+  TokMarketingVisualBridgeError,
+} from "../_shared/tok-connect-marketing-visual.ts";
 
 type McpHandleResult = {
   payload: Record<string, unknown>;
@@ -78,6 +83,7 @@ const ACTION_WINDOW_RESOURCE_URI = "ui://tok-connect/actions-window-v1.html";
 const WIDGET_RESOURCE_DOMAINS = [
   "https://www.thetok.ch",
   "https://cloud-rebuild-recovered.vercel.app",
+  "https://wwcrtyoueexyxkkikaos.supabase.co",
   "https://fonts.googleapis.com",
   "https://fonts.gstatic.com",
 ];
@@ -932,14 +938,21 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         .tok-restaurant-grid { grid-template-columns: 1fr; }
         .sandbox-head { display: block; }
       }
+      #marketing-result { max-width: 610px; margin: 0 auto; padding: 22px; }
+      #marketing-result[hidden] { display: none; }
+      #marketing-result img { width: 100%; height: auto; object-fit: contain; display: block; border-radius: 16px; border: 1px solid var(--tok-line); }
+      #marketing-result a { display: inline-block; margin-top: 12px; padding: 12px 18px; border-radius: 12px; color: white; background: var(--tok-primary); font-weight: 700; text-decoration: none; }
+      #marketing-result p { color: var(--tok-muted); }
     </style>
   </head>
   <body>
     <div id="loader">Chargement TOK Connect...</div>
+    <section id="marketing-result" hidden aria-live="polite"></section>
     <iframe id="mcp-frame" src="https://www.thetok.ch/tok-connect/mcp-widget" allow="clipboard-read; clipboard-write"></iframe>
     <script>
       const iframe = document.getElementById('mcp-frame');
       const loader = document.getElementById('loader');
+      const marketingResult = document.getElementById('marketing-result');
       
       let iframeReady = false;
       let pendingState = null;
@@ -1173,8 +1186,53 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         }
       });
 
+      function showMarketingResult(output) {
+        const candidates = [output, output && output.structuredContent];
+        if (output && Array.isArray(output.content)) {
+          for (const item of output.content) {
+            if (item && typeof item.text === "string") {
+              try { candidates.push(JSON.parse(item.text)); } catch (_) { /* other tools use plain text */ }
+            }
+          }
+        }
+        const candidate = candidates.find((value) => value && typeof value === "object" && value.marketing_visual);
+        const visual = candidate && candidate.marketing_visual;
+        if (!visual || typeof visual.image_url !== "string") return false;
+        let imageUrl;
+        try {
+          imageUrl = new URL(visual.image_url);
+          if (imageUrl.origin !== "https://wwcrtyoueexyxkkikaos.supabase.co" ||
+            !imageUrl.pathname.startsWith("/storage/v1/object/public/restaurant-images/")) return false;
+        } catch (_) { return false; }
+        marketingResult.replaceChildren();
+        const heading = document.createElement("h2");
+        heading.textContent = "Visuel Marketing TOK";
+        const image = document.createElement("img");
+        image.src = imageUrl.href;
+        image.alt = "Visuel natif du Studio Marketing TOK";
+        image.loading = "eager";
+        const details = document.createElement("p");
+        const credits = typeof visual.credit_units === "number" ?
+          visual.credit_units + " credit(s) TOK" : "Credits a verifier dans TOK";
+        details.textContent = "Image enregistree · " + credits + " · Non publiee";
+        const link = document.createElement("a");
+        link.href = imageUrl.href;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "Ouvrir le fichier original";
+        marketingResult.append(heading, image, details, link);
+        marketingResult.hidden = false;
+        iframe.hidden = true;
+        loader.hidden = true;
+        return true;
+      }
+
       function render(output, metadata) {
-        sendToIframe({ toolOutput: output, toolResponseMetadata: metadata });
+        if (!showMarketingResult(output)) {
+          marketingResult.hidden = true;
+          iframe.hidden = false;
+          sendToIframe({ toolOutput: output, toolResponseMetadata: metadata });
+        }
         if (window.openai && typeof window.openai.notifyIntrinsicHeight === "function") {
           window.openai.notifyIntrinsicHeight();
         }
@@ -1223,13 +1281,13 @@ const TOK_CONNECT_APP_MODULES: TokConnectAppModule[] = [
     entrypoints: ["Dashboard restaurateur", "Marketing", "Studio Marketing"],
     canQuery: true,
     canSimulate: true,
-    mutationAllowed: false,
+    mutationAllowed: true,
     requiresHumanConfirmation: true,
     requiresPayment: false,
     requiresCredits: true,
-    relatedMcpTools: ["estimate_campaign_credit_cost", "generate_campaign_preview"],
-    safeActions: ["Lire les capacites", "Simuler le brief", "Verifier les credits requis", "Preparer une preview sans publier"],
-    guardrails: ["Aucune generation IA reelle sans credit disponible et validation restaurateur.", "Aucun post sponsorise n'est publie par le MCP sans confirmation humaine."],
+    relatedMcpTools: ["estimate_campaign_credit_cost", "generate_campaign_preview", "tok_generate_restaurant_marketing_visual"],
+    safeActions: ["Lire les capacites", "Preparer un brief", "Generer un visuel natif apres validation", "Retrouver le visuel dans la galerie"],
+    guardrails: ["Generation reelle uniquement sur le restaurant du proprietaire OAuth connecte, apres confirmation et verification des credits.", "Aucun post sponsorise ni aucune image n'est publie automatiquement."],
   },
   {
     id: "photopro",
@@ -1667,6 +1725,43 @@ const TOK_CONNECT_RESTAURANT_DETAILS_TOOL: TokConnectMcpTool = {
   }),
 };
 
+// Reuse the validated contract of the existing authenticated restaurant
+// operation. Generation, credit charging and asset storage stay in TOK.
+const marketingVisualOperation = TOK_ROLE_OPERATION_TOOLS.find(
+  (operation) => operation.name === "tok_generate_restaurant_marketing_visual",
+);
+if (!marketingVisualOperation) throw new Error("tok_connect_marketing_visual_operation_missing");
+
+const TOK_CONNECT_MARKETING_VISUAL_TOOL: TokConnectMcpTool = {
+  name: marketingVisualOperation.name,
+  title: "Generer un flyer ou visuel TOK",
+  description: "Generate and store exactly one native Marketing Studio image for the connected restaurant. This is a REAL credit-consuming action, not a simulated preview. Requires Supabase OAuth restaurant ownership, explicit end-user consent (confirmed_by_user=true), a stable idempotency key and sufficient TOK credits. No publication or advertising campaign is created.",
+  requiredScopes: ["campaigns:preview"],
+  inputSchema: marketingVisualOperation.inputSchema as unknown as Record<string, unknown>,
+  outputSchema: {
+    type: "object",
+    properties: {
+      marketing_visual: { type: "object" },
+      replayed: { type: "boolean" },
+    },
+    required: ["marketing_visual", "replayed"],
+    additionalProperties: false,
+  },
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: true, // real TOK credits can be consumed
+    idempotentHint: true,
+    openWorldHint: true,
+  },
+  _meta: {
+    ui: { resourceUri: ACTION_WINDOW_RESOURCE_URI, visibility: ["model", "app"] },
+    "openai/outputTemplate": ACTION_WINDOW_RESOURCE_URI,
+    "openai/widgetAccessible": true,
+    "openai/toolInvocation/invoking": "Generation du visuel TOK...",
+    "openai/toolInvocation/invoked": "Visuel TOK enregistre dans la galerie",
+  },
+};
+
 const MCP_TOOLS: TokConnectMcpTool[] = [
   TOK_CONNECT_DISCOVERY_TOOL,
   TOK_CONNECT_RESTAURANT_DETAILS_TOOL,
@@ -1691,6 +1786,7 @@ const MCP_TOOLS: TokConnectMcpTool[] = [
       }
       : tool
   ),
+  TOK_CONNECT_MARKETING_VISUAL_TOOL,
   TOK_CONNECT_APP_QUERY_TOOL,
   TOK_CONNECT_APP_SANDBOX_TOOL,
   TOK_CONNECT_ACTION_WINDOW_TOOL,
@@ -2102,7 +2198,9 @@ function buildApplicationToolQueryResult(args: Record<string, unknown> = {}) {
     `Question: ${question}`,
     `Mode: ${mode}`,
     `Modules trouves: ${modules.map((module) => module.title).join(", ")}.`,
-    "ChatGPT peut lire les capacites, simuler le parcours et ouvrir une sandbox visible. Les operations payantes ou mutantes restent bloquees jusqu'a confirmation via les flux TOK existants.",
+    modules.some((module) => module.id === "studio_marketing")
+      ? "Le Studio Marketing permet aussi de generer et enregistrer une image native avec tok_generate_restaurant_marketing_visual, uniquement pour le restaurateur OAuth autorise apres confirmation et controle des credits. Aucune publication automatique."
+      : "ChatGPT peut lire les capacites, simuler les parcours et utiliser les outils autorises apres les validations TOK requises.",
   ].join(" ");
 
   return {
@@ -2647,6 +2745,42 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
         };
       }
       const context = await authorizeMcp(req, tool.requiredScopes);
+      if (toolName === TOK_CONNECT_MARKETING_VISUAL_TOOL.name) {
+        if (context.authMode !== "supabase_oauth" || context.environment !== "production") {
+          throw new HttpError(403, "tok_marketing_oauth_restaurateur_required");
+        }
+        if (args.confirmed_by_user !== true) {
+          throw new HttpError(409, "tok_connect_human_confirmation_required");
+        }
+        const restaurantId = String(args.restaurant_id);
+        await assertTokConnectRestaurantGrant(context, restaurantId, "campaigns:preview", {
+          requireMcp: true,
+        });
+        let visual;
+        try {
+          visual = await generateTokMarketingVisualThroughBridge({
+            authorization: req.headers.get("authorization"),
+            authMode: context.authMode,
+            environment: context.environment,
+            userId: context.userId,
+            args,
+            supabaseUrl: Deno.env.get("SUPABASE_URL") || "",
+            anonKey: Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "",
+          });
+        } catch (error) {
+          if (error instanceof TokMarketingVisualBridgeError) {
+            throw new HttpError(error.status, error.message);
+          }
+          throw error;
+        }
+        return {
+          payload: rpcResult(rpc.id, buildTokConnectMcpJsonResult(visual)),
+          context,
+          route: `MCP tools/call ${toolName}`,
+          scopes: tool.requiredScopes,
+          restaurantId,
+        };
+      }
       const result = await callTool(context, toolName, args);
       return {
         payload: rpcResult(rpc.id, result),
