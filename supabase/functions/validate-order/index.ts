@@ -23,6 +23,7 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { getEffectiveFeatureFlagSet } from "../_shared/feature-flags.ts";
+import { resolveVerifiedPickupScheduledAt } from "../_shared/order-pickup-scheduling.ts";
 
 interface OrderItem {
   menu_item_id: string;
@@ -310,10 +311,25 @@ Deno.serve(async (req) => {
       })),
       metadata: authoritativeMetadata,
     });
+    const capacityRequestedAt = resolveCapacityRequestedAt(
+      authoritativeMetadata as Record<string, unknown>,
+      scheduledDelivery?.scheduledAt || null,
+    );
+    let scheduledOrderAt: string | null = scheduledDelivery?.scheduledAt || null;
+    if (!isDelivery) {
+      try {
+        scheduledOrderAt = resolveVerifiedPickupScheduledAt(
+          authoritativeMetadata as Record<string, unknown>,
+          capacityRequestedAt,
+        );
+      } catch {
+        throw new HttpError(409, "tok_pickup_slot_conflict_requote");
+      }
+    }
     const capacityState = await ensureRestaurantCanAcceptOrder({
       adminClient: actor.adminClient,
       restaurantId: restaurant_id,
-      requestedAt: resolveCapacityRequestedAt(authoritativeMetadata as Record<string, unknown>, scheduledDelivery?.scheduledAt || null),
+      requestedAt: capacityRequestedAt,
     });
     const acceptanceDeadlineAt = getRecordString(capacityState, "acceptance_deadline_at");
     const capacityAwareMetadata = {
@@ -419,7 +435,7 @@ Deno.serve(async (req) => {
         total_amount: pricing.total,
         original_total: pricing.originalTotal,
         discount_amount: pricing.discountAmount,
-        scheduled_at: scheduledDelivery?.scheduledAt || null,
+        scheduled_at: scheduledOrderAt,
         estimated_delivery_at: estimatedDeliveryAt,
         payment_status: isAwaitingOnlinePayment
           ? "pending"
@@ -433,7 +449,13 @@ Deno.serve(async (req) => {
       .eq("id", orderId);
 
     if (updateError) {
-      throw new HttpError(500, updateError.message);
+      // The Data API can return an empty error message: retain diagnostics
+      // in server logs, never leave users with an unexplained blank error.
+      log.error("validate_order_pending_payment_update_failed", {
+        orderId: String(orderId),
+        code: String(updateError.code || "unknown"),
+      });
+      throw new HttpError(503, "tok_order_pending_payment_update_failed");
     }
 
     const { data: profile } = await actor.adminClient
@@ -576,7 +598,7 @@ Deno.serve(async (req) => {
         slot_capacity: capacityAwareMetadata.order_capacity.slot_capacity,
         prep_time_minutes: capacityAwareMetadata.prep_time_minutes,
         acceptance_deadline_at: acceptanceDeadlineAt,
-        scheduled_at: scheduledDelivery?.scheduledAt || null,
+        scheduled_at: scheduledOrderAt,
       },
     });
 
