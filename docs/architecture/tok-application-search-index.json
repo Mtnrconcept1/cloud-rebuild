@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "b00bc0b17aa08ac3ac87d07f96aa56a2c3e3dee16878ba496501201426fcaf66",
+ "sourceDigest": "cbaa513babe3d75209ee12552cafb82fbcbd2c7d92ff6a2031eb27991fca3869",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -3108,12 +3108,12 @@
     "exports": [
      {
       "name": "ChefTableDropCard",
-      "line": 129,
+      "line": 130,
       "kind": "function"
      },
      {
       "name": "default",
-      "line": 416,
+      "line": 417,
       "kind": "function"
      }
     ],
@@ -17602,7 +17602,7 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 767
+      "line": 768
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -24740,11 +24740,11 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 484
+      "line": 485
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 523
+      "line": 524
      },
      {
       "path": "src/pages/TokOne.tsx",
@@ -27044,11 +27044,11 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 746
+      "line": 747
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 863
+      "line": 864
      },
      {
       "path": "src/pages/Commandes.tsx",
@@ -28004,11 +28004,11 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 871
+      "line": 872
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 1086
+      "line": 1098
      },
      {
       "path": "src/pages/ClientDashboardHome.tsx",
@@ -30015,7 +30015,7 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 777
+      "line": 778
      },
      {
       "path": "src/pages/Panier.tsx",
@@ -32317,7 +32317,7 @@
     "sources": [
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 691
+      "line": 692
      },
      {
       "path": "src/pages/TokOne.tsx",
@@ -32446,7 +32446,7 @@
      },
      {
       "path": "src/pages/ChefsTable.tsx",
-      "line": 690
+      "line": 691
      },
      {
       "path": "src/pages/TokOne.tsx",
@@ -105317,12 +105317,12 @@
     "exports": [
      {
       "name": "ChefTableDropCard",
-      "line": 129,
+      "line": 130,
       "kind": "function"
      },
      {
       "name": "default",
-      "line": 416,
+      "line": 417,
       "kind": "function"
      }
     ],
@@ -105330,7 +105330,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 1114
+    "lineCount": 1126
    },
    {
     "path": "src/pages/ClientDashboardHome.tsx",
@@ -146330,7 +146330,7 @@
    "id": "code-module:5e810c8845db",
    "type": "code-module",
    "title": "src/pages/ChefsTable.tsx",
-   "description": "Module de 1114 lignes; exports: ChefTableDropCard, default.",
+   "description": "Module de 1126 lignes; exports: ChefTableDropCard, default.",
    "path": "src/pages/ChefsTable.tsx",
    "line": 1,
    "surface": null,
@@ -146339,7 +146339,7 @@
     "default",
     "supabase"
    ],
-   "detailRef": "38e4b2530a2c"
+   "detailRef": "e28287672e58"
   },
   {
    "id": "code-module:5ce6b49e4fe6",
@@ -253037,18 +253037,18 @@
    "detailRef": "63950ba29772"
   },
   {
-   "id": "exported-symbol:230bcde18b0c",
+   "id": "exported-symbol:153bad2dc92d",
    "type": "exported-symbol",
    "title": "ChefTableDropCard",
    "description": "Export function de src/pages/ChefsTable.tsx.",
    "path": "src/pages/ChefsTable.tsx",
-   "line": 129,
+   "line": 130,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "44009fda4251"
+   "detailRef": "69384ab2490d"
   },
   {
    "id": "exported-symbol:d3a0563df7f0",
@@ -279060,18 +279060,18 @@
    "detailRef": "68d9ef797954"
   },
   {
-   "id": "exported-symbol:75aac54c9ecb",
+   "id": "exported-symbol:71040151a665",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/ChefsTable.tsx.",
    "path": "src/pages/ChefsTable.tsx",
-   "line": 416,
+   "line": 417,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "9f35d6dd3d8e"
+   "detailRef": "90b20a3208dc"
   },
   {
    "id": "exported-symbol:c456abfce601",
@@ -360568,7 +360568,7 @@
     "/chefs-table",
     "supabase"
    ],
-   "detailRef": "365c6b534ec0"
+   "detailRef": "14a8ea06e069"
   },
   {
    "id": "page:6889a2b1b469",
@@ -363840,7 +363840,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "a8e1eca26966"
+   "detailRef": "32d8fcdcd04a"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -368691,7 +368691,7 @@
     "src/test/transactional-email-templates.test.ts",
     "supabase/functions/_shared/transactional-emails.ts"
    ],
-   "detailRef": "39db074487bb"
+   "detailRef": "57f43f8a95ca"
   },
   {
    "id": "path-literal:1761b539fab6",
@@ -370424,7 +370424,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "d2ab2d9e1a94"
+   "detailRef": "57175a99bf8f"
   },
   {
    "id": "path-literal:b9bd524c18de",
@@ -370909,7 +370909,7 @@
     "supabase/functions/_shared/zero-attente.ts",
     "supabase/functions/ai-support-resolution/index.ts"
    ],
-   "detailRef": "efb38c20637c"
+   "detailRef": "17df57b2b910"
   },
   {
    "id": "path-literal:0af02260597a",
@@ -372654,7 +372654,7 @@
     "src/test/navbar-action-stability.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "059df32e72da"
+   "detailRef": "cf1c140cbd1d"
   },
   {
    "id": "path-literal:d01a3ea49721",
@@ -382946,12 +382946,12 @@
    "detailRef": "426137aba722"
   },
   {
-   "id": "query-parameter:39f1fcc7c252",
+   "id": "query-parameter:2f4d911ba66e",
    "type": "query-parameter",
    "title": "session_id",
    "description": "Paramètre d’URL détecté dans 8 emplacement(s).",
    "path": "src/pages/ChefsTable.tsx",
-   "line": 691,
+   "line": 692,
    "surface": null,
    "tags": [
     "src/pages/ChefsTable.tsx",
@@ -382963,7 +382963,7 @@
     "src/test/payment-attempt-state.test.ts",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "cb8bac0a02b5"
+   "detailRef": "646f4c6f9610"
   },
   {
    "id": "query-parameter:32944e8d118e",
@@ -383063,7 +383063,7 @@
     "src/pages/dashboard/DashboardHome.tsx",
     "supabase/functions/print-sandbox-complete/index.ts"
    ],
-   "detailRef": "706076d05ba6"
+   "detailRef": "ca8a128ebd30"
   },
   {
    "id": "query-parameter:04069271d1b6",
