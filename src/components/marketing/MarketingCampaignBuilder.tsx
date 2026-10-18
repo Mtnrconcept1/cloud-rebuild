@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import type { MarketingChannelId, MarketingSnapshot } from "@/marketing/types";
 import { marketingZurichDateKey, marketingZurichLocalDateTimeToIso } from "@/marketing/zurichTime";
 import { CAMPAIGN_TEMPLATES } from "../../../supabase/functions/_shared/marketing-campaign-templates";
+import type { MailingOptions } from "../../../supabase/functions/_shared/marketing-mailing";
 
 const NETWORKS = [["instagram", "Instagram"], ["facebook", "Facebook"], ["linkedin", "LinkedIn"], ["tok_news", "Actualités TOK"]] as const;
 const FORMATS = [["1:1", "Carré"], ["4:5", "Portrait"], ["9:16", "Vertical"], ["16:9", "Paysage"]] as const;
@@ -20,6 +21,7 @@ export type CampaignGenerationRequest = {
   startsAt: string;
   endsAt: string;
   itemCount: number;
+  mailingOptions?: MailingOptions;
   formats?: Partial<Record<MarketingChannelId, Format>>;
   campaignOptions?: {
     templateIds: string[];

@@ -35,14 +35,14 @@ export function parseCampaignOptions(value: unknown, channels: readonly string[]
     value.templateIds.some((id) => typeof id !== "string" || !allowedTemplateIds.includes(id)) ||
     new Set(value.templateIds).size !== value.templateIds.length) fail("campaign_templates_invalid");
   if (typeof value.postCount !== "number" || !Number.isInteger(value.postCount) || value.postCount < 1 || value.postCount > 12) fail("campaign_post_count_invalid");
-  if (typeof value.cadence !== "string" || !Object.hasOwn(CAMPAIGN_CADENCE_DAYS, value.cadence)) fail("campaign_cadence_invalid");
+  if (typeof value.cadence !== "string" || !Object.prototype.hasOwnProperty.call(CAMPAIGN_CADENCE_DAYS, value.cadence)) fail("campaign_cadence_invalid");
   if (!channels.length || new Set(channels).size !== channels.length || channels.some((channel) => !(GUIDED_CAMPAIGN_CHANNELS as readonly string[]).includes(channel))) fail("campaign_channels_invalid");
   if (!record(value.formatsByChannel) || Object.keys(value.formatsByChannel).some((channel) => !channels.includes(channel))) fail("campaign_formats_invalid");
   const formatsByChannel: Record<string, CampaignFormat[]> = {};
   for (const channel of channels) {
     const formats = value.formatsByChannel[channel];
     if (!Array.isArray(formats) || !formats.length || formats.length > 4 || new Set(formats).size !== formats.length ||
-      formats.some((format) => typeof format !== "string" || !Object.hasOwn(CAMPAIGN_FORMAT_SIZES, format))) fail("campaign_formats_invalid");
+      formats.some((format) => typeof format !== "string" || !Object.prototype.hasOwnProperty.call(CAMPAIGN_FORMAT_SIZES, format))) fail("campaign_formats_invalid");
     formatsByChannel[channel] = [...formats] as CampaignFormat[];
   }
   const options: CampaignOptions = { templateIds: [...value.templateIds] as CampaignTemplateId[], postCount: value.postCount,

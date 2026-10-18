@@ -1,4 +1,5 @@
 import { MarketingBrandReferences } from "@/components/marketing/MarketingBrandReferences";
+import { MarketingMailingBuilder } from "@/components/marketing/MarketingMailingBuilder";
 import { MarketingCampaignBuilder, type CampaignGenerationRequest } from "@/components/marketing/MarketingCampaignBuilder";
 import { MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
 import { marketingPostPreview } from "@/marketing/postPreview";
@@ -200,6 +201,7 @@ export default function MarketingAgentView({
         </AlertDescription>
       </Alert>
 
+      <MarketingMailingBuilder pending={pending} disabled={!canMutateBackend} onGenerate={generate} />
       <MarketingCampaignBuilder snapshot={snapshot} pending={pending} disabled={!canMutateBackend} onGenerate={generate} />
       {error ? <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription></Alert> : null}
 

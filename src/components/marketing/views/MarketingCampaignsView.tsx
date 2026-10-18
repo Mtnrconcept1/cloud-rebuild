@@ -310,7 +310,7 @@ export default function MarketingCampaignsView({
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Chaque création commence en brouillon, avec approbation humaine obligatoire et canaux filtrés par disponibilité réelle.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-        <Button type="button" onClick={() => onFiltersChange({ view: "agent", query: "", status: "all", channel: "all", page: 1 })}><Sparkles className="mr-2 h-4 w-4" />Créer avec un modèle</Button>
+        <Button type="button" onClick={() => onFiltersChange({ view: "agent", query: "", status: "all", channel: "all", page: 1 })}><Sparkles className="mr-2 h-4 w-4" />Créer un mailing ou une campagne IA</Button>
         <Button type="button" variant="outline" onClick={() => setWizardOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> Créer une campagne
         </Button>
