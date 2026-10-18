@@ -111,7 +111,7 @@ export default function WorkforcePersonal({restaurantId,employeeId,contractHours
    {!entries.isPending&&!entries.isError&&myEntries.length===0?<p className="text-muted-foreground">Aucune heure enregistrée.</p>:null}
    {myEntries.map(e=><div key={e.id} className="flex flex-wrap justify-between gap-2 rounded-xl border p-3 text-sm">
     <span>{e.entry_date} · {e.start_time.slice(0,5)}–{e.end_time.slice(0,5)}</span>
-    <span>{workedHours(e.start_time,e.end_time,e.break_minutes).toFixed(1)} h · Pause {e.break_minutes} min</span>
+    <span>{(()=>{try{return workedHours(e.start_time,e.end_time,e.break_minutes).toFixed(1)+" h";}catch{return "Durée à corriger";}})()} · Pause {e.break_minutes} min</span>
    </div>)}
    {myEntries.length>=1000?<p className="text-destructive">Limite des relevés atteinte, contactez votre responsable pour un export complet.</p>:null}
   </CardContent></Card></TabsContent>

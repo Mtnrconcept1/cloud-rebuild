@@ -15,11 +15,13 @@ describe("TOK Équipe — horaires et rapport",()=>{
   it("calcule le temps net pour un service normal et un service de nuit",()=>{
     expect(workedHours("09:00","17:00",30)).toBe(7.5);
     expect(workedHours("22:00","02:30",30)).toBe(4);
+    expect(workedHours("09:00:00.000000","17:00:00.000000",30)).toBe(7.5);
   });
   it("rejette les horaires et pauses invalides",()=>{
     expect(()=>workedHours("09:00","09:00",0)).toThrow();
     expect(()=>workedHours("09:00","17:00",480)).toThrow();
     expect(()=>workedHours("30:00","17:00",0)).toThrow();
+    expect(()=>workedHours("09:00:99","17:00",0)).toThrow();
   });
   it("retourne le lundi et le dimanche d'une semaine locale",()=>{
     expect(weekRange(new Date(2026,9,14))).toEqual({start:"2026-10-12",end:"2026-10-18"});
