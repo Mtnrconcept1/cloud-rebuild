@@ -221,7 +221,7 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain('"mcp/www_authenticate"');
     expect(source).toContain("TOK_CONNECT_RESOURCE_METADATA_URL");
     expect(source).toContain('{ type: "noauth" }');
-    expect(source).toContain('{ type: "oauth2", scopes: TOK_CONNECT_OIDC_SCOPES }');
+    expect(source).toContain('{ type: "oauth2", scopes: TOK_CONNECT_OAUTH_SCOPES }');
     expect(source).toContain("securitySchemes");
     expect(source).toContain("negotiateMcpProtocolVersion");
     expect(source).toContain("isMcpNotification");
@@ -260,15 +260,15 @@ describe("TOK Connect Edge Functions", () => {
     const source = read("supabase/functions/tok-connect-webhook-dispatch/index.ts");
 
     for (const marker of [
-      "tok_connect_webhook_deliveries",
+      "claim_tok_connect_webhook_deliveries",
+      "complete_tok_connect_webhook_delivery",
       "tok_connect_webhook_endpoints",
       "buildTokConnectWebhookHeaders",
       "X-TOK-Event",
-      "next_retry_at",
       "attempts",
       "delivered",
       "failed",
-      "fetch(",
+      "postPublicWebhook",
       "writeAuditLog",
       "assertTokConnectFeatureEnabled",
     ]) {

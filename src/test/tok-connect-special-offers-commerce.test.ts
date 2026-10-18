@@ -44,7 +44,7 @@ function harness(options: { kind?: "antigaspi" | "flash"; now?: string; date?: s
     if (name === "create-checkout") { writes.push("stripe"); if (options.timeout) throw new Error("provider_response_lost"); return Response.json({ url: "https://checkout.stripe.com/c/pay/test" }); }
     throw new Error("Unexpected provider " + name);
   });
-  const deps = { ...contract, HttpError, fetch, Deno: { env: { get: () => "https://tok.test" }, serve() {} },
+  const deps = { ...contract, HttpError, fetch, tokOAuthEdgeFetch: (_actor: unknown, url: string, init: RequestInit) => fetch(url, init), Deno: { env: { get: () => "https://tok.test" }, serve() {} },
     requireUserRole: (actor: { roles: string[] }, roles: string[]) => { if (!roles.some((role) => actor.roles.includes(role))) throw new HttpError(403, "forbidden"); },
     sha256Base64Url: async (value: string) => createHash("sha256").update(value).digest("hex"), isClientCheckoutRestaurantEligible: (row: unknown) => Boolean(row),
     getEffectiveFeatureFlagSet: async () => flags, buildVerifiedOrderPricing: pricing,

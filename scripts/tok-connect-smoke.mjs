@@ -2,7 +2,7 @@ import { pathToFileURL } from 'node:url';
 import mutationPolicy from './contracts/tok-connect-public-mutations.json' with { type: 'json' };
 
 const ORIGIN = 'https://www.thetok.ch';
-const ISSUER = 'https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1';
+const ISSUER = `${ORIGIN}/oauth`;
 const VERSION = '2025-11-25';
 const CLIENT_MUTATIONS = ['tok_book_table', 'tok_cancel_my_reservation', 'tok_checkout_customer_cart', 'tok_cancel_cart_payment_attempt'];
 const REVIEWED_MUTATIONS = mutationPolicy.mutation_names;
@@ -51,18 +51,18 @@ export async function runTokConnectSmoke({ fetchImpl = fetch, installedToolNames
   };
   const require = (condition) => { if (!condition) throw new Error('contract'); };
 
-  await check('protected-resource-and-oidc', async () => {
+  await check('protected-resource-and-oauth', async () => {
     const resource = await request(`${ORIGIN}/.well-known/oauth-protected-resource`);
     require(resource.resource === `${ORIGIN}/mcp`);
     require(resource.authorization_servers?.length === 1 && resource.authorization_servers[0] === ISSUER);
-    require(['openid', 'email', 'profile'].every((scope) => resource.scopes_supported?.includes(scope)));
+    require(JSON.stringify(resource.scopes_supported) === JSON.stringify(['tok']));
     // Pin the issuer rather than following an arbitrary URL from discovery.
-    const oidc = await request(`${ISSUER}/.well-known/openid-configuration`);
-    require(oidc.issuer === ISSUER);
-    require(oidc.authorization_endpoint === `${ISSUER}/oauth/authorize`);
-    require(oidc.token_endpoint === `${ISSUER}/oauth/token`);
-    require(oidc.registration_endpoint === `${ISSUER}/oauth/clients/register`);
-    require(oidc.code_challenge_methods_supported?.includes('S256'));
+    const oauth = await request(`${ORIGIN}/.well-known/oauth-authorization-server/oauth`);
+    require(oauth.issuer === ISSUER);
+    require(oauth.authorization_endpoint === `${ISSUER}/authorize`);
+    require(oauth.token_endpoint === `${ISSUER}/token`);
+    require(oauth.registration_endpoint === `${ISSUER}/register`);
+    require(oauth.code_challenge_methods_supported?.includes('S256'));
   });
   await check('initialize', async () => {
     const { result } = await rpc('initialize', { protocolVersion: VERSION, capabilities: {}, clientInfo: { name: 'tok-connect-read-only-smoke', version: '1.0.0' } });

@@ -1,3 +1,4 @@
+import { getTokImageReservationDisplay } from "@/lib/tokCredits";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
@@ -1719,9 +1720,9 @@ function LiveDashboardAccountBilling() {
                             </TableCell>
                             <TableCell data-label="Détail">
                               <div className="max-w-md">
-                                <p className="font-medium">{entry.label}</p>
-                                {entry.description ? (
-                                  <p className="text-xs text-muted-foreground">{entry.description}</p>
+                                <p className="font-medium">{getTokImageReservationDisplay(entry)?.label || entry.label}</p>
+                                {(getTokImageReservationDisplay(entry)?.description || entry.description) ? (
+                                  <p className="text-xs text-muted-foreground">{getTokImageReservationDisplay(entry)?.description || entry.description}</p>
                                 ) : null}
                               </div>
                             </TableCell>

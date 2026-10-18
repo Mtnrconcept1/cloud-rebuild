@@ -33,7 +33,7 @@ function harness(options:{disabled?:boolean;timeout?:boolean;state?:string;routi
   if(name==="payment-attempt-status")return Response.json({state:options.state||"paid",payment_status:options.state==="indeterminate"?null:"paid"});
   throw new Error("Unexpected endpoint "+name);
  });
- const deps={HttpError,...contract,Deno:{env:{get:()=>"https://tok.test"},serve:()=>{}},fetch,
+ const deps={HttpError,...contract,Deno:{env:{get:()=>"https://tok.test"},serve:()=>{}},fetch,tokOAuthEdgeFetch:(_actor:unknown,url:string,init:RequestInit)=>fetch(url,init),
   requireUserRole:(actor:{roles:string[]},roles:string[])=>{if(!actor.roles.some(r=>roles.includes(r)))throw new HttpError(403,"forbidden")},
   sha256Base64Url:async(s:string)=>createHash("sha256").update(s).digest("hex"),
   isClientCheckoutRestaurantEligible:(r:unknown)=>Boolean(r),

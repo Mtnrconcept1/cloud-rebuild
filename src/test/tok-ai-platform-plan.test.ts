@@ -116,7 +116,20 @@ describe("TOK AI platform plan", () => {
     expect(client).toContain('from "@/lib/session";');
     expect(client).toContain("invokeSupabaseFunction");
     expect(client).toContain("invokeSupabaseFunction<T>");
-    expect(client).not.toContain("supabase.auth.getSession");
+    // Image idempotence needs the current user's identity. Authentication and
+    // token refresh still belong to the shared session transport.
+    const imageStart = client.search(/export\s+(?:async\s+)?function\s+generateTokDishImage\b/);
+    const imageEnd = client.search(/export\s+(?:async\s+)?function\s+runAccountingAgent\b/);
+    expect(imageStart).toBeGreaterThanOrEqual(0);
+    expect(imageEnd).toBeGreaterThan(imageStart);
+    const imageFunction = client.slice(imageStart, imageEnd);
+    expect(imageFunction.match(/supabase\.auth\.getSession\s*\(/g)).toHaveLength(1);
+    expect(imageFunction).toContain("const userId = sessionData.session?.user.id;");
+    expect(imageFunction).toContain("runImageGenerationIntention(userId, body");
+    expect(imageFunction).toContain('invokeTokAiFunction<TokImageGenerationResult>("ai-image-enhance"');
+    expect(client.slice(0, imageStart) + client.slice(imageEnd)).not.toContain("supabase.auth.getSession");
+    expect(client).not.toMatch(/\b(?:access_token|refresh_token)\b/);
+    expect(client).not.toMatch(/\bauthorization\b/i);
     expect(client).not.toContain("supabase.functions.invoke(functionName");
     expect(client).not.toContain("OPENAI_API_KEY");
     expect(client).not.toContain("VITE_OPENAI");

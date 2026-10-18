@@ -157,8 +157,9 @@ describe("TOK AI tools foundation", () => {
     }
 
     const photoSource = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
-    expect(photoSource).toContain("requireTokCreditBalance");
-    expect(photoSource).toContain('throw new HttpError(402, "ai_credits_exhausted")');
+    expect(photoSource).toContain("AiImageOperation.claim(actor.adminClient");
+    expect(readProjectFile("supabase/functions/_shared/ai-image-operation.ts"))
+      .toContain('new ImageOperationError(402, "tok_credits_exhausted")');
   });
 
   it("shows a direct recharge action when AI or campaign credits are insufficient", () => {
@@ -430,7 +431,7 @@ describe("TOK AI tools foundation", () => {
       "creditUnitsFromEstimatedCost",
       "getBillablePhotoCreditUnits",
       "estimatedCostChf?: number",
-      "estimatedCostChf: estimatedImageCostChf",
+      "estimated_cost_chf: estimatedImageCostChf",
       "credit_units: billablePhotoCreditUnits",
       "requestedOutputCreditUnits",
       "requested_output_credit_units",

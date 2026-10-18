@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 // It imports the real modules and uses temporary HTML fixtures, never production.
 describe("Stoppin venue SEO", () => {
   it("passes the standalone behavioral and filesystem regression suite", () => {
-    const output = execFileSync(process.execPath, ["--test", "scripts/stoppin-venue-seo.test.mjs"], {
+    const output = execFileSync(process.execPath, ["--test", "--test-reporter=tap", "scripts/stoppin-venue-seo.test.mjs"], {
       cwd: process.cwd(), encoding: "utf8", timeout: 30_000,
     });
     expect(output).toContain("# fail 0");

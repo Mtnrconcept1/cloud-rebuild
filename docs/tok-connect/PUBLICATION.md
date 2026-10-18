@@ -5,7 +5,7 @@ La vérification effective de cette identité dans le portail reste une étape d
 
 Le package source portable est `plugins/tok-connect`. Il ne contient aucun secret,
 compte de revue, `.app.json` ni binding privé de l'installation de développement.
-L'endpoint demeure `https://www.thetok.ch/mcp` avec découverte OAuth Supabase.
+L'endpoint demeure `https://www.thetok.ch/mcp` avec découverte du broker OAuth TOK (`https://www.thetok.ch/oauth`, scope `tok`). Les anciens clients OAuth natifs doivent être révoqués et reconnectés ; voir [le runbook de sécurisation](SECURITY_HARDENING.md).
 
 Les quatre pages publiques ont été ouvertes dans le navigateur : présentation
 TOK Connect, contact, confidentialité et CGU. La politique traite les intégrations

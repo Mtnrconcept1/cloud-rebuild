@@ -3,6 +3,9 @@ import { Check, Loader2, LockKeyhole, ShieldCheck, X } from "lucide-react";
 import { useLocation, useSearchParams } from "react-router-dom";
 
 import { getSupabase } from "@/integrations/supabase/client";
+import TokOAuthPermissions from "@/components/auth/TokOAuthPermissions";
+import TokOAuthConnections from "@/components/auth/TokOAuthConnections";
+import { listManagedTokOAuthClients, listTokOAuthRestaurants, saveTokOAuthGrant, TOK_OAUTH_DEFAULT_SCOPES, type TokOAuthRestaurant } from "@/lib/tokOAuth";
 
 type OAuthError = {
   message?: string;
@@ -86,6 +89,10 @@ export default function OAuthConsent() {
   const [loading, setLoading] = useState(true);
   const [decision, setDecision] = useState<Decision | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [existingConsent, setExistingConsent] = useState(false);
+  const [businessScopes, setBusinessScopes] = useState<string[]>([...TOK_OAUTH_DEFAULT_SCOPES]);
+  const [restaurantIds, setRestaurantIds] = useState<string[]>([]);
+  const [restaurants, setRestaurants] = useState<TokOAuthRestaurant[]>([]);
 
   const requestedScopes = useMemo(
     () => details?.scope?.split(/\s+/).filter(Boolean) || [],
@@ -104,6 +111,7 @@ export default function OAuthConsent() {
       let redirecting = false;
       setLoading(true);
       setDetails(null);
+      setExistingConsent(false);
       setErrorMessage(null);
 
       try {
@@ -131,14 +139,18 @@ export default function OAuthConsent() {
         if (error) throw error;
         if (!data) throw new Error("La demande d’autorisation est introuvable ou a expiré.");
 
-        // Supabase peut retourner directement une URL si un consentement valide existe déjà.
+        if (data.client?.id && !(await listManagedTokOAuthClients([data.client.id])).includes(data.client.id)) {
+          throw new Error("Cette ancienne connexion n’utilise pas la protection TOK. Révoquez-la puis reconnectez l’application depuis son nouveau connecteur.");
+        }
+        // GoTrue auto-consent omits the client identity. Never forward an opaque
+        // authorization result before verifying broker membership and TOK grants.
         if (!data.authorization_id && data.redirect_url) {
-          redirecting = true;
-          redirectToOAuthClient(data.redirect_url);
+          if (active) setExistingConsent(true);
           return;
         }
-
-        if (active) setDetails(data);
+        if (!data.client?.id) throw new Error("L’application à autoriser ne peut pas être vérifiée.");
+        const places = await listTokOAuthRestaurants();
+        if (active) { setRestaurants(places); setDetails(data); }
       } catch (error) {
         if (active) setErrorMessage(getErrorMessage(error));
       } finally {
@@ -165,17 +177,24 @@ export default function OAuthConsent() {
         throw new Error("Le module OAuth de Supabase Auth n’est pas disponible dans cette version de l’application.");
       }
 
+      if (nextDecision === "approve" && (!details?.client?.id || !(await listManagedTokOAuthClients([details.client.id])).includes(details.client.id))) {
+        throw new Error("La protection de cette application n’est plus confirmée. Relancez une connexion TOK.");
+      }
       const { data, error } = nextDecision === "approve"
         ? await oauth.approveAuthorization(authorizationId, { skipBrowserRedirect: true })
         : await oauth.denyAuthorization(authorizationId, { skipBrowserRedirect: true });
 
       if (error) throw error;
+      if (nextDecision === "approve") {
+        if (!details?.client?.id) throw new Error("L’application à autoriser ne peut pas être vérifiée.");
+        await saveTokOAuthGrant(details.client.id, clientName, businessScopes, restaurantIds);
+      }
       redirectToOAuthClient(data?.redirect_url);
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
       setDecision(null);
     }
-  }, [authorizationId, decision]);
+  }, [authorizationId, decision, details, clientName, businessScopes, restaurantIds]);
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-12 text-slate-950 sm:px-6">
@@ -205,6 +224,12 @@ export default function OAuthConsent() {
               <Loader2 className="h-8 w-8 animate-spin text-emerald-600" aria-hidden="true" />
               <p className="mt-4 font-medium">Vérification de la demande…</p>
               <p className="mt-1 text-sm text-slate-500">Cette étape ne devrait prendre qu’un instant.</p>
+            </div>
+          ) : existingConsent ? (
+            <div className="space-y-5">
+              <h2 className="text-lg font-bold">Reconnectez cette application</h2>
+              <p className="text-sm leading-6 text-slate-600">Une autorisation d’identité existe déjà. Révoquez cette connexion ci-dessous, puis relancez la connexion depuis votre application pour choisir ses permissions TOK. Aucun code de connexion n’a été transmis.</p>
+              <TokOAuthConnections />
             </div>
           ) : details ? (
             <div className="space-y-6">
@@ -247,14 +272,7 @@ export default function OAuthConsent() {
                 )}
               </div>
 
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-                <p className="font-bold">Accès TOK appliqué selon votre rôle</p>
-                <ul className="mt-2 list-disc space-y-1 pl-5 leading-5">
-                  <li>Consulter les restaurants et disponibilités accessibles à votre compte.</li>
-                  <li>Pour un compte restaurateur autorisé, lire les indicateurs et préparer des campagnes ou plans.</li>
-                  <li>Aucune réservation définitive, publication, dépense ou action administrative n’est exécutée sans confirmation humaine.</li>
-                </ul>
-              </div>
+              <TokOAuthPermissions scopes={businessScopes} restaurantIds={restaurantIds} restaurants={restaurants} onScopesChange={setBusinessScopes} onRestaurantIdsChange={setRestaurantIds} disabled={decision !== null} />
 
               {details.redirect_uri ? (
                 <details className="rounded-xl border border-slate-200 px-4 py-3 text-sm">

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID, webcrypto } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, resolve, sep } from "node:path";
 import { createContext, Script } from "node:vm";
@@ -54,12 +54,48 @@ function harness(options: {
   const assets: Json[] = [];
   const usage: Json[] = [];
   const uploads: Array<{ bucket: string; path: string; bytes: Uint8Array }> = [];
+  const removals: Array<{ bucket: string; paths: string[] }> = [];
   const audit = vi.fn(async (_event: Json) => {});
+  let state = "";
+  let durableResponse: Json | null = null;
+  let admittedHash = "";
+  let signalProvider: () => void = () => {};
+  const providerReady = new Promise<void>((resolveReady) => { signalProvider = resolveReady; });
 
-  const rpc = vi.fn(async (name: string) => {
+  const rpc = vi.fn(async (name: string, args: Json) => {
     if (name === "is_feature_flag_active") return { data: true, error: null };
-    if (name === "get_restaurant_credit_usage") {
-      return { data: { credits: [{ kind: "tok_credits", balance: options.creditBalance ?? 50 }] }, error: null };
+    if (name === "claim_ai_image_operation") {
+      if (state) {
+        if (args.p_request_hash !== admittedHash) return { data: null, error: { message: "image_idempotency_conflict" } };
+        return { data: { claimed: false, operation_id: "fixture-operation", state, response: durableResponse }, error: null };
+      }
+      if ((options.creditBalance ?? 50) < Number(args.p_credit_units)) return { data: null, error: { message: "TOK credits exhausted" } };
+      state = "reserved"; admittedHash = String(args.p_request_hash);
+      usage.push({ id: "fixture-usage", function_name: "ai-image-enhance", action: "image_credit_reservation",
+        restaurant_id: RESTAURANT_ID, status: "success", estimated_cost_chf: 0,
+        metadata: { credit_units: args.p_credit_units, billing_phase: "reserved", generated_image: false, image_operation_id: "fixture-operation" } });
+      return { data: { claimed: true, operation_id: "fixture-operation", worker_token: "fixture-private-worker",
+        asset_id: ASSET_ID, usage_id: "fixture-usage", generation_seed: args.p_generation_seed,
+        available_credits_before: options.creditBalance ?? 50 }, error: null };
+    }
+    if (name === "advance_ai_image_operation") {
+      state = String(args.p_transition);
+      return { data: state, error: null };
+    }
+    if (name === "finalize_ai_image_operation") {
+      state = "completed";
+      assets.push({ ...(args.p_asset as Json), id: ASSET_ID });
+      Object.assign(usage[0], args.p_usage, { action: "image_enhance", generated_asset_id: ASSET_ID,
+        metadata: { ...(args.p_metadata as Json), billing_phase: "completed", generated_image: true } });
+      durableResponse = args.p_response as Json;
+      return { data: durableResponse, error: null };
+    }
+    if (name === "release_ai_image_operation") {
+      state = "failed";
+      usage[0].status = "failure";
+      (usage[0].metadata as Json).billing_phase = "released";
+      durableResponse = { error: "image_generation_failed", operation_id: "fixture-operation", state, retry_safe: true };
+      return { data: durableResponse, error: null };
     }
     throw new Error(`Unexpected RPC: ${name}`);
   });
@@ -106,6 +142,7 @@ function harness(options: {
           },
           getPublicUrl: (path: string) => ({ data: { publicUrl: `${STORAGE_URL}/${bucket}/${path}` } }),
           createSignedUrl: async (path: string) => ({ data: { signedUrl: `https://fixture.supabase.co/storage/v1/object/sign/${bucket}/${path}?token=fixture` } }),
+          remove: async (paths: string[]) => { removals.push({ bucket, paths }); return { data: [], error: null }; },
         };
       },
     },
@@ -119,6 +156,10 @@ function harness(options: {
   });
 
   const provider = vi.fn(async (url: string, init: RequestInit) => {
+    signalProvider();
+    expect(state).toBe("provider_started");
+    expect(usage).toHaveLength(1);
+    expect(usage[0]).toMatchObject({ action: "image_credit_reservation", metadata: { billing_phase: "reserved", generated_image: false } });
     if (url !== IMAGE_EDITS_URL && url !== "https://api.openai.com/v1/images/generations") {
       throw new Error(`Unexpected provider URL: ${url}`);
     }
@@ -161,8 +202,8 @@ function harness(options: {
   const context = createContext({
     Request, Response, Headers, Blob, FormData, URL, URLSearchParams,
     AbortController, DOMException, Error, TypeError, Uint8Array,
-    atob, btoa, setTimeout, clearTimeout,
-    crypto: { randomUUID },
+    atob, btoa, setTimeout, clearTimeout, TextEncoder, TextDecoder,
+    crypto: { randomUUID, subtle: webcrypto.subtle },
     fetch: provider,
     console: { error: vi.fn(), warn: vi.fn(), log: vi.fn() },
     Deno: {
@@ -201,7 +242,8 @@ function harness(options: {
   const registeredHandler = handler;
 
   return {
-    activeReferences, assets, usage, uploads, audit, rpc, provider, fetchReference,
+    activeReferences, assets, usage, uploads, removals, audit, rpc, provider, providerReady, fetchReference,
+    state: () => state,
     call: (patch: Json = {}) => registeredHandler(new Request("https://tok.test/functions/v1/ai-image-enhance", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -215,6 +257,7 @@ function harness(options: {
         variantCount: 1,
         referenceMediaIds: activeReferences.map((row) => row.id),
         generationSeed: "fixture-marketing",
+        idempotency_key: "fixture-marketing-intention",
         ...patch,
       }),
     })),
@@ -230,14 +273,14 @@ function readBlob(blob: Blob): Promise<Uint8Array> {
   });
 }
 
-function expectNoStoredSuccessOrDebit(h: ReturnType<typeof harness>, body: Json) {
+function expectNoGeneratedSuccess(h: ReturnType<typeof harness>, body: Json, reservationHeld = false) {
   expect(body).not.toHaveProperty("assetId");
   expect(body).not.toHaveProperty("generated_image_url");
   expect(body).not.toHaveProperty("gallery_image_url");
   expect(body.status).not.toBe("stored");
   expect(h.assets).toHaveLength(0);
-  expect(h.usage.filter((row) => row.status === "success")).toHaveLength(0);
-  expect(h.usage.some((row) => Number((row.metadata as Json)?.credit_units ?? 0) > 0)).toBe(false);
+  expect(h.usage.filter((row) => row.status === "success" && (row.metadata as Json)?.generated_image === true)).toHaveLength(0);
+  expect(h.usage.filter((row) => row.status === "success")).toHaveLength(reservationHeld ? 1 : 0);
   expect(h.audit.mock.calls.some(([event]) => event.status === "success")).toBe(false);
 }
 
@@ -281,21 +324,22 @@ describe("native marketing image generation", () => {
     expect(h.audit.mock.calls[0][0]).toMatchObject({ status: "success", targetEntityId: ASSET_ID });
   });
 
-  it("aborts an expired edit without retrying, generating without references or recording a debit", async () => {
+  it("aborts an expired edit without retrying and holds the reservation for reconciliation", async () => {
     vi.useFakeTimers();
     const h = harness({ providerFailure: "timeout" });
     const pending = h.call();
+    await h.providerReady;
     await vi.runAllTimersAsync();
     const response = await pending;
     const body = await response.json();
 
-    expect(response.status).toBe(503);
-    expect(body.error).toBe("image_edit_timeout");
+    expect(response.status).toBe(409);
+    expect(body).toMatchObject({ error: "image_operation_pending", state: "indeterminate", retry_safe: false });
     expect(h.provider).toHaveBeenCalledTimes(1);
     expect(h.provider.mock.calls[0][0]).toBe(IMAGE_EDITS_URL);
     expect(h.provider.mock.calls[0][1].signal?.aborted).toBe(true);
     expect(h.uploads).toHaveLength(0);
-    expectNoStoredSuccessOrDebit(h, body);
+    expectNoGeneratedSuccess(h, body, true);
   });
 
   it.each(["invalid_image", "server_error"] as const)("fails a rejected %s edit without abandoning references or retrying", async (providerFailure) => {
@@ -303,13 +347,14 @@ describe("native marketing image generation", () => {
     const response = await h.call();
     const body = await response.json();
 
-    expect(response.status).toBe(502);
+    expect(response.status).toBe(providerFailure === "invalid_image" ? 502 : 409);
     expect(typeof body.error).toBe("string");
     expect(h.provider).toHaveBeenCalledTimes(1);
     expect(h.provider.mock.calls[0][0]).toBe(IMAGE_EDITS_URL);
     expect((h.provider.mock.calls[0][1].body as FormData).getAll("image[]")).toHaveLength(4);
     expect(h.uploads).toHaveLength(0);
-    expectNoStoredSuccessOrDebit(h, body);
+    expectNoGeneratedSuccess(h, body, providerFailure === "server_error");
+    expect(body.error).toBe(providerFailure === "invalid_image" ? "image_generation_failed" : "image_operation_pending");
   });
 
   it("fails before the provider if one selected reference cannot be downloaded", async () => {
@@ -321,7 +366,7 @@ describe("native marketing image generation", () => {
     expect(h.fetchReference).toHaveBeenCalledTimes(4);
     expect(h.provider).not.toHaveBeenCalled();
     expect(h.uploads).toHaveLength(0);
-    expectNoStoredSuccessOrDebit(h, body);
+    expectNoGeneratedSuccess(h, body);
   });
 
   it.each([
@@ -331,10 +376,10 @@ describe("native marketing image generation", () => {
     const h = harness();
     const response = await h.call(patch);
 
-    expect([400, 409]).toContain(response.status);
+    expect(response.status).toBe(502);
     expect(h.fetchReference).not.toHaveBeenCalled();
     expect(h.provider).not.toHaveBeenCalled();
-    expectNoStoredSuccessOrDebit(h, await response.json());
+    expectNoGeneratedSuccess(h, await response.json());
   });
 
   it("refuses insufficient restaurant credits before downloading references or contacting the provider", async () => {
@@ -343,19 +388,22 @@ describe("native marketing image generation", () => {
     const body = await response.json();
 
     expect(response.status).toBe(402);
-    expect(body.error).toBe("ai_credits_exhausted");
+    expect(body.error).toBe("tok_credits_exhausted");
     expect(h.fetchReference).not.toHaveBeenCalled();
     expect(h.provider).not.toHaveBeenCalled();
-    expectNoStoredSuccessOrDebit(h, body);
+    expectNoGeneratedSuccess(h, body);
   });
 
-  it("does not return stored success or debit credits when generated-image storage fails", async () => {
+  it("does not return generated success or refund while a storage outcome remains ambiguous", async () => {
     const h = harness({ uploadFailure: true });
     const response = await h.call();
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(409);
     expect(h.provider).toHaveBeenCalledTimes(1);
     expect(h.uploads).toHaveLength(0);
-    expectNoStoredSuccessOrDebit(h, await response.json());
+    const body = await response.json();
+    expect(body).toMatchObject({ error: "image_operation_pending", state: "cleanup_pending", retry_safe: false });
+    expect(h.removals).toHaveLength(2);
+    expectNoGeneratedSuccess(h, body, true);
   });
 });

@@ -25,11 +25,17 @@ The OAuth protected-resource metadata is available at:
 https://www.thetok.ch/.well-known/oauth-protected-resource
 ```
 
-The authorization server remains Supabase Auth for interactive end users:
+Interactive clients use the TOK authorization server. Supabase Auth is the upstream identity provider and its native tokens remain server-side:
 
 ```text
-https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1
+https://www.thetok.ch/oauth
 ```
+
+Discover the issuer at `https://www.thetok.ch/.well-known/oauth-authorization-server/oauth`.
+Public clients use scope `tok`, PKCE S256 and `token_endpoint_auth_method=none`.
+They receive opaque access/refresh tokens. Business permissions and restaurants are selected in TOK consent and checked server-side on every delegated operation. Refresh calls must be serialized; reuse revokes the token family.
+
+Existing native OAuth connections must be revoked and recreated through this broker. See [security deployment and acceptance](SECURITY_HARDENING.md) for the coordinated rollout and its required SQL, runtime and authenticated-client gates.
 
 ## What an agent can really do
 
@@ -103,7 +109,7 @@ A compatible client should:
 
 ## Security invariants
 
-- No Supabase `service_role` key is sent to an MCP client.
+- No Supabase `service_role` key, native access token, native refresh token or ID token is sent to an MCP client.
 - The public gateway does not bypass RLS or TOK grants.
 - Real reservation mutations require OAuth, explicit confirmation and idempotency.
 - Destructive tools are annotated as destructive.

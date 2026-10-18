@@ -1,24 +1,36 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Execute the real module with only its remote Supabase import substituted.
+// Execute the real module and its local dependencies with only the remote
+// Supabase import substituted. Keep the cache to preserve circular imports.
 // No client or network is needed to exercise the audit write contract.
-const source = readFileSync(resolve("supabase/functions/_shared/auth.ts"), "utf8");
-const compiled = ts.transpileModule(source, {
-  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-}).outputText;
 const fallback = vi.fn();
-const exports: Record<string, any> = {};
-runInNewContext(compiled, {
-  exports, URL, console: { error: fallback },
-  require: (name: string) => {
-    if (name !== "https://esm.sh/@supabase/supabase-js@2") throw new Error(`Unexpected import: ${name}`);
-    return { createClient: () => { throw new Error("No audit test may create a remote client"); } };
-  },
-});
+const modules = new Map<string, { exports: Record<string, any> }>();
+function load(file: string): Record<string, any> {
+  const filename = resolve(file);
+  const cached = modules.get(filename);
+  if (cached) return cached.exports;
+  const module = { exports: {} as Record<string, any> };
+  modules.set(filename, module);
+  const compiled = ts.transpileModule(readFileSync(filename, "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  runInNewContext(compiled, {
+    module, exports: module.exports, URL, TextEncoder, console: { error: fallback },
+    require: (name: string) => {
+      if (name === "https://esm.sh/@supabase/supabase-js@2") {
+        return { createClient: () => { throw new Error("No audit test may create a remote client"); } };
+      }
+      if (name.startsWith("./")) return load(resolve(dirname(filename), name));
+      throw new Error(`Unexpected import: ${name}`);
+    },
+  });
+  return module.exports;
+}
+const exports = load("supabase/functions/_shared/auth.ts");
 
 describe("Edge audit write failure handling", () => {
   beforeEach(() => fallback.mockReset());

@@ -1,3 +1,4 @@
+import TokOAuthConnections from "@/components/auth/TokOAuthConnections";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, Check, Copy, Plug, RefreshCw, ShieldCheck, ShieldX, Sparkles } from "lucide-react";
 
@@ -255,7 +256,7 @@ export default function DashboardTokConnect() {
         <DashboardPageHero
           badge="Partenaires & IA"
           title="TOK Connect"
-          description="Connectez ChatGPT et vos partenaires approuvés à ce restaurant : point d'accès MCP, scopes autorisés et limites de réservation restent sous votre contrôle."
+          description="Connectez vos applications avec les permissions et restaurants que vous choisissez. Vous pouvez révoquer leur accès à tout moment."
           icon={Plug}
           tone="violet"
           visualLabel="Connecteurs"
@@ -326,9 +327,11 @@ export default function DashboardTokConnect() {
           </p>
         </section>
 
+        {!isCommercialDemo ? <TokOAuthConnections /> : null}
+
         <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
           <div className="border-b p-5">
-            <h2 className="font-display text-xl font-bold">Connexion ChatGPT</h2>
+            <h2 className="font-display text-xl font-bold">Activité récente ChatGPT</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Connecteurs MCP ayant accédé à ce restaurant avec votre compte TOK, sur les
               {" "}{connectionStatus?.log_limit || 200} derniers appels enregistrés.
@@ -358,7 +361,7 @@ export default function DashboardTokConnect() {
                       : "Client OAuth non identifié"}
                   </p>
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                    <Sparkles className="h-3 w-3" /> Connecté
+                    <Sparkles className="h-3 w-3" /> Appel observé
                   </span>
                   {connection.error_count > 0 ? (
                     <span className="rounded-full bg-destructive/10 px-3 py-1 text-xs font-bold text-destructive">

@@ -20,12 +20,13 @@ Le socle actuel repose sur:
 - Frontend React/Vite: pages publiques `/tok-connect`, portail developpeur `/tok-connect/developer`, admin `/admin/tok-connect`, dashboard restaurant `/dashboard/tok-connect`.
 - Supabase Postgres: tables partenaires, clients OAuth, grants restaurant, tokens, idempotence, logs API, endpoints webhook, deliveries webhook et runs agents.
 - Supabase Edge Functions:
+  - `tok-connect-broker`: autorisation interactive, inscription des clients, échange et rotation de jetons opaques limités à TOK.
   - `tok-connect-oauth`: flux `client_credentials` historique reserve aux integrations serveur-a-serveur B2B.
   - `tok-connect-api`: API REST versionnee `/v1`.
   - `tok-connect-mcp`: serveur MCP JSON-RPC expose a ChatGPT uniquement derriere l'endpoint canonique `https://www.thetok.ch/mcp`.
   - `tok-connect-portal`: actions portail/admin/dashboard.
   - `tok-connect-webhook-dispatch`: livraison des webhooks sortants.
-- Supabase Auth: serveur OAuth 2.1 natif pour l'identite ChatGPT, PKCE, consentement et rotation des refresh tokens.
+- Supabase Auth: fournisseur d’identité et de consentement, derrière le broker TOK ; ses JWT et refresh tokens restent côté serveur.
 - Feature flags: `tok-connect`, `tok-connect-api`, `tok-connect-mcp`, `tok-connect-webhooks`, `tok-connect-autopilot`, `admin-tok-connect`, `dashboard-tok-connect`.
 
 Toutes les nouvelles tables TOK Connect ont RLS activee. Les mutations sensibles passent par Edge Functions avec client service-role cote serveur uniquement. Le navigateur ne doit jamais recevoir de secret service-role.
@@ -103,49 +104,33 @@ Endpoints disponibles:
 
 ## Authentification ChatGPT et partenaires B2B
 
-TOK Connect distingue deux flux. Ils ne doivent pas etre melanges:
+Le contrat interactif utilise désormais le **broker OAuth TOK**. Le MCP public reste `https://www.thetok.ch/mcp`. Le flux `client_credentials` existant reste disponible pour les backends partenaires B2B.
 
-- ChatGPT utilise le serveur OAuth 2.1 natif de Supabase Auth. Il fournit PKCE, decouverte OAuth/OIDC, Dynamic Client Registration (DCR), consentement utilisateur et refresh tokens avec rotation.
-- Les integrations serveur-a-serveur existantes peuvent encore utiliser `tok-connect-oauth` en `client_credentials`. Ce flux est legacy B2B et ne doit plus etre configure comme authentification du connecteur ChatGPT.
+### ChatGPT et autres clients interactifs : broker TOK
 
-### ChatGPT: OAuth 2.1 natif Supabase
+| Élément | Contrat public |
+|---|---|
+| Resource server | `https://www.thetok.ch/mcp` |
+| Authorization server / issuer | `https://www.thetok.ch/oauth` |
+| Métadonnées de la ressource | `https://www.thetok.ch/.well-known/oauth-protected-resource` |
+| Métadonnées de l’issuer | `https://www.thetok.ch/.well-known/oauth-authorization-server/oauth` |
+| Autorisation | `https://www.thetok.ch/oauth/authorize` |
+| Échange et renouvellement | `https://www.thetok.ch/oauth/token` |
+| Inscription dynamique du client | `https://www.thetok.ch/oauth/register` |
+| Scope externe | `tok` |
+| Client externe | Public, méthode `none`, code avec PKCE `S256` |
 
-Le resource server MCP public est:
+Le scope `tok` ne donne pas tous les droits TOK. L’écran de consentement enregistre les permissions métier et les restaurants choisis dans un grant lié à l’utilisateur et au client. Le serveur calcule l’intersection avec les rôles, la propriété et les autorisations restaurant existantes. Les modes génériques du bridge ne sont pas délégués.
 
-```txt
-https://www.thetok.ch/mcp
-```
+Le broker crée un client **confidentiel** chez Supabase et conserve son secret chiffré. Le client externe reçoit uniquement des jetons opaques TOK : aucun JWT Supabase, refresh token Supabase ou `id_token`. Les access tokens durent au plus cinq minutes. Le renouvellement est atomique ; le rejeu d’un refresh token consommé révoque sa famille. Le client doit sérialiser ses renouvellements.
 
-L'Authorization Server est:
+La page `/oauth/consent` présente les permissions effectives. Si Supabase renvoie un consentement automatique sans identité de client exploitable, elle bloque le retour et demande de révoquer puis reconnecter. Les autorisations sont consultables et révocables depuis `/account/security` et `/dashboard/tok-connect`.
 
-```txt
-https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1
-```
+**Migration obligatoire des anciennes connexions.** Le changement de code seul ne retire pas les anciens JWT natifs. Avant ouverture du broker, fermer l’inscription publique native, révoquer les anciennes autorisations/sessions OAuth et reconnecter chaque application par le nouvel issuer. Les sessions TOK natives sans `client_id` conservent leurs règles habituelles.
 
-Supabase Auth expose seulement les scopes OIDC standards (`openid`, `email`, `profile`, `phone`). Les permissions metier TOK (`restaurants:read`, `availability:read`, etc.) ne sont donc pas des scopes OAuth natifs. Elles restent determinees cote serveur a partir de l'utilisateur Supabase, du `client_id`, des roles TOK et des grants restaurant, puis appliquees par les controles Edge/RLS.
+Le [runbook de sécurisation](SECURITY_HARDENING.md) décrit les migrations, la clé de chiffrement, le déploiement coordonné et les critères de recette. Une modification du manifeste ou une sortie verte du smoke public ne prouve pas que ce déploiement est terminé.
 
-Activation et validation production:
-
-1. Dans Supabase Dashboard, ouvrir **Authentication > OAuth Server** et activer OAuth 2.1.
-2. Dans **Authentication > URL Configuration**, verifier que la Site URL de production est `https://www.thetok.ch`.
-3. Configurer l'Authorization Path sur `/oauth/consent`.
-4. Fournir la page `https://www.thetok.ch/oauth/consent`. Elle doit conserver `authorization_id` pendant le login, afficher le client, le redirect URI et les scopes, puis appeler `getAuthorizationDetails`, `approveAuthorization` ou `denyAuthorization`.
-5. Activer DCR seulement avec consentement obligatoire, surveillance des clients enregistres et validation stricte des redirect URIs. L'alternative est de pre-enregistrer un client public ChatGPT.
-6. Dans ChatGPT, creer le connecteur avec l'URL MCP canonique ci-dessus. Ne pas utiliser directement une URL `functions.supabase.co` ni `tok-connect-full-app-mcp`.
-7. Si le client est pre-enregistre, copier exactement l'URL de callback affichee par ChatGPT dans le client Supabase. Ne pas la deviner, ne pas utiliser de wildcard et verifier protocole, domaine, chemin et port.
-8. Verifier la decouverte avant la connexion:
-   - `https://www.thetok.ch/.well-known/oauth-protected-resource`
-   - `https://wwcrtyoueexyxkkikaos.supabase.co/.well-known/oauth-authorization-server/auth/v1`
-   - `https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1/.well-known/openid-configuration`
-9. Tester le parcours complet: connexion TOK, ecran de consentement, retour callback ChatGPT, appel MCP authentifie, expiration du token puis refresh sans nouvelle connexion.
-
-La configuration n'est pas prete pour ChatGPT tant que l'endpoint de consentement, la callback exacte et le refresh n'ont pas ete verifies de bout en bout.
-
-References Supabase:
-
-- [Authentification MCP avec Supabase Auth](https://supabase.com/docs/guides/auth/oauth-server/mcp-authentication)
-- [Mise en route du serveur OAuth 2.1](https://supabase.com/docs/guides/auth/oauth-server/getting-started)
-- [Flux OAuth, PKCE et refresh tokens](https://supabase.com/docs/guides/auth/oauth-server/oauth-flows)
+Références : [sécurité des jetons Supabase](https://supabase.com/docs/guides/auth/oauth-server/token-security), [métadonnées OAuth RFC 8414](https://www.rfc-editor.org/rfc/rfc8414), [protection des refresh tokens RFC 9700](https://www.rfc-editor.org/rfc/rfc9700#section-4.14).
 
 ### Legacy B2B: `client_credentials`
 
@@ -192,7 +177,9 @@ La livraison est asynchrone:
 1. Une action TOK Connect cree une ligne dans `tok_connect_webhook_deliveries`.
 2. Un scheduler explicitement configure appelle `tok-connect-webhook-dispatch` a l'intervalle approuve.
 3. La fonction signe le payload, poste vers l'endpoint actif, stocke statut HTTP, reponse tronquee, signature, tentative et prochaine date de retry.
-4. Les retries sont bornes et audites.
+4. Les claims sont atomiques et limités à cinq livraisons, avec bail de 60 secondes et cinq tentatives au maximum. Le transport valide toutes les adresses DNS puis fixe l’adresse IP de connexion, conserve la vérification TLS du hostname et refuse les redirections. La réponse est lue et tronquée pendant le streaming.
+
+Le dispatcher exige une identité service/scheduler avant toute lecture de queue. La livraison reste au moins une fois : le destinataire doit dédupliquer `X-TOK-Delivery`, notamment si la réception réussit mais que l’accusé de traitement en base échoue.
 
 Prerequis production: le secret Vault `internal_cron_secret` doit exister et le job `tok-connect-webhook-dispatcher` doit etre present et actif dans `cron.job`. La migration MCP ChatGPT v2 ne cree volontairement aucun cron: le secret, l'intervalle et le runbook de retry doivent etre approuves puis verifies separement.
 
@@ -287,7 +274,7 @@ curl "https://www.thetok.ch/functions/v1/tok-connect-api/v1/restaurants?limit=25
 
 ## Mise en place pour TOK
 
-1. Activer Supabase Auth OAuth 2.1, configurer `/oauth/consent` et valider la callback ChatGPT comme decrit plus haut.
+1. Suivre `SECURITY_HARDENING.md` : broker TOK, consentement, clé serveur, migrations, fermeture du DCR natif et révocation des anciennes sessions OAuth.
 2. Verifier les feature flags:
    - `tok-connect`: actif.
    - `tok-connect-api`: actif.
@@ -308,9 +295,9 @@ curl "https://www.thetok.ch/functions/v1/tok-connect-api/v1/restaurants?limit=25
 
 - RLS activee sur toutes les tables TOK Connect.
 - `anon` ne lit pas les tables privees TOK Connect.
-- Les secrets OAuth clients sont hashes.
+- Les secrets des clients B2B sont hashés. Les secrets des clients confidentiels du broker sont chiffrés en AES-256-GCM côté serveur.
 - Les tokens opaques sont courts et revocables.
-- ChatGPT utilise OAuth 2.1 natif avec PKCE, consentement utilisateur et refresh token; il n'utilise pas le secret B2B legacy.
+- Les clients interactifs utilisent le broker TOK, PKCE S256 et des jetons opaques liés aux permissions explicitement déléguées.
 - Les scopes sont verifies cote Edge.
 - Les grants restaurants sont verifies cote Edge.
 - Les endpoints webhook bloquent les URL locales/privees en production.
@@ -385,7 +372,7 @@ Exemple d'appel MCP authentifie, uniquement **apres validation explicite par le 
 }
 ```
 
-L'identifiant ci-dessus est **illustratif**, pas un restaurant de production. Le compte TOK doit etre connecte par Supabase OAuth (un jeton partenaire ou une sandbox ne permettent pas ce debit), avec autorisation `campaigns:preview`. Le serveur controle les droits du proprietaire, `tok_connect_mcp_enabled`, la confirmation et l'idempotence, puis transmet le JWT de l'utilisateur a `tok-connect-app-bridge`, qui appelle `ai-image-enhance` via la capacite `restaurant.ai.image`. Ce moteur effectue ses propres controles d'acces, des feature flags, des credits TOK et de la persistance dans `ai_generated_assets` et Storage.
+L'identifiant ci-dessus est **illustratif**, pas un restaurant de production. Le compte TOK doit être connecté par le broker OAuth TOK (un jeton partenaire ou une sandbox ne permettent pas ce débit), avec les permissions déléguées `campaigns:preview` et `restaurant:generate`, et le restaurant possédé explicitement sélectionné. Le serveur controle le grant de délégation, les droits du proprietaire, `tok_connect_mcp_enabled`, la confirmation et l'idempotence, puis transmet l’identité native à `tok-connect-app-bridge` avec un permis serveur lié à l’opération, qui appelle `ai-image-enhance` via la capacite `restaurant.ai.image`. Ce moteur effectue ses propres controles d'acces, des feature flags, des credits TOK et de la persistance dans `ai_generated_assets` et Storage.
 
 Un succes renvoie `marketing_visual.asset_id`, `image_url` (URL publique de la galerie TOK), `format`, `credit_units` reellement remontes par le moteur, `status: "stored"`, `publication_status: "not_published"` et `replayed` pour l'idempotence. Aucune diffusion Instagram/Facebook, campagne sponsorisee, ajout au menu ou modification de compte n'est realisee. Un echec, un timeout ou un retour sans fichier de galerie confirme n'est pas presente comme un visuel cree; ne pas relancer une tentative incertaine avec une nouvelle cle.
 
@@ -418,7 +405,7 @@ Le parcours restaurateur pour créer une carte/flyer est :
 
 Le point d'entrée public `/mcp` conserve désormais la réponse `marketing_visual` du MCP canonique, conforme à son `outputSchema`, au lieu de la remplacer par l'enveloppe brute du bridge. La console affiche l'image enregistrée. Les brouillons Campaign Studio et PhotoPro gardent leur flux natif avec des délais supérieurs à ceux du moteur (100/130 secondes). Un résultat incertain n'est jamais relancé automatiquement : garder la même clé, inspecter la galerie et réconcilier le résultat. La galerie seule ne prouve pas la correspondance avec une requête dont le résultat reste inconnu.
 
-Les lectures et générations exigent le rôle restaurateur, l'ownership et le MCP actif ; aucun accès admin implicite ni modification de RLS. Publication, achat publicitaire et impression restent des actions distinctes. Aucun changement de secret ou migration n'est nécessaire.
+Les lectures et générations exigent le rôle restaurateur, l'ownership, le MCP actif et les permissions déléguées correspondantes. Publication, achat publicitaire et impression restent des actions distinctes. La sécurisation du 18 octobre ajoute les migrations et la clé serveur décrites dans `SECURITY_HARDENING.md`.
 
 **Déploiement et catalogue ChatGPT.** Déployer ensemble `tok-connect-app-bridge`, `tok-connect-mcp`, `tok-connect-chatgpt` et `tok-connect-remote-mcp` avec leurs imports partagés après validation de la PR. Le serveur Remote annonce `6.1.0`. Rafraîchir ensuite les outils du connecteur dans l'hôte et vérifier `tools/list` : les deux outils de lecture et le champ obligatoire `reference_media_ids` doivent apparaître. Un catalogue déjà chargé par ChatGPT ne peut pas être remplacé par une simple modification du serveur ; une reconnexion seule ne prouve pas sa mise à jour.
 

@@ -92,7 +92,7 @@ function harness(options: {
     return Response.json(options.nativeBody ?? nativeSuccess, { status: options.nativeStatus ?? 200 });
   });
   const dependencies = {
-    HttpError, fetch,
+    HttpError, fetch, tokOAuthEdgeFetch: (_actor: unknown, url: string, init: RequestInit) => fetch(url, init),
     Deno: {
       env: { get: (name: string) => ({ SUPABASE_URL: "https://tok.test", SUPABASE_ANON_KEY: "publishable-fixture" })[name] },
       serve: () => {},

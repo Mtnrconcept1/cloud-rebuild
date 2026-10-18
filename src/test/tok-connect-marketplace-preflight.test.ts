@@ -18,8 +18,8 @@ describe("TOK Connect early Stripe Connect readiness guard", () => {
   it("fails before any provisional order, session, or in-progress mutation on rejected finance", () => {
     const guardIndex = bridge.indexOf("  await resolveMarketplaceRouting({");
     const mutationIndex = bridge.indexOf("  mutationStarted = true;", guardIndex);
-    const orderIndex = bridge.indexOf('postCustomerTokFunction(req, "validate-order", {', mutationIndex);
-    const stripeIndex = bridge.indexOf('postCustomerTokFunction(req, "create-checkout", {', mutationIndex);
+    const orderIndex = bridge.indexOf('postCustomerTokFunction(req, actor, "validate-order", {', mutationIndex);
+    const stripeIndex = bridge.indexOf('postCustomerTokFunction(req, actor, "create-checkout", {', mutationIndex);
     expect(guardIndex).toBeGreaterThan(0);
     expect(mutationIndex).toBeGreaterThan(guardIndex);
     expect(orderIndex).toBeGreaterThan(mutationIndex);
@@ -29,6 +29,7 @@ describe("TOK Connect early Stripe Connect readiness guard", () => {
   it("never runs payment routing before the user accepts the freshly checked total", () => {
     const check = bridge.indexOf("assertTokCartAmountUnchanged(customer_quote.total_cents, input.expected_total_cents!);");
     const guard = bridge.indexOf("  await resolveMarketplaceRouting({", check);
+    expect(check).toBeGreaterThan(0);
     expect(guard).toBeGreaterThan(check);
     expect(bridge).toContain("grossCents: customer_quote.total_cents,");
     expect(bridge).toContain('stripeMode: "live"');
@@ -42,7 +43,7 @@ describe("TOK Connect early Stripe Connect readiness guard", () => {
 
   it("keeps failures retry-safe only before mutation and never weakens the downstream gate", () => {
     expect(bridge).toContain("retry_safe: !mutationStarted");
-    expect(bridge).toContain('postCustomerTokFunction(req, "create-checkout"');
+    expect(bridge).toContain('postCustomerTokFunction(req, actor, "create-checkout"');
     expect(checkout).toContain("const marketplaceRouting = await resolveMarketplaceRouting({");
     expect(checkout).toContain('destination: marketplaceRouting.destinationAccountId');
   });

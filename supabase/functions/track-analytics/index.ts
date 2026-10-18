@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { readVerifiedTokOAuthClaims } from "../_shared/tok-connect-oauth-policy.ts";
 
 import {
   HttpError,
@@ -164,6 +165,7 @@ async function maybeResolveUserId(req: Request) {
 
   const { data, error } = await userClient.auth.getUser();
   if (error || !data?.user) return null;
+  if (Object.hasOwn(readVerifiedTokOAuthClaims(token), "client_id")) throw new HttpError(403, "tok_connect_native_access_forbidden");
   return data.user.id;
 }
 

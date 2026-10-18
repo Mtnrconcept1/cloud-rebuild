@@ -13,7 +13,7 @@ import {
   type TokDiscoveryClient,
   type TokDiscoveryPayload,
 } from "../../../supabase/functions/_shared/tok-connect-discovery";
-import { TOK_DISCOVERY_WIDGET_HTML } from "../../../supabase/functions/_shared/tok-connect-discovery-widget";
+import { buildTokConnectPreviewDocument } from "@/lib/tok-connect-preview";
 
 const EXAMPLES = [
   "3 pizzerias et 2 restaurants de sushi à Genève",
@@ -22,54 +22,12 @@ const EXAMPLES = [
   "3 restaurants libanais et 2 italiens à Carouge",
 ];
 
-/**
- * Émulation de l'hôte ChatGPT (Apps SDK) : le widget publié dans ChatGPT lit
- * `window.openai`. On l'injecte ici pour que l'aperçu se comporte exactement
- * comme le module réel, clic sur une carte compris.
- */
-const HOST_SHIM = `<script>
-(function () {
-  var pending = {};
-  var sequence = 0;
-  function post(message) { try { window.parent.postMessage(message, '*'); } catch (error) {} }
-  window.openai = {
-    locale: 'fr-CH',
-    displayMode: 'inline',
-    theme: 'light',
-    maxHeight: 720,
-    toolOutput: null,
-    widgetState: null,
-    setWidgetState: function (state) { window.openai.widgetState = state; return Promise.resolve(); },
-    requestDisplayMode: function (options) { post({ type: 'tok_preview_display', mode: options && options.mode }); return Promise.resolve(options); },
-    openExternal: function (options) { post({ type: 'tok_preview_open', href: options && options.href }); },
-    sendFollowUpMessage: function (options) { post({ type: 'tok_preview_prompt', prompt: options && options.prompt }); return Promise.resolve(); },
-    callTool: function (name, args) {
-      sequence += 1;
-      var id = 'call-' + sequence;
-      return new Promise(function (resolve, reject) {
-        pending[id] = { resolve: resolve, reject: reject };
-        post({ type: 'tok_preview_call', id: id, name: name, args: args });
-      });
-    }
-  };
-  window.addEventListener('message', function (event) {
-    var data = event && event.data;
-    if (!data || data.type !== 'tok_preview_result' || !pending[data.id]) return;
-    var entry = pending[data.id];
-    delete pending[data.id];
-    if (data.error) entry.reject(new Error(data.error));
-    else entry.resolve(data.result);
-  });
-})();
-</script>
-</head>`;
-
-const PREVIEW_DOCUMENT = TOK_DISCOVERY_WIDGET_HTML.replace("</head>", HOST_SHIM);
-
 type PreviewLog = { id: string; label: string; detail: string };
 
 export default function TokConnectMcpWidget() {
   const [sandboxOnly] = useState(() => new URLSearchParams(window.location.search).get("mode") === "sandbox");
+  const [previewChannel] = useState(() => crypto.randomUUID());
+  const previewDocument = useMemo(() => buildTokConnectPreviewDocument(window.location.origin, previewChannel), [previewChannel]);
   const [request, setRequest] = useState(EXAMPLES[0]);
   const [payload, setPayload] = useState<TokDiscoveryPayload | null>(null);
   const [loading, setLoading] = useState(false);
@@ -123,24 +81,27 @@ export default function TokConnectMcpWidget() {
   useEffect(() => {
     if (!payload) return;
     const frame = frameRef.current;
-    frame?.contentWindow?.postMessage({ type: "tok_connect_preview", payload }, "*");
-  }, [payload]);
+    frame?.contentWindow?.postMessage({ type: "tok_connect_preview", channel: previewChannel, payload }, "*");
+  }, [payload, previewChannel]);
 
   useEffect(() => {
     const handler = async (event: MessageEvent) => {
       const frame = frameRef.current;
-      if (!frame || event.source !== frame.contentWindow) return;
+      if (!frame || event.source !== frame.contentWindow || event.origin !== "null") return;
       const data = event.data as Record<string, unknown> | null;
-      if (!data || typeof data !== "object") return;
+      if (!data || typeof data !== "object" || data.channel !== previewChannel) return;
 
       if (data.type === "tok_connect_widget_ready" && payload) {
-        frame.contentWindow?.postMessage({ type: "tok_connect_preview", payload }, "*");
+        frame.contentWindow?.postMessage({ type: "tok_connect_preview", channel: previewChannel, payload }, "*");
         return;
       }
 
       if (data.type === "tok_preview_open" && typeof data.href === "string") {
-        pushLog("openExternal", data.href);
-        window.open(data.href, "_blank", "noopener,noreferrer");
+        let external: URL;
+        try { external = new URL(data.href); } catch { return; }
+        if (!["https:", "http:"].includes(external.protocol) || external.username || external.password) return;
+        pushLog("openExternal", external.href);
+        window.open(external.href, "_blank", "noopener,noreferrer");
         return;
       }
 
@@ -158,10 +119,10 @@ export default function TokConnectMcpWidget() {
           const detail = client && source === "live"
             ? await runTokRestaurantDetail({ client, args, origin: window.location.origin })
             : buildSandboxRestaurantDetail(args, window.location.origin);
-          frame.contentWindow?.postMessage({ type: "tok_preview_result", id, result: { structuredContent: { detail } } }, "*");
+          frame.contentWindow?.postMessage({ type: "tok_preview_result", channel: previewChannel, id, result: { structuredContent: { detail } } }, "*");
         } catch (error) {
           frame.contentWindow?.postMessage({
-            type: "tok_preview_result",
+            type: "tok_preview_result", channel: previewChannel,
             id,
             error: error instanceof Error ? error.message : "detail_unavailable",
           }, "*");
@@ -171,7 +132,7 @@ export default function TokConnectMcpWidget() {
         // Commerce belongs to the authenticated ChatGPT host, never this preview.
         pushLog("Action indisponible dans l’aperçu", String(data.name || ""));
         frame.contentWindow?.postMessage({
-          type: "tok_preview_result", id: String(data.id || ""),
+          type: "tok_preview_result", channel: previewChannel, id: String(data.id || ""),
           error: "Cet aperçu n’exécute aucune transaction. Ouvrez TOK Connect dans ChatGPT pour continuer.",
         }, "*");
       }
@@ -179,7 +140,7 @@ export default function TokConnectMcpWidget() {
 
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
-  }, [discoveryClient, payload, pushLog, source]);
+  }, [discoveryClient, payload, previewChannel, pushLog, source]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
@@ -263,7 +224,7 @@ export default function TokConnectMcpWidget() {
             <iframe
               ref={frameRef}
               title="Module TOK Connect"
-              srcDoc={PREVIEW_DOCUMENT}
+              srcDoc={previewDocument}
               sandbox="allow-scripts"
               className="h-[720px] w-full border-0 bg-white"
             />

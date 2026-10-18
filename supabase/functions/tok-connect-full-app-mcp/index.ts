@@ -68,8 +68,8 @@ const TOK_PUBLIC_ORIGIN = (Deno.env.get("TOK_CONNECT_PUBLIC_ORIGIN") || "https:/
   .replace(/\/$/, "");
 const TOK_CONNECT_MCP_RESOURCE = `${TOK_PUBLIC_ORIGIN}/mcp`;
 const TOK_CONNECT_RESOURCE_METADATA_URL = `${TOK_PUBLIC_ORIGIN}/.well-known/oauth-protected-resource`;
-const TOK_CONNECT_AUTHORIZATION_SERVER = "https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1";
-const TOK_CONNECT_OIDC_SCOPES = ["openid", "email", "profile"];
+const TOK_CONNECT_AUTHORIZATION_SERVER = "https://www.thetok.ch/oauth";
+const TOK_CONNECT_OAUTH_SCOPES = ["tok"];
 const TOK_LOGO_SRC = `${TOK_PUBLIC_ORIGIN}/logotok.png`;
 const TOK_CHEF_SRC = `${TOK_PUBLIC_ORIGIN}/chef.png`;
 
@@ -301,7 +301,7 @@ async function authorizeFullAppMcp(req: Request, requiredScopes: string[] = []) 
 
 function toolDefinition(tool: TokConnectMcpTool) {
   const securitySchemes = tool.requiredScopes.length > 0
-    ? [{ type: "oauth2", scopes: TOK_CONNECT_OIDC_SCOPES }]
+    ? [{ type: "oauth2", scopes: TOK_CONNECT_OAUTH_SCOPES }]
     : [{ type: "noauth" }];
   const toolMeta = tool._meta || {}; const toolUiMeta = toolMeta.ui && typeof toolMeta.ui === "object" && !Array.isArray(toolMeta.ui) ? toolMeta.ui as Record<string, unknown> : {};
   return { name: tool.name, title: tool.title, description: tool.description, inputSchema: tool.inputSchema, ...(tool.outputSchema ? { outputSchema: tool.outputSchema } : {}), securitySchemes, ...(tool.annotations ? { annotations: tool.annotations } : {}), _meta: { securitySchemes, ui: { resourceUri: FULL_APP_WIDGET_URI, visibility: ["model", "app"], ...toolUiMeta }, "openai/outputTemplate": FULL_APP_WIDGET_URI, "openai/widgetAccessible": true, ...toolMeta } };
@@ -381,7 +381,7 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
       if (tool.requiredScopes.length > 0 && !hasBearerToken(req)) {
         const challenge = buildMcpBearerChallenge({
           resourceMetadataUrl: TOK_CONNECT_RESOURCE_METADATA_URL,
-          scopes: TOK_CONNECT_OIDC_SCOPES,
+          scopes: TOK_CONNECT_OAUTH_SCOPES,
           error: "invalid_token",
           errorDescription: "Connectez votre compte TOK pour utiliser cet outil.",
         });
@@ -430,7 +430,7 @@ Deno.serve(async (req) => {
     return jsonResponse({
       resource: TOK_CONNECT_MCP_RESOURCE,
       authorization_servers: [TOK_CONNECT_AUTHORIZATION_SERVER],
-      scopes_supported: TOK_CONNECT_OIDC_SCOPES,
+      scopes_supported: TOK_CONNECT_OAUTH_SCOPES,
       bearer_methods_supported: ["header"],
       resource_documentation: `${TOK_PUBLIC_ORIGIN}/tok-connect/developer`,
     }, 200, mcpResponseHeaders(corsHeaders));
@@ -482,7 +482,7 @@ Deno.serve(async (req) => {
     const challenge = isAuthError
       ? buildMcpBearerChallenge({
         resourceMetadataUrl: TOK_CONNECT_RESOURCE_METADATA_URL,
-        scopes: TOK_CONNECT_OIDC_SCOPES,
+        scopes: TOK_CONNECT_OAUTH_SCOPES,
         error: statusCode === 403 ? "insufficient_scope" : "invalid_token",
         errorDescription: errorCode,
       })

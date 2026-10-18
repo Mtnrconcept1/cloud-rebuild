@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "tok-connect",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Find restaurants, reserve tables and manage your connected TOK account and restaurant operations.",
   "author": { "name": "Raphaël Barman", "url": "https://www.thetok.ch/tok-connect" },
   "homepage": "https://www.thetok.ch/tok-connect",
@@ -67,7 +67,7 @@
       },
       "publication": {
         "countries": ["CH"],
-        "release_notes": "Initial Swiss release package for authenticated TOK discovery, reservation and targeted account and restaurant operations. Public review and production acceptance are tracked separately.",
+        "release_notes": "Security hardening: dedicated TOK OAuth issuer, opaque external tokens and explicit account and restaurant permissions. Existing installations must reconnect after the coordinated production rollout.",
         "translations": {
           "fr-FR": {
             "subtitle": "Restaurants et votre TOK",

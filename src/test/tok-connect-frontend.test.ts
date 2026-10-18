@@ -120,7 +120,7 @@ describe("TOK Connect frontend integration", () => {
     const dashboard = read("src/pages/dashboard/DashboardTokConnect.tsx");
 
     expect(dashboard).toContain("mcp-connection-status");
-    expect(dashboard).toContain("Connexion ChatGPT");
+    expect(dashboard).toContain("Activité récente ChatGPT");
     expect(dashboard).toContain("Aucun appel MCP enregistré pour ce restaurant.");
     expect(dashboard).not.toContain("Le consentement apparaît ci-dessous");
     expect(dashboard).not.toContain("ChatGPT ne reçoit que des données de");
@@ -139,14 +139,12 @@ describe("TOK Connect frontend integration", () => {
     expect(sharedAuth).toContain("oauth_client_id: input.context.oauthClientId");
   });
 
-  it("keeps the OAuth Edge Function compatible with ChatGPT manual OAuth", () => {
+  it("keeps legacy OAuth limited to client credentials and directs interactive clients to the broker", () => {
     const oauth = read("supabase/functions/tok-connect-oauth/index.ts");
-
-    expect(oauth).toContain("handleAuthorizationRequest");
-    expect(oauth).toContain("response_type_code_required");
-    expect(oauth).toContain("authorization_code");
+    expect(oauth).not.toContain("handleAuthorizationRequest");
+    expect(oauth).not.toContain("signCodePayload");
+    expect(oauth).toContain("interactive_oauth_moved_to_tok_broker");
+    expect(oauth).toContain('body.grant_type !== "client_credentials"');
     expect(oauth).toContain("readBasicClientCredentials");
-    expect(oauth).toContain("redirect_uri_not_allowed");
-    expect(oauth).toContain("chatgpt.com");
   });
 });

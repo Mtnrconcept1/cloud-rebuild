@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `e3c68859d2eb1806bb91316b4197dd60fa04461f90ed3ebf6135587f7a221199`
+- Empreinte SHA-256 des sources indexées : `43c8f9851778ba190873aa9468079dd1faaac15f3560f8da9e825200685775d3`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,31 +28,31 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2910 |
-| documents | 213 |
-| edgeFunctions | 118 |
+| databaseObjects | 2948 |
+| documents | 215 |
+| edgeFunctions | 119 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3657 |
+| exportedSymbols | 3739 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 551 |
-| modules | 1655 |
+| migrations | 554 |
+| modules | 1691 |
 | pages | 133 |
-| pathLiterals | 760 |
+| pathLiterals | 780 |
 | publicAssets | 582 |
-| publicEntries | 607 |
+| publicEntries | 608 |
 | publicNavigableRoutes | 2 |
-| queryParameters | 112 |
-| records | 17435 |
-| repositoryFiles | 3308 |
+| queryParameters | 108 |
+| records | 17692 |
+| repositoryFiles | 3353 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 29 |
+| workflows | 30 |
 
 ## État distant observé
 
@@ -300,6 +300,10 @@ GitHub Actions : contrôles, synchronisation, déploiement et opérations planif
 
 | Source | Hôte | Destination |
 | --- | --- | --- |
+| /oauth/register | www.thetok.ch | https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-broker/register |
+| /oauth/authorize | www.thetok.ch | https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-broker/authorize |
+| /oauth/token | www.thetok.ch | https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-broker/token |
+| /oauth/.well-known/oauth-authorization-server | www.thetok.ch | https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-broker/metadata |
 | /mcp | www.thetok.ch | https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp |
 | /.well-known/oauth-protected-resource | www.thetok.ch | https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-remote-mcp?tok_connect_route=protected-resource |
 | /functions/v1/:path* | — | https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/:path* |
@@ -366,6 +370,8 @@ GitHub Actions : contrôles, synchronisation, déploiement et opérations planif
 | /:surface(functions\|api)/:path* | — | X-Robots-Tag |
 | /mcp | — | X-Robots-Tag |
 | /.well-known/:path* | — | X-Robots-Tag |
+| /.well-known/oauth-authorization-server/oauth | — | Content-Type, Cache-Control, Access-Control-Allow-Origin |
+| /oauth/:endpoint(register\|authorize\|token) | — | Cache-Control, Referrer-Policy, x-vercel-enable-rewrite-caching |
 
 Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middleware.js).
 
@@ -573,11 +579,12 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | tok-connect-admin | [supabase/functions/tok-connect-admin/index.ts:1](../../supabase/functions/tok-connect-admin/index.ts#L1) | oui ([supabase/config.toml:341](../../supabase/config.toml#L341)) | false | POST | admin-overview, admin-restaurants, set-restaurant-mcp-access | supabase |
 | tok-connect-api | [supabase/functions/tok-connect-api/index.ts:1](../../supabase/functions/tok-connect-api/index.ts#L1) | oui ([supabase/config.toml:329](../../supabase/config.toml#L329)) | false | GET, POST | — | — |
 | tok-connect-app-bridge | [supabase/functions/tok-connect-app-bridge/index.ts:1](../../supabase/functions/tok-connect-app-bridge/index.ts#L1) | oui ([supabase/config.toml:347](../../supabase/config.toml#L347)) | false | GET, POST | cancel_attempt, checkout, insert, list, select, special_offers, status, update | stripe, supabase |
+| tok-connect-broker | [supabase/functions/tok-connect-broker/index.ts:1](../../supabase/functions/tok-connect-broker/index.ts#L1) | oui ([supabase/config.toml:366](../../supabase/config.toml#L366)) | false | ANY | — | — |
 | tok-connect-chatgpt | [supabase/functions/tok-connect-chatgpt/index.ts:1](../../supabase/functions/tok-connect-chatgpt/index.ts#L1) | oui ([supabase/config.toml:350](../../supabase/config.toml#L350)) | false | GET, POST | — | openai, supabase |
 | tok-connect-commercial-bridge | [supabase/functions/tok-connect-commercial-bridge/index.ts:1](../../supabase/functions/tok-connect-commercial-bridge/index.ts#L1) | oui ([supabase/config.toml:353](../../supabase/config.toml#L353)) | false | POST | demo_session, list, read, rpc | supabase |
 | tok-connect-full-app-mcp | [supabase/functions/tok-connect-full-app-mcp/index.ts:1](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L1) | oui ([supabase/config.toml:335](../../supabase/config.toml#L335)) | false | GET, POST | — | google, openai, stripe, supabase, vercel |
 | tok-connect-mcp | [supabase/functions/tok-connect-mcp/index.ts:1](../../supabase/functions/tok-connect-mcp/index.ts#L1) | oui ([supabase/config.toml:332](../../supabase/config.toml#L332)) | false | GET, POST | — | google, openai, stripe, supabase, vercel |
-| tok-connect-oauth | [supabase/functions/tok-connect-oauth/index.ts:1](../../supabase/functions/tok-connect-oauth/index.ts#L1) | oui ([supabase/config.toml:326](../../supabase/config.toml#L326)) | false | GET, POST | — | supabase |
+| tok-connect-oauth | [supabase/functions/tok-connect-oauth/index.ts:1](../../supabase/functions/tok-connect-oauth/index.ts#L1) | oui ([supabase/config.toml:326](../../supabase/config.toml#L326)) | false | GET, POST | — | — |
 | tok-connect-portal | [supabase/functions/tok-connect-portal/index.ts:1](../../supabase/functions/tok-connect-portal/index.ts#L1) | oui ([supabase/config.toml:338](../../supabase/config.toml#L338)) | false | POST | approve-agent-run, approve-partner, create-sandbox-client, create-webhook-endpoint, mcp-connection-status, overview, reject-agent-run, revoke-client, revoke-partner, rotate-client-secret, send-webhook-test, suspend-partner, update-client-policy, update-grant-status, upsert-restaurant-grant | supabase |
 | tok-connect-remote-mcp | [supabase/functions/tok-connect-remote-mcp/index.ts:1](../../supabase/functions/tok-connect-remote-mcp/index.ts#L1) | oui ([supabase/config.toml:356](../../supabase/config.toml#L356)) | false | GET, POST | — | openai, stripe, supabase, twint |
 | tok-connect-webhook-dispatch | [supabase/functions/tok-connect-webhook-dispatch/index.ts:1](../../supabase/functions/tok-connect-webhook-dispatch/index.ts#L1) | oui ([supabase/config.toml:344](../../supabase/config.toml#L344)) | false | POST | — | supabase |
@@ -630,6 +637,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | --- | --- | --- |
 | /.well-known/apple-app-site-association | platform | [public/.well-known/apple-app-site-association](../../public/.well-known/apple-app-site-association) |
 | /.well-known/assetlinks.json | platform | [public/.well-known/assetlinks.json](../../public/.well-known/assetlinks.json) |
+| /.well-known/oauth-authorization-server/oauth | platform | [public/.well-known/oauth-authorization-server/oauth](../../public/.well-known/oauth-authorization-server/oauth) |
 | /4c81caf5-ee6d-400c-8605-c61d010a05de.png | media | [public/4c81caf5-ee6d-400c-8605-c61d010a05de.png](../../public/4c81caf5-ee6d-400c-8605-c61d010a05de.png) |
 | /5a64288a-9712-4aae-8293-b0570ecd8668.png | media | [public/5a64288a-9712-4aae-8293-b0570ecd8668.png](../../public/5a64288a-9712-4aae-8293-b0570ecd8668.png) |
 | /64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png | media | [public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png](../../public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png) |
@@ -1240,7 +1248,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 250 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 255 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:81](../../src/test/application-search-index.test.ts#L81) |
@@ -1255,13 +1263,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /?$ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /?q=restaurant | 1 | [src/test/marketing-autopilot-frontend.test.tsx:255](../../src/test/marketing-autopilot-frontend.test.tsx#L255) |
 | /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:147](../../src/test/plan-phase1-readiness.test.ts#L147) |
+| /CN=webhook-runtime.test | 2 | [scripts/security/run-webhook-deno-runtime.mjs:17](../../scripts/security/run-webhook-deno-runtime.mjs#L17) |
 | /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 4 | [src/components/FeatureWizard.tsx:19](../../src/components/FeatureWizard.tsx#L19) |
 | /Miamz2.webp | 4 | [src/components/home/SolidaritySection.tsx:49](../../src/components/home/SolidaritySection.tsx#L49) |
 | /Miamz3.webp | 3 | [src/components/home/SolidaritySection.tsx:43](../../src/components/home/SolidaritySection.tsx#L43) |
 | /Outlines | 2 | [src/test/guide-pdf.test.ts:19](../../src/test/guide-pdf.test.ts#L19) |
 | /[^/]+ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /^[0-9a-f-]{36}$/i.test(deliveryId) | 1 | [src/test/marketing-one-click-unsubscribe.test.ts:69](../../src/test/marketing-one-click-unsubscribe.test.ts#L69) |
-| /^\d{4}-\d{2}-\d{2}$/ | 1 | [src/test/tok-connect-customer-journey.test.ts:166](../../src/test/tok-connect-customer-journey.test.ts#L166) |
+| /^\d{4}-\d{2}-\d{2}$/ | 1 | [src/test/tok-connect-customer-journey.test.ts:167](../../src/test/tok-connect-customer-journey.test.ts#L167) |
 | /__campaign-layout | 2 | [scripts/check-campaign-layout.mjs:59](../../scripts/check-campaign-layout.mjs#L59) |
 | /__campaign-layout-test.tsx | 1 | [scripts/check-campaign-layout.mjs:12](../../scripts/check-campaign-layout.mjs#L12) |
 | /__commercial-map | 2 | [scripts/check-commercial-map.mjs:42](../../scripts/check-commercial-map.mjs#L42) |
@@ -1304,6 +1313,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/guide | 5 | [src/App.tsx:687](../../src/App.tsx#L687) |
 | /admin/loyalty | 4 | [src/App.tsx:669](../../src/App.tsx#L669) |
 | /admin/notifications | 9 | [src/App.tsx:671](../../src/App.tsx#L671) |
+| /admin/oauth/clients | 1 | [src/test/tok-connect-broker.test.ts:49](../../src/test/tok-connect-broker.test.ts#L49) |
 | /admin/packs | 4 | [src/App.tsx:675](../../src/App.tsx#L675) |
 | /admin/platform | 7 | [src/App.tsx:662](../../src/App.tsx#L662) |
 | /admin/restaurants | 13 | [src/App.tsx:663](../../src/App.tsx#L663) |
@@ -1343,7 +1353,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/marketing/session | 5 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /api/missing | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
-| /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:524](../../src/test/tok-ai-tools.test.ts#L524) |
+| /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:525](../../src/test/tok-ai-tools.test.ts#L525) |
 | /assets/missing.js | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /auth | 54 | [scripts/prerender-seo.mjs:1269](../../scripts/prerender-seo.mjs#L1269) |
 | /auth/ | 1 | [src/components/ComingSoonGate.tsx:13](../../src/components/ComingSoonGate.tsx#L13) |
@@ -1352,10 +1362,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/callback?code=pkce-code | 1 | [src/test/native-oauth.test.ts:114](../../src/test/native-oauth.test.ts#L114) |
 | /auth/demo | 7 | [src/App.tsx:567](../../src/App.tsx#L567) |
 | /auth/v1/ | 1 | [src/lib/commercialDemoEffects.ts:74](../../src/lib/commercialDemoEffects.ts#L74) |
+| /auth/v1/admin/oauth/clients | 1 | [supabase/functions/_shared/tok-connect-broker.ts:127](../../supabase/functions/_shared/tok-connect-broker.ts#L127) |
+| /auth/v1/admin/oauth/clients/ | 1 | [supabase/functions/_shared/tok-connect-broker.ts:134](../../supabase/functions/_shared/tok-connect-broker.ts#L134) |
 | /auth/v1/factors | 4 | [src/test/marketing-bff-security.test.ts:314](../../src/test/marketing-bff-security.test.ts#L314) |
 | /auth/v1/logout?scope=local | 5 | [src/test/marketing-bff-security.test.ts:464](../../src/test/marketing-bff-security.test.ts#L464) |
+| /auth/v1/oauth/authorize | 1 | [supabase/functions/_shared/tok-connect-broker.ts:151](../../supabase/functions/_shared/tok-connect-broker.ts#L151) |
+| /auth/v1/oauth/token | 2 | [src/test/tok-connect-broker.test.ts:54](../../src/test/tok-connect-broker.test.ts#L54) |
 | /auth/v1/token?grant_type=password | 5 | [src/test/marketing-bff-security.test.ts:240](../../src/test/marketing-bff-security.test.ts#L240) |
-| /auth/v1/user | 7 | [src/test/marketing-bff-security.test.ts:251](../../src/test/marketing-bff-security.test.ts#L251) |
+| /auth/v1/user | 9 | [src/test/marketing-bff-security.test.ts:251](../../src/test/marketing-bff-security.test.ts#L251) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /auth?confirmed=1 | 2 | [src/test/auth-signup-form.test.tsx:525](../../src/test/auth-signup-form.test.tsx#L525) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
@@ -1363,6 +1377,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth?role=restaurateur | 1 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
 | /auth?type=client | 14 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
 | /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:611](../../src/test/auth-signup-form.test.tsx#L611) |
+| /authorize | 1 | [supabase/functions/_shared/tok-connect-broker.ts:219](../../supabase/functions/_shared/tok-connect-broker.ts#L219) |
 | /availability | 1 | [supabase/functions/tok-connect-api/index.ts:1039](../../supabase/functions/tok-connect-api/index.ts#L1039) |
 | /budget-auto | 11 | [scripts/prerender-seo.mjs:1070](../../scripts/prerender-seo.mjs#L1070) |
 | /campagnes | 1 | [src/lib/commercialDemoAi.ts:298](../../src/lib/commercialDemoAi.ts#L298) |
@@ -1418,13 +1433,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /courier/jobs?job=job-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:31](../../src/test/notifications-sinistres-governance.test.ts#L31) |
 | /courier/notifications | 11 | [src/App.tsx:429](../../src/App.tsx#L429) |
 | /courier/profile | 8 | [src/App.tsx:429](../../src/App.tsx#L429) |
+| /create-reservation | 1 | [src/test/tok-connect-oauth-delegation.test.ts:117](../../src/test/tok-connect-oauth-delegation.test.ts#L117) |
 | /creneaux-garantis | 11 | [scripts/prerender-seo.mjs:1054](../../scripts/prerender-seo.mjs#L1054) |
 | /dashboard | 84 | [scripts/application-index-core.mjs:169](../../scripts/application-index-core.mjs#L169) |
 | /dashboard/ | 4 | [src/App.tsx:315](../../src/App.tsx#L315) |
 | /dashboard/abonnement | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:224](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L224) |
 | /dashboard/actualites | 9 | [src/App.tsx:643](../../src/App.tsx#L643) |
 | /dashboard/advisor | 7 | [src/App.tsx:622](../../src/App.tsx#L622) |
-| /dashboard/ai | 3 | [src/test/tok-ai-platform-plan.test.ts:216](../../src/test/tok-ai-platform-plan.test.ts#L216) |
+| /dashboard/ai | 3 | [src/test/tok-ai-platform-plan.test.ts:229](../../src/test/tok-ai-platform-plan.test.ts#L229) |
 | /dashboard/avis | 7 | [src/App.tsx:629](../../src/App.tsx#L629) |
 | /dashboard/campagne-overview | 2 | [src/App.tsx:641](../../src/App.tsx#L641) |
 | /dashboard/campagnes | 20 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
@@ -1446,7 +1462,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/guide | 9 | [src/App.tsx:654](../../src/App.tsx#L654) |
 | /dashboard/menu | 17 | [src/App.tsx:623](../../src/App.tsx#L623) |
 | /dashboard/mon-compte-facturation | 16 | [src/App.tsx:635](../../src/App.tsx#L635) |
-| /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1254](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1254) |
+| /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1255](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1255) |
 | /dashboard/notifications | 14 | [src/App.tsx:620](../../src/App.tsx#L620) |
 | /dashboard/offres | 6 | [src/App.tsx:636](../../src/App.tsx#L636) |
 | /dashboard/pack | 2 | [src/test/feature-flags.test.ts:120](../../src/test/feature-flags.test.ts#L120) |
@@ -1490,12 +1506,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /flex-prix-bas | 11 | [scripts/prerender-seo.mjs:1102](../../scripts/prerender-seo.mjs#L1102) |
 | /fond3.png | 7 | [public/seo-trust-runtime.js:8](../../public/seo-trust-runtime.js#L8) |
 | /fondbanniere.png | 1 | [src/test/dashboard-overview-google-compact.test.ts:24](../../src/test/dashboard-overview-google-compact.test.ts#L24) |
-| /functions/v1/ | 10 | [src/lib/commercialDemoEffects.ts:27](../../src/lib/commercialDemoEffects.ts#L27) |
+| /functions/v1/ | 12 | [src/lib/commercialDemoEffects.ts:27](../../src/lib/commercialDemoEffects.ts#L27) |
 | /functions/v1/:path* | 1 | [src/test/vercel-rewrites.test.ts:128](../../src/test/vercel-rewrites.test.ts#L128) |
 | /functions/v1/ai-marketing-agent | 5 | [src/test/marketing-agent-bff.test.ts:30](../../src/test/marketing-agent-bff.test.ts#L30) |
 | /functions/v1/create-checkout | 1 | [src/lib/iosCommerceFetch.ts:291](../../src/lib/iosCommerceFetch.ts#L291) |
+| /functions/v1/create-reservation | 1 | [src/test/tok-connect-oauth-delegation.test.ts:115](../../src/test/tok-connect-oauth-delegation.test.ts#L115) |
 | /functions/v1/daily-dish-ai?user=2f4c98d0-03f7-4e72-910a-0c34a892ca21 | 1 | [src/test/incident-intelligence-routing.test.ts:74](../../src/test/incident-intelligence-routing.test.ts#L74) |
 | /functions/v1/daily-dish-ai?user=891a6eef-5be3-4d4a-9887-2e4f27bf39ee | 1 | [src/test/incident-intelligence-routing.test.ts:95](../../src/test/incident-intelligence-routing.test.ts#L95) |
+| /functions/v1/delete-account | 1 | [src/test/tok-connect-oauth-delegation.test.ts:111](../../src/test/tok-connect-oauth-delegation.test.ts#L111) |
 | /functions/v1/dispatch-order | 1 | [src/test/dispatch-client-fallback.test.ts:18](../../src/test/dispatch-client-fallback.test.ts#L18) |
 | /functions/v1/marketing-orchestrator | 1 | [src/test/marketing-meta-bff.test.ts:6](../../src/test/marketing-meta-bff.test.ts#L6) |
 | /functions/v1/stripe-webhook | 1 | [src/test/checkout-stripe-guards.test.ts:182](../../src/test/checkout-stripe-guards.test.ts#L182) |
@@ -1513,6 +1531,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /help.png | 1 | [src/components/help/ChefHelpButton.tsx:36](../../src/components/help/ChefHelpButton.tsx#L36) |
 | /higgsfield/tok-intro-desktop.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:55](../../src/test/mobile-logo-intro.test.tsx#L55) |
 | /higgsfield/tok-intro-mobile.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:24](../../src/test/mobile-logo-intro.test.tsx#L24) |
+| /hook?fixture=1 | 1 | [scripts/security/test-webhook-deno-runtime.ts:42](../../scripts/security/test-webhook-deno-runtime.ts#L42) |
 | /icon-192.png | 2 | [public/firebase-messaging-sw.js:46](../../public/firebase-messaging-sw.js#L46) |
 | /icon-72.png | 2 | [public/firebase-messaging-sw.js:47](../../public/firebase-messaging-sw.js#L47) |
 | /images/ | 2 | [src/components/RestaurantCard.tsx:70](../../src/components/RestaurantCard.tsx#L70) |
@@ -1754,7 +1773,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/user-guide/routes/tok-one.png | 1 | [src/data/userGuideFeatureDetails.ts:195](../../src/data/userGuideFeatureDetails.ts#L195) |
 | /images/user-guide/routes/ventes-flash.png | 2 | [src/data/userGuideContent.ts:125](../../src/data/userGuideContent.ts#L125) |
 | /images/user-guide/zero-attente-mobile.png | 1 | [src/data/userGuideContent.ts:378](../../src/data/userGuideContent.ts#L378) |
-| /index.html | 28 | [scripts/application-index-core.mjs:772](../../scripts/application-index-core.mjs#L772) |
+| /index.html | 29 | [scripts/application-index-core.mjs:772](../../scripts/application-index-core.mjs#L772) |
 | /inventory/partners/{partnerId}/merchants/{merchantId}/availability:replace | 1 | [supabase/functions/google-actions-center-sync/index.ts:52](../../supabase/functions/google-actions-center-sync/index.ts#L52) |
 | /launch | 1 | [src/components/launch/LaunchArtwork.tsx:51](../../src/components/launch/LaunchArtwork.tsx#L51) |
 | /logo3df.png | 1 | [src/test/marketing-email-template.test.ts:24](../../src/test/marketing-email-template.test.ts#L24) |
@@ -1787,6 +1806,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /notifications | 30 | [scripts/prerender-seo.mjs:1259](../../scripts/prerender-seo.mjs#L1259) |
 | /notifications?tab=orders | 2 | [src/test/navigation.test.ts:10](../../src/test/navigation.test.ts#L10) |
 | /oauth | 2 | [scripts/prerender-seo.mjs:1270](../../scripts/prerender-seo.mjs#L1270) |
+| /oauth/:endpoint(register\|authorize\|token) | 1 | [src/test/tok-connect-public-actions.test.ts:69](../../src/test/tok-connect-public-actions.test.ts#L69) |
 | /oauth/consent | 8 | [src/App.tsx:459](../../src/App.tsx#L459) |
 | /oauth/consent?authorization_id=authorization-123 | 3 | [src/test/auth-post-login-routing.test.ts:15](../../src/test/auth-post-login-routing.test.ts#L15) |
 | /oauth/unknown | 1 | [src/test/tok-connect-oauth-routing.test.ts:10](../../src/test/tok-connect-oauth-routing.test.ts#L10) |
@@ -1794,6 +1814,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /orders/cancel | 1 | [supabase/functions/_shared/print/cloudprinter.ts:342](../../supabase/functions/_shared/print/cloudprinter.ts#L342) |
 | /orders/info | 2 | [src/test/marketing-print-contract.test.ts:192](../../src/test/marketing-print-contract.test.ts#L192) |
 | /orders/quote | 1 | [supabase/functions/_shared/print/cloudprinter.ts:294](../../supabase/functions/_shared/print/cloudprinter.ts#L294) |
+| /other | 2 | [src/test/tok-connect-broker.test.ts:104](../../src/test/tok-connect-broker.test.ts#L104) |
 | /packs-restaurateur | 17 | [scripts/prerender-seo.mjs:595](../../scripts/prerender-seo.mjs#L595) |
 | /panier | 45 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
 | /parametres/securite | 5 | [src/App.tsx:365](../../src/App.tsx#L365) |
@@ -1809,6 +1830,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /profil?tab=favoris | 3 | [src/components/CustomerDashboardLayout.tsx:105](../../src/components/CustomerDashboardLayout.tsx#L105) |
 | /profil?tab=fidelite | 2 | [src/components/CustomerDashboardLayout.tsx:106](../../src/components/CustomerDashboardLayout.tsx#L106) |
 | /profil?tab=infos | 2 | [src/components/CustomerDashboardLayout.tsx:119](../../src/components/CustomerDashboardLayout.tsx#L119) |
+| /profiles | 1 | [src/test/tok-connect-oauth-delegation.test.ts:104](../../src/test/tok-connect-oauth-delegation.test.ts#L104) |
 | /pub.jpg | 1 | [src/lib/campaignCreative.ts:171](../../src/lib/campaignCreative.ts#L171) |
 | /r | 2 | [scripts/prerender-seo.mjs:1272](../../scripts/prerender-seo.mjs#L1272) |
 | /r/ | 2 | [scripts/harden-seo-crawl.mjs:118](../../scripts/harden-seo-crawl.mjs#L118) |
@@ -1822,10 +1844,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /recherche?q=pizza&ville=geneve | 1 | [scripts/launch-10k-load-check.mjs:19](../../scripts/launch-10k-load-check.mjs#L19) |
 | /recherche?q=sushi&city=Genève | 2 | [src/test/restaurant-search-preview.test.tsx:30](../../src/test/restaurant-search-preview.test.tsx#L30) |
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
+| /register | 1 | [supabase/functions/_shared/tok-connect-broker.ts:219](../../supabase/functions/_shared/tok-connect-broker.ts#L219) |
 | /reseaux-sociaux | 1 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
 | /reservations | 27 | [scripts/prerender-seo.mjs:1262](../../scripts/prerender-seo.mjs#L1262) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
-| /rest/v1/ | 3 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
+| /rest/v1/ | 4 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
+| /rest/v1/profiles | 2 | [src/test/tok-connect-oauth-delegation.test.ts:100](../../src/test/tok-connect-oauth-delegation.test.ts#L100) |
+| /rest/v1/profiles?select=first_name | 1 | [src/test/tok-connect-oauth-delegation.test.ts:102](../../src/test/tok-connect-oauth-delegation.test.ts#L102) |
 | /rest/v1/rpc/ | 2 | [src/lib/commercialDemoEffects.ts:20](../../src/lib/commercialDemoEffects.ts#L20) |
 | /rest/v1/rpc/service_get_marketing_web_session | 1 | [supabase/functions/_shared/marketing-service-auth.ts:53](../../supabase/functions/_shared/marketing-service-auth.ts#L53) |
 | /rest/v1/user_roles? | 7 | [src/test/marketing-bff-security.test.ts:250](../../src/test/marketing-bff-security.test.ts#L250) |
@@ -1935,6 +1960,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /src/pages/dashboard/DashboardCampagnes.tsx | 1 | [scripts/check-campaign-layout.mjs:54](../../scripts/check-campaign-layout.mjs#L54) |
 | /storage/v1/object | 2 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:104](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L104) |
 | /storage/v1/object/ | 1 | [supabase/functions/_shared/print/pdf.ts:84](../../supabase/functions/_shared/print/pdf.ts#L84) |
+| /storage/v1/object/private/key | 1 | [src/test/tok-connect-oauth-delegation.test.ts:109](../../src/test/tok-connect-oauth-delegation.test.ts#L109) |
 | /storage/v1/object/public/ | 2 | [src/lib/optimizedImages.ts:27](../../src/lib/optimizedImages.ts#L27) |
 | /storage/v1/object/public/restaurant-images/ | 1 | [supabase/functions/_shared/tok-connect-marketing-visual.ts:45](../../supabase/functions/_shared/tok-connect-marketing-visual.ts#L45) |
 | /storage/v1/object/sign/commercial-demo-ai/ | 1 | [src/pages/dashboard/DashboardPhotos.tsx:87](../../src/pages/dashboard/DashboardPhotos.tsx#L87) |
@@ -1944,6 +1970,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /this-route-does-not-exist | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /tok-connect | 14 | [scripts/prerender-seo.mjs:556](../../scripts/prerender-seo.mjs#L556) |
 | /tok-connect-api | 1 | [supabase/functions/tok-connect-api/index.ts:89](../../supabase/functions/tok-connect-api/index.ts#L89) |
+| /tok-connect-app-bridge | 2 | [supabase/functions/_shared/auth.ts:269](../../supabase/functions/_shared/auth.ts#L269) |
 | /tok-connect/developer | 13 | [scripts/prerender-seo.mjs:1273](../../scripts/prerender-seo.mjs#L1273) |
 | /tok-connect/developer/:path* | 2 | [src/test/vercel-rewrites.test.ts:117](../../src/test/vercel-rewrites.test.ts#L117) |
 | /tok-connect/mcp-widget | 6 | [src/App.tsx:609](../../src/App.tsx#L609) |
@@ -1951,8 +1978,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-one | 25 | [scripts/prerender-seo.mjs:548](../../scripts/prerender-seo.mjs#L548) |
 | /tok-one?status=success | 1 | [src/test/security-url-helpers.test.ts:62](../../src/test/security-url-helpers.test.ts#L62) |
 | /tok-pulse | 10 | [scripts/prerender-seo.mjs:1236](../../scripts/prerender-seo.mjs#L1236) |
-| /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:86](../../supabase/functions/ai-image-enhance/index.ts#L86) |
+| /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:89](../../supabase/functions/ai-image-enhance/index.ts#L89) |
 | /tok-slot-machine/index.html?v=20260719 | 1 | [src/components/DailyMiamzSlotMachine.tsx:15](../../src/components/DailyMiamzSlotMachine.tsx#L15) |
+| /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:219](../../supabase/functions/_shared/tok-connect-broker.ts#L219) |
 | /token?grant_type=password | 1 | [server/marketingBff.ts:733](../../server/marketingBff.ts#L733) |
 | /user | 1 | [server/marketingBff.ts:722](../../server/marketingBff.ts#L722) |
 | /user_roles? | 4 | [src/test/marketing-agent-bff.test.ts:28](../../src/test/marketing-agent-bff.test.ts#L28) |
@@ -2012,15 +2040,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | campaign_checkout | /dashboard/actualites, /dashboard/campagnes | 4 | [src/pages/dashboard/DashboardActualites.tsx:285](../../src/pages/dashboard/DashboardActualites.tsx#L285) |
 | campaign_id | /dashboard/actualites, /dashboard/campagnes | 3 | [src/pages/dashboard/DashboardActualites.tsx:305](../../src/pages/dashboard/DashboardActualites.tsx#L305) |
 | channel | — | 1 | [src/marketing/useMarketingUrlState.ts:82](../../src/marketing/useMarketingUrlState.ts#L82) |
-| checkout_kind | /dashboard/mon-compte-facturation | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:882](../../src/pages/dashboard/DashboardAccountBilling.tsx#L882) |
+| checkout_kind | /dashboard/mon-compte-facturation | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:883](../../src/pages/dashboard/DashboardAccountBilling.tsx#L883) |
 | city | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 5 | [src/pages/Recherche.tsx:241](../../src/pages/Recherche.tsx#L241) |
 | claimAddress | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:83](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L83) |
 | claimCity | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:82](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L82) |
 | claimName | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:84](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L84) |
 | claimPhone | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:81](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L81) |
 | claimRestaurant | — | 2 | [src/components/DirectoryClaimPersistenceBridge.tsx:37](../../src/components/DirectoryClaimPersistenceBridge.tsx#L37) |
-| client_id | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:220](../../supabase/functions/tok-connect-oauth/index.ts#L220) |
-| code | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:250](../../supabase/functions/tok-connect-oauth/index.ts#L250) |
 | commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:914](../../src/pages/Auth.tsx#L914) |
 | commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:280](../../src/pages/CommercialComptabilite.tsx#L280) |
 | confirmed | /auth, /auth/callback, /auth/demo | 2 | [src/pages/Auth.tsx:131](../../src/pages/Auth.tsx#L131) |
@@ -2085,13 +2111,11 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | quality | — | 1 | [src/lib/optimizedImages.ts:39](../../src/lib/optimizedImages.ts#L39) |
 | rating | /recherche | 1 | [src/pages/Recherche.tsx:245](../../src/pages/Recherche.tsx#L245) |
 | redirect | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:1120](../../src/pages/Auth.tsx#L1120) |
-| redirect_uri | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:221](../../supabase/functions/tok-connect-oauth/index.ts#L221) |
 | removeRestaurant | — | 1 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:171](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L171) |
 | reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:288](../../src/pages/Reservations.tsx#L288) |
 | reservationStep | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:153](../../src/pages/RestaurantDetail.tsx#L153) |
 | reserve | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:149](../../src/pages/RestaurantDetail.tsx#L149) |
 | resize | — | 1 | [src/lib/optimizedImages.ts:40](../../src/lib/optimizedImages.ts#L40) |
-| response_type | — | 1 | [supabase/functions/tok-connect-oauth/index.ts:219](../../supabase/functions/tok-connect-oauth/index.ts#L219) |
 | restaurant | /zero-attente | 1 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
 | restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 2 | [src/test/marketing-studio-references.test.ts:36](../../src/test/marketing-studio-references.test.ts#L36) |
 | scope | /actualites | 3 | [src/pages/Actualites.tsx:249](../../src/pages/Actualites.tsx#L249) |
@@ -2101,7 +2125,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | sort | /recherche | 1 | [src/pages/Recherche.tsx:249](../../src/pages/Recherche.tsx#L249) |
 | source | /mon-espace | 1 | [public/manifest.json:50](../../public/manifest.json#L50) |
 | sr | — | 1 | [src/test/home-canton-hero.test.ts:56](../../src/test/home-canton-hero.test.ts#L56) |
-| state | — | 2 | [supabase/functions/tok-connect-oauth/index.ts:222](../../supabase/functions/tok-connect-oauth/index.ts#L222) |
+| state | — | 1 | [src/test/tok-connect-broker.test.ts:102](../../src/test/tok-connect-broker.test.ts#L102) |
 | status | /chefs-table, /dashboard, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 12 | [src/lib/iosCommerceFetch.ts:137](../../src/lib/iosCommerceFetch.ts#L137) |
 | stripe_session_id | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:81](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L81) |
 | subscriptionPlan | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:925](../../src/pages/Auth.tsx#L925) |
@@ -2417,7 +2441,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (796)</summary>
+<details><summary>function (819)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2438,6 +2462,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `private_finance.flat_reservation_billing_active` (1 définition(s))
 - `private_finance.get_restaurant_preactivation_credit_usage` (2 définition(s))
 - `private_finance.guard_admin_ai_gift_campaign` (1 définition(s))
+- `private_finance.guard_ai_image_reservation_usage` (1 définition(s))
 - `private_finance.guard_completed_reservation_honor` (1 définition(s))
 - `private_finance.guard_fair_growth_module_feature_keys` (1 définition(s))
 - `private_finance.guard_internal_unlimited_ai_spend` (1 définition(s))
@@ -2606,6 +2631,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_upsert_marketing_outreach_opportunity` (1 définition(s))
 - `public.admin_upsert_marketing_outreach_target` (1 définition(s))
 - `public.admin_validate_developer_statement` (2 définition(s))
+- `public.advance_ai_image_operation` (1 définition(s))
 - `public.advance_print_order_state` (1 définition(s))
 - `public.advance_print_reorder_state` (1 définition(s))
 - `public.apply_checkout_benefits` (2 définition(s))
@@ -2673,6 +2699,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.cancel_reservation_by_restaurant` (3 définition(s))
 - `public.capture_signup_application_draft` (1 définition(s))
 - `public.check_restaurant_ai_quota` (6 définition(s))
+- `public.claim_ai_image_operation` (1 définition(s))
 - `public.claim_developer_statement_transfer` (1 définition(s))
 - `public.claim_due_marketing_items` (1 définition(s))
 - `public.claim_finance_outbox` (1 définition(s))
@@ -2696,6 +2723,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.claim_restaurant_image_truth_reviews` (1 définition(s))
 - `public.claim_restaurant_subscription_activation_jobs` (2 définition(s))
 - `public.claim_stripe_webhook_event` (1 définition(s))
+- `public.claim_tok_connect_webhook_deliveries` (1 définition(s))
 - `public.cleanup_expired_groups` (1 définition(s))
 - `public.close_due_match_groups` (2 définition(s))
 - `public.commercial_build_signature_snapshot` (3 définition(s))
@@ -2737,6 +2765,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.complete_print_fulfillment_job` (2 définition(s))
 - `public.complete_restaurant_subscription_activation_job` (1 définition(s))
 - `public.complete_stripe_webhook_event` (1 définition(s))
+- `public.complete_tok_connect_webhook_delivery` (1 définition(s))
 - `public.compute_order_acceptance_deadline` (1 définition(s))
 - `public.compute_order_discount_from_payload` (1 définition(s))
 - `public.compute_restaurant_reservation_fees` (3 définition(s))
@@ -2769,6 +2798,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.enforce_launch_gate` (2 définition(s))
 - `public.enforce_restaurateur_signup_role` (2 définition(s))
 - `public.enforce_signed_commercial_prospect_status_owner` (1 définition(s))
+- `public.enforce_tok_connect_oauth_and_launch_gate` (1 définition(s))
 - `public.enqueue_birthday_notifications` (1 définition(s))
 - `public.enqueue_deliveries` (1 définition(s))
 - `public.enqueue_directory_cuisine_research` (1 définition(s))
@@ -2785,6 +2815,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.fail_restaurant_commission_collection` (1 définition(s))
 - `public.fail_restaurant_subscription_activation_job` (1 définition(s))
 - `public.fence_restaurant_payment_capture` (1 définition(s))
+- `public.finalize_ai_image_operation` (1 définition(s))
 - `public.finalize_paid_print_order` (1 définition(s))
 - `public.finalize_payment_attempt` (1 définition(s))
 - `public.finalize_progressive_offer` (1 définition(s))
@@ -2856,6 +2887,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.get_social_feed_v2` (5 définition(s))
 - `public.get_social_post_thread` (1 définition(s))
 - `public.get_stripe_webhook_signing_secrets` (1 définition(s))
+- `public.get_tok_connect_managed_oauth_clients` (1 définition(s))
 - `public.get_total_donated_meals` (2 définition(s))
 - `public.get_total_donated_points` (1 définition(s))
 - `public.get_user_miamz_benefit_state` (1 définition(s))
@@ -2890,6 +2922,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.launch_gate_enabled` (1 définition(s))
 - `public.launch_rpc_allowed` (2 définition(s))
 - `public.launch_table_allowed` (2 définition(s))
+- `public.list_tok_connect_oauth_restaurants` (1 définition(s))
 - `public.log_audit` (1 définition(s))
 - `public.log_feature_flag_audit` (1 définition(s))
 - `public.mark_directory_cuisine_job_satisfied` (1 définition(s))
@@ -3031,6 +3064,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.refresh_social_comment_counts` (1 définition(s))
 - `public.refresh_social_post_counts` (1 définition(s))
 - `public.reject_signup_review_event_mutation` (1 définition(s))
+- `public.release_ai_image_operation` (1 définition(s))
 - `public.release_chef_table_checkout_hold` (1 définition(s))
 - `public.release_match_group_capture_claim` (1 définition(s))
 - `public.release_zero_attente_checkout_hold` (1 définition(s))
@@ -3088,6 +3122,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restore_special_offer_stock` (1 définition(s))
 - `public.resume_fair_growth_module` (1 définition(s))
 - `public.reverse_restaurant_commission_payment` (1 définition(s))
+- `public.revoke_tok_connect_oauth_grant` (1 définition(s))
 - `public.rls_auto_enable` (1 définition(s))
 - `public.run_social_post_promotion_status_sync` (1 définition(s))
 - `public.seal_payment_attempt_request` (1 définition(s))
@@ -3107,9 +3142,12 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_claim_thefork_image_discovery_jobs` (2 définition(s))
 - `public.service_claim_thefork_image_truth_reviews` (1 définition(s))
 - `public.service_claim_thefork_official_site_discovery_jobs` (4 définition(s))
+- `public.service_claim_tok_connect_broker_refresh` (1 définition(s))
 - `public.service_clear_marketing_auth_attempt` (1 définition(s))
 - `public.service_complete_marketing_ai_run` (1 définition(s))
 - `public.service_consume_marketing_auth_attempt` (1 définition(s))
+- `public.service_create_tok_connect_broker_session` (1 définition(s))
+- `public.service_create_tok_connect_oauth_permit` (1 définition(s))
 - `public.service_dispatch_marketing_notification_item` (1 définition(s))
 - `public.service_execute_marketing_admin_operation` (1 définition(s))
 - `public.service_execute_marketing_autopilot_operation` (1 définition(s))
@@ -3117,21 +3155,29 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_finalize_marketing_web_session` (1 définition(s))
 - `public.service_get_marketing_auth_challenge` (1 définition(s))
 - `public.service_get_marketing_web_session` (1 définition(s))
+- `public.service_get_tok_connect_broker_client` (1 définition(s))
 - `public.service_import_marketing_prospect_coordinates` (1 définition(s))
 - `public.service_list_marketing_ai_runs` (1 définition(s))
 - `public.service_marketing_mailing_facets` (1 définition(s))
 - `public.service_materialize_marketing_deliveries` (1 définition(s))
 - `public.service_prepare_marketing_email_delivery` (1 définition(s))
 - `public.service_record_marketing_email_sent` (1 définition(s))
+- `public.service_resolve_tok_connect_broker_access` (1 définition(s))
 - `public.service_revoke_marketing_web_session` (1 définition(s))
+- `public.service_revoke_tok_connect_broker_session` (1 définition(s))
+- `public.service_rotate_tok_connect_broker_refresh` (1 définition(s))
 - `public.service_send_marketing_in_app_delivery` (1 définition(s))
 - `public.service_start_marketing_ai_run` (1 définition(s))
 - `public.service_store_marketing_auth_challenge` (1 définition(s))
+- `public.service_store_tok_connect_broker_client` (1 définition(s))
 - `public.service_unsubscribe_marketing_delivery` (1 définition(s))
+- `public.service_validate_tok_connect_oauth_edge_permit` (1 définition(s))
+- `public.service_verify_tok_connect_broker_authorization` (1 définition(s))
 - `public.set_floor_plan_variants_updated_at` (1 définition(s))
 - `public.set_restaurant_slug` (1 définition(s))
 - `public.set_social_reaction` (1 définition(s))
 - `public.set_test_role` (1 définition(s))
+- `public.set_tok_connect_oauth_grant` (1 définition(s))
 - `public.settle_google_actions_center_outbox` (1 définition(s))
 - `public.settle_google_actions_center_outbox_claim` (1 définition(s))
 - `public.settle_notification_delivery` (1 définition(s))
@@ -3159,6 +3205,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.tg_reservations_set_confirmed_at` (1 définition(s))
 - `public.toggle_social_save` (1 définition(s))
 - `public.tok_connect_is_partner_member` (1 définition(s))
+- `public.tok_connect_oauth_request_allowed` (1 définition(s))
 - `public.tok_connect_restaurant_grant_enabled` (1 définition(s))
 - `public.tok_credit_balance_from_usage` (1 définition(s))
 - `public.tok_slugify` (1 définition(s))
@@ -3218,7 +3265,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (688)</summary>
+<details><summary>index (694)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3242,6 +3289,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `ai_conversations_support_incident_created_idx` (1 définition(s))
 - `ai_conversations_user_created_idx` (2 définition(s))
 - `ai_generated_assets_restaurant_created_idx` (2 définition(s))
+- `ai_image_operations_unresolved_idx` (1 définition(s))
 - `ai_messages_conversation_created_idx` (3 définition(s))
 - `ai_performance_snapshots_scope_date_idx` (2 définition(s))
 - `ai_restaurant_tasks_feature_idx` (2 définition(s))
@@ -3621,6 +3669,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `idx_tok_connect_restaurant_grants_restaurant_id` (1 définition(s))
 - `idx_tok_connect_webhook_deliveries_endpoint_status` (1 définition(s))
 - `idx_tok_connect_webhook_deliveries_retry` (1 définition(s))
+- `idx_tok_connect_webhook_dispatch_due` (1 définition(s))
 - `idx_tok_connect_webhook_endpoints_partner_id` (1 définition(s))
 - `idx_tok_one_apple_original_transaction` (1 définition(s))
 - `idx_tok_one_apple_transaction` (1 définition(s))
@@ -3849,6 +3898,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `support_resolution_runs_context_cache_idx` (1 définition(s))
 - `support_resolution_runs_incident_created_idx` (1 définition(s))
 - `support_resolution_runs_status_created_idx` (1 définition(s))
+- `tok_broker_refresh_history_session_idx` (1 définition(s))
+- `tok_broker_sessions_expiry_idx` (1 définition(s))
+- `tok_broker_sessions_owner_idx` (1 définition(s))
+- `tok_oauth_permits_expiry_idx` (1 définition(s))
 - `tok_workforce_absences_period_idx` (1 définition(s))
 - `tok_workforce_audit_recent_idx` (1 définition(s))
 - `tok_workforce_clock_employee_recent` (1 définition(s))
@@ -3911,7 +3964,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>policy (799)</summary>
+<details><summary>policy (800)</summary>
 
 - `ad_campaigns.Admins can manage ad campaigns` (1 définition(s))
 - `ad_campaigns.Anyone can read active campaigns` (1 définition(s))
@@ -4577,6 +4630,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.tok_connect_api_requests.tok_connect_api_requests_member_select` (1 définition(s))
 - `public.tok_connect_clients.tok_connect_clients_admin_all` (1 définition(s))
 - `public.tok_connect_idempotency_keys.tok_connect_idempotency_keys_admin_select` (1 définition(s))
+- `public.tok_connect_oauth_grants.tok_connect_oauth_grants_native_owner` (1 définition(s))
 - `public.tok_connect_partner_members.tok_connect_partner_members_admin_all` (1 définition(s))
 - `public.tok_connect_partner_members.tok_connect_partner_members_member_select` (1 définition(s))
 - `public.tok_connect_partners.tok_connect_partners_admin_all` (1 définition(s))
@@ -4715,13 +4769,15 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (368)</summary>
+<details><summary>table (375)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
 - `private.floor_plan_save_operations` (1 définition(s))
 - `private_finance.admin_ai_credit_grants` (1 définition(s))
 - `private_finance.admin_ai_credit_spends` (1 définition(s))
+- `private_finance.ai_image_credit_releases` (1 définition(s))
+- `private_finance.ai_image_operations` (1 définition(s))
 - `private_finance.commercial_signup_referrals` (1 définition(s))
 - `private_finance.fair_growth_rollout_cutovers` (1 définition(s))
 - `private_finance.internal_unlimited_openai_grants` (1 définition(s))
@@ -5054,6 +5110,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.tok_connect_clients` (1 définition(s))
 - `public.tok_connect_idempotency_keys` (1 définition(s))
 - `public.tok_connect_mcp_action_idempotency` (1 définition(s))
+- `public.tok_connect_oauth_grants` (1 définition(s))
 - `public.tok_connect_partner_members` (1 définition(s))
 - `public.tok_connect_partners` (1 définition(s))
 - `public.tok_connect_restaurant_grants` (1 définition(s))
@@ -5085,10 +5142,14 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.user_subscriptions` (2 définition(s))
 - `public.user_wallets` (3 définition(s))
 - `public.wallet_transactions` (1 définition(s))
+- `tok_connect_private.broker_clients` (1 définition(s))
+- `tok_connect_private.broker_refresh_history` (1 définition(s))
+- `tok_connect_private.broker_sessions` (1 définition(s))
+- `tok_connect_private.execution_permits` (1 définition(s))
 
 </details>
 
-<details><summary>trigger (252)</summary>
+<details><summary>trigger (253)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -5342,6 +5403,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `zz_fence_restaurant_payment_capture_update` (1 définition(s))
 - `zz_guard_completed_reservation_honor` (1 définition(s))
 - `zz_guard_insert_completed_reservation_honor` (1 définition(s))
+- `zzz_guard_ai_image_reservation_usage` (1 définition(s))
 
 </details>
 
@@ -6204,6 +6266,9 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261017000033 Email Provider Delivery Reconciliation | 27 | 2 | [supabase/migrations/20261017000033_email_provider_delivery_reconciliation.sql:1](../../supabase/migrations/20261017000033_email_provider_delivery_reconciliation.sql#L1) |
 | 20261017000200 Reservation Guarantee Request Idempotency | 66 | 3 | [supabase/migrations/20261017000200_reservation_guarantee_request_idempotency.sql:1](../../supabase/migrations/20261017000200_reservation_guarantee_request_idempotency.sql#L1) |
 | 20261017004243 Atomic Order Special Offer Stock Restore | 338 | 5 | [supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql:1](../../supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql#L1) |
+| 20261018140000 Tok Connect Webhook Dispatch Security | 125 | 3 | [supabase/migrations/20261018140000_tok_connect_webhook_dispatch_security.sql:1](../../supabase/migrations/20261018140000_tok_connect_webhook_dispatch_security.sql#L1) |
+| 20261018141000 Ai Image Credit Reservations | 281 | 9 | [supabase/migrations/20261018141000_ai_image_credit_reservations.sql:1](../../supabase/migrations/20261018141000_ai_image_credit_reservations.sql#L1) |
+| 20261018142000 Tok Connect Oauth Delegation | 379 | 26 | [supabase/migrations/20261018142000_tok_connect_oauth_delegation.sql:1](../../supabase/migrations/20261018142000_tok_connect_oauth_delegation.sql#L1) |
 | 20261018171046 Marketing Targeted Mailing | 248 | 5 | [supabase/migrations/20261018171046_marketing_targeted_mailing.sql:1](../../supabase/migrations/20261018171046_marketing_targeted_mailing.sql#L1) |
 
 ## Automatisation, dépendances et CI
@@ -6315,6 +6380,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Restaurant Image Truth Backfill | backfill | [.github/workflows/restaurant-image-truth-backfill.yml](../../.github/workflows/restaurant-image-truth-backfill.yml) |
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
+| TOK Connect security regression | deno-edge-check, deno-transport, postgres-security | [.github/workflows/tok-connect-security.yml](../../.github/workflows/tok-connect-security.yml) |
 | TOK Workforce PostgreSQL Integration | migration-and-tenant-isolation | [.github/workflows/tok-workforce-postgres.yml](../../.github/workflows/tok-workforce-postgres.yml) |
 
 ### Dépendances
@@ -6426,14 +6492,14 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 119 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 135 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 138 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 35 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 268 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 752 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 769 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 62 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 63 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
@@ -6441,18 +6507,18 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 211 |
-| automation-script | 70 |
+| application-library | 214 |
+| automation-script | 76 |
 | documentation | 6 |
-| edge-function-source | 216 |
-| frontend-component | 275 |
+| edge-function-source | 226 |
+| frontend-component | 277 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
 | frontend-source | 28 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 1 |
-| test | 665 |
+| test | 680 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6592,6 +6658,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Versement développeur sans Stripe Connect : PostFinance | 4 | [docs/runbooks/tok-developer-bank-payouts.md:1](../../docs/runbooks/tok-developer-bank-payouts.md#L1) |
 | TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet) | 5 | [docs/runbooks/tok-stripe-connect-platform-profile-20261017.md:1](../../docs/runbooks/tok-stripe-connect-platform-profile-20261017.md#L1) |
 | Protection SEO et anti-scraping de TOK | 10 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
+| Réservation des crédits pour les images IA | 10 | [docs/security/ai-image-credit-reservations.md:1](../../docs/security/ai-image-credit-reservations.md#L1) |
 | Tok audit readiness — plan 10/10 | 5 | [docs/security/audit-readiness-10-10.md:1](../../docs/security/audit-readiness-10-10.md#L1) |
 | Audit d’intégrité des paiements — 15 juillet 2026 | 15 | [docs/security/payment-integrity-audit-2026-07-15.md:1](../../docs/security/payment-integrity-audit-2026-07-15.md#L1) |
 | Audit SEO complet TOK — 28 juillet 2026 | 25 | [docs/seo/SEO_AUDIT_2026-07-28.md:1](../../docs/seo/SEO_AUDIT_2026-07-28.md#L1) |
@@ -6663,7 +6730,8 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Publication Suisse | 3 | [docs/tok-connect/PUBLICATION.md:1](../../docs/tok-connect/PUBLICATION.md#L1) |
 | TOK Connect | 20 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
 | TOK Connect Remote MCP | 10 | [docs/tok-connect/REMOTE_MCP.md:1](../../docs/tok-connect/REMOTE_MCP.md#L1) |
-| Recette TOK Connect dans ChatGPT | 8 | [docs/tok-connect/TESTING.md:1](../../docs/tok-connect/TESTING.md#L1) |
+| TOK Connect — sécurisation et mise en service | 12 | [docs/tok-connect/SECURITY_HARDENING.md:1](../../docs/tok-connect/SECURITY_HARDENING.md#L1) |
+| Recette TOK Connect dans ChatGPT | 9 | [docs/tok-connect/TESTING.md:1](../../docs/tok-connect/TESTING.md#L1) |
 | TOK Connect Full App MCP (surface historique interne) | 9 | [docs/tok-connect/full-app-mcp.md:1](../../docs/tok-connect/full-app-mcp.md#L1) |
 | Espace Comptabilité Administrateur | 11 | [implementation_plan_compta.md:1](../../implementation_plan_compta.md#L1) |
 | Refonte de la Facturation avec Suivi des Commandes | 11 | [implementation_plan_invoice_refactor.md:1](../../implementation_plan_invoice_refactor.md#L1) |
@@ -6739,7 +6807,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (211)</summary>
+<details><summary>application-library (214)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/actualitesFeedOrdering.ts`
@@ -6751,6 +6819,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/ai/aiCreationJobs.ts`
 - `src/lib/ai/dailyDishAi.ts`
 - `src/lib/ai/generationSeed.ts`
+- `src/lib/ai/imageGenerationIntention.ts`
 - `src/lib/ai/imagePricing.ts`
 - `src/lib/ai/restaurantGallery.ts`
 - `src/lib/ai/restaurantMediaMetadata.ts`
@@ -6939,11 +7008,13 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/subscriptionCheckout.ts`
 - `src/lib/subscriptionEntitlements.ts`
 - `src/lib/support/contactSupport.ts`
+- `src/lib/tok-connect-preview.ts`
 - `src/lib/tokConnect.ts`
 - `src/lib/tokConnectOpenApi.ts`
 - `src/lib/tokCredits.ts`
 - `src/lib/tokIntelligence.ts`
 - `src/lib/tokLogo.ts`
+- `src/lib/tokOAuth.ts`
 - `src/lib/tokWorkforce.ts`
 - `src/lib/tokWorkforceCantons.ts`
 - `src/lib/tokWorkforceWarnings.ts`
@@ -6955,7 +7026,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (80)</summary>
+<details><summary>automation-script (88)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7016,6 +7087,14 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/restaurant-image-truth-worker.mjs`
 - `scripts/scale-readiness-check.mjs`
 - `scripts/search-application-index.mjs`
+- `scripts/security/ai-image-credit-checks.mjs`
+- `scripts/security/ai-image-credit-fixture.mjs`
+- `scripts/security/ai-image-credit-fixture.sql`
+- `scripts/security/run-webhook-deno-runtime.mjs`
+- `scripts/security/test-ai-image-credit-postgres.mjs`
+- `scripts/security/test-webhook-deno-runtime.ts`
+- `scripts/security/test-webhook-dispatch-postgres.mjs`
+- `scripts/security/tok-connect-oauth-isolation.sql`
 - `scripts/seo-query-retry.mjs`
 - `scripts/sql/tok-special-offer-legacy-preflight.sql`
 - `scripts/supabase-ci-retry.sh`
@@ -7040,7 +7119,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (29)</summary>
+<details><summary>ci-workflow (30)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -7070,11 +7149,12 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/restaurant-image-truth-backfill.yml`
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
+- `.github/workflows/tok-connect-security.yml`
 - `.github/workflows/tok-workforce-postgres.yml`
 
 </details>
 
-<details><summary>database-migration (551)</summary>
+<details><summary>database-migration (554)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7626,11 +7706,14 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261017000033_email_provider_delivery_reconciliation.sql`
 - `supabase/migrations/20261017000200_reservation_guarantee_request_idempotency.sql`
 - `supabase/migrations/20261017004243_atomic_order_special_offer_stock_restore.sql`
+- `supabase/migrations/20261018140000_tok_connect_webhook_dispatch_security.sql`
+- `supabase/migrations/20261018141000_ai_image_credit_reservations.sql`
+- `supabase/migrations/20261018142000_tok_connect_oauth_delegation.sql`
 - `supabase/migrations/20261018171046_marketing_targeted_mailing.sql`
 
 </details>
 
-<details><summary>documentation (166)</summary>
+<details><summary>documentation (168)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7724,6 +7807,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/runbooks/tok-developer-bank-payouts.md`
 - `docs/runbooks/tok-stripe-connect-platform-profile-20261017.md`
 - `docs/security/SEO_BOT_PROTECTION_RUNBOOK.md`
+- `docs/security/ai-image-credit-reservations.md`
 - `docs/security/audit-readiness-10-10.md`
 - `docs/security/payment-integrity-audit-2026-07-15.md`
 - `docs/seo/SEO_AUDIT_2026-07-28.md`
@@ -7796,13 +7880,16 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/tok-connect/PUBLICATION.md`
 - `docs/tok-connect/README.md`
 - `docs/tok-connect/REMOTE_MCP.md`
+- `docs/tok-connect/SECURITY_HARDENING.md`
 - `docs/tok-connect/TESTING.md`
 - `docs/tok-connect/full-app-mcp.md`
 
 </details>
 
-<details><summary>edge-function-source (216)</summary>
+<details><summary>edge-function-source (226)</summary>
 
+- `supabase/functions/_shared/ai-image-operation.ts`
+- `supabase/functions/_shared/ai-image-response.ts`
 - `supabase/functions/_shared/ai-pricing.ts`
 - `supabase/functions/_shared/ai-security.ts`
 - `supabase/functions/_shared/apple-storekit.ts`
@@ -7853,6 +7940,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/pack-entitlements.ts`
 - `supabase/functions/_shared/payment-attempts.ts`
 - `supabase/functions/_shared/payment-transactions.ts`
+- `supabase/functions/_shared/pinned-public-http.ts`
 - `supabase/functions/_shared/print/catalog.ts`
 - `supabase/functions/_shared/print/cloudprinter.ts`
 - `supabase/functions/_shared/print/options.ts`
@@ -7865,6 +7953,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/print/security.ts`
 - `supabase/functions/_shared/print/source-format.ts`
 - `supabase/functions/_shared/print/types.ts`
+- `supabase/functions/_shared/public-url-validation.ts`
 - `supabase/functions/_shared/rate-limit.ts`
 - `supabase/functions/_shared/refund-allocations.ts`
 - `supabase/functions/_shared/reservation-card-guarantee.ts`
@@ -7877,6 +7966,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/stripe-connect-platform-profile.ts`
 - `supabase/functions/_shared/stripe-paid-invoice-payment.ts`
 - `supabase/functions/_shared/tok-connect-auth.ts`
+- `supabase/functions/_shared/tok-connect-broker-crypto.ts`
+- `supabase/functions/_shared/tok-connect-broker.ts`
 - `supabase/functions/_shared/tok-connect-customer-commerce.ts`
 - `supabase/functions/_shared/tok-connect-customer-operations.ts`
 - `supabase/functions/_shared/tok-connect-customer-result.ts`
@@ -7885,10 +7976,13 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/tok-connect-discovery.ts`
 - `supabase/functions/_shared/tok-connect-floorplan-operations.ts`
 - `supabase/functions/_shared/tok-connect-marketing-visual.ts`
+- `supabase/functions/_shared/tok-connect-oauth-policy.ts`
+- `supabase/functions/_shared/tok-connect-oauth.ts`
 - `supabase/functions/_shared/tok-connect-reservation-intent.ts`
 - `supabase/functions/_shared/tok-connect-role-operations.ts`
 - `supabase/functions/_shared/tok-connect-service-settings-operations.ts`
 - `supabase/functions/_shared/tok-connect-special-offer-operations.ts`
+- `supabase/functions/_shared/tok-connect-webhook-http.ts`
 - `supabase/functions/_shared/tok-connect.ts`
 - `supabase/functions/_shared/tok-one-recurring-quote.ts`
 - `supabase/functions/_shared/tok-one.ts`
@@ -8005,6 +8099,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/tok-connect-admin/index.ts`
 - `supabase/functions/tok-connect-api/index.ts`
 - `supabase/functions/tok-connect-app-bridge/index.ts`
+- `supabase/functions/tok-connect-broker/index.ts`
 - `supabase/functions/tok-connect-chatgpt/index.ts`
 - `supabase/functions/tok-connect-commercial-bridge/index.ts`
 - `supabase/functions/tok-connect-full-app-mcp/index.ts`
@@ -8022,7 +8117,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (280)</summary>
+<details><summary>frontend-component (282)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8086,6 +8181,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/admin/TokConnectCatalogControls.tsx`
 - `src/components/auth/AccountPasswordForm.tsx`
 - `src/components/auth/SignOutButton.tsx`
+- `src/components/auth/TokOAuthConnections.tsx`
+- `src/components/auth/TokOAuthPermissions.tsx`
 - `src/components/campaigns/CampaignInternalTestSummary.tsx`
 - `src/components/campaigns/SponsoredRestaurantTemplateCard.tsx`
 - `src/components/campaigns/SponsoredVisual.tsx`
@@ -8570,10 +8667,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (607)</summary>
+<details><summary>public-asset (608)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
+- `public/.well-known/oauth-authorization-server/oauth`
 - `public/4c81caf5-ee6d-400c-8605-c61d010a05de.png`
 - `public/5a64288a-9712-4aae-8293-b0570ecd8668.png`
 - `public/64b6c2b1-eeb7-4cec-9f09-cb58519c17bc.png`
@@ -9383,7 +9481,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (665)</summary>
+<details><summary>test (680)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9448,7 +9546,10 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/ai-gallery-print-media-contract.test.ts`
 - `src/test/ai-generation-progress-dialog.test.tsx`
 - `src/test/ai-image-marketing-generation.test.ts`
+- `src/test/ai-image-operation.test.ts`
 - `src/test/ai-image-reference-security.test.ts`
+- `src/test/ai-image-reservation-display.test.ts`
+- `src/test/ai-image-response.test.ts`
 - `src/test/ai-loading-state.test.tsx`
 - `src/test/ai-support-text-normalization.test.ts`
 - `src/test/ai-waiting-animation-wiring.test.ts`
@@ -9589,6 +9690,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/demo-runtime-and-real-catalog-isolation.test.ts`
 - `src/test/demo-single-view-and-production-isolation.test.ts`
 - `src/test/demo-workspace-access.test.ts`
+- `src/test/dependency-audit-gate.test.ts`
 - `src/test/dependency-security.test.ts`
 - `src/test/deploy-production-secret-scope.test.ts`
 - `src/test/dialog-close-animation-guard.test.ts`
@@ -9656,6 +9758,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/home-world-hero.test.ts`
 - `src/test/homepage-photo-only-sections.test.ts`
 - `src/test/homepage-positioning-guards.test.ts`
+- `src/test/image-generation-intention.test.ts`
 - `src/test/image-metadata-ai.test.ts`
 - `src/test/incident-automation-readiness.test.ts`
 - `src/test/incident-evidence-depth.test.ts`
@@ -9793,6 +9896,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/payment-attempt-backend-contract.test.ts`
 - `src/test/payment-attempt-state.test.ts`
 - `src/test/photo-studio-persistence.test.ts`
+- `src/test/pinned-public-http.test.ts`
 - `src/test/plan-phase1-readiness.test.ts`
 - `src/test/plan2-fk-index-readiness.test.ts`
 - `src/test/plan2-security-definer-rpc-grants.test.ts`
@@ -9987,6 +10091,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-admin-schema-contract.test.ts`
 - `src/test/tok-connect-app-bridge.test.ts`
 - `src/test/tok-connect-booking-handler.test.ts`
+- `src/test/tok-connect-broker-crypto.test.ts`
+- `src/test/tok-connect-broker.test.ts`
 - `src/test/tok-connect-chatgpt-finalization.test.ts`
 - `src/test/tok-connect-commerce-handler.test.ts`
 - `src/test/tok-connect-commercial-bridge.test.ts`
@@ -10008,6 +10114,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-mcp-http.test.ts`
 - `src/test/tok-connect-mcp-migration.test.ts`
 - `src/test/tok-connect-model-commerce-widget.test.ts`
+- `src/test/tok-connect-oauth-delegation.test.ts`
 - `src/test/tok-connect-oauth-routing.test.ts`
 - `src/test/tok-connect-official-branding.test.ts`
 - `src/test/tok-connect-preview-sandbox.test.tsx`
@@ -10015,17 +10122,23 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-reservation-intent.test.ts`
 - `src/test/tok-connect-role-operations.test.ts`
 - `src/test/tok-connect-runtime.test.ts`
+- `src/test/tok-connect-security-handlers.test.ts`
 - `src/test/tok-connect-smoke.test.ts`
 - `src/test/tok-connect-special-offer-operations.test.ts`
 - `src/test/tok-connect-special-offers-commerce.test.ts`
 - `src/test/tok-connect-sql.test.ts`
 - `src/test/tok-connect-studio-widget.test.ts`
 - `src/test/tok-connect-universal-mcp.test.ts`
+- `src/test/tok-connect-webhook-dispatch-security.test.ts`
+- `src/test/tok-connect-webhook-security.test.ts`
+- `src/test/tok-connect-widget-security.test.ts`
 - `src/test/tok-connect.test.ts`
 - `src/test/tok-intelligence-suite.test.ts`
 - `src/test/tok-invoice-print-visibility.test.ts`
 - `src/test/tok-logo-calendar.test.ts`
 - `src/test/tok-mcp-pickup-slot-capacity.test.ts`
+- `src/test/tok-oauth-consent-boundary.test.tsx`
+- `src/test/tok-oauth-management.test.tsx`
 - `src/test/tok-one-management-handler.test.ts`
 - `src/test/tok-one-recurring-quote.test.ts`
 - `src/test/tok-one-stripe-test-mode.test.ts`

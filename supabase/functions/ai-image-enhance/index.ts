@@ -18,6 +18,8 @@ import {
   MARKETING_REFERENCE_MEDIA_TYPES,
   isCurrentMarketingReferenceStorage,
 } from "../_shared/marketing-studio-references.ts";
+import { AiImageOperation, ImageOperationError, hashImageOperationRequest, requireImageIdempotencyKey } from "../_shared/ai-image-operation.ts";
+import { decodeBoundedImageBase64, ImageBodyError, MAX_IMAGE_BYTES, readBoundedImageBody, readBoundedImageJson } from "../_shared/ai-image-response.ts";
 
 type ImageEnhanceResult = {
   title: string;
@@ -52,6 +54,7 @@ type ImageRequestOptions = {
   size: string;
   timeoutMs: number;
   mode: "interactive_fast" | "configured";
+  operation?: AiImageOperation;
 };
 
 type OpenAIImageErrorDetails = {
@@ -691,13 +694,6 @@ function getSourceImageFileName(mimeType: string) {
   return "source.jpg";
 }
 
-function bytesFromBase64(base64: string) {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
-
 function isAbortError(error: unknown) {
   return error instanceof DOMException && error.name === "AbortError";
 }
@@ -716,7 +712,8 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
 }
 
 async function readOpenAIImageError(response: Response): Promise<OpenAIImageErrorDetails> {
-  const bodyText = await response.text().catch(() => "");
+  const bodyText = await readBoundedImageBody(response, 64 * 1024, 10_000)
+    .then((bytes) => new TextDecoder().decode(bytes)).catch(() => "");
   let parsed: Record<string, unknown> = {};
 
   try {
@@ -834,42 +831,46 @@ function buildMarketingVisualResult(input: {
 }
 
 async function fetchImageBlob(url: string) {
-  let response: Response;
+  let response: Response | undefined;
   try {
     response = await fetchPublicUrl(url, {
       timeoutMs: SOURCE_IMAGE_TIMEOUT_MS,
       maxRedirects: 3,
     });
+    if (!response.ok) throw new HttpError(400, "source_image_unreachable");
+    const contentType = normalizeImageMimeType(response.headers.get("content-type"), url);
+    if (!contentType.startsWith("image/")) throw new HttpError(400, "source_image_invalid_type");
+    if (!SUPPORTED_SOURCE_IMAGE_MIME_TYPES.has(contentType)) throw new HttpError(400, "source_image_unsupported_type");
+    const bytes = await readBoundedImageBody(response, MAX_IMAGE_BYTES, SOURCE_IMAGE_TIMEOUT_MS);
+    return new Blob([bytes], { type: contentType });
   } catch (error) {
+    void response?.body?.cancel().catch(() => {});
     const reason = error instanceof Error ? error.message : "";
-    if (reason === "request_timeout") throw new HttpError(503, "source_image_timeout");
+    if (["request_timeout", "image_body_timeout"].includes(reason)) throw new HttpError(503, "source_image_timeout");
+    if (["image_body_too_large", "http_response_body_too_large"].includes(reason)) throw new HttpError(400, "source_image_too_large");
     if ([
       "invalid_url",
       "unsafe_protocol",
       "unsafe_credentials",
       "unsafe_or_private_host",
       "redirect_limit",
+      "unsafe_redirect_protocol",
     ].includes(reason)) {
       throw new HttpError(400, "source_image_unsafe_url");
     }
     throw error;
   }
-
-  if (!response.ok) throw new HttpError(400, "source_image_unreachable");
-  const contentType = normalizeImageMimeType(response.headers.get("content-type"), url);
-  if (!contentType.startsWith("image/")) throw new HttpError(400, "source_image_invalid_type");
-  if (!SUPPORTED_SOURCE_IMAGE_MIME_TYPES.has(contentType)) throw new HttpError(400, "source_image_unsupported_type");
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (bytes.byteLength > 18 * 1024 * 1024) throw new HttpError(400, "source_image_too_large");
-  return new Blob([bytes], { type: contentType });
 }
 
 async function callOpenAIImageGeneration(prompt: string, n: number, options: ImageRequestOptions) {
+  if (!options.operation) throw new HttpError(503, "image_reservation_required");
+  await options.operation.beforeProvider();
   const response = await fetchWithTimeout(IMAGE_GENERATIONS_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${OPENAI_API_KEY}`,
       "Content-Type": "application/json",
+      "X-Client-Request-Id": options.operation.providerClientRequestId,
     },
     body: JSON.stringify({
       model: options.model,
@@ -881,14 +882,16 @@ async function callOpenAIImageGeneration(prompt: string, n: number, options: Ima
       moderation: "auto",
     }),
   }, options.timeoutMs, "image_generation_timeout");
-
+  options.operation.observeProviderResponse(response.status, response.headers.get("x-request-id"));
   if (!response.ok) {
     const details = await readOpenAIImageError(response);
     logOpenAIImageError("image_generation", details, options);
     throw publicOpenAIImageError("image_generation", details);
   }
 
-  return await response.json();
+  const payload = await readBoundedImageJson(response, options.timeoutMs);
+  options.operation.observeProviderSuccess();
+  return payload;
 }
 
 function isImageTimeoutError(error: unknown) {
@@ -900,9 +903,8 @@ function isImageTimeoutError(error: unknown) {
 }
 
 function shouldRetryImageGeneration(error: unknown) {
-  if (isImageTimeoutError(error)) return true;
   if (!(error instanceof HttpError)) return false;
-  if (!error.message.startsWith("image_generation_failed:")) return false;
+  if (!error.message.startsWith("image_generation_failed:400:")) return false;
 
   const message = error.message.toLowerCase();
   return ![
@@ -955,6 +957,7 @@ async function callOpenAIImageEdit(prompt: string, sourceImageUrl: string, n: nu
 }
 
 async function callOpenAIImageEditWithReferences(prompt: string, imageUrls: string[], n: number, options: ImageRequestOptions) {
+  if (!options.operation) throw new HttpError(503, "image_reservation_required");
   if (!imageUrls.length) throw new HttpError(400, "reference_image_required");
   const sourceBlobs = await Promise.all(imageUrls.map((url) => fetchImageBlob(url)));
   const form = new FormData();
@@ -969,25 +972,30 @@ async function callOpenAIImageEditWithReferences(prompt: string, imageUrls: stri
     form.append("image[]", sourceBlob, `reference-${index + 1}-${getSourceImageFileName(sourceBlob.type)}`);
   });
 
+  await options.operation.beforeProvider();
   const response = await fetchWithTimeout(IMAGE_EDITS_URL, {
     method: "POST",
-    headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+    headers: {
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      "X-Client-Request-Id": options.operation.providerClientRequestId,
+    },
     body: form,
   }, options.timeoutMs, "image_edit_timeout");
-
+  options.operation.observeProviderResponse(response.status, response.headers.get("x-request-id"));
   if (!response.ok) {
     const details = await readOpenAIImageError(response);
     logOpenAIImageError("image_edit", details, options);
     throw publicOpenAIImageError("image_edit", details);
   }
 
-  return await response.json();
+  const payload = await readBoundedImageJson(response, options.timeoutMs);
+  options.operation.observeProviderSuccess();
+  return payload;
 }
 
 function shouldRetryImageEdit(error: unknown) {
-  if (isImageTimeoutError(error)) return true;
   if (!(error instanceof HttpError)) return false;
-  if (!error.message.startsWith("image_edit_failed:")) return false;
+  if (!error.message.startsWith("image_edit_failed:400:")) return false;
 
   const message = error.message.toLowerCase();
   return ![
@@ -1011,7 +1019,6 @@ function shouldRetryImageEdit(error: unknown) {
 }
 
 function shouldFallbackFromMarketingReferenceError(error: unknown) {
-  if (isImageTimeoutError(error)) return true;
   if (!(error instanceof HttpError)) return false;
 
   const message = error.message.toLowerCase();
@@ -1031,7 +1038,7 @@ function shouldFallbackFromMarketingReferenceError(error: unknown) {
 
   if (message === "source_image_unsafe_url") return false;
   if (message.startsWith("source_image_")) return true;
-  if (!message.startsWith("image_edit_failed:")) return false;
+  if (!message.startsWith("image_edit_failed:400:")) return false;
 
   return [
     "invalid_image",
@@ -1093,23 +1100,6 @@ async function callOpenAIImageEditWithRetry(input: {
       mode: retryOptions.mode,
     });
 
-    if (isImageTimeoutError(error) && input.allowGenerationFallback) {
-      console.warn(`[${FUNCTION_NAME}] image_edit_fallback`, {
-        reason: error instanceof Error ? error.message : "unknown",
-        model: retryOptions.model,
-        quality: retryOptions.quality,
-        size: retryOptions.size,
-        mode: retryOptions.mode,
-      });
-
-      return {
-        response: await callOpenAIImageGeneration(input.fallbackPrompt || input.retryPrompt, input.n, retryOptions),
-        options: retryOptions,
-        retryUsed: true,
-        fallbackUsed: true,
-        fallbackReason: error instanceof Error ? error.message : "image_edit_timeout",
-      };
-    }
 
     try {
       return {
@@ -1213,24 +1203,6 @@ async function callOpenAIImageEditWithReferencesAndRecovery(input: {
       referenceCount: input.imageUrls.length,
     });
 
-    if (isImageTimeoutError(error) && input.allowGenerationFallback) {
-      console.warn(`[${FUNCTION_NAME}] image_edit_fallback`, {
-        reason: error instanceof Error ? error.message : "unknown",
-        model: retryOptions.model,
-        quality: retryOptions.quality,
-        size: retryOptions.size,
-        mode: retryOptions.mode,
-        referenceCount: input.imageUrls.length,
-      });
-
-      return {
-        response: await callOpenAIImageGeneration(input.fallbackPrompt, input.n, retryOptions),
-        options: retryOptions,
-        retryUsed: true,
-        fallbackUsed: true,
-        fallbackReason: error instanceof Error ? error.message : "image_reference_edit_timeout",
-      };
-    }
 
     try {
       return {
@@ -1268,12 +1240,15 @@ async function extractGeneratedImageBytes(imageResponse: unknown) {
   const first = Array.isArray(data) ? data[0] as Record<string, unknown> | undefined : undefined;
   if (!first) throw new HttpError(502, "image_empty_response");
 
-  if (typeof first.b64_json === "string") return bytesFromBase64(first.b64_json);
+  if (typeof first.b64_json === "string") return decodeBoundedImageBase64(first.b64_json);
 
   if (typeof first.url === "string") {
-    const response = await fetchWithTimeout(first.url, {}, SOURCE_IMAGE_TIMEOUT_MS, "image_url_timeout");
-    if (!response.ok) throw new HttpError(502, "image_url_unreachable");
-    return new Uint8Array(await response.arrayBuffer());
+    const response = await fetchPublicUrl(first.url, { timeoutMs: SOURCE_IMAGE_TIMEOUT_MS, maxRedirects: 3 });
+    if (!response.ok) {
+      void response.body?.cancel().catch(() => {});
+      throw new HttpError(502, "image_url_unreachable");
+    }
+    return await readBoundedImageBody(response, MAX_IMAGE_BYTES, SOURCE_IMAGE_TIMEOUT_MS);
   }
 
   throw new HttpError(502, "image_missing_payload");
@@ -1283,9 +1258,11 @@ async function storeGeneratedImage(
   actor: Awaited<ReturnType<typeof authenticateRequest>>,
   restaurantId: string,
   bytes: Uint8Array,
+  operation: AiImageOperation,
 ) {
-  const id = crypto.randomUUID();
+  const id = operation.assetId;
   const path = `ai-generated/${restaurantId}/${id}.png`;
+  operation.storageOutcomeUnknown = true;
   const { error: uploadError } = await actor.adminClient.storage.from(IMAGE_BUCKET).upload(path, bytes, {
     contentType: "image/png",
     upsert: false,
@@ -1308,33 +1285,10 @@ async function storeGeneratedImage(
   });
 
   if (galleryUploadError) throw new HttpError(500, galleryUploadError.message);
+  operation.storageOutcomeUnknown = false;
 
   const { data: galleryPublicData } = actor.adminClient.storage.from(GALLERY_BUCKET).getPublicUrl(galleryPath);
   return { id, path, imageUrl, galleryPath, galleryImageUrl: galleryPublicData.publicUrl };
-}
-
-function isMissingGeneratedAssetsTable(error: { message?: string } | null | undefined) {
-  const message = error?.message || "";
-  return message.includes("ai_generated_assets") && (
-    message.includes("schema cache") ||
-    message.includes("does not exist") ||
-    message.includes("Could not find the table")
-  );
-}
-
-async function insertGeneratedAsset(
-  actor: Awaited<ReturnType<typeof authenticateRequest>>,
-  payload: Record<string, unknown>,
-) {
-  const { data, error } = await actor.adminClient
-    .from("ai_generated_assets")
-    .insert(payload)
-    .select("id")
-    .single();
-
-  if (!error) return typeof data?.id === "string" ? data.id : null;
-  if (isMissingGeneratedAssetsTable(error)) return null;
-  throw new HttpError(500, error.message);
 }
 
 async function insertUsage(
@@ -1368,36 +1322,6 @@ async function insertUsage(
   assertTokCreditSpendRecorded(error);
 }
 
-function readTokCreditBalance(usage: unknown) {
-  const credits = typeof usage === "object" && usage !== null && Array.isArray((usage as { credits?: unknown }).credits)
-    ? (usage as { credits: Array<Record<string, unknown>> }).credits
-    : [];
-  const tokCredit = credits.find((credit) => credit?.kind === "tok_credits");
-  const balance = Number(tokCredit?.balance ?? 0);
-
-  return Number.isFinite(balance) ? Math.max(0, Math.floor(balance)) : 0;
-}
-
-async function requireTokCreditBalance(
-  actor: Awaited<ReturnType<typeof authenticateRequest>>,
-  restaurantId: string,
-  requiredCredits: number,
-) {
-  const required = Math.max(1, Math.ceil(requiredCredits));
-  const { data, error } = await actor.adminClient.rpc("get_restaurant_credit_usage", {
-    p_restaurant_id: restaurantId,
-  });
-
-  if (error) throw new HttpError(500, error.message);
-
-  const balance = readTokCreditBalance(data);
-  if (balance < required) {
-    throw new HttpError(402, "ai_credits_exhausted");
-  }
-
-  return balance;
-}
-
 async function requireActiveAiFeature(
   actor: Awaited<ReturnType<typeof authenticateRequest>>,
   featureName: string,
@@ -1420,6 +1344,7 @@ Deno.serve(async (req) => {
   let restaurantId: string | null = null;
   let assetId: string | null = null;
   let generationSeed: string | null = null;
+  let operation: AiImageOperation | null = null;
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
@@ -1427,6 +1352,9 @@ Deno.serve(async (req) => {
     if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
 
     const body = await req.json().catch(() => ({}));
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new HttpError(400, "invalid_request_body");
+    const idempotencyKey = requireImageIdempotencyKey(req.headers, body);
+    const requestHash = await hashImageOperationRequest(body);
     generationSeed = resolveGenerationSeed(body as Record<string, unknown>);
     restaurantId = maybeUuid(body.restaurantId);
     const assetType = normalizeAssetType(body.assetType);
@@ -1474,6 +1402,20 @@ Deno.serve(async (req) => {
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
     await requireActiveAiFeature(actor, "ai_premium_image_generation");
     await requireActiveAiFeature(actor, marketingAssetMode ? "ai_marketing_campaigns" : "ai_photo_enhancer");
+    const rl = createRateLimiter(actor.adminClient, FUNCTION_NAME);
+    await rl.consume(`user:${actor.userId}`, { maxRequests: 20, windowSeconds: 600 });
+    await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 60, windowSeconds: 600 });
+    await rl.consume("global", { maxRequests: 180, windowSeconds: 60 });
+    const claim = await AiImageOperation.claim(actor.adminClient, {
+      userId: actor.userId, restaurantId, idempotencyKey, requestHash,
+      creditUnits: requestedOutputCreditUnits, generationSeed, model: imageModel,
+    });
+    if (!(claim instanceof AiImageOperation)) return jsonResponse(claim.response, claim.status, cors);
+    operation = claim;
+    generationSeed = operation.generationSeed;
+    assetId = operation.assetId;
+    const availableTokCredits = operation.availableCreditsBefore;
+
     const marketingReferences = marketingAssetMode
       ? await resolveCurrentMarketingReferences(actor, restaurantId, requestedReferenceMediaIds)
       : null;
@@ -1487,11 +1429,7 @@ Deno.serve(async (req) => {
     const resolvedReferenceMediaTypes = resolvedReferences?.mediaTypes || [];
     const resolvedReferenceFingerprint = resolvedReferences?.fingerprint || null;
 
-    const rl = createRateLimiter(actor.adminClient, FUNCTION_NAME);
-    await rl.consume(`user:${actor.userId}`, { maxRequests: 20, windowSeconds: 600 });
-    await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 60, windowSeconds: 600 });
-    await rl.consume("global", { maxRequests: 180, windowSeconds: 60 });
-    const availableTokCredits = await requireTokCreditBalance(actor, restaurantId, requestedOutputCreditUnits);
+
 
     const sourceEditPrompt = sourceImageUrl
       ? buildPhotoStudioRetouchPrompt({ dishName, userPrompt: prompt })
@@ -1526,7 +1464,7 @@ Deno.serve(async (req) => {
     let imageFallbackReason: string | null = null;
     let sourceEditUsed = false;
     const generationFallbackAllowed = !sourceImageUrl && !marketingAssetMode;
-    const imageOptions = generatedImageOptions;
+    const imageOptions = { ...generatedImageOptions, operation };
     const baseFinalPrompt = marketingAssetMode
       ? [
         result.enhanced_prompt,
@@ -1623,7 +1561,7 @@ Deno.serve(async (req) => {
 
     const imageUsage = extractImageUsage(imageResponse);
     const imageBytes = await extractGeneratedImageBytes(imageResponse);
-    const stored = await storeGeneratedImage(actor, restaurantId, imageBytes);
+    const stored = await storeGeneratedImage(actor, restaurantId, imageBytes, operation);
     usedImageOptions = usedImageOptions || imageOptions;
     const actualOutputCostUsd = getOpenAIOutputCostUsd(usedImageOptions.size, usedImageOptions.quality);
     const baseActualOutputCostChf = actualOutputCostUsd * USD_TO_CHF_RATE;
@@ -1647,7 +1585,8 @@ Deno.serve(async (req) => {
       ? "estimated_total_cost"
       : "output_resolution";
 
-    const persistedAssetId = await insertGeneratedAsset(actor, {
+    if (billablePhotoCreditUnits !== operation.creditUnits) throw new HttpError(503, "image_credit_reservation_mismatch");
+    const assetPayload = {
       restaurant_id: restaurantId,
       user_id: actor.userId,
       source_image_url: sourceImageUrl || null,
@@ -1718,9 +1657,9 @@ Deno.serve(async (req) => {
           : "generation_without_source",
         reference_folder: marketingAssetMode ? null : `public${TOK_REFERENCE_FOLDER}`,
       },
-    });
+    };
 
-    const generatedAssetId = persistedAssetId || stored.id;
+    const generatedAssetId = operation.assetId;
     assetId = generatedAssetId;
     generated = {
       asset_id: generatedAssetId,
@@ -1733,16 +1672,7 @@ Deno.serve(async (req) => {
       model: usedImageOptions.model,
     };
 
-    await insertUsage(actor, {
-      status: "success",
-      restaurantId,
-      assetId,
-      model: usedImageOptions?.model,
-      usage: imageUsage,
-      imageCount: generated ? variantCount : 0,
-      costOptions: usedImageOptions ? { size: usedImageOptions.size, quality: usedImageOptions.quality } : undefined,
-      estimatedCostChf: estimatedImageCostChf,
-      metadata: {
+    const usageMetadata = {
         credit_kind: "photo_retouch",
         credit_units: billablePhotoCreditUnits,
         credit_units_per_image: actualCreditUnits,
@@ -1793,8 +1723,35 @@ Deno.serve(async (req) => {
         output_format: "png",
         generation_seed: activeGenerationSeed,
         format: format.label,
-      },
-    });
+      };
+
+    const responsePayload = {
+      ...result,
+      assetId,
+      marketing_output_target: marketingOutputFormat,
+      generated_image_url: generated?.generated_image_url || null,
+      gallery_image_url: generated?.gallery_image_url || null,
+      storage_bucket: generated?.storage_bucket || null,
+      storage_path: generated?.storage_path || null,
+      gallery_storage_bucket: generated?.gallery_storage_bucket || null,
+      gallery_storage_path: generated?.gallery_storage_path || null,
+      model: generated?.model || IMAGE_MODEL,
+      output_resolution: outputConfig.outputResolution,
+      output_size: usedImageOptions?.size || outputConfig.outputSize,
+      output_quality: usedImageOptions?.quality || outputConfig.outputQuality,
+      credit_units: billablePhotoCreditUnits,
+      estimated_cost_chf: estimatedImageCostChf,
+      image_mode: usedImageOptions?.mode,
+      generation_seed: activeGenerationSeed,
+      brand_overlay_positioning: "frontend_transparent_layer",
+      brand_overlay_size: "180x180",
+      reference_folder: marketingAssetMode ? null : `public${TOK_REFERENCE_FOLDER}`,
+      status: "stored",
+    };
+    const completedResponse = await operation.finalize(assetPayload, {
+      ...imageUsage, estimated_cost_chf: estimatedImageCostChf,
+      provider_request_id: operation.providerRequestId,
+    }, usageMetadata, responsePayload);
 
     await writeAuditLog({
       adminClient: actor.adminClient,
@@ -1807,6 +1764,9 @@ Deno.serve(async (req) => {
       targetEntityId: assetId,
       metadata: {
         rid: log.rid,
+        image_operation_id: operation.id,
+        provider_client_request_id: operation.providerClientRequestId,
+        provider_request_id: operation.providerRequestId,
         restaurant_id: restaurantId,
         image_model: usedImageOptions?.model,
         requested_image_model: imageModel,
@@ -1841,39 +1801,37 @@ Deno.serve(async (req) => {
       },
     });
 
-    return jsonResponse({
-      ...result,
-      assetId,
-      marketing_output_target: marketingOutputFormat,
-      generated_image_url: generated?.generated_image_url || null,
-      gallery_image_url: generated?.gallery_image_url || null,
-      storage_bucket: generated?.storage_bucket || null,
-      storage_path: generated?.storage_path || null,
-      gallery_storage_bucket: generated?.gallery_storage_bucket || null,
-      gallery_storage_path: generated?.gallery_storage_path || null,
-      model: generated?.model || IMAGE_MODEL,
-      output_resolution: outputConfig.outputResolution,
-      output_size: usedImageOptions?.size || outputConfig.outputSize,
-      output_quality: usedImageOptions?.quality || outputConfig.outputQuality,
-      credit_units: billablePhotoCreditUnits,
-      estimated_cost_chf: estimatedImageCostChf,
-      image_mode: usedImageOptions?.mode,
-      generation_seed: activeGenerationSeed,
-      brand_overlay_positioning: "frontend_transparent_layer",
-      brand_overlay_size: "180x180",
-      reference_folder: marketingAssetMode ? null : `public${TOK_REFERENCE_FOLDER}`,
-      status: "stored",
-    }, 200, cors);
+    return jsonResponse(completedResponse, 200, cors);
   } catch (err) {
-    const status = err instanceof HttpError ? err.status : 500;
-    const message = err instanceof HttpError ? err.message : "internal_error";
+    const status = err instanceof HttpError || err instanceof ImageOperationError ? err.status : 500;
+    const message = err instanceof HttpError || err instanceof ImageOperationError
+      ? err.message : err instanceof ImageBodyError ? err.code : "internal_error";
     log.error("request_failed", { status, message });
 
+    let operationReply: Awaited<ReturnType<AiImageOperation["handleFailure"]>> | null = null;
+    if (operation && actor && restaurantId) {
+      const cleanupActor = actor;
+      const cleanupRestaurantId = restaurantId;
+      const cleanupAssetId = operation.assetId;
+      operationReply = await operation.handleFailure(message, async () => {
+        const results = await Promise.all([
+          cleanupActor.adminClient.storage.from(IMAGE_BUCKET)
+            .remove([`ai-generated/${cleanupRestaurantId}/${cleanupAssetId}.png`]),
+          cleanupActor.adminClient.storage.from(GALLERY_BUCKET)
+            .remove([`${cleanupRestaurantId}/ai-gallery/${cleanupAssetId}.png`]),
+        ]);
+        if (results.some((result) => result.error)) throw new Error("image_asset_cleanup_incomplete");
+      });
+      if (operationReply.status === 200) return jsonResponse(operationReply.response, 200, cors);
+    }
+
     if (actor) {
-      await insertUsage(actor, {
+      // Pre-admission errors have no paid provider call and never create a debit.
+      if (!operation) await insertUsage(actor, {
         status: "failure",
         restaurantId,
         assetId,
+        estimatedCostChf: 0,
         metadata: { error: message, rid: log.rid, generation_seed: generationSeed },
       }).catch(() => {});
 
@@ -1887,10 +1845,16 @@ Deno.serve(async (req) => {
         targetEntityType: "ai_generated_assets",
         targetEntityId: assetId,
         errorMessage: message,
-        metadata: { rid: log.rid, restaurant_id: restaurantId, generation_seed: generationSeed },
+        metadata: { rid: log.rid, restaurant_id: restaurantId, generation_seed: generationSeed,
+          image_operation_id: operation?.id, operation_state: operationReply?.response.state,
+          provider_request_id: operation?.providerRequestId,
+          provider_client_request_id: operation?.providerClientRequestId },
       }).catch(() => {});
     }
 
+    if (operationReply) return jsonResponse({
+      ...operationReply.response, detail: message, rid: log.rid,
+    }, operationReply.status, cors);
     return jsonResponse({ error: message, rid: log.rid }, status, cors);
   }
 });

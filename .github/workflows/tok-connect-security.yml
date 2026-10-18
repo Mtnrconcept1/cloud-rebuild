@@ -1,0 +1,123 @@
+name: TOK Connect security regression
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/tok-connect-security.yml"
+      - "deno.lock"
+      - "supabase/**"
+      - "scripts/security/**"
+      - "src/lib/tokOAuth.ts"
+      - "src/lib/ai/**"
+      - "src/components/auth/**"
+      - "src/pages/OAuthConsent.tsx"
+      - "src/test/*security*"
+      - "src/test/*oauth*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tok-connect-security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deno-edge-check:
+    name: Edge Function types on Deno 2.9.6
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Resolve only the Edge import graph, without discovering the frontend's
+      # package.json or creating a local node_modules directory.
+      DENO_NO_PACKAGE_JSON: "1"
+      DENO_NO_UPDATE_CHECK: "1"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "v2.9.6"
+      - name: Check the changed Edge entry points and their local dependencies
+        run: |
+          # Preserve the existing remote checksum and Supabase redirect pin while
+          # completing the newly reached backend graph outside the checkout.
+          cp deno.lock "$RUNNER_TEMP/tok-connect-edge-check.lock"
+          deno check --no-config --node-modules-dir=none \
+            --lock="$RUNNER_TEMP/tok-connect-edge-check.lock" \
+            supabase/functions/tok-connect-broker/index.ts \
+            supabase/functions/tok-connect-app-bridge/index.ts \
+            supabase/functions/tok-connect-mcp/index.ts \
+            supabase/functions/tok-connect-remote-mcp/index.ts \
+            supabase/functions/tok-connect-chatgpt/index.ts \
+            supabase/functions/tok-connect-full-app-mcp/index.ts \
+            supabase/functions/tok-connect-oauth/index.ts \
+            supabase/functions/tok-connect-commercial-bridge/index.ts \
+            supabase/functions/ai-image-enhance/index.ts \
+            supabase/functions/tok-connect-webhook-dispatch/index.ts \
+            supabase/functions/track-analytics/index.ts \
+            supabase/functions/track-sponsored-event/index.ts
+
+  postgres-security:
+    name: PostgreSQL 17 security and concurrency
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: synthetic-local-fixture
+        ports:
+          - "127.0.0.1:5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: synthetic-local-fixture
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Create isolated databases
+        run: |
+          createdb tok_connect_security_test
+          createdb tok_security_webhooks
+          createdb tok_security_ai
+      - name: OAuth native API isolation and revocation
+        env:
+          PGDATABASE: tok_connect_security_test
+        run: psql -X -v ON_ERROR_STOP=1 -f scripts/security/tok-connect-oauth-isolation.sql
+      - name: Webhook claims, leases, retries and permissions
+        env:
+          PGDATABASE: tok_security_webhooks
+          TOK_WEBHOOK_SECURITY_DISPOSABLE: "true"
+        run: node scripts/security/test-webhook-dispatch-postgres.mjs
+      - name: AI credit reservations, concurrent requests and gifts
+        env:
+          PGDATABASE: tok_security_ai
+          TOK_AI_SECURITY_DISPOSABLE: "true"
+        run: node scripts/security/test-ai-image-credit-postgres.mjs
+
+  deno-transport:
+    name: DNS pinning on Deno ${{ matrix.deno-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        deno-version: ["v2.1.4", "v2.9.6"]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: ${{ matrix.deno-version }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Verify pinned TCP and TLS with a local test certificate
+        run: node scripts/security/run-webhook-deno-runtime.mjs

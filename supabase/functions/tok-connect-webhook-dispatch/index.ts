@@ -1,23 +1,8 @@
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
-import {
-  authenticateRequest,
-  HttpError,
-  jsonResponse,
-  writeAuditLog,
-  type EdgeSupabaseClient,
-  type RequestActor,
-} from "../_shared/auth.ts";
-import {
-  buildTokConnectEnvelope,
-  buildTokConnectWebhookHeaders,
-  getTokConnectRetryDelaySeconds,
-  makeTokConnectRequestId,
-} from "../_shared/tok-connect.ts";
+import { authenticateRequest, HttpError, jsonResponse, writeAuditLog, type EdgeSupabaseClient, type RequestActor } from "../_shared/auth.ts";
+import { buildTokConnectEnvelope, buildTokConnectWebhookHeaders, makeTokConnectRequestId } from "../_shared/tok-connect.ts";
 import { assertTokConnectFeatureEnabled } from "../_shared/tok-connect-auth.ts";
-
-type DispatchBody = {
-  limit?: number;
-};
+import { postPublicWebhook, WEBHOOK_TIMEOUT_MS } from "../_shared/tok-connect-webhook-http.ts";
 
 type DeliveryRow = {
   id: string;
@@ -26,188 +11,122 @@ type DeliveryRow = {
   event_type: string;
   payload: Record<string, unknown>;
   attempts: number;
-  next_retry_at: string | null;
+  dispatch_lease_token: string;
+  dispatch_lease_expires_at: string;
 };
+type EndpointRow = { id: string; partner_id: string; url: string; signing_secret: string; status: string };
+type DeliveryResult = { id: string; status: string; response_status?: number | null; reason?: string };
 
-type EndpointRow = {
-  id: string;
-  url: string;
-  signing_secret: string;
-  status: string;
-};
+const CLAIM_BATCH_SIZE = 5;
+const DISPATCH_BUDGET_MS = 35_000;
+const TOK_CONNECT_DISPATCH_HEADER_NAMES = ["X-TOK-Event", "X-TOK-Delivery", "X-TOK-Timestamp", "X-TOK-Signature"];
 
-const MAX_WEBHOOK_ATTEMPTS = 5;
-const WEBHOOK_TIMEOUT_MS = 10_000;
-const TOK_CONNECT_DISPATCH_HEADER_NAMES = [
-  "X-TOK-Event",
-  "X-TOK-Delivery",
-  "X-TOK-Timestamp",
-  "X-TOK-Signature",
-];
-
-function parseLimit(value: unknown) {
-  const parsed = Number(value || 25);
-  if (!Number.isFinite(parsed) || parsed <= 0) return 25;
-  return Math.min(Math.floor(parsed), 100);
+function requireDispatcher(actor: RequestActor) {
+  if (!actor.isServiceRole || !["service_role", "scheduler_secret"].includes(actor.authMode)) {
+    throw new HttpError(403, "webhook_dispatcher_service_required");
+  }
 }
 
-async function readPendingDeliveries(adminClient: EdgeSupabaseClient, limit: number) {
-  const now = new Date().toISOString();
-  const { data, error } = await adminClient
-    .from("tok_connect_webhook_deliveries")
-    .select("id, endpoint_id, partner_id, event_type, payload, attempts, next_retry_at")
-    .eq("status", "pending")
-    .or(`next_retry_at.is.null,next_retry_at.lte.${now}`)
-    .order("created_at", { ascending: true })
-    .limit(limit);
-
-  if (error) throw new HttpError(500, error.message);
-  return (data || []) as DeliveryRow[];
+function parseLimit(value: unknown) {
+  const parsed = Number(value ?? 25);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.min(Math.floor(parsed), 100) : 25;
 }
 
 async function readEndpoints(adminClient: EdgeSupabaseClient, deliveries: DeliveryRow[]) {
-  const endpointIds = [...new Set(deliveries.map((delivery) => delivery.endpoint_id).filter(Boolean))] as string[];
-  if (endpointIds.length === 0) return new Map<string, EndpointRow>();
-
-  const { data, error } = await adminClient
-    .from("tok_connect_webhook_endpoints")
-    .select("id, url, signing_secret, status")
-    .in("id", endpointIds);
-
-  if (error) throw new HttpError(500, error.message);
-  return new Map((data || []).map((endpoint: EndpointRow) => [endpoint.id, endpoint]));
+  const ids = [...new Set(deliveries.flatMap((row) => row.endpoint_id ? [row.endpoint_id] : []))];
+  if (!ids.length) return new Map<string, EndpointRow>();
+  const { data, error } = await adminClient.from("tok_connect_webhook_endpoints")
+    .select("id, partner_id, url, signing_secret, status").in("id", ids);
+  if (error) throw new HttpError(500, "webhook_endpoint_read_failed");
+  return new Map<string, EndpointRow>((data || []).map((row: EndpointRow) => [row.id, row]));
 }
 
-async function postWebhook(endpoint: EndpointRow, headers: Record<string, string>, payload: string) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), WEBHOOK_TIMEOUT_MS);
-
-  try {
-    const response = await fetch(endpoint.url, {
-      method: "POST",
-      headers,
-      body: payload,
-      signal: controller.signal,
-    });
-    const responseBody = await response.text().catch(() => "");
-    return {
-      ok: response.ok,
-      status: response.status,
-      body: responseBody.slice(0, 2000),
-    };
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-async function markDelivery(
-  adminClient: EdgeSupabaseClient,
-  deliveryId: string,
-  patch: Record<string, unknown>,
-) {
-  const { error } = await adminClient
-    .from("tok_connect_webhook_deliveries")
-    .update(patch)
-    .eq("id", deliveryId);
-
-  if (error) throw new HttpError(500, error.message);
-}
-
-async function processDelivery(
+async function completeDelivery(
   adminClient: EdgeSupabaseClient,
   delivery: DeliveryRow,
-  endpoint: EndpointRow | undefined,
-) {
-  const attempts = Number(delivery.attempts || 0);
-  const nextAttempts = attempts + 1;
-  const attemptedAt = new Date().toISOString();
+  outcome: "delivered" | "retry" | "failed",
+  responseStatus: number | null,
+  body: string | null,
+  errorMessage: string | null,
+  signature: string | null,
+): Promise<DeliveryResult> {
+  const { data, error } = await adminClient.rpc("complete_tok_connect_webhook_delivery", {
+    p_delivery_id: delivery.id,
+    p_lease_token: delivery.dispatch_lease_token,
+    p_outcome: outcome,
+    p_response_status: responseStatus,
+    p_response_body: body,
+    p_error_message: errorMessage,
+    p_signature: signature,
+  });
+  if (error) throw new HttpError(503, "webhook_completion_unacknowledged");
+  return { id: delivery.id, status: typeof data === "string" ? data : "lease_lost", response_status: responseStatus };
+}
 
-  if (!endpoint || endpoint.status !== "active") {
-    await markDelivery(adminClient, delivery.id, {
-      status: "failed",
-      attempts: nextAttempts,
-      last_attempted_at: attemptedAt,
-      error_message: "tok_connect_webhook_endpoint_inactive",
-    });
-    return { id: delivery.id, status: "failed", reason: "endpoint_inactive" };
+async function processDelivery(adminClient: EdgeSupabaseClient, delivery: DeliveryRow, endpoint: EndpointRow | undefined) {
+  if (!endpoint || endpoint.status !== "active" || endpoint.partner_id !== delivery.partner_id) {
+    return completeDelivery(adminClient, delivery, "failed", null, null, "webhook_endpoint_inactive", null);
   }
-
-  const payloadText = JSON.stringify(delivery.payload || {});
-  const timestamp = new Date().toISOString();
+  const leaseRemaining = Date.parse(delivery.dispatch_lease_expires_at) - Date.now();
+  if (!Number.isFinite(leaseRemaining) || leaseRemaining <= WEBHOOK_TIMEOUT_MS) {
+    return { id: delivery.id, status: "lease_lost", reason: "webhook_lease_expiring" };
+  }
+  const payload = JSON.stringify(delivery.payload || {});
   const headers = await buildTokConnectWebhookHeaders({
     eventType: delivery.event_type,
     deliveryId: delivery.id,
     secret: endpoint.signing_secret,
-    timestamp,
-    payload: payloadText,
+    timestamp: new Date().toISOString(),
+    payload,
   });
 
+  let outcome: "delivered" | "retry" | "failed";
+  let responseStatus: number | null = null;
+  let responseBody: string | null = null;
+  let errorMessage: string | null = null;
   try {
-    const result = await postWebhook(endpoint, headers, payloadText);
-    if (result.ok) {
-      await markDelivery(adminClient, delivery.id, {
-        status: "delivered",
-        attempts: nextAttempts,
-        delivered_at: new Date().toISOString(),
-        last_attempted_at: attemptedAt,
-        response_status: result.status,
-        response_body: result.body,
-        error_message: null,
-        signature: headers["X-TOK-Signature"],
-      });
-      return { id: delivery.id, status: "delivered", response_status: result.status };
-    }
-
-    const shouldRetry = nextAttempts < MAX_WEBHOOK_ATTEMPTS;
-    await markDelivery(adminClient, delivery.id, {
-      status: shouldRetry ? "pending" : "failed",
-      attempts: nextAttempts,
-      next_retry_at: shouldRetry
-        ? new Date(Date.now() + getTokConnectRetryDelaySeconds(Math.max(0, nextAttempts - 1)) * 1000).toISOString()
-        : null,
-      last_attempted_at: attemptedAt,
-      response_status: result.status,
-      response_body: result.body,
-      error_message: `http_${result.status}`,
-      signature: headers["X-TOK-Signature"],
-    });
-
-    return { id: delivery.id, status: shouldRetry ? "pending" : "failed", response_status: result.status };
+    const result = await postPublicWebhook(endpoint.url, headers, payload);
+    responseStatus = result.status;
+    responseBody = result.body;
+    outcome = result.ok ? "delivered" : result.status >= 300 && result.status < 400 ? "failed" : "retry";
+    if (!result.ok) errorMessage = "http_" + result.status;
   } catch (error) {
-    const shouldRetry = nextAttempts < MAX_WEBHOOK_ATTEMPTS;
-    const errorMessage = error instanceof Error ? error.message : "tok_connect_webhook_dispatch_error";
-    await markDelivery(adminClient, delivery.id, {
-      status: shouldRetry ? "pending" : "failed",
-      attempts: nextAttempts,
-      next_retry_at: shouldRetry
-        ? new Date(Date.now() + getTokConnectRetryDelaySeconds(Math.max(0, nextAttempts - 1)) * 1000).toISOString()
-        : null,
-      last_attempted_at: attemptedAt,
-      error_message: errorMessage,
-      signature: headers["X-TOK-Signature"],
-    });
-
-    return { id: delivery.id, status: shouldRetry ? "pending" : "failed", reason: errorMessage };
+    const message = error instanceof Error ? error.message : "webhook_request_failed";
+    const allowed = ["unsafe_webhook_url", "webhook_payload_too_large", "request_timeout", "webhook_request_failed"];
+    errorMessage = allowed.includes(message) ? message : "webhook_request_failed";
+    outcome = ["unsafe_webhook_url", "webhook_payload_too_large"].includes(errorMessage) ? "failed" : "retry";
   }
+  // Keep database acknowledgement outside the HTTP catch: a successful POST
+  // followed by a database error must never be rewritten as an HTTP failure.
+  return completeDelivery(adminClient, delivery, outcome, responseStatus, responseBody, errorMessage, headers["X-TOK-Signature"]);
 }
 
 async function dispatchWebhooks(actor: RequestActor, limit: number) {
+  requireDispatcher(actor);
   await assertTokConnectFeatureEnabled(actor.adminClient, "tok-connect-webhooks");
-
-  const deliveries = await readPendingDeliveries(actor.adminClient, limit);
-  const endpoints = await readEndpoints(actor.adminClient, deliveries);
-  const results = [];
-
-  for (const delivery of deliveries) {
-    const endpoint = delivery.endpoint_id ? endpoints.get(delivery.endpoint_id) : undefined;
-    results.push(await processDelivery(actor.adminClient, delivery, endpoint));
+  const started = Date.now();
+  const results: DeliveryResult[] = [];
+  while (results.length < limit && Date.now() - started < DISPATCH_BUDGET_MS) {
+    const { data, error } = await actor.adminClient.rpc("claim_tok_connect_webhook_deliveries", {
+      p_limit: Math.min(CLAIM_BATCH_SIZE, limit - results.length),
+    });
+    if (error) throw new HttpError(503, "webhook_claim_failed");
+    const deliveries = (data || []) as DeliveryRow[];
+    if (!deliveries.length) break;
+    const endpoints = await readEndpoints(actor.adminClient, deliveries);
+    const batch = await Promise.allSettled(deliveries.map((delivery) =>
+      processDelivery(actor.adminClient, delivery, delivery.endpoint_id ? endpoints.get(delivery.endpoint_id) : undefined)
+    ));
+    batch.forEach((result, index) => results.push(result.status === "fulfilled"
+      ? result.value
+      : { id: deliveries[index].id, status: "unacknowledged", reason: "webhook_completion_unacknowledged" }));
   }
-
   return {
     processed: results.length,
-    delivered: results.filter((result) => result.status === "delivered").length,
-    failed: results.filter((result) => result.status === "failed").length,
-    retrying: results.filter((result) => result.status === "pending").length,
+    delivered: results.filter((row) => row.status === "delivered").length,
+    failed: results.filter((row) => row.status === "failed").length,
+    retrying: results.filter((row) => row.status === "pending").length,
+    unacknowledged: results.filter((row) => ["unacknowledged", "lease_lost"].includes(row.status)).length,
     header_names: TOK_CONNECT_DISPATCH_HEADER_NAMES,
     results,
   };
@@ -217,57 +136,28 @@ Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
-
   const requestId = makeTokConnectRequestId();
   let actor: RequestActor | null = null;
-
   try {
     if (req.method !== "POST") throw new HttpError(405, "method_not_allowed");
     actor = await authenticateRequest(req, { allowServiceRole: true, allowSchedulerSecret: true });
-    const body = await req.json().catch(() => ({})) as DispatchBody;
+    requireDispatcher(actor);
+    const body = await req.json().catch(() => ({})) as { limit?: number };
     const result = await dispatchWebhooks(actor, parseLimit(body.limit));
-
     await writeAuditLog({
-      adminClient: actor.adminClient,
-      functionName: "tok-connect-webhook-dispatch",
-      action: "dispatch-webhooks",
-      status: "success",
-      actor,
-      request: req,
-      metadata: {
-        request_id: requestId,
-        processed: result.processed,
-        delivered: result.delivered,
-        failed: result.failed,
-        retrying: result.retrying,
-      },
+      adminClient: actor.adminClient, functionName: "tok-connect-webhook-dispatch", action: "dispatch-webhooks",
+      status: result.unacknowledged ? "failure" : "success", actor, request: req,
+      metadata: { request_id: requestId, processed: result.processed, delivered: result.delivered, failed: result.failed,
+        retrying: result.retrying, unacknowledged: result.unacknowledged },
     });
-
-    return jsonResponse(buildTokConnectEnvelope({ requestId, data: result }), 200, corsHeaders);
+    return jsonResponse(buildTokConnectEnvelope({ requestId, data: result }), result.unacknowledged ? 503 : 200, corsHeaders);
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
-    const message = error instanceof Error ? error.message : "tok_connect_webhook_dispatch_error";
-
-    if (actor) {
-      await writeAuditLog({
-        adminClient: actor.adminClient,
-        functionName: "tok-connect-webhook-dispatch",
-        action: "dispatch-webhooks",
-        status: "failure",
-        actor,
-        request: req,
-        errorMessage: message,
-        metadata: { request_id: requestId },
-      });
-    }
-
-    return jsonResponse(
-      buildTokConnectEnvelope({
-        requestId,
-        error: { code: message, message },
-      }),
-      status,
-      corsHeaders,
-    );
+    const message = error instanceof HttpError ? error.message : "tok_connect_webhook_dispatch_error";
+    if (actor) await writeAuditLog({
+      adminClient: actor.adminClient, functionName: "tok-connect-webhook-dispatch", action: "dispatch-webhooks",
+      status: "failure", actor, request: req, errorMessage: message, metadata: { request_id: requestId },
+    });
+    return jsonResponse(buildTokConnectEnvelope({ requestId, error: { code: message, message } }), status, corsHeaders);
   }
 });

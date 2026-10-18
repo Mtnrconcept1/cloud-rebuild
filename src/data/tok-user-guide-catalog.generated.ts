@@ -1,9 +1,9 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "e3c68859d2eb1806bb91316b4197dd60fa04461f90ed3ebf6135587f7a221199",
+  "sourceDigest": "43c8f9851778ba190873aa9468079dd1faaac15f3560f8da9e825200685775d3",
   "routeCount": 143,
-  "toolCount": 118
+  "toolCount": 119
 } as const;
 
 export const TOK_USER_GUIDE_ROUTES = [
@@ -2985,6 +2985,15 @@ export const TOK_USER_GUIDE_TOOLS = [
     ]
   },
   {
+    "name": "tok-connect-broker",
+    "endpoint": "/functions/v1/tok-connect-broker",
+    "methods": [
+      "ANY"
+    ],
+    "actions": [],
+    "integrations": []
+  },
+  {
     "name": "tok-connect-chatgpt",
     "endpoint": "/functions/v1/tok-connect-chatgpt",
     "methods": [
@@ -3053,9 +3062,7 @@ export const TOK_USER_GUIDE_TOOLS = [
       "POST"
     ],
     "actions": [],
-    "integrations": [
-      "supabase"
-    ]
+    "integrations": []
   },
   {
     "name": "tok-connect-portal",

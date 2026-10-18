@@ -154,14 +154,17 @@ describe("commercial demo AI workspaces", () => {
     expect(client).not.toContain("tok-demo-zero-cost-v1");
     expect(client).toContain('!value.trim().toLowerCase().startsWith("data:image/svg+xml")');
 
-    const imageFunction = tokAiClient.slice(
-      tokAiClient.indexOf("export function generateTokDishImage"),
-      tokAiClient.indexOf("export function runAccountingAgent"),
-    );
+    const imageStart = tokAiClient.search(/export\s+(?:async\s+)?function\s+generateTokDishImage\b/);
+    const imageEnd = tokAiClient.search(/export\s+(?:async\s+)?function\s+runAccountingAgent\b/);
+    expect(imageStart).toBeGreaterThanOrEqual(0);
+    expect(imageEnd).toBeGreaterThan(imageStart);
+    const imageFunction = tokAiClient.slice(imageStart, imageEnd);
     expect(imageFunction).toContain("getCommercialDemoAiRuntime()");
     expect(imageFunction).toContain("generateCommercialDemoVisual(commercialDemoRuntime, request)");
     expect(imageFunction.indexOf("generateCommercialDemoVisual"))
       .toBeLessThan(imageFunction.indexOf('"ai-image-enhance"'));
+    expect(imageFunction.indexOf("generateCommercialDemoVisual"))
+      .toBeLessThan(imageFunction.indexOf("supabase.auth.getSession"));
     expect(creationJobs).toContain("getCommercialDemoAiRuntime()");
     expect(creationJobs).toContain("`${AI_CREATIONS_STORAGE_KEY}:commercial-demo:${runtime.sessionId}:${runtime.surface}`");
 
