@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "e3c68859d2eb1806bb91316b4197dd60fa04461f90ed3ebf6135587f7a221199",
+ "sourceDigest": "c234631282fd476df5dfdf2c999aca35f49b4dadb463bd7d3d42d3af9510a554",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2910,
+  "databaseObjects": 2919,
   "documents": 213,
   "edgeFunctions": 118,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3657,
+  "exportedSymbols": 3674,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 551,
-  "modules": 1655,
+  "migrations": 553,
+  "modules": 1663,
   "pages": 133,
-  "pathLiterals": 760,
+  "pathLiterals": 776,
   "publicAssets": 582,
   "publicEntries": 607,
   "publicNavigableRoutes": 2,
   "queryParameters": 112,
-  "records": 17435,
-  "repositoryFiles": 3308,
+  "records": 17501,
+  "repositoryFiles": 3319,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -3051,7 +3051,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 873,
+      "line": 874,
       "kind": "function"
      }
     ],
@@ -5687,7 +5687,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 16,
+      "line": 21,
       "kind": "function"
      }
     ],
@@ -14525,15 +14525,15 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 226
+      "line": 227
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1122
+      "line": 1126
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2348
+      "line": 2360
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -14794,6 +14794,10 @@
      {
       "path": "src/test/vercel-rewrites.test.ts",
       "line": 76
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 99
      },
      {
       "path": "supabase/functions/_shared/auth.ts",
@@ -15786,7 +15790,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 35
+      "line": 37
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -15802,7 +15806,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 240
+      "line": 241
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
@@ -15891,6 +15895,14 @@
      {
       "path": "src/test/vercel-rewrites.test.ts",
       "line": 84
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 55
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 99
      },
      {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -17618,11 +17630,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 907
+      "line": 908
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2238
+      "line": 2246
      },
      {
       "path": "src/pages/ChefsTable.tsx",
@@ -17659,6 +17671,14 @@
      {
       "path": "src/pages/dashboard/DashboardCommandes.tsx",
       "line": 671
+     },
+     {
+      "path": "src/test/MyWorkforce.test.tsx",
+      "line": 64
+     },
+     {
+      "path": "src/test/MyWorkforce.test.tsx",
+      "line": 233
      },
      {
       "path": "src/test/admin-domain-routing.test.ts",
@@ -17776,7 +17796,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 888
+      "line": 889
      },
      {
       "path": "src/test/auth-redirect-security.test.ts",
@@ -17851,7 +17871,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 907
+      "line": 908
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -18240,7 +18260,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3127
+      "line": 3139
      },
      {
       "path": "src/pages/CGU.tsx",
@@ -18471,7 +18491,7 @@
      },
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 45
+      "line": 49
      },
      {
       "path": "src/lib/featureCatalog.ts",
@@ -18488,6 +18508,10 @@
      {
       "path": "src/test/auth-post-login-routing.test.ts",
       "line": 25
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 58
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -18992,7 +19016,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 38
+      "line": 40
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -19004,7 +19028,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 254
+      "line": 255
      },
      {
       "path": "src/pages/WorkspaceChooser.tsx",
@@ -19012,7 +19036,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 49
+      "line": 66
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -19860,7 +19884,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 37
+      "line": 39
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -19876,7 +19900,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 247
+      "line": 248
      },
      {
       "path": "src/test/commercial-domain-isolation.test.ts",
@@ -20396,7 +20420,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 36
+      "line": 38
      },
      {
       "path": "src/lib/notificationRouting.ts",
@@ -20416,11 +20440,11 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 233
+      "line": 234
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 822
+      "line": 823
      },
      {
       "path": "src/pages/GuideUtilisateur.tsx",
@@ -20440,7 +20464,7 @@
      },
      {
       "path": "src/test/auth-post-login-routing.test.ts",
-      "line": 47
+      "line": 64
      },
      {
       "path": "src/test/coming-soon-gate.test.tsx",
@@ -20497,6 +20521,14 @@
      {
       "path": "src/test/role-access.test.ts",
       "line": 154
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 27
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 99
      },
      {
       "path": "supabase/functions/stripe-webhook/index.ts",
@@ -22169,6 +22201,28 @@
     ]
    },
    {
+    "value": "/equipe",
+    "sources": [
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 27
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 99
+     }
+    ]
+   },
+   {
+    "value": "/equipe/",
+    "sources": [
+     {
+      "path": "src/pages/Auth.tsx",
+      "line": 1128
+     }
+    ]
+   },
+   {
     "value": "/equipe/gestion",
     "sources": [
      {
@@ -22176,12 +22230,67 @@
       "line": 571
      },
      {
+      "path": "src/lib/launchGate.ts",
+      "line": 34
+     },
+     {
+      "path": "src/lib/workforceContinuation.ts",
+      "line": 4
+     },
+     {
       "path": "src/pages/workforce/MyWorkforce.tsx",
-      "line": 63
+      "line": 180
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 49
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 49
      },
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 59
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 19
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 19
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 94
+     }
+    ]
+   },
+   {
+    "value": "/equipe/gestion/private",
+    "sources": [
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 99
+     }
+    ]
+   },
+   {
+    "value": "/equipe/gestion?next=/admin",
+    "sources": [
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 56
+     }
+    ]
+   },
+   {
+    "value": "/equipe/gestion?restaurant=",
+    "sources": [
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 28
      }
     ]
    },
@@ -22197,6 +22306,14 @@
       "line": 31
      },
      {
+      "path": "src/lib/launchGate.ts",
+      "line": 34
+     },
+     {
+      "path": "src/lib/workforceContinuation.ts",
+      "line": 3
+     },
+     {
       "path": "src/pages/WorkspaceChooser.tsx",
       "line": 135
      },
@@ -22209,12 +22326,122 @@
       "line": 41
      },
      {
+      "path": "src/test/MyWorkforce.test.tsx",
+      "line": 63
+     },
+     {
+      "path": "src/test/MyWorkforce.test.tsx",
+      "line": 158
+     },
+     {
+      "path": "src/test/MyWorkforce.test.tsx",
+      "line": 240
+     },
+     {
       "path": "src/test/application-search-index.test.ts",
       "line": 59
      },
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 58
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 94
+     }
+    ]
+   },
+   {
+    "value": "/equipe/mon-espace/",
+    "sources": [
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 27
+     }
+    ]
+   },
+   {
+    "value": "/equipe/mon-espace/private",
+    "sources": [
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 99
+     }
+    ]
+   },
+   {
+    "value": "/equipe/mon-espace/settings",
+    "sources": [
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 28
+     }
+    ]
+   },
+   {
+    "value": "/equipe/mon-espace?",
+    "sources": [
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 33
+     }
+    ]
+   },
+   {
+    "value": "/equipe/mon-espace?restaurant=",
+    "sources": [
+     {
+      "path": "src/test/MyWorkforce.test.tsx",
+      "line": 33
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 33
+     }
+    ]
+   },
+   {
+    "value": "/equipe/mon-espace?restaurant=10000000-0000-4000-8000-000000000001",
+    "sources": [
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 46
+     }
+    ]
+   },
+   {
+    "value": "/equipe/mon-espace?restaurant=10000000-0000-4000-8000-000000000001&next=/admin",
+    "sources": [
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 55
+     }
+    ]
+   },
+   {
+    "value": "/equipe/mon-espace?restaurant=invalid",
+    "sources": [
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 54
+     }
+    ]
+   },
+   {
+    "value": "/equipe/mon-espace?restaurant=not-a-uuid",
+    "sources": [
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 34
+     }
+    ]
+   },
+   {
+    "value": "/equipe\\mon-espace?restaurant=",
+    "sources": [
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 39
      }
     ]
    },
@@ -22272,7 +22499,7 @@
      },
      {
       "path": "src/lib/launchGate.ts",
-      "line": 34
+      "line": 36
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -22284,7 +22511,7 @@
      },
      {
       "path": "src/pages/workforce/MyWorkforce.tsx",
-      "line": 45
+      "line": 121
      },
      {
       "path": "src/test/admin-domain-routing.test.ts",
@@ -22309,6 +22536,10 @@
      {
       "path": "src/test/auth-post-login-routing.test.ts",
       "line": 42
+     },
+     {
+      "path": "src/test/auth-post-login-routing.test.ts",
+      "line": 59
      },
      {
       "path": "src/test/auth-signup-form.test.tsx",
@@ -26828,7 +27059,7 @@
      },
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 18
+      "line": 19
      },
      {
       "path": "src/lib/launchGate.ts",
@@ -26927,6 +27158,15 @@
      {
       "path": "supabase/functions/_shared/print/cloudprinter.ts",
       "line": 294
+     }
+    ]
+   },
+   {
+    "value": "/other/../equipe/mon-espace",
+    "sources": [
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 32
      }
     ]
    },
@@ -27179,6 +27419,14 @@
       "line": 145
      },
      {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 55
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 99
+     },
+     {
       "path": "supabase/functions/tok-connect-full-app-mcp/index.ts",
       "line": 204
      },
@@ -27328,7 +27576,7 @@
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 3135
+      "line": 3147
      },
      {
       "path": "src/pages/ComingSoon.tsx",
@@ -27457,6 +27705,10 @@
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 52
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 99
      }
     ]
    },
@@ -31013,11 +31265,11 @@
     "sources": [
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 9
+      "line": 10
      },
      {
       "path": "src/lib/authPostLogin.ts",
-      "line": 19
+      "line": 20
      },
      {
       "path": "src/pages/OAuthConsent.tsx",
@@ -31219,6 +31471,14 @@
     "name": "code",
     "sources": [
      {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 80
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 82
+     },
+     {
       "path": "supabase/functions/tok-connect-oauth/index.ts",
       "line": 250
      }
@@ -31230,15 +31490,15 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 914
+      "line": 915
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1137
+      "line": 1143
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1138
+      "line": 1144
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -31268,12 +31528,16 @@
     "name": "confirmed",
     "sources": [
      {
-      "path": "src/pages/Auth.tsx",
-      "line": 131
+      "path": "src/lib/workforceContinuation.ts",
+      "line": 37
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 929
+      "line": 930
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 47
      }
     ],
     "routes": [
@@ -31447,7 +31711,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 2365
+      "line": 2377
      }
     ],
     "routes": [
@@ -31886,11 +32150,11 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 956
+      "line": 957
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 1012
+      "line": 1013
      },
      {
       "path": "public/manifest.json",
@@ -32247,8 +32511,48 @@
     "name": "redirect",
     "sources": [
      {
+      "path": "src/lib/workforceContinuation.ts",
+      "line": 40
+     },
+     {
+      "path": "src/lib/workforceContinuation.ts",
+      "line": 41
+     },
+     {
       "path": "src/pages/Auth.tsx",
-      "line": 1120
+      "line": 1121
+     },
+     {
+      "path": "src/test/MyWorkforce.test.tsx",
+      "line": 234
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 49
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 50
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 51
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 59
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 71
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 78
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 83
      }
     ],
     "routes": [
@@ -32344,9 +32648,14 @@
      {
       "path": "src/pages/ZeroAttente.tsx",
       "line": 136
+     },
+     {
+      "path": "src/pages/workforce/MyWorkforce.tsx",
+      "line": 30
      }
     ],
     "routes": [
+     "/equipe/mon-espace",
      "/zero-attente"
     ]
    },
@@ -32445,12 +32754,24 @@
     "name": "signup_operation_id",
     "sources": [
      {
-      "path": "src/pages/Auth.tsx",
-      "line": 133
+      "path": "src/lib/workforceContinuation.ts",
+      "line": 38
      },
      {
       "path": "src/pages/Auth.tsx",
-      "line": 931
+      "line": 932
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 48
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 52
+     },
+     {
+      "path": "src/test/workforce-auth-continuation.test.ts",
+      "line": 60
      }
     ],
     "routes": [
@@ -32606,7 +32927,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 925
+      "line": 926
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -32755,7 +33076,7 @@
     "sources": [
      {
       "path": "src/pages/Auth.tsx",
-      "line": 286
+      "line": 287
      },
      {
       "path": "src/pages/CommercialProspection.tsx",
@@ -33181,6 +33502,7 @@
      "src/test/production-preflight-hardening.test.ts",
      "src/test/release-readiness.test.ts",
      "src/test/reservation-email-delivery.test.ts",
+     "src/test/workforce-auth-continuation.test.ts",
      "supabase/functions/_shared/email-provider-reconciliation.ts",
      "supabase/functions/_shared/incident-intelligence.ts",
      "supabase/functions/ai-support-resolution/index.ts",
@@ -33394,6 +33716,7 @@
      "src/test/user-facing-errors.test.ts",
      "src/test/user-guide.test.ts",
      "src/test/vercel-rewrites.test.ts",
+     "src/test/workforce-auth-continuation.test.ts",
      "src/test/zero-attente-finalization-governance.test.ts",
      "src/test/zero-attente-free-miamz.test.ts",
      "supabase/functions/_shared/ai-security.ts",
@@ -34140,7 +34463,9 @@
      "src/test/tok-pulse-native-widget.test.ts",
      "src/test/tok-stripe-price-catalog.test.ts",
      "src/test/tokWorkforceClock.test.ts",
+     "src/test/tokWorkforceInvitationsUi.test.tsx",
      "src/test/tokWorkforceMigration.test.ts",
+     "src/test/tokWorkforcePersonalQueries.test.tsx",
      "src/test/transactional-email-templates.test.ts",
      "src/test/user-facing-errors.test.ts",
      "src/test/vercel-rewrites.test.ts",
@@ -37641,6 +37966,18 @@
     "path": "supabase/migrations/20261018171046_marketing_targeted_mailing.sql",
     "lineCount": 248,
     "objectCount": 5
+   },
+   {
+    "name": "20261018190000 Tok Workforce Invitations",
+    "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+    "lineCount": 326,
+    "objectCount": 12
+   },
+   {
+    "name": "20261018191000 Tok Workforce Launch Access",
+    "path": "supabase/migrations/20261018191000_tok_workforce_launch_access.sql",
+    "lineCount": 60,
+    "objectCount": 2
    }
   ],
   "databaseObjects": [
@@ -43385,6 +43722,10 @@
      {
       "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
       "line": 30
+     },
+     {
+      "path": "supabase/migrations/20261018191000_tok_workforce_launch_access.sql",
+      "line": 36
      }
     ]
    },
@@ -43399,6 +43740,10 @@
      {
       "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
       "line": 5
+     },
+     {
+      "path": "supabase/migrations/20261018191000_tok_workforce_launch_access.sql",
+      "line": 7
      }
     ]
    },
@@ -46653,6 +46998,10 @@
      {
       "path": "supabase/migrations/20261014180000_tok_workforce_clock_teams.sql",
       "line": 80
+     },
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 269
      }
     ]
    },
@@ -46668,11 +47017,41 @@
    },
    {
     "type": "function",
+    "name": "public.tok_workforce_guard_account_link",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 39
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.tok_workforce_guard_validated_entry",
     "sources": [
      {
       "path": "supabase/migrations/20261014165500_tok_workforce_restaurants.sql",
       "line": 298
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.tok_workforce_invite_employee",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 64
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.tok_workforce_list_invitations",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 204
      }
     ]
    },
@@ -46693,6 +47072,10 @@
      {
       "path": "supabase/migrations/20261014180000_tok_workforce_clock_teams.sql",
       "line": 60
+     },
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 248
      }
     ]
    },
@@ -46747,6 +47130,16 @@
      {
       "path": "supabase/migrations/20261014180000_tok_workforce_clock_teams.sql",
       "line": 299
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.tok_workforce_revoke_invitation",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 224
      }
     ]
    },
@@ -48229,6 +48622,16 @@
      {
       "path": "supabase/migrations/20261017000033_email_provider_delivery_reconciliation.sql",
       "line": 10
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "email_queue_workforce_invitation_rate_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 25
      }
     ]
    },
@@ -53943,6 +54346,16 @@
      {
       "path": "supabase/migrations/20261014165500_tok_workforce_restaurants.sql",
       "line": 140
+     }
+    ]
+   },
+   {
+    "type": "index",
+    "name": "tok_workforce_invitations_restaurant_idx",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 23
      }
     ]
    },
@@ -61911,6 +62324,10 @@
      {
       "path": "supabase/migrations/20261014165500_tok_workforce_restaurants.sql",
       "line": 174
+     },
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 59
      }
     ]
    },
@@ -61961,6 +62378,16 @@
      {
       "path": "supabase/migrations/20261014165500_tok_workforce_restaurants.sql",
       "line": 217
+     }
+    ]
+   },
+   {
+    "type": "policy",
+    "name": "public.tok_workforce_invitations.tok_workforce_invitations_manager_read",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 33
      }
     ]
    },
@@ -66766,6 +67193,16 @@
    },
    {
     "type": "table",
+    "name": "public.tok_workforce_invitations",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 5
+     }
+    ]
+   },
+   {
+    "type": "table",
     "name": "public.tok_workforce_requests",
     "sources": [
      {
@@ -69115,6 +69552,16 @@
      {
       "path": "supabase/migrations/20261014180000_tok_workforce_clock_teams.sql",
       "line": 435
+     }
+    ]
+   },
+   {
+    "type": "trigger",
+    "name": "tok_workforce_guard_account_link",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+      "line": 52
      }
     ]
    },
@@ -77780,33 +78227,48 @@
      },
      {
       "level": 2,
-      "title": "Choix d'architecture",
-      "line": 5
+      "title": "Sources analysées",
+      "line": 3
      },
      {
       "level": 2,
-      "title": "Fonctionnalités conservées et adaptations",
-      "line": 17
+      "title": "Choix d’architecture",
+      "line": 11
      },
      {
       "level": 2,
-      "title": "Déploiement et retour arrière",
-      "line": 26
-     },
-     {
-      "level": 2,
-      "title": "Extension badgeuse et espace collaborateur (octobre 2026)",
-      "line": 36
+      "title": "Invitations et vue d’ensemble",
+      "line": 23
      },
      {
       "level": 3,
-      "title": "Limites et validation",
-      "line": 49
+      "title": "Parcours restaurateur",
+      "line": 25
      },
      {
       "level": 3,
-      "title": "Finalisation des parcours RH",
-      "line": 56
+      "title": "Parcours collaborateur",
+      "line": 33
+     },
+     {
+      "level": 3,
+      "title": "Contrats serveur",
+      "line": 46
+     },
+     {
+      "level": 3,
+      "title": "Envoi et exploitation",
+      "line": 67
+     },
+     {
+      "level": 2,
+      "title": "Fonctions RH conservées",
+      "line": 75
+     },
+     {
+      "level": 2,
+      "title": "Validation, déploiement et retour arrière",
+      "line": 91
      }
     ]
    },
@@ -93370,13 +93832,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 13,
+      "line": 28,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 88
+    "lineCount": 215
    },
    {
     "path": "src/components/workforce/WorkforceExchanges.tsx",
@@ -93392,6 +93854,19 @@
     "lineCount": 91
    },
    {
+    "path": "src/components/workforce/WorkforceInvitationDialog.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 20,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 94
+   },
+   {
     "path": "src/components/workforce/WorkforcePersonal.tsx",
     "exports": [
      {
@@ -93402,7 +93877,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 97
+    "lineCount": 149
    },
    {
     "path": "src/components/workforce/WorkforcePersonalExchanges.tsx",
@@ -94358,67 +94833,87 @@
     "exports": [
      {
       "name": "workforceDb",
-      "line": 11,
+      "line": 13,
       "kind": "variable"
      },
      {
       "name": "workforceKey",
-      "line": 12,
+      "line": 14,
       "kind": "variable"
      },
      {
       "name": "useWorkforceSettings",
-      "line": 14,
+      "line": 16,
       "kind": "function"
      },
      {
       "name": "useWorkforceRows",
-      "line": 29,
+      "line": 31,
       "kind": "function"
      },
      {
       "name": "useWorkforceEmployees",
-      "line": 48,
+      "line": 53,
       "kind": "function"
      },
      {
       "name": "useWorkforceShifts",
-      "line": 51,
+      "line": 56,
       "kind": "function"
      },
      {
       "name": "useWorkforceEntries",
-      "line": 54,
+      "line": 59,
       "kind": "function"
      },
      {
       "name": "useWorkforceEntriesInRange",
-      "line": 57,
+      "line": 62,
       "kind": "function"
      },
      {
       "name": "useWorkforceValidations",
-      "line": 60,
+      "line": 65,
       "kind": "function"
      },
      {
       "name": "useWorkforceAbsences",
-      "line": 63,
+      "line": 68,
       "kind": "function"
      },
      {
       "name": "useWorkforceRequests",
-      "line": 66,
+      "line": 71,
       "kind": "function"
      },
      {
       "name": "useWorkforceExchanges",
-      "line": 69,
+      "line": 74,
       "kind": "function"
      },
      {
       "name": "useWorkforceRefresh",
-      "line": 72,
+      "line": 77,
+      "kind": "function"
+     },
+     {
+      "name": "useWorkforceInvitations",
+      "line": 84,
+      "kind": "function"
+     },
+     {
+      "name": "useInviteWorkforceEmployee",
+      "line": 107,
+      "kind": "function"
+     },
+     {
+      "name": "useRevokeWorkforceInvitation",
+      "line": 128,
+      "kind": "function"
+     },
+     {
+      "name": "useWorkforceNextShift",
+      "line": 141,
       "kind": "function"
      }
     ],
@@ -94426,7 +94921,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 76
+    "lineCount": 159
    },
    {
     "path": "src/integrations/supabase/authStorage.ts",
@@ -95789,12 +96284,12 @@
     "exports": [
      {
       "name": "getOAuthConsentTargetFromSearch",
-      "line": 8,
+      "line": 9,
       "kind": "function"
      },
      {
       "name": "getPostAuthTargetForRole",
-      "line": 31,
+      "line": 32,
       "kind": "function"
      }
     ],
@@ -95802,7 +96297,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 50
+    "lineCount": 54
    },
    {
     "path": "src/lib/authRedirect.ts",
@@ -99794,7 +100289,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 43
+    "lineCount": 45
    },
    {
     "path": "src/lib/launchPacks.ts",
@@ -104471,13 +104966,53 @@
       "name": "csvCell",
       "line": 38,
       "kind": "function"
+     },
+     {
+      "name": "WorkforceInvitationDeliveryStatus",
+      "line": 44,
+      "kind": "typealias"
+     },
+     {
+      "name": "WorkforceInvitation",
+      "line": 45,
+      "kind": "typealias"
+     },
+     {
+      "name": "WorkforceInvitationResult",
+      "line": 57,
+      "kind": "typealias"
+     },
+     {
+      "name": "WorkforceInvitationState",
+      "line": 60,
+      "kind": "typealias"
+     },
+     {
+      "name": "workforceInvitationState",
+      "line": 63,
+      "kind": "function"
+     },
+     {
+      "name": "workforceInvitationEmail",
+      "line": 80,
+      "kind": "function"
+     },
+     {
+      "name": "workforceInvitationNotice",
+      "line": 88,
+      "kind": "function"
+     },
+     {
+      "name": "workforceZurichClock",
+      "line": 102,
+      "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [
      "supabase"
     ],
-    "lineCount": 42
+    "lineCount": 112
    },
    {
     "path": "src/lib/tokWorkforceCantons.ts",
@@ -104621,6 +105156,34 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 7
+   },
+   {
+    "path": "src/lib/workforceContinuation.ts",
+    "exports": [
+     {
+      "name": "WORKFORCE_SELF_PATH",
+      "line": 3,
+      "kind": "variable"
+     },
+     {
+      "name": "WORKFORCE_MANAGEMENT_PATH",
+      "line": 4,
+      "kind": "variable"
+     },
+     {
+      "name": "getWorkforceContinuationTarget",
+      "line": 9,
+      "kind": "function"
+     },
+     {
+      "name": "buildWorkforceConfirmationRedirect",
+      "line": 31,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 44
    },
    {
     "path": "src/lib/zeroAttenteReservationContext.ts",
@@ -105717,7 +106280,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 873,
+      "line": 874,
       "kind": "function"
      }
     ],
@@ -105728,7 +106291,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 3410
+    "lineCount": 3422
    },
    {
     "path": "src/pages/BudgetAuto.tsx",
@@ -108002,13 +108565,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 16,
+      "line": 21,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 69
+    "lineCount": 188
    },
    {
     "path": "src/pages/workforce/MyWorkforceManager.tsx",
@@ -108022,6 +108585,13 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 77
+   },
+   {
+    "path": "src/test/MyWorkforce.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 254
    },
    {
     "path": "src/test/accounting-ai-public-copy.test.ts",
@@ -108578,7 +109148,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 52
+    "lineCount": 69
    },
    {
     "path": "src/test/auth-provider.test.tsx",
@@ -113645,6 +114215,22 @@
     "lineCount": 52
    },
    {
+    "path": "src/test/tokWorkforceInvitationState.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 56
+   },
+   {
+    "path": "src/test/tokWorkforceInvitationsUi.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 215
+   },
+   {
     "path": "src/test/tokWorkforceMigration.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -113652,6 +114238,22 @@
      "supabase"
     ],
     "lineCount": 44
+   },
+   {
+    "path": "src/test/tokWorkforcePersonalOverview.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 116
+   },
+   {
+    "path": "src/test/tokWorkforcePersonalQueries.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 86
    },
    {
     "path": "src/test/transactional-email-templates.test.ts",
@@ -113710,6 +114312,16 @@
      "supabase"
     ],
     "lineCount": 85
+   },
+   {
+    "path": "src/test/workforce-auth-continuation.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "resend",
+     "stripe"
+    ],
+    "lineCount": 104
    },
    {
     "path": "src/test/zero-attente-finalization-governance.test.ts",
@@ -126592,6 +127204,11 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/components/workforce/WorkforceInvitationDialog.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/components/workforce/WorkforcePersonal.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
@@ -127852,6 +128469,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/lib/workforceContinuation.ts",
+    "category": "application-library",
+    "extension": ".ts"
+   },
+   {
     "path": "src/lib/zeroAttenteReservationContext.ts",
     "category": "application-library",
     "extension": ".ts"
@@ -128645,6 +129267,11 @@
     "path": "src/styles/workforce-report-print.css",
     "category": "frontend-source",
     "extension": ".css"
+   },
+   {
+    "path": "src/test/MyWorkforce.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/accounting-ai-public-copy.test.ts",
@@ -131427,6 +132054,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/sql/tok_workforce_launch_smoke.sql",
+    "category": "frontend-source",
+    "extension": ".sql"
+   },
+   {
     "path": "src/test/sql/tok_workforce_postgres_smoke.sql",
     "category": "frontend-source",
     "extension": ".sql"
@@ -131852,9 +132484,29 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/tokWorkforceInvitationState.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/tokWorkforceInvitationsUi.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/tokWorkforceMigration.test.ts",
     "category": "test",
     "extension": ".ts"
+   },
+   {
+    "path": "src/test/tokWorkforcePersonalOverview.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/tokWorkforcePersonalQueries.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/transactional-email-templates.test.ts",
@@ -131883,6 +132535,11 @@
    },
    {
     "path": "src/test/widget-access-state.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/workforce-auth-continuation.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -135808,6 +136465,16 @@
    },
    {
     "path": "supabase/migrations/20261018171046_marketing_targeted_mailing.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261018191000_tok_workforce_launch_access.sql",
     "category": "database-migration",
     "extension": ".sql"
    },
@@ -141951,14 +142618,14 @@
    "id": "code-module:f8f6929d882d",
    "type": "code-module",
    "title": "src/components/workforce/WorkforceEmployees.tsx",
-   "description": "Module de 88 lignes; exports: default.",
+   "description": "Module de 215 lignes; exports: default.",
    "path": "src/components/workforce/WorkforceEmployees.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "cb75fefaaf5e"
+   "detailRef": "909cbc988772"
   },
   {
    "id": "code-module:a95afdadfd2f",
@@ -141974,17 +142641,30 @@
    "detailRef": "7bab34b93cc2"
   },
   {
+   "id": "code-module:f6858517796a",
+   "type": "code-module",
+   "title": "src/components/workforce/WorkforceInvitationDialog.tsx",
+   "description": "Module de 94 lignes; exports: default.",
+   "path": "src/components/workforce/WorkforceInvitationDialog.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default"
+   ],
+   "detailRef": "03be79c4fb73"
+  },
+  {
    "id": "code-module:a60ec67b6250",
    "type": "code-module",
    "title": "src/components/workforce/WorkforcePersonal.tsx",
-   "description": "Module de 97 lignes; exports: default.",
+   "description": "Module de 149 lignes; exports: default.",
    "path": "src/components/workforce/WorkforcePersonal.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "8ff0a063c01a"
+   "detailRef": "5a5a3dc5c26a"
   },
   {
    "id": "code-module:58f038040988",
@@ -142536,17 +143216,21 @@
    "id": "code-module:bb64630fe432",
    "type": "code-module",
    "title": "src/hooks/useTokWorkforce.ts",
-   "description": "Module de 76 lignes; exports: workforceDb, workforceKey, useWorkforceSettings, useWorkforceRows, useWorkforceEmployees, useWorkforceShifts, useWorkforceEntries, useWorkforceEntriesInRange, useWorkforceValidations, useWorkforceAbsences, useWorkforceRequests, useWorkforceExchanges, useWorkforceRefresh.",
+   "description": "Module de 159 lignes; exports: workforceDb, workforceKey, useWorkforceSettings, useWorkforceRows, useWorkforceEmployees, useWorkforceShifts, useWorkforceEntries, useWorkforceEntriesInRange, useWorkforceValidations, useWorkforceAbsences, useWorkforceRequests, useWorkforceExchanges, useWorkforceRefresh, useWorkforceInvitations, useInviteWorkforceEmployee, useRevokeWorkforceInvitation, useWorkforceNextShift.",
    "path": "src/hooks/useTokWorkforce.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase",
+    "useInviteWorkforceEmployee",
+    "useRevokeWorkforceInvitation",
     "useWorkforceAbsences",
     "useWorkforceEmployees",
     "useWorkforceEntries",
     "useWorkforceEntriesInRange",
     "useWorkforceExchanges",
+    "useWorkforceInvitations",
+    "useWorkforceNextShift",
     "useWorkforceRefresh",
     "useWorkforceRequests",
     "useWorkforceRows",
@@ -142556,7 +143240,7 @@
     "workforceDb",
     "workforceKey"
    ],
-   "detailRef": "f79926d6953c"
+   "detailRef": "d8ead35d6f8d"
   },
   {
    "id": "code-module:4878faa3eb2b",
@@ -143096,7 +143780,7 @@
    "id": "code-module:f357467a3e58",
    "type": "code-module",
    "title": "src/lib/authPostLogin.ts",
-   "description": "Module de 50 lignes; exports: getOAuthConsentTargetFromSearch, getPostAuthTargetForRole.",
+   "description": "Module de 54 lignes; exports: getOAuthConsentTargetFromSearch, getPostAuthTargetForRole.",
    "path": "src/lib/authPostLogin.ts",
    "line": 1,
    "surface": null,
@@ -143105,7 +143789,7 @@
     "getPostAuthTargetForRole",
     "supabase"
    ],
-   "detailRef": "e217a7d27469"
+   "detailRef": "f976ecee691a"
   },
   {
    "id": "code-module:6fd34c3ed57c",
@@ -144817,7 +145501,7 @@
    "id": "code-module:8f61f2fc7aaf",
    "type": "code-module",
    "title": "src/lib/launchGate.ts",
-   "description": "Module de 43 lignes; exports: LaunchState, parseLaunchState, launchRemaining, launchRouteAllowed.",
+   "description": "Module de 45 lignes; exports: LaunchState, parseLaunchState, launchRemaining, launchRouteAllowed.",
    "path": "src/lib/launchGate.ts",
    "line": 1,
    "surface": null,
@@ -144828,7 +145512,7 @@
     "parseLaunchState",
     "supabase"
    ],
-   "detailRef": "282579632489"
+   "detailRef": "244b90ef9cd5"
   },
   {
    "id": "code-module:1423ece8b4d9",
@@ -146799,7 +147483,7 @@
    "id": "code-module:de525faa4a42",
    "type": "code-module",
    "title": "src/lib/tokWorkforce.ts",
-   "description": "Module de 42 lignes; exports: WorkforceEmployee, WorkforceShift, WorkforceEntry, WorkforceAbsence, WorkforceRequest, WorkforceExchange, WorkforceSettings, WorkforceValidation, employeeName, minutesFromTime, workedHours, weekRange, dateIsValid, csvCell.",
+   "description": "Module de 112 lignes; exports: WorkforceEmployee, WorkforceShift, WorkforceEntry, WorkforceAbsence, WorkforceRequest, WorkforceExchange, WorkforceSettings, WorkforceValidation, employeeName, minutesFromTime, workedHours, weekRange, dateIsValid, csvCell, WorkforceInvitationDeliveryStatus, WorkforceInvitation, WorkforceInvitationResult, WorkforceInvitationState, workforceInvitationState, workforceInvitationEmail, workforceInvitationNotice, workforceZurichClock.",
    "path": "src/lib/tokWorkforce.ts",
    "line": 1,
    "surface": null,
@@ -146808,6 +147492,10 @@
     "WorkforceEmployee",
     "WorkforceEntry",
     "WorkforceExchange",
+    "WorkforceInvitation",
+    "WorkforceInvitationDeliveryStatus",
+    "WorkforceInvitationResult",
+    "WorkforceInvitationState",
     "WorkforceRequest",
     "WorkforceSettings",
     "WorkforceShift",
@@ -146818,9 +147506,13 @@
     "minutesFromTime",
     "supabase",
     "weekRange",
-    "workedHours"
+    "workedHours",
+    "workforceInvitationEmail",
+    "workforceInvitationNotice",
+    "workforceInvitationState",
+    "workforceZurichClock"
    ],
-   "detailRef": "052152dde6d9"
+   "detailRef": "fe3800dad42c"
   },
   {
    "id": "code-module:f81222ab37b2",
@@ -146914,6 +147606,22 @@
     "cn"
    ],
    "detailRef": "c50434f14a9d"
+  },
+  {
+   "id": "code-module:fa360625e55c",
+   "type": "code-module",
+   "title": "src/lib/workforceContinuation.ts",
+   "description": "Module de 44 lignes; exports: WORKFORCE_SELF_PATH, WORKFORCE_MANAGEMENT_PATH, getWorkforceContinuationTarget, buildWorkforceConfirmationRedirect.",
+   "path": "src/lib/workforceContinuation.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "WORKFORCE_MANAGEMENT_PATH",
+    "WORKFORCE_SELF_PATH",
+    "buildWorkforceConfirmationRedirect",
+    "getWorkforceContinuationTarget"
+   ],
+   "detailRef": "139f2ecee941"
   },
   {
    "id": "code-module:84fb00bf4358",
@@ -147407,7 +148115,7 @@
    "id": "code-module:bf93db106c70",
    "type": "code-module",
    "title": "src/pages/Auth.tsx",
-   "description": "Module de 3410 lignes; exports: default.",
+   "description": "Module de 3422 lignes; exports: default.",
    "path": "src/pages/Auth.tsx",
    "line": 1,
    "surface": null,
@@ -147418,7 +148126,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "9ae37dce4493"
+   "detailRef": "611e52e28335"
   },
   {
    "id": "code-module:7a28b76c58b7",
@@ -149242,14 +149950,14 @@
    "id": "code-module:fc064657ab93",
    "type": "code-module",
    "title": "src/pages/workforce/MyWorkforce.tsx",
-   "description": "Module de 69 lignes; exports: default.",
+   "description": "Module de 188 lignes; exports: default.",
    "path": "src/pages/workforce/MyWorkforce.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "e8936073e46b"
+   "detailRef": "aa749f92fde9"
   },
   {
    "id": "code-module:ef1e237437fa",
@@ -149263,6 +149971,17 @@
     "default"
    ],
    "detailRef": "8dffdb1eb505"
+  },
+  {
+   "id": "code-module:83209504818d",
+   "type": "code-module",
+   "title": "src/test/MyWorkforce.test.tsx",
+   "description": "Module de 254 lignes; exports: aucun export statique.",
+   "path": "src/test/MyWorkforce.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "434a2669aaec"
   },
   {
    "id": "code-module:887bc351012c",
@@ -150072,14 +150791,14 @@
    "id": "code-module:7acfd51fa7f6",
    "type": "code-module",
    "title": "src/test/auth-post-login-routing.test.ts",
-   "description": "Module de 52 lignes; exports: aucun export statique.",
+   "description": "Module de 69 lignes; exports: aucun export statique.",
    "path": "src/test/auth-post-login-routing.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "ad4db4d800a7"
+   "detailRef": "8ae0e243e4c1"
   },
   {
    "id": "code-module:eabb9d9ec28c",
@@ -157427,6 +158146,30 @@
    "detailRef": "214eb784e210"
   },
   {
+   "id": "code-module:dfa18b1ad1fd",
+   "type": "code-module",
+   "title": "src/test/tokWorkforceInvitationState.test.ts",
+   "description": "Module de 56 lignes; exports: aucun export statique.",
+   "path": "src/test/tokWorkforceInvitationState.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "c6330536db1b"
+  },
+  {
+   "id": "code-module:59fd83dea786",
+   "type": "code-module",
+   "title": "src/test/tokWorkforceInvitationsUi.test.tsx",
+   "description": "Module de 215 lignes; exports: aucun export statique.",
+   "path": "src/test/tokWorkforceInvitationsUi.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "3486311289b3"
+  },
+  {
    "id": "code-module:01e7364e076f",
    "type": "code-module",
    "title": "src/test/tokWorkforceMigration.test.ts",
@@ -157438,6 +158181,30 @@
     "supabase"
    ],
    "detailRef": "9b5dc17a5d09"
+  },
+  {
+   "id": "code-module:ff5eaec75d2a",
+   "type": "code-module",
+   "title": "src/test/tokWorkforcePersonalOverview.test.tsx",
+   "description": "Module de 116 lignes; exports: aucun export statique.",
+   "path": "src/test/tokWorkforcePersonalOverview.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "b393679b0c70"
+  },
+  {
+   "id": "code-module:9ee1ae127f4f",
+   "type": "code-module",
+   "title": "src/test/tokWorkforcePersonalQueries.test.tsx",
+   "description": "Module de 86 lignes; exports: aucun export statique.",
+   "path": "src/test/tokWorkforcePersonalQueries.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "1a6d07ec4298"
   },
   {
    "id": "code-module:dd826816118e",
@@ -157520,6 +158287,20 @@
     "supabase"
    ],
    "detailRef": "43cd868eba24"
+  },
+  {
+   "id": "code-module:1866529bd520",
+   "type": "code-module",
+   "title": "src/test/workforce-auth-continuation.test.ts",
+   "description": "Module de 104 lignes; exports: aucun export statique.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "resend",
+    "stripe"
+   ],
+   "detailRef": "292c951ecd4e"
   },
   {
    "id": "code-module:fb4ccd67ca33",
@@ -167255,6 +168036,21 @@
     "supabase"
    ],
    "detailRef": "185d5c6877be"
+  },
+  {
+   "id": "database-object:0a5eed06e510",
+   "type": "database-object",
+   "title": "email_queue_workforce_invitation_rate_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "42412ad98a0f"
   },
   {
    "id": "database-object:d9d9e8cccb66",
@@ -188422,34 +189218,34 @@
    "detailRef": "ccbd0d0b9b81"
   },
   {
-   "id": "database-object:7ea98f947bc5",
+   "id": "database-object:34e485198d54",
    "type": "database-object",
    "title": "public.launch_rpc_allowed",
-   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
-   "line": 30,
+   "description": "Objet PostgreSQL de type function; 3 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018191000_tok_workforce_launch_access.sql",
+   "line": 36,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "f2ccf5ed63ba"
+   "detailRef": "15fa38a2d8be"
   },
   {
-   "id": "database-object:d684a3c3b285",
+   "id": "database-object:b5ac1b31d92d",
    "type": "database-object",
    "title": "public.launch_table_allowed",
-   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261013014557_launch_guest_discovery_authenticated_clients_only.sql",
-   "line": 5,
+   "description": "Objet PostgreSQL de type function; 3 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018191000_tok_workforce_launch_access.sql",
+   "line": 7,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "c6f23a52d078"
+   "detailRef": "ae96be06bad4"
   },
   {
    "id": "database-object:35714b5830e0",
@@ -201202,19 +201998,19 @@
    "detailRef": "770e3b0c5270"
   },
   {
-   "id": "database-object:ccdf015ed29c",
+   "id": "database-object:6f4d14e05dae",
    "type": "database-object",
    "title": "public.tok_workforce_claim_employee",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014180000_tok_workforce_clock_teams.sql",
-   "line": 80,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 269,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "f5d35c8641f6"
+   "detailRef": "e00eefdded44"
   },
   {
    "id": "database-object:3aaa46c75485",
@@ -201337,19 +202133,19 @@
    "detailRef": "1299043dc8c1"
   },
   {
-   "id": "database-object:7c95d6d85a7c",
+   "id": "database-object:ce48659141d9",
    "type": "database-object",
    "title": "public.tok_workforce_employees.tok_workforce_employees_self",
-   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014165500_tok_workforce_restaurants.sql",
-   "line": 174,
+   "description": "Objet PostgreSQL de type policy; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 59,
    "surface": null,
    "tags": [
     "policy",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "13c3e1bd064a"
+   "detailRef": "9869f9544a47"
   },
   {
    "id": "database-object:12c9fdfa540c",
@@ -201472,6 +202268,21 @@
    "detailRef": "239d1a383e20"
   },
   {
+   "id": "database-object:6032b5242caa",
+   "type": "database-object",
+   "title": "public.tok_workforce_guard_account_link",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "ce06a6e03c62"
+  },
+  {
    "id": "database-object:9ef3e6dc53bf",
    "type": "database-object",
    "title": "public.tok_workforce_guard_validated_entry",
@@ -201485,6 +202296,66 @@
     "supabase"
    ],
    "detailRef": "4a59c436a6c5"
+  },
+  {
+   "id": "database-object:69e689e741a9",
+   "type": "database-object",
+   "title": "public.tok_workforce_invitations.tok_workforce_invitations_manager_read",
+   "description": "Objet PostgreSQL de type policy; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "policy",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "aa009706ddcc"
+  },
+  {
+   "id": "database-object:f3a776a1cc56",
+   "type": "database-object",
+   "title": "public.tok_workforce_invitations",
+   "description": "Objet PostgreSQL de type table; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 5,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "table"
+   ],
+   "detailRef": "c5b4baf16eda"
+  },
+  {
+   "id": "database-object:a79aca88d30c",
+   "type": "database-object",
+   "title": "public.tok_workforce_invite_employee",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 64,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "f4497fd0ff20"
+  },
+  {
+   "id": "database-object:962e12bd2267",
+   "type": "database-object",
+   "title": "public.tok_workforce_list_invitations",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 204,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "30eee8451892"
   },
   {
    "id": "database-object:b6901222cb1e",
@@ -201502,19 +202373,19 @@
    "detailRef": "fd4797082951"
   },
   {
-   "id": "database-object:3120e950a4ef",
+   "id": "database-object:1937b68e4579",
    "type": "database-object",
    "title": "public.tok_workforce_my_restaurants",
-   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20261014180000_tok_workforce_clock_teams.sql",
-   "line": 60,
+   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 248,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "4b5a2ad48856"
+   "detailRef": "48091151f6c7"
   },
   {
    "id": "database-object:8b26816a7894",
@@ -201680,6 +202551,21 @@
     "supabase"
    ],
    "detailRef": "4678f06c0045"
+  },
+  {
+   "id": "database-object:af34e160ba3b",
+   "type": "database-object",
+   "title": "public.tok_workforce_revoke_invitation",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 224,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "5207a395619b"
   },
   {
    "id": "database-object:dfeea60f30ee",
@@ -207455,6 +208341,36 @@
     "supabase"
    ],
    "detailRef": "33ff43cb3693"
+  },
+  {
+   "id": "database-object:3eb1c75deb5b",
+   "type": "database-object",
+   "title": "tok_workforce_guard_account_link",
+   "description": "Objet PostgreSQL de type trigger; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 52,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase",
+    "trigger"
+   ],
+   "detailRef": "5888c847bed6"
+  },
+  {
+   "id": "database-object:4e79d5da4455",
+   "type": "database-object",
+   "title": "tok_workforce_invitations_restaurant_idx",
+   "description": "Objet PostgreSQL de type index; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "index",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "f867c3d503c2"
   },
   {
    "id": "database-object:79d4053948e8",
@@ -216534,18 +217450,18 @@
    "detailRef": "6c59f406a1da"
   },
   {
-   "id": "document-section:ec2c8aebb6f9",
+   "id": "document-section:d2d8588f74fe",
    "type": "document-section",
-   "title": "Choix d'architecture",
+   "title": "Choix d’architecture",
    "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
    "path": "docs/integrations/TOK_WORKFORCE.md",
-   "line": 5,
+   "line": 11,
    "surface": null,
    "tags": [
     "TOK Équipe — intégration de SwissTime Tracker",
     "h2"
    ],
-   "detailRef": "a26f6ffb611e"
+   "detailRef": "571c5af21390"
   },
   {
    "id": "document-section:a54c5ae40e7e",
@@ -218214,6 +219130,20 @@
    "detailRef": "943da346c885"
   },
   {
+   "id": "document-section:b908a49e4487",
+   "type": "document-section",
+   "title": "Contrats serveur",
+   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
+   "path": "docs/integrations/TOK_WORKFORCE.md",
+   "line": 46,
+   "surface": null,
+   "tags": [
+    "TOK Équipe — intégration de SwissTime Tracker",
+    "h3"
+   ],
+   "detailRef": "9bdefb232613"
+  },
+  {
    "id": "document-section:431442ff3c50",
    "type": "document-section",
    "title": "Controles positifs",
@@ -219796,20 +220726,6 @@
    "detailRef": "a44c4d3c26e9"
   },
   {
-   "id": "document-section:394bc4d0588a",
-   "type": "document-section",
-   "title": "Déploiement et retour arrière",
-   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
-   "path": "docs/integrations/TOK_WORKFORCE.md",
-   "line": 26,
-   "surface": null,
-   "tags": [
-    "TOK Équipe — intégration de SwissTime Tracker",
-    "h2"
-   ],
-   "detailRef": "c728d5ad0444"
-  },
-  {
    "id": "document-section:97696f11cd35",
    "type": "document-section",
    "title": "Déploiement — carte commerciale TheFork Genève",
@@ -220102,6 +221018,20 @@
     "h2"
    ],
    "detailRef": "32b4831a8e62"
+  },
+  {
+   "id": "document-section:d0eb7f488a49",
+   "type": "document-section",
+   "title": "Envoi et exploitation",
+   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
+   "path": "docs/integrations/TOK_WORKFORCE.md",
+   "line": 67,
+   "surface": null,
+   "tags": [
+    "TOK Équipe — intégration de SwissTime Tracker",
+    "h3"
+   ],
+   "detailRef": "3fdafb7881bd"
   },
   {
    "id": "document-section:25a0f5de0987",
@@ -220620,20 +221550,6 @@
     "h2"
    ],
    "detailRef": "fa4e46c936d3"
-  },
-  {
-   "id": "document-section:9a39dad6406d",
-   "type": "document-section",
-   "title": "Extension badgeuse et espace collaborateur (octobre 2026)",
-   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
-   "path": "docs/integrations/TOK_WORKFORCE.md",
-   "line": 36,
-   "surface": null,
-   "tags": [
-    "TOK Équipe — intégration de SwissTime Tracker",
-    "h2"
-   ],
-   "detailRef": "c9ef41bf6f52"
   },
   {
    "id": "document-section:7702efa59b15",
@@ -221280,20 +222196,6 @@
    "detailRef": "6cbd6fdf03cf"
   },
   {
-   "id": "document-section:d448ff6126ea",
-   "type": "document-section",
-   "title": "Finalisation des parcours RH",
-   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
-   "path": "docs/integrations/TOK_WORKFORCE.md",
-   "line": 56,
-   "surface": null,
-   "tags": [
-    "TOK Équipe — intégration de SwissTime Tracker",
-    "h3"
-   ],
-   "detailRef": "6300058ea411"
-  },
-  {
    "id": "document-section:2a0b1eb86a26",
    "type": "document-section",
    "title": "Findings critiques et prioritaires",
@@ -221406,20 +222308,6 @@
    "detailRef": "df129efcf479"
   },
   {
-   "id": "document-section:2287669fadd8",
-   "type": "document-section",
-   "title": "Fonctionnalités conservées et adaptations",
-   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
-   "path": "docs/integrations/TOK_WORKFORCE.md",
-   "line": 17,
-   "surface": null,
-   "tags": [
-    "TOK Équipe — intégration de SwissTime Tracker",
-    "h2"
-   ],
-   "detailRef": "c4b3c0c2aef6"
-  },
-  {
    "id": "document-section:f0067e8a29fd",
    "type": "document-section",
    "title": "Fonctionnement",
@@ -221460,6 +222348,20 @@
     "État d’exécution TOK observé le 3 octobre 2026"
    ],
    "detailRef": "f2e9412aae38"
+  },
+  {
+   "id": "document-section:2374c72620b6",
+   "type": "document-section",
+   "title": "Fonctions RH conservées",
+   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
+   "path": "docs/integrations/TOK_WORKFORCE.md",
+   "line": 75,
+   "surface": null,
+   "tags": [
+    "TOK Équipe — intégration de SwissTime Tracker",
+    "h2"
+   ],
+   "detailRef": "e6fdafb70bec"
   },
   {
    "id": "document-section:d51bee2be81d",
@@ -223086,6 +223988,20 @@
    "detailRef": "546ae7f611f1"
   },
   {
+   "id": "document-section:4d9bc0b70be0",
+   "type": "document-section",
+   "title": "Invitations et vue d’ensemble",
+   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
+   "path": "docs/integrations/TOK_WORKFORCE.md",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "TOK Équipe — intégration de SwissTime Tracker",
+    "h2"
+   ],
+   "detailRef": "ab0b016f0219"
+  },
+  {
    "id": "document-section:4afa57d4c1b7",
    "type": "document-section",
    "title": "Invoice Line Details Implementation Plan",
@@ -223588,20 +224504,6 @@
     "h2"
    ],
    "detailRef": "d73b3de268f4"
-  },
-  {
-   "id": "document-section:0a62bda15399",
-   "type": "document-section",
-   "title": "Limites et validation",
-   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
-   "path": "docs/integrations/TOK_WORKFORCE.md",
-   "line": 49,
-   "surface": null,
-   "tags": [
-    "TOK Équipe — intégration de SwissTime Tracker",
-    "h3"
-   ],
-   "detailRef": "62153b37edb8"
   },
   {
    "id": "document-section:44a444be70fa",
@@ -227020,6 +227922,20 @@
    "detailRef": "d13c4af88beb"
   },
   {
+   "id": "document-section:3d7b9c32b9d3",
+   "type": "document-section",
+   "title": "Parcours collaborateur",
+   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
+   "path": "docs/integrations/TOK_WORKFORCE.md",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "TOK Équipe — intégration de SwissTime Tracker",
+    "h3"
+   ],
+   "detailRef": "64599d509a0b"
+  },
+  {
    "id": "document-section:58673d263420",
    "type": "document-section",
    "title": "Parcours critiques",
@@ -227102,6 +228018,20 @@
     "h2"
    ],
    "detailRef": "14dca6c30dac"
+  },
+  {
+   "id": "document-section:f172e56e059d",
+   "type": "document-section",
+   "title": "Parcours restaurateur",
+   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
+   "path": "docs/integrations/TOK_WORKFORCE.md",
+   "line": 25,
+   "surface": null,
+   "tags": [
+    "TOK Équipe — intégration de SwissTime Tracker",
+    "h3"
+   ],
+   "detailRef": "b4feb06c25f6"
   },
   {
    "id": "document-section:2eb076750861",
@@ -232998,6 +233928,20 @@
    "detailRef": "759b8b1983f9"
   },
   {
+   "id": "document-section:94d57f21778d",
+   "type": "document-section",
+   "title": "Sources analysées",
+   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
+   "path": "docs/integrations/TOK_WORKFORCE.md",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "TOK Équipe — intégration de SwissTime Tracker",
+    "h2"
+   ],
+   "detailRef": "c2c0eb5cb06e"
+  },
+  {
    "id": "document-section:8d1a2c29a09b",
    "type": "document-section",
    "title": "Sources de donnees",
@@ -238204,6 +239148,20 @@
     "h2"
    ],
    "detailRef": "0b5a37dd5a84"
+  },
+  {
+   "id": "document-section:aef3e2d45350",
+   "type": "document-section",
+   "title": "Validation, déploiement et retour arrière",
+   "description": "Section de TOK Équipe — intégration de SwissTime Tracker.",
+   "path": "docs/integrations/TOK_WORKFORCE.md",
+   "line": 91,
+   "surface": null,
+   "tags": [
+    "TOK Équipe — intégration de SwissTime Tracker",
+    "h2"
+   ],
+   "detailRef": "2a0b556715e8"
   },
   {
    "id": "document-section:13ea8431d8d4",
@@ -244303,20 +245261,23 @@
    "id": "document:961b754842c6",
    "type": "document",
    "title": "TOK Équipe — intégration de SwissTime Tracker",
-   "description": "Document Markdown avec 7 section(s).",
+   "description": "Document Markdown avec 10 section(s).",
    "path": "docs/integrations/TOK_WORKFORCE.md",
    "line": 1,
    "surface": null,
    "tags": [
-    "Choix d'architecture",
-    "Déploiement et retour arrière",
-    "Extension badgeuse et espace collaborateur (octobre 2026)",
-    "Finalisation des parcours RH",
-    "Fonctionnalités conservées et adaptations",
-    "Limites et validation",
-    "TOK Équipe — intégration de SwissTime Tracker"
+    "Choix d’architecture",
+    "Contrats serveur",
+    "Envoi et exploitation",
+    "Fonctions RH conservées",
+    "Invitations et vue d’ensemble",
+    "Parcours collaborateur",
+    "Parcours restaurateur",
+    "Sources analysées",
+    "TOK Équipe — intégration de SwissTime Tracker",
+    "Validation, déploiement et retour arrière"
    ],
-   "detailRef": "aeb19721ca37"
+   "detailRef": "9a1ee91c3dfd"
   },
   {
    "id": "document:650efe93226c",
@@ -273270,6 +274231,32 @@
    "detailRef": "3dd4a8d41398"
   },
   {
+   "id": "exported-symbol:9257e554da87",
+   "type": "exported-symbol",
+   "title": "WORKFORCE_MANAGEMENT_PATH",
+   "description": "Export variable de src/lib/workforceContinuation.ts.",
+   "path": "src/lib/workforceContinuation.ts",
+   "line": 4,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "f95177476e55"
+  },
+  {
+   "id": "exported-symbol:afcc1a316da7",
+   "type": "exported-symbol",
+   "title": "WORKFORCE_SELF_PATH",
+   "description": "Export variable de src/lib/workforceContinuation.ts.",
+   "path": "src/lib/workforceContinuation.ts",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "variable"
+   ],
+   "detailRef": "358dd7423421"
+  },
+  {
    "id": "exported-symbol:9294adc13b9f",
    "type": "exported-symbol",
    "title": "WebPushStatus",
@@ -273417,6 +274404,62 @@
     "typealias"
    ],
    "detailRef": "718be3ac020a"
+  },
+  {
+   "id": "exported-symbol:ffe4b27ad3f5",
+   "type": "exported-symbol",
+   "title": "WorkforceInvitation",
+   "description": "Export typealias de src/lib/tokWorkforce.ts.",
+   "path": "src/lib/tokWorkforce.ts",
+   "line": 45,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "0a0f86576f38"
+  },
+  {
+   "id": "exported-symbol:2afb63894914",
+   "type": "exported-symbol",
+   "title": "WorkforceInvitationDeliveryStatus",
+   "description": "Export typealias de src/lib/tokWorkforce.ts.",
+   "path": "src/lib/tokWorkforce.ts",
+   "line": 44,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "5039f96df870"
+  },
+  {
+   "id": "exported-symbol:cb00b5cb6275",
+   "type": "exported-symbol",
+   "title": "WorkforceInvitationResult",
+   "description": "Export typealias de src/lib/tokWorkforce.ts.",
+   "path": "src/lib/tokWorkforce.ts",
+   "line": 57,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "00d0b9f50c51"
+  },
+  {
+   "id": "exported-symbol:cbd52938cda8",
+   "type": "exported-symbol",
+   "title": "WorkforceInvitationState",
+   "description": "Export typealias de src/lib/tokWorkforce.ts.",
+   "path": "src/lib/tokWorkforce.ts",
+   "line": 60,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "6954981bc74d"
   },
   {
    "id": "exported-symbol:70056230bb22",
@@ -276483,6 +277526,19 @@
     "supabase"
    ],
    "detailRef": "562930e0e93a"
+  },
+  {
+   "id": "exported-symbol:ce31e7286b12",
+   "type": "exported-symbol",
+   "title": "buildWorkforceConfirmationRedirect",
+   "description": "Export function de src/lib/workforceContinuation.ts.",
+   "path": "src/lib/workforceContinuation.ts",
+   "line": 31,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "ca03190c6e2c"
   },
   {
    "id": "exported-symbol:07c3999e8abd",
@@ -281280,17 +282336,17 @@
    "detailRef": "9201577cc024"
   },
   {
-   "id": "exported-symbol:b91dc6f39a06",
+   "id": "exported-symbol:77087de415b4",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/workforce/WorkforceEmployees.tsx.",
    "path": "src/components/workforce/WorkforceEmployees.tsx",
-   "line": 13,
+   "line": 28,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "75e4a15f54ab"
+   "detailRef": "9a3e670aec9b"
   },
   {
    "id": "exported-symbol:e19ccfeb5722",
@@ -281304,6 +282360,19 @@
     "function"
    ],
    "detailRef": "64d9770934a7"
+  },
+  {
+   "id": "exported-symbol:21c606f259dd",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/workforce/WorkforceInvitationDialog.tsx.",
+   "path": "src/components/workforce/WorkforceInvitationDialog.tsx",
+   "line": 20,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "73328efdea37"
   },
   {
    "id": "exported-symbol:0db23aa2f8bc",
@@ -281521,12 +282590,12 @@
    "detailRef": "f6ad11948f69"
   },
   {
-   "id": "exported-symbol:bb4502235476",
+   "id": "exported-symbol:d72ff3582dec",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/Auth.tsx.",
    "path": "src/pages/Auth.tsx",
-   "line": 873,
+   "line": 874,
    "surface": null,
    "tags": [
     "function",
@@ -281535,7 +282604,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "38072ec0e7ef"
+   "detailRef": "75ba14c0f669"
   },
   {
    "id": "exported-symbol:c06480596608",
@@ -283182,17 +284251,17 @@
    "detailRef": "64f4f6f0b361"
   },
   {
-   "id": "exported-symbol:501610760581",
+   "id": "exported-symbol:b87fa8cd10ee",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/workforce/MyWorkforce.tsx.",
    "path": "src/pages/workforce/MyWorkforce.tsx",
-   "line": 16,
+   "line": 21,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "2b5d53573cfc"
+   "detailRef": "e2e7edfedb04"
   },
   {
    "id": "exported-symbol:5a11e7706c54",
@@ -287950,18 +289019,18 @@
    "detailRef": "14570e484114"
   },
   {
-   "id": "exported-symbol:a7656b9c843a",
+   "id": "exported-symbol:c45732263565",
    "type": "exported-symbol",
    "title": "getOAuthConsentTargetFromSearch",
    "description": "Export function de src/lib/authPostLogin.ts.",
    "path": "src/lib/authPostLogin.ts",
-   "line": 8,
+   "line": 9,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "237249917497"
+   "detailRef": "16d672983700"
   },
   {
    "id": "exported-symbol:b89b86bf7953",
@@ -288455,18 +289524,18 @@
    "detailRef": "eb6a342a99b6"
   },
   {
-   "id": "exported-symbol:ba0276f66844",
+   "id": "exported-symbol:5cc728e99698",
    "type": "exported-symbol",
    "title": "getPostAuthTargetForRole",
    "description": "Export function de src/lib/authPostLogin.ts.",
    "path": "src/lib/authPostLogin.ts",
-   "line": 31,
+   "line": 32,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "8fa5dfd056c5"
+   "detailRef": "1c4702fc59e8"
   },
   {
    "id": "exported-symbol:8d283e41e897",
@@ -290159,6 +291228,19 @@
     "supabase"
    ],
    "detailRef": "8e2d013c7561"
+  },
+  {
+   "id": "exported-symbol:3717b70c95c8",
+   "type": "exported-symbol",
+   "title": "getWorkforceContinuationTarget",
+   "description": "Export function de src/lib/workforceContinuation.ts.",
+   "path": "src/lib/workforceContinuation.ts",
+   "line": 9,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "255444b28aa9"
   },
   {
    "id": "exported-symbol:d327755503cb",
@@ -300475,6 +301557,20 @@
    "detailRef": "2d73b24f5b92"
   },
   {
+   "id": "exported-symbol:16f62b252881",
+   "type": "exported-symbol",
+   "title": "useInviteWorkforceEmployee",
+   "description": "Export function de src/hooks/useTokWorkforce.ts.",
+   "path": "src/hooks/useTokWorkforce.ts",
+   "line": 107,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "4d32cc9eca5f"
+  },
+  {
    "id": "exported-symbol:5a24927ee837",
    "type": "exported-symbol",
    "title": "useIsMobile",
@@ -300870,6 +301966,20 @@
     "supabase"
    ],
    "detailRef": "49376b062db3"
+  },
+  {
+   "id": "exported-symbol:e06b46c98f6e",
+   "type": "exported-symbol",
+   "title": "useRevokeWorkforceInvitation",
+   "description": "Export function de src/hooks/useTokWorkforce.ts.",
+   "path": "src/hooks/useTokWorkforce.ts",
+   "line": 128,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "b9414ad37dd7"
   },
   {
    "id": "exported-symbol:fbcdf564af8e",
@@ -301319,158 +302429,186 @@
    "detailRef": "25db7aaae92b"
   },
   {
-   "id": "exported-symbol:7d745fa26fb2",
+   "id": "exported-symbol:ef08fc27d83f",
    "type": "exported-symbol",
    "title": "useWorkforceAbsences",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 63,
+   "line": 68,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "0133cc917c22"
+   "detailRef": "5d57fc58ebe5"
   },
   {
-   "id": "exported-symbol:2bee00e432d9",
+   "id": "exported-symbol:d9659420260f",
    "type": "exported-symbol",
    "title": "useWorkforceEmployees",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 48,
+   "line": 53,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "8cecf8417c9c"
+   "detailRef": "3c258ae33ac0"
   },
   {
-   "id": "exported-symbol:8aa96f796dab",
+   "id": "exported-symbol:7fcc1b3f86aa",
    "type": "exported-symbol",
    "title": "useWorkforceEntries",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 54,
+   "line": 59,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "30f9ca2cf05c"
+   "detailRef": "6e6632f455c0"
   },
   {
-   "id": "exported-symbol:570a6ae825b8",
+   "id": "exported-symbol:5373e30956f9",
    "type": "exported-symbol",
    "title": "useWorkforceEntriesInRange",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 57,
+   "line": 62,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "c05f7e4e1d5f"
+   "detailRef": "22f6ed3b7699"
   },
   {
-   "id": "exported-symbol:a2f5d8abf16e",
+   "id": "exported-symbol:8642265c5c89",
    "type": "exported-symbol",
    "title": "useWorkforceExchanges",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 69,
+   "line": 74,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "1b66d29af542"
+   "detailRef": "18355a5ac66b"
   },
   {
-   "id": "exported-symbol:62b51754f048",
+   "id": "exported-symbol:490ee2a3cd51",
+   "type": "exported-symbol",
+   "title": "useWorkforceInvitations",
+   "description": "Export function de src/hooks/useTokWorkforce.ts.",
+   "path": "src/hooks/useTokWorkforce.ts",
+   "line": 84,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "b7d4e7159bd2"
+  },
+  {
+   "id": "exported-symbol:b266068386f6",
+   "type": "exported-symbol",
+   "title": "useWorkforceNextShift",
+   "description": "Export function de src/hooks/useTokWorkforce.ts.",
+   "path": "src/hooks/useTokWorkforce.ts",
+   "line": 141,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "f322ef283301"
+  },
+  {
+   "id": "exported-symbol:e33fdde5916c",
    "type": "exported-symbol",
    "title": "useWorkforceRefresh",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 72,
+   "line": 77,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "b77e1e605ba1"
+   "detailRef": "f36c60a534c9"
   },
   {
-   "id": "exported-symbol:a5034df6a5a1",
+   "id": "exported-symbol:ad3abee30fb5",
    "type": "exported-symbol",
    "title": "useWorkforceRequests",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 66,
+   "line": 71,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "f689a6c3811b"
+   "detailRef": "6348bb3b4e3b"
   },
   {
-   "id": "exported-symbol:679fb9b50997",
+   "id": "exported-symbol:7fdf274b3a7c",
    "type": "exported-symbol",
    "title": "useWorkforceRows",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 29,
+   "line": 31,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "a626a781c12e"
+   "detailRef": "a7ee70d9a637"
   },
   {
-   "id": "exported-symbol:014095ecd157",
+   "id": "exported-symbol:6f38810d2cac",
    "type": "exported-symbol",
    "title": "useWorkforceSettings",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 14,
+   "line": 16,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "7ffe9b3fb68e"
+   "detailRef": "db31bac207ff"
   },
   {
-   "id": "exported-symbol:295ef02021fc",
+   "id": "exported-symbol:4895b59550fa",
    "type": "exported-symbol",
    "title": "useWorkforceShifts",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 51,
+   "line": 56,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "92f3a03ea5c2"
+   "detailRef": "6c1f3b36fbf6"
   },
   {
-   "id": "exported-symbol:7eaed0cda3fa",
+   "id": "exported-symbol:d14fcfff054c",
    "type": "exported-symbol",
    "title": "useWorkforceValidations",
    "description": "Export function de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 60,
+   "line": 65,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "cef5f9cf2e2f"
+   "detailRef": "0cb3b8b3e7b1"
   },
   {
    "id": "exported-symbol:c225003564e8",
@@ -301952,32 +303090,88 @@
    "detailRef": "9ac788e9862b"
   },
   {
-   "id": "exported-symbol:b77da3b7b0f6",
+   "id": "exported-symbol:72ea2a32529c",
    "type": "exported-symbol",
    "title": "workforceDb",
    "description": "Export variable de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 11,
+   "line": 13,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "5e5ff9858767"
+   "detailRef": "870d9fe38ef8"
   },
   {
-   "id": "exported-symbol:2e5c0f43e31b",
+   "id": "exported-symbol:f16e54eea08f",
+   "type": "exported-symbol",
+   "title": "workforceInvitationEmail",
+   "description": "Export function de src/lib/tokWorkforce.ts.",
+   "path": "src/lib/tokWorkforce.ts",
+   "line": 80,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "7de0b669ffb5"
+  },
+  {
+   "id": "exported-symbol:4e20dc991eaf",
+   "type": "exported-symbol",
+   "title": "workforceInvitationNotice",
+   "description": "Export function de src/lib/tokWorkforce.ts.",
+   "path": "src/lib/tokWorkforce.ts",
+   "line": 88,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "c656f361ac5c"
+  },
+  {
+   "id": "exported-symbol:40a6d522f673",
+   "type": "exported-symbol",
+   "title": "workforceInvitationState",
+   "description": "Export function de src/lib/tokWorkforce.ts.",
+   "path": "src/lib/tokWorkforce.ts",
+   "line": 63,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "0bea010a9201"
+  },
+  {
+   "id": "exported-symbol:fe5e0714bed5",
    "type": "exported-symbol",
    "title": "workforceKey",
    "description": "Export variable de src/hooks/useTokWorkforce.ts.",
    "path": "src/hooks/useTokWorkforce.ts",
-   "line": 12,
+   "line": 14,
    "surface": null,
    "tags": [
     "supabase",
     "variable"
    ],
-   "detailRef": "47e3b035902e"
+   "detailRef": "66058cbf45dc"
+  },
+  {
+   "id": "exported-symbol:850b64084d35",
+   "type": "exported-symbol",
+   "title": "workforceZurichClock",
+   "description": "Export function de src/lib/tokWorkforce.ts.",
+   "path": "src/lib/tokWorkforce.ts",
+   "line": 102,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "67355615ffb5"
   },
   {
    "id": "exported-symbol:9e3213888c16",
@@ -323267,6 +324461,20 @@
    "detailRef": "6e7de8ed6686"
   },
   {
+   "id": "file:d52be8a65149",
+   "type": "file",
+   "title": "src/components/workforce/WorkforceInvitationDialog.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/workforce/WorkforceInvitationDialog.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "8ed1c9f94180"
+  },
+  {
    "id": "file:f65acb5d808f",
    "type": "file",
    "title": "src/components/workforce/WorkforcePersonal.tsx",
@@ -326795,6 +328003,20 @@
    "detailRef": "0aadda57f866"
   },
   {
+   "id": "file:c2456245cbb2",
+   "type": "file",
+   "title": "src/lib/workforceContinuation.ts",
+   "description": "Fichier du dépôt classé application-library.",
+   "path": "src/lib/workforceContinuation.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "application-library"
+   ],
+   "detailRef": "9bdf05966dbc"
+  },
+  {
    "id": "file:505771dc44bf",
    "type": "file",
    "title": "src/lib/zeroAttenteReservationContext.ts",
@@ -329019,6 +330241,20 @@
     "frontend-source"
    ],
    "detailRef": "09071ac709f7"
+  },
+  {
+   "id": "file:fd07b3533000",
+   "type": "file",
+   "title": "src/test/MyWorkforce.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/MyWorkforce.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "19f88f07fcea"
   },
   {
    "id": "file:445c1955229e",
@@ -336805,6 +338041,20 @@
    "detailRef": "ae2292bb1067"
   },
   {
+   "id": "file:b0011be2f7d1",
+   "type": "file",
+   "title": "src/test/sql/tok_workforce_launch_smoke.sql",
+   "description": "Fichier du dépôt classé frontend-source.",
+   "path": "src/test/sql/tok_workforce_launch_smoke.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "frontend-source"
+   ],
+   "detailRef": "305fd4fdd2ce"
+  },
+  {
    "id": "file:4d6f68d760bb",
    "type": "file",
    "title": "src/test/sql/tok_workforce_postgres_smoke.sql",
@@ -337995,6 +339245,34 @@
    "detailRef": "384b6110689f"
   },
   {
+   "id": "file:1ebe7faa8758",
+   "type": "file",
+   "title": "src/test/tokWorkforceInvitationState.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tokWorkforceInvitationState.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "f48d1a0c5711"
+  },
+  {
+   "id": "file:86e951848468",
+   "type": "file",
+   "title": "src/test/tokWorkforceInvitationsUi.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tokWorkforceInvitationsUi.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "9ba09ea75ecd"
+  },
+  {
    "id": "file:2113ed344491",
    "type": "file",
    "title": "src/test/tokWorkforceMigration.test.ts",
@@ -338007,6 +339285,34 @@
     "test"
    ],
    "detailRef": "b701e04ccfb0"
+  },
+  {
+   "id": "file:f946758c58cc",
+   "type": "file",
+   "title": "src/test/tokWorkforcePersonalOverview.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tokWorkforcePersonalOverview.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "40e272ad8ed6"
+  },
+  {
+   "id": "file:4aa530ce9976",
+   "type": "file",
+   "title": "src/test/tokWorkforcePersonalQueries.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/tokWorkforcePersonalQueries.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "ac76ec1c7c30"
   },
   {
    "id": "file:3f0d709be6a5",
@@ -338091,6 +339397,20 @@
     "test"
    ],
    "detailRef": "8fad8055db6a"
+  },
+  {
+   "id": "file:1aa6d882677c",
+   "type": "file",
+   "title": "src/test/workforce-auth-continuation.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "95fd4981aacf"
   },
   {
    "id": "file:67565aed6ac7",
@@ -349083,6 +350403,34 @@
    "detailRef": "8343f1fb1dcc"
   },
   {
+   "id": "file:30a62050d953",
+   "type": "file",
+   "title": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "f6192613c837"
+  },
+  {
+   "id": "file:e8ec33579b0a",
+   "type": "file",
+   "title": "supabase/migrations/20261018191000_tok_workforce_launch_access.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261018191000_tok_workforce_launch_access.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "9ad803e07f81"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -352890,7 +354238,7 @@
    "id": "integration:7bccba38bd87",
    "type": "integration",
    "title": "Resend",
-   "description": "Intégration externe détectée dans 35 module(s).",
+   "description": "Intégration externe détectée dans 36 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -352924,6 +354272,7 @@
     "src/test/production-preflight-hardening.test.ts",
     "src/test/release-readiness.test.ts",
     "src/test/reservation-email-delivery.test.ts",
+    "src/test/workforce-auth-continuation.test.ts",
     "supabase/functions/_shared/email-provider-reconciliation.ts",
     "supabase/functions/_shared/incident-intelligence.ts",
     "supabase/functions/ai-support-resolution/index.ts",
@@ -352932,7 +354281,7 @@
     "supabase/functions/marketing-orchestrator/index.ts",
     "supabase/functions/send-email/index.ts"
    ],
-   "detailRef": "8b35a7da516a"
+   "detailRef": "62983b583170"
   },
   {
    "id": "integration:4ec2685ad9fc",
@@ -352960,7 +354309,7 @@
    "id": "integration:f0725427ade4",
    "type": "integration",
    "title": "Stripe",
-   "description": "Intégration externe détectée dans 268 module(s).",
+   "description": "Intégration externe détectée dans 269 module(s).",
    "path": "scripts/application-index-core.mjs",
    "line": null,
    "surface": null,
@@ -353152,6 +354501,7 @@
     "src/test/user-facing-errors.test.ts",
     "src/test/user-guide.test.ts",
     "src/test/vercel-rewrites.test.ts",
+    "src/test/workforce-auth-continuation.test.ts",
     "src/test/zero-attente-finalization-governance.test.ts",
     "src/test/zero-attente-free-miamz.test.ts",
     "stripe",
@@ -353235,13 +354585,13 @@
     "supabase/functions/tok-connect-remote-mcp/index.ts",
     "supabase/functions/validate-order/index.ts"
    ],
-   "detailRef": "208693c7342b"
+   "detailRef": "8f901862043e"
   },
   {
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 752 module(s).",
+   "description": "Intégration externe détectée dans 754 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -353906,7 +355256,9 @@
     "src/test/tok-pulse-native-widget.test.ts",
     "src/test/tok-stripe-price-catalog.test.ts",
     "src/test/tokWorkforceClock.test.ts",
+    "src/test/tokWorkforceInvitationsUi.test.tsx",
     "src/test/tokWorkforceMigration.test.ts",
+    "src/test/tokWorkforcePersonalQueries.test.tsx",
     "src/test/transactional-email-templates.test.ts",
     "src/test/user-facing-errors.test.ts",
     "src/test/vercel-rewrites.test.ts",
@@ -354000,7 +355352,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "0c69e4bf14ac"
+   "detailRef": "7ec989b6fa86"
   },
   {
    "id": "integration:c20910a79a78",
@@ -362402,6 +363754,34 @@
    "detailRef": "be13226ac6cb"
   },
   {
+   "id": "migration:b1927fc053ef",
+   "type": "migration",
+   "title": "20261018190000 Tok Workforce Invitations",
+   "description": "Migration SQL de 326 lignes, 12 objets CREATE détectés.",
+   "path": "supabase/migrations/20261018190000_tok_workforce_invitations.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "e5b629cfbbda"
+  },
+  {
+   "id": "migration:fb76219acc00",
+   "type": "migration",
+   "title": "20261018191000 Tok Workforce Launch Access",
+   "description": "Migration SQL de 60 lignes, 2 objets CREATE détectés.",
+   "path": "supabase/migrations/20261018191000_tok_workforce_launch_access.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "b5fe22a45346"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -363891,7 +365271,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "d65b2370f894"
+   "detailRef": "64c808ff0341"
   },
   {
    "id": "page:7f83ca0b2fd1",
@@ -364866,7 +366246,7 @@
    "tags": [
     "/equipe/mon-espace"
    ],
-   "detailRef": "fbf9cdff4aba"
+   "detailRef": "6357a3004345"
   },
   {
    "id": "page:98387dff0725",
@@ -365358,7 +366738,7 @@
    "id": "path-literal:f1eff7ecba50",
    "type": "path-literal",
    "title": "/",
-   "description": "Chemin référencé dans 250 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 251 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "public/firebase-messaging-sw.js",
    "line": 20,
    "surface": null,
@@ -365468,6 +366848,7 @@
     "src/test/tok-connect-special-offers-commerce.test.ts",
     "src/test/tok-logo-calendar.test.ts",
     "src/test/vercel-rewrites.test.ts",
+    "src/test/workforce-auth-continuation.test.ts",
     "supabase/functions/_shared/auth.ts",
     "supabase/functions/_shared/marketing-service-auth.ts",
     "supabase/functions/_shared/tok-connect.ts",
@@ -365489,7 +366870,7 @@
     "vite.config.ts",
     "workers/image-ai-worker/metadata.js"
    ],
-   "detailRef": "7c069aee5d13"
+   "detailRef": "fe597ceafa25"
   },
   {
    "id": "path-literal:957632a6772a",
@@ -366627,7 +368008,7 @@
    "id": "path-literal:b68b25032a0b",
    "type": "path-literal",
    "title": "/admin",
-   "description": "Chemin référencé dans 72 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 74 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 167,
    "surface": null,
@@ -366664,10 +368045,11 @@
     "src/test/route-wiring.test.ts",
     "src/test/user-guide.test.ts",
     "src/test/vercel-rewrites.test.ts",
+    "src/test/workforce-auth-continuation.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "2b39c34f8e37"
+   "detailRef": "42dc55ef5f88"
   },
   {
    "id": "path-literal:7a90d8192888",
@@ -367046,7 +368428,7 @@
     "src/test/commercial-domain-isolation.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "bb54b2902466"
+   "detailRef": "e0b214dcdb54"
   },
   {
    "id": "path-literal:7e02e7d7b2d4",
@@ -367091,7 +368473,7 @@
     "src/pages/Auth.tsx",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "069d6e41494c"
+   "detailRef": "f9d5fa057451"
   },
   {
    "id": "path-literal:0e40cdcc0a96",
@@ -367162,7 +368544,7 @@
    "id": "path-literal:9fc303e90d4c",
    "type": "path-literal",
    "title": "/auth",
-   "description": "Chemin référencé dans 54 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 56 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1269,
    "surface": null,
@@ -367198,6 +368580,7 @@
     "src/pages/Panier.tsx",
     "src/pages/TokOne.tsx",
     "src/pages/dashboard/DashboardCommandes.tsx",
+    "src/test/MyWorkforce.test.tsx",
     "src/test/admin-domain-routing.test.ts",
     "src/test/auth-redirect-security.test.ts",
     "src/test/auth-signup-form.test.tsx",
@@ -367208,7 +368591,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/support-chat-auth-gate.test.tsx"
    ],
-   "detailRef": "8634ed158966"
+   "detailRef": "a12c01a6f025"
   },
   {
    "id": "path-literal:ef07732b0e39",
@@ -367393,7 +368776,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "394c0830fa0c"
+   "detailRef": "662bc9beb5d2"
   },
   {
    "id": "path-literal:303335f540b9",
@@ -367502,7 +368885,7 @@
    "id": "path-literal:189dd2480ec5",
    "type": "path-literal",
    "title": "/coming-soon",
-   "description": "Chemin référencé dans 20 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 21 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 537,
    "surface": null,
@@ -367520,7 +368903,7 @@
     "src/test/route-serving-regression.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "ba3c59fdd839"
+   "detailRef": "1da65d25ea95"
   },
   {
    "id": "path-literal:e53adf57f6c1",
@@ -368013,7 +369396,7 @@
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "eabb38001b0f"
+   "detailRef": "9a516cdce721"
   },
   {
    "id": "path-literal:e9604eeab631",
@@ -368280,7 +369663,7 @@
     "src/test/role-access.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "a8aa74b79651"
+   "detailRef": "870af96b36b1"
   },
   {
    "id": "path-literal:5db30e62e207",
@@ -369115,7 +370498,7 @@
    "id": "path-literal:a83de8cf5f54",
    "type": "path-literal",
    "title": "/dashboard",
-   "description": "Chemin référencé dans 84 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 86 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/application-index-core.mjs",
    "line": 169,
    "surface": null,
@@ -369154,10 +370537,11 @@
     "src/test/dashboard-selection-navigation.test.tsx",
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/role-access.test.ts",
+    "src/test/workforce-auth-continuation.test.ts",
     "supabase/functions/stripe-webhook/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts"
    ],
-   "detailRef": "f40a7028027f"
+   "detailRef": "150a5cc812f3"
   },
   {
    "id": "path-literal:8c9d5fcac8c8",
@@ -369293,37 +370677,241 @@
    "detailRef": "04049bbf740b"
   },
   {
+   "id": "path-literal:7b490ff98ee7",
+   "type": "path-literal",
+   "title": "/equipe/",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/pages/Auth.tsx",
+   "line": 1128,
+   "surface": null,
+   "tags": [
+    "src/pages/Auth.tsx"
+   ],
+   "detailRef": "f86cf5059e53"
+  },
+  {
+   "id": "path-literal:bc7cef13cea2",
+   "type": "path-literal",
+   "title": "/equipe/gestion/private",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 99,
+   "surface": null,
+   "tags": [
+    "src/test/workforce-auth-continuation.test.ts"
+   ],
+   "detailRef": "d33802e855b8"
+  },
+  {
    "id": "path-literal:46b19b8de0c7",
    "type": "path-literal",
    "title": "/equipe/gestion",
-   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 10 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 571,
    "surface": null,
    "tags": [
     "src/App.tsx",
+    "src/lib/launchGate.ts",
+    "src/lib/workforceContinuation.ts",
     "src/pages/workforce/MyWorkforce.tsx",
-    "src/test/route-wiring.test.ts"
+    "src/test/auth-post-login-routing.test.ts",
+    "src/test/route-wiring.test.ts",
+    "src/test/workforce-auth-continuation.test.ts"
    ],
-   "detailRef": "06b226f8e2a0"
+   "detailRef": "815b1599e708"
+  },
+  {
+   "id": "path-literal:50d982282c87",
+   "type": "path-literal",
+   "title": "/equipe/gestion?next=/admin",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/auth-post-login-routing.test.ts",
+   "line": 56,
+   "surface": null,
+   "tags": [
+    "src/test/auth-post-login-routing.test.ts"
+   ],
+   "detailRef": "61cb4d1c0368"
+  },
+  {
+   "id": "path-literal:b15dba851466",
+   "type": "path-literal",
+   "title": "/equipe/gestion?restaurant=",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "src/test/workforce-auth-continuation.test.ts"
+   ],
+   "detailRef": "4436220e01dc"
+  },
+  {
+   "id": "path-literal:ee22c4bc0b30",
+   "type": "path-literal",
+   "title": "/equipe/mon-espace/",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "src/test/workforce-auth-continuation.test.ts"
+   ],
+   "detailRef": "eaf565f98161"
+  },
+  {
+   "id": "path-literal:6ce8a3754f10",
+   "type": "path-literal",
+   "title": "/equipe/mon-espace/private",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 99,
+   "surface": null,
+   "tags": [
+    "src/test/workforce-auth-continuation.test.ts"
+   ],
+   "detailRef": "6e94262270ba"
+  },
+  {
+   "id": "path-literal:ba05656b294c",
+   "type": "path-literal",
+   "title": "/equipe/mon-espace/settings",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "src/test/workforce-auth-continuation.test.ts"
+   ],
+   "detailRef": "94a35da5795c"
   },
   {
    "id": "path-literal:d94a35d0c7ae",
    "type": "path-literal",
    "title": "/equipe/mon-espace",
-   "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 570,
    "surface": null,
    "tags": [
     "src/App.tsx",
     "src/components/workforce/WorkforceClockOverview.tsx",
+    "src/lib/launchGate.ts",
+    "src/lib/workforceContinuation.ts",
     "src/pages/WorkspaceChooser.tsx",
     "src/pages/workforce/MyWorkforceManager.tsx",
+    "src/test/MyWorkforce.test.tsx",
     "src/test/application-search-index.test.ts",
-    "src/test/route-wiring.test.ts"
+    "src/test/route-wiring.test.ts",
+    "src/test/workforce-auth-continuation.test.ts"
    ],
-   "detailRef": "3bbef4dd5bd3"
+   "detailRef": "85cc07881ae3"
+  },
+  {
+   "id": "path-literal:8f449d8baaa8",
+   "type": "path-literal",
+   "title": "/equipe/mon-espace?",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "src/test/workforce-auth-continuation.test.ts"
+   ],
+   "detailRef": "d087d8729638"
+  },
+  {
+   "id": "path-literal:24491c100cb4",
+   "type": "path-literal",
+   "title": "/equipe/mon-espace?restaurant=10000000-0000-4000-8000-000000000001&next=/admin",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/auth-post-login-routing.test.ts",
+   "line": 55,
+   "surface": null,
+   "tags": [
+    "src/test/auth-post-login-routing.test.ts"
+   ],
+   "detailRef": "4dd5f9ed0a91"
+  },
+  {
+   "id": "path-literal:3b84dc974be5",
+   "type": "path-literal",
+   "title": "/equipe/mon-espace?restaurant=10000000-0000-4000-8000-000000000001",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/auth-post-login-routing.test.ts",
+   "line": 46,
+   "surface": null,
+   "tags": [
+    "src/test/auth-post-login-routing.test.ts"
+   ],
+   "detailRef": "9ed4676c8b2d"
+  },
+  {
+   "id": "path-literal:dceb3f13b47b",
+   "type": "path-literal",
+   "title": "/equipe/mon-espace?restaurant=",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/MyWorkforce.test.tsx",
+   "line": 33,
+   "surface": null,
+   "tags": [
+    "src/test/MyWorkforce.test.tsx",
+    "src/test/workforce-auth-continuation.test.ts"
+   ],
+   "detailRef": "6c6cf031c66f"
+  },
+  {
+   "id": "path-literal:9ec28911238b",
+   "type": "path-literal",
+   "title": "/equipe/mon-espace?restaurant=invalid",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/auth-post-login-routing.test.ts",
+   "line": 54,
+   "surface": null,
+   "tags": [
+    "src/test/auth-post-login-routing.test.ts"
+   ],
+   "detailRef": "411544c03845"
+  },
+  {
+   "id": "path-literal:eb52ced8f86e",
+   "type": "path-literal",
+   "title": "/equipe/mon-espace?restaurant=not-a-uuid",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 34,
+   "surface": null,
+   "tags": [
+    "src/test/workforce-auth-continuation.test.ts"
+   ],
+   "detailRef": "d86503e2631f"
+  },
+  {
+   "id": "path-literal:e77e5c0af110",
+   "type": "path-literal",
+   "title": "/equipe",
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 27,
+   "surface": null,
+   "tags": [
+    "src/test/workforce-auth-continuation.test.ts"
+   ],
+   "detailRef": "46cb7e06b9da"
+  },
+  {
+   "id": "path-literal:545da6a855dc",
+   "type": "path-literal",
+   "title": "/equipe\\mon-espace?restaurant=",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 39,
+   "surface": null,
+   "tags": [
+    "src/test/workforce-auth-continuation.test.ts"
+   ],
+   "detailRef": "a76c4913e5ef"
   },
   {
    "id": "path-literal:430aeb1a2459",
@@ -369345,7 +370933,7 @@
    "id": "path-literal:c67f59429b60",
    "type": "path-literal",
    "title": "/espaces",
-   "description": "Chemin référencé dans 29 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 30 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1271,
    "surface": null,
@@ -369367,7 +370955,7 @@
     "src/test/launch-state.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "9c4839f85d4f"
+   "detailRef": "62f7a36381d8"
   },
   {
    "id": "path-literal:2224af232447",
@@ -373625,7 +375213,7 @@
     "src/test/route-wiring.test.ts",
     "src/test/tok-connect-oauth-routing.test.ts"
    ],
-   "detailRef": "0290c15823b0"
+   "detailRef": "71143af5b2c8"
   },
   {
    "id": "path-literal:88954cab6189",
@@ -373723,6 +375311,19 @@
    "detailRef": "9bea4d1e71dc"
   },
   {
+   "id": "path-literal:6364747a11a2",
+   "type": "path-literal",
+   "title": "/other/../equipe/mon-espace",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 32,
+   "surface": null,
+   "tags": [
+    "src/test/workforce-auth-continuation.test.ts"
+   ],
+   "detailRef": "b7457edc6f86"
+  },
+  {
    "id": "path-literal:198b768de83f",
    "type": "path-literal",
    "title": "/packs-restaurateur",
@@ -373752,7 +375353,7 @@
    "id": "path-literal:f15ac1b71119",
    "type": "path-literal",
    "title": "/panier",
-   "description": "Chemin référencé dans 45 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 47 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/launch-10k-load-check.mjs",
    "line": 25,
    "surface": null,
@@ -373790,10 +375391,11 @@
     "src/test/route-wiring.test.ts",
     "src/test/tok-connect-oauth-routing.test.ts",
     "src/test/user-guide.test.ts",
+    "src/test/workforce-auth-continuation.test.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts"
    ],
-   "detailRef": "d9c8e6b8aa2d"
+   "detailRef": "173158815932"
   },
   {
    "id": "path-literal:b9bd524c18de",
@@ -373878,7 +375480,7 @@
     "src/test/public-feature-legal-matrix.test.ts",
     "src/test/route-wiring.test.ts"
    ],
-   "detailRef": "64e569b4a5fe"
+   "detailRef": "c2a9045c4e30"
   },
   {
    "id": "path-literal:612f355ba6cc",
@@ -373924,7 +375526,7 @@
    "id": "path-literal:50d326ce5f13",
    "type": "path-literal",
    "title": "/profil",
-   "description": "Chemin référencé dans 13 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 14 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "scripts/prerender-seo.mjs",
    "line": 1257,
    "surface": null,
@@ -373941,9 +375543,10 @@
     "src/test/commercial-demo-client-final-tools-isolation.test.ts",
     "src/test/commercial-demo-visible-navigation-isolation.test.ts",
     "src/test/role-route-wiring.test.ts",
-    "src/test/route-wiring.test.ts"
+    "src/test/route-wiring.test.ts",
+    "src/test/workforce-auth-continuation.test.ts"
    ],
-   "detailRef": "87a4d0b16485"
+   "detailRef": "d8a9e5ce984f"
   },
   {
    "id": "path-literal:2bbc09f21875",
@@ -385197,18 +386800,18 @@
    "detailRef": "76fa9da73536"
   },
   {
-   "id": "query-parameter:500ffe577c35",
+   "id": "query-parameter:7be35eac2785",
    "type": "query-parameter",
    "title": "authorization_id",
    "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
    "path": "src/lib/authPostLogin.ts",
-   "line": 9,
+   "line": 10,
    "surface": null,
    "tags": [
     "src/lib/authPostLogin.ts",
     "src/pages/OAuthConsent.tsx"
    ],
-   "detailRef": "e5553600a93a"
+   "detailRef": "772736ee982b"
   },
   {
    "id": "query-parameter:726c7a93403b",
@@ -385359,31 +386962,32 @@
    "detailRef": "9aca35fe924e"
   },
   {
-   "id": "query-parameter:0318368caaa6",
+   "id": "query-parameter:fcb6a5161c33",
    "type": "query-parameter",
    "title": "code",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
-   "path": "supabase/functions/tok-connect-oauth/index.ts",
-   "line": 250,
+   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
+   "path": "src/test/workforce-auth-continuation.test.ts",
+   "line": 80,
    "surface": null,
    "tags": [
+    "src/test/workforce-auth-continuation.test.ts",
     "supabase/functions/tok-connect-oauth/index.ts"
    ],
-   "detailRef": "337f3422ef70"
+   "detailRef": "df628c4f962c"
   },
   {
-   "id": "query-parameter:97d452f8be66",
+   "id": "query-parameter:18d3dd2df3dd",
    "type": "query-parameter",
    "title": "commercialReferral",
    "description": "Paramètre d’URL détecté dans 4 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 914,
+   "line": 915,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "767273c21559"
+   "detailRef": "4dcae4c24423"
   },
   {
    "id": "query-parameter:e58a726e4a9a",
@@ -385399,17 +387003,19 @@
    "detailRef": "55908339808b"
   },
   {
-   "id": "query-parameter:f263c6d34321",
+   "id": "query-parameter:e6c3cc0d110e",
    "type": "query-parameter",
    "title": "confirmed",
-   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
-   "path": "src/pages/Auth.tsx",
-   "line": 131,
+   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
+   "path": "src/lib/workforceContinuation.ts",
+   "line": 37,
    "surface": null,
    "tags": [
-    "src/pages/Auth.tsx"
+    "src/lib/workforceContinuation.ts",
+    "src/pages/Auth.tsx",
+    "src/test/workforce-auth-continuation.test.ts"
    ],
-   "detailRef": "dbc9f9be270f"
+   "detailRef": "1dc7871da748"
   },
   {
    "id": "query-parameter:d535dccc3ac5",
@@ -385522,17 +387128,17 @@
    "detailRef": "b8e891e32777"
   },
   {
-   "id": "query-parameter:adb5d7bc0654",
+   "id": "query-parameter:78aff7066f44",
    "type": "query-parameter",
    "title": "domain",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 2365,
+   "line": 2377,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "85f337828527"
+   "detailRef": "8f4f773c0940"
   },
   {
    "id": "query-parameter:4b8ca1ad9f1a",
@@ -385923,18 +387529,18 @@
    "detailRef": "7416fc2814b7"
   },
   {
-   "id": "query-parameter:f22dd6fd43de",
+   "id": "query-parameter:10592f5e5452",
    "type": "query-parameter",
    "title": "mode",
    "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 956,
+   "line": 957,
    "surface": null,
    "tags": [
     "public/manifest.json",
     "src/pages/Auth.tsx"
    ],
-   "detailRef": "a6ba12717fca"
+   "detailRef": "037548b9410b"
   },
   {
    "id": "query-parameter:13ab169c3958",
@@ -386225,17 +387831,20 @@
    "detailRef": "253a489c0969"
   },
   {
-   "id": "query-parameter:6e0c6993541e",
+   "id": "query-parameter:3a1a0521c1d1",
    "type": "query-parameter",
    "title": "redirect",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
-   "path": "src/pages/Auth.tsx",
-   "line": 1120,
+   "description": "Paramètre d’URL détecté dans 11 emplacement(s).",
+   "path": "src/lib/workforceContinuation.ts",
+   "line": 40,
    "surface": null,
    "tags": [
-    "src/pages/Auth.tsx"
+    "src/lib/workforceContinuation.ts",
+    "src/pages/Auth.tsx",
+    "src/test/MyWorkforce.test.tsx",
+    "src/test/workforce-auth-continuation.test.ts"
    ],
-   "detailRef": "400fc24c95e7"
+   "detailRef": "eb1d8cf60909"
   },
   {
    "id": "query-parameter:9c0596468b12",
@@ -386333,14 +387942,15 @@
    "id": "query-parameter:283f9b2ce1df",
    "type": "query-parameter",
    "title": "restaurant",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/pages/ZeroAttente.tsx",
    "line": 136,
    "surface": null,
    "tags": [
-    "src/pages/ZeroAttente.tsx"
+    "src/pages/ZeroAttente.tsx",
+    "src/pages/workforce/MyWorkforce.tsx"
    ],
-   "detailRef": "8e8a11f93799"
+   "detailRef": "1d4206a0ad8c"
   },
   {
    "id": "query-parameter:72b01688a751",
@@ -386391,17 +388001,19 @@
    "detailRef": "cb8bac0a02b5"
   },
   {
-   "id": "query-parameter:32944e8d118e",
+   "id": "query-parameter:1536520a31cf",
    "type": "query-parameter",
    "title": "signup_operation_id",
-   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
-   "path": "src/pages/Auth.tsx",
-   "line": 133,
+   "description": "Paramètre d’URL détecté dans 5 emplacement(s).",
+   "path": "src/lib/workforceContinuation.ts",
+   "line": 38,
    "surface": null,
    "tags": [
-    "src/pages/Auth.tsx"
+    "src/lib/workforceContinuation.ts",
+    "src/pages/Auth.tsx",
+    "src/test/workforce-auth-continuation.test.ts"
    ],
-   "detailRef": "ee42be6c1daa"
+   "detailRef": "5920710b213c"
   },
   {
    "id": "query-parameter:9cbcceee78f6",
@@ -386505,18 +388117,18 @@
    "detailRef": "650d497360f1"
   },
   {
-   "id": "query-parameter:9f8bbf615203",
+   "id": "query-parameter:1fd8d16ad918",
    "type": "query-parameter",
    "title": "subscriptionPlan",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 925,
+   "line": 926,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "dd00552c2d86"
+   "detailRef": "c4a3b7f5aa85"
   },
   {
    "id": "query-parameter:acdea8095242",
@@ -386617,18 +388229,18 @@
    "detailRef": "aea9f02e4c0f"
   },
   {
-   "id": "query-parameter:cb61dfa6916c",
+   "id": "query-parameter:5e5645707cdf",
    "type": "query-parameter",
    "title": "type",
    "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/pages/Auth.tsx",
-   "line": 286,
+   "line": 287,
    "surface": null,
    "tags": [
     "src/pages/Auth.tsx",
     "src/pages/CommercialProspection.tsx"
    ],
-   "detailRef": "674f3f6850d6"
+   "detailRef": "5d66cb9702c2"
   },
   {
    "id": "query-parameter:8324a1db3934",

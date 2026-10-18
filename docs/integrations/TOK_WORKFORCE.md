@@ -1,64 +1,107 @@
 # TOK Équipe — intégration de SwissTime Tracker
 
-Source analysée : dépôt privé \`mtnrconcept/swiss-time-tracker\` (branche \`main\`, commit \`7cab98100ae189b7eec1234a7cbc6b49db2f95b7\`).
+## Sources analysées
 
-## Choix d'architecture
-Portage natif des fonctions de gestion du personnel vers le dashboard restaurateur TOK plutôt qu'un iframe, une double authentification ou une liaison directe vers la base SwissTime.
+- Portage initial : [mtnrconcept/swiss-time-tracker, branche main](https://github.com/mtnrconcept/swiss-time-tracker/tree/7cab98100ae189b7eec1234a7cbc6b49db2f95b7), commit `7cab98100ae189b7eec1234a7cbc6b49db2f95b7`.
+- Parcours d’accès employé : [branche nouvelles-fonctions](https://github.com/mtnrconcept/swiss-time-tracker/tree/6648cf5c414145b516c20f7dcdd426ddddb4001d), commit `6648cf5c414145b516c20f7dcdd426ddddb4001d`.
+- Cette seconde branche expose l’option « Générer un accès employé » dans `src/pages/Employees.tsx`, la liaison de la fiche au compte dans `supabase/functions/create-employee-auth/index.ts`, puis le tableau de bord personnel dans `src/pages/MyDashboard.tsx`.
 
-- Routes : \`/dashboard/equipe\` (restaurateur) et \`/admin/equipe\` (administrateur).
-- Identité visuelle : composants, thèmes clair/sombre et navigation existants de TOK.
-- Données : tables \`tok_workforce_*\` isolées par \`restaurant_id\`, FKs composites et policies RLS. Aucune migration historique de SwissTime n'est importée et ses tables \`profiles\`, \`user_roles\` ou \`employees\` ne sont pas réutilisées.
-- Activation : administrateur TOK uniquement, \`tok_workforce_settings.enabled=false\` par défaut, contrôlé par la base pour toute mutation du restaurateur. Historique d'activation serveur.
-- Données : employés, shifts, heures effectuées, validations nominatives, absences, demandes, échanges et rapports.
-- Approvisionnement : pas de synchronisation de comptes ni de secrets entre les deux projets Supabase. Les employés sans compte TOK sont gérés par leur responsable. Les vues RH collaborateurs basées sur leurs comptes TOK pourront être activées après invitation et attribution de \`user_id\`.
-- Échanges : fonction transactionnelle \`tok_workforce_review_exchange\`, restreinte au restaurant, pour déplacer les services lors d'une approbation.
-- Règles : les alertes de pauses, repos, chevauchements et dépassements sont des indicateurs et ne constituent pas une certification LTr ni un calcul de paie.
+SwissTime propose un accès individuel depuis la fiche employé, puis une vue personnelle regroupant le planning, les heures et les demandes. Son implémentation crée directement un compte Auth ; elle ne contient pas d’invitation envoyée par e-mail. TOK reprend ce parcours fonctionnel et ajoute l’invitation demandée en utilisant son propre compte Auth, son e-mail vérifié et sa file d’envoi existante. Les mots de passe communs/prévisibles et l’auto-confirmation d’adresse de la référence ne sont pas repris.
 
-## Fonctionnalités conservées et adaptations
-- Collaborateurs : création et désactivation.
-- Planning : grille sur 7 jours, création/confirmation/déplacement d'un jour/suppression, absences visibles.
-- Heures : relevés de travail, validation nominative historisée (pas une signature électronique qualifiée).
-- Absences et demandes : saisie, suivi, acceptation/refus.
-- Échanges : propositions avec ou sans permutation réciproque, validation transactionnelle.
-- Rapports : récapitulatif hebdomadaire, export CSV protégé contre les formules, contrôles horaires.
-- Assistant IA : la fonction SwissTime originale dépend d'une clé et d'un service du prestataire externe historique, et récupère des données via une clé privilégiée. Elle **n'est pas réutilisée** dans cette première intégration. Les contrôles déterministes évitent d'exposer des données RH privées au fournisseur IA. Toute future IA devra passer par la facturation IA et les autorisations propres à TOK.
+## Choix d’architecture
 
-## Déploiement et retour arrière
-1. Vérifier la migration dans un environnement Supabase de développement, l'accès admin, les employés liés/non liés, les accès croisés entre deux restaurants et les permissions anonymes.
-2. Exécuter le test ciblé \`pnpm exec vitest run src/test/tokWorkforce.test.ts\`, \`pnpm typecheck\`, \`pnpm lint\`, \`pnpm build\`.
-3. Faire réviser la PR et ses contrôles GitHub Actions avant tout déploiement.
-4. Appliquer la migration suivant le pipeline existant (ne pas exécuter manuellement en production), publier puis activer depuis \`/admin/equipe\` restaurant par restaurant.
-5. Pour revenir en arrière, basculer \`enabled=false\` sur les établissements concernés : les données restent intactes. Une migration ultérieure serait nécessaire pour supprimer les tables si cela était voulu.
+Portage natif dans le dashboard restaurateur TOK, avec les composants, les thèmes clair/sombre et la navigation existants.
 
-Il reste à confirmer les procédures RH locales, la conservation des données et les garanties légales de la validation nominative avant un usage officiel pour la paie.
+- Routes de gestion : `/dashboard/equipe` (restaurateur) et `/admin/equipe` (administrateur).
+- Espace individuel : `/equipe/mon-espace` ; gestion déléguée : `/equipe/gestion`.
+- Données : tables `tok_workforce_*` isolées par `restaurant_id`, clés étrangères composites et politiques RLS. Les tables et migrations historiques de SwissTime ne sont pas importées.
+- Activation : administrateur TOK uniquement, `tok_workforce_settings.enabled=false` par défaut, contrôle serveur pour toute mutation du restaurateur et historique d’activation.
+- Comptes : le salarié conserve son compte TOK. L’association vérifiée à `tok_workforce_employees.user_id` lui ouvre les données autorisées par RLS. Aucun rôle plateforme `restaurateur` n’est attribué.
+- Données RH : employés, services, heures, validations nominatives, absences, demandes, échanges et rapports.
+- Les contrôles de pauses, repos et dépassements, ainsi que les coûts indicatifs, ne constituent pas un calcul de paie ou une certification LTr.
 
+## Invitations et vue d’ensemble
 
-## Extension badgeuse et espace collaborateur (octobre 2026)
+### Parcours restaurateur
 
-La source SwissTime contient les pages employé (Mon planning, Mes heures, Mes compteurs, Mes demandes), les échanges, les analyses et les PDF, **mais pas de badgeuse opérationnelle**. Celle-ci est donc construite comme fonctionnalité native TOK.
+Dans l’onglet Collaborateurs, une fiche active sans compte lié propose **Inviter**. La boîte de dialogue permet de renseigner ou corriger l’adresse réelle ; elle explique que le salarié doit utiliser cette adresse pour son compte TOK. Une option permet aussi d’envoyer l’invitation immédiatement après la création d’une fiche.
 
-- `/equipe/mon-espace` : connecté avec son compte TOK, un collaborateur trouve son invitation par e-mail vérifié, l'accepte volontairement et accède uniquement à ses données.
-- Badgeuse : arrivée, début et fin de pause, départ. Horodatage serveur immuable dans `tok_workforce_clock_events` et sessions `tok_workforce_clock_sessions`. Une seule session active par employé. Aucune écriture directe dans ces tables depuis le navigateur.
-- Conversion automatique en relevé d'heures uniquement si la durée est valide ; sessions longues ou impossibles à convertir à régulariser dans l'espace responsable.
-- Échanges de service : le collègue doit accepter avant validation transactionnelle par le responsable.
-- Côté restaurateur : présence en temps réel, pointages à contrôler, coûts prévisionnels basés sur un coût horaire facultatif, alertes de repos, planning réorganisable, rapport CSV et impression / PDF.
-- Les comptes collaborateurs n'acquièrent jamais le rôle `restaurateur` de TOK. Ils sont uniquement associés à un identifiant d'employé vérifié et contrôlés par RLS.
-- Les données RH de deux restaurants distincts ne sont jamais mélangées ; les fonctions `SECURITY DEFINER` vérifient explicitement le restaurant, la session authentifiée et l'employé.
-- Aucune commande ou facturation Stripe n'est touchée, aucun service IA tiers n'accède aux données RH.
+La création de la fiche et son invitation sont deux opérations explicites : si la fiche a été enregistrée mais que l’invitation échoue, l’interface conserve la fiche, signale le résultat partiel et propose de réessayer depuis celle-ci. Elle ne recrée pas un doublon.
 
-### Limites et validation
+Chaque fiche distingue l’envoi en attente, l’envoi en cours, l’invitation envoyée, l’échec, l’expiration, l’annulation et l’accès activé. **Renvoyer**, **Annuler l’invitation** et **Actualiser les accès** permettent le suivi. Un message accepté par le prestataire n’est pas un accès activé ; l’employé doit encore accepter l’invitation. Une fiche inactive ou déjà liée ne peut pas recevoir une nouvelle invitation.
 
-La badgeuse exige un navigateur avec une connexion Internet pour enregistrer chaque action sur le serveur ; un clic hors ligne n'est pas un pointage validé. Les décalages d'horaires inhabituels, erreurs de saisie et changements d'heure sont à revoir par un responsable avant la paie. Les projections financières, nuits, dimanches et contrôles de temps de repos sont indicatifs. L'impression native permet d'enregistrer un PDF depuis le navigateur.
+### Parcours collaborateur
 
-Avant déploiement : appliquer la migration dans l'environnement de développement ou via le pipeline contrôlé, confirmer RLS/GRANT et tester deux restaurants et deux collaborateurs distincts. Puis lancer les tests ciblés, le typecheck, le lint et le build. Retour arrière : désactiver TOK Équipe par restaurant sans effacer les données.
+1. Le lien de l’e-mail ouvre `https://www.thetok.ch/equipe/mon-espace?restaurant=<UUID>`.
+2. La connexion ou l’inscription conserve cette destination. Le lien de confirmation d’inscription et son renvoi la conservent également.
+3. La base recherche une invitation courante correspondant à l’adresse Auth vérifiée et à celle de la fiche. Le salarié accepte volontairement l’association.
+4. Son espace s’ouvre sur **Vue d’ensemble** : prochain service, heures du mois, vacances restantes, demandes en attente, dernières demandes et badgeuse, avec accès aux onglets détaillés.
 
+Le lien désigne un établissement ; il ne constitue pas un secret d’accès. La possession de ce lien seule ne permet ni de voir une fiche ni de l’accepter. Aucun compte ou mot de passe n’est créé à l’insu du salarié. Les comptes déjà liés avant cette migration conservent leur accès.
 
-### Finalisation des parcours RH
+Le portail affiche le compte connecté et permet d’actualiser les droits ou de changer de compte. Si le restaurant du lien est invalide ou inaccessible, il affiche une explication et ne sélectionne pas silencieusement un autre établissement. L’utilisateur peut choisir explicitement un de ses établissements autorisés.
 
-- Validation d'heures : capture d'une signature manuscrite sur ordinateur ou écran tactile, conservée avec l'identité de l'utilisateur authentifié et la date. Il s'agit d'une simple signature électronique, non d'une signature qualifiée.
-- Demandes de congé : l'employé indique la période et les jours décomptés ; l'accord du responsable crée atomiquement l'absence du salarié, visible dans le planning et les compteurs.
-- Planification et absences : des déclencheurs PostgreSQL interdisent de créer un service pendant une absence ou d'ajouter une absence couvrant un service non annulé. Il faut réorganiser le service avant d'enregistrer le congé.
-- Délégation : un collaborateur dont le rôle RH est « responsable » peut utiliser `/equipe/gestion` après association de son propre compte TOK, sans obtenir le rôle plateforme « restaurateur » ni les droits de modification des fiches, rémunérations et rôles du personnel. Les fonctions de validation sont limitées à l'établissement autorisé.
-- Tests : `.github/workflows/tok-workforce-postgres.yml` applique la migration initiale et son extension sur un PostgreSQL 17 temporaire, puis exerce la badgeuse, les politiques RLS entre deux établissements, les demandes de congés et les validations signées. Aucun accès ni modification à la production.
-- Les alertes LTr, statistiques et coûts sont indicatifs ; ne pas présenter ces indicateurs comme une paie ou une certification de conformité. Les fonctions IA tierces de SwissTime ne sont pas importées : un assistant compatible avec les quotas TOK demanderait une intégration serveur séparée.
+Seules les deux routes internes exactes de TOK Équipe bénéficient de la continuation d’authentification et de l’accès pendant la phase de lancement après résolution des rôles. Les autres règles de lancement, de consentement OAuth et d’accès restent appliquées.
 
+### Contrats serveur
+
+Migrations additives : `supabase/migrations/20261018190000_tok_workforce_invitations.sql` et `supabase/migrations/20261018191000_tok_workforce_launch_access.sql`.
+
+La seconde migration étend les listes d’autorisation du verrou de lancement à 11 tables et 10 RPC TOK Équipe précises pour les utilisateurs authentifiés avec un identifiant réel. Les contrôles RLS et les droits internes des RPC restent appliqués. La définition du hook PostgREST, ses privilèges et le flag de lancement sont conservés.
+
+| Contrat | Comportement |
+| --- | --- |
+| `tok_workforce_invitations` | Une invitation courante par fiche, e-mail normalisé, dates d’émission/expiration/acceptation/annulation, auteur et référence au message. |
+| `tok_workforce_invite_employee` | Vérifie le restaurateur/l’administrateur autorisé, l’activation et la fiche active non liée ; met à jour son e-mail et écrit le message dans une même transaction. |
+| `tok_workforce_list_invitations` | Retourne le suivi limité au restaurant autorisé, sans exposer le contenu brut ou les erreurs internes de la file d’e-mails. |
+| `tok_workforce_revoke_invitation` | Annule l’invitation en attente et son message encore annulable ; un accès déjà accepté doit être suspendu via la fiche. |
+| `tok_workforce_my_restaurants` | Retourne les comptes déjà liés et les invitations explicites, actives et non expirées correspondant à l’e-mail vérifié. |
+| `tok_workforce_claim_employee` | Vérifie la session, l’e-mail, le restaurant et l’invitation ; associe la fiche et enregistre l’acceptation atomiquement, de façon idempotente. |
+
+Les invitations expirent après 7 jours. Le serveur limite les nouveaux envois à 5 par collaborateur sur 24 heures et 100 par établissement sur une heure ; un renvoi ou changement d’adresse est espacé d’au moins une minute. Les doubles clics réutilisent un message encore en attente ou en cours. Après un échec de transport, la relance conserve l’identifiant et le corps exacts du message pour conserver la clé d’idempotence du prestataire, avec au plus 5 relances.
+
+Les clients ne peuvent pas insérer une invitation, écrire la file d’e-mails, imposer un `user_id` à une fiche ou confirmer une adresse Auth. Les fonctions serveur vérifient les droits et utilisent un `search_path` fixe. Les données des autres établissements restent protégées par RLS. Désactiver un collaborateur lui retire aussi la lecture directe de sa fiche.
+
+Les envois réels sont interdits pour les restaurants de démonstration et les modules désactivés.
+
+### Envoi et exploitation
+
+L’invitation utilise `email_queue` et le worker TOK `supabase/functions/send-email/index.ts`. Celui-ci réserve le message avant l’envoi, utilise Resend et une clé d’idempotence fondée sur l’identifiant du message, puis enregistre le résultat. Le worker existant est planifié chaque minute ; le dashboard interroge le suivi toutes les 15 secondes quand il est affiché. Les adresses et les noms insérés dans l’e-mail HTML sont échappés ; son URL est fixée côté serveur.
+
+Le fonctionnement effectif de l’envoi dépend du worker planifié, de ses autorisations et de la configuration d’expéditeur existante. Un message en file reste affiché comme en attente. Un message déjà en cours d’expédition ne peut pas être rappelé ; l’annulation bloque néanmoins son acceptation.
+
+Aucun envoi réel n’est effectué par les tests et aucune migration n’est appliquée en production lors de la préparation de la PR.
+
+## Fonctions RH conservées
+
+- Collaborateurs : création, désactivation, fonction employé/responsable et coût horaire indicatif.
+- Planning : grille sur 7 jours, création/confirmation/déplacement/suppression, absences visibles et coûts prévisionnels.
+- Badgeuse : arrivée, début/fin de pause et départ ; horodatage serveur immuable, une seule session active, aucune écriture directe depuis le navigateur.
+- Conversion des pointages en relevés d’heures seulement si la session est valide ; sessions longues ou impossibles à convertir à régulariser par un responsable.
+- Heures : relevés, validation nominative et signature manuscrite conservées avec l’identité et la date. Il s’agit d’une signature simple, non qualifiée.
+- Demandes de congés : période et jours demandés ; l’accord du responsable crée l’absence atomiquement.
+- Planning et absences : déclencheurs PostgreSQL empêchant un service pendant une absence et une absence sur un service non annulé.
+- Échanges : accord du collègue, puis validation transactionnelle limitée à l’établissement.
+- Délégation : le responsable RH lié peut superviser son équipe sans obtenir les droits plateforme du restaurateur ni modifier les fiches, coûts ou rôles.
+- Rapports : récapitulatif hebdomadaire, CSV protégé contre les formules, impression/PDF.
+- L’assistant IA externe de SwissTime n’est pas importé. Les contrôles restent déterministes, sans transmission de données RH à ce prestataire. Toute future IA doit respecter les quotas et autorisations TOK.
+
+La badgeuse nécessite une connexion Internet ; un clic hors ligne n’est pas un pointage validé. Les horaires inhabituels, changements d’heure, conventions RH et règles de conservation doivent être vérifiés avant l’utilisation officielle des données pour la paie.
+
+## Validation, déploiement et retour arrière
+
+La workflow `.github/workflows/tok-workforce-postgres.yml` exécute `src/test/sql/tok_workforce_postgres_smoke.sql` sur PostgreSQL 17 temporaire. Il applique les deux migrations historiques, crée des comptes déjà liés, applique la nouvelle migration puis vérifie :
+
+- badgeuse, relevés, absences, signatures et isolation entre deux restaurants ;
+- conservation des comptes liés et impossibilité de réclamer une fiche sans invitation ;
+- droits du restaurateur, refus d’un responsable non propriétaire, des autres salariés et des anonymes ;
+- e-mail réel normalisé, échappement HTML, file d’envoi, double clic et reprise après échec ;
+- adresse non vérifiée, mauvaise identité, expiration, annulation et acceptation répétée ;
+- impossibilité de forger `user_id`, désactivation, restaurant démo/module désactivé, quotas et atomicité ;
+- via `src/test/sql/tok_workforce_launch_smoke.sql`, le hook réel de lancement actif, les chemins TOK Équipe autorisés, les autres chemins refusés et le maintien de RLS, des privilèges et du flag.
+
+Les tests React/Vitest ciblent aussi le formulaire, les états d’envoi, le résultat partiel, la vue personnelle et la continuation après authentification. Les contrôles de livraison comprennent le typecheck, le lint, le build et l’index applicatif.
+
+Ordre de livraison : faire réviser la PR et ses contrôles ; appliquer les migrations via le pipeline contrôlé existant avant la publication du frontend ; vérifier le worker d’e-mails, puis tester le parcours avec des comptes dédiés autorisés. L’activation de TOK Équipe reste effectuée par l’administrateur, établissement par établissement.
+
+Retour arrière fonctionnel : désactiver TOK Équipe pour l’établissement concerné. Les fiches, pointages, historiques et comptes déjà associés sont conservés. Un retour de version du frontend ne doit pas supprimer la migration de sécurité ; toute suppression ultérieure de tables exige une migration dédiée et revue.

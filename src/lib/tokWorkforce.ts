@@ -39,3 +39,74 @@ export function csvCell(value:unknown):string {
   const input=String(value??"").replace(/^[=+\-@\t\r]/,"'$&");
   return '"'+input.replace(/"/g,'""')+'"';
 }
+
+
+export type WorkforceInvitationDeliveryStatus = "queued" | "processing" | "sent" | "failed" | "cancelled" | "unknown";
+export type WorkforceInvitation = {
+  invitation_id: string;
+  employee_id: string;
+  email: string;
+  invited_at: string;
+  expires_at: string;
+  accepted_at: string | null;
+  revoked_at: string | null;
+  delivery_status: WorkforceInvitationDeliveryStatus;
+  provider_status: string | null;
+  sent_at: string | null;
+};
+export type WorkforceInvitationResult = Pick<WorkforceInvitation, "invitation_id" | "employee_id" | "email" | "expires_at" | "delivery_status"> & {
+  reused: boolean;
+};
+export type WorkforceInvitationState = "inactive" | "linked" | "not_invited" | "queued" | "processing" | "sent" | "failed" | "revoked" | "expired" | "unknown";
+
+/** An accepted email alone is not proof of an active employee/account link. */
+export function workforceInvitationState(
+  employee: Pick<WorkforceEmployee, "is_active" | "user_id">,
+  invitation?: WorkforceInvitation,
+  now = new Date(),
+): WorkforceInvitationState {
+  if (!employee.is_active) return "inactive";
+  if (employee.user_id) return "linked";
+  if (!invitation || invitation.accepted_at) return "not_invited";
+  if (invitation.revoked_at || invitation.delivery_status === "cancelled") return "revoked";
+  if (new Date(invitation.expires_at).getTime() <= now.getTime()) return "expired";
+  if (["bounced", "complained", "failed"].includes(invitation.provider_status || "")) return "failed";
+  switch (invitation.delivery_status) {
+    case "queued": case "processing": case "sent": case "failed": return invitation.delivery_status;
+    default: return "unknown";
+  }
+}
+
+export function workforceInvitationEmail(value: string): string {
+  const email = value.trim().toLowerCase();
+  if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error("Indiquez une adresse e-mail valide pour l’invitation.");
+  }
+  return email;
+}
+
+export function workforceInvitationNotice(result: WorkforceInvitationResult): { title: string; description: string } {
+  if (result.delivery_status === "sent") {
+    return { title: "Invitation envoyée", description: "L’employé pourra activer son accès avec l’adresse " + result.email + "." };
+  }
+  if (result.delivery_status !== "queued" && result.delivery_status !== "processing") {
+    return { title: "Envoi non confirmé", description: "Vérifiez le suivi de l’invitation avant de réessayer." };
+  }
+  return {
+    title: result.reused ? "Envoi déjà en attente" : "Invitation programmée",
+    description: "L’e-mail pour " + result.email + " est en attente d’envoi. Son état sera actualisé dans la fiche.",
+  };
+}
+
+/** Dates stored for shifts use the restaurant's Swiss local time. */
+export function workforceZurichClock(now = new Date()): { date: string; time: string } {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Zurich", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+  }).formatToParts(now);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(value => value.type === type)?.value || "";
+  return {
+    date: part("year") + "-" + part("month") + "-" + part("day"),
+    time: part("hour") + ":" + part("minute") + ":" + part("second"),
+  };
+}
