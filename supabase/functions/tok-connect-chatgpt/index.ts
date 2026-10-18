@@ -216,6 +216,9 @@ function render(data){
     if(result.run.plan&&typeof result.run.plan==='object'){
       summaries.push(String(result.run.plan.title||result.run.plan.summary||'Plan de campagne disponible dans TOK.'));
     }
+  }else if(result.marketing_visual&&result.marketing_visual.status==='stored'){
+    document.getElementById('tool').textContent='Visuel TOK généré';
+    summaries.push('Image native enregistrée dans la galerie TOK. Aucune publication automatique.');
   }else if(result.gallery_image_url||result.generated_image_url){
     document.getElementById('tool').textContent='Visuel TOK généré';
     summaries.push('Image native enregistrée dans la galerie TOK. Publication et association au menu distinctes.');
@@ -226,7 +229,7 @@ function render(data){
   if(summaries.length){
     actions.replaceChildren();
     summaries.forEach(function(summary){const node=document.createElement('div');node.className='action';node.textContent=summary;actions.appendChild(node)});
-    const url=result.gallery_image_url||result.generated_image_url||(result.item&&result.item.image_url);
+    const url=(result.marketing_visual&&result.marketing_visual.image_url)||result.gallery_image_url||result.generated_image_url||(result.item&&result.item.image_url);
     if(typeof url==='string'&&url.startsWith('https://')){
       const image=document.createElement('img');
       image.src=url;image.alt='Visuel produit par TOK';image.loading='lazy';

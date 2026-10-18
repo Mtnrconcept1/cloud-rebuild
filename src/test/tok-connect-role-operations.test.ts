@@ -19,21 +19,24 @@ function harness(options: { owner?: string; roles?: string[]; reservationRestaur
     favorites: [], reviews: [], restaurant_branches: [{ id: reservation, restaurant_id: restaurant }],
     restaurant_hours: [{ id: other, branch_id: reservation, open_time: "12:00", close_time: "14:00", is_closed: false }],
     menu_items: [{ id: reservation, restaurant_id: restaurant, name: "Tibs", description: "Plat traditionnel", price: 12, is_available: true, image_url: null }],
+    restaurant_media: [{ id: other, restaurant_id: restaurant, media_type: "marketing_logo", media_url: "https://example.invalid/logo.png" },
+      { id: reservation, restaurant_id: other, media_type: "marketing_logo", media_url: "https://example.invalid/private.png" }],
     ai_generated_assets: [{ id: other, user_id: "caller", restaurant_id: restaurant, status: "stored", asset_type: "menu_visual", asset_url: "https://example.invalid/restaurant-photo.png", metadata: { gallery_storage_bucket: "restaurant-images" } }],
     restaurant_promotions: [{ id: reservation, restaurant_id: restaurant, active: false }],
     reservation_tables: [{ id: other, branch_id: reservation, table_number: "1", capacity: 4 }], social_posts: [],
   };
   const writes: { table: string; patch: Row }[] = [];
   const client = { from: (table: string) => {
-    const filters: Row = {}; let patch: Row | null = null; let insert: Row | null = null; let single = false; let range = [0, 100]; let remove = false;
+    const filters: Row = {}; const inFilters: Record<string, unknown[]> = {}; let patch: Row | null = null; let insert: Row | null = null; let single = false; let range = [0, 100]; let remove = false;
     const query = {
+      in: (key: string, values: unknown[]) => { inFilters[key] = values; return query; },
       select: () => query, order: () => query, eq: (key: string, value: unknown) => { filters[key] = value; return query; }, is: (key: string, value: unknown) => { filters[key] = value; return query; }, filter: (key: string, _operator: string, value: string) => { filters[key] = JSON.parse(value); return query; },
       range: (a: number, b: number) => { range = [a, b]; return query; }, maybeSingle: () => { single = true; return query; }, single: () => { single = true; return query; },
       update: (value: Row) => { patch = value; if (options.concurrentServiceEdit && table === "restaurants" && value.opening_hours) rows.restaurants[0].opening_hours = { ...(rows.restaurants[0].opening_hours as Row), concurrent_change: "keep" }; return query; }, delete: () => { remove = true; return query; },
       insert: (value: Row) => { insert = value; return query; },
       then: (resolve: (value: unknown) => unknown) => {
         if (insert) { rows[table].push({ id: "created-id", ...insert }); writes.push({ table, patch: insert }); }
-        const found = (rows[table] || []).filter((row) => Object.entries(filters).every(([key, value]) => typeof value === "object" ? JSON.stringify(row[key]) === JSON.stringify(value) : row[key] === value));
+        const found = (rows[table] || []).filter((row) => Object.entries(inFilters).every(([key, values]) => values.includes(row[key])) && Object.entries(filters).every(([key, value]) => typeof value === "object" ? JSON.stringify(row[key]) === JSON.stringify(value) : row[key] === value));
         if (patch && found.length) { for (const row of found) Object.assign(row, patch); writes.push({ table, patch }); }
         if (remove) { rows[table] = rows[table].filter((row) => !found.includes(row)); writes.push({ table, patch: { deleted: true } }); }
         return Promise.resolve(resolve({ data: structuredClone(single ? found[0] || null : found.slice(range[0], range[1] + 1)), error: null }));
@@ -214,10 +217,41 @@ describe("TOK explicit role operations", () => {
   });
   it("generates a single native campaign image in the owner's TOK gallery without publishing", async () => {
     const h = harness();
-    await h.run("tok_generate_restaurant_marketing_visual", { restaurant_id: restaurant, prompt: "Affiche premium des plats du midi", format: "portrait", ...confirmation });
+    await h.run("tok_generate_restaurant_marketing_visual", { restaurant_id: restaurant, prompt: "Affiche premium des plats du midi", format: "portrait", reference_media_ids: [other], ...confirmation });
     expect(h.deps.invokeEdge).toHaveBeenCalledWith({ capability: "restaurant.ai.image", ...confirmation,
       payload: { restaurantId: restaurant, assetType: "campaign_visual", marketingAssetMode: true, prompt: "Affiche premium des plats du midi",
-        format: "portrait", variantCount: 1, generateImage: true, imageOnly: true } });
+        format: "portrait", referenceMediaIds: [other], variantCount: 1, generateImage: true, imageOnly: true } });
+  });
+  it("reads only the owned restaurant references and caller assets with bounded pagination", async () => {
+    const h = harness();
+    const references = await h.run("tok_list_restaurant_marketing_references", { restaurant_id: restaurant, limit: 1 });
+    expect(references.payload.items).toEqual([h.rows.restaurant_media[0]]);
+    expect((await h.run("tok_list_restaurant_marketing_references", { restaurant_id: restaurant, limit: 1, offset: 1 })).payload.items).toEqual([]);
+    h.rows.ai_generated_assets.push({ ...h.rows.ai_generated_assets[0], id: reservation, restaurant_id: other });
+    h.rows.ai_generated_assets.push({ ...h.rows.ai_generated_assets[0], id: reservation, user_id: "another" });
+    expect((await h.run("tok_list_restaurant_marketing_assets", { restaurant_id: restaurant, asset_id: other })).payload.items).toEqual([h.rows.ai_generated_assets[0]]);
+    expect(h.deps.authorizeMutation).not.toHaveBeenCalled();
+    expect(h.deps.invokeEdge).not.toHaveBeenCalled();
+    expect(h.writes).toHaveLength(0);
+  });
+  it("rejects foreign, revoked and wrong-role Studio access before reading assets or generating", async () => {
+    for (const options of [{ owner: "another" }, { disabled: true }, { roles: ["client"] }]) {
+      const h = harness(options);
+      for (const name of ["tok_list_restaurant_marketing_references", "tok_list_restaurant_marketing_assets", "tok_generate_restaurant_marketing_visual"]) {
+        const args = name.startsWith("tok_generate") ? { prompt: "Carte de chasse", reference_media_ids: [other], ...confirmation } : {};
+        await expect(h.run(name, { restaurant_id: restaurant, ...args })).rejects.toThrow();
+      }
+      expect(h.deps.invokeEdge).not.toHaveBeenCalled();
+    }
+  });
+  it("validates references before invoking the image and credit backend", async () => {
+    const h = harness();
+    for (const refs of [undefined, [], ["invalid"], [other, other], Array(5).fill(other)]) {
+      await expect(h.run("tok_generate_restaurant_marketing_visual", {
+        restaurant_id: restaurant, prompt: "Carte de chasse", reference_media_ids: refs, ...confirmation,
+      })).rejects.toThrow("reference_media_ids");
+    }
+    expect(h.deps.invokeEdge).not.toHaveBeenCalled();
   });
   it("generates dish photos from the owned menu item and not an untrusted model URL", async () => {
     const h = harness();

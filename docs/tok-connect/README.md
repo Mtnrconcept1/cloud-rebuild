@@ -405,3 +405,23 @@ L'URL publique reste **uniquement** `https://www.thetok.ch/mcp`. Vercel la route
 Les paiements, remboursements, publications, débits de crédits et mutations administrateur ne deviennent pas autonomes. ChatGPT peut les découvrir, les expliquer, les simuler et préparer un paquet de confirmation, puis TOK conserve l'exécution dans son flux protégé.
 
 Le widget MCP est servi en `text/html;profile=mcp-app` et la gateway remplace la ressource historique qui contenait un marqueur de conflit CSS résiduel.
+
+### Studio Marketing : références et résultat public (2026-10-18)
+
+Le parcours restaurateur pour créer une carte/flyer est :
+
+1. `tok_list_my_restaurants` : sélectionner un restaurant réellement possédé et dont le MCP est actif.
+2. `tok_list_restaurant_marketing_references` : lire les références du Studio (logo, carte, visuel de marque), avec `limit`/`offset`. Si aucune référence n'existe, l'ajouter via `/dashboard/photos` ; ne pas inventer son identité graphique.
+3. `get_tok_credit_balance` : lire le solde actuel. Le moteur natif vérifie et comptabilise les crédits au moment de l'exécution.
+4. `tok_generate_restaurant_marketing_visual` : fournir `restaurant_id`, `prompt`, `format`, **1 à 4 `reference_media_ids` uniques**, la confirmation et une clé d'idempotence stable. Les références sont résolues et leur appartenance contrôlée par `ai-image-enhance`, jamais remplacées par des URL libres.
+5. `tok_list_restaurant_marketing_assets` : retrouver les créations du compte dans ce restaurant, avec pagination et filtre `asset_id` facultatif. Une ligne `stored` indique un fichier enregistré ; cette lecture ne génère ni ne publie rien.
+
+Le point d'entrée public `/mcp` conserve désormais la réponse `marketing_visual` du MCP canonique, conforme à son `outputSchema`, au lieu de la remplacer par l'enveloppe brute du bridge. La console affiche l'image enregistrée. Les brouillons Campaign Studio et PhotoPro gardent leur flux natif avec des délais supérieurs à ceux du moteur (100/130 secondes). Un résultat incertain n'est jamais relancé automatiquement : garder la même clé, inspecter la galerie et réconcilier le résultat. La galerie seule ne prouve pas la correspondance avec une requête dont le résultat reste inconnu.
+
+Les lectures et générations exigent le rôle restaurateur, l'ownership et le MCP actif ; aucun accès admin implicite ni modification de RLS. Publication, achat publicitaire et impression restent des actions distinctes. Aucun changement de secret ou migration n'est nécessaire.
+
+**Déploiement et catalogue ChatGPT.** Déployer ensemble `tok-connect-app-bridge`, `tok-connect-mcp`, `tok-connect-chatgpt` et `tok-connect-remote-mcp` avec leurs imports partagés après validation de la PR. Le serveur Remote annonce `6.1.0`. Rafraîchir ensuite les outils du connecteur dans l'hôte et vérifier `tools/list` : les deux outils de lecture et le champ obligatoire `reference_media_ids` doivent apparaître. Un catalogue déjà chargé par ChatGPT ne peut pas être remplacé par une simple modification du serveur ; une reconnexion seule ne prouve pas sa mise à jour.
+
+Le contrôle public effectué avant cette modification renvoyait déjà l'outil de génération, tandis que le catalogue de la conversation ne l'exposait pas. Il faut distinguer ce décalage côté hôte des défauts serveur corrigés ici. Les anciens appels sans références échouent explicitement avant génération ; aucun choix de références silencieux n'est effectué.
+
+Retour arrière : revert du commit et redéploiement des quatre fonctions cohérentes. Conserver les lignes d'idempotence et les créations existantes. Aucun paiement, crédit ni visuel de production n'est créé par les tests.

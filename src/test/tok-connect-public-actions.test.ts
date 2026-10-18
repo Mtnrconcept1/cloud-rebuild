@@ -6,6 +6,7 @@ import reviewedMutations from "../../scripts/contracts/tok-connect-public-mutati
 let handler: (request: Request) => Promise<Response>;
 const upstreamCalls: Array<{ url: string; body: Record<string, unknown> }> = [];
 let bridgeStatus = 200;
+let canonicalResult: Record<string, unknown> | undefined;
 let bridgePayload: Record<string, unknown>;
 const restaurant = "ac197b4c-3a47-4fc8-bf66-414ee23f1c8b";
 const booking = "f281426f-bcd8-40c3-8114-33000c1fd76c";
@@ -24,12 +25,13 @@ beforeAll(async () => {
 beforeEach(() => {
   upstreamCalls.length = 0;
   bridgeStatus = 200;
+  canonicalResult = undefined;
   bridgePayload = { ok: true, data: { reservation_id: booking, status: "pending" } };
   vi.stubGlobal("fetch", vi.fn(async (url, init) => {
     const body = JSON.parse(String(init?.body || "{}"));
     upstreamCalls.push({ url: String(url), body });
     return String(url).endsWith("tok-connect-chatgpt")
-      ? Response.json({ jsonrpc: "2.0", id: body.id, result: { tools: [
+      ? Response.json({ jsonrpc: "2.0", id: body.id, result: body.method === "tools/call" && canonicalResult ? canonicalResult : { tools: [
         { name: "prepare_customer_reservation", inputSchema: { type: "object" }, annotations: { readOnlyHint: true } },
         { name: "create_reservation", annotations: { readOnlyHint: false } },
       ] } })
@@ -92,4 +94,45 @@ describe("public TOK actions through the actual HTTP router", () => {
     expect(result.body.result.isError).toBe(true);
     expect(result.body.result.structuredContent.ok).toBe(false);
   });
+  it("preserves the canonical visual output schema through the public endpoint, without the short generic bridge", async () => {
+    const args = { restaurant_id: restaurant, prompt: "Carte de chasse", reference_media_ids: [booking],
+      confirmed_by_user: true, idempotency_key: "studio:same-key" };
+    canonicalResult = { content: [{ type: "text", text: "Visuel enregistré" }], structuredContent: {
+      marketing_visual: { restaurant_id: restaurant, asset_id: booking, status: "stored", image_url: "https://wwcrtyoueexyxkkikaos.supabase.co/storage/v1/object/public/restaurant-images/test.png" }, replayed: true,
+    } };
+    const result = await rpc("tools/call", { name: "tok_generate_restaurant_marketing_visual", arguments: args }, true);
+    expect(result.body.result).toEqual(canonicalResult);
+    expect(upstreamCalls.at(-1)).toMatchObject({ url: expect.stringContaining("tok-connect-chatgpt"),
+      body: { method: "tools/call", params: { name: "tok_generate_restaurant_marketing_visual", arguments: args } } });
+    expect(upstreamCalls.some(({ url }) => url.endsWith("tok-connect-app-bridge"))).toBe(false);
+  });
+  it("preserves canonical OAuth challenges and credit refusals instead of claiming success", async () => {
+    for (const result of [
+      { content: [{ type: "text", text: "Connexion requise" }], isError: true, _meta: { "mcp/www_authenticate": ["Bearer invalid_token"] } },
+      { content: [{ type: "text", text: "ai_credits_exhausted" }], isError: true },
+    ]) {
+      canonicalResult = result;
+      expect((await rpc("tools/call", { name: "tok_generate_restaurant_marketing_visual", arguments: {} })).body.result).toEqual(result);
+    }
+  });
+  it("allows the full native campaign generation window and does not retry an uncertain write", async () => {
+    const timeout = vi.spyOn(AbortSignal, "timeout");
+    try {
+      await rpc("tools/list");
+      await rpc("tools/call", { name: "tok_generate_restaurant_campaign_draft", arguments: {
+        restaurant_id: restaurant, prompt: "Carte de chasse", confirmed_by_user: true, idempotency_key: "studio:same-key",
+      } }, true);
+      expect(timeout).toHaveBeenCalledWith(100_000);
+      const fetcher = vi.fn(async () => { throw new Error("upstream timeout"); });
+      vi.stubGlobal("fetch", fetcher);
+      const uncertain = await rpc("tools/call", { name: "tok_generate_restaurant_campaign_draft", arguments: {
+        restaurant_id: restaurant, prompt: "Carte de chasse", confirmed_by_user: true, idempotency_key: "studio:same-key",
+      } }, true);
+      expect(uncertain.body.result).toMatchObject({ isError: true, structuredContent: {
+        retry_with_same_key_only: true, error: { code: "tok_connect_studio_result_unconfirmed" },
+      } });
+      expect(fetcher).toHaveBeenCalledTimes(1);
+    } finally { timeout.mockRestore(); }
+  });
+
 });

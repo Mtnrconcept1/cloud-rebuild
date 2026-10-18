@@ -24,6 +24,7 @@ function input(overrides: Partial<TokMarketingVisualInput> = {}): TokMarketingVi
       restaurant_id: RESTAURANT_ID,
       prompt: "Affiche orientale, textes et logo natifs.",
       format: "portrait",
+      reference_media_ids: [ASSET_ID],
       confirmed_by_user: true,
       idempotency_key: "marketing:12345678",
     },
@@ -86,6 +87,7 @@ describe("TOK Connect native Marketing Studio bridge", () => {
         restaurant_id: RESTAURANT_ID,
         prompt: "Affiche orientale, textes et logo natifs.",
         format: "portrait",
+        reference_media_ids: [ASSET_ID],
         confirmed_by_user: true,
         idempotency_key: "marketing:12345678",
       },
@@ -125,6 +127,22 @@ describe("TOK Connect native Marketing Studio bridge", () => {
       }))).rejects.toBeInstanceOf(TokMarketingVisualBridgeError);
     }
     expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("rejects absent, malformed, duplicate or excessive references before any credit-consuming call", async () => {
+    const fetcher = vi.fn(async () => bridgeResponse());
+    for (const references of [undefined, [], ["invalid"], [ASSET_ID, ASSET_ID], Array(5).fill(ASSET_ID)]) {
+      await expect(generateTokMarketingVisualThroughBridge(input({ fetcher: fetcher as typeof fetch,
+        args: { ...input().args, reference_media_ids: references },
+      }))).rejects.toMatchObject({ status: 400, message: "marketing_reference_ids_required" });
+    }
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it("preserves native reference errors instead of hiding the actionable cause", async () => {
+    await expect(generateTokMarketingVisualThroughBridge(input({
+      fetcher: vi.fn(async () => bridgeResponse({ ok: false, data: { error: "marketing_reference_mismatch" } }, 409)) as typeof fetch,
+    }))).rejects.toMatchObject({ status: 409, message: "marketing_reference_mismatch" });
   });
 
   it("surfaces a real credit refusal without claiming an image exists", async () => {

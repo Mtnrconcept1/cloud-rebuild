@@ -55,4 +55,21 @@ describe("TOK MCP restaurant action widget", () => {
     expect(rejected.getElementById("tool")?.textContent).toBe("Action refusée");
     expect(rejected.getElementById("actions")?.textContent).toContain("TOK a refusé");
   });
+  it("renders the canonical stored marketing result through the gateway resource", () => {
+    const imageUrl = "https://wwcrtyoueexyxkkikaos.supabase.co/storage/v1/object/public/restaurant-images/visual.png";
+    const document = render({ marketing_visual: { status: "stored", image_url: imageUrl }, replayed: false });
+    expect(document.querySelector("#tool")?.textContent).toBe("Visuel TOK généré");
+    expect(document.querySelector("#actions img")?.getAttribute("src")).toBe(imageUrl);
+    expect(document.querySelector("#actions")?.textContent).toContain("Aucune publication automatique");
+  });
+
+  it("does not claim an image was stored for a preview or failed generation", () => {
+    const imageUrl = "https://wwcrtyoueexyxkkikaos.supabase.co/storage/v1/object/public/restaurant-images/visual.png";
+    const preview = render({ marketing_visual: { status: "preview", image_url: imageUrl } });
+    expect(preview.querySelector("#actions img")).toBeNull();
+    const refused = render({ ok: false, error: { code: "ai_credits_exhausted" } });
+    expect(refused.querySelector("#tool")?.textContent).toBe("Action refusée");
+    expect(refused.querySelector("#actions img")).toBeNull();
+  });
+
 });
