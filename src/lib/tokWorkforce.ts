@@ -12,7 +12,7 @@ export function employeeName(employee: Pick<WorkforceEmployee,"first_name"|"last
   return employee ? employee.first_name+" "+employee.last_name : "Collaborateur inconnu";
 }
 export function minutesFromTime(value:string):number {
-  const m=/^([0-2]\d):([0-5]\d)(?::\d{2})?$/.exec(value);
+  const m=/^([0-2]\d):([0-5]\d)(?::[0-5]\d(?:\.\d{1,6})?)?$/.exec(value);
   if(!m || +m[1]>23) throw new Error("Heure invalide.");
   return +m[1]*60 + +m[2];
 }
