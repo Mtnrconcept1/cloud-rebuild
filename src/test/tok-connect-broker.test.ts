@@ -9,6 +9,7 @@ const SECRET = "synthetic-confidential-client-secret", NATIVE_REFRESH = "synthet
 const ENV: Record<string, string> = { SUPABASE_URL: "https://project.example", SUPABASE_SERVICE_ROLE_KEY: "synthetic-service-key", SUPABASE_ANON_KEY: "synthetic-anon-key", TOK_CONNECT_BROKER_ENCRYPTION_KEY: "ab".repeat(32) };
 const jwt = (claims: Row) => "synthetic." + Buffer.from(JSON.stringify(claims)).toString("base64url") + ".signature";
 const codeBody = () => ({ client_id: CLIENT, grant_type: "authorization_code", code: "synthetic-code", redirect_uri: CALLBACK, code_verifier: "v".repeat(43), scope: "tok", resource: TOK_BROKER_RESOURCE });
+const authorizationQuery = async () => new URLSearchParams({ client_id: CLIENT, redirect_uri: CALLBACK, response_type: "code", code_challenge: await tokBrokerChallenge("v".repeat(43)), code_challenge_method: "S256", state: "synthetic-state", scope: "tok", resource: TOK_BROKER_RESOURCE });
 beforeEach(() => { vi.stubGlobal("crypto", webcrypto); vi.stubGlobal("Deno", { env: { get: (name: string) => ENV[name] } }); });
 afterEach(() => vi.unstubAllGlobals());
 
@@ -102,6 +103,38 @@ describe("TOK OAuth broker boundary", () => {
     const destination = new URL(response.headers.get("location")!); expect(destination.origin).toBe(ENV.SUPABASE_URL); expect(destination.searchParams.get("scope")).toBe("openid"); expect(destination.searchParams.get("state")).toBe("synthetic-state");
     query.set("code_challenge_method", "plain"); expect((await h.run("authorize?" + query)).status).toBe(400);
     query.set("code_challenge_method", "S256"); query.set("redirect_uri", CALLBACK + "/other"); expect((await h.run("authorize?" + query)).status).toBe(400);
+  });
+  it("accepts canonical Vercel host metadata without changing OAuth bindings", async () => {
+    const h = harness(); await h.register();
+    const query = await authorizationQuery();
+    const direct = await h.run("authorize?" + query); expect(direct.status).toBe(302);
+    query.set("host", "www.thetok.ch");
+    const proxied = await h.run("authorize?" + query); expect(proxied.status).toBe(302);
+    expect(proxied.headers.get("location")).toBe(direct.headers.get("location"));
+    expect(new URL(proxied.headers.get("location")!).searchParams.has("host")).toBe(false);
+    query.set("code_challenge_method", "plain"); expect((await h.run("authorize?" + query)).status).toBe(400);
+    query.set("code_challenge_method", "S256"); query.set("redirect_uri", CALLBACK + "/other"); expect((await h.run("authorize?" + query)).status).toBe(400);
+    query.set("redirect_uri", CALLBACK); query.delete("state"); expect((await h.run("authorize?" + query)).status).toBe(400);
+  });
+  it.each([
+    { label: "foreign proxy host", parameters: [["host", "other.example"]] },
+    { label: "empty proxy host", parameters: [["host", ""]] },
+    { label: "duplicate proxy host", parameters: [["host", "www.thetok.ch"], ["host", "www.thetok.ch"]] },
+    { label: "unknown OAuth parameter", parameters: [["host", "www.thetok.ch"], ["unexpected", "value"]] },
+    { label: "duplicate OAuth parameter", parameters: [["host", "www.thetok.ch"], ["client_id", OTHER]] },
+  ] as const)("rejects $label before client lookup or provider access", async ({ parameters }) => {
+    const h = harness(); await h.register(); h.rpc.mockClear(); h.transport.mockClear(); h.consume.mockClear();
+    const query = await authorizationQuery();
+    for (const [key, value] of parameters) query.append(key, value);
+    const response = await h.run("authorize?" + query);
+    expect(response.status).toBe(400); expect(await response.json()).toEqual({ error: "invalid_request" });
+    expect(response.headers.get("location")).toBeNull();
+    expect(h.rpc).not.toHaveBeenCalled(); expect(h.transport).not.toHaveBeenCalled(); expect(h.consume).not.toHaveBeenCalled();
+  });
+  it.each(["", "?host=www.thetok.ch"])("requires a client with or without proxy metadata: %j", async (query) => {
+    const h = harness(), response = await h.run("authorize" + query);
+    expect(response.status).toBe(400); expect(await response.json()).toEqual({ error: "invalid_client" });
+    expect(h.rpc).not.toHaveBeenCalled(); expect(h.transport).not.toHaveBeenCalled();
   });
   it("exposes only opaque credentials, encrypts native tokens and resolves them only server-side", async () => {
     const h = harness(), pair = await h.issue();
