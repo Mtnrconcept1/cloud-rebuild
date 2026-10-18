@@ -141,6 +141,11 @@ async function authorize(req: Request, deps: TokBrokerDependencies): Promise<Res
   const origin = configured(deps), url = new URL(req.url);
   if (url.search.length > MAX_BODY_BYTES) invalid();
   const body = uniqueParams(url.searchParams);
+  // Vercel forwards the host matcher as query metadata; it must never select an OAuth destination.
+  if (body.host !== undefined) {
+    if (body.host !== new URL(TOK_BROKER_ISSUER).hostname) invalid();
+    delete body.host;
+  }
   onlyKeys(body, ["client_id", "redirect_uri", "response_type", "code_challenge", "code_challenge_method", "scope", "state", "resource"]);
   scopeAndResource(body); const client = await getClient(deps, body.client_id), redirect = redirectUri(body.redirect_uri);
   if (!client.redirect_uris.includes(redirect)) invalid("invalid_redirect_uri");

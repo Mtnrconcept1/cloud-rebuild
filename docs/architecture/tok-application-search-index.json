@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "01009e651c21d8ac0428f0d0346e39149871824dec0d09e1dee5b2b0a077d174",
+ "sourceDigest": "da6149f37f103c00179ffeb171582c2749f105661d09c0835e879f22d1cc99e6",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -24,8 +24,8 @@
   "publicAssets": 582,
   "publicEntries": 608,
   "publicNavigableRoutes": 2,
-  "queryParameters": 109,
-  "records": 17759,
+  "queryParameters": 110,
+  "records": 17760,
   "repositoryFiles": 3364,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
@@ -16662,7 +16662,7 @@
     "sources": [
      {
       "path": "src/test/tok-connect-broker.test.ts",
-      "line": 49
+      "line": 50
      }
     ]
    },
@@ -18015,7 +18015,7 @@
     "sources": [
      {
       "path": "supabase/functions/_shared/tok-connect-broker.ts",
-      "line": 151
+      "line": 156
      }
     ]
    },
@@ -18024,11 +18024,11 @@
     "sources": [
      {
       "path": "src/test/tok-connect-broker.test.ts",
-      "line": 54
+      "line": 55
      },
      {
       "path": "supabase/functions/_shared/tok-connect-broker.ts",
-      "line": 157
+      "line": 162
      }
     ]
    },
@@ -18234,7 +18234,7 @@
     "sources": [
      {
       "path": "supabase/functions/_shared/tok-connect-broker.ts",
-      "line": 219
+      "line": 224
      }
     ]
    },
@@ -27338,11 +27338,15 @@
     "sources": [
      {
       "path": "src/test/tok-connect-broker.test.ts",
-      "line": 104
+      "line": 105
      },
      {
       "path": "src/test/tok-connect-broker.test.ts",
-      "line": 125
+      "line": 116
+     },
+     {
+      "path": "src/test/tok-connect-broker.test.ts",
+      "line": 158
      }
     ]
    },
@@ -28421,7 +28425,7 @@
     "sources": [
      {
       "path": "supabase/functions/_shared/tok-connect-broker.ts",
-      "line": 219
+      "line": 224
      }
     ]
    },
@@ -30697,7 +30701,7 @@
     "sources": [
      {
       "path": "supabase/functions/_shared/tok-connect-broker.ts",
-      "line": 219
+      "line": 224
      }
     ]
    },
@@ -32134,6 +32138,16 @@
     "routes": []
    },
    {
+    "name": "host",
+    "sources": [
+     {
+      "path": "src/test/tok-connect-broker.test.ts",
+      "line": 114
+     }
+    ],
+    "routes": []
+   },
+   {
     "name": "incident",
     "sources": [
      {
@@ -32924,7 +32938,7 @@
      },
      {
       "path": "src/test/tok-connect-broker.test.ts",
-      "line": 102
+      "line": 103
      }
     ],
     "routes": [
@@ -33055,7 +33069,7 @@
     "sources": [
      {
       "path": "src/test/tok-connect-broker.test.ts",
-      "line": 102
+      "line": 103
      }
     ],
     "routes": []
@@ -34889,6 +34903,7 @@
      "src/test/stripe-security-hardening.test.ts",
      "src/test/supabase-cors.test.ts",
      "src/test/supabase-return-url.test.ts",
+     "src/test/tok-connect-broker.test.ts",
      "src/test/tok-connect-chatgpt-finalization.test.ts",
      "src/test/tok-connect-public-actions.test.ts",
      "src/test/tok-connect-universal-mcp.test.ts",
@@ -34896,6 +34911,7 @@
      "supabase/functions/_shared/cors.ts",
      "supabase/functions/_shared/incident-intelligence.ts",
      "supabase/functions/_shared/return-url.ts",
+     "supabase/functions/_shared/tok-connect-broker.ts",
      "supabase/functions/_shared/tok-connect-discovery-widget.ts",
      "supabase/functions/ai-admin-monitor/index.ts",
      "supabase/functions/tok-connect-full-app-mcp/index.ts",
@@ -114933,9 +114949,10 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [
-     "supabase"
+     "supabase",
+     "vercel"
     ],
-    "lineCount": 188
+    "lineCount": 221
    },
    {
     "path": "src/test/tok-connect-chatgpt-finalization.test.ts",
@@ -118908,20 +118925,21 @@
      },
      {
       "name": "handleTokConnectBroker",
-      "line": 215,
+      "line": 220,
       "kind": "function"
      },
      {
       "name": "resolveTokConnectBrokerAccess",
-      "line": 231,
+      "line": 236,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [
-     "supabase"
+     "supabase",
+     "vercel"
     ],
-    "lineCount": 243
+    "lineCount": 248
    },
    {
     "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
@@ -159593,14 +159611,15 @@
    "id": "code-module:99ea0b180084",
    "type": "code-module",
    "title": "src/test/tok-connect-broker.test.ts",
-   "description": "Module de 188 lignes; exports: aucun export statique.",
+   "description": "Module de 221 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-broker.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
-    "supabase"
+    "supabase",
+    "vercel"
    ],
-   "detailRef": "bd4a5a5e37ce"
+   "detailRef": "aa850f1727df"
   },
   {
    "id": "code-module:4da3c87f3106",
@@ -162082,7 +162101,7 @@
    "id": "code-module:c4527207ce87",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-broker.ts",
-   "description": "Module de 243 lignes; exports: TOK_BROKER_ISSUER, TOK_BROKER_RESOURCE, TOK_BROKER_SCOPE, TokBrokerError, TokBrokerDependencies, tokBrokerHash, tokBrokerChallenge, handleTokConnectBroker, resolveTokConnectBrokerAccess.",
+   "description": "Module de 248 lignes; exports: TOK_BROKER_ISSUER, TOK_BROKER_RESOURCE, TOK_BROKER_SCOPE, TokBrokerError, TokBrokerDependencies, tokBrokerHash, tokBrokerChallenge, handleTokConnectBroker, resolveTokConnectBrokerAccess.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
    "line": 1,
    "surface": null,
@@ -162096,9 +162115,10 @@
     "resolveTokConnectBrokerAccess",
     "supabase",
     "tokBrokerChallenge",
-    "tokBrokerHash"
+    "tokBrokerHash",
+    "vercel"
    ],
-   "detailRef": "d4b513d142b1"
+   "detailRef": "4c22457711cb"
   },
   {
    "id": "code-module:079f909ea9f2",
@@ -275091,7 +275111,8 @@
    "surface": null,
    "tags": [
     "supabase",
-    "variable"
+    "variable",
+    "vercel"
    ],
    "detailRef": "b03c092ccc21"
   },
@@ -275105,7 +275126,8 @@
    "surface": null,
    "tags": [
     "supabase",
-    "variable"
+    "variable",
+    "vercel"
    ],
    "detailRef": "1ddfe0852a2f"
   },
@@ -275119,7 +275141,8 @@
    "surface": null,
    "tags": [
     "supabase",
-    "variable"
+    "variable",
+    "vercel"
    ],
    "detailRef": "03e1794f7117"
   },
@@ -276751,7 +276774,8 @@
    "surface": null,
    "tags": [
     "supabase",
-    "typealias"
+    "typealias",
+    "vercel"
    ],
    "detailRef": "a7d5822dc6e9"
   },
@@ -276765,7 +276789,8 @@
    "surface": null,
    "tags": [
     "class",
-    "supabase"
+    "supabase",
+    "vercel"
    ],
    "detailRef": "90ac37638b3f"
   },
@@ -295253,18 +295278,19 @@
    "detailRef": "1a1c712c2906"
   },
   {
-   "id": "exported-symbol:232986db277a",
+   "id": "exported-symbol:28886394b8b6",
    "type": "exported-symbol",
    "title": "handleTokConnectBroker",
    "description": "Export function de supabase/functions/_shared/tok-connect-broker.ts.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 215,
+   "line": 220,
    "surface": null,
    "tags": [
     "function",
-    "supabase"
+    "supabase",
+    "vercel"
    ],
-   "detailRef": "6af79ead9067"
+   "detailRef": "e87c8fe8f1cd"
   },
   {
    "id": "exported-symbol:8d5b9d07d8df",
@@ -302448,18 +302474,19 @@
    "detailRef": "be31f5ad3a19"
   },
   {
-   "id": "exported-symbol:5bd14043233f",
+   "id": "exported-symbol:02439c31ae6c",
    "type": "exported-symbol",
    "title": "resolveTokConnectBrokerAccess",
    "description": "Export function de supabase/functions/_shared/tok-connect-broker.ts.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 231,
+   "line": 236,
    "surface": null,
    "tags": [
     "function",
-    "supabase"
+    "supabase",
+    "vercel"
    ],
-   "detailRef": "fb2184e6febe"
+   "detailRef": "aa581701b827"
   },
   {
    "id": "exported-symbol:4ab8f750191f",
@@ -304783,7 +304810,8 @@
    "surface": null,
    "tags": [
     "function",
-    "supabase"
+    "supabase",
+    "vercel"
    ],
    "detailRef": "27fe8932f621"
   },
@@ -304797,7 +304825,8 @@
    "surface": null,
    "tags": [
     "function",
-    "supabase"
+    "supabase",
+    "vercel"
    ],
    "detailRef": "d3671117e19a"
   },
@@ -360524,7 +360553,7 @@
    "id": "integration:077d0104684d",
    "type": "integration",
    "title": "Vercel",
-   "description": "Intégration externe détectée dans 63 module(s).",
+   "description": "Intégration externe détectée dans 65 module(s).",
    "path": "middleware.js",
    "line": null,
    "surface": null,
@@ -360581,6 +360610,7 @@
     "src/test/stripe-security-hardening.test.ts",
     "src/test/supabase-cors.test.ts",
     "src/test/supabase-return-url.test.ts",
+    "src/test/tok-connect-broker.test.ts",
     "src/test/tok-connect-chatgpt-finalization.test.ts",
     "src/test/tok-connect-public-actions.test.ts",
     "src/test/tok-connect-universal-mcp.test.ts",
@@ -360588,13 +360618,14 @@
     "supabase/functions/_shared/cors.ts",
     "supabase/functions/_shared/incident-intelligence.ts",
     "supabase/functions/_shared/return-url.ts",
+    "supabase/functions/_shared/tok-connect-broker.ts",
     "supabase/functions/_shared/tok-connect-discovery-widget.ts",
     "supabase/functions/ai-admin-monitor/index.ts",
     "supabase/functions/tok-connect-full-app-mcp/index.ts",
     "supabase/functions/tok-connect-mcp/index.ts",
     "vercel"
    ],
-   "detailRef": "b5f3006d1ec5"
+   "detailRef": "51e5e06c36db"
   },
   {
    "id": "marketing-operation:6537972f48e4",
@@ -372890,17 +372921,17 @@
    "detailRef": "42bde42b56b1"
   },
   {
-   "id": "path-literal:4d5d23452dcb",
+   "id": "path-literal:9918888d839d",
    "type": "path-literal",
    "title": "/admin/oauth/clients",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/tok-connect-broker.test.ts",
-   "line": 49,
+   "line": 50,
    "surface": null,
    "tags": [
     "src/test/tok-connect-broker.test.ts"
    ],
-   "detailRef": "5f5a2d52c65a"
+   "detailRef": "f8bff485b0df"
   },
   {
    "id": "path-literal:a96864d755a9",
@@ -373737,31 +373768,31 @@
    "detailRef": "6f6be36dd68d"
   },
   {
-   "id": "path-literal:27d2ae9abd9e",
+   "id": "path-literal:a092d2f9d74f",
    "type": "path-literal",
    "title": "/auth/v1/oauth/authorize",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 151,
+   "line": 156,
    "surface": null,
    "tags": [
     "supabase/functions/_shared/tok-connect-broker.ts"
    ],
-   "detailRef": "31402b39820b"
+   "detailRef": "e205af61efd0"
   },
   {
-   "id": "path-literal:f717f2844ba3",
+   "id": "path-literal:7dfee719accb",
    "type": "path-literal",
    "title": "/auth/v1/oauth/token",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/tok-connect-broker.test.ts",
-   "line": 54,
+   "line": 55,
    "surface": null,
    "tags": [
     "src/test/tok-connect-broker.test.ts",
     "supabase/functions/_shared/tok-connect-broker.ts"
    ],
-   "detailRef": "acbe51fd1192"
+   "detailRef": "a01fa179c6ae"
   },
   {
    "id": "path-literal:df46bef5a675",
@@ -373937,17 +373968,17 @@
    "detailRef": "e6208920308d"
   },
   {
-   "id": "path-literal:f186faa71453",
+   "id": "path-literal:6433938d86ef",
    "type": "path-literal",
    "title": "/authorize",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 219,
+   "line": 224,
    "surface": null,
    "tags": [
     "supabase/functions/_shared/tok-connect-broker.ts"
    ],
-   "detailRef": "e573be3b22c4"
+   "detailRef": "2cca9cc9e7ea"
   },
   {
    "id": "path-literal:d822148ab793",
@@ -380655,17 +380686,17 @@
    "detailRef": "b7457edc6f86"
   },
   {
-   "id": "path-literal:da715f86e231",
+   "id": "path-literal:bd3e711da2d5",
    "type": "path-literal",
    "title": "/other",
-   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/tok-connect-broker.test.ts",
-   "line": 104,
+   "line": 105,
    "surface": null,
    "tags": [
     "src/test/tok-connect-broker.test.ts"
    ],
-   "detailRef": "0a2027edf7d0"
+   "detailRef": "8b28b405a972"
   },
   {
    "id": "path-literal:198b768de83f",
@@ -381195,17 +381226,17 @@
    "detailRef": "1afc24bb0a55"
   },
   {
-   "id": "path-literal:c4cc99b5d185",
+   "id": "path-literal:caec25101b33",
    "type": "path-literal",
    "title": "/register",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 219,
+   "line": 224,
    "surface": null,
    "tags": [
     "supabase/functions/_shared/tok-connect-broker.ts"
    ],
-   "detailRef": "4125f79ae093"
+   "detailRef": "ae575d8da7d3"
   },
   {
    "id": "path-literal:11ab7fb216ff",
@@ -383138,17 +383169,17 @@
    "detailRef": "fd55acc7b758"
   },
   {
-   "id": "path-literal:41e5c818c9cd",
+   "id": "path-literal:c207460b99d7",
    "type": "path-literal",
    "title": "/token",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 219,
+   "line": 224,
    "surface": null,
    "tags": [
     "supabase/functions/_shared/tok-connect-broker.ts"
    ],
-   "detailRef": "179466bc7b23"
+   "detailRef": "93b910009c32"
   },
   {
    "id": "path-literal:fe3b38b687bd",
@@ -392761,6 +392792,19 @@
    "detailRef": "6469e5a8c491"
   },
   {
+   "id": "query-parameter:1cc5e4d06366",
+   "type": "query-parameter",
+   "title": "host",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "src/test/tok-connect-broker.test.ts",
+   "line": 114,
+   "surface": null,
+   "tags": [
+    "src/test/tok-connect-broker.test.ts"
+   ],
+   "detailRef": "35b09c9a2cd0"
+  },
+  {
    "id": "query-parameter:1967561f2984",
    "type": "query-parameter",
    "title": "incident",
@@ -393389,7 +393433,7 @@
     "src/pages/Actualites.tsx",
     "src/test/tok-connect-broker.test.ts"
    ],
-   "detailRef": "a78e54d205e8"
+   "detailRef": "b19dc636b603"
   },
   {
    "id": "query-parameter:39f1fcc7c252",
@@ -393479,17 +393523,17 @@
    "detailRef": "62a417d9045c"
   },
   {
-   "id": "query-parameter:bae85c447a6c",
+   "id": "query-parameter:90322c68349e",
    "type": "query-parameter",
    "title": "state",
    "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
    "path": "src/test/tok-connect-broker.test.ts",
-   "line": 102,
+   "line": 103,
    "surface": null,
    "tags": [
     "src/test/tok-connect-broker.test.ts"
    ],
-   "detailRef": "59c86299ced1"
+   "detailRef": "734c29bed8e1"
   },
   {
    "id": "query-parameter:380f8a84096d",
