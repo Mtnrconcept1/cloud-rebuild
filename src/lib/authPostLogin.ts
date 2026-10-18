@@ -1,6 +1,7 @@
 import type { UserRole } from "@/lib/auth-context";
 import { TOK_WORKSPACE_CHOOSER_PATH } from "@/lib/authDomains";
 import { getRoleHomePath } from "@/lib/roleAccess";
+import { getWorkforceContinuationTarget } from "@/lib/workforceContinuation";
 
 const INTERNAL_NAVIGATION_ORIGIN = "https://www.thetok.ch";
 
@@ -25,8 +26,8 @@ function isOAuthConsentTarget(target: string) {
 /**
  * Every production login finishes on the canonical workspace chooser. The
  * selected dashboard may then move to its dedicated subdomain while reusing
- * the shared TOK session. OAuth consent is the only continuation that must
- * resume immediately. The internal demo login keeps its isolated role home.
+ * the shared TOK session. OAuth consent and strictly validated employee
+ * invitations resume immediately. The internal demo keeps its isolated role home.
  */
 export function getPostAuthTargetForRole(
   selectedRole: UserRole,
@@ -40,6 +41,9 @@ export function getPostAuthTargetForRole(
   if (postAuthRedirectTarget && isOAuthConsentTarget(postAuthRedirectTarget)) {
     return postAuthRedirectTarget;
   }
+
+  const workforceTarget = getWorkforceContinuationTarget(postAuthRedirectTarget);
+  if (workforceTarget) return workforceTarget;
 
   if (context.launchEnabled && selectedRole === "client") {
     return "/coming-soon";
