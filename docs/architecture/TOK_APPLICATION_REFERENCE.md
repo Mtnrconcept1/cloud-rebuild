@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a6f26e520200c00ca0ce2d1ec495dd982fe0207ae0a73ced1aa5886a2a87ce1c`
+- Empreinte SHA-256 des sources indexées : `8af392bfa2552ce5dc0949e1849309a62ca181e905d826d2a923a0259a7b0d35`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,7 +45,7 @@
 | publicEntries | 607 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 111 |
-| records | 17373 |
+| records | 17374 |
 | repositoryFiles | 3294 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1451,7 +1451,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/offres | 6 | [src/App.tsx:636](../../src/App.tsx#L636) |
 | /dashboard/pack | 2 | [src/test/feature-flags.test.ts:120](../../src/test/feature-flags.test.ts#L120) |
 | /dashboard/performances | 8 | [src/App.tsx:627](../../src/App.tsx#L627) |
-| /dashboard/photos | 15 | [src/App.tsx:639](../../src/App.tsx#L639) |
+| /dashboard/photos | 17 | [src/App.tsx:639](../../src/App.tsx#L639) |
 | /dashboard/plan-de-salle | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:211](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L211) |
 | /dashboard/plan-salle | 8 | [src/App.tsx:651](../../src/App.tsx#L651) |
 | /dashboard/plan-salle-v2 | 2 | [src/App.tsx:653](../../src/App.tsx#L653) |
@@ -1499,7 +1499,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /functions/v1/dispatch-order | 1 | [src/test/dispatch-client-fallback.test.ts:18](../../src/test/dispatch-client-fallback.test.ts#L18) |
 | /functions/v1/marketing-orchestrator | 1 | [src/test/marketing-meta-bff.test.ts:6](../../src/test/marketing-meta-bff.test.ts#L6) |
 | /functions/v1/stripe-webhook | 1 | [src/test/checkout-stripe-guards.test.ts:182](../../src/test/checkout-stripe-guards.test.ts#L182) |
-| /functions/v1/tok-connect-app-bridge | 1 | [supabase/functions/_shared/tok-connect-marketing-visual.ts:132](../../supabase/functions/_shared/tok-connect-marketing-visual.ts#L132) |
+| /functions/v1/tok-connect-app-bridge | 1 | [supabase/functions/_shared/tok-connect-marketing-visual.ts:142](../../supabase/functions/_shared/tok-connect-marketing-visual.ts#L142) |
 | /functions/v1/tok-pulse-widget | 2 | [src/pages/TokPulse.tsx:57](../../src/pages/TokPulse.tsx#L57) |
 | /galerie | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
 | /gallery | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
@@ -2108,7 +2108,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | ticket | /admin/sinistres | 2 | [src/pages/admin/AdminSinistres.tsx:874](../../src/pages/admin/AdminSinistres.tsx#L874) |
 | time | /restaurant/:id | 2 | [src/lib/zeroAttenteReservationContext.ts:77](../../src/lib/zeroAttenteReservationContext.ts#L77) |
 | to | — | 1 | [src/marketing/useMarketingUrlState.ts:92](../../src/marketing/useMarketingUrlState.ts#L92) |
-| tok_connect_route | — | 4 | [supabase/functions/tok-connect-chatgpt/index.ts:542](../../supabase/functions/tok-connect-chatgpt/index.ts#L542) |
+| tok_connect_route | — | 4 | [supabase/functions/tok-connect-chatgpt/index.ts:545](../../supabase/functions/tok-connect-chatgpt/index.ts#L545) |
 | token | — | 1 | [supabase/functions/marketing-unsubscribe/index.ts:66](../../supabase/functions/marketing-unsubscribe/index.ts#L66) |
 | tolerance | — | 1 | [src/test/home-canton-hero.test.ts:57](../../src/test/home-canton-hero.test.ts#L57) |
 | type | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:286](../../src/pages/Auth.tsx#L286) |
@@ -6655,7 +6655,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | TOK Connect — prévention des commandes fantômes avant Stripe Connect | 6 | [docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md:1](../../docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md#L1) |
 | TOK Connect — échec Checkout à emporter hors horaire de service | 6 | [docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md:1](../../docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md#L1) |
 | Publication Suisse | 3 | [docs/tok-connect/PUBLICATION.md:1](../../docs/tok-connect/PUBLICATION.md#L1) |
-| TOK Connect | 19 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
+| TOK Connect | 20 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
 | TOK Connect Remote MCP | 10 | [docs/tok-connect/REMOTE_MCP.md:1](../../docs/tok-connect/REMOTE_MCP.md#L1) |
 | Recette TOK Connect dans ChatGPT | 8 | [docs/tok-connect/TESTING.md:1](../../docs/tok-connect/TESTING.md#L1) |
 | TOK Connect Full App MCP (surface historique interne) | 9 | [docs/tok-connect/full-app-mcp.md:1](../../docs/tok-connect/full-app-mcp.md#L1) |

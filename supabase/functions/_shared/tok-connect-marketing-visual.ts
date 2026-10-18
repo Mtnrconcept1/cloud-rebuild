@@ -45,6 +45,9 @@ const IDEMPOTENCY_KEY = /^[A-Za-z0-9:_-]{8,120}$/;
 const PUBLIC_GALLERY_PATH = "/storage/v1/object/public/restaurant-images/";
 const KNOWN_ERRORS = new Set([
   "ai_credits_exhausted",
+  "marketing_reference_ids_required",
+  "marketing_reference_mismatch",
+  "marketing_reference_required",
   "ai_service_unavailable",
   "feature_disabled",
   "tok_connect_human_confirmation_required",
@@ -86,6 +89,12 @@ export async function generateTokMarketingVisualThroughBridge(
   const prompt = input.args.prompt;
   const idempotencyKey = input.args.idempotency_key;
   const format = input.args.format ?? "square";
+  const referenceMediaIds = input.args.reference_media_ids;
+  if (!Array.isArray(referenceMediaIds) || referenceMediaIds.length < 1 || referenceMediaIds.length > 4
+    || new Set(referenceMediaIds).size !== referenceMediaIds.length
+    || referenceMediaIds.some((id) => typeof id !== "string" || !UUID.test(id))) {
+    throw new TokMarketingVisualBridgeError(400, "marketing_reference_ids_required");
+  }
   if (typeof restaurantId !== "string" || !UUID.test(restaurantId)
     || typeof prompt !== "string" || prompt.trim().length < 5 || prompt.length > 3500
     || typeof idempotencyKey !== "string" || !IDEMPOTENCY_KEY.test(idempotencyKey)
@@ -120,6 +129,7 @@ export async function generateTokMarketingVisualThroughBridge(
     args: {
       restaurant_id: restaurantId,
       prompt: prompt.trim(),
+      reference_media_ids: referenceMediaIds,
       format,
       confirmed_by_user: true,
       idempotency_key: idempotencyKey,

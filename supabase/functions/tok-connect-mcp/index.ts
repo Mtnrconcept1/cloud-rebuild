@@ -1285,7 +1285,7 @@ const TOK_CONNECT_APP_MODULES: TokConnectAppModule[] = [
     requiresHumanConfirmation: true,
     requiresPayment: false,
     requiresCredits: true,
-    relatedMcpTools: ["estimate_campaign_credit_cost", "generate_campaign_preview", "tok_generate_restaurant_marketing_visual"],
+    relatedMcpTools: ["get_tok_credit_balance", "tok_list_restaurant_marketing_references", "tok_list_restaurant_marketing_assets", "tok_generate_restaurant_campaign_draft", "tok_generate_restaurant_marketing_visual"],
     safeActions: ["Lire les capacites", "Preparer un brief", "Generer un visuel natif apres validation", "Retrouver le visuel dans la galerie"],
     guardrails: ["Generation reelle uniquement sur le restaurant du proprietaire OAuth connecte, apres confirmation et verification des credits.", "Aucun post sponsorise ni aucune image n'est publie automatiquement."],
   },
@@ -1735,7 +1735,7 @@ if (!marketingVisualOperation) throw new Error("tok_connect_marketing_visual_ope
 const TOK_CONNECT_MARKETING_VISUAL_TOOL: TokConnectMcpTool = {
   name: marketingVisualOperation.name,
   title: "Generer un flyer ou visuel TOK",
-  description: "Generate and store exactly one native Marketing Studio image for the connected restaurant. This is a REAL credit-consuming action, not a simulated preview. Requires Supabase OAuth restaurant ownership, explicit end-user consent (confirmed_by_user=true), a stable idempotency key and sufficient TOK credits. No publication or advertising campaign is created.",
+  description: "Generate and store exactly one native Marketing Studio image for the connected restaurant. This is a REAL credit-consuming action, not a simulated preview. Requires Supabase OAuth restaurant ownership, explicit end-user consent (confirmed_by_user=true), a stable idempotency key, 1-4 reference_media_ids from tok_list_restaurant_marketing_references and sufficient TOK credits. No publication or advertising campaign is created.",
   requiredScopes: ["campaigns:preview"],
   inputSchema: marketingVisualOperation.inputSchema as unknown as Record<string, unknown>,
   outputSchema: {
