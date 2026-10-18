@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 458 error codes mapped from supabase/functions/**.
+// 459 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -88,11 +88,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_credits_exhausted": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1116
+      "line": 1062
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1449
+      "line": 1395
     }
   ],
   "ai_empty_response": [
@@ -154,11 +154,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 756
+      "line": 747
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1114
+      "line": 1060
     }
   ],
   "ai_quota_exceeded": [
@@ -190,11 +190,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 759
+      "line": 750
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1108
+      "line": 1054
     },
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
@@ -254,7 +254,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1481
+      "line": 1427
     },
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
@@ -922,7 +922,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1464
+      "line": 1410
     },
     {
       "file": "supabase/functions/customer-memory/index.ts",
@@ -948,7 +948,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1463
+      "line": 1409
     },
     {
       "file": "supabase/functions/customer-memory/index.ts",
@@ -1222,29 +1222,29 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_edit_timeout": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1101
+      "line": 1047
     }
   ],
   "image_edit_transient_failure": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1102
+      "line": 1048
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1106
+      "line": 1052
     }
   ],
   "image_empty_response": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1323
+      "line": 1269
     }
   ],
   "image_generation_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1527
+      "line": 1473
     }
   ],
   "image_id_required": [
@@ -1278,7 +1278,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_missing_payload": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1333
+      "line": 1279
     },
     {
       "file": "supabase/functions/commercial-demo-ai/index.ts",
@@ -1294,7 +1294,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_reference_edit_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1309
+      "line": 1255
+    },
+    {
+      "file": "supabase/functions/ai-image-enhance/index.ts",
+      "line": 1574
     }
   ],
   "image_request_rejected": [
@@ -1318,7 +1322,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_url_unreachable": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1329
+      "line": 1275
     }
   ],
   "incident_bound_to_another_github_run": [
@@ -1662,19 +1666,23 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "marketing_reference_ids_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 418
+      "line": 409
     }
   ],
   "marketing_reference_mismatch": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 438
+      "line": 429
     }
   ],
   "marketing_reference_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 444
+      "line": 435
+    },
+    {
+      "file": "supabase/functions/ai-image-enhance/index.ts",
+      "line": 1568
     }
   ],
   "match_group_authorization_session_missing": [
@@ -1996,7 +2004,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "paid_reservation_requires_tok_support": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 437
+      "line": 448
     }
   ],
   "partner_id_required": [
@@ -2070,13 +2078,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "photo_style_reference_mismatch": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 479
+      "line": 470
     }
   ],
   "photo_style_reference_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 487
+      "line": 478
     }
   ],
   "premium_required": [
@@ -2386,7 +2394,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "reference_image_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 967
+      "line": 958
     }
   ],
   "reference_image_too_large": [
@@ -2484,7 +2492,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "reservation_cancellation_reconciliation_required": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 457
+      "line": 468
     }
   ],
   "reservation_fields_required": [
@@ -2496,7 +2504,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "reservation_id_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 426
+      "line": 437
     }
   ],
   "reservation_invalid_state": [
@@ -2508,7 +2516,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "reservation_lookup_failed": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 433
+      "line": 444
     }
   ],
   "reservation_not_found": [
@@ -2534,7 +2542,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 434
+      "line": 445
     }
   ],
   "reservation_preview_fields_required": [
@@ -2644,7 +2652,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1526
+      "line": 1472
     },
     {
       "file": "supabase/functions/ai-restaurant-agent/index.ts",
@@ -2726,43 +2734,43 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "source_image_edit_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1118
+      "line": 1064
     }
   ],
   "source_image_invalid_type": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 869
+      "line": 860
     }
   ],
   "source_image_timeout": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 854
+      "line": 845
     }
   ],
   "source_image_too_large": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 872
+      "line": 863
     }
   ],
   "source_image_unreachable": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 867
+      "line": 858
     }
   ],
   "source_image_unsafe_url": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 862
+      "line": 853
     }
   ],
   "source_image_unsupported_type": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 870
+      "line": 861
     }
   ],
   "special_reservation_requires_dedicated_checkout": [
@@ -2882,129 +2890,129 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_cart_action_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 756
+      "line": 767
     }
   ],
   "tok_cart_availability_unavailable": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 629
+      "line": 640
     }
   ],
   "tok_cart_cancel_confirmation_required": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 723
+      "line": 734
     }
   ],
   "tok_cart_cancel_idempotency_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 726
+      "line": 737
     }
   ],
   "tok_cart_checkout_url_unavailable": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 889
+      "line": 900
     }
   ],
   "tok_cart_delivery_unavailable": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 589
+      "line": 600
     }
   ],
   "tok_cart_free_takeaway_requires_tok": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 830
+      "line": 841
     }
   ],
   "tok_cart_menu_or_service_unavailable": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 614
+      "line": 625
     }
   ],
   "tok_cart_payment_attempt_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 717
+      "line": 728
     }
   ],
   "tok_cart_pending_order_missing": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 870
+      "line": 881
     }
   ],
   "tok_cart_price_changed_refresh_quote": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 818
+      "line": 829
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 867
+      "line": 878
     }
   ],
   "tok_cart_restaurant_id_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 682
+      "line": 693
     }
   ],
   "tok_cart_restaurant_not_open_for_checkout": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 566
+      "line": 577
     }
   ],
   "tok_cart_restaurant_unavailable": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 564
+      "line": 575
     }
   ],
   "tok_cart_special_offer_kind_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 680
+      "line": 691
     }
   ],
   "tok_cart_special_offer_not_found": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 584
+      "line": 595
     }
   ],
   "tok_cart_special_offers_unavailable": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 581
+      "line": 592
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 696
+      "line": 707
     }
   ],
   "tok_cart_status_unavailable": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 740
+      "line": 751
     }
   ],
   "tok_cart_table_not_available": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 637
+      "line": 648
     }
   ],
   "tok_cart_total_out_of_range": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 642
+      "line": 653
     }
   ],
   "tok_connect_agent_run_not_approvable": [
@@ -3022,7 +3030,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_bridge_mode_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 992
+      "line": 1004
     }
   ],
   "tok_connect_capability_method_not_allowed": [
@@ -3074,13 +3082,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_customer_history_kind_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 916
+      "line": 927
     }
   ],
   "tok_connect_customer_history_unavailable": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 929
+      "line": 940
     }
   ],
   "tok_connect_daily_reservation_limit_exceeded": [
@@ -3092,13 +3100,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_data_operation_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 492
+      "line": 503
     }
   ],
   "tok_connect_data_operation_not_allowed": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 468
+      "line": 479
     }
   ],
   "tok_connect_expected_total_invalid": [
@@ -3110,7 +3118,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_filter_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 475
+      "line": 486
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -3120,7 +3128,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_filter_operator_invalid": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 482
+      "line": 493
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -3180,7 +3188,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_login_required": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 538
+      "line": 549
     }
   ],
   "tok_connect_mcp_grant_required": [
@@ -3192,7 +3200,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_mutation_filter_required": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 496
+      "line": 507
     }
   ],
   "tok_connect_oauth_client_id_required": [
@@ -3278,13 +3286,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_rpc_not_allowlisted": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 408
+      "line": 419
     }
   ],
   "tok_connect_table_not_allowlisted": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 466
+      "line": 477
     }
   ],
   "tok_connect_token_client_mismatch": [
@@ -3328,11 +3336,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_user_client_required": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 421
+      "line": 432
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 490
+      "line": 501
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -3358,23 +3366,23 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 558
+      "line": 569
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 573
+      "line": 584
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 677
+      "line": 688
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 914
+      "line": 925
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 945
+      "line": 956
     },
     {
       "file": "supabase/functions/tok-connect-commercial-bridge/index.ts",
@@ -3384,11 +3392,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "tok_connect_values_required": [
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 513
+      "line": 524
     },
     {
       "file": "supabase/functions/tok-connect-app-bridge/index.ts",
-      "line": 516
+      "line": 527
     }
   ],
   "tok_connect_webhook_endpoint_inactive": [
@@ -3415,6 +3423,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-mcp/index.ts",
       "line": 2750
+    }
+  ],
+  "tok_marketing_visual_result_unconfirmed": [
+    {
+      "file": "supabase/functions/tok-connect-app-bridge/index.ts",
+      "line": 383
     }
   ],
   "tok_one_action_invalid": [
@@ -3496,7 +3510,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1480
+      "line": 1426
     },
     {
       "file": "supabase/functions/ai-restaurant-agent/index.ts",

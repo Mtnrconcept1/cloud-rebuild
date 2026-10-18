@@ -312,7 +312,7 @@ describe("TOK AI tools foundation", () => {
     expect(source).toContain("normalizeReferenceImageUrls");
     expect(source).toContain("resolveCurrentMarketingReferences");
     expect(source).toContain("server_current_restaurant_media");
-    expect(source).toContain("MARKETING_REFERENCE_STORAGE_SEGMENT");
+    expect(source).toContain("isCurrentMarketingReferenceStorage");
     expect(source).toContain("callOpenAIImageEditWithReferences");
     expect(source).toContain("marketingAssetMode");
     expect(source).toContain("reference_image_urls");

@@ -49,6 +49,11 @@ const KNOWN_ERRORS = new Set([
   "marketing_reference_mismatch",
   "marketing_reference_required",
   "ai_service_unavailable",
+  "ai_provider_billing_unavailable",
+  "ai_rate_limited",
+  "image_edit_timeout",
+  "image_edit_transient_failure",
+  "image_reference_edit_required",
   "feature_disabled",
   "tok_connect_human_confirmation_required",
   "tok_connect_idempotency_key_reused_with_different_body",
@@ -57,6 +62,7 @@ const KNOWN_ERRORS = new Set([
   "tok_connect_restaurant_mcp_disabled",
   "tok_connect_restaurateur_required",
   "tok_connect_user_required",
+  "tok_marketing_visual_result_unconfirmed",
 ]);
 
 function record(value: unknown): Record<string, unknown> {
@@ -68,11 +74,11 @@ function record(value: unknown): Record<string, unknown> {
 function safeErrorCode(response: Record<string, unknown>): string {
   const downstream = record(response.data);
   const error = record(response.error);
-  const candidate = typeof error.code === "string" ? error.code
-    : typeof downstream.error === "string" ? downstream.error
-    : typeof downstream.error_code === "string" ? downstream.error_code
-    : "";
-  return KNOWN_ERRORS.has(candidate) ? candidate : "tok_marketing_visual_generation_failed";
+  const downstreamError = record(downstream.error);
+  // HttpError responses use error.message; provider details are never forwarded.
+  const candidates = [error.code, error.message, downstream.error_code, downstream.error, downstreamError.code, downstreamError.message];
+  return candidates.find((candidate): candidate is string => typeof candidate === "string" && KNOWN_ERRORS.has(candidate))
+    ?? "tok_marketing_visual_generation_failed";
 }
 
 export async function generateTokMarketingVisualThroughBridge(

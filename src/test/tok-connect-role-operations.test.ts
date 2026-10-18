@@ -8,7 +8,19 @@ const reservation = "20000000-0000-4000-8000-000000000001";
 const other = "30000000-0000-4000-8000-000000000001";
 const confirmation = { confirmed_by_user: true, idempotency_key: "tok-operation:123" };
 type Row = Record<string, unknown>;
-function harness(options: { owner?: string; roles?: string[]; reservationRestaurant?: string; disabled?: boolean; concurrentServiceEdit?: boolean } = {}) {
+// Minimal PostgREST eq/like evaluation at the database boundary, before range.
+function matchesStorageOrFilter(row: Row, filter: string) {
+  return filter.split("),and(").some((branch) => {
+    const clauses = [...branch.matchAll(/(storage_bucket|storage_path)\.(eq|like)\.("(?:[^"\\]|\\.)*")/g)];
+    return clauses.length === 2 && clauses.every(([, field, operator, literal]) => {
+      const value = JSON.parse(literal) as string;
+      if (operator === "eq") return row[field] === value;
+      const pattern = value.split("*").map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*");
+      return typeof row[field] === "string" && new RegExp(`^${pattern}$`).test(row[field] as string);
+    });
+  });
+}
+function harness(options: { owner?: string; roles?: string[]; reservationRestaurant?: string; disabled?: boolean; concurrentServiceEdit?: boolean; marketingReferenceBucket?: string } = {}) {
   const rows: Record<string, Row[]> = {
     restaurants: [{ id: restaurant, owner_id: options.owner || "caller", name: "Gazelle", tok_connect_mcp_enabled: !options.disabled, opening_hours: { monday: "Fermé", preserved_key: true, service_settings: structuredClone(DEFAULT_SERVICE_SETTINGS) } }],
     reservations: [{ id: reservation, restaurant_id: options.reservationRestaurant || restaurant, status: "pending" }],
@@ -19,16 +31,17 @@ function harness(options: { owner?: string; roles?: string[]; reservationRestaur
     favorites: [], reviews: [], restaurant_branches: [{ id: reservation, restaurant_id: restaurant }],
     restaurant_hours: [{ id: other, branch_id: reservation, open_time: "12:00", close_time: "14:00", is_closed: false }],
     menu_items: [{ id: reservation, restaurant_id: restaurant, name: "Tibs", description: "Plat traditionnel", price: 12, is_available: true, image_url: null }],
-    restaurant_media: [{ id: other, restaurant_id: restaurant, media_type: "marketing_logo", media_url: "https://example.invalid/logo.png" },
-      { id: reservation, restaurant_id: other, media_type: "marketing_logo", media_url: "https://example.invalid/private.png" }],
+    restaurant_media: [{ id: other, restaurant_id: restaurant, media_type: "marketing_logo", media_url: "https://example.invalid/logo.png", storage_bucket: "restaurant-images", storage_path: `${restaurant}/marketing-assets/logo.png` },
+      { id: reservation, restaurant_id: other, media_type: "marketing_logo", media_url: "https://example.invalid/private.png", storage_bucket: "restaurant-images", storage_path: `${other}/marketing-assets/logo.png` }],
     ai_generated_assets: [{ id: other, user_id: "caller", restaurant_id: restaurant, status: "stored", asset_type: "menu_visual", asset_url: "https://example.invalid/restaurant-photo.png", metadata: { gallery_storage_bucket: "restaurant-images" } }],
     restaurant_promotions: [{ id: reservation, restaurant_id: restaurant, active: false }],
     reservation_tables: [{ id: other, branch_id: reservation, table_number: "1", capacity: 4 }], social_posts: [],
   };
   const writes: { table: string; patch: Row }[] = [];
   const client = { from: (table: string) => {
-    const filters: Row = {}; const inFilters: Record<string, unknown[]> = {}; let patch: Row | null = null; let insert: Row | null = null; let single = false; let range = [0, 100]; let remove = false;
+    const filters: Row = {}; const inFilters: Record<string, unknown[]> = {}; let patch: Row | null = null; let insert: Row | null = null; let single = false; let range = [0, 100]; let remove = false; let orFilter: string | null = null;
     const query = {
+      or: (value: string) => { orFilter = value; return query; },
       in: (key: string, values: unknown[]) => { inFilters[key] = values; return query; },
       select: () => query, order: () => query, eq: (key: string, value: unknown) => { filters[key] = value; return query; }, is: (key: string, value: unknown) => { filters[key] = value; return query; }, filter: (key: string, _operator: string, value: string) => { filters[key] = JSON.parse(value); return query; },
       range: (a: number, b: number) => { range = [a, b]; return query; }, maybeSingle: () => { single = true; return query; }, single: () => { single = true; return query; },
@@ -36,7 +49,7 @@ function harness(options: { owner?: string; roles?: string[]; reservationRestaur
       insert: (value: Row) => { insert = value; return query; },
       then: (resolve: (value: unknown) => unknown) => {
         if (insert) { rows[table].push({ id: "created-id", ...insert }); writes.push({ table, patch: insert }); }
-        const found = (rows[table] || []).filter((row) => Object.entries(inFilters).every(([key, values]) => values.includes(row[key])) && Object.entries(filters).every(([key, value]) => typeof value === "object" ? JSON.stringify(row[key]) === JSON.stringify(value) : row[key] === value));
+        const found = (rows[table] || []).filter((row) => (!orFilter || matchesStorageOrFilter(row, orFilter)) && Object.entries(inFilters).every(([key, values]) => values.includes(row[key])) && Object.entries(filters).every(([key, value]) => typeof value === "object" ? JSON.stringify(row[key]) === JSON.stringify(value) : row[key] === value));
         if (patch && found.length) { for (const row of found) Object.assign(row, patch); writes.push({ table, patch }); }
         if (remove) { rows[table] = rows[table].filter((row) => !found.includes(row)); writes.push({ table, patch: { deleted: true } }); }
         return Promise.resolve(resolve({ data: structuredClone(single ? found[0] || null : found.slice(range[0], range[1] + 1)), error: null }));
@@ -46,6 +59,7 @@ function harness(options: { owner?: string; roles?: string[]; reservationRestaur
   const actor = { userId: "caller", userClient: client, adminClient: client, roles: options.roles || ["restaurateur", "client"], isAdmin: false, isServiceRole: false } as unknown as RequestActor;
   const cached = new Map<string, { signature: string; result: unknown }>();
   const deps = {
+    marketingReferenceBucket: options.marketingReferenceBucket,
     authorizeMutation: vi.fn(async () => {}),
     invokeEdge: vi.fn(async (body: Row) => ({ statusCode: 200, payload: { ok: true, native: body } })),
     invokeRpc: vi.fn(async (body: Row) => ({ statusCode: 200, payload: { ok: true, native: body } })),
@@ -233,6 +247,30 @@ describe("TOK explicit role operations", () => {
     expect(h.deps.authorizeMutation).not.toHaveBeenCalled();
     expect(h.deps.invokeEdge).not.toHaveBeenCalled();
     expect(h.writes).toHaveLength(0);
+  });
+  it("filters unusable marketing uploads before pagination and accepts current and legacy Studio paths", async () => {
+    const h = harness();
+    const current = h.rows.restaurant_media[0];
+    const legacy = { ...current, id: reservation, media_type: "marketing_menu", storage_path: `caller/marketing-assets/${restaurant}/menu.png` };
+    h.rows.restaurant_media.unshift(
+      { ...current, storage_path: "old-logo.png" },
+      { ...current, storage_bucket: "unrelated-private-bucket" },
+      { ...current, storage_path: `${other}/marketing-assets/logo.png` },
+    );
+    h.rows.restaurant_media.push(legacy);
+    const page = (offset: number) => h.run("tok_list_restaurant_marketing_references", { restaurant_id: restaurant, limit: 1, offset });
+    expect((await page(0)).payload.items).toEqual([current]);
+    expect((await page(1)).payload.items).toEqual([legacy]);
+    expect((await page(2)).payload.items).toEqual([]);
+    expect(h.deps.invokeEdge).not.toHaveBeenCalled();
+    expect(h.writes).toHaveLength(0);
+  });
+  it("uses the configured canonical reference bucket while preserving legacy gallery references", async () => {
+    const h = harness({ marketingReferenceBucket: "marketing-references" });
+    const canonical = { ...h.rows.restaurant_media[0], storage_bucket: "marketing-references" };
+    const legacy = { ...h.rows.restaurant_media[0], id: reservation, storage_path: `caller/marketing-assets/${restaurant}/logo.png` };
+    h.rows.restaurant_media.push(canonical, legacy);
+    expect((await h.run("tok_list_restaurant_marketing_references", { restaurant_id: restaurant })).payload.items).toEqual([canonical, legacy]);
   });
   it("rejects foreign, revoked and wrong-role Studio access before reading assets or generating", async () => {
     for (const options of [{ owner: "another" }, { disabled: true }, { roles: ["client"] }]) {

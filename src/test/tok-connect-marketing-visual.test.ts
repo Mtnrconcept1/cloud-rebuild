@@ -154,6 +154,27 @@ describe("TOK Connect native Marketing Studio bridge", () => {
     }))).rejects.toMatchObject({ status: 402, message: "ai_credits_exhausted" });
   });
 
+  it.each([
+    [{ error: { message: "tok_marketing_visual_result_unconfirmed" } }, 503, "tok_marketing_visual_result_unconfirmed"],
+    [{ error: { message: "tok_connect_idempotency_request_in_progress" } }, 409, "tok_connect_idempotency_request_in_progress"],
+    [{ data: { error: "image_edit_timeout" } }, 503, "image_edit_timeout"],
+    [{ data: { error: { message: "image_reference_edit_required" } } }, 502, "image_reference_edit_required"],
+    [{ data: { error_code: "ai_provider_billing_unavailable" } }, 503, "ai_provider_billing_unavailable"],
+  ])("preserves bounded native and bridge error shapes: %s", async (failure, status, code) => {
+    const fetcher = vi.fn(async () => bridgeResponse({ ok: false, ...failure }, status));
+    await expect(generateTokMarketingVisualThroughBridge(input({ fetcher: fetcher as typeof fetch })))
+      .rejects.toMatchObject({ status, message: code });
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  it("never exposes raw provider or transport details as an MCP error", async () => {
+    const details = "provider request rejected: credential=test-private-fixture";
+    const fetcher = vi.fn(async () => bridgeResponse({ ok: false, error: { message: details }, data: { error: details } }, 502));
+    await expect(generateTokMarketingVisualThroughBridge(input({ fetcher: fetcher as typeof fetch })))
+      .rejects.toMatchObject({ status: 502, message: "tok_marketing_visual_generation_failed" });
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
   it("refuses a simulated success, an absent asset and a non-TOK storage URL", async () => {
     const badResponses = [
       bridgeResponse({ mode: "preview" }),
