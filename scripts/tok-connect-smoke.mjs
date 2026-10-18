@@ -6,10 +6,22 @@ const ISSUER = 'https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1';
 const VERSION = '2025-11-25';
 const CLIENT_MUTATIONS = ['tok_book_table', 'tok_cancel_my_reservation', 'tok_checkout_customer_cart', 'tok_cancel_cart_payment_attempt'];
 const REVIEWED_MUTATIONS = mutationPolicy.mutation_names;
+const MARKETING_READS = ['tok_list_restaurant_marketing_references', 'tok_list_restaurant_marketing_assets'];
+const MARKETING_MUTATIONS = ['tok_generate_restaurant_marketing_visual', 'tok_generate_restaurant_campaign_draft', 'tok_generate_restaurant_dish_photo', 'tok_attach_restaurant_dish_photo'];
+const MARKETING_TOOLS = [...MARKETING_READS, ...MARKETING_MUTATIONS];
 
-/** Anonymous checks only: never accepts credentials or invokes a business write. */
-export async function runTokConnectSmoke({ fetchImpl = fetch } = {}) {
+/**
+ * Anonymous checks only: never accepts credentials or invokes a business write.
+ * installedToolNames, when supplied, must be canonical MCP names actually
+ * observed in the host's installed catalogue, not copied from tools/list.
+ */
+export async function runTokConnectSmoke({ fetchImpl = fetch, installedToolNames } = {}) {
   const checks = [];
+  const marketing = {
+    serverMissingTools: null,
+    serverCatalogue: { status: 'not_verified', reason: 'tools_list_not_loaded' },
+    installedCatalogue: { status: 'not_verified', reason: 'installed_tool_names_not_supplied' },
+  };
   let sequence = 0;
   const request = async (url, rpc) => {
     const response = await fetchImpl(url, {
@@ -59,7 +71,9 @@ export async function runTokConnectSmoke({ fetchImpl = fetch } = {}) {
   let tools = [];
   await check('tool-catalogue', async () => {
     const { result } = await rpc('tools/list');
-    tools = result?.tools || [];
+    require(Array.isArray(result?.tools) && result.tools.every((tool) => tool && typeof tool.name === 'string'));
+    tools = result.tools;
+    marketing.serverCatalogue = { status: 'loaded' };
     require(tools.length > 0 && new Set(tools.map((tool) => tool.name)).size === tools.length);
     require(['discover_restaurants', 'get_restaurant_details', 'open_application_sandbox', 'tok_list_capabilities'].every((name) => tools.some((tool) => tool.name === name)));
     require(tools.every((tool) => tool.inputSchema?.type === 'object' && typeof tool.annotations?.readOnlyHint === 'boolean'));
@@ -79,6 +93,50 @@ export async function runTokConnectSmoke({ fetchImpl = fetch } = {}) {
         && tool._meta?.['openai/visibility'] !== 'private';
     }));
   });
+  await check('marketing-tool-catalogue', async () => {
+    // An unavailable or malformed response does not prove that tools are absent.
+    require(marketing.serverCatalogue.status === 'loaded');
+    marketing.serverMissingTools = MARKETING_TOOLS.filter((name) => !tools.some((tool) => tool.name === name));
+    require(marketing.serverMissingTools.length === 0);
+    require(MARKETING_TOOLS.every((name) => {
+      const tool = tools.find((entry) => entry.name === name);
+      // MCP Apps defaults omitted visibility to both audiences. Explicitly
+      // private or app-only tools cannot support a model-led Studio journey.
+      const visibility = tool._meta?.ui?.visibility ?? ['model', 'app'];
+      return tool._meta?.['openai/visibility'] !== 'private'
+        && Array.isArray(visibility) && visibility.includes('model') && visibility.includes('app')
+        && tool.inputSchema?.type === 'object'
+        && tool.inputSchema.additionalProperties === false
+        && tool.inputSchema.required?.includes('restaurant_id')
+        && tool.inputSchema.properties?.restaurant_id?.type === 'string'
+        && tool.inputSchema.properties.restaurant_id.format === 'uuid';
+    }));
+    require(MARKETING_READS.every((name) => tools.find((tool) => tool.name === name).annotations?.readOnlyHint === true));
+    require(MARKETING_MUTATIONS.every((name) => {
+      const tool = tools.find((entry) => entry.name === name);
+      const schema = tool.inputSchema;
+      return tool.annotations?.readOnlyHint === false
+        && schema.required?.includes('confirmed_by_user') && schema.required.includes('idempotency_key')
+        && schema.properties?.confirmed_by_user?.type === 'boolean' && schema.properties.confirmed_by_user.const === true
+        && schema.properties?.idempotency_key?.type === 'string'
+        && schema.properties.idempotency_key.minLength === 8 && schema.properties.idempotency_key.maxLength === 120
+        && schema.properties.idempotency_key.pattern === '^[A-Za-z0-9:_-]+$';
+    }));
+    const visual = tools.find((tool) => tool.name === 'tok_generate_restaurant_marketing_visual');
+    const references = visual.inputSchema.properties.reference_media_ids;
+    require(visual.inputSchema.required.includes('reference_media_ids')
+      && references?.type === 'array' && references.minItems === 1 && references.maxItems === 4
+      && references.uniqueItems === true && references.items?.type === 'string' && references.items.format === 'uuid');
+  });
+  if (installedToolNames !== undefined) {
+    await check('host-marketing-tool-catalogue', async () => {
+      marketing.installedCatalogue = { status: 'failed', reason: 'installed_tool_names_invalid' };
+      require(Array.isArray(installedToolNames) && installedToolNames.every((name) => typeof name === 'string'));
+      const missingTools = MARKETING_TOOLS.filter((name) => !installedToolNames.includes(name));
+      marketing.installedCatalogue = { status: missingTools.length ? 'failed' : 'passed', missingTools };
+      require(missingTools.length === 0);
+    });
+  }
   await check('widget-resource', async () => {
     const tool = tools.find((entry) => entry.name === 'discover_restaurants');
     const uri = tool?._meta?.ui?.resourceUri || tool?._meta?.['openai/outputTemplate'];
@@ -103,7 +161,13 @@ export async function runTokConnectSmoke({ fetchImpl = fetch } = {}) {
     passed: checks.every((entry) => entry.status === 'passed'),
     checks,
     toolCount: tools.length,
-    notValidated: ['ChatGPT OAuth consent and refresh', 'Authenticated widget interactions', 'Reservation or order persistence and idempotency', 'Stripe Test checkout and signed webhook reconciliation'],
+    marketing,
+    notValidated: [
+      'ChatGPT OAuth consent and refresh', 'Authenticated widget interactions',
+      'Reservation or order persistence and idempotency', 'Stripe Test checkout and signed webhook reconciliation',
+      ...(installedToolNames === undefined ? ['Marketing tools loaded by the ChatGPT host (installedToolNames not supplied)'] : []),
+      'Paid marketing generation, credit debit and stored image output',
+    ],
   };
 }
 

@@ -366,13 +366,24 @@ async function invokeEdge(req: Request, actor: RequestActor, body: JsonRecord) {
       return { statusCode, payload: result };
     }
   }
-  const response = await fetch(edgeUrl(capability, method, payload), {
-    method,
-    headers,
-    signal: AbortSignal.timeout(capabilityName === "restaurant.ai.image" ? 120_000 : capabilityName === "restaurant.ai.campaign_studio" ? 90_000 : 45_000),
-    ...(method === "POST" ? { body: JSON.stringify(payload) } : {}),
-  });
-  const text = (await response.text()).slice(0, MAX_RESPONSE_CHARS);
+  let response: Response;
+  let text: string;
+  try {
+    response = await fetch(edgeUrl(capability, method, payload), {
+      method,
+      headers,
+      signal: AbortSignal.timeout(capabilityName === "restaurant.ai.image" ? 120_000 : capabilityName === "restaurant.ai.campaign_studio" ? 90_000 : 45_000),
+      ...(method === "POST" ? { body: JSON.stringify(payload) } : {}),
+    });
+    text = (await response.text()).slice(0, MAX_RESPONSE_CHARS);
+  } catch (error) {
+    if (capabilityName === "restaurant.ai.image") {
+      // The native job may still finish. Keep the idempotency claim pending;
+      // neither a replay nor a transport failure may start another paid job.
+      throw new HttpError(503, "tok_marketing_visual_result_unconfirmed");
+    }
+    throw error;
+  }
   let downstream: unknown = text;
   try { downstream = text ? JSON.parse(text) : null; } catch { /* keep text */ }
   // A business rejection can be returned with HTTP 200 by older TOK handlers.
@@ -974,6 +985,7 @@ Deno.serve(async (req) => {
       const operationActor = actor;
       const invoke = mode === "role_operation" ? invokeTokRoleOperation : invokeTokCustomerOperation;
       result = await invoke(actor, body, {
+        marketingReferenceBucket: Deno.env.get("TOK_MARKETING_REFERENCE_BUCKET")?.trim() || "restaurant-images",
         authorizeMutation: () => assertProductionFlowAllowed(operationActor, "opération MCP réelle"),
         invokeEdge: (input) => invokeEdge(req, operationActor, input),
         invokeRpc: (input) => invokeRpc(operationActor, input),

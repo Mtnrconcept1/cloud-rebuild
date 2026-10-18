@@ -13,6 +13,11 @@ import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { OPENAI_API_KEY } from "../_shared/openai.ts";
 import { assertTokCreditSpendRecorded } from "../_shared/restaurant-credits.ts";
 import { fetchPublicUrl } from "../_shared/safe-public-fetch.ts";
+import {
+  MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY,
+  MARKETING_REFERENCE_MEDIA_TYPES,
+  isCurrentMarketingReferenceStorage,
+} from "../_shared/marketing-studio-references.ts";
 
 type ImageEnhanceResult = {
   title: string;
@@ -80,13 +85,6 @@ const REQUESTED_GALLERY_BUCKET = Deno.env.get("TOK_GALLERY_IMAGE_BUCKET")?.trim(
 const GALLERY_BUCKET = REQUESTED_GALLERY_BUCKET === "restaurant-images" ? REQUESTED_GALLERY_BUCKET : "restaurant-images";
 const TOK_REFERENCE_FOLDER = "/tok-reference-food-webp";
 const MARKETING_REFERENCE_LIMIT = 4;
-const MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY = [
-  "marketing_logo",
-  "marketing_business_card",
-  "marketing_menu",
-  "marketing_brand_visual",
-] as const;
-const MARKETING_REFERENCE_MEDIA_TYPES = [...MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY];
 const PHOTO_STYLE_REFERENCE_MEDIA_TYPES = [
   "photo",
   "photo_ai_tok",
@@ -96,7 +94,6 @@ const PHOTO_STYLE_REFERENCE_MEDIA_TYPES = [
   "marketing_menu",
   "marketing_brand_visual",
 ] as const;
-const MARKETING_REFERENCE_STORAGE_SEGMENT = "/marketing-assets/";
 const MARKETING_REFERENCE_BUCKET = Deno.env.get("TOK_MARKETING_REFERENCE_BUCKET")?.trim() || "restaurant-images";
 const SUPPORTED_SOURCE_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_GENERATION_SEED_LENGTH = 64;
@@ -371,13 +368,7 @@ function toPhotoStyleReferenceRow(raw: Record<string, unknown>): PhotoStyleRefer
 }
 
 function isCurrentMarketingStudioReference(row: MarketingReferenceRow, restaurantId: string) {
-  const canonicalPath = `${restaurantId}${MARKETING_REFERENCE_STORAGE_SEGMENT}`;
-  const legacyPath = `${MARKETING_REFERENCE_STORAGE_SEGMENT}${restaurantId}/`;
-
-  return Boolean(
-    (row.storage_bucket === MARKETING_REFERENCE_BUCKET && row.storage_path?.startsWith(canonicalPath)) ||
-      (row.storage_bucket === GALLERY_BUCKET && row.storage_path?.includes(legacyPath)),
-  );
+  return isCurrentMarketingReferenceStorage(row, restaurantId, MARKETING_REFERENCE_BUCKET);
 }
 
 function selectMarketingReferenceRows(rows: MarketingReferenceRow[]) {
@@ -1052,51 +1043,6 @@ function shouldFallbackFromMarketingReferenceError(error: unknown) {
   ].some((recoverableReason) => message.includes(recoverableReason));
 }
 
-function stripMarketingReferenceOnlyInstructions(raw: string) {
-  return raw
-    .split(/\r?\n+/)
-    .map((part) => part.trim())
-    .filter((part) => {
-      if (!part) return false;
-      const normalized = part
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-
-      return ![
-        "ressources actives",
-        "empreinte des ressources",
-        "direction artistique",
-        "visuels actifs",
-        "references actives",
-        "fichiers actifs",
-        "seules references visuelles",
-        "source d'identite visuelle",
-        "source d identite visuelle",
-      ].some((blockedInstruction) => normalized.includes(blockedInstruction));
-    })
-    .join("\n")
-    .slice(0, 3600);
-}
-
-function buildMarketingReferenceFallbackPrompt(input: {
-  prompt: string;
-  format: string;
-}) {
-  const textBrief = stripMarketingReferenceOnlyInstructions(input.prompt);
-
-  return [
-    "Créer un visuel marketing final pour le restaurateur a partir du brief courant.",
-    "Les visuels de reference n'ont pas pu etre utilises par le modele image apres les tentatives d'edition: continuer sans bloquer la generation.",
-    "Regle de securite identite: ne pas inventer de logo, marque, personnage, mascotte, typographie proprietaire ou palette proprietaire si ces elements ne sont pas explicitement decrits dans le brief texte.",
-    "Produire une composition premium neutre si l'identite visuelle n'est pas exploitable. Ne jamais reutiliser une identite, un asset ou une preference d'une ancienne generation.",
-    "Ne pas utiliser l'identite visuelle TOK, la mascotte TOK, une URL TOK ou une marque de plateforme sauf demande explicite du restaurateur.",
-    `Format demande: ${input.format}.`,
-    "Brief texte courant:",
-    textBrief || "Brief indisponible: produire une affiche restaurant premium neutre, lisible et sans marque inventee.",
-  ].join("\n\n").slice(0, 5000);
-}
-
 function normalizeBlockedSourceImageEditFailure(error: unknown) {
   if (isImageTimeoutError(error)) return new HttpError(503, "image_edit_timeout");
   if (!(error instanceof HttpError)) return new HttpError(502, "image_edit_transient_failure");
@@ -1579,7 +1525,7 @@ Deno.serve(async (req) => {
     let imageFallbackUsed = false;
     let imageFallbackReason: string | null = null;
     let sourceEditUsed = false;
-    const generationFallbackAllowed = !sourceImageUrl;
+    const generationFallbackAllowed = !sourceImageUrl && !marketingAssetMode;
     const imageOptions = generatedImageOptions;
     const baseFinalPrompt = marketingAssetMode
       ? [
@@ -1616,23 +1562,19 @@ Deno.serve(async (req) => {
     const finalPrompt = appendGenerationSeedToPrompt(baseFinalPrompt, activeGenerationSeed);
 
     let imageResponse: unknown;
-    if (marketingAssetMode && referenceImageUrls.length) {
-      const editResult = await callOpenAIImageEditWithReferencesAndRecovery({
-        prompt: finalPrompt,
-        imageUrls: referenceImageUrls,
-        n: variantCount,
-        options: imageOptions,
-        fallbackPrompt: appendGenerationSeedToPrompt(buildMarketingReferenceFallbackPrompt({
-          prompt,
-          format: format.label,
-        }), activeGenerationSeed),
-        allowGenerationFallback: generationFallbackAllowed,
-      });
-      imageResponse = editResult.response;
-      usedImageOptions = editResult.options;
-      imageEditRetryUsed = editResult.retryUsed;
-      imageFallbackUsed = editResult.fallbackUsed;
-      imageFallbackReason = editResult.fallbackReason;
+    if (marketingAssetMode) {
+      // One paid attempt with the selected identity references. A timeout must
+      // never trigger another generation or silently drop the restaurant brand.
+      if (!referenceImageUrls.length) throw new HttpError(400, "marketing_reference_required");
+      try {
+        imageResponse = await callOpenAIImageEditWithReferences(finalPrompt, referenceImageUrls, variantCount, imageOptions);
+      } catch (error) {
+        const failure = normalizeBlockedSourceImageEditFailure(error);
+        throw failure.message === "source_image_edit_required"
+          ? new HttpError(502, "image_reference_edit_required")
+          : failure;
+      }
+      usedImageOptions = imageOptions;
     } else if (sourceImageUrl && referenceImageUrls.length) {
       const editResult = await callOpenAIImageEditWithReferencesAndRecovery({
         prompt: finalPrompt,

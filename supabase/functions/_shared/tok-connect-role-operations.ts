@@ -2,10 +2,12 @@ import { TOK_SPECIAL_OFFER_TOOLS, TOK_SPECIAL_OFFER_NAMES, invokeTokSpecialOffer
 import { TOK_FLOORPLAN_OPERATION_TOOLS, TOK_FLOORPLAN_OPERATION_NAMES, invokeTokFloorplanOperation } from "./tok-connect-floorplan-operations.ts";
 import type { RequestActor } from "./auth.ts";
 import { TOK_SERVICE_SETTINGS_FIELDS, TOK_NEW_SERVICE_REQUIRED_FIELDS, prepareTokServiceSettings } from "./tok-connect-service-settings-operations.ts";
+import { MARKETING_REFERENCE_MEDIA_TYPES, marketingReferenceStorageFilter } from "./marketing-studio-references.ts";
 
 type RecordValue = Record<string, unknown>;
 type Result = { statusCode: number; payload: RecordValue };
 type Dependencies = {
+  marketingReferenceBucket?: string;
   authorizeMutation: () => Promise<void>;
   invokeEdge: (body: RecordValue) => Promise<Result>;
   invokeRpc: (body: RecordValue) => Promise<Result>;
@@ -179,7 +181,8 @@ export async function invokeTokRoleOperation(actor: RequestActor, body: RecordVa
       const items = await read(client.from("restaurant_media")
         .select("id,media_type,media_url,storage_bucket,storage_path,created_at")
         .eq("restaurant_id", id)
-        .in("media_type", ["marketing_logo", "marketing_business_card", "marketing_menu", "marketing_brand_visual"])
+        .in("media_type", MARKETING_REFERENCE_MEDIA_TYPES)
+        .or(marketingReferenceStorageFilter(id, deps.marketingReferenceBucket))
         .order("created_at", { ascending: false }).order("id")
         .range(offset, offset + limit - 1));
       return ok({ restaurant_id: id, items, limit, offset, studio_path: "/dashboard/photos" });
