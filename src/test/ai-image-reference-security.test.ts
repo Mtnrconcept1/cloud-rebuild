@@ -7,6 +7,12 @@ import {
   assertSafePublicUrl,
   fetchPublicUrl,
 } from "../../supabase/functions/_shared/safe-public-fetch";
+import { requestPinnedPublicHttp } from "../../supabase/functions/_shared/pinned-public-http";
+
+vi.mock("../../supabase/functions/_shared/pinned-public-http", async (importOriginal) => ({
+  ...await importOriginal<typeof import("../../supabase/functions/_shared/pinned-public-http")>(),
+  requestPinnedPublicHttp: vi.fn(),
+}));
 
 const root = process.cwd();
 
@@ -21,14 +27,18 @@ describe("TOK AI image reference security", () => {
     const helper = readProjectFile("supabase/functions/_shared/safe-public-fetch.ts");
     const imageFunction = readProjectFile("supabase/functions/ai-image-enhance/index.ts");
 
-    expect(helper).toContain("Deno.resolveDns");
-    expect(helper).toContain("unsafe_or_private_host");
-    expect(helper).toContain('redirect: "manual"');
+    const validator = readProjectFile("supabase/functions/_shared/public-url-validation.ts");
+    const transport = readProjectFile("supabase/functions/_shared/pinned-public-http.ts");
+    expect(validator).toContain("Deno.resolveDns");
+    expect(validator).toContain("unsafe_or_private_host");
+    expect(helper).toContain("requestPinnedPublicHttp(target");
     expect(helper).toContain("maxRedirects");
-    expect(helper).toContain('host === "localhost"');
-    expect(helper).toContain('host.endsWith(".local")');
-    expect(helper).toContain('host.endsWith(".internal")');
-    expect(helper).toContain('normalized.startsWith("::ffff:")');
+    expect(validator).toContain('host === "localhost"');
+    expect(validator).toContain('host.endsWith(".local")');
+    expect(validator).toContain('host.endsWith(".internal")');
+    expect(validator).toContain("groups[5] === 0xffff");
+    expect(transport).toContain("startTls");
+    expect(transport).not.toContain("lookup:");
     expect(helper).not.toContain("dnsSafetyCache");
 
     expect(imageFunction).toContain('from "../_shared/safe-public-fetch.ts"');
@@ -42,16 +52,16 @@ describe("TOK AI image reference security", () => {
     await expect(assertSafePublicUrl("http://[::1]/image.png")).rejects.toThrow("unsafe_or_private_host");
     await expect(assertSafePublicUrl("http://[::ffff:7f00:1]/image.png")).rejects.toThrow("unsafe_or_private_host");
 
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response(null, {
+    const fetchMock = vi.mocked(requestPinnedPublicHttp).mockResolvedValueOnce(new Response(null, {
       status: 302,
       headers: { location: "http://127.0.0.1/internal-image.png" },
     }));
 
     try {
-      await expect(fetchPublicUrl("https://93.184.216.34/image.png")).rejects.toThrow("unsafe_or_private_host");
+      await expect(fetchPublicUrl("http://93.184.216.34/image.png")).rejects.toThrow("unsafe_or_private_host");
       expect(fetchMock).toHaveBeenCalledTimes(1);
     } finally {
-      fetchMock.mockRestore();
+      fetchMock.mockReset();
     }
   });
 

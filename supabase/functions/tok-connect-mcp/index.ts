@@ -91,8 +91,8 @@ const TOK_CONNECT_PUBLIC_ORIGIN = (Deno.env.get("TOK_CONNECT_PUBLIC_ORIGIN") || 
   .replace(/\/$/, "");
 const TOK_CONNECT_MCP_RESOURCE = `${TOK_CONNECT_PUBLIC_ORIGIN}/mcp`;
 const TOK_CONNECT_RESOURCE_METADATA_URL = `${TOK_CONNECT_PUBLIC_ORIGIN}/.well-known/oauth-protected-resource`;
-const TOK_CONNECT_AUTHORIZATION_SERVER = `https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1`;
-const TOK_CONNECT_OIDC_SCOPES = ["openid", "email", "profile"];
+const TOK_CONNECT_AUTHORIZATION_SERVER = "https://www.thetok.ch/oauth";
+const TOK_CONNECT_OAUTH_SCOPES = ["tok"];
 
 const ACTION_WINDOW_HTML = `<!doctype html>
 <html lang="fr">
@@ -1902,8 +1902,19 @@ function hasBearerToken(req: Request) {
   return /^Bearer\s+\S+/i.test(req.headers.get("Authorization") || "");
 }
 
-async function authorizeMcp(req: Request, requiredScopes: string[] = []) {
-  const context = await authenticateTokConnectToken(req, requiredScopes);
+type McpAuditContext = {
+  context: TokConnectTokenContext | null;
+  route: string | null;
+  scopes: string[];
+  restaurantId: string | null;
+};
+
+async function authorizeMcpRequest(req: Request, requiredScopes: string[], audit: McpAuditContext) {
+  audit.scopes = requiredScopes;
+  const context = await authenticateTokConnectToken(req, requiredScopes, {
+    onAuthenticated(value) { audit.context = value; },
+  });
+  audit.context = context;
   await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect");
   await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect-mcp");
   const limiter = createRateLimiter(context.adminClient, "tok-connect-mcp");
@@ -1916,7 +1927,7 @@ async function authorizeMcp(req: Request, requiredScopes: string[] = []) {
 
 function toolDefinition(tool: TokConnectMcpTool) {
   const securitySchemes = tool.requiredScopes.length > 0
-    ? [{ type: "oauth2", scopes: TOK_CONNECT_OIDC_SCOPES }]
+    ? [{ type: "oauth2", scopes: TOK_CONNECT_OAUTH_SCOPES }]
     : [{ type: "noauth" }];
   const toolMeta = tool._meta || {};
   const toolUiMeta = toolMeta.ui && typeof toolMeta.ui === "object" && !Array.isArray(toolMeta.ui)
@@ -2584,6 +2595,7 @@ async function callTool(
     }
 
     case "build_autopilot_plan": {
+      await assertTokConnectRestaurantGrant(context, restaurantId, "autopilot:plan", { requireMcp: true });
       await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect-autopilot");
       await assertTokConnectRestaurantGrant(context, restaurantId, "campaigns:preview", {
         requireMcp: true,
@@ -2661,7 +2673,9 @@ async function callTool(
   }
 }
 
-async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandleResult> {
+async function handleMcp(req: Request, rpc: McpJsonRpcRequest, audit: McpAuditContext): Promise<McpHandleResult> {
+  audit.route = `MCP ${rpc.method}`;
+  const authorizeMcp = (request: Request, requiredScopes: string[] = []) => authorizeMcpRequest(request, requiredScopes, audit);
   switch (rpc.method) {
     case "initialize": {
       const context = hasBearerToken(req) ? await authorizeMcp(req) : null;
@@ -2700,9 +2714,12 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
 
     case "tools/call": {
       const toolName = String(rpc.params?.name || "");
+      audit.route = `MCP tools/call ${toolName}`;
       const tool = MCP_TOOLS.find((entry) => entry.name === toolName);
       if (!tool) throw new HttpError(404, "mcp_tool_not_found");
+      audit.scopes = tool.requiredScopes;
       const args = validateToolArguments(tool, rpc.params?.arguments || {});
+      audit.restaurantId = typeof args.restaurant_id === "string" ? args.restaurant_id : null;
       if (toolName === TOK_CONNECT_ACTION_WINDOW_TOOL.name) {
         return {
           payload: rpcResult(rpc.id, buildActionWindowResult(args)),
@@ -2730,7 +2747,7 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
       if (tool.requiredScopes.length > 0 && !hasBearerToken(req)) {
         const challenge = buildMcpBearerChallenge({
           resourceMetadataUrl: TOK_CONNECT_RESOURCE_METADATA_URL,
-          scopes: TOK_CONNECT_OIDC_SCOPES,
+          scopes: TOK_CONNECT_OAUTH_SCOPES,
           error: "invalid_token",
           errorDescription: "Connectez votre compte TOK pour utiliser cet outil.",
         });
@@ -2888,6 +2905,7 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
       let resourceText = JSON.stringify({ status: "available", mutation_allowed: false });
       if (uri.startsWith("tok://availability/")) {
         resourceRestaurantId = uri.replace("tok://availability/", "");
+        audit.restaurantId = resourceRestaurantId;
         scopes = ["availability:read"];
         context = await authorizeMcp(req, scopes);
         await assertTokConnectRestaurantGrant(
@@ -2898,6 +2916,7 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
         );
       } else if (uri.startsWith("tok://campaign-preview/")) {
         resourceRestaurantId = uri.replace("tok://campaign-preview/", "");
+        audit.restaurantId = resourceRestaurantId;
         scopes = ["campaigns:preview"];
         context = await authorizeMcp(req, scopes);
         await assertTokConnectRestaurantGrant(
@@ -2909,8 +2928,10 @@ async function handleMcp(req: Request, rpc: McpJsonRpcRequest): Promise<McpHandl
       } else if (uri.startsWith("tok://autopilot-runs/")) {
         const restaurantId = uri.replace("tok://autopilot-runs/", "");
         resourceRestaurantId = restaurantId;
+        audit.restaurantId = restaurantId;
         scopes = ["autopilot:plan", "analytics:read", "campaigns:preview"];
         context = await authorizeMcp(req, scopes);
+        await assertTokConnectRestaurantGrant(context, restaurantId, "autopilot:plan", { requireMcp: true });
         await assertTokConnectFeatureEnabled(context.adminClient, "tok-connect-autopilot");
         await assertTokConnectRestaurantGrant(
           context,
@@ -3010,7 +3031,7 @@ Deno.serve(async (req) => {
     return jsonResponse({
       resource: TOK_CONNECT_MCP_RESOURCE,
       authorization_servers: [TOK_CONNECT_AUTHORIZATION_SERVER],
-      scopes_supported: TOK_CONNECT_OIDC_SCOPES,
+      scopes_supported: TOK_CONNECT_OAUTH_SCOPES,
       bearer_methods_supported: ["header"],
       resource_documentation: `${TOK_CONNECT_PUBLIC_ORIGIN}/tok-connect/developer`,
     }, 200, mcpResponseHeaders(corsHeaders));
@@ -3020,6 +3041,7 @@ Deno.serve(async (req) => {
 
   const requestId = makeTokConnectRequestId();
   const startedAt = Date.now();
+  const audit: McpAuditContext = { context: null, route: null, scopes: [], restaurantId: null };
   let context: TokConnectTokenContext | null = null;
   let statusCode = 200;
   let errorCode: string | null = null;
@@ -3040,7 +3062,7 @@ Deno.serve(async (req) => {
       return mcpAcceptedResponse(corsHeaders);
     }
 
-    const result = await handleMcp(req, rpc);
+    const result = await handleMcp(req, rpc, audit);
     context = result.context;
     route = result.route;
     scopes = result.scopes;
@@ -3060,7 +3082,7 @@ Deno.serve(async (req) => {
     const challenge = isAuthError
       ? buildMcpBearerChallenge({
         resourceMetadataUrl: TOK_CONNECT_RESOURCE_METADATA_URL,
-        scopes: TOK_CONNECT_OIDC_SCOPES,
+        scopes: TOK_CONNECT_OAUTH_SCOPES,
         error: statusCode === 403 ? "insufficient_scope" : "invalid_token",
         errorDescription: errorCode,
       })
@@ -3084,14 +3106,14 @@ Deno.serve(async (req) => {
     );
   } finally {
     await recordTokConnectApiRequest({
-      context,
+      context: audit.context || context,
       request: req,
       requestId,
-      route,
+      route: audit.route || route,
       statusCode,
       startedAt,
-      scopes,
-      restaurantId,
+      scopes: audit.scopes.length ? audit.scopes : scopes,
+      restaurantId: audit.restaurantId || restaurantId,
       errorCode,
     });
   }

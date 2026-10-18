@@ -56,6 +56,19 @@ export function formatAiImageGenerationError(error: unknown) {
     return "Votre session a expiré. Reconnectez-vous puis relancez la génération.";
   }
 
+  if (message.includes("image_operation_pending")) {
+    return "Cette génération est en cours de traitement ou de vérification. Ses crédits restent réservés. Réessayez la même demande pour retrouver son état.";
+  }
+  if (message.includes("image_idempotency_conflict") || message.includes("image_idempotency_key_conflict") || message.includes("image_idempotency_key_reused")) {
+    return "Cette demande correspond déjà à une autre génération. Revenez au Studio et lancez une nouvelle demande.";
+  }
+  if (message.includes("image_intention_storage_unavailable") || message.includes("image_idempotency_key_required") || message.includes("image_idempotency_key_invalid")) {
+    return "La demande n’a pas pu être enregistrée avant la génération. Rechargez le Studio et vérifiez que le stockage du navigateur est autorisé.";
+  }
+  if (message === "image_generation_failed") {
+    return "La génération n’a pas abouti et sa réservation de crédits a été libérée. Vous pouvez lancer une nouvelle demande.";
+  }
+
   if (message.includes("ai_credits_exhausted")) {
     return "Votre solde de crédits TOK est insuffisant. Rechargez vos crédits ou attendez le prochain renouvellement de votre abonnement.";
   }

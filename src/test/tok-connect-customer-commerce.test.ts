@@ -89,8 +89,9 @@ describe("TOK Connect secured customer commerce contract", () => {
     expect(remote).toContain("PUBLIC_MCP_READ_ONLY_ERROR");
     expect(bridge).toContain("buildVerifiedOrderPricing");
     expect(bridge).toContain("get_restaurant_reservation_slot_availability");
-    expect(bridge).toContain('postCustomerTokFunction(req, "validate-order"');
-    expect(bridge).toContain('postCustomerTokFunction(req, "create-checkout"');
+    expect(bridge).toContain('postCustomerTokFunction(req, actor, "validate-order"');
+    expect(bridge).toContain('postCustomerTokFunction(req, actor, "create-checkout"');
+    expect(bridge).toContain('await tokOAuthEdgeFetch(actor, SUPABASE_URL + "/functions/v1/" + name, {');
     expect(bridge).toContain('checkout_group_id: paymentAttemptId');
     expect(bridge).toContain('return_url: fixedReturnUrl');
     expect(checkout).toContain("TOK_CONNECT_PRICE_CHANGED_REQUOTE_REQUIRED");

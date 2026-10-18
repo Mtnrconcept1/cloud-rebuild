@@ -63,7 +63,7 @@ La console MCP ne doit jamais exécuter directement :
 
 Ces actions doivent passer par les flux TOK existants, avec authentification, droits restaurant/admin, RLS, idempotence, journalisation et confirmation humaine.
 
-Sans OAuth Supabase natif, les outils retournent uniquement des données sandbox ou des plans de parcours. Le flux custom `client_credentials` est legacy B2B et ne constitue pas l'authentification ChatGPT.
+Sans jeton opaque du broker OAuth TOK et grant de délégation actif, les outils retournent uniquement des données sandbox ou des plans de parcours. Le flux custom `client_credentials` est legacy B2B et ne constitue pas l'authentification ChatGPT.
 
 ## Déploiement Supabase interne
 
@@ -91,9 +91,9 @@ Dans la configuration ChatGPT / MCP, utiliser uniquement:
 https://www.thetok.ch/mcp
 ```
 
-Activer le serveur OAuth 2.1 natif Supabase, la page `/oauth/consent`, DCR ou le client public pre-enregistre, puis verifier la callback exacte fournie par ChatGPT. Le serveur custom `tok-connect-oauth` en `client_credentials` reste reserve aux backends partenaires B2B.
+Déployer le broker OAuth TOK et la page `/oauth/consent` selon `SECURITY_HARDENING.md`, puis vérifier la callback exacte fournie par le client. Les JWT natifs Supabase ne sont plus des identifiants clients MCP. Le serveur custom `tok-connect-oauth` en `client_credentials` reste reserve aux backends partenaires B2B.
 
-Le contrat protocolaire courant est MCP `2025-11-25`, avec negociation des versions de compatibilite declarees. L'endpoint public doit aussi exposer `/.well-known/oauth-protected-resource` et pointer vers l'Authorization Server Supabase.
+Le contrat protocolaire courant est MCP `2025-11-25`, avec negociation des versions de compatibilite declarees. L'endpoint public doit aussi exposer `/.well-known/oauth-protected-resource` et pointer vers l'issuer `https://www.thetok.ch/oauth` (scope externe `tok`, PKCE S256).
 
 ## Validation
 

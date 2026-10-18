@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 import { TOK_ROLE_OPERATION_TOOLS } from "../../supabase/functions/_shared/tok-connect-role-operations.ts";
 import { TOK_CUSTOMER_OPERATION_TOOLS } from "../../supabase/functions/_shared/tok-connect-customer-operations.ts";
 import reviewedMutations from "../../scripts/contracts/tok-connect-public-mutations.json";
+import { readFileSync } from "node:fs";
 
 let handler: (request: Request) => Promise<Response>;
 const upstreamCalls: Array<{ url: string; body: Record<string, unknown> }> = [];
@@ -41,6 +42,33 @@ beforeEach(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 describe("public TOK actions through the actual HTTP router", () => {
+  it("advertises only the opaque TOK issuer and scope across discovery, challenges and plugin", async () => {
+    const response = await handler(new Request("https://www.thetok.ch/mcp?tok_connect_route=protected-resource"));
+    const resource = await response.json();
+    expect(resource).toMatchObject({ resource: "https://www.thetok.ch/mcp", authorization_servers: ["https://www.thetok.ch/oauth"], scopes_supported: ["tok"] });
+    const metadata = JSON.parse(readFileSync("public/.well-known/oauth-authorization-server/oauth", "utf8"));
+    expect(metadata).toMatchObject({ issuer: resource.authorization_servers[0], scopes_supported: ["tok"],
+      token_endpoint_auth_methods_supported: ["none"], code_challenge_methods_supported: ["S256"] });
+    for (const [key, suffix] of [["authorization_endpoint", "authorize"], ["token_endpoint", "token"], ["registration_endpoint", "register"]]) {
+      expect(metadata[key]).toBe(`${metadata.issuer}/${suffix}`);
+    }
+    const plugin = JSON.parse(readFileSync("plugins/tok-connect/mcp.json", "utf8"));
+    expect(plugin.mcpServers["tok-connect"].extensions["com.openai"].auth).toMatchObject({ baseScopes: ["tok"], oidcEnabled: false });
+    const challenge = await rpc("tools/call", { name: "tok_get_my_account", arguments: {} });
+    expect(challenge.body.result._meta["mcp/www_authenticate"][0]).toContain('scope="tok"');
+  });
+  it("routes OAuth to the broker before the frontend and prevents caching exchanges", () => {
+    const config = JSON.parse(readFileSync("vercel.json", "utf8"));
+    const fallback = config.rewrites.findIndex((entry: { source: string; destination: string }) => entry.source.includes("oauth") && entry.destination === "/index.html");
+    for (const suffix of ["register", "authorize", "token"]) {
+      const index = config.rewrites.findIndex((entry: { source: string }) => entry.source === `/oauth/${suffix}`);
+      expect(index).toBeGreaterThanOrEqual(0);
+      expect(index).toBeLessThan(fallback);
+      expect(config.rewrites[index].destination).toBe(`https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-broker/${suffix}`);
+    }
+    expect(config.headers.find((entry: { source: string }) => entry.source === "/oauth/:endpoint(register|authorize|token)").headers)
+      .toEqual(expect.arrayContaining([{ key: "Cache-Control", value: "no-store" }, { key: "Referrer-Policy", value: "no-referrer" }]));
+  });
   it("exposes targeted model actions and blocks generic backend mutations", async () => {
     const { body } = await rpc("tools/list");
     const tools = body.result.tools;

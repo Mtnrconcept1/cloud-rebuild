@@ -114,9 +114,10 @@ async function claim(actor: RequestActor, key: string, operation: string, hash: 
 
 async function complete(actor: RequestActor, key: string, response: JsonRecord, status: number) {
   if (!actor.userId) return;
-  await actor.adminClient.from(IDEMPOTENCY_TABLE).update({ response_body: response, status_code: status })
+  const { error } = await actor.adminClient.from(IDEMPOTENCY_TABLE).update({ response_body: response, status_code: status })
     .eq("user_id", actor.userId)
     .eq("idempotency_key", key);
+  if (error) throw new HttpError(500, "tok_connect_idempotency_completion_failed");
 }
 
 function applyFilters(query: any, filters: BridgeFilter[]) {
@@ -141,13 +142,15 @@ async function invokeRpc(actor: RequestActor, body: JsonRecord) {
   const args = isRecord(body.args) ? body.args : {};
   const hash = await sha256Base64Url(stableStringify({ rpc_name: rpcName, args }));
   const decision = await claim(actor, key, `commercial-rpc:${rpcName}`, hash);
-  if (decision.replay) return { ...decision.response, replayed: true };
+  if (decision.replay) return { ...decision.response, downstream_status: decision.status, replayed: true };
   if (!actor.userClient) throw new HttpError(401, "tok_connect_user_client_required");
   const { data, error } = await actor.userClient.rpc(rpcName, args);
+  const businessFailure = isRecord(data) && data.ok === false;
+  const status = error ? 400 : businessFailure ? 409 : 200;
   const result: JsonRecord = error
-    ? { ok: false, rpc_name: rpcName, error: { code: error.code, message: error.message }, replayed: false }
-    : { ok: true, rpc_name: rpcName, data, replayed: false };
-  await complete(actor, key, result, error ? 400 : 200);
+    ? { ok: false, rpc_name: rpcName, error: { code: error.code, message: error.message }, downstream_status: status, replayed: false }
+    : { ok: !businessFailure, rpc_name: rpcName, data, downstream_status: status, replayed: false };
+  await complete(actor, key, result, status);
   return result;
 }
 
@@ -157,15 +160,17 @@ async function provisionDemo(req: Request, actor: RequestActor, body: JsonRecord
   const payload = isRecord(body.payload) ? body.payload : { requested_project_ref: DEMO_PROJECT_REF };
   const hash = await sha256Base64Url(stableStringify({ demo_session: payload }));
   const decision = await claim(actor, key, "commercial-demo-session", hash);
-  if (decision.replay) return { ...decision.response, replayed: true };
+  if (decision.replay) return { ...decision.response, downstream_status: decision.status, replayed: true };
   const authorization = req.headers.get("authorization") || "";
   const headers = new Headers({ authorization, "content-type": "application/json", accept: "application/json" });
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
   if (anonKey) headers.set("apikey", anonKey);
   const response = await fetch(`${SUPABASE_URL}/functions/v1/${DEMO_SESSION_FUNCTION}`, { method: "POST", headers, body: JSON.stringify(payload) });
   const data = await response.json().catch(() => ({ error: "invalid_downstream_response" }));
-  const result: JsonRecord = { ok: response.ok, downstream_status: response.status, data, replayed: false };
-  await complete(actor, key, result, response.status);
+  const ok = response.ok && !(isRecord(data) && data.ok === false);
+  const status = ok ? response.status : response.ok ? 409 : response.status;
+  const result: JsonRecord = { ok, downstream_status: status, data, replayed: false };
+  await complete(actor, key, result, status);
   return result;
 }
 
@@ -205,8 +210,12 @@ Deno.serve(async (req) => {
     else if (action === "read") result = await readTable(actor, body);
     else if (action === "demo_session") result = await provisionDemo(req, actor, body);
     else throw new HttpError(400, "tok_connect_commercial_action_invalid");
-    await writeAuditLog({ adminClient: actor.adminClient, functionName: FUNCTION_NAME, action, actor, request: req, status: "success" });
-    return jsonResponse(result, 200, corsHeaders);
+    const failed = result.ok === false;
+    const downstream = Number(result.downstream_status);
+    const status = failed ? (Number.isInteger(downstream) && downstream >= 400 && downstream <= 599 ? downstream : 409) : 200;
+    await writeAuditLog({ adminClient: actor.adminClient, functionName: FUNCTION_NAME, action, actor, request: req,
+      status: failed ? "failure" : "success", ...(failed ? { errorMessage: "tok_connect_commercial_action_failed" } : {}) });
+    return jsonResponse(result, status, corsHeaders);
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "tok_connect_commercial_bridge_error";

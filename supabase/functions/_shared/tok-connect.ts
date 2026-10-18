@@ -1,3 +1,5 @@
+import { isUnsafePublicHostname } from "./public-url-validation.ts";
+
 export type TokConnectScope =
   | "restaurants:read"
   | "availability:read"
@@ -426,25 +428,7 @@ function normalizeTokConnectHostname(hostname: string) {
 }
 
 export function isTokConnectPrivateWebhookHostname(hostname: string) {
-  const normalized = normalizeTokConnectHostname(hostname);
-  if (!normalized) return true;
-  if (normalized === "localhost" || normalized.endsWith(".localhost")) return true;
-  if (normalized === "::1" || normalized.startsWith("fc") || normalized.startsWith("fd") || normalized.startsWith("fe80")) {
-    return true;
-  }
-
-  const ipv4 = normalized.split(".");
-  if (ipv4.length === 4 && ipv4.every((part) => /^\d+$/.test(part))) {
-    const [a, b] = ipv4.map((part) => Number(part));
-    if (a === 0 || a === 10 || a === 127) return true;
-    if (a === 169 && b === 254) return true;
-    if (a === 172 && b >= 16 && b <= 31) return true;
-    if (a === 192 && b === 168) return true;
-    if (a === 100 && b >= 64 && b <= 127) return true;
-    if (a >= 224) return true;
-  }
-
-  return false;
+  return isUnsafePublicHostname(hostname);
 }
 
 export function isSafeTokConnectWebhookUrl(
@@ -453,6 +437,7 @@ export function isSafeTokConnectWebhookUrl(
 ) {
   try {
     const parsed = new URL(value);
+    if (parsed.username || parsed.password || parsed.hash) return false;
     const hostname = normalizeTokConnectHostname(parsed.hostname);
     const isPrivateHost = isTokConnectPrivateWebhookHostname(hostname);
 

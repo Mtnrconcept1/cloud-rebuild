@@ -1,4 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { registerTokOAuthActor, tokOAuthUserFetch, type TokOAuthActorInfo } from "./tok-connect-oauth.ts";
+import { resolveTokConnectBrokerAccess, TokBrokerError } from "./tok-connect-broker.ts";
 
 export type EdgeSupabaseClient = ReturnType<typeof createClient<any>>;
 
@@ -52,6 +54,7 @@ export type RequestActor = {
   isServiceRole: boolean;
   accountType?: string | null;
   authMode: "user_jwt" | "service_role" | "scheduler_secret";
+  tokConnectOAuth?: TokOAuthActorInfo;
 };
 
 /**
@@ -193,7 +196,7 @@ export async function writeAuditLog(input: AuditLogInput) {
 
 export async function authenticateRequest(
   req: Request,
-  options: { allowServiceRole?: boolean; allowSchedulerSecret?: boolean } = {},
+  options: { allowServiceRole?: boolean; allowSchedulerSecret?: boolean; allowTokConnectOAuthBridge?: boolean } = {},
 ): Promise<RequestActor> {
   const authHeader = req.headers.get("Authorization");
   const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
@@ -243,7 +246,7 @@ export async function authenticateRequest(
     throw new HttpError(401, "Unauthorized");
   }
 
-  const token = authHeader.slice("Bearer ".length).trim();
+  let token = authHeader.slice("Bearer ".length).trim();
 
   if (
     options.allowServiceRole === true &&
@@ -261,13 +264,23 @@ export async function authenticateRequest(
     };
   }
 
+  let managedBrokerToken = false;
+  if (token.startsWith("tok_oa_")) {
+    if (!options.allowTokConnectOAuthBridge || new URL(req.url).pathname.replace(/^\/functions\/v1/, "") !== "/tok-connect-app-bridge") {
+      throw new HttpError(403, "tok_connect_native_access_forbidden");
+    }
+    try { token = (await resolveTokConnectBrokerAccess(adminClient, token)).accessToken; }
+    catch (error) { throw new HttpError(error instanceof TokBrokerError ? error.status : 401, "tok_connect_token_invalid"); }
+    managedBrokerToken = true;
+  }
+
   const userClient = createClient(
     getEnv("SUPABASE_URL"),
     getEnv("SUPABASE_ANON_KEY"),
     {
       global: {
         headers: {
-          Authorization: authHeader,
+          Authorization: `Bearer ${token}`,
         },
       },
       auth: {
@@ -294,7 +307,7 @@ export async function authenticateRequest(
     throw new HttpError(500, roleError.message);
   }
 
-  const roles = [...new Set(
+  const roles = [...new Set<string>(
     (roleRows || [])
       .map((row: { role: string }) => normalizeRole(row.role))
       .filter(Boolean),
@@ -310,6 +323,12 @@ export async function authenticateRequest(
     accountType: normalizeRole(userData.user.app_metadata?.account_type) || null,
     authMode: "user_jwt",
   };
+  if (await registerTokOAuthActor(actor, req, token, managedBrokerToken)) {
+    actor.userClient = createClient(getEnv("SUPABASE_URL"), getEnv("SUPABASE_ANON_KEY"), {
+      global: { headers: { Authorization: `Bearer ${token}` }, fetch: tokOAuthUserFetch(actor, getEnv("SUPABASE_URL")) },
+      auth: { persistSession: false, autoRefreshToken: false },
+    }) as EdgeSupabaseClient;
+  }
   await assertLaunchRequestAllowed(actor, req);
   return actor;
 }

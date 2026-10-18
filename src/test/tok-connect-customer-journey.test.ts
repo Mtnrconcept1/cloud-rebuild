@@ -124,7 +124,8 @@ describe("TOK Connect customer MCP security", () => {
   });
 
   it("enforces the user identity, existing business guarantee and ownership rather than partner UUIDs", () => {
-    expect(bridge).toContain("authenticateRequest(req, { allowServiceRole: false })");
+    expect(bridge).toContain("authenticateRequest(req, { allowServiceRole: false, allowTokConnectOAuthBridge: true })");
+    expect(bridge).toContain("await authorizeTokOAuthBridge(actor, body);");
     expect(bridge).toContain('functionName: "create-reservation"');
     expect(bridge).toContain('"reservations.classic.quote":');
     expect(bridge).toContain('if (name === "cancel_reservation_by_customer")');

@@ -243,9 +243,11 @@ describe("restaurant account and billing dashboard", () => {
     expect(page).toContain("included_allowance");
     expect(page).toContain("topup_allowance");
     expect(page).toContain("topup_balance");
-    expect(imageFunction).toContain("requireTokCreditBalance");
-    expect(imageFunction).toContain("get_restaurant_credit_usage");
-    expect(imageFunction).toContain('throw new HttpError(402, "ai_credits_exhausted")');
+    expect(imageFunction).toContain("AiImageOperation.claim(actor.adminClient");
+    expect(read("supabase/migrations/20261018141000_ai_image_credit_reservations.sql"))
+      .toContain("public.tok_credit_balance_from_usage(public.get_restaurant_credit_usage(p_restaurant_id))");
+    expect(read("supabase/functions/_shared/ai-image-operation.ts"))
+      .toContain('new ImageOperationError(402, "tok_credits_exhausted")');
   });
 
   it("grants commercial demo restaurants an internal unlimited AI credit balance", () => {

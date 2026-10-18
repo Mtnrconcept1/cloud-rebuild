@@ -6,7 +6,7 @@
       "url": "https://www.thetok.ch/mcp",
       "extensions": {
         "com.openai": {
-          "auth": { "type": "oauth", "client": { "mode": "dcr" }, "baseScopes": ["openid", "email", "profile"] }
+          "auth": { "type": "oauth", "client": { "mode": "dcr" }, "baseScopes": ["tok"], "oidcEnabled": false }
         }
       }
     }

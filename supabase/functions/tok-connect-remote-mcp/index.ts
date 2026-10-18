@@ -19,13 +19,13 @@ const SUPABASE_URL = (Deno.env.get("SUPABASE_URL") || "https://wwcrtyoueexyxkkik
 const UPSTREAM_MCP_URL = `${SUPABASE_URL}/functions/v1/tok-connect-chatgpt`;
 const APP_BRIDGE_URL = `${SUPABASE_URL}/functions/v1/tok-connect-app-bridge`;
 const COMMERCIAL_BRIDGE_URL = `${SUPABASE_URL}/functions/v1/tok-connect-commercial-bridge`;
-const AUTHORIZATION_SERVER = `${SUPABASE_URL}/auth/v1`;
+const AUTHORIZATION_SERVER = "https://www.thetok.ch/oauth";
 const RESOURCE_METADATA_URL = `${PUBLIC_ORIGIN}/.well-known/oauth-protected-resource`;
-const OIDC_SCOPES = ["openid", "email", "profile"];
+const OAUTH_SCOPES = ["tok"];
 const MODERN_MCP_PROTOCOL_VERSION = "2026-07-28";
 const INTERNAL_MCP_PROTOCOL_VERSION = "2025-11-25";
 const CLAUDE_ORIGIN = "https://claude.ai";
-const OAUTH_SECURITY = [{ type: "oauth2", scopes: OIDC_SCOPES }];
+const OAUTH_SECURITY = [{ type: "oauth2", scopes: OAUTH_SCOPES }];
 const REMOTE_SERVER_INFO = { name: "TOK Connect Remote MCP", version: "6.1.0" } as const;
 const REMOTE_INSTRUCTIONS = "TOK Connect operates the authenticated customer's and restaurant operator's TOK account through targeted tools. For restaurant discovery, call discover_restaurants with the user's request verbatim; its widget shows ranked clickable cards. To reserve a table, resolve the restaurant, then call prepare_customer_reservation with the requested local date, time and exact party_size. Ask for missing information or an ambiguous restaurant; never invent a time or guest count. The preparation opens the booking widget and checks availability. An explicit request to book a fully specified table authorizes tok_book_table; otherwise show the summary and ask the user. Read the guarantee quote and obtain explicit acceptance of any card guarantee first. Keep the same idempotency_key and identical arguments for retries of the same intent, including after OAuth reconnection. If the outcome is uncertain, read the customer's reservations and reconcile the reference; never generate a new key to bypass an in-progress operation. A created pending reservation is a request awaiting the restaurant, not an accepted booking. Report the actual returned status, reference and any payment requirement; a checkout URL is never proof of payment or confirmation. Cancellation also requires the user's explicit request. Restaurant operations require an owned restaurant selected from tok_list_my_restaurants; never infer ownership from a user-supplied role. All actions use the user's JWT, native TOK business services, ownership checks and audit. For restaurant marketing, first read tok_list_restaurant_marketing_references for the owned restaurant and get_tok_credit_balance. Pass the selected reference_media_ids to generation; if none exist, request references in the native Studio. Read tok_list_restaurant_marketing_assets to retrieve stored images. Never invent an image URL or regenerate with a new key after a timeout. Then use tok_generate_restaurant_campaign_draft to create a native unlaunched Studio draft, and tok_generate_restaurant_marketing_visual for one native gallery visual; these may consume TOK credits and need explicit confirmation, while budgets default to zero and publishing stays protected. To add a menu dish with a photo, first call tok_create_restaurant_menu_item, then tok_generate_restaurant_dish_photo for its returned menu_item_id, show the generated image, and only after user approval use tok_attach_restaurant_dish_photo with the returned assetId. The commercial role remains isolated behind its guarded backend and is unavailable through the public MCP. Generic CRUD, arbitrary RPCs, admin, service-role, scheduler and webhook operations remain unavailable. Host authentication, confirmation and payment controls still apply.";
 const MODERN_CACHEABLE_METHODS = new Set([
@@ -590,7 +590,7 @@ async function resolvePublicReadOnlyToolNames(req: Request) {
 }
 
 function authToolResult(message = "Connexion TOK requise pour cette action.") {
-  const challenge = `Bearer resource_metadata="${RESOURCE_METADATA_URL}", scope="${OIDC_SCOPES.join(" ")}", error="invalid_token", error_description="Sign in to TOK to continue"`;
+  const challenge = `Bearer resource_metadata="${RESOURCE_METADATA_URL}", scope="${OAUTH_SCOPES.join(" ")}", error="invalid_token", error_description="Sign in to TOK to continue"`;
   return { content: [{ type: "text", text: message }], isError: true, _meta: { "mcp/www_authenticate": [challenge] } };
 }
 
@@ -753,7 +753,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       resource: `${PUBLIC_ORIGIN}/mcp`,
       authorization_servers: [AUTHORIZATION_SERVER],
-      scopes_supported: OIDC_SCOPES,
+      scopes_supported: OAUTH_SCOPES,
       bearer_methods_supported: ["header"],
       resource_documentation: `${PUBLIC_ORIGIN}/tok-connect/developer`,
       mcp_protocol_versions_supported: [MODERN_MCP_PROTOCOL_VERSION, "2025-11-25", "2025-06-18", "2025-03-26"],

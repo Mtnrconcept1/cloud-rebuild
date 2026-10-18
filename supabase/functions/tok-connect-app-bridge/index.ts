@@ -9,6 +9,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight, isRequestOriginAllowed } from "../_shared/cors.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
+import { authorizeTokOAuthBridge, tokOAuthEdgeFetch } from "../_shared/tok-connect-oauth.ts";
 import { invokeTokRoleOperation, TokRoleOperationError, TOK_ROLE_OPERATION_COVERAGE } from "../_shared/tok-connect-role-operations.ts";
 import { invokeTokCustomerOperation, TokCustomerOperationError, TOK_CUSTOMER_OPERATION_COVERAGE } from "../_shared/tok-connect-customer-operations.ts";
 import { sha256Base64Url } from "../_shared/tok-connect.ts";
@@ -369,7 +370,7 @@ async function invokeEdge(req: Request, actor: RequestActor, body: JsonRecord) {
   let response: Response;
   let text: string;
   try {
-    response = await fetch(edgeUrl(capability, method, payload), {
+    response = await tokOAuthEdgeFetch(actor, edgeUrl(capability, method, payload), {
       method,
       headers,
       signal: AbortSignal.timeout(capabilityName === "restaurant.ai.image" ? 120_000 : capabilityName === "restaurant.ai.campaign_studio" ? 90_000 : 45_000),
@@ -544,7 +545,7 @@ async function invokeData(actor: RequestActor, body: JsonRecord) {
  * service preferences arrive from ChatGPT. All prices/discounts and capacity
  * are checked by TOK. Stripe never receives totals computed in the widget.
  */
-async function postCustomerTokFunction(req: Request, name: string, payload: JsonRecord) {
+async function postCustomerTokFunction(req: Request, actor: RequestActor, name: string, payload: JsonRecord) {
   const authorization = req.headers.get("authorization") || "";
   if (!/^Bearer\s+\S+$/i.test(authorization)) throw new HttpError(401, "tok_connect_login_required");
   const headers = new Headers({
@@ -552,7 +553,7 @@ async function postCustomerTokFunction(req: Request, name: string, payload: Json
   });
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
   if (anonKey) headers.set("apikey", anonKey);
-  const response = await fetch(SUPABASE_URL + "/functions/v1/" + name, {
+  const response = await tokOAuthEdgeFetch(actor, SUPABASE_URL + "/functions/v1/" + name, {
     method: "POST", headers, body: JSON.stringify(payload), signal: AbortSignal.timeout(45_000),
   });
   const data = await response.json().catch(() => null) as JsonRecord | null;
@@ -736,7 +737,7 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
       if (body.idempotency_key !== "tok-cancel:" + id) {
         throw new HttpError(400, "tok_cart_cancel_idempotency_invalid");
       }
-      const outcome = await postCustomerTokFunction(req, "cancel-payment-attempt", {
+      const outcome = await postCustomerTokFunction(req, actor, "cancel-payment-attempt", {
         payment_attempt_id: id, reason: "customer_cancelled_tok_connect_widget",
       });
       const fullyCancelled = outcome.cancelled === true && outcome.state === "cancelled";
@@ -752,7 +753,7 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
     if (rejected?.response_body?.retry_safe === true) {
       return { statusCode: 200, payload: { ok: true, state: "rejected", retry_safe: true, paid: false, checkout_url: null } };
     }
-    const status = await postCustomerTokFunction(req, "payment-attempt-status", {
+    const status = await postCustomerTokFunction(req, actor, "payment-attempt-status", {
       payment_attempt_id: id,
     });
     const url = safeTokCommerceCheckoutUrl(status.url);
@@ -822,7 +823,7 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
     metadata: orderMetadata,
   };
   if (input.journey !== "zero-attente") {
-    const preview = await postCustomerTokFunction(req, "validate-order", {
+    const preview = await postCustomerTokFunction(req, actor, "validate-order", {
       ...orderPayload, preview_only: true,
     });
     if (Math.round(Number(preview.verified_total) * 100) !== customer_quote.total_cents) {
@@ -866,7 +867,7 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
   mutationStarted = true;
   let preparedOrderId: string | null = null;
   if (input.journey !== "zero-attente") {
-    const prepared = await postCustomerTokFunction(req, "validate-order", {
+    const prepared = await postCustomerTokFunction(req, actor, "validate-order", {
       ...orderPayload,
       checkout_id: paymentAttemptId,
       metadata: {
@@ -887,7 +888,7 @@ async function invokeCustomerCommerce(req: Request, actor: RequestActor, body: J
   const fixedReturnUrl = input.journey === "zero-attente"
     ? "https://www.thetok.ch/zero-attente"
     : "https://www.thetok.ch/commande/confirmation";
-  const downstream = await postCustomerTokFunction(req, "create-checkout", {
+  const downstream = await postCustomerTokFunction(req, actor, "create-checkout", {
     payment_attempt_id: paymentAttemptId,
     checkout_kind: kind,
     payment_method: input.payment_method,
@@ -952,11 +953,12 @@ Deno.serve(async (req) => {
   let body: JsonRecord = {};
   let auditAction = "invoke";
   try {
-    actor = await authenticateRequest(req, { allowServiceRole: false });
+    actor = await authenticateRequest(req, { allowServiceRole: false, allowTokConnectOAuthBridge: true });
     if (!actor.userId) throw new HttpError(401, "tok_connect_user_required");
     const limiter = createRateLimiter(actor.adminClient, FUNCTION_NAME);
     await limiter.consume(`user:${actor.userId}`, { maxRequests: 180, windowSeconds: 60 });
     body = await req.json().catch(() => ({}));
+    await authorizeTokOAuthBridge(actor, body);
     const mode = String(body.mode || "") as BridgeMode;
 
     if (mode === "edge" && body.action === "list") {

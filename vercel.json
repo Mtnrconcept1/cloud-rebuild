@@ -605,9 +605,83 @@
           "value": "noindex, nofollow, nosnippet, noarchive"
         }
       ]
+    },
+    {
+      "source": "/.well-known/oauth-authorization-server/oauth",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/oauth/:endpoint(register|authorize|token)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "x-vercel-enable-rewrite-caching",
+          "value": "0"
+        }
+      ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/oauth/register",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.thetok.ch"
+        }
+      ],
+      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-broker/register"
+    },
+    {
+      "source": "/oauth/authorize",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.thetok.ch"
+        }
+      ],
+      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-broker/authorize"
+    },
+    {
+      "source": "/oauth/token",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.thetok.ch"
+        }
+      ],
+      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-broker/token"
+    },
+    {
+      "source": "/oauth/.well-known/oauth-authorization-server",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.thetok.ch"
+        }
+      ],
+      "destination": "https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/tok-connect-broker/metadata"
+    },
     {
       "source": "/mcp",
       "has": [

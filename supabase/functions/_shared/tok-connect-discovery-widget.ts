@@ -1899,16 +1899,7 @@ html[data-theme="dark"] .score{background:rgba(28,22,17,.94);color:#fbf4ea}
       ingest(detail.globals || detail);
     });
 
-    // Prévisualisation hors ChatGPT (page /tok-connect/mcp-widget).
-    window.addEventListener('message', function (event) {
-      var data = event && event.data;
-      if (!data || data.type !== 'tok_connect_preview') return;
-      ingest({ toolOutput: data.payload, theme: data.theme });
-    });
 
-    if (window.parent && window.parent !== window) {
-      try { window.parent.postMessage({ type: 'tok_connect_widget_ready' }, '*'); } catch (error) { /* iframe isolée */ }
-    }
   }
 
   bootstrap();

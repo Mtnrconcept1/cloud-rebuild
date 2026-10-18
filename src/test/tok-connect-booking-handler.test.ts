@@ -102,7 +102,7 @@ function harness(options: {
       : { ok: true, reservation_id: reservationId });
   });
   const dependencies = {
-    HttpError, fetch,
+    HttpError, fetch, tokOAuthEdgeFetch: (_actor: unknown, url: string, init: RequestInit) => fetch(url, init),
     Deno: { env: { get: () => "https://tok.test" }, serve: () => {} },
     requireUserRole: (actor: { roles: string[] }, roles: string[]) => {
       if (!actor.roles.some((role) => roles.includes(role))) throw new HttpError(403, "forbidden");

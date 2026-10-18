@@ -52,3 +52,22 @@ export function getPhotoProEquivalent(credits: unknown) {
 export function getMarketingFlyerEquivalent(credits: unknown) {
   return Math.floor(toNumber(credits) / TOK_MARKETING_FLYER_CREDITS);
 }
+
+/** Preserve ledger amounts; distinguish held credits from a delivered image. */
+export function getTokImageReservationDisplay(entry: {
+  source_table?: string; label?: string; description?: string | null; metadata?: Record<string, unknown> | null;
+}): { label: string; description: string } | null {
+  if (entry.source_table !== "ai_usage_logs") return null;
+  const metadata = entry.metadata || {};
+  const phase = metadata.billing_phase;
+  if (phase === "completed" || phase === "released") return null;
+  const action = metadata.action || entry.description;
+  const state = metadata.state || metadata.operation_state;
+  if (!(phase === "reserved" && metadata.image_operation_id)
+    && action !== "image_credit_reservation" && action !== "image_generation_reservation"
+    && !(["reserved", "provider_started", "indeterminate", "cleanup_pending"].includes(String(state)) && metadata.operation_id)) return null;
+  return {
+    label: "Crédits réservés pour une image",
+    description: "Le traitement ou sa vérification est en cours. Cette réservation ne confirme pas la livraison d’une image.",
+  };
+}

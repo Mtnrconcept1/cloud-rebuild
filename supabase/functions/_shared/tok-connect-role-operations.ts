@@ -156,6 +156,7 @@ export async function invokeTokRoleOperation(actor: RequestActor, body: RecordVa
   }
   async function ownRestaurant(id: string) {
     if (!actor.roles.includes("restaurateur")) return fail(403, "tok_connect_restaurateur_required");
+    if (actor.tokConnectOAuth && !actor.tokConnectOAuth.restaurantIds.includes(id)) return fail(403, "tok_connect_selected_restaurant_required");
     const row = await read(client.from("restaurants").select("id,tok_connect_mcp_enabled").eq("id", id).eq("owner_id", actor.userId).maybeSingle()) as RecordValue | null;
     if (!row) return fail(404, "tok_connect_owned_restaurant_not_found");
     if (row.tok_connect_mcp_enabled !== true) fail(403, "tok_connect_restaurant_mcp_disabled");
@@ -166,7 +167,9 @@ export async function invokeTokRoleOperation(actor: RequestActor, body: RecordVa
   }
   if (name === "tok_list_my_restaurants") {
     if (!actor.roles.includes("restaurateur")) return fail(403, "tok_connect_restaurateur_required");
-    return ok({ items: await read(client.from("restaurants").select("id,name,city,is_active,status").eq("owner_id", actor.userId).eq("tok_connect_mcp_enabled", true).order("id").range(offset, offset + limit - 1)), limit, offset });
+    let query = client.from("restaurants").select("id,name,city,is_active,status").eq("owner_id", actor.userId).eq("tok_connect_mcp_enabled", true);
+    if (actor.tokConnectOAuth) query = query.in("id", actor.tokConnectOAuth.restaurantIds);
+    return ok({ items: await read(query.order("id").range(offset, offset + limit - 1)), limit, offset });
   }
   if (name === "tok_list_restaurant_subscription_plans") {
     if (!actor.roles.includes("restaurateur")) return fail(403, "tok_connect_restaurateur_required");

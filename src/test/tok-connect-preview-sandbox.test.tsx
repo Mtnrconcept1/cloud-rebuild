@@ -18,10 +18,13 @@ describe('aperçu TOK Connect explicitement isolé', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Aucune réservation, commande ni paiement exécuté');
     expect(getSupabase).not.toHaveBeenCalled();
     const frame = screen.getByTitle('Module TOK Connect') as HTMLIFrameElement;
+    const channel = /var channel = "([0-9a-f-]+)"/.exec(frame.srcdoc)?.[1];
+    expect(channel).toBeTruthy();
     await act(async () => {
       window.dispatchEvent(new MessageEvent('message', {
         source: frame.contentWindow,
-        data: { type: 'tok_preview_call', id: 'test-detail', name: 'get_restaurant_details', args: { restaurant_id: 'sandbox-test' } },
+        origin: 'null',
+        data: { type: 'tok_preview_call', channel, id: 'test-detail', name: 'get_restaurant_details', args: { restaurant_id: 'sandbox-test' } },
       }));
     });
     await waitFor(() => expect(screen.getByText('get_restaurant_details · sandbox-test')).toBeInTheDocument());
@@ -30,7 +33,8 @@ describe('aperçu TOK Connect explicitement isolé', () => {
     await act(async () => {
       window.dispatchEvent(new MessageEvent('message', {
         source: frame.contentWindow,
-        data: { type: 'tok_preview_call', id: 'blocked-booking', name: 'tok_book_table', args: {} },
+        origin: 'null',
+        data: { type: 'tok_preview_call', channel, id: 'blocked-booking', name: 'tok_book_table', args: {} },
       }));
     });
     expect(reply).toHaveBeenCalledWith(expect.objectContaining({

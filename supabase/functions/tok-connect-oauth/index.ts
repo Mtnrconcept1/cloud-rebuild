@@ -9,7 +9,6 @@ import {
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import {
   assertTokConnectScopes,
-  buildTokConnectEnvelope,
   createTokConnectAccessToken,
   hashTokConnectSecret,
   makeTokConnectRequestId,
@@ -21,8 +20,6 @@ type OAuthBody = {
   grant_type?: string;
   client_id?: string;
   client_secret?: string;
-  code?: string;
-  redirect_uri?: string;
   scope?: string;
 };
 
@@ -48,16 +45,6 @@ type OAuthErrorPayload = {
   error: string;
   error_description: string;
 };
-
-function base64UrlEncode(input: string) {
-  return btoa(input).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-}
-
-function base64UrlDecode(input: string) {
-  const normalized = input.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
-  return atob(padded);
-}
 
 function decodeOAuthBasicComponent(value: string) {
   try {
@@ -103,57 +90,6 @@ function oauthErrorResponse(message: string, status: number, corsHeaders: Record
   return jsonResponse(payload, status, oauthHeaders(corsHeaders));
 }
 
-async function signCodePayload(payload: string) {
-  const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-  if (!secret) throw new HttpError(500, "oauth_signing_secret_missing");
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
-  return base64UrlEncode(String.fromCharCode(...new Uint8Array(signature)));
-}
-
-async function createAuthorizationCode(data: {
-  clientId: string;
-  redirectUri: string;
-  scope: string;
-}) {
-  const payload = base64UrlEncode(JSON.stringify({
-    client_id: data.clientId,
-    redirect_uri: data.redirectUri,
-    scope: data.scope,
-    exp: Math.floor(Date.now() / 1000) + 300,
-    nonce: crypto.randomUUID(),
-  }));
-  const signature = await signCodePayload(payload);
-  return `${payload}.${signature}`;
-}
-
-async function verifyAuthorizationCode(code: string) {
-  const [payload, signature] = code.split(".");
-  if (!payload || !signature) throw new HttpError(400, "invalid_authorization_code");
-  const expectedSignature = await signCodePayload(payload);
-  if (signature !== expectedSignature) throw new HttpError(400, "invalid_authorization_code");
-
-  const parsed = JSON.parse(base64UrlDecode(payload)) as {
-    client_id?: string;
-    redirect_uri?: string;
-    scope?: string;
-    exp?: number;
-  };
-  if (!parsed.client_id || !parsed.redirect_uri || !parsed.exp) {
-    throw new HttpError(400, "invalid_authorization_code");
-  }
-  if (parsed.exp < Math.floor(Date.now() / 1000)) {
-    throw new HttpError(400, "authorization_code_expired");
-  }
-  return parsed;
-}
-
 function readBasicClientCredentials(req: Request): Pick<OAuthBody, "client_id" | "client_secret"> {
   const authorization = req.headers.get("authorization") || "";
   if (!authorization.toLowerCase().startsWith("basic ")) return {};
@@ -181,8 +117,6 @@ async function readOAuthBody(req: Request): Promise<OAuthBody> {
       grant_type: form.get("grant_type") || undefined,
       client_id: form.get("client_id") || basicCredentials.client_id,
       client_secret: form.get("client_secret") || basicCredentials.client_secret,
-      code: form.get("code") || undefined,
-      redirect_uri: form.get("redirect_uri") || undefined,
       scope: form.get("scope") || undefined,
     };
   }
@@ -214,48 +148,13 @@ async function assertPartnerActive(adminClient: ReturnType<typeof createAdminCli
   if (!partner || partner.status !== "active") throw new HttpError(403, "partner_inactive");
 }
 
-async function handleAuthorizationRequest(req: Request, adminClient: ReturnType<typeof createAdminClient>) {
-  const url = new URL(req.url);
-  const responseType = url.searchParams.get("response_type");
-  const clientId = url.searchParams.get("client_id") || "";
-  const redirectUri = url.searchParams.get("redirect_uri") || "";
-  const state = url.searchParams.get("state") || "";
-  const scope = url.searchParams.get("scope") || "";
-
-  if (responseType !== "code") throw new HttpError(400, "response_type_code_required");
-  if (!clientId || !redirectUri) throw new HttpError(400, "client_id_and_redirect_uri_required");
-
-  const redirectUrl = new URL(redirectUri);
-  if (redirectUrl.protocol !== "https:" || redirectUrl.hostname !== "chatgpt.com") {
-    throw new HttpError(400, "redirect_uri_not_allowed");
-  }
-
-  const client = await getActiveClient(adminClient, clientId);
-  await assertPartnerActive(adminClient, client.partner_id);
-
-  const allowedScopes = client.allowed_scopes || [];
-  const requestedScopes = scope
-    .split(/\s+/)
-    .map((nextScope) => nextScope.trim())
-    .filter(Boolean);
-  const issuedScopes = requestedScopes.length > 0 ? requestedScopes : allowedScopes;
-  assertTokConnectScopes(allowedScopes, issuedScopes);
-
-  const code = await createAuthorizationCode({
-    clientId,
-    redirectUri,
-    scope: issuedScopes.join(" "),
-  });
-
-  redirectUrl.searchParams.set("code", code);
-  if (state) redirectUrl.searchParams.set("state", state);
-  return Response.redirect(redirectUrl.toString(), 302);
-}
-
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
   if (preflight) return preflight;
+
+  if (req.method === "GET") return oauthErrorResponse("interactive_oauth_moved_to_tok_broker", 410, corsHeaders);
+  if (req.method !== "POST") return oauthErrorResponse("method_not_allowed", 405, corsHeaders);
 
   const requestId = makeTokConnectRequestId();
   const adminClient = createAdminClient();
@@ -264,22 +163,9 @@ Deno.serve(async (req) => {
     await assertTokConnectFeatureEnabled(adminClient, "tok-connect");
     await assertTokConnectFeatureEnabled(adminClient, "tok-connect-api");
 
-    if (req.method === "GET") {
-      return await handleAuthorizationRequest(req, adminClient);
-    }
-    if (req.method !== "POST") throw new HttpError(405, "method_not_allowed");
-
     const body = await readOAuthBody(req);
-    if (body.grant_type !== "client_credentials" && body.grant_type !== "authorization_code") {
+    if (body.grant_type !== "client_credentials") {
       throw new HttpError(400, "unsupported_grant_type");
-    }
-
-    if (body.grant_type === "authorization_code") {
-      if (!body.code || !body.redirect_uri) throw new HttpError(400, "authorization_code_required");
-      const codePayload = await verifyAuthorizationCode(body.code);
-      if (codePayload.redirect_uri !== body.redirect_uri) throw new HttpError(400, "redirect_uri_mismatch");
-      body.client_id = body.client_id || codePayload.client_id;
-      body.scope = codePayload.scope || body.scope;
     }
 
     if (!body.client_id || !body.client_secret) {
@@ -353,17 +239,6 @@ Deno.serve(async (req) => {
       metadata: { request_id: requestId },
     });
 
-    if (req.method === "POST") {
-      return oauthErrorResponse(message, status, corsHeaders);
-    }
-
-    return jsonResponse(
-      buildTokConnectEnvelope({
-        requestId,
-        error: { code: message, message },
-      }),
-      status,
-      corsHeaders,
-    );
+    return oauthErrorResponse(message, status, corsHeaders);
   }
 });

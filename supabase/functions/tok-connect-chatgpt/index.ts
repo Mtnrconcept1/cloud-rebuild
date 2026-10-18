@@ -12,8 +12,8 @@ const FULL_APP_MCP = "tok-connect-full-app-mcp";
 const API_FUNCTION = "tok-connect-api";
 const ACTION_WINDOW_RESOURCE_URI = "ui://tok-connect/actions-window-v1.html";
 const RESOURCE_METADATA_URL = `${PUBLIC_ORIGIN}/.well-known/oauth-protected-resource`;
-const AUTHORIZATION_SERVER = "https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1";
-const OIDC_SCOPES = ["openid", "email", "profile"];
+const AUTHORIZATION_SERVER = "https://www.thetok.ch/oauth";
+const OAUTH_SCOPES = ["tok"];
 const MAX_BODY_BYTES = 1_000_000;
 
 const FULL_APP_TOOL_NAMES = new Set([
@@ -44,7 +44,7 @@ type InternalResponse = {
   text: string;
 };
 
-const OAUTH_SECURITY = [{ type: "oauth2", scopes: OIDC_SCOPES }];
+const OAUTH_SECURITY = [{ type: "oauth2", scopes: OAUTH_SCOPES }];
 const TOOL_UI_META = {
   ui: { resourceUri: ACTION_WINDOW_RESOURCE_URI, visibility: ["model", "app"] },
   "openai/outputTemplate": ACTION_WINDOW_RESOURCE_URI,
@@ -546,7 +546,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       resource: `${PUBLIC_ORIGIN}/mcp`,
       authorization_servers: [AUTHORIZATION_SERVER],
-      scopes_supported: OIDC_SCOPES,
+      scopes_supported: OAUTH_SCOPES,
       bearer_methods_supported: ["header"],
       resource_documentation: `${PUBLIC_ORIGIN}/tok-connect/developer`,
     }), { status: 200, headers: new Headers({ ...corsHeaders, "content-type": "application/json", "cache-control": "no-store", "mcp-protocol-version": "2025-11-25" }) });

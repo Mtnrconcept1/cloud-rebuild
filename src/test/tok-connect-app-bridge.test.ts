@@ -7,8 +7,13 @@ const migration = readFileSync("supabase/migrations/20260905022000_tok_connect_m
 const config = readFileSync("supabase/config.toml", "utf8");
 
 describe("TOK Connect authenticated application bridge", () => {
-  it("requires a real user JWT and never grants the bridge service-role identity", () => {
-    expect(bridge).toContain("authenticateRequest(req, { allowServiceRole: false })");
+  it("requires a verified user identity and never grants the bridge service-role identity", () => {
+    const authentication = bridge.indexOf("actor = await authenticateRequest(req, { allowServiceRole: false, allowTokConnectOAuthBridge: true });");
+    const delegation = bridge.indexOf("await authorizeTokOAuthBridge(actor, body);", authentication);
+    const firstDispatch = bridge.indexOf('if (mode === "edge" && body.action === "list")', delegation);
+    expect(authentication).toBeGreaterThan(0);
+    expect(delegation).toBeGreaterThan(authentication);
+    expect(firstDispatch).toBeGreaterThan(delegation);
     expect(bridge).toContain("if (!actor.userId)");
     expect(bridge).toContain("actor.userClient");
     expect(bridge).not.toContain('allowServiceRole: true');

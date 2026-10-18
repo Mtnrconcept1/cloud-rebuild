@@ -37,5 +37,5 @@ for attempt in $(seq 1 "$max_attempts"); do
   fi
 done
 
-echo "::warning title=Dependency audit temporarily unavailable::pnpm audit repeatedly received an unreadable gzip/JSON response from the npm registry. No vulnerability result was produced; lint, typecheck, tests and build will continue."
-exit 0
+echo "::error title=Dependency audit unavailable::pnpm audit repeatedly received an unreadable registry response. No vulnerability result was produced; the security gate must be retried."
+exit 1

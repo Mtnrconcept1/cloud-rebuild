@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { runTokConnectSmoke } from '../../scripts/tok-connect-smoke.mjs';
 
-const issuer = 'https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1';
+const issuer = 'https://www.thetok.ch/oauth';
 const uri = 'ui://tok-connect/test.html';
 const marketingReads = ['tok_list_restaurant_marketing_references', 'tok_list_restaurant_marketing_assets'];
 const marketingMutations = ['tok_generate_restaurant_marketing_visual', 'tok_generate_restaurant_campaign_draft', 'tok_generate_restaurant_dish_photo', 'tok_attach_restaurant_dish_photo'];
@@ -61,8 +61,8 @@ function fixture(options: {
     if (body?.method === 'tools/list' && options.catalogueFailure === 'network') throw new Error('secret-provider-response');
     if (body?.method === 'tools/list' && options.catalogueFailure === 'invalid') return Response.json({ result: { tools: {} } });
     let payload: unknown;
-    if (url.endsWith('oauth-protected-resource')) payload = { resource: 'https://www.thetok.ch/mcp', authorization_servers: [options.wrongIssuer ? 'https://untrusted.example' : issuer], scopes_supported: ['openid', 'email', 'profile'] };
-    else if (url.endsWith('openid-configuration')) payload = { issuer, authorization_endpoint: `${issuer}/oauth/authorize`, token_endpoint: `${issuer}/oauth/token`, registration_endpoint: `${issuer}/oauth/clients/register`, code_challenge_methods_supported: ['S256'] };
+    if (url.endsWith('oauth-protected-resource')) payload = { resource: 'https://www.thetok.ch/mcp', authorization_servers: [options.wrongIssuer ? 'https://untrusted.example' : issuer], scopes_supported: ['tok'] };
+    else if (url.endsWith('oauth-authorization-server/oauth')) payload = { issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, registration_endpoint: `${issuer}/register`, code_challenge_methods_supported: ['S256'] };
     else if (body.method === 'initialize') payload = { result: { protocolVersion: '2025-11-25', capabilities: { tools: {} } } };
     else if (body.method === 'tools/list') payload = options.rpcError ? { error: { code: -32603, message: 'secret-provider-response' } } : { result: { tools: [
       ...['discover_restaurants', 'get_restaurant_details', 'open_application_sandbox', 'tok_list_capabilities'].map((name) => ({ name, inputSchema: { type: 'object' }, annotations: { readOnlyHint: true }, _meta: { ui: { resourceUri: uri } } })),

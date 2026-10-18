@@ -1,0 +1,59 @@
+import { JSDOM } from "jsdom";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { TOK_DISCOVERY_WIDGET_HTML } from "../../supabase/functions/_shared/tok-connect-discovery-widget";
+import { buildTokConnectPreviewDocument } from "@/lib/tok-connect-preview";
+
+const origin = "https://www.thetok.ch";
+const channel = "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa";
+const windows: JSDOM[] = [];
+function execute(html: string) {
+  const dom = new JSDOM(html, { url: "https://widget.example", runScripts: "outside-only" });
+  windows.push(dom);
+  const parent = { postMessage: vi.fn() };
+  Object.defineProperty(dom.window, "parent", { value: parent });
+  Object.defineProperty(dom.window, "matchMedia", { value: () => ({ matches: false, addEventListener() {} }) });
+  for (const script of dom.window.document.querySelectorAll("script")) dom.window.eval(script.textContent || "");
+  return { dom, parent, api: (dom.window as unknown as { openai: Record<string, any> }).openai };
+}
+afterEach(() => { for (const dom of windows.splice(0)) dom.window.close(); });
+
+describe("widget host message boundaries", () => {
+  it("production ignores legacy preview messages and exposes no preview bridge", () => {
+    const { dom, parent } = execute(TOK_DISCOVERY_WIDGET_HTML);
+    const initial = dom.window.document.body.textContent;
+    dom.window.dispatchEvent(new dom.window.MessageEvent("message", {
+      source: parent as unknown as Window, origin: "https://untrusted.example", data: { type: "tok_connect_preview", payload: { forged: true } },
+    }));
+    expect(dom.window.document.body.textContent).toBe(initial);
+    expect(parent.postMessage).not.toHaveBeenCalled();
+    expect(TOK_DISCOVERY_WIDGET_HTML).not.toContain("tok_connect_preview");
+    expect(TOK_DISCOVERY_WIDGET_HTML).toContain("openai:set_globals");
+  });
+  it("preview requires the exact parent, origin and per-instance channel", () => {
+    const { dom, parent, api } = execute(buildTokConnectPreviewDocument(origin, channel));
+    const send = (from: object, eventOrigin: string, token: string) => dom.window.dispatchEvent(new dom.window.MessageEvent("message", {
+      source: from as Window, origin: eventOrigin, data: { type: "tok_connect_preview", channel: token, payload: { accepted: true } },
+    }));
+    send(parent, "https://untrusted.example", channel);
+    send({}, origin, channel);
+    send(parent, origin, "bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb");
+    expect(api.toolOutput).toBeNull();
+    send(parent, origin, channel);
+    expect(api.toolOutput).toEqual({ accepted: true });
+    expect(parent.postMessage).toHaveBeenCalledWith({ type: "tok_connect_widget_ready", channel }, origin);
+  });
+  it("preview tool replies cannot be spoofed by another frame or origin", async () => {
+    const { dom, parent, api } = execute(buildTokConnectPreviewDocument(origin, channel));
+    const result = api.callTool("get_restaurant_details", { restaurant_id: "synthetic" });
+    let settled = false;
+    void result.then(() => { settled = true; });
+    const data = { type: "tok_preview_result", id: "call-1", channel, result: { marker: "accepted" } };
+    for (const [source, eventOrigin] of [[{}, origin], [parent, "https://untrusted.example"]] as const) {
+      dom.window.dispatchEvent(new dom.window.MessageEvent("message", { source: source as Window, origin: eventOrigin, data }));
+    }
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    dom.window.dispatchEvent(new dom.window.MessageEvent("message", { source: parent as unknown as Window, origin, data }));
+    await expect(result).resolves.toEqual({ marker: "accepted" });
+  });
+});

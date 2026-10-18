@@ -3,6 +3,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import type { TokImageModel, TokImageOutputResolution } from "@/lib/ai/imagePricing";
 import { SUPABASE_URL } from "@/lib/env";
 import { fetchWithFreshAccessToken, invokeSupabaseFunction } from "@/lib/session";
+import { runImageGenerationIntention } from "@/lib/ai/imageGenerationIntention";
 import {
   generateCommercialDemoVisual,
   getCommercialDemoAiRuntime,
@@ -111,6 +112,7 @@ export type TokImageFormat = "landscape" | "square" | "portrait";
 
 export type TokImageGenerationRequest = {
   restaurantId: string;
+  idempotencyKey?: string;
   sourceImageUrl?: string | null;
   referenceImageUrls?: string[];
   referenceMediaIds?: string[];
@@ -503,19 +505,26 @@ export async function streamRestaurantAdvisor(request: RestaurantAdvisorStreamRe
   }
 }
 
-export function generateTokDishImage(request: TokImageGenerationRequest) {
+export async function generateTokDishImage(request: TokImageGenerationRequest) {
   const commercialDemoRuntime = getCommercialDemoAiRuntime();
   if (commercialDemoRuntime) {
     return generateCommercialDemoVisual(commercialDemoRuntime, request);
   }
-  return invokeTokAiFunction<TokImageGenerationResult>("ai-image-enhance", {
-    ...request,
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+  const userId = sessionData.session?.user.id;
+  if (!userId) throw new Error("session_required");
+  const { idempotencyKey, ...input } = request;
+  const body = {
+    ...input,
     assetType: request.assetType || "menu_visual",
     format: request.format || "landscape",
     outputResolution: request.outputResolution || "studio",
     variantCount: request.variantCount || 1,
     generateImage: request.generateImage !== false,
-  });
+  };
+  return runImageGenerationIntention(userId, body, (key) =>
+    invokeTokAiFunction<TokImageGenerationResult>("ai-image-enhance", { ...body, idempotency_key: key }), idempotencyKey);
 }
 
 export function runAccountingAgent(request: AccountingAgentRequest) {

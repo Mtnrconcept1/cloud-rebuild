@@ -1,13 +1,21 @@
 # Recette TOK Connect dans ChatGPT
 
-## Connexion vérifiée le 16 octobre 2026
+## Contrat de sécurité du 18 octobre 2026
+
+Le contrat cible est `https://www.thetok.ch/mcp`, issuer `https://www.thetok.ch/oauth`, scope `tok`, PKCE S256 et jetons opaques. Les métadonnées de l’issuer se trouvent à `/.well-known/oauth-authorization-server/oauth`. Les permissions métier et restaurants sont explicitement sélectionnés au consentement, puis contrôlés côté serveur.
+
+La recette doit couvrir le refus d’une permission absente, d’un autre restaurant, des JWT OAuth natifs et des modes génériques du bridge ; la révocation de grant ; le rejeu d’un refresh token ; les parcours TOK natifs inchangés ; et la réservation des crédits avant génération. Les fixtures reproductibles et l’ordre d’activation sont dans [SECURITY_HARDENING.md](SECURITY_HARDENING.md).
+
+## Historique : connexion vérifiée le 16 octobre 2026
+
+**Les observations ci-dessous concernent l’ancien issuer natif. Elles ne valident pas le nouveau broker ni son déploiement.**
 
 Le plugin personnel historique utilisait `tok-connect-oauth/authorize`, destiné au
 B2B. La reconnexion échouait avec `Missing TOK Connect scope: openid, email,
 profile`. Ne pas ajouter ces scopes d'identité au client B2B pour contourner le
 problème.
 
-Le nouveau plugin personnel **TOK Connect — Test** utilise le contrat public :
+À cette date, le plugin personnel **TOK Connect — Test** utilisait le contrat suivant :
 
 - MCP : `https://www.thetok.ch/mcp`.
 - Serveur OAuth : `https://wwcrtyoueexyxkkikaos.supabase.co/auth/v1`.
@@ -46,7 +54,7 @@ pnpm typecheck
 pnpm lint
 ```
 
-Le smoke vérifie six contrats : métadonnées OAuth/OIDC, initialisation, catalogue,
+Le smoke vérifie les contrats publics : métadonnées du broker OAuth, initialisation, catalogue,
 ressource HTML, refus de données de compte sans session et sandbox sans mutation.
 Il n'accepte aucun jeton, refuse les redirections HTTP, fixe les destinations et
 n'enregistre aucun client OAuth. Ses deux seuls appels d'outil sont
@@ -106,7 +114,7 @@ déclarer ni `ui.resourceUri` ni `openai/outputTemplate` : ChatGPT refuse ce con
 Ils restent appelables par le widget avec `ui.visibility: ["app"]` et renvoient
 des données à l'interface déjà ouverte, sans créer un deuxième widget.
 
-Les écritures exigent un JWT utilisateur, le rôle client, un accord explicite et
+Les écritures interactives exigent un jeton opaque TOK, le grant correspondant, le rôle client, un accord explicite et
 une clé d'idempotence. L'historique reste filtré par propriétaire, même pour un
 compte possédant aussi des rôles administratifs. Le restaurant doit être actif,
 hors démo, avec `tok_connect_mcp_enabled=true` ; ne pas changer ces flags pour
