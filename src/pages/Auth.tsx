@@ -94,6 +94,7 @@ import {
 } from "@/lib/authRedirect";
 import { useLaunchGate } from "@/components/launch/LaunchGateProvider";
 import { getOAuthConsentTargetFromSearch, getPostAuthTargetForRole } from "@/lib/authPostLogin";
+import { buildWorkforceConfirmationRedirect, getWorkforceContinuationTarget } from "@/lib/workforceContinuation";
 import {
   getCanonicalAuthCallbackHref,
   getCanonicalAuthHref,
@@ -123,15 +124,15 @@ const supabase = getSupabase();
 const onboardingAttemptScope = (restaurantId: string) =>
   `restaurant-onboarding:${restaurantId}`;
 
-function buildSignupConfirmationRedirect(operationId?: string | null) {
-  const redirect = new URL(
+function buildSignupConfirmationRedirect(
+  operationId?: string | null,
+  continuation?: string | null,
+) {
+  return buildWorkforceConfirmationRedirect(
     getCanonicalAuthCallbackHref(),
-    "https://www.thetok.ch",
+    operationId,
+    continuation,
   );
-  redirect.searchParams.set("confirmed", "1");
-  if (operationId)
-    redirect.searchParams.set("signup_operation_id", operationId);
-  return redirect.toString();
 }
 
 type SignupFormState = {
@@ -1117,9 +1118,14 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const postAuthRedirectTarget = useMemo(() => {
     const consentTarget = getOAuthConsentTargetFromSearch(searchParams);
     if (consentTarget) return consentTarget;
-    const redirectTarget = searchParams.get("redirect");
-    if (!redirectTarget) return null;
-    return normalizeInternalNavigationTarget(redirectTarget, "/");
+    const redirectTargets = searchParams.getAll("redirect");
+    if (redirectTargets.length !== 1 || !redirectTargets[0]) return null;
+    const redirectTarget = redirectTargets[0];
+    const workforceTarget = getWorkforceContinuationTarget(redirectTarget);
+    if (workforceTarget) return workforceTarget;
+    const normalizedTarget = normalizeInternalNavigationTarget(redirectTarget, "/");
+    // Do not turn an invalid employee link into an allowed one by URL normalization.
+    return normalizedTarget.startsWith("/equipe/") ? null : normalizedTarget;
   }, [searchParams]);
 
   useEffect(() => {
@@ -1809,6 +1815,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             privilegedSignupOperationRef.current?.id ||
               confirmationOperationId ||
               null,
+            postAuthRedirectTarget,
           ),
         },
       });
@@ -2038,6 +2045,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             },
             emailRedirectTo: buildSignupConfirmationRedirect(
               isPrivilegedSignup ? operationId : null,
+              postAuthRedirectTarget,
             ),
             captchaToken: captchaToken || undefined,
           },
@@ -2327,10 +2335,14 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                   ? "Votre compte est confirmé. Complétez le dossier pour créer votre restaurant privé en attente de validation humaine."
                   : isLogin
                     ? postAuthRedirectTarget
-                      ? "Connectez-vous pour reprendre votre commande, réservation ou parcours en cours."
+                      ? getWorkforceContinuationTarget(postAuthRedirectTarget)
+                        ? "Connectez-vous avec l’adresse e-mail invitée par votre employeur pour retrouver votre équipe."
+                        : "Connectez-vous pour reprendre votre commande, réservation ou parcours en cours."
                       : "Connectez-vous pour acceder à vos espaces client, restaurateur, livreur ou admin."
                     : isClientSignup
-                      ? "Inscription en moins d'une minute. Adresse et paiement seront demandes uniquement au bon moment."
+                      ? getWorkforceContinuationTarget(postAuthRedirectTarget)
+                        ? "Créez votre compte TOK avec l’adresse e-mail de votre invitation, puis confirmez cette adresse pour rejoindre votre équipe."
+                        : "Inscription en moins d'une minute. Adresse et paiement seront demandes uniquement au bon moment."
                       : "Choisissez un profil, renseignez vos informations et ajoutez les justificatifs requis."}
           </CardDescription>
         </CardHeader>

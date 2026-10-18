@@ -30,6 +30,8 @@ export function launchRouteAllowed(path: string, actor: LaunchRouteActor): boole
   if (path === '/oauth/consent') return true;
   if ([...launchLegalRoutes, ...launchAuthRoutes].some(prefix => at(path, prefix))) return true;
   if (!actor.rolesResolved) return false;
+  // Employees use their ordinary TOK account; membership is enforced by the pages and RLS.
+  if (path === '/equipe/mon-espace' || path === '/equipe/gestion') return true;
   // Separate staff workspaces and the role chooser remain accessible.
   if (path === '/espaces' && actor.roles.some(role => role !== 'client')) return true;
   if (at(path, '/admin') && actor.roles.includes('admin')) return true;

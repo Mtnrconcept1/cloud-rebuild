@@ -42,6 +42,23 @@ describe("post-auth workspace routing", () => {
     )).toBe("/espaces");
   });
 
+  it("resumes a validated employee invitation for an ordinary client during launch", () => {
+    const target = "/equipe/mon-espace?restaurant=10000000-0000-4000-8000-000000000001";
+    expect(getPostAuthTargetForRole("client", target, { launchEnabled: true })).toBe(target);
+    expect(getPostAuthTargetForRole("restaurateur", target)).toBe(target);
+    expect(getPostAuthTargetForRole("client", "/equipe/gestion", { launchEnabled: true })).toBe("/equipe/gestion");
+  });
+
+  it.each([
+    "https://attacker.example/equipe/mon-espace",
+    "/equipe/mon-espace?restaurant=invalid",
+    "/equipe/mon-espace?restaurant=10000000-0000-4000-8000-000000000001&next=/admin",
+    "/equipe/gestion?next=/admin",
+  ])("does not resume an invalid employee continuation: %s", (target) => {
+    expect(getPostAuthTargetForRole("client", target, { launchEnabled: true })).toBe("/coming-soon");
+    expect(getPostAuthTargetForRole("admin", target)).toBe("/espaces");
+  });
+
   it("keeps the internal dedicated-demo login on its isolated role home", () => {
     expect(getPostAuthTargetForRole("restaurateur", null, { isDemoAuthMode: true }))
       .toBe("/dashboard");
