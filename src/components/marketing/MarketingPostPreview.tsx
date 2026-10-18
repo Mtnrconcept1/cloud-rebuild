@@ -5,6 +5,7 @@ import { MarketingChannelBadge, formatMarketingDate } from "@/components/marketi
 import { cn } from "@/lib/utils";
 import { marketingPreviewImageUrl, type MarketingPostPreviewData } from "@/marketing/postPreview";
 import type { MarketingChannelId } from "@/marketing/types";
+import { renderTargetedMailingEmail } from "../../../supabase/functions/_shared/marketing-mailing-email";
 
 export function MarketingPostImage({ url, title, compact = false }: {
   url?: string | null;
@@ -37,6 +38,19 @@ export function MarketingPostPreview({ title, channel, scheduledAt, preview }: {
   preview: MarketingPostPreviewData;
 }) {
   const imageUrl = marketingPreviewImageUrl(preview.visualUrl);
+  if (channel === "email" && preview.email) {
+    const rendered = renderTargetedMailingEmail(preview.email);
+    return <section aria-label={`Aperçu de ${title}`} className="space-y-3">
+      <div className="flex items-center justify-between gap-2"><h3 className="font-semibold">Aperçu de l’e-mail</h3><MarketingChannelBadge channel={channel} /></div>
+      <p className="text-xs text-muted-foreground">{formatMarketingDate(scheduledAt)} · heure de Genève</p>
+      <p className="break-words text-sm"><strong>Objet :</strong> {preview.email.subject}</p>
+      {!imageUrl ? <p role="alert" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Bannière manquante : cet e-mail ne peut pas être approuvé.</p> : null}
+      <iframe title={`Template e-mail — ${title}`} sandbox="" referrerPolicy="no-referrer" srcDoc={rendered.html} className="h-[640px] w-full rounded-xl border bg-white" />
+      <details><summary className="cursor-pointer text-sm font-medium">Lire tout le texte</summary><div className="mt-3 space-y-3 text-sm"><strong>{preview.email.headline}</strong><p className="whitespace-pre-wrap break-words">{preview.email.body}</p><p>{preview.email.callToAction}</p></div></details>
+      {imageUrl ? <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block text-sm underline">Examiner la bannière TOK en grand</a> : null}
+      <p className="text-xs text-muted-foreground">Le lien de désabonnement sera personnalisé pour chaque destinataire à l’envoi. Le rendu peut varier selon la messagerie.</p>
+    </section>;
+  }
   return (
     <section aria-label={`Aperçu de ${title}`} className="min-w-0 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">

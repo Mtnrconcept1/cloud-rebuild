@@ -1,4 +1,6 @@
 import { HttpError } from "./auth.ts";
+import { applyMailingOptions } from "./marketing-mailing-plan.ts";
+import { mailingAudienceLabel, type MailingOptions } from "./marketing-mailing.ts";
 import { applyCampaignOptions, CAMPAIGN_TEMPLATES, type CampaignOptions } from "./marketing-campaign-options.ts";
 import { normalizeLegacySocialPlan, socialEditorialPrompt } from "./marketing-social-editorial.ts";
 import {
@@ -41,6 +43,7 @@ export type MarketingBriefContext = {
   itemCount: number;
   locale: string;
   campaignOptions?: CampaignOptions;
+  mailingOptions?: MailingOptions;
   formats?: Partial<Record<string, MarketingPostFormat>>;
 };
 
@@ -67,6 +70,12 @@ function buildSystemPrompt(context: MarketingBriefContext) {
     "Au moins un sélecteur doit être renseigné ; mets null pour ceux qui ne s'appliquent pas.",
     "",
     `Produis exactement ${context.itemCount} élément(s) de calendrier, répartis entre ${context.startsAt} et ${context.endsAt}.`,
+    ...(context.mailingOptions ? [
+      `MAILING RESTAURATEURS : cible validée par l’opérateur : ${mailingAudienceLabel(context.mailingOptions.selections)}. Le serveur impose ces sélections et la cadence ${context.mailingOptions.cadence}.`,
+      "Rédige une séquence cohérente avec un angle différent par e-mail, un objet spécifique (200 caractères maximum), un titre, un corps complet avec paragraphes et un appel à l’action. Aucun hashtag. Répartis tous les bénéfices demandés sur la séquence.",
+      "Les fonctionnalités dépendent de leur activation et de la formule ; n’invente pas de prix, statistiques ou garanties. Le plan de salle automatisé aide à placer les réservations ; ne promets pas une autonomie sans contrôle.",
+      "Renseigne visual_prompt pour UNE bannière commune à toute la campagne : une seule scène TOK au format paysage 16:9, un seul bénéfice principal, chef et logo des références. Tous les autres e-mails réutiliseront cette même bannière. Aucun montage de plusieurs mails.",
+    ] : []),
     ...(context.campaignOptions ? [
       "Thèmes sélectionnés et contraintes éditoriales (couvre ces thèmes sans inventer d'offre) :",
       "Les fonctionnalités dépendent de leur activation et de l'éligibilité de la formule. N'invente ni prix, ni quota, ni promotion. Distingue toujours l'audience client de l'audience restaurateur.",
@@ -74,7 +83,8 @@ function buildSystemPrompt(context: MarketingBriefContext) {
       "Chaque élément correspond à un post éditorial avec ses variantes par réseau. Ne duplique pas les éléments pour les formats : le serveur les décline.",
       "Renseigne obligatoirement visual_prompt pour chaque post, partagé par les réseaux ; n'y inscris ni URL ni mention. La cadence et les formats seront fixés par le serveur.",
       ...socialEditorialPrompt(context.campaignOptions.templateIds, context.audienceHint),
-    ] : socialEditorialPrompt(CAMPAIGN_TEMPLATES.map((template) => template.id), context.audienceHint, false)),
+    ] : context.mailingOptions ? CAMPAIGN_TEMPLATES.map((template) => `${template.label} : ${template.guidance}`)
+      : socialEditorialPrompt(CAMPAIGN_TEMPLATES.map((template) => template.id), context.audienceHint, false)),
     `Formats visuels demandés par canal : ${JSON.stringify(context.campaignOptions?.formatsByChannel || context.formats || {})}. Compose chaque visuel pour son format sans placer de texte important près des bords.`,
     ...(!context.campaignOptions ? ["Renseigne visual_prompt uniquement pour les canaux où une image a du sens (réseaux sociaux, e-mail), sinon null."] : []),
     "Le champ subject n'est renseigné que pour le canal email.",
@@ -114,6 +124,8 @@ export async function generateMarketingPlan(context: MarketingBriefContext) {
     if (plan.items.length !== context.itemCount) throw new MarketingPlanError("item_count_mismatch");
     if (context.campaignOptions) {
       plan = applyCampaignOptions(plan, context.campaignOptions, context.allowedChannels, context.startsAt, context.endsAt, context.audienceHint);
+    } else if (context.mailingOptions) {
+      plan = applyMailingOptions(plan, context.mailingOptions, context.startsAt, context.endsAt);
     } else {
       plan = normalizeLegacySocialPlan(plan, context.objective, context.audienceHint);
     }

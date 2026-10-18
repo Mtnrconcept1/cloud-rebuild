@@ -1,4 +1,5 @@
 import { TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
+import { parseMailingSelections } from "./marketing-mailing.ts";
 import type { CampaignFormat, CampaignTemplateId } from "./marketing-campaign-options.ts";
 
 /**
@@ -33,9 +34,8 @@ export type MarketingChannel = typeof MARKETING_CHANNELS[number];
 export type MarketingPostFormat = "1:1" | "9:16" | "16:9";
 
 /**
- * Audience selectors accepted by marketing_validate_audience_filter. The
- * validator rejects any other key and any non-string value, so this list is the
- * contract and not a suggestion.
+ * Legacy scalar selectors accepted by marketing_validate_audience_filter.
+ * Mailing selections use the separately validated, allowlisted array contract.
  */
 const AUDIENCE_KINDS = ["restaurant", "client", "mixed"] as const;
 const CONTACT_TYPES = [
@@ -64,7 +64,8 @@ export type MarketingPlanItem = {
   channel: MarketingChannel;
   scheduled_at: string;
   audience_name: string;
-  targeting: Record<string, string>;
+  targeting: Record<string, unknown>;
+  mailing_version?: "tok-mailing-v1";
   content: {
     subject: string | null;
     headline: string;
@@ -90,7 +91,7 @@ export type MarketingPlan = {
     starts_at: string;
     ends_at: string;
     audience_name: string;
-    audience_definition: Record<string, string>;
+    audience_definition: Record<string, unknown>;
   };
   items: MarketingPlanItem[];
 };
@@ -259,10 +260,11 @@ export function validateGuidedPlan(raw: unknown, channels: readonly string[], te
   return validatePlan({ campaign: { ...raw.campaign, channels: [...channels] } as MarketingPlan["campaign"], items }, channels);
 }
 
-/** Postgres accepts only string values in an audience filter. */
-export function stripEmptySelectors(filter: Record<string, unknown>): Record<string, string> {
-  const cleaned: Record<string, string> = {};
+/** Preserve scalar selectors and explicitly validated mailing arrays. */
+export function stripEmptySelectors(filter: Record<string, unknown>): Record<string, unknown> {
+  const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(filter || {})) {
+    if (key === "selections") { cleaned.selections = parseMailingSelections(value); continue; }
     if (typeof value !== "string") continue;
     const trimmed = value.trim();
     if (!trimmed) continue;
@@ -381,6 +383,7 @@ export function toBundlePayload(
         ? { ...campaignAudience }
         : stripEmptySelectors(item.targeting),
       content: {
+        ...(item.mailing_version ? { mailing_version: item.mailing_version } : {}),
         subject: item.channel === "email" ? item.content.subject : null,
         headline: item.content.headline,
         body: item.content.body,

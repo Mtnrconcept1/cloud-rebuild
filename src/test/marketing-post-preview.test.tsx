@@ -32,6 +32,21 @@ const filters: MarketingUrlState = {
 afterEach(cleanup);
 
 describe("marketing post previews", () => {
+  it("shows a complete mailing in a sandboxed template without approving it", () => {
+    const mailing = { ...content, subject: "Quatre bénéfices pour votre pizzeria", mailing_version: "tok-mailing-v1" };
+    const preview = marketingPostPreview(mailing, "email");
+    const { rerender } = render(<MarketingPostPreview title="Mailing" channel="email" scheduledAt={item.scheduledAt} preview={preview} />);
+    expect(screen.getByText(/Quatre bénéfices pour votre pizzeria/)).toBeInTheDocument();
+    const frame = screen.getByTitle("Template e-mail — Mailing");
+    expect(frame).toHaveAttribute("sandbox", "");
+    expect(frame).toHaveAttribute("referrerpolicy", "no-referrer");
+    expect(frame.getAttribute("srcdoc")).toContain(content.visual_url);
+    expect(frame.getAttribute("srcdoc")).toContain("https://www.thetok.ch/packs-restaurateur");
+    expect(screen.getByText(/Une table, un coût clair/).textContent).toBe(content.body);
+    rerender(<MarketingPostPreview title="Mailing" channel="email" scheduledAt={item.scheduledAt} preview={marketingPostPreview({ ...mailing, visual_url: null }, "email")} />);
+    expect(screen.getByRole("alert")).toHaveTextContent("ne peut pas être approuvé");
+    expect(bffRequest).not.toHaveBeenCalled();
+  });
   it.each(["instagram", "facebook"] as const)("keeps the %s caption identical to the actual publisher", (channel) => {
     expect(marketingPostPreview(content, channel)).toEqual({ caption: buildMetaCaption(content, channel), visualUrl: content.visual_url });
     const manyTags = { ...content, hashtags: Array.from({ length: 40 }, (_, i) => `#Tag${i}`) };

@@ -1,6 +1,7 @@
 import { MetaPublishError, validateMetaMediaContent } from "../supabase/functions/_shared/meta-publishing.js";
 import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../supabase/functions/_shared/marketing-campaign-request.js";
 import { CAMPAIGN_TEMPLATE_LABELS } from "../supabase/functions/_shared/marketing-campaign-templates.js";
+import { MAILING_FIELDS, MailingInputError, assertMailingReady, mailingAudience, mailingScheduleOptions, parseMailingOptions } from "../supabase/functions/_shared/marketing-mailing.js";
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 
 /**
@@ -1454,9 +1455,9 @@ async function checkMarketingApprovalMedia(config: BffConfig, operation: string,
   let after = "";
   for (let page = 0; page < 20; page += 1) {
     const query = new URLSearchParams({
-      select: "id,channel,visual_url:content->>visual_url,visual_required:content->visual_required,visual_prompt:content->>visual_prompt,visual_status:content->>visual_status,visual_format:content->>visual_format,format:content->>format",
+      select: "id,channel,content,visual_url:content->>visual_url,visual_required:content->visual_required,visual_prompt:content->>visual_prompt,visual_status:content->>visual_status,visual_format:content->>visual_format,format:content->>format",
       [campaign ? "campaign_id" : "id"]: `eq.${id}`,
-      channel: "in.(facebook,instagram)",
+      channel: "in.(facebook,instagram,email)",
       status: "not.in.(published,sent,cancelled,completed)",
       order: "id.asc", limit: "100",
     });
@@ -1467,14 +1468,19 @@ async function checkMarketingApprovalMedia(config: BffConfig, operation: string,
     }
     for (const row of rows) {
       if (!isPlainObject(row) || typeof row.id !== "string" || !UUID_PATTERN.test(row.id)
-        || !["facebook", "instagram"].includes(String(row.channel))) {
+        || !["facebook", "instagram", "email"].includes(String(row.channel))) {
         throw new PublicBffError(503, "marketing_readiness_unavailable", "Vérification des visuels indisponible.");
       }
       try {
+        if (row.channel === "email") {
+          assertMailingReady(isPlainObject(row.content) ? row.content : {});
+          continue;
+        }
         // Campaign approval reviews its content; only item approval schedules
         // automatic delivery. Manual Story exports must not block sibling posts.
         validateMetaMediaContent(campaign ? { ...row, visual_format: undefined, format: undefined } : row, row.channel as "facebook" | "instagram");
       } catch (error) {
+        if (error instanceof MailingInputError) throw new PublicBffError(400, "marketing_visual_required", error.message);
         if (!(error instanceof MetaPublishError)) throw error;
         if (error.code === "instagram_story_manual_required") {
           throw new PublicBffError(400, error.code, "Le visuel Instagram 9:16 est prévu pour une Story manuelle. Exportez-le ou choisissez un format du fil avant de planifier l’envoi automatique.");
@@ -1761,12 +1767,34 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
   const config = readConfig();
   const body = parseJsonBody(req, 16 * 1024);
   const action = stringField(body, "action", 32);
-  if (action !== "generate" && action !== "list_runs" && action !== "discover_sources") {
+  if (!["generate", "list_runs", "discover_sources", "mailing_facets", "interpret_mailing"].includes(action)) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
 
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
+
+  if (action === "mailing_facets") {
+    const field = stringField(body, "field", 32);
+    const query = body.query === undefined ? "" : stringField(body, "query", 100);
+    const after = body.after === undefined || body.after === null ? null : stringField(body, "after", 240);
+    if (!Object.hasOwn(MAILING_FIELDS, field)
+      || (body.query !== undefined && (typeof body.query !== "string" || body.query.length > 100))
+      || (body.after !== undefined && body.after !== null && (typeof body.after !== "string" || body.after.length > 240))
+      || Object.keys(body).some((key) => !["action", "field", "query", "after"].includes(key))) {
+      throw new PublicBffError(400, "invalid_request", "Rubrique invalide.");
+    }
+    sendJson(res, 200, await serviceRpc(config, "service_marketing_mailing_facets", { p_field: field, p_query: query, p_after: after, p_limit: 50 }));
+    return;
+  }
+
+  if (action === "interpret_mailing") {
+    const prompt = stringField(body, "prompt", 2000).trim();
+    if (prompt.length < 10 || Object.keys(body).some((key) => !["action", "prompt"].includes(key))) throw new PublicBffError(400, "invalid_request", "Décrivez la cible et le rythme de la campagne.");
+    await consumeRateLimit(config, req, "mailing-brief", session.userId, false);
+    sendJson(res, 200, await callMarketingAgent(config, session.userId, { action, prompt }));
+    return;
+  }
 
   if (action === "discover_sources") {
     if (Object.keys(body).some((key) => !["action", "query", "limit", "withoutAccountOnly"].includes(key))) {
@@ -1796,7 +1824,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     return;
   }
 
-  const allowedKeys = ["action", "objective", "audienceHint", "channels", "formats", "startsAt", "endsAt", "itemCount", "campaignOptions"];
+  const allowedKeys = ["action", "objective", "audienceHint", "channels", "formats", "startsAt", "endsAt", "itemCount", "campaignOptions", "mailingOptions"];
   if (Object.keys(body).some((key) => !allowedKeys.includes(key))) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
@@ -1816,13 +1844,20 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
   }
 
   let campaignOptions;
+  let mailingOptions;
   try {
     campaignOptions = parseCampaignOptions(body.campaignOptions, channels, Object.keys(CAMPAIGN_TEMPLATE_LABELS));
+    mailingOptions = parseMailingOptions(body.mailingOptions);
+    if (mailingOptions && (campaignOptions || channels.length !== 1 || channels[0] !== "email" || itemCount !== mailingOptions.emailCount ||
+      Date.parse(startsAt) <= Date.now() || buildCampaignSlots(mailingScheduleOptions(mailingOptions), ["email"], startsAt).some((slot) => Date.parse(slot.scheduledAt) > Date.parse(endsAt)))) {
+      throw new MailingInputError("Vérifiez le nombre d’e-mails, les filtres et la période future.");
+    }
     if (campaignOptions && (itemCount !== campaignOptions.postCount || Date.parse(startsAt) <= Date.now()
       || buildCampaignSlots(campaignOptions, channels, startsAt).some((slot) => Date.parse(slot.scheduledAt) > Date.parse(endsAt)))) {
       throw new CampaignOptionsError("campaign_window_or_count_invalid");
     }
   } catch (error) {
+    if (error instanceof MailingInputError) throw new PublicBffError(400, "invalid_mailing_options", error.message);
     if (!(error instanceof CampaignOptionsError)) throw error;
     throw new PublicBffError(400, "invalid_campaign_options", "Vérifiez les thèmes, les formats et la période : maximum 6 visuels et 12 publications par génération.");
   }
@@ -1837,12 +1872,27 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     endsAt,
     itemCount,
     ...(campaignOptions ? { campaignOptions } : {}),
+    ...(mailingOptions ? { mailingOptions } : {}),
   });
 
   const runId = typeof generated.runId === "string" ? generated.runId : null;
   const bundle = generated.bundle;
   if (!isPlainObject(bundle)) {
     throw new PublicBffError(502, "ai_invalid_plan", "Le plan produit est inexploitable.");
+  }
+  if (mailingOptions) {
+    if (!isPlainObject(bundle.campaign) || !Array.isArray(bundle.items) || bundle.items.length !== mailingOptions.emailCount ||
+      bundle.items.some((item) => !isPlainObject(item) || item.channel !== "email" || !isPlainObject(item.content) || item.content.mailing_version !== "tok-mailing-v1")) {
+      throw new PublicBffError(502, "ai_invalid_plan", "La séquence générée ne correspond pas au mailing demandé.");
+    }
+    // Bind the persisted recipients and cadence to the reviewed request, never to AI suggestions.
+    const target = mailingAudience(mailingOptions.selections);
+    const slots = buildCampaignSlots(mailingScheduleOptions(mailingOptions), ["email"], startsAt);
+    bundle.campaign.audience_definition = target;
+    bundle.campaign.channels = ["email"];
+    bundle.campaign.starts_at = startsAt;
+    bundle.campaign.ends_at = endsAt;
+    bundle.items.forEach((item, index) => { item.targeting = target; item.scheduled_at = slots[index].scheduledAt; });
   }
 
   try {

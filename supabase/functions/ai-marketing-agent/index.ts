@@ -1,4 +1,6 @@
 import { allocateMarketingVisuals } from "../_shared/marketing-visual-allocation.ts";
+import { MAILING_FIELDS, MailingInputError, mailingScheduleOptions, parseMailingOptions, type MailingField, type MailingFacetPage } from "../_shared/marketing-mailing.ts";
+import { interpretMailingBrief } from "../_shared/marketing-mailing-plan.ts";
 import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../_shared/marketing-campaign-options.ts";
 import {
   HttpError,
@@ -29,7 +31,7 @@ const MAX_VISUALS = 6;
 const MIN_ITEMS = 1;
 const MAX_ITEMS = 12;
 
-type Action = "generate" | "list_runs" | "discover_sources";
+type Action = "generate" | "list_runs" | "discover_sources" | "interpret_mailing";
 
 /**
  * Mirrors the orchestrator: a service-role request may carry the human actor so
@@ -68,7 +70,7 @@ async function attachDelegatedAdminIdentity(
 
 function parseAction(value: unknown): Action {
   const action = typeof value === "string" ? value.trim() : "";
-  if (action === "generate" || action === "list_runs" || action === "discover_sources") return action;
+  if (action === "generate" || action === "list_runs" || action === "discover_sources" || action === "interpret_mailing") return action;
   throw new HttpError(400, "invalid_action");
 }
 
@@ -172,6 +174,18 @@ Deno.serve(async (req) => {
 
     if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");
 
+    if (action === "interpret_mailing") {
+      const prompt = requiredText(payload.prompt, "prompt", 2000);
+      const entries = await Promise.all((Object.keys(MAILING_FIELDS) as MailingField[]).map(async (field) => {
+        const { data, error } = await client.rpc("service_marketing_mailing_facets", { p_field: field, p_limit: 200 });
+        if (error) throw new HttpError(503, "mailing_facets_unavailable");
+        return [field, data as MailingFacetPage] as const;
+      }));
+      const result = await interpretMailingBrief(prompt, Object.fromEntries(entries) as Record<MailingField, MailingFacetPage>);
+      await writeAuditLog({ adminClient: client, actor, request: req, functionName: "ai-marketing-agent", action, status: "success", metadata: { unresolved_count: result.unresolved.length } });
+      return jsonResponse({ ok: true, ...result }, 200, corsHeaders);
+    }
+
     if (action === "discover_sources") {
       const result = await discoverBacklinkSources(payload.query, payload.limit, payload.withoutAccountOnly);
       await writeAuditLog({
@@ -197,6 +211,11 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "item_count_invalid");
     }
     const campaignOptions = parseCampaignOptions(payload.campaignOptions, channels);
+    const mailingOptions = parseMailingOptions(payload.mailingOptions);
+    if (mailingOptions && (campaignOptions || channels.length !== 1 || channels[0] !== "email" || rawCount !== mailingOptions.emailCount ||
+      Date.parse(startsAt) <= Date.now() || buildCampaignSlots(mailingScheduleOptions(mailingOptions), ["email"], startsAt).some((slot) => Date.parse(slot.scheduledAt) > Date.parse(endsAt)))) {
+      throw new MailingInputError("Cible, période ou nombre d’e-mails invalide.");
+    }
     if (campaignOptions) {
       if (Date.parse(startsAt) <= Date.now()) throw new HttpError(400, "campaign_start_must_be_future");
       if (campaignOptions.postCount !== rawCount) throw new HttpError(400, "campaign_post_count_mismatch");
@@ -229,6 +248,7 @@ Deno.serve(async (req) => {
       itemCount: rawCount,
       locale: "fr-CH",
       campaignOptions,
+      mailingOptions,
       formats,
     });
 
@@ -287,7 +307,7 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     const message = safeMarketingError(error);
-    const status = error instanceof CampaignOptionsError ? 400 : error instanceof HttpError ? error.status : 500;
+    const status = error instanceof CampaignOptionsError || error instanceof MailingInputError ? 400 : error instanceof HttpError ? error.status : 500;
     log.error("agent_failed", { message, action, status });
 
     if (runId) {
@@ -325,6 +345,7 @@ Deno.serve(async (req) => {
 
     if (error instanceof HttpError) return jsonResponse({ error: message }, error.status, corsHeaders);
     if (error instanceof CampaignOptionsError) return jsonResponse({ error: error.reason }, 400, corsHeaders);
+    if (error instanceof MailingInputError) return jsonResponse({ error: error.message }, 400, corsHeaders);
     return jsonResponse({ error: "Erreur interne de l’agent marketing" }, 500, corsHeaders);
   }
 });

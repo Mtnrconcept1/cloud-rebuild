@@ -74,6 +74,22 @@ describe("approval checks the stored social image after authentication", () => {
     const res = recorder(); await marketingRpcHandler(request(), res.response);
     expect(res.response.statusCode).toBe(200);
   });
+  it.each(["admin_approve_marketing_campaign", "admin_approve_marketing_item"])("blocks %s for a mailing without a ready banner", async (operation) => {
+    const content = { mailing_version: "tok-mailing-v1", subject: "Objet", headline: "Titre", body: "Texte", call_to_action: "Voir TOK", visual_url: null, visual_status: "pending_generation" };
+    const fetchMock = upstream([[{ id: itemId, channel: "email", content }]]); vi.stubGlobal("fetch", fetchMock);
+    const res = recorder(); await marketingRpcHandler(request(operation), res.response);
+    expect(res.response.statusCode).toBe(400);
+    expect(res.value().error.code).toBe("marketing_visual_required");
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("service_execute_marketing_admin_operation"))).toBe(false);
+  });
+  it.each([
+    { body: "Courrier historique" },
+    { mailing_version: "tok-mailing-v1", subject: "Objet", headline: "Titre", body: "Texte", call_to_action: "Voir TOK", visual_url: "https://example.org/banner.jpg", visual_status: "ready" },
+  ])("preserves reviewed and legacy email approval: %o", async (content) => {
+    vi.stubGlobal("fetch", upstream([[{ id: itemId, channel: "email", content }]]));
+    const res = recorder(); await marketingRpcHandler(request(), res.response);
+    expect(res.response.statusCode).toBe(200);
+  });
   it("checks subsequent pages and refuses an incomplete campaign item beyond the first hundred", async () => {
     const page = Array.from({ length: 100 }, (_, index) => ({ ...ready, id: `22222222-2222-4222-8222-${String(index).padStart(12, "0")}` }));
     const fetchMock = upstream([page, [incomplete]]); vi.stubGlobal("fetch", fetchMock);

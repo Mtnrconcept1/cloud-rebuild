@@ -20,6 +20,8 @@ import {
   safeMarketingError,
 } from "../_shared/marketing.ts";
 import { processMetaMarketingItem } from "../_shared/meta-marketing-orchestrator.ts";
+import { prepareTargetedMailingContent } from "../_shared/marketing-mailing-email.ts";
+import { MailingInputError } from "../_shared/marketing-mailing.ts";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 type ClaimedItem = {
@@ -98,6 +100,7 @@ type PreparedEmail = {
   subject?: string;
   html?: string;
   text?: string;
+  content?: Record<string, unknown>;
 };
 
 async function sendViaResend(
@@ -204,6 +207,23 @@ async function processEmailDelivery(client: AdminClient, delivery: ClaimedDelive
   // recorded the outcome on the row.
   if (prepared.status !== "ready") {
     return { id: delivery.id, status: prepared.status, reason: prepared.reason };
+  }
+
+  if (prepared.content?.mailing_version === "tok-mailing-v1") {
+    try {
+      const token = await buildUnsubscribeToken(delivery.id, signingSecret);
+      if (!token) throw new MailingInputError("Unsubscribe token unavailable");
+      const rendered = prepareTargetedMailingContent(prepared.content, `${UNSUBSCRIBE_BASE}?token=${encodeURIComponent(token)}`,
+        Deno.env.get("MARKETING_SENDER_ADDRESS")?.trim() || undefined);
+      prepared.html = rendered.html;
+      prepared.text = rendered.text;
+    } catch (error) {
+      if (!(error instanceof MailingInputError)) throw error;
+      await invokeRpc(client, "complete_marketing_delivery", { p_delivery_id: delivery.id, p_lease_token: delivery.lease_token,
+        p_status: "blocked_configuration", p_provider_message_id: null, p_error_code: "mailing_content_incomplete",
+        p_error: "Mailing content or native banner is incomplete", p_metadata: { channel: "email" } });
+      return { id: delivery.id, status: "blocked_configuration" };
+    }
   }
 
   const sent = await sendViaResend(prepared, delivery.id, signingSecret);

@@ -65,7 +65,7 @@ describe("campaign visual gallery", () => {
 
   it("opens templates directly from the campaigns screen", () => {
     const { onFiltersChange } = mount(vi.fn());
-    fireEvent.click(screen.getByRole("button", { name: "Créer avec un modèle" }));
+    fireEvent.click(screen.getByRole("button", { name: "Créer un mailing ou une campagne IA" }));
     expect(onFiltersChange).toHaveBeenCalledWith({ view: "agent", query: "", status: "all", channel: "all", page: 1 });
   });
 
