@@ -146,6 +146,12 @@ async function authorize(req: Request, deps: TokBrokerDependencies): Promise<Res
     if (body.host !== new URL(TOK_BROKER_ISSUER).hostname) invalid();
     delete body.host;
   }
+  // OIDC ui_locales is a display hint supplied by clients such as ChatGPT, not an OAuth authorization input.
+  if (body.ui_locales !== undefined) {
+    const locales = string(body.ui_locales, 128);
+    if (!/^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*(?: [A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*)*$/.test(locales)) invalid();
+    delete body.ui_locales;
+  }
   onlyKeys(body, ["client_id", "redirect_uri", "response_type", "code_challenge", "code_challenge_method", "scope", "state", "resource"]);
   scopeAndResource(body); const client = await getClient(deps, body.client_id), redirect = redirectUri(body.redirect_uri);
   if (!client.redirect_uris.includes(redirect)) invalid("invalid_redirect_uri");

@@ -217,4 +217,52 @@ describe("TOK OAuth broker boundary", () => {
     const h = harness(), response = await h.run("metadata"), data = await response.json();
     expect(data).toMatchObject({ issuer: TOK_BROKER_ISSUER, scopes_supported: ["tok"], code_challenge_methods_supported: ["S256"] }); expect(data).not.toHaveProperty("jwks_uri"); expect(response.headers.get("cache-control")).toBe("no-store");
   });
+
+  it("authorizes the real ChatGPT callback with a locale hint without forwarding it to Supabase", async () => {
+    const h = harness(), callback = "https://chatgpt.com/connector/oauth/ApFi0_K-lwat";
+    await h.register({ redirect_uris: [callback], client_name: "ChatGPT", scope: "tok" });
+    const query = await authorizationQuery();
+    query.set("redirect_uri", callback);
+    query.set("host", "www.thetok.ch");
+    query.set("ui_locales", "fr-FR");
+    const response = await h.run("authorize?" + query);
+    expect(response.status).toBe(302);
+    const destination = new URL(response.headers.get("location")!);
+    expect(destination.pathname).toBe("/auth/v1/oauth/authorize");
+    expect(destination.searchParams.get("redirect_uri")).toBe(callback);
+    expect(destination.searchParams.get("scope")).toBe("openid");
+    expect(destination.searchParams.get("code_challenge_method")).toBe("S256");
+    expect(destination.searchParams.get("state")).toBe("synthetic-state");
+    expect(destination.searchParams.has("ui_locales")).toBe(false);
+    expect(destination.searchParams.has("host")).toBe(false);
+    query.set("ui_locales", "fr-FR en-US");
+    expect((await h.run("authorize?" + query)).status).toBe(302);
+    query.set("code_challenge_method", "plain");
+    expect((await h.run("authorize?" + query)).status).toBe(400);
+  });
+
+  it.each([
+    { label: "empty locale", value: "" },
+    { label: "comma-separated locales", value: "fr-FR,en-US" },
+    { label: "leading whitespace", value: " fr-FR" },
+    { label: "overlong locale", value: "fr-FR".repeat(30) },
+    { label: "invalid locale characters", value: "fr-FR?redirect_uri=evil" },
+  ])("rejects $label before any client lookup", async ({ value }) => {
+    const h = harness(); await h.register(); h.rpc.mockClear(); h.transport.mockClear(); h.consume.mockClear();
+    const query = await authorizationQuery(); query.set("ui_locales", value);
+    const response = await h.run("authorize?" + query);
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid_request" });
+    expect(h.rpc).not.toHaveBeenCalled(); expect(h.transport).not.toHaveBeenCalled(); expect(h.consume).not.toHaveBeenCalled();
+  });
+
+  it("rejects duplicate ui_locales before any client lookup", async () => {
+    const h = harness(); await h.register(); h.rpc.mockClear(); h.transport.mockClear(); h.consume.mockClear();
+    const query = await authorizationQuery();
+    query.append("ui_locales", "fr-FR"); query.append("ui_locales", "en-US");
+    const response = await h.run("authorize?" + query);
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalid_request" });
+    expect(h.rpc).not.toHaveBeenCalled(); expect(h.transport).not.toHaveBeenCalled(); expect(h.consume).not.toHaveBeenCalled();
+  });
 });
