@@ -287,6 +287,9 @@ verify_jwt = false
 [functions.marketing-orchestrator]
 verify_jwt = false
 
+[functions.marketing-social-follow]
+verify_jwt = false
+
 [functions.marketing-provider-webhook]
 verify_jwt = false
 

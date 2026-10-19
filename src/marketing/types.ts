@@ -4,6 +4,7 @@ export const MARKETING_VIEWS = [
   "calendar",
   "campaigns",
   "audiences",
+  "social_follow",
   "automations",
   "activity",
   "results",

@@ -11,6 +11,7 @@ const entrypoints = [
   ["api/marketing/orchestrator.ts", "../../server/marketingBff.js"],
   ["api/marketing/rpc.ts", "../../server/marketingBff.js"],
   ["api/marketing/session.ts", "../../server/marketingBff.js"],
+  ["api/marketing/social-follow.ts", "../../server/marketingBff.js"],
   ["api/marketing/mfa/enroll.ts", "../../../server/marketingBff.js"],
   ["api/marketing/mfa/verify.ts", "../../../server/marketingBff.js"],
 ] as const;

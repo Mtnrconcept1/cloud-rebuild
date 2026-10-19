@@ -350,7 +350,7 @@ describe("marketing operations frontend contracts", () => {
 
   it("provides every requested operational view", () => {
     const workspace = read("src/pages/marketing/MarketingWorkspace.tsx");
-    for (const view of ["Overview", "Calendar", "Campaigns", "Audiences", "Automations", "Activity", "Results", "Integrations"]) {
+    for (const view of ["Overview", "Calendar", "Campaigns", "Audiences", "SocialFollow", "Automations", "Activity", "Results", "Integrations"]) {
       expect(workspace).toContain(`Marketing${view}View`);
     }
   });

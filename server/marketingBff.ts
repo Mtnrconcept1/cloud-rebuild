@@ -2,6 +2,7 @@ import { MetaPublishError, validateMetaMediaContent } from "../supabase/function
 import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../supabase/functions/_shared/marketing-campaign-request.js";
 import { CAMPAIGN_TEMPLATE_LABELS } from "../supabase/functions/_shared/marketing-campaign-templates.js";
 import { MAILING_FIELDS, MailingInputError, assertMailingReady, mailingAudience, mailingScheduleOptions, parseMailingOptions, parseMailingRecipientEmails } from "../supabase/functions/_shared/marketing-mailing.js";
+import { MarketingSocialInputError, parseMarketingSocialFollowRequest } from "../supabase/functions/_shared/marketing-social-follow-contract.js";
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { MailingImageInputError, validateMailingImage } from "./marketingMailingImage.js";
 
@@ -45,6 +46,7 @@ const MAX_ENROLL_RESPONSE_BYTES = 512 * 1024;
 const AUTH_TIMEOUT_MS = 8_000;
 const DATABASE_TIMEOUT_MS = 8_000;
 const ORCHESTRATOR_TIMEOUT_MS = 20_000;
+const SOCIAL_COLLECTION_TIMEOUT_MS = 55_000;
 /**
  * The agent runs a reasoning pass and then up to six image generations, so it
  * needs a budget an order of magnitude above a database round trip.
@@ -2183,6 +2185,82 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
   }
 }
 
+const SOCIAL_FOLLOW_PUBLIC_ERRORS: Readonly<Record<string, { status: number; message: string }>> = {
+  social_follow_invalid_request: { status: 400, message: "Vérifiez les champs de la demande." },
+  social_follow_invalid_profile: { status: 400, message: "Ajoutez l’adresse d’un profil Instagram ou d’une page Facebook." },
+  social_follow_restaurant_not_found: { status: 400, message: "Ce restaurant n’est plus disponible. Actualisez la liste." },
+  authentication_required: { status: 401, message: "Authentification requise." },
+  forbidden: { status: 403, message: "Accès réservé à l’administration TOK." },
+  social_follow_conflict: { status: 409, message: "Ce suivi a changé. Actualisez la liste avant de confirmer." },
+  social_follow_account_changed: { status: 409, message: "Le compte TOK a changé. Actualisez la liste et vérifiez le compte utilisé." },
+  social_follow_account_unavailable: { status: 409, message: "Vérifiez le compte TOK dans les connexions du Studio Marketing." },
+  social_follow_identity_required: { status: 409, message: "Confirmez l’identité du restaurant et le compte TOK utilisé." },
+  social_follow_collection_busy: { status: 429, message: "Une collecte est déjà en cours ou ce restaurant doit attendre avant une nouvelle recherche." },
+};
+
+async function runMarketingSocialFollow(
+  req: MarketingApiRequest,
+  res: MarketingApiResponse,
+): Promise<void> {
+  if ((req.method ?? "GET").toUpperCase() !== "POST") {
+    methodNotAllowed(res, ["POST"]);
+    return;
+  }
+  validateMarketingRequestContext(req, true);
+  const config = readConfig();
+  let request;
+  try {
+    request = parseMarketingSocialFollowRequest(parseJsonBody(req, 16 * 1024));
+  } catch (error) {
+    if (error instanceof MarketingSocialInputError) {
+      throw new PublicBffError(400, error.code, error.message);
+    }
+    throw error;
+  }
+
+  const session = await activeSession(config, req, true);
+  await ensureServiceAdmin(config, session.userId);
+  const response = await boundedFetch(
+    `${config.supabaseUrl}/functions/v1/marketing-social-follow`,
+    {
+      method: "POST",
+      headers: {
+        apikey: config.serviceRoleKey,
+        ...(!config.serviceRoleKey.startsWith("sb_secret_")
+          ? { Authorization: `Bearer ${config.serviceRoleKey}` } : {}),
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      // The Edge/SQL boundary rechecks the live session and its CSRF proof.
+      // Neither a caller-selected actor nor browser credentials are forwarded.
+      body: JSON.stringify({ request, sessionHash: session.sessionHash, csrfHash: session.csrfHash }),
+    },
+    request.action === "collect" ? SOCIAL_COLLECTION_TIMEOUT_MS : ORCHESTRATOR_TIMEOUT_MS,
+  );
+  if (!response.ok) {
+    const error = asRecord(asRecord(response.value).error);
+    const code = stringField(error, "code", 80);
+    const publicError = Object.hasOwn(SOCIAL_FOLLOW_PUBLIC_ERRORS, code)
+      ? SOCIAL_FOLLOW_PUBLIC_ERRORS[code] : undefined;
+    if (publicError && publicError.status === response.status) {
+      const retryAfter = Number(error.retryAfterSeconds);
+      throw new PublicBffError(
+        publicError.status,
+        code,
+        publicError.message,
+        publicError.status === 429
+          ? (Number.isSafeInteger(retryAfter) && retryAfter >= 1 ? retryAfter : 90)
+          : undefined,
+      );
+    }
+    throw new DownstreamHttpError(response.status);
+  }
+  if (!isPlainObject(response.value) || Object.hasOwn(response.value, "error")) {
+    throw new DownstreamHttpError(502);
+  }
+  sendJson(res, 200, response.value);
+}
+
 async function runSafely(
   res: MarketingApiResponse,
   operation: () => Promise<void>,
@@ -2268,4 +2346,11 @@ export async function marketingLaunchHandler(
   res: MarketingApiResponse,
 ): Promise<void> {
   await runSafely(res, () => launchMarketingCampaign(req, res));
+}
+
+export async function marketingSocialFollowHandler(
+  req: MarketingApiRequest,
+  res: MarketingApiResponse,
+): Promise<void> {
+  await runSafely(res, () => runMarketingSocialFollow(req, res));
 }
