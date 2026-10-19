@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a56bc6a80bad4da0476554ecf8f6742071d78f363e5ea93f47521f784256633c`
+- Empreinte SHA-256 des sources indexées : `bc0d7fae76b2e98b93cd8de25aa6a858f55860209c6f9e99be83ca64f2755948`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1795,7 +1795,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /logotok.png | 9 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
 | /logout?scope=local | 1 | [server/marketingBff.ts:782](../../server/marketingBff.ts#L782) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:30](../../src/hooks/useTokLogo.ts#L30) |
-| /marketing | 32 | [scripts/application-index-core.mjs:168](../../scripts/application-index-core.mjs#L168) |
+| /marketing | 33 | [scripts/application-index-core.mjs:168](../../scripts/application-index-core.mjs#L168) |
 | /marketing-public | 1 | [src/test/marketing-domain-isolation.test.ts:25](../../src/test/marketing-domain-isolation.test.ts#L25) |
 | /marketing/ | 1 | [src/App.tsx:323](../../src/App.tsx#L323) |
 | /marketing/* | 2 | [src/App.tsx:753](../../src/App.tsx#L753) |
@@ -1805,7 +1805,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/brand/tok-v1/loyalty.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:7](../../supabase/functions/_shared/marketing-brand.ts#L7) |
 | /marketing/brand/tok-v1/pricing.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:9](../../supabase/functions/_shared/marketing-brand.ts#L9) |
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
-| /marketing/login | 24 | [src/App.tsx:744](../../src/App.tsx#L744) |
+| /marketing/login | 26 | [src/App.tsx:744](../../src/App.tsx#L744) |
 | /marketing?view=calendar | 1 | [src/test/marketing-login-navigation.test.tsx:79](../../src/test/marketing-login-navigation.test.tsx#L79) |
 | /marketing?view=calendar#access_token=secret | 1 | [src/test/marketing-login-navigation.test.tsx:72](../../src/test/marketing-login-navigation.test.tsx#L72) |
 | /marketing?view=calendar&campaignId=../../admin&itemId=javascript:bad&from=2026-02-31&to=2026-99-10&page=9007199254740992 | 1 | [src/test/marketing-review-navigation.test.tsx:78](../../src/test/marketing-review-navigation.test.tsx#L78) |

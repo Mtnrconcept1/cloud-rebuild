@@ -903,7 +903,11 @@ jobs:
     needs:
       - baseline
       - deployment_gate
-    if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
+    if: >-
+      ${{ !cancelled() &&
+          vars.PRODUCTION_DEPLOY_ENABLED == 'true' &&
+          needs.baseline.result == 'success' &&
+          needs.deployment_gate.result == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
