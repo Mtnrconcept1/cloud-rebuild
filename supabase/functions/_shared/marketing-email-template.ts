@@ -51,7 +51,13 @@ function escapeHtml(value: string) {
 function safeUrl(value: string | null | undefined) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
-  return /^https:\/\/[^\s"'<>]+$/.test(trimmed) ? trimmed : null;
+  if (!/^https:\/\/[^\s"'<>]+$/.test(trimmed)) return null;
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "https:" && !url.username && !url.password ? url.href : null;
+  } catch {
+    return null;
+  }
 }
 
 function paragraphs(body: string) {
@@ -61,7 +67,7 @@ function paragraphs(body: string) {
     .filter(Boolean)
     .map(
       (block) =>
-        `<p style="margin:0 0 16px;font-size:16px;line-height:1.65;color:${BRAND.ink}">${
+        `<p style="margin:0 0 16px;font-size:16px;line-height:1.65;color:${BRAND.ink};overflow-wrap:anywhere;word-break:break-word;">${
           escapeHtml(block).replace(/\n/g, "<br />")
         }</p>`,
     )
@@ -73,8 +79,13 @@ export function renderMarketingEmail(
   brand: MarketingEmailBrand,
 ): { html: string; text: string } {
   const site = safeUrl(brand.siteUrl) || "https://www.thetok.ch";
-  const logo = `${site}/logo3df.png`;
-  const chef = `${site}/chef.png`;
+  const assetOrigin = new URL(site).origin;
+  // These are proportional, email-sized copies of the supplied TOK logo and
+  // the existing chef-with-promotion artwork, with no graphical recomposition.
+  const logo = `${assetOrigin}/marketing/email/tok-logo.jpg`;
+  const promotion = `${assetOrigin}/marketing/email/restaurant-promotion.png`;
+  const promotionUrl = "https://www.thetok.ch/dashboard/campagnes";
+  const promotionCta = "Mettre mon restaurant en avant";
   const visual = safeUrl(content.visualUrl);
   const ctaUrl = safeUrl(content.callToActionUrl) || site;
   const cta = (content.callToAction || "").trim();
@@ -91,21 +102,22 @@ export function renderMarketingEmail(
 <meta name="color-scheme" content="light" />
 <title>${escapeHtml(content.headline)}</title>
 </head>
-<body style="margin:0;padding:0;background:${BRAND.page};">
+<body style="margin:0;padding:0;background:${BRAND.page};-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${preheader}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.page};padding:24px 12px;">
-<tr><td align="center">
-  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:${BRAND.surface};border:1px solid ${BRAND.border};border-radius:18px;overflow:hidden;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;table-layout:fixed;background:${BRAND.page};">
+<tr><td align="center" style="padding:24px 8px;">
+  <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;table-layout:fixed;background:${BRAND.surface};border:1px solid ${BRAND.border};border-radius:18px;">
 
     <tr><td align="center" style="padding:28px 24px 8px;">
-      <a href="${ctaUrl}" style="text-decoration:none;">
-        <img src="${logo}" width="96" height="96" alt="TOK"
-             style="display:block;width:96px;height:auto;border:0;" />
+      <a href="${escapeHtml(ctaUrl)}" style="text-decoration:none;">
+        <img src="${escapeHtml(logo)}" width="128" height="128" alt="TOK"
+             style="display:block;width:128px;max-width:100%;height:auto;border:0;" />
       </a>
     </td></tr>
 
-    <tr><td style="padding:8px 32px 0;">
-      <h1 style="margin:0 0 18px;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.25;color:${BRAND.ink};text-align:center;">
+    <tr><td style="padding:8px 24px 0;">
+      <h1 style="margin:0 0 18px;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.25;color:${BRAND.ink};text-align:center;overflow-wrap:anywhere;word-break:break-word;">
         ${escapeHtml(content.headline)}
       </h1>
     </td></tr>
@@ -113,23 +125,23 @@ export function renderMarketingEmail(
     ${
     visual
       ? `<tr><td style="padding:0 24px 20px;">
-      <img src="${visual}" alt="" width="552"
-           style="display:block;width:100%;height:auto;border:0;border-radius:12px;" />
+      <img src="${escapeHtml(visual)}" alt="" width="552"
+           style="display:block;width:100%;max-width:552px;height:auto;border:0;border-radius:12px;" />
     </td></tr>`
       : ""
   }
 
-    <tr><td style="padding:0 32px;font-family:Helvetica,Arial,sans-serif;">
+    <tr><td style="padding:0 24px;font-family:Helvetica,Arial,sans-serif;">
       ${paragraphs(content.body)}
     </td></tr>
 
     ${
     cta
-      ? `<tr><td align="center" style="padding:12px 32px 4px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+      ? `<tr><td align="center" style="padding:12px 24px 4px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:440px;table-layout:fixed;"><tr>
         <td align="center" bgcolor="${BRAND.orange}" style="border-radius:999px;">
-          <a href="${ctaUrl}"
-             style="display:inline-block;padding:14px 32px;font-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:bold;color:#FFFFFF;text-decoration:none;border-radius:999px;">
+          <a href="${escapeHtml(ctaUrl)}"
+             style="display:block;padding:14px 20px;font-family:Helvetica,Arial,sans-serif;font-size:16px;line-height:1.4;font-weight:bold;color:#FFFFFF;text-decoration:none;border-radius:999px;overflow-wrap:anywhere;word-break:break-word;">
             ${escapeHtml(cta)}
           </a>
         </td>
@@ -138,12 +150,34 @@ export function renderMarketingEmail(
       : ""
   }
 
-    <tr><td align="center" style="padding:16px 32px 0;">
-      <img src="${chef}" width="150" height="auto" alt=""
-           style="display:block;width:150px;height:auto;border:0;" />
+    <tr><td style="padding:24px 24px 20px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FF4B00" style="width:100%;table-layout:fixed;background:#FF4B00;border-radius:14px;">
+        <tr>
+          <td width="55%" align="center" valign="middle" style="width:55%;padding:12px 4px 4px 8px;">
+            <a href="${promotionUrl}" style="text-decoration:none;">
+              <img src="${escapeHtml(promotion)}" width="280" alt="Ton resto mis en avant à partir de CHF 1.–"
+                   style="display:block;width:100%;max-width:280px;height:auto;border:0;" />
+            </a>
+          </td>
+          <td width="45%" valign="middle" style="width:45%;padding:16px 12px 12px 8px;font-family:Helvetica,Arial,sans-serif;color:#FFFFFF;overflow-wrap:anywhere;word-break:break-word;">
+            <h2 style="margin:0 0 10px;font-size:20px;line-height:1.2;font-weight:bold;">Ton resto mis en avant</h2>
+            <p style="margin:0 0 16px;font-size:13px;line-height:1.5;">à partir de<br /><strong style="font-size:24px;">CHF 1.–</strong></p>
+            <p style="margin:0 0 10px;font-size:14px;line-height:1.4;font-weight:bold;">Plus de visibilité</p>
+            <p style="margin:0 0 10px;font-size:14px;line-height:1.4;font-weight:bold;">Plus de clients</p>
+            <p style="margin:0;font-size:14px;line-height:1.4;font-weight:bold;">Résultats rapides</p>
+          </td>
+        </tr>
+        <tr><td colspan="2" align="center" style="padding:12px 14px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;table-layout:fixed;"><tr>
+            <td align="center" bgcolor="#FFFFFF" style="border-radius:12px;">
+              <a href="${promotionUrl}" style="display:block;padding:14px 12px;font-family:Helvetica,Arial,sans-serif;font-size:15px;line-height:1.4;font-weight:bold;color:#D94600;text-decoration:none;border-radius:12px;overflow-wrap:anywhere;word-break:break-word;">${promotionCta}</a>
+            </td>
+          </tr></table>
+        </td></tr>
+      </table>
     </td></tr>
 
-    <tr><td style="padding:8px 32px 28px;font-family:Helvetica,Arial,sans-serif;">
+    <tr><td style="padding:8px 24px 28px;font-family:Helvetica,Arial,sans-serif;overflow-wrap:anywhere;word-break:break-word;">
       <hr style="border:0;border-top:1px solid ${BRAND.border};margin:0 0 16px;" />
       <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:${BRAND.muted};text-align:center;">
         ${escapeHtml(brand.senderName)} · ${escapeHtml(brand.senderAddress)}
@@ -152,13 +186,14 @@ export function renderMarketingEmail(
         Vous recevez ce message en tant que professionnel de la restauration.
         ${
     unsubscribe
-      ? `<br /><a href="${unsubscribe}" style="color:${BRAND.muted};text-decoration:underline;">Se désabonner en un clic</a>`
+      ? `<br /><a href="${escapeHtml(unsubscribe)}" style="color:${BRAND.muted};text-decoration:underline;">Se désabonner en un clic</a>`
       : ""
   }
       </p>
     </td></tr>
 
   </table>
+  <!--[if mso]></td></tr></table><![endif]-->
 </td></tr>
 </table>
 </body></html>`;
@@ -168,6 +203,9 @@ export function renderMarketingEmail(
     "",
     content.body,
     cta ? `\n${cta} : ${ctaUrl}` : "",
+    "",
+    "Ton resto mis en avant à partir de CHF 1.–",
+    `${promotionCta} : ${promotionUrl}`,
     "",
     "—",
     `${brand.senderName} · ${brand.senderAddress}`,

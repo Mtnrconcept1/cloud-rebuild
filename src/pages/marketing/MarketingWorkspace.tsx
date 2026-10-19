@@ -1,4 +1,5 @@
 import { AlertCircle, CheckCircle2, Info, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import MarketingWorkspaceChrome from "@/components/marketing/MarketingWorkspaceChrome";
 import MarketingActivityView from "@/components/marketing/views/MarketingActivityView";
@@ -19,7 +20,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useMarketingAutopilot } from "@/marketing/useMarketingAutopilot";
 import { useMarketingOperations } from "@/marketing/useMarketingOperations";
-import { useMarketingUrlState } from "@/marketing/useMarketingUrlState";
+import { useMarketingUrlState, type MarketingUrlState } from "@/marketing/useMarketingUrlState";
+import type { MarketingView } from "@/marketing/types";
 import { currentMarketingMonthRange } from "@/marketing/zurichTime";
 
 function LoadingWorkspace() {
@@ -34,7 +36,34 @@ function LoadingWorkspace() {
 }
 
 export default function MarketingWorkspace() {
-  const { state: filters, update: updateFilters, setView } = useMarketingUrlState();
+  const { state: urlFilters, update: updateUrlFilters, setView: setUrlView } = useMarketingUrlState();
+  const [uploadPending, setUploadPending] = useState(false);
+  const [uploadFilters, setUploadFilters] = useState<MarketingUrlState | null>(null);
+  // Browser back/forward changes searchParams without using the chrome's
+  // callbacks. Keep the current editor mounted until its upload completes.
+  const filters = uploadPending && uploadFilters ? uploadFilters : urlFilters;
+  const uploadPendingRef = useRef(false);
+  const onUploadPendingChange = useCallback((pending: boolean) => {
+    uploadPendingRef.current = pending;
+    setUploadFilters(pending ? urlFilters : null);
+    setUploadPending(pending);
+  }, [urlFilters]);
+  const setView = useCallback((view: MarketingView) => {
+    if (!uploadPendingRef.current) setUrlView(view);
+  }, [setUrlView]);
+  const updateFilters = useCallback((patch: Partial<MarketingUrlState>) => {
+    if (!uploadPendingRef.current) updateUrlFilters(patch);
+  }, [updateUrlFilters]);
+  useEffect(() => {
+    if (!uploadPending) return;
+    const preventLeavingDuringUpload = (event: BeforeUnloadEvent) => {
+      if (!uploadPendingRef.current) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", preventLeavingDuringUpload);
+    return () => { window.removeEventListener("beforeunload", preventLeavingDuringUpload); };
+  }, [uploadPending]);
   const autopilotEnabled = ["automations", "integrations", "results", "governance"].includes(filters.view);
   const autopilot = useMarketingAutopilot({ enabled: autopilotEnabled });
   const defaultCalendarRange = currentMarketingMonthRange();
@@ -52,11 +81,11 @@ export default function MarketingWorkspace() {
       case "faq":
         return <MarketingFaqView />;
       case "agent":
-        return <MarketingAgentView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} onNavigate={setView} onGenerated={operations.refresh} />;
+        return <MarketingAgentView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} onNavigate={setView} onGenerated={operations.refresh} onUploadPendingChange={onUploadPendingChange} />;
       case "calendar":
         return <MarketingCalendarView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onCancel={operations.cancelItem} onApprove={operations.approveItem} onCompleteManual={operations.completeManualItem} />;
       case "campaigns":
-        return <MarketingCampaignsView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} savePending={operations.pendingAction === "save-campaign"} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onSave={operations.saveCampaign} onApprove={operations.approveCampaign} onRecommendChannels={operations.recommendChannels} onNavigate={setView} />;
+        return <MarketingCampaignsView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} savePending={operations.pendingAction === "save-campaign"} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onSave={operations.saveCampaign} onApprove={operations.approveCampaign} onRecommendChannels={operations.recommendChannels} onItemsUpdated={operations.refresh} onNavigate={setView} onUploadPendingChange={onUploadPendingChange} />;
       case "audiences":
         return <MarketingAudiencesView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onNavigate={setView} onSyncSources={operations.syncSources} onLoadContactsPage={operations.loadContactsPage} contactsRevision={operations.contactsRevision} onQualifyContact={operations.qualifyRestaurantContact} onSuppressContact={operations.suppressContact} />;
       case "automations":
@@ -84,10 +113,12 @@ export default function MarketingWorkspace() {
       canMutateBackend={operations.canMutateBackend}
       refreshing={operations.refreshing}
       pausePending={operations.pendingAction === "global-pause"}
+      navigationLocked={uploadPending}
       onViewChange={setView}
-      onRefresh={() => { void operations.refresh(); }}
+      onRefresh={() => { if (!uploadPendingRef.current) void operations.refresh(); }}
       onTogglePause={operations.toggleGlobalPause}
     >
+      {uploadPending ? <p role="status" className="mb-4 rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">Import de l’image en cours. Patientez avant de quitter cet écran.</p> : null}
       {operations.notice ? (
         <Alert className={cn("mb-5 pr-12", operations.notice.tone === "success" && "border-emerald-500/25 bg-emerald-500/5", operations.notice.tone === "warning" && "border-amber-500/25 bg-amber-500/5")} variant={operations.notice.tone === "error" ? "destructive" : "default"}>
           <NoticeIcon className="h-4 w-4" />

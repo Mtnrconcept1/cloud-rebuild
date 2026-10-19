@@ -5,6 +5,7 @@ import MarketingAgentView from "@/components/marketing/views/MarketingAgentView"
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
 import { parseCampaignOptions } from "../../supabase/functions/_shared/marketing-campaign-options";
 import { campaignEndDate } from "@/marketing/campaignTemplates";
+import * as client from "@/marketing/marketingClient";
 
 const { bff } = vi.hoisted(() => ({ bff: vi.fn() }));
 vi.mock("@/marketing/marketingBffClient", () => ({
@@ -117,5 +118,45 @@ describe("campagne guidée", () => {
     expect(await screen.findAllByText("L'agent n'a pas pu produire de plan.")).not.toHaveLength(0);
     expect(screen.getByRole("checkbox", { name: /Zéro attente/ })).toBeChecked();
     expect(screen.getByLabelText("Posts par réseau et format")).toHaveValue(3);
+  });
+
+  it("propose un import distinct pour chaque e-mail généré et bloque navigation et nouvelle génération pendant l’import", async () => {
+    const makeItem = (number: number) => ({ id: `71830000-0000-4000-8000-${String(number).padStart(12, "0")}`,
+      title: `E-mail ${number}`, channel: "email", scheduled_at: "2027-01-10T08:00:00Z", updated_at: "2026-10-19T08:00:00Z",
+      status: "draft", approval_status: "pending", content: { mailing_version: "tok-mailing-v1", subject: `Objet ${number}`,
+        headline: `Titre ${number}`, body: `Texte ${number}`, call_to_action: "Découvrir", image_mode: "manual", visual_status: "pending_upload" } });
+    bff.mockImplementation((_url, { body }) => Promise.resolve(body.action === "list_runs" ? { runs: [] }
+      : body.action === "mailing_facets" ? { items: [], next: null }
+        : body.operation === "admin_estimate_marketing_audience" ? { total: 2, eligible: 0, channels: [{ channel: "email", eligible: 0, availability: "available" }] }
+          : { campaign: { id: "campaign", name: "Campagne manuelle" }, items: [makeItem(1), makeItem(2)], summary: "Textes prêts", assetCount: 0, estimatedCostChf: 0.1 }));
+    let finishUpload!: (value: ReturnType<typeof client.normalizeCalendarItem>) => void;
+    const upload = vi.spyOn(client, "uploadMarketingMailingImage").mockReturnValue(new Promise((resolve) => { finishUpload = resolve; }));
+    const onGenerated = vi.fn().mockResolvedValue(undefined); const onNavigate = vi.fn(); const onUploadPendingChange = vi.fn();
+    render(<MarketingAgentView snapshot={snapshot} canMutateBackend onNavigate={onNavigate} onGenerated={onGenerated} onUploadPendingChange={onUploadPendingChange} />);
+    fireEvent.click(screen.getByRole("button", { name: "Utiliser l’exemple pizzerias" }));
+    fireEvent.click(screen.getByRole("radio", { name: /^Import manuel/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Vérifier les destinataires" }));
+    await screen.findByText("2 restaurants correspondants");
+    fireEvent.click(screen.getByRole("button", { name: "Générer les textes des e-mails" }));
+    const firstInput = await screen.findByLabelText("Importer une image pour E-mail 1");
+    expect(screen.getByLabelText("Importer une image pour E-mail 2")).toBeEnabled();
+    expect(onGenerated).toHaveBeenCalledTimes(1);
+    fireEvent.change(firstInput, { target: { files: [new File(["fixture"], "restaurant.png", { type: "image/png" })] } });
+    expect(upload.mock.calls[0].slice(0, 2)).toEqual([makeItem(1).id, "2026-10-19T08:00:00Z"]);
+    expect(onUploadPendingChange).toHaveBeenLastCalledWith(true);
+    expect(screen.getByRole("button", { name: "Générer les textes des e-mails" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Envoyer et générer la campagne" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Ouvrir les campagnes pour approbation" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Relire et approuver les éléments" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Ouvrir les campagnes pour approbation" }));
+    expect(onNavigate).not.toHaveBeenCalled();
+    finishUpload(client.normalizeCalendarItem({ ...makeItem(1), updated_at: "2026-10-19T08:01:00Z", content: {
+      ...makeItem(1).content, visual_status: "ready", visual_url: "https://assets.example.test/first-mail.png", visual_source: "upload",
+    } }));
+    await waitFor(() => expect(screen.getByTitle("Template e-mail — E-mail 1")).toHaveAttribute("srcdoc", expect.stringContaining("first-mail.png")));
+    expect(screen.getByTitle("Template e-mail — E-mail 2").getAttribute("srcdoc")).not.toContain("first-mail.png");
+    expect(onGenerated).toHaveBeenCalledTimes(2);
+    expect(onUploadPendingChange.mock.calls).toEqual([[true], [false]]);
+    expect(screen.getByRole("button", { name: "Ouvrir les campagnes pour approbation" })).toBeEnabled();
   });
 });

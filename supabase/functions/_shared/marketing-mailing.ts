@@ -97,7 +97,10 @@ export function mailingScheduleOptions(options: MailingOptions) {
 }
 
 export function mailingAudienceLabel(selections: MailingSelections, recipientEmails?: string[]): string {
-  if (recipientEmails !== undefined) return `${parseMailingRecipientEmails(recipientEmails).length} destinataire(s) sélectionné(s)`;
+  if (recipientEmails !== undefined) {
+    const count = parseMailingRecipientEmails(recipientEmails).length;
+    return `${count} destinataire${count > 1 ? "s" : ""} sélectionné${count > 1 ? "s" : ""}`;
+  }
   return Object.entries(selections).map(([field, values]) => `${MAILING_FIELDS[field as MailingField]} : ${values.join(", ")}`).join(" · ") || "Tous les restaurants";
 }
 

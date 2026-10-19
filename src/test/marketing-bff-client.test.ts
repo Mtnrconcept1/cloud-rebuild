@@ -36,6 +36,11 @@ describe("marketing BFF client", () => {
   it.each([
     [400, "marketing_visual_required", "Ajoutez un visuel HTTPS valide à chaque publication illustrée avant de l’approuver."],
     [503, "marketing_readiness_unavailable", "La vérification des visuels est indisponible. Réessayez avant d’approuver."],
+    [400, "mailing_image_invalid", "Choisissez une image JPG ou PNG valide de 3 Mo maximum pour cet e-mail."],
+    [409, "mailing_image_conflict", "Cet e-mail ou sa campagne a changé ou a été approuvé. Actualisez avant de réimporter l’image."],
+    [503, "mailing_image_upload_failed", "L’image n’a pas pu être enregistrée. Réessayez l’import de cet e-mail."],
+    [400, "mailing_recipients_invalid", "Vérifiez la liste : de 1 à 500 adresses e-mail valides sont acceptées."],
+    [503, "mailing_recipients_unavailable", "Les destinataires n’ont pas pu être vérifiés. Réessayez leur enregistrement."],
   ])("explains the known visual readiness failure without exposing upstream text: %s %s", async (status, code, message) => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: { code, message: "PRIVATE_UPSTREAM_DETAILS" } }), {
       status: Number(status), headers: { "Content-Type": "application/json" },
@@ -70,6 +75,28 @@ describe("marketing BFF client", () => {
     expect(init.cache).toBe("no-store");
     expect(init.redirect).toBe("error");
     expect((init.headers as Record<string, string>)[MARKETING_CSRF_HEADER_NAME]).toBe(csrfToken);
+  });
+
+  it("allows the larger body only for the dedicated mailing image action", async () => {
+    const fetchMock = vi.fn(async () => new Response('{"ok":true}', { status: 200, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const imageBase64 = "a".repeat(4 * 1024 * 1024);
+    await expect(marketingBffRequest("/api/marketing/agent", { method: "POST", body: {
+      action: "upload_mailing_image", imageBase64,
+    } })).resolves.toEqual({ ok: true });
+    expect((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1]).toMatchObject({ credentials: "include", cache: "no-store",
+      headers: expect.objectContaining({ [MARKETING_CSRF_HEADER_NAME]: csrfToken }) });
+    fetchMock.mockClear();
+    for (const [path, action, method] of [
+      ["/api/marketing/rpc", "upload_mailing_image", "POST"],
+      ["/api/marketing/agent", "generate", "POST"],
+      ["/api/marketing/agent", "prepare_mailing_recipients", "POST"],
+      ["/api/marketing/agent", "upload_mailing_image", "GET"],
+    ] as const) {
+      await expect(marketingBffRequest(path, { method, body: { action, imageBase64 } })).rejects.toMatchObject({ status: 413 });
+    }
+    await expect(marketingBffRequest("/api/marketing/agent", { body: { action: "upload_mailing_image", imageBase64: `${imageBase64}${"a".repeat(4096)}` } })).rejects.toMatchObject({ status: 413 });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("fails before fetch when the CSRF cookie is missing", async () => {
