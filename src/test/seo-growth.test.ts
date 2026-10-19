@@ -122,7 +122,8 @@ describe("SEO growth readiness", () => {
     expect(prerender).not.toContain('document.getElementById("tok-prerendered-content")');
     expect(prerender).not.toContain("page.lastmod || today");
     expect(prerender).toContain("const lastmod = normalizeSitemapDate(page.lastmod)");
-    expect(prerender).toContain("itemListElement: restaurants.slice(0, 100)");
+    expect(prerender).toContain("itemListElement: restaurants.map(");
+    expect(prerender).toContain("itemListComplete: true");
     expect(prerender).toContain('writeIfDirectoryExists(DIST_DIR, "404.html", renderNotFoundHtml(baseHtml))');
     expect(prerender).toContain("noindex,nofollow,noarchive");
     expect(prerender).toContain('html.replace(/\\s*<link\\s+rel="canonical"');

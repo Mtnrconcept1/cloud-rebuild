@@ -124,9 +124,8 @@ describe("SEO indexation and crawler hardening", () => {
     expect(prerender).toContain("SEO_MAX_LOCAL_PARENT_COVERAGE || 0.8");
     expect(prerender).toContain("const duplicatesParentCity");
     expect(prerender).toContain("parentInventoryCount");
-    expect(prerender).toContain(
-      "Number(page.inventoryCount || 0) >= parentInventory * MAX_LOCAL_PARENT_COVERAGE",
-    );
+    expect(prerender).toContain('from "../src/lib/seo/localInventoryPolicy.mjs"');
+    expect(prerender).toContain('localInventoryDecision(page).reason === "parent-duplicate"');
     expect(prerender).toContain("const isDemotedLocalPage");
     // Le déclassement doit rester couplé au noindex + exclusion sitemap, jamais à l'un des deux seul.
     expect(prerender).toMatch(
@@ -140,6 +139,17 @@ describe("SEO indexation and crawler hardening", () => {
     // Une commune à une seule adresse produit ~85 mots : contenu mince, pas une page de destination.
     expect(prerender).toContain("SEO_MIN_LOCAL_RESTAURANTS || 3");
     expect(prerender).toContain("SEO_MIN_SPECIALIZED_LOCAL_RESTAURANTS || 3");
+  });
+
+  it("preserves a complete local ItemList and route-owned inventory decisions for the final build and hydration", () => {
+    const prerender = read("scripts/prerender-seo.mjs");
+    const localJsonLd = prerender.slice(prerender.indexOf("function buildLocalJsonLd("), prerender.indexOf("function buildLocalSeoPage("));
+
+    expect(localJsonLd).toContain("itemListElement: restaurants.map(");
+    expect(localJsonLd).not.toContain("restaurants.slice(");
+    expect(prerender).toContain('id="tok-local-inventory" type="application/json"');
+    expect(prerender).toContain("escapeJsonForHtml(page.localInventory)");
+    expect(prerender).toContain("itemListComplete: true");
   });
 
   it("reads verified cuisines from restaurant_cuisines instead of the sparse free-text column", () => {
