@@ -32,15 +32,18 @@ const options = { prompt: "5 CHF par table. Découvrez TOK.", campaignSlug: "tok
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.resetModules(); });
 
 describe("TOK brand reference conditioning", () => {
-  it("pins the four supplied artworks byte-for-byte, with public versioned paths", () => {
-    expect(TOK_MARKETING_REFERENCES).toHaveLength(4);
+  it("pins the Instagram master first and all supplied artworks byte-for-byte", () => {
+    expect(TOK_MARKETING_REFERENCES).toHaveLength(5);
+    expect(TOK_MARKETING_REFERENCES[0]).toMatchObject({
+      id: "instagram-profile", path: "/marketing/brand/tok-v2/instagram-profile.jpeg",
+    });
     for (const reference of TOK_MARKETING_REFERENCES) {
       const bytes = readFileSync(resolve(process.cwd(), `public${reference.path}`));
       expect(bytes.length).toBeLessThan(2_000_000);
       expect(createHash("sha256").update(bytes).digest("hex")).toBe(reference.sha256);
     }
   });
-  it("sends all four actual image files to edits, retains the brief and stores a JPEG", async () => {
+  it("sends the master and all identity references to edits for one native image", async () => {
     const { fetcher, client, upload } = setup();
     const { generateCampaignVisual } = await import("../../supabase/functions/_shared/marketing-visual");
     expect(await generateCampaignVisual(client, options)).toMatch(/marketing-ai\/tok-geneve\/.*\.jpg$/);
@@ -49,9 +52,10 @@ describe("TOK brand reference conditioning", () => {
     expect(form.get("prompt")).toContain(options.prompt);
     expect(form.get("size")).toBe("1024x1280");
     expect(form.get("output_format")).toBe("jpeg");
+    expect(form.get("n")).toBe("1");
     expect(form.has("input_fidelity")).toBe(false);
     const files = form.getAll("image[]") as File[];
-    expect(files).toHaveLength(4);
+    expect(files).toHaveLength(5);
     for (let index = 0; index < files.length; index++) {
       expect(files[index].name).toBe(`${TOK_MARKETING_REFERENCES[index].id}.jpg`);
       expect(createHash("sha256").update(Buffer.from(await new Promise<ArrayBuffer>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result as ArrayBuffer); reader.onerror = reject; reader.readAsArrayBuffer(files[index]); }))).digest("hex")).toBe(TOK_MARKETING_REFERENCES[index].sha256);
@@ -59,7 +63,7 @@ describe("TOK brand reference conditioning", () => {
     expect(provider?.[1]?.headers).toEqual({ Authorization: "Bearer test-only" });
     expect(upload).toHaveBeenCalledWith(expect.stringContaining(".jpg"), new Uint8Array(jpeg), { contentType: "image/jpeg", upsert: false });
     await generateCampaignVisual(client, options);
-    expect(fetcher.mock.calls.filter(([url]) => url.startsWith("https://www.thetok.ch/"))).toHaveLength(4);
+    expect(fetcher.mock.calls.filter(([url]) => url.startsWith("https://www.thetok.ch/"))).toHaveLength(5);
   });
   it.each([
     ["1:1", "1024x1024"],
@@ -117,6 +121,16 @@ describe("TOK brand reference conditioning", () => {
     expect(prompt).toContain("Ne reprendre AUCUN prix concurrent");
     expect(prompt).toContain("CONTRÔLE FINAL");
     expect(prompt).not.toContain("x".repeat(4001));
+  });
+  it("prioritizes the supplied Instagram style without copying its grid or imposing a mascot", () => {
+    const prompt = buildTokMarketingVisualPrompt("Titre exact : Vos réservations. Bien organisées.");
+    expect(prompt).toContain("la première image jointe, Profil Instagram TOK, est la référence maîtresse");
+    expect(prompt).toContain("Ne jamais reproduire la grille");
+    expect(prompt).toContain("titres en casse phrase");
+    expect(prompt).toContain("CHEF CONDITIONNEL");
+    expect(prompt).toContain("PRODUCTION NATIVE");
+    expect(prompt).not.toContain("titres en capitales");
+    expect(prompt).not.toContain("CTA et thetok.ch en bas");
   });
   it.each([["1:1", "1024x1024"], ["9:16", "720x1280"], ["16:9", "1280x720"], ["4:5", "1024x1280"]] as const)("sends the selected %s ratio to the image provider", async (format, size) => {
     setup();
