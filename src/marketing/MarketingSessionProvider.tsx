@@ -199,13 +199,28 @@ export default function MarketingSessionProvider({ children }: { children: React
 
   useEffect(() => {
     if (status !== "authenticated") return;
-    const revalidate = () => { void refreshSession(); };
+    let needsRevalidation = document.visibilityState !== "visible" || !document.hasFocus();
+    const markInactive = () => {
+      // Focus moving into the sandboxed email iframe keeps this document
+      // focused. Only a real loss of system focus requires a fresh session.
+      if (!document.hasFocus()) needsRevalidation = true;
+    };
+    const revalidate = () => {
+      if (!needsRevalidation || document.visibilityState !== "visible") return;
+      // A returning tab may emit both visibilitychange and focus before React
+      // renders the locked state. Consume the transition before requesting.
+      needsRevalidation = false;
+      void refreshSession();
+    };
     const revalidateWhenVisible = () => {
       if (document.visibilityState === "visible") revalidate();
+      else needsRevalidation = true;
     };
+    window.addEventListener("blur", markInactive);
     window.addEventListener("focus", revalidate);
     document.addEventListener("visibilitychange", revalidateWhenVisible);
     return () => {
+      window.removeEventListener("blur", markInactive);
       window.removeEventListener("focus", revalidate);
       document.removeEventListener("visibilitychange", revalidateWhenVisible);
     };
