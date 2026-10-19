@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "47b3ea6c935be78c492d8f2262c673162632e96a8866672a43bbeea956a299a0",
+ "sourceDigest": "f993c3945f0a4a7c4cfad8f1365b3ca4cb3072bc13633660f95d8738b61f2097",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -25,14 +25,14 @@
   "publicEntries": 608,
   "publicNavigableRoutes": 2,
   "queryParameters": 113,
-  "records": 17765,
-  "repositoryFiles": 3365,
+  "records": 17763,
+  "repositoryFiles": 3364,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 31
+  "workflows": 30
  },
  "catalogs": {
   "frontendRoutes": [
@@ -75152,11 +75152,6 @@
     ]
    },
    {
-    "name": "Tok Connect Index Refresh",
-    "path": ".github/workflows/tok-connect-index-refresh.yml",
-    "jobs": []
-   },
-   {
     "name": "TOK Connect security regression",
     "path": ".github/workflows/tok-connect-security.yml",
     "jobs": [
@@ -122390,11 +122385,6 @@
    },
    {
     "path": ".github/workflows/sync-incident-secrets.yml",
-    "category": "ci-workflow",
-    "extension": ".yml"
-   },
-   {
-    "path": ".github/workflows/tok-connect-index-refresh.yml",
     "category": "ci-workflow",
     "extension": ".yml"
    },
@@ -310903,20 +310893,6 @@
    "detailRef": "4641b28d0262"
   },
   {
-   "id": "file:ef0de9a48ceb",
-   "type": "file",
-   "title": ".github/workflows/tok-connect-index-refresh.yml",
-   "description": "Fichier du dépôt classé ci-workflow.",
-   "path": ".github/workflows/tok-connect-index-refresh.yml",
-   "line": null,
-   "surface": null,
-   "tags": [
-    ".yml",
-    "ci-workflow"
-   ],
-   "detailRef": "b632b93a618f"
-  },
-  {
    "id": "file:31da396d7920",
    "type": "file",
    "title": ".github/workflows/tok-connect-security.yml",
@@ -396757,17 +396733,6 @@
     "migration-and-tenant-isolation"
    ],
    "detailRef": "56102a87e1c5"
-  },
-  {
-   "id": "workflow:5f67392cfee6",
-   "type": "workflow",
-   "title": "Tok Connect Index Refresh",
-   "description": "Workflow GitHub Actions; jobs: définition dynamique.",
-   "path": ".github/workflows/tok-connect-index-refresh.yml",
-   "line": null,
-   "surface": null,
-   "tags": [],
-   "detailRef": "7bc717921ca7"
   },
   {
    "id": "workflow:449ccb0fe621",
