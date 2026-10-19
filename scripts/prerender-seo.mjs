@@ -2257,7 +2257,9 @@ function renderPreRenderedHtml(baseHtml, page) {
   if (page.modifiedAt) {
     html = upsertTag(html, /<meta\s+property="article:modified_time"[^>]*>/i, `<meta property="article:modified_time" content="${escapeHtml(page.modifiedAt)}" />`);
   }
-  html = html.replace(/\s*<script\s+id="tok-page-json-ld"[\s\S]*?<\/script>/i, "");
+  // Keep a boundary so removing owned tags cannot join fragments into a new tag.
+  html = html.replace(/\s*<script\s+id="tok-page-json-ld"[\s\S]*?<\/script>/gi, "\n");
+  html = html.replace(/\s*<script\s+id="tok-local-inventory"[\s\S]*?<\/script>/gi, "\n");
   const structuredData = sanitizeStructuredData(page.jsonLd);
   if (structuredData) {
     html = html.replace(
@@ -2265,7 +2267,6 @@ function renderPreRenderedHtml(baseHtml, page) {
       `  <script id="tok-page-json-ld" type="application/ld+json">${escapeJsonForHtml(structuredData)}</script>\n</head>`,
     );
   }
-  html = html.replace(/\s*<script\s+id="tok-local-inventory"[\s\S]*?<\/script>/i, "");
   if (page.localInventory) {
     html = html.replace(
       /<\/head>/i,

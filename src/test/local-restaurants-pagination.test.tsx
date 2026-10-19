@@ -222,10 +222,15 @@ describe("local listing inventory policy", () => {
     expect(robots()).toMatch(/^noindex,/);
   });
 
-  it("preserves the nearby RPC and its one-restaurant indexability threshold", async () => {
-    state.rpc.mockResolvedValueOnce({ data: restaurants(0, 1), error: null });
+  it("keeps nearby metadata indexable while loading and after its one-restaurant response", async () => {
+    insertInventorySnapshot();
+    type NearbyResponse = { data: ReturnType<typeof restaurants>; error: null };
+    let resolveResponse!: (response: NearbyResponse) => void;
+    state.rpc.mockReturnValueOnce(new Promise<NearbyResponse>((resolve) => { resolveResponse = resolve; }));
     setup("/restaurants-pres/le-grutli-geneve?lat=46.201&lng=6.144");
 
+    expect(robots()).toMatch(/^index,/);
+    await act(async () => { resolveResponse({ data: restaurants(0, 1), error: null }); });
     await waitFor(() => expect(screen.getAllByRole("article")).toHaveLength(1));
     expect(state.rpc).toHaveBeenCalledWith("search_restaurants_nearby", expect.objectContaining({
       p_lat: 46.201, p_lng: 6.144, p_limit: 60, p_offset: 0,

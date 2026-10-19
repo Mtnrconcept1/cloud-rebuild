@@ -44,14 +44,12 @@ describe("Stoppin <-> TheTok link integration", () => {
     );
   });
 
-  it("keeps nearby-route metadata indexable while inventory is loading", () => {
+  it("registers nearby routes in the public metadata fallback", () => {
     expect(seoMetaSource).toContain("NEARBY_RESTAURANTS_ROUTE_PATTERN");
     expect(seoMetaSource).toContain("getDynamicPublicRouteFallback");
     expect(seoMetaSource).toContain("privateRoute || !knownPublicRoute ? NOINDEX_ROBOTS : INDEX_ROBOTS");
-    expect(localRestaurantsSource).toContain(
-      'robots={!isLoading && (isError || hasThinInventory) ? "noindex,follow,noarchive" : undefined}',
-    );
-    expect(localRestaurantsSource).not.toContain("{!isLoading ? (");
+    // Loading and resolved-inventory behavior is covered with the real component
+    // in local-restaurants-pagination.test.tsx, independently of JSX spelling.
   });
 
   it("hydrates the canonical URL from a validated embedded venue context", () => {

@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `4943ec25e8584d902ff5a56f6a2222a0713200f6b7ff58abd081aef5628fbc2a`
+- Empreinte SHA-256 des sources indexées : `d9ff5faaba4b2fb450a9c5b90385fcf34632e56afaaf1dd0cac23356be910bb0`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1896,16 +1896,16 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants-pres/:venueSlug | 3 | [src/App.tsx:575](../../src/App.tsx#L575) |
 | /restaurants-pres/OLD | 1 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /restaurants-pres/canonical | 3 | [scripts/stoppin-venue-seo.test.mjs:121](../../scripts/stoppin-venue-seo.test.mjs#L121) |
-| /restaurants-pres/grand-theatre-de-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:85](../../src/test/stoppin-thetok-routes.test.ts#L85) |
+| /restaurants-pres/grand-theatre-de-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:83](../../src/test/stoppin-thetok-routes.test.ts#L83) |
 | /restaurants-pres/hidden | 1 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
-| /restaurants-pres/le-grutli-geneve?lat=46.201&lng=6.144 | 1 | [src/test/local-restaurants-pagination.test.tsx:227](../../src/test/local-restaurants-pagination.test.tsx#L227) |
+| /restaurants-pres/le-grutli-geneve?lat=46.201&lng=6.144 | 1 | [src/test/local-restaurants-pagination.test.tsx:230](../../src/test/local-restaurants-pagination.test.tsx#L230) |
 | /restaurants-pres/old | 2 | [scripts/stoppin-venue-seo.test.mjs:121](../../scripts/stoppin-venue-seo.test.mjs#L121) |
 | /restaurants-pres/old/ | 1 | [scripts/stoppin-venue-seo.test.mjs:121](../../scripts/stoppin-venue-seo.test.mjs#L121) |
 | /restaurants-pres/old/extra | 1 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
-| /restaurants-pres/palexpo-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:84](../../src/test/stoppin-thetok-routes.test.ts#L84) |
-| /restaurants-pres/stade-de-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:86](../../src/test/stoppin-thetok-routes.test.ts#L86) |
-| /restaurants-pres/theatre-de-beaulieu-lausanne | 1 | [src/test/stoppin-thetok-routes.test.ts:87](../../src/test/stoppin-thetok-routes.test.ts#L87) |
-| /restaurants-pres/victoria-hall-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:83](../../src/test/stoppin-thetok-routes.test.ts#L83) |
+| /restaurants-pres/palexpo-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:82](../../src/test/stoppin-thetok-routes.test.ts#L82) |
+| /restaurants-pres/stade-de-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:84](../../src/test/stoppin-thetok-routes.test.ts#L84) |
+| /restaurants-pres/theatre-de-beaulieu-lausanne | 1 | [src/test/stoppin-thetok-routes.test.ts:85](../../src/test/stoppin-thetok-routes.test.ts#L85) |
+| /restaurants-pres/victoria-hall-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:81](../../src/test/stoppin-thetok-routes.test.ts#L81) |
 | /restaurants/ | 4 | [scripts/harden-seo-trust-signals.mjs:188](../../scripts/harden-seo-trust-signals.mjs#L188) |
 | /restaurants/${citySlug}/r/${restaurantSlug} | 2 | [src/test/responsive-seo-regressions.test.ts:100](../../src/test/responsive-seo-regressions.test.ts#L100) |
 | /restaurants/:city | 5 | [src/App.tsx:574](../../src/App.tsx#L574) |
@@ -1922,7 +1922,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants/carouge/r/le-jardin-de-pinchat | 1 | [src/test/seo-city-identity.test.ts:67](../../src/test/seo-city-identity.test.ts#L67) |
 | /restaurants/carouge/r/other-city | 1 | [src/test/seo-restaurant-context-hardening.test.ts:30](../../src/test/seo-restaurant-context-hardening.test.ts#L30) |
 | /restaurants/chene-bourg/r/la-caf | 1 | [src/test/seo-web-artifact-names.test.ts:55](../../src/test/seo-web-artifact-names.test.ts#L55) |
-| /restaurants/geneve | 14 | [src/test/coming-soon-gate.test.tsx:50](../../src/test/coming-soon-gate.test.tsx#L50) |
+| /restaurants/geneve | 15 | [src/test/coming-soon-gate.test.tsx:50](../../src/test/coming-soon-gate.test.tsx#L50) |
 | /restaurants/geneve/africain | 8 | [src/test/local-restaurants-pagination.test.tsx:197](../../src/test/local-restaurants-pagination.test.tsx#L197) |
 | /restaurants/geneve/eaux-vives | 2 | [src/test/seo-crawl-hardening.test.ts:93](../../src/test/seo-crawl-hardening.test.ts#L93) |
 | /restaurants/geneve/italien | 2 | [src/test/seo-crawl-hardening.test.ts:99](../../src/test/seo-crawl-hardening.test.ts#L99) |
@@ -1986,10 +1986,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /rpc/service_store_marketing_auth_challenge | 7 | [src/test/marketing-bff-security.test.ts:264](../../src/test/marketing-bff-security.test.ts#L264) |
 | /secrets | 1 | [src/test/production-preflight-hardening.test.ts:205](../../src/test/production-preflight-hardening.test.ts#L205) |
 | /setWebhook | 1 | [src/test/incident-secret-sync-readiness.test.ts:58](../../src/test/incident-secret-sync-readiness.test.ts#L58) |
-| /sitemap-index.xml | 1 | [src/test/seo-indexation-hardening.test.ts:270](../../src/test/seo-indexation-hardening.test.ts#L270) |
-| /sitemap-seo.xml | 1 | [src/test/seo-indexation-hardening.test.ts:270](../../src/test/seo-indexation-hardening.test.ts#L270) |
-| /sitemap.xml | 1 | [src/test/seo-indexation-hardening.test.ts:273](../../src/test/seo-indexation-hardening.test.ts#L273) |
-| /sitemap_index.xml | 1 | [src/test/seo-indexation-hardening.test.ts:270](../../src/test/seo-indexation-hardening.test.ts#L270) |
+| /sitemap-index.xml | 1 | [src/test/seo-indexation-hardening.test.ts:272](../../src/test/seo-indexation-hardening.test.ts#L272) |
+| /sitemap-seo.xml | 1 | [src/test/seo-indexation-hardening.test.ts:272](../../src/test/seo-indexation-hardening.test.ts#L272) |
+| /sitemap.xml | 1 | [src/test/seo-indexation-hardening.test.ts:275](../../src/test/seo-indexation-hardening.test.ts#L275) |
+| /sitemap_index.xml | 1 | [src/test/seo-indexation-hardening.test.ts:272](../../src/test/seo-indexation-hardening.test.ts#L272) |
 | /src/main.tsx | 1 | [src/test/pwa-manifest.test.ts:53](../../src/test/pwa-manifest.test.ts#L53) |
 | /src/pages/CommercialProspection.tsx | 1 | [scripts/check-commercial-map.mjs:37](../../scripts/check-commercial-map.mjs#L37) |
 | /src/pages/dashboard/DashboardCampagnes.tsx | 1 | [scripts/check-campaign-layout.mjs:54](../../scripts/check-campaign-layout.mjs#L54) |

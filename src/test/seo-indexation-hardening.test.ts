@@ -1,7 +1,9 @@
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { formatSeoReadError } from "../../scripts/seo-query-retry.mjs";
 
 function read(path: string) {
@@ -303,5 +305,87 @@ describe("SEO indexation and crawler hardening", () => {
       "REVOKE ALL ON FUNCTION public.search_restaurants_catalog_unguarded",
     );
     expect(migration).toContain("TO anon, authenticated, service_role");
+  });
+});
+
+describe("prerendered SEO script replacement", () => {
+  const temporaryDirectories: string[] = [];
+  let cityHtml: string;
+  let nonLocalHtml: string;
+  let rerenderedCityHtml: string;
+
+  function prerender(baseHtml: string) {
+    const directory = mkdtempSync(resolve(tmpdir(), "tok-seo-script-replacement-"));
+    temporaryDirectories.push(directory);
+    mkdirSync(resolve(directory, "dist"));
+    mkdirSync(resolve(directory, "public"));
+    writeFileSync(resolve(directory, "dist/index.html"), baseHtml, "utf8");
+    // Exercise the real CLI against a disposable static fixture. Empty public
+    // credentials prevent any production reads, even when CI supplies them.
+    const result = spawnSync(process.execPath, [resolve("scripts/prerender-seo.mjs")], {
+      cwd: directory,
+      encoding: "utf8",
+      timeout: 15_000,
+      env: {
+        ...process.env,
+        VITE_SUPABASE_URL: "",
+        SUPABASE_URL: "",
+        VITE_SUPABASE_PUBLISHABLE_KEY: "",
+        VITE_SUPABASE_ANON_KEY: "",
+        SUPABASE_ANON_KEY: "",
+        SEO_STRICT_DYNAMIC: "0",
+      },
+    });
+    expect(result.error).toBeUndefined();
+    expect(result.status, result.stderr).toBe(0);
+    return {
+      city: readFileSync(resolve(directory, "dist/restaurants/geneve/index.html"), "utf8"),
+      nonLocal: readFileSync(resolve(directory, "dist/actualites/index.html"), "utf8"),
+    };
+  }
+
+  beforeAll(() => {
+    const ownedIds = ["tok-page-json-ld", "tok-local-inventory"];
+    const fragments = ownedIds.map((id) =>
+      `<scrip<script id="${id}" type="application/json">{}</script>t data-reconstructed="${id}">0</script>`,
+    ).join("");
+    const staleScripts = ownedIds.flatMap((id) => [1, 2].map((version) =>
+      `<script id="${id}" type="application/json">{"staleVersion":${version}}</script>`,
+    )).join("");
+    const fixture = `<!doctype html><html><head><title>Fixture</title>${fragments}${staleScripts}<script type="module" src="/assets/app.js"></script></head><body><div id="root"></div></body></html>`;
+    const first = prerender(fixture);
+    cityHtml = first.city;
+    nonLocalHtml = first.nonLocal;
+    rerenderedCityHtml = prerender(cityHtml).city;
+  });
+
+  afterAll(() => {
+    temporaryDirectories.forEach((directory) => rmSync(directory, { recursive: true, force: true }));
+  });
+
+  it.each(["tok-page-json-ld", "tok-local-inventory"])("does not reconstruct a script from fragments surrounding %s", (id) => {
+    const document = new DOMParser().parseFromString(cityHtml, "text/html");
+    expect(document.querySelector(`script[data-reconstructed="${id}"]`)).toBeNull();
+  });
+
+  it("removes every old inventory marker from a page without a local inventory", () => {
+    const document = new DOMParser().parseFromString(nonLocalHtml, "text/html");
+    expect(document.querySelectorAll("script#tok-local-inventory")).toHaveLength(0);
+    expect(document.querySelectorAll("script#tok-page-json-ld")).toHaveLength(1);
+    expect(nonLocalHtml).not.toContain("staleVersion");
+    expect(document.querySelector('script[src="/assets/app.js"]')).not.toBeNull();
+  });
+
+  it("keeps exactly one fresh snapshot and structured-data script after repeated rendering", () => {
+    for (const html of [cityHtml, rerenderedCityHtml]) {
+      const document = new DOMParser().parseFromString(html, "text/html");
+      const inventories = document.querySelectorAll("script#tok-local-inventory");
+      expect(inventories).toHaveLength(1);
+      expect(JSON.parse(inventories[0].textContent || "null")).toMatchObject({
+        version: 1, path: "/restaurants/geneve", pageType: "city", itemListComplete: true,
+      });
+      expect(document.querySelectorAll("script#tok-page-json-ld")).toHaveLength(1);
+      expect(html).not.toContain("staleVersion");
+    }
   });
 });

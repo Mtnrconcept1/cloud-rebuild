@@ -120,10 +120,10 @@ describe("commercial demo client data isolation", () => {
       "if (isCommercialDemoClient)",
     );
 
-    expect(local.match(/search_restaurants_catalog/g) ?? []).toHaveLength(1);
+    expect(local.match(/search_restaurants_catalog_page/g) ?? []).toHaveLength(1);
     expectDemoGuardBeforeProductionCall(
       local,
-      '(supabase.rpc as any)("search_restaurants_catalog"',
+      '(supabase.rpc as any)("search_restaurants_catalog_page"',
       "if (isCommercialDemoClient)",
     );
   });
