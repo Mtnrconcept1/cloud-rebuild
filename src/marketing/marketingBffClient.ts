@@ -1,3 +1,5 @@
+import { marketingLoginReturnTarget } from "@/marketing/useMarketingUrlState";
+
 export const MARKETING_CSRF_COOKIE_NAME = "__Host-tok_marketing_csrf";
 export const MARKETING_CSRF_HEADER_NAME = "x-tok-marketing-csrf";
 export const MARKETING_SESSION_EXPIRED_EVENT = "tok:marketing-session-expired";
@@ -47,6 +49,43 @@ export class MarketingBffError extends Error {
   }
 }
 
+const MARKETING_OPERATION_ERRORS: Record<string, { status: number; message: string }> = {
+  marketing_campaign_approval_required: { status: 400,
+    message: "Approuvez d’abord la campagne dans l’onglet Campagnes, puis approuvez et planifiez cet élément." },
+  marketing_schedule_too_soon: { status: 400,
+    message: "Choisissez une date de diffusion située au moins deux minutes dans le futur." },
+  marketing_schedule_quiet_hours: { status: 400,
+    message: "Planifiez cet envoi entre 08:00 et 20:00, heure de Zurich." },
+  marketing_channel_unavailable: { status: 400,
+    message: "Le canal de diffusion n’est pas prêt. Vérifiez sa connexion dans l’onglet Intégrations." },
+  marketing_audience_empty: { status: 400,
+    message: "Aucun destinataire éligible ne correspond à cet envoi. Vérifiez l’audience et les autorisations de contact." },
+  marketing_audience_mismatch: { status: 400,
+    message: "L’audience de cet élément diffère de celle de la campagne approuvée. Corrigez le ciblage avant de réessayer." },
+  marketing_content_required: { status: 400,
+    message: "Complétez et relisez le contenu de cet élément avant de l’approuver." },
+  marketing_campaign_incomplete: { status: 400,
+    message: "Complétez l’objectif, le contenu, l’audience et les canaux de la campagne avant de l’approuver." },
+  marketing_approval_reason_required: { status: 400,
+    message: "Indiquez un motif de validation suffisamment détaillé avant d’approuver." },
+  marketing_item_terminal: { status: 400,
+    message: "Cet élément est déjà terminé ou annulé. Actualisez le calendrier pour consulter son état." },
+  marketing_campaign_unavailable: { status: 400,
+    message: "Cette campagne est en pause, terminée, annulée ou en échec. Vérifiez son état dans l’onglet Campagnes." },
+  marketing_edit_conflict: { status: 409,
+    message: "Cet élément a été modifié depuis son ouverture. Actualisez les données avant de réessayer." },
+  marketing_record_not_found: { status: 404,
+    message: "Cet élément n’existe plus. Actualisez les données pour retrouver les éléments disponibles." },
+  marketing_outreach_review_required: { status: 400,
+    message: "Vérifiez que la proposition est en attente de validation et résolvez les alertes avant de l’approuver." },
+  marketing_outreach_target_unavailable: { status: 400,
+    message: "Validez la cible de prospection avant d’approuver ce message." },
+  marketing_outreach_draft_immutable: { status: 400,
+    message: "Ce message de prospection est déjà approuvé. Actualisez les données pour consulter sa version validée." },
+  instagram_story_manual_required: { status: 400,
+    message: "Le visuel Instagram 9:16 est prévu pour une Story manuelle. Exportez-le ou choisissez un format du fil avant de planifier l’envoi automatique." },
+};
+
 const PUBLIC_ERROR_CODES = new Set([
   "authentication_required", "authentication_failed", "mfa_failed",
   "marketing_visual_required", "marketing_readiness_unavailable",
@@ -54,9 +93,14 @@ const PUBLIC_ERROR_CODES = new Set([
   "ai_auth_unavailable", "discovery_unavailable", "discovery_invalid_response",
   "mailing_image_invalid", "mailing_image_conflict", "mailing_image_upload_failed",
   "mailing_recipients_invalid", "mailing_recipients_unavailable",
+  ...Object.keys(MARKETING_OPERATION_ERRORS),
 ]);
 
 function publicErrorMessage(status: number, code?: string) {
+  if (code && Object.prototype.hasOwnProperty.call(MARKETING_OPERATION_ERRORS, code)) {
+    const known = MARKETING_OPERATION_ERRORS[code];
+    if (known.status === status) return known.message;
+  }
   if (status === 400 && code === "mailing_image_invalid") {
     return "Choisissez une image JPG ou PNG valide de 3 Mo maximum pour cet e-mail.";
   }
@@ -165,9 +209,11 @@ async function readBoundedJson(response: Response) {
 
 function redirectToMarketingLogin() {
   if (typeof window === "undefined") return;
+  const wasLogin = window.location.pathname === MARKETING_LOGIN_PATH;
+  const returnTo = marketingLoginReturnTarget(`${window.location.pathname}${window.location.search || ""}`);
   window.dispatchEvent(new Event(MARKETING_SESSION_EXPIRED_EVENT));
-  if (window.location.pathname !== MARKETING_LOGIN_PATH) {
-    window.location.replace(MARKETING_LOGIN_PATH);
+  if (!wasLogin) {
+    window.location.replace(returnTo === "/marketing" ? MARKETING_LOGIN_PATH : `${MARKETING_LOGIN_PATH}?returnTo=${encodeURIComponent(returnTo)}`);
   }
 }
 

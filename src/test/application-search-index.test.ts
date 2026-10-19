@@ -20,6 +20,7 @@ describe("application search index", () => {
 
   it("is deterministically generated from the current repository", () => {
     expect(readFileSync(path.join(REPOSITORY_ROOT, INDEX_JSON_PATH), "utf8")).toBe(serializeIndex(index));
+    expect(JSON.parse(serializeIndex(index))).toEqual(index);
     expect(readFileSync(path.join(REPOSITORY_ROOT, REFERENCE_MARKDOWN_PATH), "utf8")).toBe(
       renderApplicationReference(index),
     );

@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import MarketingWorkspace from "@/pages/marketing/MarketingWorkspace";
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
@@ -30,10 +31,15 @@ vi.mock("@/components/marketing/views/MarketingCampaignsView", () => ({ default:
 </div> }));
 beforeEach(() => { state.view = "agent"; vi.clearAllMocks(); });
 
+function renderWorkspace() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<MarketingWorkspace />, { wrapper: ({ children }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider> });
+}
+
 describe("mailing upload navigation guard", () => {
   it.each(["agent", "campaigns"])("locks workspace navigation and refresh for uploads in %s and releases them afterwards", (view) => {
     state.view = view;
-    render(<MarketingWorkspace />);
+    renderWorkspace();
     const label = view === "agent" ? "IA" : "galerie";
     fireEvent.click(screen.getByRole("button", { name: `Commencer l’import ${label}` }));
     const navigation = screen.getByRole("button", { name: /^Calendrier/ });
@@ -59,12 +65,12 @@ describe("mailing upload navigation guard", () => {
     expect(setView).toHaveBeenCalledWith("calendar"); expect(refresh).toHaveBeenCalledTimes(1);
   });
   it("guards callbacks synchronously before the next React render", () => {
-    render(<MarketingWorkspace />);
+    renderWorkspace();
     fireEvent.click(screen.getByRole("button", { name: "Commencer et naviguer" }));
     expect(setView).not.toHaveBeenCalled();
   });
   it("keeps the active editor mounted when browser history changes the URL view during upload", () => {
-    const { rerender } = render(<MarketingWorkspace />);
+    const { rerender } = renderWorkspace();
     fireEvent.click(screen.getByRole("button", { name: "Commencer l’import IA" }));
     // A POP changes the URL-state hook independently from guarded callbacks.
     state.view = "campaigns";
@@ -76,7 +82,7 @@ describe("mailing upload navigation guard", () => {
     expect(screen.getByRole("button", { name: "Commencer l’import galerie" })).toBeInTheDocument();
   });
   it("cleans up the unload guard when the workspace unmounts", () => {
-    const { unmount } = render(<MarketingWorkspace />);
+    const { unmount } = renderWorkspace();
     fireEvent.click(screen.getByRole("button", { name: "Commencer l’import IA" }));
     unmount();
     const event = new Event("beforeunload", { cancelable: true });

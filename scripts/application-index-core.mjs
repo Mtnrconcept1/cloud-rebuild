@@ -1772,7 +1772,8 @@ export function buildApplicationIndex(root = REPOSITORY_ROOT) {
   };
 }
 
-export const serializeIndex = (index) => `${JSON.stringify(index, null, 1)}\n`;
+// Keep generated lookup data within the artifact size budget as the app grows.
+export const serializeIndex = (index) => `${JSON.stringify(index)}\n`;
 
 export function renderUserGuideCatalog(index) {
   const routes = index.catalogs.frontendRoutes.map((route) => ({

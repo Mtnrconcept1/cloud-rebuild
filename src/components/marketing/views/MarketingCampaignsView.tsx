@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, ImageIcon, Images, Megaphone, Plus, RefreshCw, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { MarketingPostImage, MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
 import { MarketingMailingImageUpload } from "@/components/marketing/MarketingMailingImageUpload";
-import { loadMarketingCampaignItems } from "@/marketing/marketingClient";
+import { compareMarketingRevisions, loadMarketingCampaignItems } from "@/marketing/marketingClient";
 import { isMarketingMailingReady } from "@/marketing/postPreview";
+import { getMarketingCampaignDisplayStatus } from "@/marketing/campaignStatus";
 
 import {
   MarketingChannelBadge,
@@ -39,9 +40,8 @@ import {
   type MarketingCalendarItem,
   type MarketingChannelId,
   type MarketingSnapshot,
-  type MarketingView,
 } from "@/marketing/types";
-import type { MarketingUrlState } from "@/marketing/useMarketingUrlState";
+import type { MarketingNavigate, MarketingUrlState } from "@/marketing/useMarketingUrlState";
 import { marketingZurichLocalDateTimeToIso } from "@/marketing/zurichTime";
 
 const PAGE_SIZE = 8;
@@ -78,13 +78,16 @@ const EMPTY_WIZARD: WizardState = {
 
 type CampaignReviewState = { campaignId: string; ready: boolean; uploading: boolean; incompleteMailings: number };
 
-function CampaignPostsGallery({ campaignId, loadItems, disabled, onReviewChange, onItemsUpdated, onUploadPendingChange }: {
+function CampaignPostsGallery({ campaignId, loadItems, disabled, onReviewChange, onItemsUpdated, onUploadPendingChange, onOpenItem, navigationPending, snapshotItems }: {
   campaignId: string;
   loadItems: typeof loadMarketingCampaignItems;
   disabled: boolean;
   onReviewChange: (state: CampaignReviewState) => void;
   onItemsUpdated?: () => Promise<unknown> | void;
   onUploadPendingChange?: (pending: boolean) => void;
+  onOpenItem?: (item: MarketingCalendarItem) => void;
+  navigationPending?: boolean;
+  snapshotItems: MarketingCalendarItem[];
 }) {
   const [items, setItems] = useState<MarketingCalendarItem[]>([]);
   const [cursor, setCursor] = useState<Record<string, string> | null>(null);
@@ -117,7 +120,14 @@ function CampaignPostsGallery({ campaignId, loadItems, disabled, onReviewChange,
     return () => { requestId.current += 1; };
   }, [load]);
   const uploading = uploadingIds.length > 0;
-  const incompleteMailings = items.filter((item) => item.postPreview?.email && !isMarketingMailingReady(item.postPreview)).length;
+  const currentItems = useMemo(() => items.map((item) => {
+    const confirmed = snapshotItems.find((candidate) => candidate.id === item.id && candidate.campaignId === campaignId);
+    if (!confirmed) return item;
+    const order = compareMarketingRevisions(confirmed.updatedAt, item.updatedAt);
+    // Preserve a newly uploaded image until the shared snapshot catches up.
+    return order !== null && order >= 0 ? confirmed : item;
+  }), [items, snapshotItems, campaignId]);
+  const incompleteMailings = currentItems.filter((item) => item.postPreview?.email && !isMarketingMailingReady(item.postPreview)).length;
   useEffect(() => {
     onReviewChange({ campaignId, ready: loaded && !loading && !error && !cursor && !uploading && incompleteMailings === 0,
       uploading, incompleteMailings });
@@ -133,7 +143,7 @@ function CampaignPostsGallery({ campaignId, loadItems, disabled, onReviewChange,
       {error ? <Alert variant="destructive"><AlertTitle>Publications indisponibles</AlertTitle><AlertDescription>Impossible de charger les visuels et les textes. Réessayez avec « Actualiser les visuels ».</AlertDescription></Alert> : null}
       {loaded && !loading && !error && items.length === 0 ? <MarketingEmptyState title="Aucune publication enregistrée" description="Cette campagne ne contient pas encore de publication. Les visuels générés apparaîtront ici après leur enregistrement." /> : null}
       <div className="grid min-w-0 gap-5 md:grid-cols-2">
-        {items.map((item) => <article key={item.id} className="min-w-0 space-y-3 rounded-2xl border p-4">
+        {currentItems.map((item) => <article key={item.id} className="min-w-0 space-y-3 rounded-2xl border p-4">
           <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="min-w-0 break-words font-semibold">{item.title}</h4><MarketingStatusBadge status={item.approvalStatus} /></div>
           <MarketingMailingImageUpload item={item} disabled={disabled || loading || (uploading && !uploadingIds.includes(item.id))}
             onPendingChange={(pending) => {
@@ -145,6 +155,7 @@ function CampaignPostsGallery({ campaignId, loadItems, disabled, onReviewChange,
               if (onItemsUpdated) void Promise.resolve(onItemsUpdated()).catch(() => undefined);
             }} />
           <MarketingPostPreview title={item.title} channel={item.channel} scheduledAt={item.scheduledAt} preview={item.postPreview || { caption: item.content, visualUrl: item.visualUrl, visualFormat: item.format || undefined }} />
+          {onOpenItem ? <Button type="button" variant="outline" className="w-full" disabled={loading || uploading || navigationPending} onClick={() => onOpenItem(item)}><CalendarClock className="mr-2 h-4 w-4" />Ouvrir cette publication dans le calendrier</Button> : null}
         </article>)}
       </div>
       {cursor ? <Button type="button" variant="outline" disabled={loading || uploading} onClick={() => void load(cursor)}>Charger les publications suivantes</Button> : null}
@@ -156,6 +167,8 @@ export default function MarketingCampaignsView({
   snapshot,
   filters,
   canMutateBackend,
+  reviewPending = false,
+  reviewError,
   savePending,
   pendingAction,
   onFiltersChange,
@@ -165,10 +178,13 @@ export default function MarketingCampaignsView({
   onLoadCampaignItems = loadMarketingCampaignItems,
   onItemsUpdated,
   onUploadPendingChange,
+  onNavigate,
 }: {
   snapshot: MarketingSnapshot;
   filters: MarketingUrlState;
   canMutateBackend: boolean;
+  reviewPending?: boolean;
+  reviewError?: string | null;
   savePending: boolean;
   pendingAction: string | null;
   onFiltersChange: (patch: Partial<MarketingUrlState>) => void;
@@ -181,12 +197,15 @@ export default function MarketingCampaignsView({
     audienceFilter: Record<string, unknown>,
     channels: MarketingChannelId[],
   ) => Promise<MarketingAudienceEstimate | undefined>;
-  onNavigate?: (view: MarketingView) => void;
+  onNavigate?: MarketingNavigate;
 }) {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [wizard, setWizard] = useState<WizardState>(EMPTY_WIZARD);
-  const [approvalCampaign, setApprovalCampaign] = useState<MarketingCampaign | null>(null);
+  const [approvalCampaignSnapshot, setApprovalCampaign] = useState<MarketingCampaign | null>(null);
+  const approvalCampaignId = filters.campaignId || approvalCampaignSnapshot?.id;
+  const approvalCampaign = snapshot.campaigns.find((campaign) => campaign.id === approvalCampaignId)
+    || (approvalCampaignSnapshot?.id === approvalCampaignId ? approvalCampaignSnapshot : null);
   const [approvalReason, setApprovalReason] = useState("");
   const [campaignReview, setCampaignReview] = useState<CampaignReviewState | null>(null);
   const currentReview = campaignReview?.campaignId === approvalCampaign?.id ? campaignReview : null;
@@ -202,7 +221,7 @@ export default function MarketingCampaignsView({
     return snapshot.campaigns
       .filter((campaign) => (
         filters.status === "all"
-        || (filters.status === "approved" ? Boolean(campaign.approvedAt) : campaign.status === filters.status)
+        || (filters.status === "approved" ? Boolean(campaign.approvedAt) : getMarketingCampaignDisplayStatus(campaign) === filters.status)
       ))
       .filter((campaign) => !query || `${campaign.name} ${campaign.objective} ${campaign.audienceName}`.toLowerCase().includes(query))
       .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
@@ -326,10 +345,32 @@ export default function MarketingCampaignsView({
     if (!approvalCampaign || approvalReason.trim().length < 8 || !currentReview?.ready || !canMutateBackend || pendingAction) return;
     const result = await onApprove(approvalCampaign.id, approvalReason.trim());
     if (result) {
-      setApprovalCampaign(null);
       setApprovalReason("");
     }
   };
+
+  const openCampaign = (campaign: MarketingCampaign) => {
+    setApprovalReason("");
+    if (onNavigate) onNavigate("campaigns", { campaignId: campaign.id });
+    else setApprovalCampaign(campaign);
+  };
+
+  const closeCampaign = () => {
+    if (currentReview?.uploading || pendingAction) return;
+    setApprovalCampaign(null);
+    setApprovalReason("");
+    if (filters.campaignId || filters.itemId) onFiltersChange({ campaignId: "", itemId: "" });
+  };
+
+  const openCalendarItem = (item: MarketingCalendarItem) => {
+    if (currentReview?.uploading || pendingAction) return;
+    onNavigate?.("calendar", {
+      campaignId: item.campaignId || approvalCampaign?.id,
+      itemId: item.id,
+      scheduledAt: item.scheduledAt,
+    });
+  };
+  const returnItem = filters.itemId ? snapshot.calendar.find((item) => item.id === filters.itemId && item.campaignId === approvalCampaign?.id) : undefined;
 
   return (
     <div className="space-y-5">
@@ -395,7 +436,7 @@ export default function MarketingCampaignsView({
                 <CardHeader className="space-y-3">
                   <div className="flex min-w-0 items-start justify-between gap-3">
                     <div className="min-w-0"><CardTitle className="truncate">{campaign.name}</CardTitle><p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{campaign.objective}</p></div>
-                    <MarketingStatusBadge status={campaign.status} />
+                    <MarketingStatusBadge status={getMarketingCampaignDisplayStatus(campaign)} />
                   </div>
                   <div className="flex flex-wrap gap-2">{campaign.channels.map((channel) => <MarketingChannelBadge key={channel} channel={channel} />)}</div>
                 </CardHeader>
@@ -420,7 +461,7 @@ export default function MarketingCampaignsView({
                     ) : (
                       <p className="mt-2 text-xs text-muted-foreground">Ouvrez les visuels et publications pour consulter cette campagne sur toutes les dates.</p>
                     )}
-                    {campaignItems.length ? <Button type="button" size="sm" variant="ghost" className="mt-2 w-full" onClick={() => { setApprovalReason(""); setApprovalCampaign(campaign); }}>Relire les publications et les visuels</Button> : null}
+                    {campaignItems.length ? <Button type="button" size="sm" variant="ghost" className="mt-2 w-full" onClick={() => openCampaign(campaign)}>Relire les publications et les visuels</Button> : null}
                   </div>
                   <div className="rounded-xl border bg-muted/20 p-3">
                     <p className="text-xs text-muted-foreground">Audience</p>
@@ -439,8 +480,8 @@ export default function MarketingCampaignsView({
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-3">
                     <MarketingStatusBadge status={campaign.approvedAt ? "approved" : "pending"} />
-                    <Button type="button" size="sm" variant="outline" onClick={() => { setApprovalReason(""); setApprovalCampaign(campaign); }}><Images className="mr-2 h-4 w-4" />Voir les visuels et publications</Button>
-                    {!campaign.approvedAt && campaign.status === "draft" ? <Button type="button" size="sm" variant="outline" disabled={!canMutateBackend || pendingAction === `approve-campaign-${campaign.id}`} onClick={() => setApprovalCampaign(campaign)}><ShieldCheck className="mr-2 h-4 w-4" />Approuver la campagne</Button> : null}
+                    <Button type="button" size="sm" variant="outline" onClick={() => openCampaign(campaign)}><Images className="mr-2 h-4 w-4" />Voir les visuels et publications</Button>
+                    {!campaign.approvedAt && campaign.status === "draft" ? <Button type="button" size="sm" variant="outline" disabled={!canMutateBackend || Boolean(pendingAction)} onClick={() => openCampaign(campaign)}><ShieldCheck className="mr-2 h-4 w-4" />Approuver la campagne</Button> : null}
                   </div>
                 </CardContent>
               </Card>
@@ -533,17 +574,20 @@ export default function MarketingCampaignsView({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(approvalCampaign)} onOpenChange={(open) => { if (!open && !currentReview?.uploading) { setApprovalCampaign(null); setApprovalReason(""); } }}>
+      <Dialog open={Boolean(approvalCampaign)} onOpenChange={(open) => { if (!open) closeCampaign(); }}>
         <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-4xl">
           <DialogHeader><DialogTitle>{approvalCampaign?.name}</DialogTitle><DialogDescription>Relisez les visuels et les textes avant d'approuver la campagne. Chaque publication garde sa validation séparée dans le calendrier.</DialogDescription></DialogHeader>
+          {reviewPending ? <p role="status" className="rounded-xl border bg-muted/20 p-3 text-sm">Actualisation de la campagne sélectionnée. Les actions seront disponibles après confirmation.</p> : null}
+          {reviewError ? <p role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-3 text-sm">{reviewError}</p> : null}
+          {approvalCampaign ? <div className="flex flex-wrap items-center justify-between gap-3"><MarketingStatusBadge status={getMarketingCampaignDisplayStatus(approvalCampaign)} />{returnItem && onNavigate ? <Button type="button" variant="outline" disabled={currentReview?.uploading || Boolean(pendingAction)} onClick={() => openCalendarItem(returnItem)}><ArrowLeft className="mr-2 h-4 w-4" />Retrouver la publication sélectionnée</Button> : null}</div> : null}
           {approvalCampaign ? <CampaignPostsGallery key={approvalCampaign.id} campaignId={approvalCampaign.id} loadItems={onLoadCampaignItems}
-            disabled={!canMutateBackend || Boolean(approvalCampaign.approvedAt) || ["completed", "cancelled", "failed"].includes(approvalCampaign.status) || Boolean(pendingAction)} onReviewChange={setCampaignReview} onItemsUpdated={onItemsUpdated} onUploadPendingChange={onUploadPendingChange} /> : null}
+            disabled={!canMutateBackend || Boolean(approvalCampaign.approvedAt) || ["completed", "cancelled", "failed"].includes(approvalCampaign.status) || Boolean(pendingAction)} onReviewChange={setCampaignReview} onItemsUpdated={onItemsUpdated} onUploadPendingChange={onUploadPendingChange} onOpenItem={onNavigate ? openCalendarItem : undefined} navigationPending={Boolean(pendingAction)} snapshotItems={snapshot.calendar} /> : null}
           {approvalCampaign && !approvalCampaign.approvedAt && approvalCampaign.status === "draft" ? <>
           <div><Label htmlFor="campaign-approval-reason">Motif de l'approbation</Label><Textarea id="campaign-approval-reason" className="mt-2" value={approvalReason} onChange={(event) => setApprovalReason(event.target.value)} maxLength={400} placeholder="Minimum 8 caractères, conservé dans l'audit…" /></div>
           <Alert><ShieldCheck className="h-4 w-4" /><AlertTitle>Aucun envoi immédiat</AlertTitle><AlertDescription>Après cette approbation, chaque publication devra encore être approuvée et planifiée depuis le calendrier.</AlertDescription></Alert>
           {!currentReview?.ready ? <p role="status" className="text-sm text-amber-800">{currentReview?.uploading ? "Terminez l’import de l’image avant d’approuver la campagne." : currentReview?.incompleteMailings ? "Complétez l’image et le texte de chaque e-mail, puis relisez les aperçus avant validation." : "Chargez toutes les publications de la campagne pour les relire avant validation."}</p> : null}
-          <DialogFooter><Button type="button" variant="outline" disabled={currentReview?.uploading} onClick={() => setApprovalCampaign(null)}>Annuler</Button><Button type="button" disabled={!canMutateBackend || !currentReview?.ready || approvalReason.trim().length < 8 || Boolean(pendingAction)} onClick={approve}>Approuver et journaliser</Button></DialogFooter>
-          </> : <DialogFooter><Button type="button" variant="outline" disabled={currentReview?.uploading} onClick={() => setApprovalCampaign(null)}>Fermer</Button></DialogFooter>}
+          <DialogFooter><Button type="button" variant="outline" disabled={currentReview?.uploading || Boolean(pendingAction)} onClick={closeCampaign}>Annuler</Button><Button type="button" disabled={!canMutateBackend || !currentReview?.ready || approvalReason.trim().length < 8 || Boolean(pendingAction)} onClick={approve}>Approuver et journaliser</Button></DialogFooter>
+          </> : <DialogFooter><Button type="button" variant="outline" disabled={currentReview?.uploading || Boolean(pendingAction)} onClick={closeCampaign}>Fermer</Button></DialogFooter>}
         </DialogContent>
       </Dialog>
     </div>

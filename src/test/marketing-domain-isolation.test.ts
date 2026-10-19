@@ -91,7 +91,9 @@ describe("marketing domain isolation", () => {
   it("uses a fixed same-origin login route for expired BFF sessions", () => {
     const source = readFileSync(resolve(process.cwd(), "src/marketing/marketingBffClient.ts"), "utf8");
     expect(source).toContain('MARKETING_LOGIN_PATH = "/marketing/login"');
-    expect(source).toContain("window.location.replace(MARKETING_LOGIN_PATH)");
+    expect(source).toContain("window.location.replace(");
+    expect(source).toContain("marketingLoginReturnTarget(");
+    expect(source).toContain("encodeURIComponent(returnTo)");
     expect(source).not.toMatch(/redirect(?:Url|To|_to)\s*:/i);
   });
 });

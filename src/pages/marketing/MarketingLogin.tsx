@@ -1,5 +1,5 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useState, type FormEvent } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import {
   KeyRound,
   Loader2,
@@ -15,9 +15,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMarketingSession } from "@/marketing/MarketingSessionContext";
 import { isMarketingTotpCode } from "@/marketing/marketingBffClient";
+import { marketingLoginReturnTarget } from "@/marketing/useMarketingUrlState";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 
 export default function MarketingLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = marketingLoginReturnTarget((location.state as { marketingReturnTo?: unknown } | null)?.marketingReturnTo
+    ?? new URLSearchParams(location.search).get("returnTo"));
   const {
     status,
     enrollment,
@@ -32,9 +37,12 @@ export default function MarketingLogin() {
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
 
-  useEffect(() => {
-    document.title = "Connexion marketing sécurisée · TheTOK";
-  }, []);
+  useSeoMeta({
+    title: "Connexion marketing sécurisée · TheTOK",
+    description: "Connectez-vous à votre espace marketing TOK sécurisé.",
+    path: "/marketing/login",
+    robots: "noindex,nofollow,noarchive",
+  });
 
   if (status === "loading") {
     return (
@@ -46,7 +54,7 @@ export default function MarketingLogin() {
     );
   }
 
-  if (status === "authenticated") return <Navigate to="/marketing" replace />;
+  if (status === "authenticated") return <Navigate to={returnTo} replace />;
 
   const mfaStep = status === "challenge-mfa" || status === "enroll-mfa";
   const codeValid = isMarketingTotpCode(code);
@@ -57,7 +65,7 @@ export default function MarketingLogin() {
 
     if (mfaStep) {
       const verified = await verifyTotp(code);
-      if (verified) navigate("/marketing", { replace: true });
+      if (verified) navigate(returnTo, { replace: true });
       return;
     }
 

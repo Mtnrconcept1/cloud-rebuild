@@ -21,7 +21,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import type { MarketingSnapshot, MarketingView } from "@/marketing/types";
+import type { MarketingSnapshot } from "@/marketing/types";
+import type { MarketingNavigate } from "@/marketing/useMarketingUrlState";
 
 export default function MarketingOverviewView({
   snapshot,
@@ -31,7 +32,7 @@ export default function MarketingOverviewView({
   canMutateBackend: boolean;
   runPending: boolean;
   onRunDue: () => Promise<unknown>;
-  onNavigate: (view: MarketingView) => void;
+  onNavigate: MarketingNavigate;
 }) {
   const overview = snapshot.overview;
   const availableChannels = snapshot.channels.filter((channel) => channel.availability === "available").length;
@@ -101,7 +102,7 @@ export default function MarketingOverviewView({
             {upcoming.length ? (
               <div className="space-y-3">
                 {upcoming.map((item) => (
-                  <div key={item.id} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-border/70 p-3 sm:flex-row sm:items-center">
+                  <button key={item.id} type="button" onClick={() => onNavigate("calendar", { campaignId: item.campaignId || undefined, itemId: item.id, scheduledAt: item.scheduledAt })} className="flex w-full min-w-0 flex-col gap-3 rounded-2xl border border-border/70 p-3 text-left transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 sm:flex-row sm:items-center">
                     <div className="flex h-12 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-muted text-center">
                       <span className="text-[10px] font-semibold uppercase text-muted-foreground">{new Date(item.scheduledAt).toLocaleDateString("fr-CH", { month: "short", timeZone: "Europe/Zurich" })}</span>
                       <span className="text-lg font-bold">{new Date(item.scheduledAt).toLocaleDateString("fr-CH", { day: "2-digit", timeZone: "Europe/Zurich" })}</span>
@@ -114,7 +115,7 @@ export default function MarketingOverviewView({
                       <MarketingChannelBadge channel={item.channel} />
                       <MarketingStatusBadge status={item.status} />
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             ) : (

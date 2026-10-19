@@ -6,6 +6,7 @@ import {
   type MarketingChannelId,
   type MarketingView,
 } from "@/marketing/types";
+import { marketingMonthRange, marketingZurichDateBoundaryToIso, marketingZurichDateKey } from "@/marketing/zurichTime";
 
 export type MarketingUrlState = {
   view: MarketingView;
@@ -15,7 +16,17 @@ export type MarketingUrlState = {
   page: number;
   from: string;
   to: string;
+  campaignId?: string;
+  itemId?: string;
 };
+
+export type MarketingNavigationTarget = {
+  campaignId?: string;
+  itemId?: string;
+  scheduledAt?: string;
+};
+
+export type MarketingNavigate = (view: MarketingView, target?: MarketingNavigationTarget) => void;
 
 const CHANNELS = new Set<MarketingChannelId>([
   "tok_news",
@@ -43,11 +54,17 @@ function validView(value: string | null): MarketingView {
 
 function validPage(value: string | null) {
   const page = Number(value);
-  return Number.isInteger(page) && page > 0 ? page : 1;
+  return Number.isSafeInteger(page) && page > 0 ? page : 1;
 }
 
 function validDate(value: string | null) {
-  return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
+  return value && /^\d{4}-\d{2}-\d{2}$/.test(value) && marketingZurichDateBoundaryToIso(value, "start") ? value : "";
+}
+
+function validId(value: string | null | undefined) {
+  return value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+    ? value.toLowerCase()
+    : "";
 }
 
 function serializeMarketingState(current: URLSearchParams, state: MarketingUrlState) {
@@ -60,6 +77,8 @@ function serializeMarketingState(current: URLSearchParams, state: MarketingUrlSt
     page: String(state.page),
     from: state.from,
     to: state.to,
+    campaignId: validId(state.campaignId),
+    itemId: validId(state.itemId),
   };
 
   for (const [key, value] of Object.entries(values)) {
@@ -76,31 +95,49 @@ function serializeMarketingState(current: URLSearchParams, state: MarketingUrlSt
   return next;
 }
 
+/** Only a local marketing workspace can be resumed after the isolated login. */
+export function marketingLoginReturnTarget(value: unknown) {
+  if (typeof value !== "string" || !/^\/marketing(?:\?|$)/.test(value) || value.length > 2_000) return "/marketing";
+  const url = new URL(value, "https://marketing.thetok.ch");
+  if (url.origin !== "https://marketing.thetok.ch" || url.pathname !== "/marketing" || url.hash) return "/marketing";
+  const safe = serializeMarketingState(new URLSearchParams(), readMarketingState(url.searchParams));
+  return safe.size ? `/marketing?${safe.toString()}` : "/marketing";
+}
+
+function readMarketingState(searchParams: URLSearchParams): MarketingUrlState {
+  const rawChannel = searchParams.get("channel");
+  const view = validView(searchParams.get("view"));
+  const reviewView = view === "calendar" || view === "campaigns";
+  return {
+    view,
+    query: (searchParams.get("q") || "").slice(0, 80),
+    status: (searchParams.get("status") || "all").slice(0, 48),
+    channel: rawChannel && CHANNELS.has(rawChannel as MarketingChannelId)
+      ? rawChannel as MarketingChannelId
+      : "all",
+    page: validPage(searchParams.get("page")),
+    from: validDate(searchParams.get("from")),
+    to: validDate(searchParams.get("to")),
+    campaignId: reviewView ? validId(searchParams.get("campaignId")) : "",
+    itemId: reviewView ? validId(searchParams.get("itemId")) : "",
+  };
+}
+
 export function useMarketingUrlState() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const state = useMemo<MarketingUrlState>(() => {
-    const rawChannel = searchParams.get("channel");
-    return {
-      view: validView(searchParams.get("view")),
-      query: (searchParams.get("q") || "").slice(0, 80),
-      status: (searchParams.get("status") || "all").slice(0, 48),
-      channel: rawChannel && CHANNELS.has(rawChannel as MarketingChannelId)
-        ? rawChannel as MarketingChannelId
-        : "all",
-      page: validPage(searchParams.get("page")),
-      from: validDate(searchParams.get("from")),
-      to: validDate(searchParams.get("to")),
-    };
-  }, [searchParams]);
+  const state = useMemo(() => readMarketingState(searchParams), [searchParams]);
 
   const update = useCallback((patch: Partial<MarketingUrlState>) => {
     setSearchParams((current) => {
-      return serializeMarketingState(current, { ...state, ...patch });
+      return serializeMarketingState(current, { ...readMarketingState(current), ...patch });
     }, { replace: true });
-  }, [setSearchParams, state]);
+  }, [setSearchParams]);
 
-  const setView = useCallback((view: MarketingView) => {
-    if (view === state.view) return;
+  const setView = useCallback<MarketingNavigate>((view, target) => {
+    if (view === state.view && !target && !state.campaignId && !state.itemId) return;
+    const range = view === "calendar" && target?.scheduledAt
+      ? marketingMonthRange(marketingZurichDateKey(target.scheduledAt))
+      : null;
     setSearchParams((current) => serializeMarketingState(current, {
       ...state,
       view,
@@ -108,8 +145,10 @@ export function useMarketingUrlState() {
       query: "",
       status: "all",
       channel: "all",
-      from: "",
-      to: "",
+      from: range?.from || "",
+      to: range?.to || "",
+      campaignId: target?.campaignId || "",
+      itemId: target?.itemId || "",
     }), { replace: false });
   }, [setSearchParams, state]);
 

@@ -398,6 +398,68 @@ export async function loadMarketingCampaignItems(
   return page;
 }
 
+export type MarketingReviewContext = {
+  campaign: MarketingCampaign | null;
+  item: MarketingCalendarItem | null;
+};
+
+/** Resolve a review link beyond the snapshot sample using the existing, governed read APIs. */
+export async function loadMarketingReviewContext({ campaignId, itemId }: {
+  campaignId?: string;
+  itemId?: string;
+}): Promise<MarketingReviewContext> {
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if ((campaignId && !uuid.test(campaignId)) || (itemId && !uuid.test(itemId))) {
+    throw new Error("Le lien de relecture contient un identifiant invalide.");
+  }
+  if (!campaignId) {
+    if (itemId) throw new Error("Ce lien de publication est incomplet. Ouvrez sa campagne pour reprendre la relecture.");
+    return { campaign: null, item: null };
+  }
+
+  const maxPages = 20;
+  let campaign: MarketingCampaign | null = null;
+  let cursor: Record<string, string> | null = null;
+  const seenCampaignCursors = new Set<string>();
+  for (let pageIndex = 0; pageIndex < maxPages; pageIndex += 1) {
+    const result = await invokeRpc<unknown>("admin_list_marketing_campaigns", {
+      p_status: null,
+      p_limit: 100,
+      p_cursor_updated_at: cursor?.updated_at || null,
+      p_cursor_id: cursor?.id || null,
+    });
+    if (!Array.isArray(asRecord(result).items)) throw new Error("La campagne n'a pas pu être chargée. Réessayez.");
+    const page = normalizeCursorPage(result, normalizeCampaign);
+    campaign = page.items.find((entry) => entry.id === campaignId) || null;
+    if (campaign) break;
+    if (!page.nextCursor) return { campaign: null, item: null };
+    const cursorKey = JSON.stringify(page.nextCursor);
+    if (!page.nextCursor.id || !page.nextCursor.updated_at || seenCampaignCursors.has(cursorKey)) {
+      throw new Error("La pagination des campagnes est interrompue. Actualisez la liste.");
+    }
+    seenCampaignCursors.add(cursorKey);
+    cursor = page.nextCursor;
+  }
+  if (!campaign) throw new Error("La recherche de cette campagne a atteint sa limite. Retrouvez-la depuis la liste des campagnes.");
+  if (!itemId) return { campaign, item: null };
+
+  cursor = null;
+  const seenItemCursors = new Set<string>();
+  for (let pageIndex = 0; pageIndex < maxPages; pageIndex += 1) {
+    const page = await loadMarketingCampaignItems(campaignId, cursor);
+    const item = page.items.find((entry) => entry.id === itemId);
+    if (item) return { campaign, item };
+    if (!page.nextCursor) return { campaign, item: null };
+    const cursorKey = JSON.stringify(page.nextCursor);
+    if (!page.nextCursor.id || !page.nextCursor.scheduled_at || seenItemCursors.has(cursorKey)) {
+      throw new Error("La pagination des publications est interrompue. Actualisez la campagne.");
+    }
+    seenItemCursors.add(cursorKey);
+    cursor = page.nextCursor;
+  }
+  throw new Error("La recherche de cette publication a atteint sa limite. Ouvrez les publications de sa campagne.");
+}
+
 function normalizeChannels(value: unknown, fallback: MarketingChannel[]) {
   const incoming = asArray(value);
   if (!incoming.length) return fallback;
@@ -901,6 +963,15 @@ function mailingImageRevision(value: unknown): string | null {
   return Number.isFinite(seconds) ? `${seconds}:${(parts[2] || "").padEnd(6, "0")}` : null;
 }
 
+export function compareMarketingRevisions(left: unknown, right: unknown): number | null {
+  const leftRevision = mailingImageRevision(left);
+  const rightRevision = mailingImageRevision(right);
+  if (!leftRevision || !rightRevision) return null;
+  const [leftSeconds, leftMicroseconds] = leftRevision.split(":").map(Number);
+  const [rightSeconds, rightMicroseconds] = rightRevision.split(":").map(Number);
+  return leftSeconds - rightSeconds || leftMicroseconds - rightMicroseconds;
+}
+
 function readMailingImage(file: File, signal?: AbortSignal): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1046,17 +1117,27 @@ export async function prepareMarketingMailingRecipients(recipientEmails: string[
 }
 
 export async function approveMarketingCampaign(campaignId: string, reason: string) {
-  return invokeRpc<UnknownRecord>("admin_approve_marketing_campaign", {
+  const result = asRecord(await invokeRpc<unknown>("admin_approve_marketing_campaign", {
     p_campaign_id: campaignId,
     p_reason: reason,
-  });
+  }));
+  if (result.id !== campaignId || result.approval_status !== "approved"
+    || typeof result.approved_at !== "string" || !Number.isFinite(Date.parse(result.approved_at))) {
+    throw new Error("L'approbation de la campagne n'a pas pu être confirmée. Actualisez son statut avant de réessayer.");
+  }
+  return result;
 }
 
 export async function approveMarketingItem(itemId: string, scheduledAt?: string | null) {
-  return invokeRpc<UnknownRecord>("admin_approve_marketing_item", {
+  const result = asRecord(await invokeRpc<unknown>("admin_approve_marketing_item", {
     p_item_id: itemId,
     p_scheduled_at: scheduledAt || null,
-  });
+  }));
+  if (result.id !== itemId || result.status !== "scheduled" || result.approval_status !== "approved"
+    || typeof result.scheduled_at !== "string" || !Number.isFinite(Date.parse(result.scheduled_at))) {
+    throw new Error("L'approbation et la planification n'ont pas pu être confirmées. Actualisez la publication avant de réessayer.");
+  }
+  return result;
 }
 
 export async function retryMarketingDelivery(deliveryId: string) {

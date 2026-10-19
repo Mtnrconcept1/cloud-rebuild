@@ -34,13 +34,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { isMarketingMailingReady } from "@/marketing/postPreview";
 import {
   isPublicMarketingChannel,
   type MarketingCalendarItem,
   type MarketingChannelId,
   type MarketingSnapshot,
 } from "@/marketing/types";
-import type { MarketingUrlState } from "@/marketing/useMarketingUrlState";
+import type { MarketingNavigate, MarketingUrlState } from "@/marketing/useMarketingUrlState";
 import {
   currentMarketingMonthRange,
   marketingMonthRange,
@@ -56,8 +57,11 @@ export default function MarketingCalendarView({
   snapshot,
   filters,
   canMutateBackend,
+  reviewPending = false,
+  reviewError,
   pendingAction,
   onFiltersChange,
+  onNavigate,
   onCancel,
   onApprove,
   onCompleteManual,
@@ -65,8 +69,11 @@ export default function MarketingCalendarView({
   snapshot: MarketingSnapshot;
   filters: MarketingUrlState;
   canMutateBackend: boolean;
+  reviewPending?: boolean;
+  reviewError?: string | null;
   pendingAction: string | null;
   onFiltersChange: (patch: Partial<MarketingUrlState>) => void;
+  onNavigate?: MarketingNavigate;
   onCancel: (itemId: string, reason: string) => Promise<unknown>;
   onApprove: (itemId: string, scheduledAt: string) => Promise<unknown>;
   onCompleteManual: (itemId: string, outcome: "published" | "failed", note: string) => Promise<unknown>;
@@ -89,14 +96,14 @@ export default function MarketingCalendarView({
   const visibleRange = marketingMonthRange(format(currentMonth, "yyyy-MM-dd")) || currentMarketingMonthRange();
 
   useEffect(() => {
-    if (!filters.from) return;
-    const nextRange = marketingMonthRange(filters.from);
+    const nextRange = filters.from ? marketingMonthRange(filters.from) : currentMarketingMonthRange();
     if (nextRange) setCurrentMonth(new Date(`${nextRange.from}T12:00:00`));
   }, [filters.from]);
 
   const filtered = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
     return snapshot.calendar
+      .filter((item) => !filters.campaignId || item.campaignId === filters.campaignId)
       .filter((item) => filters.status === "all" || item.status === filters.status)
       .filter((item) => filters.channel === "all" || item.channel === filters.channel)
       .filter((item) => {
@@ -105,44 +112,45 @@ export default function MarketingCalendarView({
       })
       .filter((item) => !query || `${item.title} ${item.campaignName} ${item.audienceName}`.toLowerCase().includes(query))
       .sort((left, right) => left.scheduledAt.localeCompare(right.scheduledAt));
-  }, [filters.channel, filters.query, filters.status, snapshot.calendar, visibleRange.from, visibleRange.to]);
+  }, [filters.campaignId, filters.channel, filters.query, filters.status, snapshot.calendar, visibleRange.from, visibleRange.to]);
 
   const agenda = filtered.slice((filters.page - 1) * PAGE_SIZE, filters.page * PAGE_SIZE);
 
   const moveMonth = (delta: number) => {
     const next = addMonths(currentMonth, delta);
+    setSelectedItem(null);
     setCurrentMonth(next);
     onFiltersChange({
       from: format(startOfMonth(next), "yyyy-MM-dd"),
       to: format(endOfMonth(next), "yyyy-MM-dd"),
       page: 1,
+      itemId: "",
     });
   };
 
   const openItem = (item: MarketingCalendarItem) => {
-    setSelectedItem(item);
+    setCancelReason("");
+    if (onNavigate) onNavigate("calendar", { campaignId: item.campaignId || undefined, itemId: item.id, scheduledAt: item.scheduledAt });
+    else setSelectedItem(item);
     const date = new Date(item.scheduledAt);
     setApprovalSchedule(Number.isNaN(date.getTime()) ? "" : marketingZurichDateTimeInput(date));
   };
 
   const confirmCancel = async () => {
-    if (!selectedItem || cancelReason.trim().length < 8) return;
+    if (!selectedItem || !canMutateBackend || pendingAction || cancelReason.trim().length < 8) return;
     const result = await onCancel(selectedItem.id, cancelReason.trim());
     if (result) {
       setSelectedItem(null);
       setCancelReason("");
+      if (filters.itemId) onFiltersChange({ itemId: "" });
     }
   };
 
   const confirmApproval = async () => {
-    if (!selectedItem || !approvalSchedule) return;
+    if (!selectedItem || !canMutateBackend || pendingAction || !canApproveSelected || !approvalSchedule) return;
     const scheduledAt = approvalScheduleIso;
     if (!scheduledAt) return;
-    const result = await onApprove(selectedItem.id, scheduledAt);
-    if (result) {
-      setSelectedItem(null);
-      setApprovalSchedule("");
-    }
+    await onApprove(selectedItem.id, scheduledAt);
   };
 
   const closeManualDialog = () => {
@@ -152,12 +160,33 @@ export default function MarketingCalendarView({
   };
 
   const confirmManualCompletion = async () => {
-    if (!manualItem || manualNote.trim().length < 8) return;
+    if (!manualItem || !canMutateBackend || pendingAction || manualNote.trim().length < 8) return;
     const result = await onCompleteManual(manualItem.id, manualOutcome, manualNote.trim());
     if (result) closeManualDialog();
   };
 
-  const selectedItem = snapshot.calendar.find((item) => item.id === selectedItemSnapshot?.id) || selectedItemSnapshot;
+  const selectedItemId = filters.itemId || selectedItemSnapshot?.id;
+  const selectedItem = snapshot.calendar.find((item) => item.id === selectedItemId
+    && (!filters.campaignId || item.campaignId === filters.campaignId))
+    || (selectedItemSnapshot && selectedItemSnapshot.id === selectedItemId && (!filters.campaignId || selectedItemSnapshot.campaignId === filters.campaignId) ? selectedItemSnapshot : null);
+  useEffect(() => {
+    setCancelReason("");
+    setApprovalSchedule(selectedItem?.scheduledAt ? marketingZurichDateTimeInput(selectedItem.scheduledAt) : "");
+  }, [selectedItem?.id, selectedItem?.scheduledAt]);
+  useEffect(() => {
+    if (!filters.itemId || !selectedItem?.scheduledAt) return;
+    const range = marketingMonthRange(marketingZurichDateKey(selectedItem.scheduledAt));
+    if (range && (filters.from !== range.from || filters.to !== range.to)) {
+      onFiltersChange({ from: range.from, to: range.to, page: 1 });
+    }
+  }, [filters.itemId, filters.from, filters.to, selectedItem?.scheduledAt, onFiltersChange]);
+  const closeItem = () => {
+    if (pendingAction) return;
+    setSelectedItem(null);
+    setCancelReason("");
+    setApprovalSchedule("");
+    if (filters.itemId) onFiltersChange({ itemId: "" });
+  };
   const selectedChannel = selectedItem
     ? snapshot.channels.find((channel) => channel.id === selectedItem.channel)
     : null;
@@ -166,9 +195,10 @@ export default function MarketingCalendarView({
     : null;
   const approvalChecks = selectedItem ? [
     { label: "Élément en brouillon et en attente", ok: selectedItem.status === "draft" && selectedItem.approvalStatus === "pending" },
-    { label: "Campagne approuvée", ok: Boolean(selectedCampaign?.approvedAt) },
+    { label: selectedItem.campaignId ? "Campagne approuvée" : "Publication autonome", ok: !selectedItem.campaignId || Boolean(selectedCampaign?.approvedAt) },
     { label: "Audience éligible, ou canal de publication publique", ok: selectedItem.audienceSize > 0 || isPublicMarketingChannel(selectedItem.channel) },
     { label: "Contenu non vide", ok: selectedItem.content.trim().length > 0 },
+    { label: "Texte et image de l’e-mail complets", ok: !selectedItem.postPreview?.email || isMarketingMailingReady(selectedItem.postPreview) },
     { label: "Canal disponible ou manuel", ok: Boolean(selectedChannel && ["available", "manual"].includes(selectedChannel.availability)) },
   ] : [];
   const canApproveSelected = approvalChecks.length > 0 && approvalChecks.every((check) => check.ok);
@@ -191,8 +221,9 @@ export default function MarketingCalendarView({
           <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Calendrier des publications</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Toutes les heures sont affichées en Europe/Zurich. Les canaux bloqués restent visibles mais ne peuvent pas partir.</p>
         </div>
-        <Button type="button" variant="outline" onClick={() => { const current = currentMarketingMonthRange(); setCurrentMonth(new Date(`${current.from}T12:00:00`)); onFiltersChange({ from: "", to: "", page: 1 }); }}>Aujourd'hui</Button>
+        <Button type="button" variant="outline" onClick={() => { const current = currentMarketingMonthRange(); setSelectedItem(null); setCurrentMonth(new Date(`${current.from}T12:00:00`)); onFiltersChange({ from: "", to: "", page: 1, itemId: "" }); }}>Aujourd'hui</Button>
       </div>
+      {filters.campaignId ? <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background p-3 text-sm"><span>Campagne : {snapshot.campaigns.find((campaign) => campaign.id === filters.campaignId)?.name || "campagne sélectionnée"}</span><Button type="button" variant="outline" size="sm" onClick={() => { setSelectedItem(null); onFiltersChange({ campaignId: "", itemId: "", page: 1 }); }}>Voir toutes les campagnes</Button></div> : null}
 
       <div className="rounded-2xl border border-sky-500/25 bg-sky-500/5 p-4 text-sm text-sky-900 dark:text-sky-100">
         <p className="font-semibold">Campagne approuvée → élément approuvé et planifié → orchestrateur à l'heure prévue</p>
@@ -228,13 +259,13 @@ export default function MarketingCalendarView({
         </CardContent>
       </Card>
 
-      <Card className="hidden overflow-hidden md:block">
+      <Card className="overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between border-b">
           <Button type="button" variant="outline" size="icon" onClick={() => moveMonth(-1)} aria-label="Mois précédent"><ChevronLeft className="h-4 w-4" /></Button>
           <CardTitle className="capitalize">{currentMonth.toLocaleDateString("fr-CH", { month: "long", year: "numeric" })}</CardTitle>
           <Button type="button" variant="outline" size="icon" onClick={() => moveMonth(1)} aria-label="Mois suivant"><ChevronRight className="h-4 w-4" /></Button>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="hidden p-0 md:block">
           <div className="grid grid-cols-7 border-b bg-muted/30">
             {WEEK_DAYS.map((day) => <div key={day} className="px-2 py-3 text-center text-xs font-semibold text-muted-foreground">{day}</div>)}
           </div>
@@ -288,12 +319,14 @@ export default function MarketingCalendarView({
         </CardContent>
       </Card>
 
-      <Dialog open={Boolean(selectedItem)} onOpenChange={(open) => { if (!open) { setSelectedItem(null); setCancelReason(""); setApprovalSchedule(""); } }}>
+      <Dialog open={Boolean(selectedItem) && !manualItem} onOpenChange={(open) => { if (!open) closeItem(); }}>
         <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{selectedItem?.title}</DialogTitle>
             <DialogDescription>{selectedItem ? `${selectedItem.campaignName} · ${formatMarketingDate(selectedItem.scheduledAt)}` : ""}</DialogDescription>
           </DialogHeader>
+          {reviewPending ? <p role="status" className="rounded-xl border bg-muted/20 p-3 text-sm">Actualisation de la publication sélectionnée. Les actions seront disponibles après confirmation.</p> : null}
+          {reviewError ? <p role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-3 text-sm">{reviewError}</p> : null}
           {selectedItem ? (
             <div className="space-y-4">
               <div className="grid gap-3 rounded-xl border p-4 sm:grid-cols-2">
@@ -324,6 +357,7 @@ export default function MarketingCalendarView({
                       <span>{check.label}</span>
                     </div>
                   ))}
+                  {!selectedCampaign?.approvedAt && selectedItem.campaignId && onNavigate ? <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3"><p className="text-sm">Approuvez d’abord la campagne, puis revenez à cette publication pour la planifier.</p><Button type="button" variant="outline" className="mt-2" disabled={Boolean(pendingAction)} onClick={() => onNavigate("campaigns", { campaignId: selectedItem.campaignId || undefined, itemId: selectedItem.id, scheduledAt: selectedItem.scheduledAt })}>Relire et approuver la campagne</Button></div> : null}
                   <label htmlFor="calendar-approval-schedule" className="block text-sm font-semibold">Date et heure de planification
                     <Input id="calendar-approval-schedule" type="datetime-local" className="mt-2" value={approvalSchedule} onChange={(event) => setApprovalSchedule(event.target.value)} />
                     {approvalSchedule && !approvalScheduleIso ? <span className="mt-1 block text-xs font-normal text-rose-600">Cet horaire n'existe pas en Europe/Zurich lors du changement d'heure.</span> : null}
@@ -339,19 +373,19 @@ export default function MarketingCalendarView({
             </div>
           ) : null}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setSelectedItem(null)}>Fermer</Button>
+            <Button type="button" variant="outline" disabled={Boolean(pendingAction)} onClick={closeItem}>Fermer</Button>
             {selectedItem && selectedItem.status === "draft" && selectedItem.approvalStatus === "pending" ? (
-              <Button type="button" disabled={!canMutateBackend || !canApproveSelected || !approvalScheduleIso || pendingAction === `approve-item-${selectedItem.id}`} onClick={confirmApproval}>
+              <Button type="button" disabled={!canMutateBackend || !canApproveSelected || !approvalScheduleIso || Boolean(pendingAction)} onClick={confirmApproval}>
                 <CheckCircle2 className="mr-2 h-4 w-4" />Approuver et planifier
               </Button>
             ) : null}
             {selectedItem && ["draft", "scheduled"].includes(selectedItem.status) ? (
-              <Button type="button" variant="destructive" disabled={!canMutateBackend || cancelReason.trim().length < 8 || pendingAction === `cancel-${selectedItem.id}`} onClick={confirmCancel}>
+              <Button type="button" variant="destructive" disabled={!canMutateBackend || cancelReason.trim().length < 8 || Boolean(pendingAction)} onClick={confirmCancel}>
                 <XCircle className="mr-2 h-4 w-4" /> Annuler et journaliser
               </Button>
             ) : null}
             {canCompleteSelectedManual && selectedItem ? (
-              <Button type="button" variant="outline" disabled={!canMutateBackend || pendingAction === `complete-manual-item-${selectedItem.id}`} onClick={() => { setManualItem(selectedItem); setSelectedItem(null); }}>
+              <Button type="button" variant="outline" disabled={!canMutateBackend || Boolean(pendingAction)} onClick={() => { setManualItem(selectedItem); setSelectedItem(null); if (filters.itemId) onFiltersChange({ itemId: "" }); }}>
                 <CheckCircle2 className="mr-2 h-4 w-4" />Clôturer la publication
               </Button>
             ) : null}

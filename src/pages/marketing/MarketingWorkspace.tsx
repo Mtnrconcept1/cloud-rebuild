@@ -1,5 +1,6 @@
 import { AlertCircle, CheckCircle2, Info, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import MarketingWorkspaceChrome from "@/components/marketing/MarketingWorkspaceChrome";
 import MarketingActivityView from "@/components/marketing/views/MarketingActivityView";
@@ -18,11 +19,28 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { useMarketingAutopilot } from "@/marketing/useMarketingAutopilot";
 import { useMarketingOperations } from "@/marketing/useMarketingOperations";
-import { useMarketingUrlState, type MarketingUrlState } from "@/marketing/useMarketingUrlState";
-import type { MarketingView } from "@/marketing/types";
+import { loadMarketingReviewContext } from "@/marketing/marketingClient";
+import { useMarketingUrlState, type MarketingNavigate, type MarketingUrlState } from "@/marketing/useMarketingUrlState";
 import { currentMarketingMonthRange } from "@/marketing/zurichTime";
+import type { MarketingView } from "@/marketing/types";
+
+const VIEW_TITLES: Record<MarketingView, string> = {
+  overview: "Vue d’ensemble",
+  agent: "Studio IA",
+  calendar: "Calendrier",
+  campaigns: "Campagnes",
+  audiences: "CRM et audiences",
+  automations: "Automatisations",
+  activity: "Distribution",
+  results: "Analytics",
+  integrations: "Intégrations",
+  governance: "Gouvernance",
+  outreach: "Prospection et backlinks",
+  faq: "Mode d’emploi",
+};
 
 function LoadingWorkspace() {
   return (
@@ -42,14 +60,23 @@ export default function MarketingWorkspace() {
   // Browser back/forward changes searchParams without using the chrome's
   // callbacks. Keep the current editor mounted until its upload completes.
   const filters = uploadPending && uploadFilters ? uploadFilters : urlFilters;
+  useSeoMeta({
+    title: `${VIEW_TITLES[filters.view]} · Marketing TOK`,
+    description: "Gérez vos campagnes, leurs approbations et leur calendrier dans l’espace marketing TOK sécurisé.",
+    path: "/marketing",
+    robots: "noindex,nofollow,noarchive",
+  });
   const uploadPendingRef = useRef(false);
   const onUploadPendingChange = useCallback((pending: boolean) => {
     uploadPendingRef.current = pending;
     setUploadFilters(pending ? urlFilters : null);
     setUploadPending(pending);
   }, [urlFilters]);
-  const setView = useCallback((view: MarketingView) => {
-    if (!uploadPendingRef.current) setUrlView(view);
+  const setView = useCallback<MarketingNavigate>((view, target) => {
+    if (!uploadPendingRef.current) {
+      if (target) setUrlView(view, target);
+      else setUrlView(view);
+    }
   }, [setUrlView]);
   const updateFilters = useCallback((patch: Partial<MarketingUrlState>) => {
     if (!uploadPendingRef.current) updateUrlFilters(patch);
@@ -73,6 +100,50 @@ export default function MarketingWorkspace() {
         to: filters.to || defaultCalendarRange.to,
       }
     : undefined);
+  const reviewRequested = (filters.view === "calendar" || filters.view === "campaigns")
+    && Boolean(filters.campaignId || filters.itemId);
+  const snapshotSelectedItem = operations.snapshot.calendar.find((item) => item.id === filters.itemId);
+  const invalidReviewSelection = reviewRequested && Boolean(filters.campaignId && snapshotSelectedItem
+    && snapshotSelectedItem.campaignId !== filters.campaignId);
+  const campaignMissing = Boolean(filters.campaignId && !operations.snapshot.campaigns.some((campaign) => campaign.id === filters.campaignId));
+  const itemMissing = Boolean(filters.itemId && !operations.snapshot.calendar.some((item) => item.id === filters.itemId));
+  const reviewContext = useQuery({
+    queryKey: ["admin-marketing-review-context", filters.campaignId || "", filters.itemId || ""],
+    queryFn: () => loadMarketingReviewContext({ campaignId: filters.campaignId, itemId: filters.itemId }),
+    enabled: reviewRequested && !invalidReviewSelection && !operations.loading && (campaignMissing || itemMissing),
+    staleTime: 0,
+    retry: false,
+  });
+  // The shared snapshot is authoritative after every mutation. A detail read
+  // only fills rows outside the bounded calendar/campaign sample.
+  const snapshot = useMemo(() => {
+    const campaign = reviewRequested ? reviewContext.data?.campaign : null;
+    const item = reviewRequested ? reviewContext.data?.item : null;
+    return {
+      ...operations.snapshot,
+      campaigns: campaign && campaign.id === filters.campaignId && !operations.snapshot.campaigns.some((row) => row.id === campaign.id)
+        ? [...operations.snapshot.campaigns, campaign]
+        : operations.snapshot.campaigns,
+      calendar: item && item.id === filters.itemId && (!filters.campaignId || item.campaignId === filters.campaignId)
+        && !operations.snapshot.calendar.some((row) => row.id === item.id)
+        ? [...operations.snapshot.calendar, item]
+        : operations.snapshot.calendar,
+    };
+  }, [operations.snapshot, reviewContext.data, reviewRequested, filters.campaignId, filters.itemId]);
+  const reviewStillMissing = reviewRequested && (invalidReviewSelection
+    ||
+    Boolean(filters.campaignId && !snapshot.campaigns.some((campaign) => campaign.id === filters.campaignId))
+    || Boolean(filters.itemId && !snapshot.calendar.some((item) => item.id === filters.itemId))
+  );
+  const reviewNeedsContext = reviewRequested && (campaignMissing || itemMissing);
+  const reviewLoading = reviewNeedsContext && !invalidReviewSelection && (operations.loading || reviewContext.isPending || reviewContext.isFetching);
+  const reviewUnavailable = invalidReviewSelection || (reviewNeedsContext && !reviewLoading && (reviewContext.isError || reviewStillMissing));
+  const reviewError = reviewUnavailable
+    ? invalidReviewSelection
+      ? "Le lien de sélection ne correspond pas à cette campagne. Ouvrez la publication depuis sa campagne."
+      : "Cette campagne ou cette publication n’a pas pu être confirmée. Actualisez les données avant de l’approuver."
+    : null;
+  const canMutateReview = operations.canMutateBackend && !reviewLoading && !reviewUnavailable;
   const noticeIcon = operations.notice?.tone === "success" ? CheckCircle2 : operations.notice?.tone === "error" ? AlertCircle : Info;
   const NoticeIcon = noticeIcon;
 
@@ -81,11 +152,11 @@ export default function MarketingWorkspace() {
       case "faq":
         return <MarketingFaqView />;
       case "agent":
-        return <MarketingAgentView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} onNavigate={setView} onGenerated={operations.refresh} onUploadPendingChange={onUploadPendingChange} />;
+        return <MarketingAgentView snapshot={snapshot} canMutateBackend={operations.canMutateBackend} onNavigate={setView} onGenerated={operations.refresh} onUploadPendingChange={onUploadPendingChange} />;
       case "calendar":
-        return <MarketingCalendarView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onCancel={operations.cancelItem} onApprove={operations.approveItem} onCompleteManual={operations.completeManualItem} />;
+        return <MarketingCalendarView snapshot={snapshot} filters={filters} canMutateBackend={canMutateReview} reviewPending={reviewLoading} reviewError={reviewError} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onNavigate={setView} onCancel={operations.cancelItem} onApprove={operations.approveItem} onCompleteManual={operations.completeManualItem} />;
       case "campaigns":
-        return <MarketingCampaignsView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} savePending={operations.pendingAction === "save-campaign"} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onSave={operations.saveCampaign} onApprove={operations.approveCampaign} onRecommendChannels={operations.recommendChannels} onItemsUpdated={operations.refresh} onNavigate={setView} onUploadPendingChange={onUploadPendingChange} />;
+        return <MarketingCampaignsView snapshot={snapshot} filters={filters} canMutateBackend={canMutateReview} reviewPending={reviewLoading} reviewError={reviewError} savePending={operations.pendingAction === "save-campaign"} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onSave={operations.saveCampaign} onApprove={operations.approveCampaign} onRecommendChannels={operations.recommendChannels} onItemsUpdated={operations.refresh} onNavigate={setView} onUploadPendingChange={onUploadPendingChange} />;
       case "audiences":
         return <MarketingAudiencesView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onNavigate={setView} onSyncSources={operations.syncSources} onLoadContactsPage={operations.loadContactsPage} contactsRevision={operations.contactsRevision} onQualifyContact={operations.qualifyRestaurantContact} onSuppressContact={operations.suppressContact} />;
       case "automations":
@@ -102,14 +173,14 @@ export default function MarketingWorkspace() {
         return <MarketingOutreachView canMutateBackend={operations.canMutateBackend} />;
       case "overview":
       default:
-        return <MarketingOverviewView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} runPending={operations.pendingAction === "run-due"} onRunDue={operations.runDue} onNavigate={setView} />;
+        return <MarketingOverviewView snapshot={snapshot} canMutateBackend={operations.canMutateBackend} runPending={operations.pendingAction === "run-due"} onRunDue={operations.runDue} onNavigate={setView} />;
     }
   })();
 
   return (
     <MarketingWorkspaceChrome
       activeView={filters.view}
-      snapshot={operations.snapshot}
+      snapshot={snapshot}
       canMutateBackend={operations.canMutateBackend}
       refreshing={operations.refreshing}
       pausePending={operations.pendingAction === "global-pause"}
@@ -119,6 +190,8 @@ export default function MarketingWorkspace() {
       onTogglePause={operations.toggleGlobalPause}
     >
       {uploadPending ? <p role="status" className="mb-4 rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">Import de l’image en cours. Patientez avant de quitter cet écran.</p> : null}
+      {reviewLoading ? <p role="status" className="mb-4 rounded-xl border bg-background p-3 text-sm">Chargement de la campagne et de la publication sélectionnées…</p> : null}
+      {reviewUnavailable ? <Alert variant="destructive" className="mb-4"><AlertCircle className="h-4 w-4" /><AlertTitle>Élément sélectionné indisponible</AlertTitle><AlertDescription>{reviewError}{!invalidReviewSelection ? <Button type="button" variant="outline" size="sm" className="ml-3 mt-2" onClick={() => { void reviewContext.refetch(); }}>Réessayer</Button> : null}</AlertDescription></Alert> : null}
       {operations.notice ? (
         <Alert className={cn("mb-5 pr-12", operations.notice.tone === "success" && "border-emerald-500/25 bg-emerald-500/5", operations.notice.tone === "warning" && "border-amber-500/25 bg-amber-500/5")} variant={operations.notice.tone === "error" ? "destructive" : "default"}>
           <NoticeIcon className="h-4 w-4" />

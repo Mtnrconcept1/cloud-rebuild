@@ -72,7 +72,9 @@ describe("marketing operations frontend contracts", () => {
     expect(bff).toContain('MARKETING_CSRF_HEADER_NAME = "x-tok-marketing-csrf"');
     expect(bff).toContain("MAX_MARKETING_RESPONSE_BYTES");
     expect(bff).toContain("reader.cancel()");
-    expect(bff).toContain('window.location.replace(MARKETING_LOGIN_PATH)');
+    expect(bff).toContain('window.location.replace(');
+    expect(bff).toContain('const MARKETING_LOGIN_PATH = "/marketing/login"');
+    expect(bff).toContain("marketingLoginReturnTarget(");
     expect(client).not.toMatch(/\.from\([^)]*marketing_[^)]+\)\s*\.\s*(insert|update|upsert|delete)/s);
     expect(client).not.toContain("as any");
   });
@@ -107,7 +109,8 @@ describe("marketing operations frontend contracts", () => {
     expect(login).toContain('autoComplete="one-time-code"');
     expect(login).toContain('minLength={6}');
     expect(login).toContain('maxLength={6}');
-    expect(protectedRoute).toContain('<Navigate to="/marketing/login" replace />');
+    expect(protectedRoute).toContain('<Navigate to="/marketing/login" replace');
+    expect(protectedRoute).toContain("marketingLoginReturnTarget");
     expect(chrome).toContain("useMarketingSession");
     expect(chrome).toContain("void logout()");
     expect(chrome).not.toContain("SignOutButton");

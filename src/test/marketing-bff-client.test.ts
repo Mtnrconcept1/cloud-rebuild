@@ -49,6 +49,46 @@ describe("marketing BFF client", () => {
       .rejects.toMatchObject({ status, code, message });
   });
 
+  it.each([
+    [400, "marketing_campaign_approval_required", /Approuvez d’abord la campagne.*Campagnes/],
+    [400, "marketing_schedule_too_soon", /deux minutes dans le futur/],
+    [400, "marketing_schedule_quiet_hours", /08:00 et 20:00.*Zurich/],
+    [400, "marketing_channel_unavailable", /Intégrations/],
+    [400, "marketing_audience_empty", /Aucun destinataire éligible/],
+    [400, "marketing_audience_mismatch", /Corrigez le ciblage/],
+    [400, "marketing_content_required", /Complétez et relisez le contenu/],
+    [400, "marketing_campaign_incomplete", /l’audience et les canaux/],
+    [400, "marketing_approval_reason_required", /motif de validation/],
+    [400, "marketing_item_terminal", /déjà terminé ou annulé/],
+    [400, "marketing_campaign_unavailable", /pause, terminée, annulée ou en échec/],
+    [409, "marketing_edit_conflict", /modifié depuis son ouverture/],
+    [404, "marketing_record_not_found", /n’existe plus/],
+    [400, "marketing_outreach_review_required", /attente de validation/],
+    [400, "marketing_outreach_target_unavailable", /Validez la cible de prospection/],
+    [400, "marketing_outreach_draft_immutable", /déjà approuvé/],
+    [400, "instagram_story_manual_required", /Story manuelle/],
+  ] as const)("explains the operation failure %s %s without trusting server text", async (status, code, message) => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ error: {
+      code, message: "PRIVATE_UPSTREAM_DETAILS",
+    } }), { status, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(marketingBffRequest("/api/marketing/rpc", { method: "POST", body: {} }))
+      .rejects.toMatchObject({ status, code, message: expect.stringMatching(message) });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it.each(["marketing_campaign_approval_required", "marketing_edit_conflict", "instagram_story_manual_required"])(
+    "does not use the operation message when %s is paired with an authorization failure", async (code) => {
+      vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: {
+        code, message: "PRIVATE_UPSTREAM_DETAILS",
+      } }), { status: 403, headers: { "Content-Type": "application/json" } })));
+      await expect(marketingBffRequest("/api/marketing/rpc", { method: "POST", body: {} }))
+        .rejects.toMatchObject({ status: 403, message: "Cette action n’est pas autorisée." });
+      expect(replace).not.toHaveBeenCalled();
+    },
+  );
+
   it("does not trust the visual error code when paired with an unrelated status", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: { code: "marketing_visual_required", message: "PRIVATE" } }), {
       status: 403, headers: { "Content-Type": "application/json" },
@@ -122,6 +162,21 @@ describe("marketing BFF client", () => {
       body: { operation: "admin_test", args: {} },
     })).rejects.toBeInstanceOf(MarketingBffError);
     expect(replace).toHaveBeenCalledWith("/marketing/login");
+    expect(dispatchEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves a selected review after expiry while stripping authentication and redirect parameters", async () => {
+    window.location.search = "?view=calendar&campaignId=82450000-0000-4000-8000-000000000001&itemId=82450000-0000-4000-8000-000000000002&from=2026-11-01&code=secret&next=https://evil.example";
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 401 })));
+    await expect(marketingBffRequest("/api/marketing/rpc", {
+      method: "POST", body: { operation: "admin_test", args: {} },
+    })).rejects.toBeInstanceOf(MarketingBffError);
+    const destination = new URL(replace.mock.calls[0][0], "https://marketing.thetok.ch");
+    expect(destination.pathname).toBe("/marketing/login");
+    const returnTo = destination.searchParams.get("returnTo") || "";
+    expect(returnTo).toContain("view=calendar");
+    expect(returnTo).toContain("itemId=82450000-0000-4000-8000-000000000002");
+    expect(returnTo).not.toMatch(/secret|next|evil/);
     expect(dispatchEvent).toHaveBeenCalledTimes(1);
   });
 
