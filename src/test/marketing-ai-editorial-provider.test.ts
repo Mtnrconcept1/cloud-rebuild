@@ -18,6 +18,31 @@ function plan(): MarketingPlan {
 }
 beforeEach(() => provider.mockReset());
 describe("marketing provider editorial integration", () => {
+  it("requests only copy for manual imports and never sends recipient addresses to the provider", async () => {
+    const source = plan();
+    source.campaign.channels = ["email"];
+    source.items = source.items.map((item, index) => ({ ...item, channel: "email", content: { ...item.content,
+      subject: `Objet ${index + 1}`, headline: `Bénéfice ${index + 1}`, body: `Texte complet ${index + 1}` } }));
+    provider.mockResolvedValue(source);
+    const result = await generateMarketingPlan({ ...context, allowedChannels: ["email"], connectedChannels: ["email"],
+      mailingOptions: { selections: {}, recipientEmails: ["resto-prive@example.ch"], emailCount: 2, cadence: "daily", imageMode: "manual" } });
+    const request = provider.mock.calls[0][0];
+    expect(JSON.stringify(request)).not.toContain("resto-prive@example.ch");
+    expect(request.input[0].content).toContain("IMPORT MANUEL");
+    expect(request.input[0].content).toContain("visual_prompt à null");
+    expect(request.input[0].content).not.toContain("UNE bannière commune");
+    expect(result.plan.items.every((item) => item.visual_prompt === null && item.mailing_image_mode === "manual")).toBe(true);
+    expect(result.plan.items[0].targeting).toEqual({ audience_kind: "mixed", recipient_emails: ["resto-prive@example.ch"] });
+  });
+  it("continues to request a common banner when generated mode is selected", async () => {
+    const source = plan(); source.campaign.channels = ["email"];
+    source.items = source.items.map((item, index) => ({ ...item, channel: "email", content: { ...item.content, subject: `Objet ${index}`, body: `Texte ${index}` } }));
+    provider.mockResolvedValue(source);
+    const result = await generateMarketingPlan({ ...context, allowedChannels: ["email"], mailingOptions: {
+      selections: {}, emailCount: 2, cadence: "daily", imageMode: "generated" } });
+    expect(provider.mock.calls[0][0].input[0].content).toContain("UNE bannière commune");
+    expect(result.plan.items[1].visual_prompt).toBe(result.plan.items[0].visual_prompt);
+  });
   it("normalizes newly generated advanced social posts while preserving non-social content and the legacy schema", async () => {
     const source = plan(); provider.mockResolvedValue(source);
     const result = await generateMarketingPlan(context);

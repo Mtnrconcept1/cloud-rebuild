@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const { provider } = vi.hoisted(() => ({ provider: vi.fn() }));
 vi.mock("../../supabase/functions/_shared/openai.ts", () => ({ createOpenAIResponse: provider, parseStructuredOutput: (value: unknown) => value, selectTokAiModel: () => "test-model" }));
-import { MAILING_FIELDS, assertMailingReady, parseMailingOptions, parseMailingSelections, type MailingField, type MailingFacetPage } from "../../supabase/functions/_shared/marketing-mailing";
+import { MAILING_FIELDS, assertMailingReady, mailingAudience, mailingAudienceLabel, parseMailingOptions, parseMailingSelections, parseMailingRecipientEmails, type MailingField, type MailingFacetPage } from "../../supabase/functions/_shared/marketing-mailing";
 import { applyMailingOptions, interpretMailingBrief } from "../../supabase/functions/_shared/marketing-mailing-plan";
 import { toBundlePayload, type MarketingPlan } from "../../supabase/functions/_shared/marketing-ai-plan";
 import { prepareTargetedMailingContent, renderTargetedMailingEmail } from "../../supabase/functions/_shared/marketing-mailing-email";
@@ -14,6 +14,58 @@ function source(): MarketingPlan {
 }
 beforeEach(() => provider.mockReset());
 describe("targeted mailing contracts", () => {
+  it("normalizes an exclusive list and never accepts an empty or malformed audience", () => {
+    expect(parseMailingRecipientEmails([" A@EXAMPLE.CH ", "a@example.ch", "b@example.ch"])).toEqual(["a@example.ch", "b@example.ch"]);
+    for (const value of [[], null, undefined, "a@example.ch", [null], ["a@localhost"], ["a@@example.ch"], ["a@-example.ch"],
+      ["a@example.ch/path"], ["a@example.ch\nb@example.ch"], ["é@example.ch"], [".a@example.ch"], ["a..b@example.ch"],
+      ["a@example..ch"], ["a".repeat(65) + "@example.ch"], Array(501).fill("a@example.ch")]) {
+      expect(() => parseMailingRecipientEmails(value)).toThrow();
+    }
+    const emails = Array.from({ length: 500 }, (_, i) => `contact${i}@example.ch`);
+    expect(parseMailingRecipientEmails(emails)).toHaveLength(500);
+    expect(parseMailingOptions({ ...options, selections: {}, recipientEmails: emails })?.recipientEmails).toEqual(emails);
+    expect(() => parseMailingOptions({ ...options, recipientEmails: emails })).toThrow();
+    expect(() => parseMailingOptions({ ...options, selections: {}, recipientEmails: undefined })).toThrow();
+    expect(() => mailingAudience({ city: ["Genève"] }, emails)).toThrow();
+    expect(mailingAudienceLabel({}, emails)).toBe("500 destinataire(s) sélectionné(s)");
+    expect(mailingAudienceLabel({}, emails)).not.toContain("@");
+  });
+  it("keeps legacy generated mode and rejects an invalid image-mode choice", () => {
+    expect(parseMailingOptions(options)?.imageMode).toBe("generated");
+    expect(parseMailingOptions({ ...options, imageMode: "manual" })?.imageMode).toBe("manual");
+    for (const imageMode of [null, "", "upload", true, []]) expect(() => parseMailingOptions({ ...options, imageMode })).toThrow();
+  });
+  it("persists the exact explicit audience in every item of the final bundle", () => {
+    const recipientEmails = ["first@example.ch", "second@example.ch"];
+    const plan = applyMailingOptions(source(), { ...options, selections: {}, recipientEmails }, source().campaign.starts_at, source().campaign.ends_at);
+    const bundle = toBundlePayload(plan, new Map()) as { campaign: Record<string, unknown>; items: Array<Record<string, unknown>> };
+    const target = { audience_kind: "mixed", recipient_emails: recipientEmails };
+    expect(bundle.campaign.audience_definition).toEqual(target);
+    expect(bundle.items).toHaveLength(4);
+    for (const item of bundle.items) expect(item.targeting).toEqual(target);
+    for (const recipient_emails of [[], null, undefined, ["invalid"]]) {
+      const corrupted = structuredClone(plan);
+      corrupted.campaign.audience_definition = { audience_kind: "mixed", recipient_emails };
+      expect(() => toBundlePayload(corrupted, new Map())).toThrow();
+      const corruptedItem = structuredClone(plan);
+      corruptedItem.items[1].targeting = { audience_kind: "mixed", recipient_emails };
+      expect(() => toBundlePayload(corruptedItem, new Map())).toThrow();
+    }
+  });
+  it("creates manual text-only drafts and ignores accidental generated images", () => {
+    const raw = source(); raw.items[0].visual_prompt = null;
+    const plan = applyMailingOptions(raw, { ...options, imageMode: "manual" }, raw.campaign.starts_at, raw.campaign.ends_at);
+    expect(plan.items.every((item) => item.visual_prompt === null)).toBe(true);
+    const bundle = toBundlePayload(plan, new Map([[0, "https://assets.example/unrequested.jpg"]])) as { items: Array<{ content: Record<string, unknown> }> };
+    for (const item of bundle.items) {
+      expect(item.content).toMatchObject({ mailing_version: "tok-mailing-v1", image_mode: "manual", visual_source: "upload",
+        visual_status: "pending_upload", visual_required: true, visual_url: null, visual_prompt: null, visual_format: null });
+      expect(item.content).not.toHaveProperty("visual_brand_profile");
+      expect(item.content).not.toHaveProperty("visual_reference_ids");
+      expect(() => assertMailingReady(item.content)).toThrow();
+      expect(() => assertMailingReady({ ...item.content, visual_url: "https://assets.example/import.jpg", visual_status: "ready" })).not.toThrow();
+    }
+  });
   it("distinguishes all from none and rejects unsupported/widening payloads", () => {
     expect(parseMailingSelections({})).toEqual({});
     expect(parseMailingSelections({ city: [] })).toEqual({ city: [] });

@@ -71,10 +71,12 @@ function buildSystemPrompt(context: MarketingBriefContext) {
     "",
     `Produis exactement ${context.itemCount} élément(s) de calendrier, répartis entre ${context.startsAt} et ${context.endsAt}.`,
     ...(context.mailingOptions ? [
-      `MAILING RESTAURATEURS : cible validée par l’opérateur : ${mailingAudienceLabel(context.mailingOptions.selections)}. Le serveur impose ces sélections et la cadence ${context.mailingOptions.cadence}.`,
+      `MAILING RESTAURATEURS : cible validée par l’opérateur : ${mailingAudienceLabel(context.mailingOptions.selections, context.mailingOptions.recipientEmails)}. Le serveur impose cette cible et la cadence ${context.mailingOptions.cadence}.`,
       "Rédige une séquence cohérente avec un angle différent par e-mail, un objet spécifique (200 caractères maximum), un titre, un corps complet avec paragraphes et un appel à l’action. Aucun hashtag. Répartis tous les bénéfices demandés sur la séquence.",
       "Les fonctionnalités dépendent de leur activation et de la formule ; n’invente pas de prix, statistiques ou garanties. Le plan de salle automatisé aide à placer les réservations ; ne promets pas une autonomie sans contrôle.",
-      "Renseigne visual_prompt pour UNE bannière commune à toute la campagne : une seule scène TOK au format paysage 16:9, un seul bénéfice principal, chef et logo des références. Tous les autres e-mails réutiliseront cette même bannière. Aucun montage de plusieurs mails.",
+      context.mailingOptions.imageMode === "manual"
+        ? "IMPORT MANUEL : génère uniquement les textes. Renseigne visual_prompt à null pour chaque e-mail. L’opérateur ajoutera ensuite une image différente à chaque e-mail ; ne présume pas le contenu de ces images."
+        : "Renseigne visual_prompt pour UNE bannière commune à toute la campagne : une seule scène TOK au format paysage 16:9, un seul bénéfice principal, chef et logo des références. Tous les autres e-mails réutiliseront cette même bannière. Aucun montage de plusieurs mails.",
     ] : []),
     ...(context.campaignOptions ? [
       "Thèmes sélectionnés et contraintes éditoriales (couvre ces thèmes sans inventer d'offre) :",
@@ -86,7 +88,7 @@ function buildSystemPrompt(context: MarketingBriefContext) {
     ] : context.mailingOptions ? CAMPAIGN_TEMPLATES.map((template) => `${template.label} : ${template.guidance}`)
       : socialEditorialPrompt(CAMPAIGN_TEMPLATES.map((template) => template.id), context.audienceHint, false)),
     `Formats visuels demandés par canal : ${JSON.stringify(context.campaignOptions?.formatsByChannel || context.formats || {})}. Compose chaque visuel pour son format sans placer de texte important près des bords.`,
-    ...(!context.campaignOptions ? ["Renseigne visual_prompt uniquement pour les canaux où une image a du sens (réseaux sociaux, e-mail), sinon null."] : []),
+    ...(!context.campaignOptions && context.mailingOptions?.imageMode !== "manual" ? ["Renseigne visual_prompt uniquement pour les canaux où une image a du sens (réseaux sociaux, e-mail), sinon null."] : []),
     "Le champ subject n'est renseigné que pour le canal email.",
   ].join("\n");
 }

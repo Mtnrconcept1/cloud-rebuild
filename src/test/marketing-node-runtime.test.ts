@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -28,6 +28,9 @@ it("boots the emitted marketing BFF in plain Node without a TypeScript loader", 
   };
   try {
     writeFileSync(path.join(output, "package.json"), '{"type":"module"}');
+    // Emitted server modules resolve installed runtime dependencies exactly as
+    // the deployed Node bundle does, without a TypeScript or Vite loader.
+    symlinkSync(path.join(root, "node_modules"), path.join(output, "node_modules"), process.platform === "win32" ? "junction" : "dir");
     emit(path.join(root, "server/marketingBff.ts"));
     const entry = pathToFileURL(path.join(output, "server/marketingBff.js")).href;
     const child = spawnSync(process.execPath, ["--input-type=module", "-e", `
