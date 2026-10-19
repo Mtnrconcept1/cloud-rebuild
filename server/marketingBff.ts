@@ -1,8 +1,9 @@
 import { MetaPublishError, validateMetaMediaContent } from "../supabase/functions/_shared/meta-publishing.js";
 import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../supabase/functions/_shared/marketing-campaign-request.js";
 import { CAMPAIGN_TEMPLATE_LABELS } from "../supabase/functions/_shared/marketing-campaign-templates.js";
-import { MAILING_FIELDS, MailingInputError, assertMailingReady, mailingAudience, mailingScheduleOptions, parseMailingOptions } from "../supabase/functions/_shared/marketing-mailing.js";
+import { MAILING_FIELDS, MailingInputError, assertMailingReady, mailingAudience, mailingScheduleOptions, parseMailingOptions, parseMailingRecipientEmails } from "../supabase/functions/_shared/marketing-mailing.js";
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
+import { MailingImageInputError, validateMailingImage } from "./marketingMailingImage.js";
 
 /**
  * Server-only boundary for marketing.thetok.ch.
@@ -25,6 +26,11 @@ const MAX_PENDING_SECONDS = 10 * 60;
 const MAX_SESSION_SECONDS = 4 * 60 * 60;
 const MAX_REQUEST_BYTES = 128 * 1024;
 const MAX_RESPONSE_BYTES = 1024 * 1024;
+const MAX_MAILING_UPLOAD_REQUEST_BYTES = 4 * 1024 * 1024 + 4096;
+const MAX_MAILING_RECIPIENT_REQUEST_BYTES = 256 * 1024;
+// A 12-email bundle repeats 500 addresses of up to 254 bytes on 13 targets
+// (campaign + items), exceeding 1.67 MB before its text and image metadata.
+const MAX_MAILING_RECIPIENT_RESPONSE_BYTES = 3 * 1024 * 1024;
 /**
  * Supabase renders the TOTP QR code as an SVG carrying one `<rect>` per module,
  * so the payload grows with the length of the `otpauth://` URI rather than
@@ -459,7 +465,7 @@ function assertSafeJson(value: unknown, depth = 0, state = { nodes: 0 }): void {
   }
 }
 
-function parseJsonBody(req: MarketingApiRequest, maxBytes = MAX_REQUEST_BYTES): JsonObject {
+function parseJsonBody(req: MarketingApiRequest, maxBytes = MAX_REQUEST_BYTES, allowMailingImageBase64 = false): JsonObject {
   const contentType = header(req, "content-type").toLowerCase();
   const contentLength = Number(header(req, "content-length") || "0");
   if (!contentType.startsWith("application/json")) {
@@ -488,8 +494,29 @@ function parseJsonBody(req: MarketingApiRequest, maxBytes = MAX_REQUEST_BYTES): 
   if (serializedSize > maxBytes) {
     throw new PublicBffError(413, "request_too_large", "Requête trop volumineuse.");
   }
-  assertSafeJson(value);
+  if (allowMailingImageBase64 && value.action === "upload_mailing_image" && typeof value.imageBase64 === "string") {
+    // The image has a separate binary validator. Every other field keeps the
+    // original JSON depth, key, node and string limits.
+    assertSafeJson({ ...value, imageBase64: "" });
+  } else {
+    assertSafeJson(value);
+  }
   return value;
+}
+
+function parseMarketingAgentBody(req: MarketingApiRequest): JsonObject {
+  const body = parseJsonBody(req, MAX_MAILING_UPLOAD_REQUEST_BYTES, true);
+  const recipientRequest = body.action === "prepare_mailing_recipients"
+    || (body.action === "generate" && isPlainObject(body.mailingOptions)
+      && Object.hasOwn(body.mailingOptions, "recipientEmails"));
+  const maximum = body.action === "upload_mailing_image" ? MAX_MAILING_UPLOAD_REQUEST_BYTES
+    : recipientRequest ? MAX_MAILING_RECIPIENT_REQUEST_BYTES : 16 * 1024;
+  const rawBytes = Buffer.isBuffer(req.body) ? req.body.length
+    : typeof req.body === "string" ? Buffer.byteLength(req.body, "utf8") : 0;
+  if (Math.max(rawBytes, Buffer.byteLength(JSON.stringify(body), "utf8"), Number(header(req, "content-length") || 0)) > maximum) {
+    throw new PublicBffError(413, "request_too_large", "Requête trop volumineuse.");
+  }
+  return body;
 }
 
 function requireCsrf(req: MarketingApiRequest, cookies: Record<string, string>): string {
@@ -568,7 +595,7 @@ async function authRequest(
   } = {},
 ): Promise<unknown> {
   const apiKey = options.serviceRole ? config.serviceRoleKey : config.publishableKey;
-  const authorization = options.accessToken ?? (options.serviceRole ? config.serviceRoleKey : "");
+  const authorization = options.accessToken ?? (options.serviceRole && !config.serviceRoleKey.startsWith("sb_secret_") ? config.serviceRoleKey : "");
   const response = await boundedFetch(
     `${config.supabaseUrl}/auth/v1${path}`,
     {
@@ -598,8 +625,7 @@ async function serviceRestRequest(
     {
       method: options.method ?? "GET",
       headers: {
-        apikey: config.serviceRoleKey,
-        Authorization: `Bearer ${config.serviceRoleKey}`,
+        ...serviceKeyHeaders(config),
         Accept: "application/json",
         ...(options.body ? { "Content-Type": "application/json" } : {}),
       },
@@ -609,6 +635,13 @@ async function serviceRestRequest(
   );
   if (!response.ok) throw new DownstreamHttpError(response.status);
   return response.value;
+}
+
+function serviceKeyHeaders(config: BffConfig): Record<string, string> {
+  return {
+    apikey: config.serviceRoleKey,
+    ...(!config.serviceRoleKey.startsWith("sb_secret_") ? { Authorization: `Bearer ${config.serviceRoleKey}` } : {}),
+  };
 }
 
 async function serviceRpc(
@@ -1710,6 +1743,152 @@ function agentTimestamp(body: JsonObject, key: string): string {
   return new Date(parsed).toISOString();
 }
 
+function mailingImageConflict(): PublicBffError {
+  return new PublicBffError(409, "mailing_image_conflict", "Cet e-mail a changé ou a déjà été approuvé. Actualisez la campagne avant d’importer une image.");
+}
+
+function mailingImageUnavailable(): PublicBffError {
+  return new PublicBffError(503, "mailing_image_upload_failed", "L’image n’a pas pu être enregistrée. Actualisez l’e-mail avant de réessayer.");
+}
+
+/** PostgreSQL revisions carry microseconds; Date alone silently drops three digits. */
+function mailingRevision(value: unknown): bigint | null {
+  if (typeof value !== "string" || value.length > 40) return null;
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})(?:\.(\d{1,6}))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if (!match) return null;
+  const milliseconds = Date.parse(value);
+  const calendarDate = new Date(`${match[1]}T${match[2]}Z`);
+  if (!Number.isFinite(milliseconds) || !Number.isFinite(calendarDate.getTime())
+    || calendarDate.toISOString().slice(0, 19) !== `${match[1]}T${match[2]}`) return null;
+  return BigInt(milliseconds) * 1000n + BigInt((match[3] || "").padEnd(6, "0").slice(3));
+}
+
+async function uploadMailingImage(
+  config: BffConfig,
+  req: MarketingApiRequest,
+  session: ActiveMarketingSession,
+  body: JsonObject,
+): Promise<JsonObject> {
+  const itemId = stringField(body, "itemId", 64);
+  const expectedUpdatedAt = stringField(body, "expectedUpdatedAt", 40);
+  const revision = mailingRevision(expectedUpdatedAt);
+  if (!UUID_PATTERN.test(itemId) || revision === null
+    || Object.keys(body).some((key) => !["action", "itemId", "expectedUpdatedAt", "contentType", "imageBase64"].includes(key))) {
+    throw new PublicBffError(400, "mailing_image_invalid", "Image ou version de l’e-mail invalide.");
+  }
+  // Each email has its own retry bucket, so a twelve-email sequence can import
+  // twelve different images while repeated attempts on one item stay bounded.
+  await consumeRateLimit(config, req, `mailing-image-upload:${itemId}`, session.userId, false);
+  let image;
+  try { image = validateMailingImage(body.contentType, body.imageBase64); }
+  catch (error) {
+    if (error instanceof MailingImageInputError) throw new PublicBffError(400, "mailing_image_invalid", error.message);
+    throw error;
+  }
+
+  try {
+    const rows = await serviceRestRequest(config,
+      `/marketing_calendar_items?id=eq.${itemId}&select=id,campaign_id,channel,status,approval_status,content,updated_at&limit=1`);
+    const item = Array.isArray(rows) && rows.length === 1 ? asRecord(rows[0]) : {};
+    if (item.id !== itemId || item.channel !== "email" || asRecord(item.content).mailing_version !== "tok-mailing-v1"
+      || item.approval_status === "approved" || !["draft", "blocked_configuration", "failed"].includes(String(item.status))
+      || mailingRevision(item.updated_at) !== revision) throw mailingImageConflict();
+    if (item.campaign_id !== null && item.campaign_id !== undefined) {
+      if (typeof item.campaign_id !== "string" || !UUID_PATTERN.test(item.campaign_id)) throw mailingImageConflict();
+      const campaigns = await serviceRestRequest(config,
+        `/marketing_campaigns?id=eq.${item.campaign_id}&select=id,status,approved_at&limit=1`);
+      const campaign = Array.isArray(campaigns) && campaigns.length === 1 ? asRecord(campaigns[0]) : {};
+      if (campaign.id !== item.campaign_id || campaign.approved_at
+        || ["completed", "cancelled", "failed"].includes(String(campaign.status))) throw mailingImageConflict();
+    }
+  } catch (error) {
+    if (error instanceof PublicBffError) throw error;
+    throw mailingImageUnavailable();
+  }
+
+  const path = `marketing-mailing/${session.userId}/${itemId}/${randomUUID()}.${image.extension}`;
+  const storageUrl = `${config.supabaseUrl}/storage/v1/object/social-post-media/${path}`;
+  const visualUrl = `${config.supabaseUrl}/storage/v1/object/public/social-post-media/${path}`;
+  try {
+    const uploaded = await boundedFetch(storageUrl, {
+      method: "POST",
+      headers: { ...serviceKeyHeaders(config), "Content-Type": image.contentType, "x-upsert": "false" },
+      body: new Uint8Array(image.bytes),
+    }, ORCHESTRATOR_TIMEOUT_MS, 64 * 1024);
+    if (!uploaded.ok) throw mailingImageUnavailable();
+  } catch {
+    throw mailingImageUnavailable();
+  }
+
+  let persisted: JsonObject;
+  try {
+    persisted = normalizeRpcObject(await serviceRpc(config, "service_execute_marketing_admin_operation", {
+      p_sid_hash: session.sessionHash,
+      p_csrf_hash: session.csrfHash,
+      p_operation: "admin_attach_marketing_mailing_image",
+      p_args: {
+        p_item_id: itemId,
+        p_expected_updated_at: expectedUpdatedAt,
+        p_visual_url: visualUrl,
+        p_width: image.width,
+        p_height: image.height,
+      },
+    }));
+  } catch (error) {
+    if (error instanceof DownstreamHttpError && error.status >= 400 && error.status < 500) {
+      // An explicit rejection proves this new object was not associated. Never
+      // remove older/shared images or delete after an ambiguous commit outcome.
+      await boundedFetch(`${config.supabaseUrl}/storage/v1/object/social-post-media`, {
+        method: "DELETE",
+        headers: { ...serviceKeyHeaders(config), "Content-Type": "application/json" },
+        body: JSON.stringify({ prefixes: [path] }),
+      }, DATABASE_TIMEOUT_MS, 64 * 1024).catch(() => undefined);
+      throw mailingImageConflict();
+    }
+    throw mailingImageUnavailable();
+  }
+  const content = asRecord(persisted.content);
+  if (persisted.id !== itemId || persisted.channel !== "email" || mailingRevision(persisted.updated_at) === null
+    || content.mailing_version !== "tok-mailing-v1" || content.image_mode !== "manual"
+    || content.visual_status !== "ready" || content.visual_url !== visualUrl) throw mailingImageUnavailable();
+  return { ok: true, item: persisted, visualUrl };
+}
+
+async function prepareMailingRecipients(
+  config: BffConfig,
+  req: MarketingApiRequest,
+  session: ActiveMarketingSession,
+  value: unknown,
+): Promise<JsonObject> {
+  let recipientEmails: string[];
+  try { recipientEmails = parseMailingRecipientEmails(value); }
+  catch (error) {
+    if (error instanceof MailingInputError) throw new PublicBffError(400, "mailing_recipients_invalid", error.message);
+    throw error;
+  }
+  await consumeRateLimit(config, req, "mailing-recipients", session.userId, false);
+  try {
+    const prepared = normalizeRpcObject(await serviceRpc(config, "service_execute_marketing_admin_operation", {
+      p_sid_hash: session.sessionHash,
+      p_csrf_hash: session.csrfHash,
+      p_operation: "admin_prepare_marketing_mailing_recipients",
+      p_args: { p_emails: recipientEmails },
+    }));
+    const counts = [prepared.recipient_count, prepared.created_count, prepared.existing_count];
+    if (counts.some((count) => typeof count !== "number" || !Number.isInteger(count) || count < 0 || count > 500)
+      || prepared.recipient_count !== recipientEmails.length
+      || Number(prepared.created_count) + Number(prepared.existing_count) !== recipientEmails.length
+      || !isPlainObject(prepared.estimate)) throw new DownstreamHttpError(502);
+    return { ok: true, recipient_count: prepared.recipient_count, created_count: prepared.created_count,
+      existing_count: prepared.existing_count, estimate: prepared.estimate };
+  } catch (error) {
+    if (error instanceof DownstreamHttpError && error.status >= 400 && error.status < 500) {
+      throw new PublicBffError(400, "mailing_recipients_invalid", "La liste des destinataires est invalide.");
+    }
+    throw new PublicBffError(503, "mailing_recipients_unavailable", "Les destinataires n’ont pas pu être vérifiés. Réessayez dans un instant.");
+  }
+}
+
 async function callMarketingAgent(
   config: BffConfig,
   actorUserId: string,
@@ -1731,6 +1910,8 @@ async function callMarketingAgent(
       body: JSON.stringify(payload),
     },
     AGENT_TIMEOUT_MS,
+    payload.action === "generate" && Array.isArray(asRecord(payload.mailingOptions).recipientEmails)
+      ? MAX_MAILING_RECIPIENT_RESPONSE_BYTES : MAX_RESPONSE_BYTES,
   );
   if (!response.ok) {
     if (response.status === 429) {
@@ -1765,14 +1946,26 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
   }
   validateMarketingRequestContext(req, true);
   const config = readConfig();
-  const body = parseJsonBody(req, 16 * 1024);
+  const body = parseMarketingAgentBody(req);
   const action = stringField(body, "action", 32);
-  if (!["generate", "list_runs", "discover_sources", "mailing_facets", "interpret_mailing"].includes(action)) {
+  if (!["generate", "list_runs", "discover_sources", "mailing_facets", "interpret_mailing", "upload_mailing_image", "prepare_mailing_recipients"].includes(action)) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
 
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
+
+  if (action === "upload_mailing_image") {
+    sendJson(res, 200, await uploadMailingImage(config, req, session, body));
+    return;
+  }
+  if (action === "prepare_mailing_recipients") {
+    if (Object.keys(body).some((key) => !["action", "recipientEmails"].includes(key))) {
+      throw new PublicBffError(400, "mailing_recipients_invalid", "La liste des destinataires est invalide.");
+    }
+    sendJson(res, 200, await prepareMailingRecipients(config, req, session, body.recipientEmails));
+    return;
+  }
 
   if (action === "mailing_facets") {
     const field = stringField(body, "field", 32);
@@ -1862,6 +2055,10 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     throw new PublicBffError(400, "invalid_campaign_options", "Vérifiez les thèmes, les formats et la période : maximum 6 visuels et 12 publications par génération.");
   }
 
+  if (mailingOptions?.recipientEmails) {
+    // The same idempotent preparation also protects direct calls to generate.
+    await prepareMailingRecipients(config, req, session, mailingOptions.recipientEmails);
+  }
   const generated = await callMarketingAgent(config, session.userId, {
     action: "generate",
     objective,
@@ -1886,13 +2083,34 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
       throw new PublicBffError(502, "ai_invalid_plan", "La séquence générée ne correspond pas au mailing demandé.");
     }
     // Bind the persisted recipients and cadence to the reviewed request, never to AI suggestions.
-    const target = mailingAudience(mailingOptions.selections);
+    const target = mailingAudience(mailingOptions.selections, mailingOptions.recipientEmails);
     const slots = buildCampaignSlots(mailingScheduleOptions(mailingOptions), ["email"], startsAt);
     bundle.campaign.audience_definition = target;
     bundle.campaign.channels = ["email"];
     bundle.campaign.starts_at = startsAt;
     bundle.campaign.ends_at = endsAt;
-    bundle.items.forEach((item, index) => { item.targeting = target; item.scheduled_at = slots[index].scheduledAt; });
+    bundle.items.forEach((item, index) => {
+      item.targeting = target;
+      item.scheduled_at = slots[index].scheduledAt;
+      item.content.image_mode = mailingOptions.imageMode ?? "generated";
+      if (mailingOptions.imageMode === "manual") {
+        const content = item.content;
+        content.visual_url = null;
+        content.visual_source = "upload";
+        content.visual_status = "pending_upload";
+        content.visual_required = true;
+        content.format = null;
+        content.visual_format = null;
+        delete content.visual_prompt;
+        delete content.visual_brand_profile;
+        delete content.visual_reference_ids;
+        delete content.brand_profile;
+        delete content.brand_profile_version;
+        delete content.reference_ids;
+        delete content.visual_width;
+        delete content.visual_height;
+      }
+    });
   }
 
   try {
@@ -1931,7 +2149,8 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
       summary: generated.summary ?? "",
       assetCount: Number(generated.assetCount) || 0,
       estimatedCostChf: Number(generated.estimatedCostChf) || 0,
-      warnings: Number(generated.missingVisualCount) > 0
+      pendingUploadCount: mailingOptions?.imageMode === "manual" ? mailingOptions.emailCount : Number(generated.pendingUploadCount) || 0,
+      warnings: mailingOptions?.imageMode !== "manual" && Number(generated.missingVisualCount) > 0
         ? [`${Number(generated.missingVisualCount)} publication(s) attendent encore leur visuel. Vérifiez les aperçus avant toute approbation.`]
         : [],
     });

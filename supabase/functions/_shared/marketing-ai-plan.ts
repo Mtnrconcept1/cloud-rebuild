@@ -1,5 +1,5 @@
 import { TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
-import { parseMailingSelections } from "./marketing-mailing.ts";
+import { parseMailingRecipientEmails, parseMailingSelections, type MailingImageMode } from "./marketing-mailing.ts";
 import type { CampaignFormat, CampaignTemplateId } from "./marketing-campaign-options.ts";
 
 /**
@@ -66,6 +66,7 @@ export type MarketingPlanItem = {
   audience_name: string;
   targeting: Record<string, unknown>;
   mailing_version?: "tok-mailing-v1";
+  mailing_image_mode?: MailingImageMode;
   content: {
     subject: string | null;
     headline: string;
@@ -265,6 +266,7 @@ export function stripEmptySelectors(filter: Record<string, unknown>): Record<str
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(filter || {})) {
     if (key === "selections") { cleaned.selections = parseMailingSelections(value); continue; }
+    if (key === "recipient_emails") { cleaned.recipient_emails = parseMailingRecipientEmails(value); continue; }
     if (typeof value !== "string") continue;
     const trimmed = value.trim();
     if (!trimmed) continue;
@@ -384,22 +386,24 @@ export function toBundlePayload(
         : stripEmptySelectors(item.targeting),
       content: {
         ...(item.mailing_version ? { mailing_version: item.mailing_version } : {}),
+        ...(item.mailing_image_mode ? { image_mode: item.mailing_image_mode,
+          visual_source: item.mailing_image_mode === "manual" ? "upload" : "generated" } : {}),
         subject: item.channel === "email" ? item.content.subject : null,
         headline: item.content.headline,
         body: item.content.body,
         call_to_action: item.content.call_to_action,
         hashtags: item.content.hashtags.slice(0, 12),
-        visual_url: visuals.get(index) || null,
-        format: item.visual_format || formats[item.channel] || null,
-        visual_format: item.visual_format || formats[item.channel] || null,
-        visual_prompt: item.visual_prompt,
+        visual_url: item.mailing_image_mode === "manual" ? null : visuals.get(index) || null,
+        format: item.mailing_image_mode === "manual" ? null : item.visual_format || formats[item.channel] || null,
+        visual_format: item.mailing_image_mode === "manual" ? null : item.visual_format || formats[item.channel] || null,
+        visual_prompt: item.mailing_image_mode === "manual" ? null : item.visual_prompt,
         ...(item.visual_format ? { post_index: item.post_index, template_ids: item.template_ids } : {}),
         ...(item.editorial ? { editorial: item.editorial } : {}),
-        visual_required: item.channel === "facebook" || item.channel === "instagram" || Boolean(item.visual_prompt),
-        visual_status: visuals.get(index) ? "ready"
+        visual_required: item.mailing_version === "tok-mailing-v1" || item.channel === "facebook" || item.channel === "instagram" || Boolean(item.visual_prompt),
+        visual_status: item.mailing_image_mode === "manual" ? "pending_upload" : visuals.get(index) ? "ready"
           : item.channel === "facebook" || item.channel === "instagram" || item.visual_prompt
             ? "pending_generation" : "not_requested",
-        ...(visuals.has(index) ? {
+        ...(item.mailing_image_mode !== "manual" && visuals.has(index) ? {
           visual_brand_profile: TOK_MARKETING_BRAND_VERSION,
           visual_reference_ids: TOK_MARKETING_REFERENCES.map((reference) => reference.id),
         } : {}),

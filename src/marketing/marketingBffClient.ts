@@ -15,6 +15,7 @@ export const MARKETING_BFF_ENDPOINTS = {
 } as const;
 
 const MAX_MARKETING_REQUEST_BYTES = 256_000;
+const MAX_MAILING_IMAGE_REQUEST_BYTES = 4 * 1024 * 1024 + 4096;
 const MAX_MARKETING_RESPONSE_BYTES = 2_000_000;
 const MARKETING_REQUEST_TIMEOUT_MS = 20_000;
 const MAX_MARKETING_REQUEST_TIMEOUT_MS = 130_000;
@@ -51,9 +52,26 @@ const PUBLIC_ERROR_CODES = new Set([
   "marketing_visual_required", "marketing_readiness_unavailable",
   "configuration_unavailable", "service_unavailable", "mfa_setup_unavailable",
   "ai_auth_unavailable", "discovery_unavailable", "discovery_invalid_response",
+  "mailing_image_invalid", "mailing_image_conflict", "mailing_image_upload_failed",
+  "mailing_recipients_invalid", "mailing_recipients_unavailable",
 ]);
 
 function publicErrorMessage(status: number, code?: string) {
+  if (status === 400 && code === "mailing_image_invalid") {
+    return "Choisissez une image JPG ou PNG valide de 3 Mo maximum pour cet e-mail.";
+  }
+  if (status === 409 && code === "mailing_image_conflict") {
+    return "Cet e-mail ou sa campagne a changé ou a été approuvé. Actualisez avant de réimporter l’image.";
+  }
+  if (status === 503 && code === "mailing_image_upload_failed") {
+    return "L’image n’a pas pu être enregistrée. Réessayez l’import de cet e-mail.";
+  }
+  if (status === 400 && code === "mailing_recipients_invalid") {
+    return "Vérifiez la liste : de 1 à 500 adresses e-mail valides sont acceptées.";
+  }
+  if (status === 503 && code === "mailing_recipients_unavailable") {
+    return "Les destinataires n’ont pas pu être vérifiés. Réessayez leur enregistrement.";
+  }
   if (status === 400 && code === "marketing_visual_required") {
     return "Ajoutez un visuel HTTPS valide à chaque publication illustrée avant de l’approuver.";
   }
@@ -169,7 +187,11 @@ export async function marketingBffRequest<T>(
   }
 
   const serializedBody = options.body === undefined ? undefined : JSON.stringify(options.body);
-  if (serializedBody && new TextEncoder().encode(serializedBody).byteLength > MAX_MARKETING_REQUEST_BYTES) {
+  const isMailingImageUpload = method === "POST" && path === MARKETING_BFF_ENDPOINTS.agent
+    && options.body !== null && typeof options.body === "object" && !Array.isArray(options.body)
+    && "action" in options.body && options.body.action === "upload_mailing_image";
+  const maxRequestBytes = isMailingImageUpload ? MAX_MAILING_IMAGE_REQUEST_BYTES : MAX_MARKETING_REQUEST_BYTES;
+  if (serializedBody && new TextEncoder().encode(serializedBody).byteLength > maxRequestBytes) {
     throw new MarketingBffError("La demande dépasse la taille autorisée.", 413);
   }
 

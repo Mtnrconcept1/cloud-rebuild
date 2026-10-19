@@ -259,13 +259,16 @@ Deno.serve(async (req) => {
       visual_prompt: item.visual_prompt,
       visual_format: item.visual_format || formats[item.channel],
     }));
-    const visuals = await allocateMarketingVisuals(visualRequests, (prompt, index) => generateCampaignVisual(client, {
+    // Manual mailings spend no image credits and wait for one upload per item.
+    const manualMailing = mailingOptions?.imageMode === "manual";
+    const visuals = manualMailing ? new Map<number, string>() : await allocateMarketingVisuals(visualRequests, (prompt, index) => generateCampaignVisual(client, {
       prompt, campaignSlug: slug, index, apiKey: OPENAI_API_KEY,
       format: visualRequests[index].visual_format,
       timeoutMs: Math.max(1, generationDeadline - Date.now()),
     }), MAX_VISUALS);
     const assetCount = new Set(visuals.values()).size;
-    const missingVisualCount = plan.items.filter((item, index) =>
+    const pendingUploadCount = manualMailing ? plan.items.length : 0;
+    const missingVisualCount = manualMailing ? 0 : plan.items.filter((item, index) =>
       (item.channel === "instagram" || item.channel === "facebook" || Boolean(item.visual_prompt)) && !visuals.has(index)).length;
 
     const bundle = toBundlePayload(plan, visuals, formats);
@@ -296,6 +299,7 @@ Deno.serve(async (req) => {
         itemCount: plan.items.length,
         assetCount,
         missingVisualCount,
+        pendingUploadCount,
         warnings: missingVisualCount > 0 ? ["visual_generation_incomplete"] : [],
         model,
         inputTokens: usage.input_tokens || 0,

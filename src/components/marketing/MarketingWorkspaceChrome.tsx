@@ -71,10 +71,12 @@ function Navigation({
   activeView,
   onViewChange,
   compact = false,
+  disabled = false,
 }: {
   activeView: MarketingView;
   onViewChange: (view: MarketingView) => void;
   compact?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <nav className="space-y-1" aria-label="Sections marketing">
@@ -85,10 +87,11 @@ function Navigation({
           <button
             key={item.id}
             type="button"
+            disabled={disabled}
             aria-current={selected ? "page" : undefined}
             onClick={() => onViewChange(item.id)}
             className={cn(
-              "group flex w-full min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400",
+              "group flex w-full min-w-0 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 disabled:cursor-wait disabled:opacity-60",
               selected
                 ? "bg-orange-500 text-white shadow-lg shadow-orange-950/20"
                 : "text-slate-300 hover:bg-white/[0.08] hover:text-white",
@@ -118,6 +121,7 @@ export default function MarketingWorkspaceChrome({
   canMutateBackend,
   refreshing,
   pausePending,
+  navigationLocked = false,
   onViewChange,
   onRefresh,
   onTogglePause,
@@ -128,6 +132,7 @@ export default function MarketingWorkspaceChrome({
   canMutateBackend: boolean;
   refreshing: boolean;
   pausePending: boolean;
+  navigationLocked?: boolean;
   onViewChange: (view: MarketingView) => void;
   onRefresh: () => void;
   onTogglePause: (paused: boolean, reason: string) => Promise<unknown>;
@@ -147,6 +152,7 @@ export default function MarketingWorkspaceChrome({
       : "Planificateur indisponible";
 
   const selectView = (view: MarketingView) => {
+    if (navigationLocked) return;
     onViewChange(view);
     setMobileOpen(false);
   };
@@ -187,11 +193,14 @@ export default function MarketingWorkspaceChrome({
         </div>
 
         <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
-          <Navigation activeView={activeView} onViewChange={selectView} />
+          <Navigation activeView={activeView} onViewChange={selectView} disabled={navigationLocked} />
         </div>
 
         <a
           href={getAdminNavigationHref("/admin")}
+          aria-disabled={navigationLocked || undefined}
+          tabIndex={navigationLocked ? -1 : undefined}
+          onClick={(event) => { if (navigationLocked) event.preventDefault(); }}
           className="mt-4 flex items-center justify-between rounded-xl border border-white/10 px-3 py-2.5 text-sm font-semibold text-slate-300 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
         >
           Retour à l'administration
@@ -204,7 +213,7 @@ export default function MarketingWorkspaceChrome({
           <div className="flex min-h-16 items-center gap-3 px-3 pb-2 pt-[calc(env(safe-area-inset-top,0px)+0.5rem)] sm:px-5 lg:px-7">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button type="button" variant="outline" size="icon" className="shrink-0 lg:hidden" aria-label="Ouvrir la navigation marketing">
+                <Button type="button" variant="outline" size="icon" className="shrink-0 lg:hidden" disabled={navigationLocked} aria-label="Ouvrir la navigation marketing">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -214,7 +223,7 @@ export default function MarketingWorkspaceChrome({
                   <SheetDescription className="text-slate-400">Espace administrateur isolé</SheetDescription>
                 </SheetHeader>
                 <div className="mt-6">
-                  <Navigation activeView={activeView} onViewChange={selectView} compact />
+                  <Navigation activeView={activeView} onViewChange={selectView} compact disabled={navigationLocked} />
                 </div>
               </SheetContent>
             </Sheet>
@@ -229,7 +238,7 @@ export default function MarketingWorkspaceChrome({
               variant="ghost"
               size="icon"
               onClick={onRefresh}
-              disabled={refreshing}
+              disabled={refreshing || navigationLocked}
               aria-label="Actualiser les données marketing"
             >
               <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
@@ -240,7 +249,7 @@ export default function MarketingWorkspaceChrome({
               variant="ghost"
               size="icon"
               onClick={() => void logout()}
-              disabled={sessionPending}
+              disabled={sessionPending || navigationLocked}
               aria-label="Se déconnecter du centre marketing"
             >
               <LogOut className="h-4 w-4" aria-hidden="true" />

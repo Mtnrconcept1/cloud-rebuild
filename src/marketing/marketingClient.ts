@@ -1,4 +1,6 @@
 import { addDays, subDays } from "date-fns";
+import { assertSafeFileUpload } from "@/lib/uploadSecurity";
+import { parseMailingRecipientEmails } from "../../supabase/functions/_shared/marketing-mailing";
 
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
 import { marketingPostPreview, marketingPreviewImageUrl } from "@/marketing/postPreview";
@@ -167,6 +169,7 @@ function normalizeCampaign(value: unknown, fallback?: MarketingCampaign): Market
 export function normalizeCalendarItem(value: unknown, fallback?: MarketingCalendarItem): MarketingCalendarItem {
   const row = asRecord(value);
   const content = pick(row, "content", "message");
+  const targetedMailing = asRecord(content).mailing_version === "tok-mailing-v1";
   const manualOutcomeValue = asString(pick(row, "manual_outcome", "manualOutcome"));
   return {
     id: asString(pick(row, "id"), fallback?.id || crypto.randomUUID()),
@@ -193,7 +196,9 @@ export function normalizeCalendarItem(value: unknown, fallback?: MarketingCalend
       : fallback?.manualOutcome || null,
     manualNote: (asString(pick(row, "manual_note", "manualNote"), fallback?.manualNote || "").slice(0, 2_000) || null),
     publishedAt: asString(pick(row, "published_at", "publishedAt"), fallback?.publishedAt || "") || null,
-    updatedAt: asString(pick(row, "updated_at", "updatedAt"), fallback?.updatedAt || new Date().toISOString()),
+    // An image replacement uses the persisted revision for optimistic locking.
+    // A missing mailing revision must never be replaced by the browser clock.
+    updatedAt: asString(pick(row, "updated_at", "updatedAt"), targetedMailing ? "" : fallback?.updatedAt || new Date().toISOString()),
   };
 }
 
@@ -883,6 +888,94 @@ export async function upsertMarketingCalendarItem(payload: UnknownRecord, expect
   return normalizeCalendarItem(result);
 }
 
+export const MAX_MAILING_IMAGE_BYTES = 3 * 1024 * 1024;
+export const MAILING_IMAGE_MIME_TYPES = { "image/jpeg": "jpg", "image/png": "png" } as const;
+
+function mailingImageRevision(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const parts = value.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,6}))?(Z|[+-]\d{2}:\d{2})$/);
+  if (!parts) return null;
+  const seconds = Date.parse(`${parts[1]}${parts[3]}`);
+  // PostgreSQL revisions have microsecond precision; Date.parse alone drops
+  // the last three digits and could reject a correctly advanced revision.
+  return Number.isFinite(seconds) ? `${seconds}:${(parts[2] || "").padEnd(6, "0")}` : null;
+}
+
+function readMailingImage(file: File, signal?: AbortSignal): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    let image: HTMLImageElement | null = null;
+    let settled = false;
+    const complete = (error?: Error, base64?: string) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      signal?.removeEventListener("abort", abort);
+      reader.onload = null;
+      reader.onerror = null;
+      if (reader.readyState === FileReader.LOADING) reader.abort();
+      if (image) { image.onload = null; image.onerror = null; image.src = ""; }
+      if (error) reject(error); else resolve(base64 || "");
+    };
+    const abort = () => complete(new DOMException("Import annulé.", "AbortError"));
+    const timer = window.setTimeout(() => complete(new Error("L’image ne peut pas être lue. Choisissez un autre fichier JPG ou PNG.")), 15_000);
+    if (signal?.aborted) { abort(); return; }
+    signal?.addEventListener("abort", abort, { once: true });
+    reader.onerror = () => complete(new Error("Impossible de lire cette image. Réessayez avec un autre fichier."));
+    reader.onload = () => {
+      const data = typeof reader.result === "string" ? reader.result : "";
+      const prefix = `data:${file.type};base64,`;
+      if (!data.startsWith(prefix) || data.length <= prefix.length) {
+        complete(new Error("Le fichier ne contient pas une image JPG ou PNG valide."));
+        return;
+      }
+      image = new Image();
+      image.onerror = () => complete(new Error("Le fichier ne contient pas une image JPG ou PNG valide."));
+      image.onload = () => {
+        if (!image?.naturalWidth || !image.naturalHeight) {
+          complete(new Error("Cette image n’a pas de dimensions valides."));
+          return;
+        }
+        complete(undefined, data.slice(prefix.length));
+      };
+      image.src = data;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function uploadMarketingMailingImage(
+  itemId: string,
+  expectedUpdatedAt: string,
+  file: File,
+  signal?: AbortSignal,
+): Promise<MarketingCalendarItem> {
+  const expectedRevision = mailingImageRevision(expectedUpdatedAt);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(itemId)
+    || !expectedRevision) {
+    throw new Error("Actualisez cet e-mail avant d’importer son image.");
+  }
+  assertSafeFileUpload(file, { allowedMimeTypes: MAILING_IMAGE_MIME_TYPES, maxBytes: MAX_MAILING_IMAGE_BYTES, label: "Image" });
+  const imageBase64 = await readMailingImage(file, signal);
+  if (signal?.aborted) throw new DOMException("Import annulé.", "AbortError");
+  const result = asRecord(await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.agent, {
+    method: "POST", timeoutMs: 60_000, signal,
+    body: { action: "upload_mailing_image", itemId, expectedUpdatedAt, contentType: file.type, imageBase64 },
+  }));
+  const item = asRecord(result.item);
+  const content = asRecord(item.content);
+  const visualUrl = marketingPreviewImageUrl(result.visualUrl);
+  const savedRevision = mailingImageRevision(item.updated_at);
+  if (result.ok !== true || item.id !== itemId || item.channel !== "email"
+    || content.mailing_version !== "tok-mailing-v1" || content.image_mode !== "manual"
+    || content.visual_source !== "upload" || content.visual_status !== "ready"
+    || !visualUrl || marketingPreviewImageUrl(content.visual_url) !== visualUrl
+    || !savedRevision || savedRevision === expectedRevision) {
+    throw new Error("La réponse de l’import est incomplète. Actualisez cet e-mail pour vérifier son image.");
+  }
+  return normalizeCalendarItem(item);
+}
+
 export async function cancelMarketingItem(itemId: string, reason: string) {
   return invokeRpc<unknown>("admin_cancel_marketing_item", {
     p_item_id: itemId,
@@ -907,6 +1000,10 @@ export async function estimateMarketingAudience(filter: UnknownRecord, channels:
     p_filter: filter,
     p_channels: channels,
   });
+  return normalizeMarketingAudienceEstimate(result);
+}
+
+function normalizeMarketingAudienceEstimate(result: unknown): MarketingAudienceEstimate {
   const row = asRecord(result);
   const byChannel: MarketingAudienceEstimate["byChannel"] = {};
   const availabilityByChannel: MarketingAudienceEstimate["availabilityByChannel"] = {};
@@ -927,6 +1024,25 @@ export async function estimateMarketingAudience(filter: UnknownRecord, channels:
     byChannel,
     availabilityByChannel,
   } satisfies MarketingAudienceEstimate;
+}
+
+export async function prepareMarketingMailingRecipients(recipientEmails: string[], signal?: AbortSignal) {
+  const emails = parseMailingRecipientEmails(recipientEmails);
+  const response = asRecord(await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.agent, {
+    method: "POST", timeoutMs: 60_000, signal,
+    body: { action: "prepare_mailing_recipients", recipientEmails: emails },
+  }));
+  const estimate = asRecord(response.estimate);
+  const count = response.recipient_count;
+  const created = response.created_count;
+  const existing = response.existing_count;
+  const isCount = (value: unknown): value is number => typeof value === "number" && Number.isInteger(value) && value >= 0;
+  if (response.ok !== true || count !== emails.length || !isCount(created) || !isCount(existing) || created + existing !== count
+    || !isCount(estimate.total) || estimate.total !== count || !Array.isArray(estimate.channels)
+    || !estimate.channels.some((channel) => asRecord(channel).channel === "email" && isCount(asRecord(channel).eligible))) {
+    throw new Error("La vérification des destinataires est incomplète. Réessayez leur enregistrement.");
+  }
+  return { estimate: normalizeMarketingAudienceEstimate(estimate), createdCount: created };
 }
 
 export async function approveMarketingCampaign(campaignId: string, reason: string) {

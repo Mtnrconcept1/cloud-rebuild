@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, ImageIcon, Images, Megaphone, Plus, RefreshCw, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { MarketingPostImage, MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
+import { MarketingMailingImageUpload } from "@/components/marketing/MarketingMailingImageUpload";
 import { loadMarketingCampaignItems } from "@/marketing/marketingClient";
+import { isMarketingMailingReady } from "@/marketing/postPreview";
 
 import {
   MarketingChannelBadge,
@@ -74,15 +76,22 @@ const EMPTY_WIZARD: WizardState = {
   endsAt: "",
 };
 
-function CampaignPostsGallery({ campaignId, loadItems }: {
+type CampaignReviewState = { campaignId: string; ready: boolean; uploading: boolean; incompleteMailings: number };
+
+function CampaignPostsGallery({ campaignId, loadItems, disabled, onReviewChange, onItemsUpdated, onUploadPendingChange }: {
   campaignId: string;
   loadItems: typeof loadMarketingCampaignItems;
+  disabled: boolean;
+  onReviewChange: (state: CampaignReviewState) => void;
+  onItemsUpdated?: () => Promise<unknown> | void;
+  onUploadPendingChange?: (pending: boolean) => void;
 }) {
   const [items, setItems] = useState<MarketingCalendarItem[]>([]);
   const [cursor, setCursor] = useState<Record<string, string> | null>(null);
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const [uploadingIds, setUploadingIds] = useState<string[]>([]);
   const requestId = useRef(0);
   const load = useCallback(async (next: Record<string, string> | null = null) => {
     const currentRequest = ++requestId.current;
@@ -107,12 +116,18 @@ function CampaignPostsGallery({ campaignId, loadItems }: {
     void load();
     return () => { requestId.current += 1; };
   }, [load]);
+  const uploading = uploadingIds.length > 0;
+  const incompleteMailings = items.filter((item) => item.postPreview?.email && !isMarketingMailingReady(item.postPreview)).length;
+  useEffect(() => {
+    onReviewChange({ campaignId, ready: loaded && !loading && !error && !cursor && !uploading && incompleteMailings === 0,
+      uploading, incompleteMailings });
+  }, [campaignId, loaded, loading, error, cursor, uploading, incompleteMailings, onReviewChange]);
 
   return (
     <section className="min-w-0 space-y-4" aria-label="Publications de la campagne" aria-busy={loading}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><h3 className="font-semibold">Visuels et textes à relire</h3><p className="text-xs text-muted-foreground">Toutes les dates de cette campagne, y compris hors du mois affiché.</p></div>
-        <Button type="button" size="sm" variant="outline" disabled={loading} onClick={() => void load()}><RefreshCw className="mr-2 h-4 w-4" />Actualiser les visuels</Button>
+        <Button type="button" size="sm" variant="outline" disabled={loading || uploading} onClick={() => void load()}><RefreshCw className="mr-2 h-4 w-4" />Actualiser les visuels</Button>
       </div>
       {loading ? <p role="status" className="text-sm text-muted-foreground">Chargement des publications…</p> : null}
       {error ? <Alert variant="destructive"><AlertTitle>Publications indisponibles</AlertTitle><AlertDescription>Impossible de charger les visuels et les textes. Réessayez avec « Actualiser les visuels ».</AlertDescription></Alert> : null}
@@ -120,10 +135,19 @@ function CampaignPostsGallery({ campaignId, loadItems }: {
       <div className="grid min-w-0 gap-5 md:grid-cols-2">
         {items.map((item) => <article key={item.id} className="min-w-0 space-y-3 rounded-2xl border p-4">
           <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="min-w-0 break-words font-semibold">{item.title}</h4><MarketingStatusBadge status={item.approvalStatus} /></div>
+          <MarketingMailingImageUpload item={item} disabled={disabled || loading || (uploading && !uploadingIds.includes(item.id))}
+            onPendingChange={(pending) => {
+              setUploadingIds((ids) => pending ? [...new Set([...ids, item.id])] : ids.filter((id) => id !== item.id));
+              onUploadPendingChange?.(pending);
+            }}
+            onUploaded={(updated) => {
+              setItems((current) => current.map((existing) => existing.id === updated.id ? updated : existing));
+              if (onItemsUpdated) void Promise.resolve(onItemsUpdated()).catch(() => undefined);
+            }} />
           <MarketingPostPreview title={item.title} channel={item.channel} scheduledAt={item.scheduledAt} preview={item.postPreview || { caption: item.content, visualUrl: item.visualUrl, visualFormat: item.format || undefined }} />
         </article>)}
       </div>
-      {cursor ? <Button type="button" variant="outline" disabled={loading} onClick={() => void load(cursor)}>Charger les publications suivantes</Button> : null}
+      {cursor ? <Button type="button" variant="outline" disabled={loading || uploading} onClick={() => void load(cursor)}>Charger les publications suivantes</Button> : null}
     </section>
   );
 }
@@ -139,6 +163,8 @@ export default function MarketingCampaignsView({
   onApprove,
   onRecommendChannels,
   onLoadCampaignItems = loadMarketingCampaignItems,
+  onItemsUpdated,
+  onUploadPendingChange,
 }: {
   snapshot: MarketingSnapshot;
   filters: MarketingUrlState;
@@ -149,6 +175,8 @@ export default function MarketingCampaignsView({
   onSave: (draft: MarketingCampaignDraft) => Promise<{ complete: boolean } | null | undefined>;
   onApprove: (campaignId: string, reason: string) => Promise<unknown>;
   onLoadCampaignItems?: typeof loadMarketingCampaignItems;
+  onItemsUpdated?: () => Promise<unknown> | void;
+  onUploadPendingChange?: (pending: boolean) => void;
   onRecommendChannels: (
     audienceFilter: Record<string, unknown>,
     channels: MarketingChannelId[],
@@ -160,6 +188,8 @@ export default function MarketingCampaignsView({
   const [wizard, setWizard] = useState<WizardState>(EMPTY_WIZARD);
   const [approvalCampaign, setApprovalCampaign] = useState<MarketingCampaign | null>(null);
   const [approvalReason, setApprovalReason] = useState("");
+  const [campaignReview, setCampaignReview] = useState<CampaignReviewState | null>(null);
+  const currentReview = campaignReview?.campaignId === approvalCampaign?.id ? campaignReview : null;
   const [clientRequestId, setClientRequestId] = useState<string>(crypto.randomUUID());
   const [channelRecommendation, setChannelRecommendation] = useState<{
     audienceKey: string;
@@ -293,7 +323,7 @@ export default function MarketingCampaignsView({
   };
 
   const approve = async () => {
-    if (!approvalCampaign || approvalReason.trim().length < 8) return;
+    if (!approvalCampaign || approvalReason.trim().length < 8 || !currentReview?.ready || !canMutateBackend || pendingAction) return;
     const result = await onApprove(approvalCampaign.id, approvalReason.trim());
     if (result) {
       setApprovalCampaign(null);
@@ -503,15 +533,17 @@ export default function MarketingCampaignsView({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(approvalCampaign)} onOpenChange={(open) => { if (!open) { setApprovalCampaign(null); setApprovalReason(""); } }}>
+      <Dialog open={Boolean(approvalCampaign)} onOpenChange={(open) => { if (!open && !currentReview?.uploading) { setApprovalCampaign(null); setApprovalReason(""); } }}>
         <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-4xl">
           <DialogHeader><DialogTitle>{approvalCampaign?.name}</DialogTitle><DialogDescription>Relisez les visuels et les textes avant d'approuver la campagne. Chaque publication garde sa validation séparée dans le calendrier.</DialogDescription></DialogHeader>
-          {approvalCampaign ? <CampaignPostsGallery key={approvalCampaign.id} campaignId={approvalCampaign.id} loadItems={onLoadCampaignItems} /> : null}
+          {approvalCampaign ? <CampaignPostsGallery key={approvalCampaign.id} campaignId={approvalCampaign.id} loadItems={onLoadCampaignItems}
+            disabled={!canMutateBackend || Boolean(approvalCampaign.approvedAt) || ["completed", "cancelled", "failed"].includes(approvalCampaign.status) || Boolean(pendingAction)} onReviewChange={setCampaignReview} onItemsUpdated={onItemsUpdated} onUploadPendingChange={onUploadPendingChange} /> : null}
           {approvalCampaign && !approvalCampaign.approvedAt && approvalCampaign.status === "draft" ? <>
           <div><Label htmlFor="campaign-approval-reason">Motif de l'approbation</Label><Textarea id="campaign-approval-reason" className="mt-2" value={approvalReason} onChange={(event) => setApprovalReason(event.target.value)} maxLength={400} placeholder="Minimum 8 caractères, conservé dans l'audit…" /></div>
           <Alert><ShieldCheck className="h-4 w-4" /><AlertTitle>Aucun envoi immédiat</AlertTitle><AlertDescription>Après cette approbation, chaque publication devra encore être approuvée et planifiée depuis le calendrier.</AlertDescription></Alert>
-          <DialogFooter><Button type="button" variant="outline" onClick={() => setApprovalCampaign(null)}>Annuler</Button><Button type="button" disabled={!canMutateBackend || approvalReason.trim().length < 8 || pendingAction === `approve-campaign-${approvalCampaign?.id}`} onClick={approve}>Approuver et journaliser</Button></DialogFooter>
-          </> : <DialogFooter><Button type="button" variant="outline" onClick={() => setApprovalCampaign(null)}>Fermer</Button></DialogFooter>}
+          {!currentReview?.ready ? <p role="status" className="text-sm text-amber-800">{currentReview?.uploading ? "Terminez l’import de l’image avant d’approuver la campagne." : currentReview?.incompleteMailings ? "Complétez l’image et le texte de chaque e-mail, puis relisez les aperçus avant validation." : "Chargez toutes les publications de la campagne pour les relire avant validation."}</p> : null}
+          <DialogFooter><Button type="button" variant="outline" disabled={currentReview?.uploading} onClick={() => setApprovalCampaign(null)}>Annuler</Button><Button type="button" disabled={!canMutateBackend || !currentReview?.ready || approvalReason.trim().length < 8 || Boolean(pendingAction)} onClick={approve}>Approuver et journaliser</Button></DialogFooter>
+          </> : <DialogFooter><Button type="button" variant="outline" disabled={currentReview?.uploading} onClick={() => setApprovalCampaign(null)}>Fermer</Button></DialogFooter>}
         </DialogContent>
       </Dialog>
     </div>

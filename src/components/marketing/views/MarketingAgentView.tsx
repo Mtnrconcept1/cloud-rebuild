@@ -1,8 +1,9 @@
 import { MarketingBrandReferences } from "@/components/marketing/MarketingBrandReferences";
 import { MarketingMailingBuilder } from "@/components/marketing/MarketingMailingBuilder";
+import { MarketingMailingImageUpload } from "@/components/marketing/MarketingMailingImageUpload";
 import { MarketingCampaignBuilder, type CampaignGenerationRequest } from "@/components/marketing/MarketingCampaignBuilder";
 import { MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
-import { marketingPostPreview } from "@/marketing/postPreview";
+import { normalizeCalendarItem } from "@/marketing/marketingClient";
 import { DEFAULT_MARKETING_FORMATS, MARKETING_POST_FORMATS, VISUAL_MARKETING_CHANNELS, type MarketingPostFormat } from "@/marketing/campaignTemplates";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Loader2, ShieldCheck, Sparkles } from "lucide-react";
@@ -23,7 +24,7 @@ import {
   MarketingBffError,
   marketingBffRequest,
 } from "@/marketing/marketingBffClient";
-import type { MarketingChannelId, MarketingSnapshot, MarketingView } from "@/marketing/types";
+import type { MarketingCalendarItem, MarketingChannelId, MarketingSnapshot, MarketingView } from "@/marketing/types";
 import {
   marketingZurichDateKey,
   marketingZurichLocalDateTimeToIso,
@@ -67,6 +68,7 @@ type GenerateResult = {
   estimatedCostChf: number;
   warnings?: string[];
 };
+type GeneratedCampaign = Omit<GenerateResult, "items"> & { items: MarketingCalendarItem[] };
 
 function isoDay(offsetDays: number) {
   const current = marketingZurichDateKey(new Date());
@@ -85,11 +87,13 @@ export default function MarketingAgentView({
   canMutateBackend,
   onNavigate,
   onGenerated,
+  onUploadPendingChange,
 }: {
   snapshot: MarketingSnapshot;
   canMutateBackend: boolean;
   onNavigate: (view: MarketingView) => void;
   onGenerated?: () => Promise<unknown>;
+  onUploadPendingChange?: (pending: boolean) => void;
 }) {
   const [objective, setObjective] = useState("");
   const [audienceHint, setAudienceHint] = useState("");
@@ -100,7 +104,9 @@ export default function MarketingAgentView({
   const [formats, setFormats] = useState<Partial<Record<MarketingChannelId, MarketingPostFormat>>>(DEFAULT_MARKETING_FORMATS);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<GenerateResult | null>(null);
+  const [result, setResult] = useState<GeneratedCampaign | null>(null);
+  const [uploadingIds, setUploadingIds] = useState<string[]>([]);
+  const busy = pending || uploadingIds.length > 0;
   const [runs, setRuns] = useState<AgentRun[]>([]);
   const connectedChannels = useMemo(
     () =>
@@ -140,7 +146,7 @@ export default function MarketingAgentView({
   };
 
   const generate = async (request: CampaignGenerationRequest) => {
-    if (pending || !canMutateBackend) return;
+    if (busy || !canMutateBackend) return;
     setPending(true);
     setError(null);
     setResult(null);
@@ -148,7 +154,7 @@ export default function MarketingAgentView({
       const response = await marketingBffRequest<GenerateResult>(MARKETING_BFF_ENDPOINTS.agent, {
         method: "POST", timeoutMs: AGENT_TIMEOUT_MS, body: { action: "generate", ...request },
       });
-      setResult(response);
+      setResult({ ...response, items: response.items.map((item) => normalizeCalendarItem(item)) });
       void loadRuns();
       // A refresh failure must not present a persisted campaign as a failed generation.
       if (onGenerated) void onGenerated().catch(() => undefined);
@@ -160,6 +166,7 @@ export default function MarketingAgentView({
   };
 
   const submit = async () => {
+    if (busy || !canMutateBackend) return;
     setError(null);
     setResult(null);
     if (!objective.trim()) {
@@ -201,8 +208,8 @@ export default function MarketingAgentView({
         </AlertDescription>
       </Alert>
 
-      <MarketingMailingBuilder pending={pending} disabled={!canMutateBackend} onGenerate={generate} />
-      <MarketingCampaignBuilder snapshot={snapshot} pending={pending} disabled={!canMutateBackend} onGenerate={generate} />
+      <MarketingMailingBuilder pending={pending} disabled={!canMutateBackend || uploadingIds.length > 0} onGenerate={generate} />
+      <MarketingCampaignBuilder snapshot={snapshot} pending={pending} disabled={!canMutateBackend || uploadingIds.length > 0} onGenerate={generate} />
       {error ? <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription></Alert> : null}
 
       <details className="rounded-xl border p-4"><summary className="cursor-pointer text-sm font-medium">Identité visuelle et références TOK</summary><div className="mt-4"><MarketingBrandReferences /></div></details>
@@ -223,7 +230,7 @@ export default function MarketingAgentView({
               rows={3}
               maxLength={2000}
               value={objective}
-              disabled={pending}
+              disabled={busy}
               placeholder="Ex. : recruter des restaurants indépendants à Genève et Lausanne avant la rentrée."
               onChange={(event) => setObjective(event.target.value)}
             />
@@ -235,7 +242,7 @@ export default function MarketingAgentView({
               id="agent-audience"
               maxLength={500}
               value={audienceHint}
-              disabled={pending}
+              disabled={busy}
               placeholder="Ex. : restaurateurs, canton de Genève"
               onChange={(event) => setAudienceHint(event.target.value)}
             />
@@ -250,7 +257,7 @@ export default function MarketingAgentView({
                   <button
                     key={channel}
                     type="button"
-                    disabled={pending}
+                    disabled={busy}
                     onClick={() => toggleChannel(channel)}
                     aria-pressed={selected}
                     className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
@@ -284,7 +291,7 @@ export default function MarketingAgentView({
           <div className="grid gap-3 sm:grid-cols-2">
             {channels.filter((channel) => VISUAL_MARKETING_CHANNELS.includes(channel)).map((channel) => <div key={channel} className="space-y-2">
               <Label htmlFor={`agent-format-${channel}`}>Format {MARKETING_CHANNEL_LABELS[channel]}</Label>
-              <select id={`agent-format-${channel}`} disabled={pending} className="h-10 w-full rounded-md border px-3 text-sm" value={formats[channel] || "1:1"} onChange={(event) => setFormats((current) => ({ ...current, [channel]: event.target.value as MarketingPostFormat }))}>
+              <select id={`agent-format-${channel}`} disabled={busy} className="h-10 w-full rounded-md border px-3 text-sm" value={formats[channel] || "1:1"} onChange={(event) => setFormats((current) => ({ ...current, [channel]: event.target.value as MarketingPostFormat }))}>
                 {MARKETING_POST_FORMATS.map((format) => <option key={format} value={format}>{format}</option>)}
               </select>
             </div>)}
@@ -297,7 +304,7 @@ export default function MarketingAgentView({
                 id="agent-start"
                 type="date"
                 value={startsAt}
-                disabled={pending}
+                disabled={busy}
                 onChange={(event) => setStartsAt(event.target.value)}
               />
             </div>
@@ -307,7 +314,7 @@ export default function MarketingAgentView({
                 id="agent-end"
                 type="date"
                 value={endsAt}
-                disabled={pending}
+                disabled={busy}
                 onChange={(event) => setEndsAt(event.target.value)}
               />
             </div>
@@ -319,7 +326,7 @@ export default function MarketingAgentView({
                 min={1}
                 max={12}
                 value={itemCount}
-                disabled={pending}
+                disabled={busy}
                 onChange={(event) => setItemCount(Number(event.target.value) || 1)}
               />
             </div>
@@ -332,7 +339,7 @@ export default function MarketingAgentView({
             </Alert>
           ) : null}
 
-          <Button type="button" onClick={submit} disabled={pending || !canMutateBackend}>
+          <Button type="button" onClick={submit} disabled={busy || !canMutateBackend}>
             {pending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
@@ -375,15 +382,24 @@ export default function MarketingAgentView({
               {result.items.map((item) => (
                 <li key={item.id} className="min-w-0 rounded-xl border p-4 text-sm">
                   <h3 className="mb-3 font-medium">{item.title}</h3>
-                  <MarketingPostPreview title={item.title} channel={item.channel} scheduledAt={item.scheduled_at} preview={marketingPostPreview(item.content, item.channel)} />
+                  <MarketingMailingImageUpload item={item} disabled={!canMutateBackend || pending || (uploadingIds.length > 0 && !uploadingIds.includes(item.id))}
+                    onPendingChange={(uploading) => {
+                      setUploadingIds((ids) => uploading ? [...new Set([...ids, item.id])] : ids.filter((id) => id !== item.id));
+                      onUploadPendingChange?.(uploading);
+                    }}
+                    onUploaded={(updated) => {
+                      setResult((current) => current ? { ...current, items: current.items.map((existing) => existing.id === updated.id ? updated : existing) } : current);
+                      if (onGenerated) void onGenerated().catch(() => undefined);
+                    }} />
+                  <MarketingPostPreview title={item.title} channel={item.channel} scheduledAt={item.scheduledAt} preview={item.postPreview || { caption: item.content, visualUrl: item.visualUrl }} />
                 </li>
               ))}
             </ul>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" onClick={() => onNavigate("campaigns")}>
+              <Button type="button" disabled={busy} onClick={() => onNavigate("campaigns")}>
                 Ouvrir les campagnes pour approbation
               </Button>
-              <Button type="button" variant="outline" onClick={() => onNavigate("calendar")}>Relire et approuver les éléments</Button>
+              <Button type="button" variant="outline" disabled={busy} onClick={() => onNavigate("calendar")}>Relire et approuver les éléments</Button>
             </div>
             <p className="text-xs leading-relaxed text-slate-500">
               La génération ne donne aucune autorisation de diffusion. Chaque élément doit être

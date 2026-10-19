@@ -6,10 +6,11 @@ import { createOpenAIResponse, parseStructuredOutput, selectTokAiModel } from ".
 export function applyMailingOptions(plan: MarketingPlan, options: MailingOptions, startsAt: string, endsAt: string): MarketingPlan {
   const slots = buildCampaignSlots(mailingScheduleOptions(options), ["email"], startsAt);
   if (plan.items.length !== options.emailCount || slots.some((slot) => Date.parse(slot.scheduledAt) > Date.parse(endsAt))) throw new MarketingPlanError("mailing_count_or_window_invalid");
-  const target = mailingAudience(options.selections);
-  const audienceName = mailingAudienceLabel(options.selections).slice(0, 160);
-  const banner = plan.items[0].visual_prompt?.trim();
-  if (!banner) throw new MarketingPlanError("missing_mailing_banner");
+  const target = mailingAudience(options.selections, options.recipientEmails);
+  const audienceName = mailingAudienceLabel(options.selections, options.recipientEmails).slice(0, 160);
+  const imageMode = options.imageMode === "manual" ? "manual" : "generated";
+  const banner = imageMode === "manual" ? null : plan.items[0].visual_prompt?.trim();
+  if (imageMode === "generated" && !banner) throw new MarketingPlanError("missing_mailing_banner");
   const subjects = new Set<string>();
   const bodies = new Set<string>();
   for (const item of plan.items) {
@@ -24,8 +25,8 @@ export function applyMailingOptions(plan: MarketingPlan, options: MailingOptions
   return {
     campaign: { ...plan.campaign, channels: ["email"], starts_at: startsAt, ends_at: endsAt, audience_definition: target, audience_name: audienceName },
     items: plan.items.map((item, index) => ({ ...item, channel: "email", scheduled_at: slots[index].scheduledAt,
-      targeting: target, audience_name: audienceName, visual_format: "16:9", visual_prompt: banner,
-      content: { ...item.content, hashtags: [] }, mailing_version: "tok-mailing-v1" })),
+      targeting: target, audience_name: audienceName, visual_format: "16:9", visual_prompt: banner || null,
+      content: { ...item.content, hashtags: [] }, mailing_version: "tok-mailing-v1", mailing_image_mode: imageMode })),
   };
 }
 
