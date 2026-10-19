@@ -188,7 +188,7 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
           </Link>
         </div>
         <Button asChild className="mt-auto w-full">
-          <Link to="/auth?role=restaurateur">Choisir cet abonnement</Link>
+          <Link to="/auth?type=restaurateur">Choisir cet abonnement</Link>
         </Button>
       </CardContent>
     </Card>

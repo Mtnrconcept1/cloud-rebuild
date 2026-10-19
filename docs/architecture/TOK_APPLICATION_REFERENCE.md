@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a56bc6a80bad4da0476554ecf8f6742071d78f363e5ea93f47521f784256633c`
+- Empreinte SHA-256 des sources indexées : `9bbba0cd7867fed307a95c484da05d6671f2fe536ae14b3125361cdb81af879a`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 558 |
 | modules | 1716 |
 | pages | 133 |
-| pathLiterals | 806 |
+| pathLiterals | 805 |
 | publicAssets | 584 |
 | publicEntries | 610 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 117 |
-| records | 17858 |
+| records | 17857 |
 | repositoryFiles | 3387 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1376,9 +1376,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth?confirmed=1 | 2 | [src/test/auth-signup-form.test.tsx:525](../../src/test/auth-signup-form.test.tsx#L525) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
 | /auth?redirect=/commercial | 1 | [src/test/admin-commercial-accounts.test.ts:192](../../src/test/admin-commercial-accounts.test.ts#L192) |
-| /auth?role=restaurateur | 1 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
 | /auth?type=client | 14 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
-| /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:611](../../src/test/auth-signup-form.test.tsx#L611) |
+| /auth?type=restaurateur | 5 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
 | /authorize | 1 | [supabase/functions/_shared/tok-connect-broker.ts:230](../../supabase/functions/_shared/tok-connect-broker.ts#L230) |
 | /availability | 1 | [supabase/functions/tok-connect-api/index.ts:1039](../../supabase/functions/tok-connect-api/index.ts#L1039) |
 | /budget-auto | 11 | [scripts/prerender-seo.mjs:1070](../../scripts/prerender-seo.mjs#L1070) |
