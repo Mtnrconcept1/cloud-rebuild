@@ -7,6 +7,10 @@ import { formatSeoReadError, loadSeoPageWithRetry } from "./seo-query-retry.mjs"
 
 import { buildRestaurantSeoModel } from "../src/lib/seo/restaurantEntity.mjs";
 import {
+  getLocalInventoryDecision,
+  resolveLocalInventoryPolicy,
+} from "../src/lib/seo/localInventoryPolicy.mjs";
+import {
   cityLabel,
   citySlug as citySlugOf,
   pickOneRestaurantPerPath,
@@ -32,6 +36,11 @@ const MAX_LOCAL_PARENT_COVERAGE = Math.min(
   1,
   Math.max(0.1, Number(process.env.SEO_MAX_LOCAL_PARENT_COVERAGE || 0.8) || 0.8),
 );
+const LOCAL_INVENTORY_POLICY = resolveLocalInventoryPolicy({
+  minCityRestaurants: MIN_LOCAL_RESTAURANTS,
+  minSpecializedRestaurants: MIN_SPECIALIZED_LOCAL_RESTAURANTS,
+  maxParentCoverage: MAX_LOCAL_PARENT_COVERAGE,
+});
 const MIN_ACTUALITE_TEXT_LENGTH = Math.max(1, Number(process.env.SEO_MIN_ACTUALITE_TEXT_LENGTH || 80) || 80);
 const RESTAURANT_PRERENDER_BATCH_SIZE = 100;
 const CUISINE_LINK_BATCH_SIZE = 250;
@@ -368,7 +377,7 @@ function buildLocalStaticContent(page, restaurants = []) {
     paragraphs: [
       serviceLine,
       restaurants.length > 0
-        ? `${restaurants.length} adresse${restaurants.length > 1 ? "s" : ""} active${restaurants.length > 1 ? "s" : ""} est répertoriée${restaurants.length > 1 ? "s" : ""} sur cette page.`
+        ? `${restaurants.length} adresse${restaurants.length > 1 ? "s" : ""} active${restaurants.length > 1 ? "s" : ""} ${restaurants.length > 1 ? "sont" : "est"} répertoriée${restaurants.length > 1 ? "s" : ""} sur cette page.`
         : "TOK enrichit cette sélection au fil de la vérification des restaurants et de leurs services disponibles.",
     ],
     sections: [
@@ -400,7 +409,9 @@ function buildLocalJsonLd(page, restaurants = []) {
       name,
       url: canonicalUrl(pathName),
       numberOfItems: restaurants.length,
-      itemListElement: restaurants.slice(0, 100).map((restaurant, index) => {
+      // Keep the whole selection: final quality passes remove detail pages and
+      // must recalculate exact category counts, including entries beyond 100.
+      itemListElement: restaurants.map((restaurant, index) => {
         const restaurantPath = buildRestaurantSeoPath(restaurant);
         return {
           "@type": "ListItem",
@@ -2001,16 +2012,20 @@ async function collectSeoPages() {
   const pages = dedupePages([...visiblePublicPages, ...restaurantPages, ...enabledActualitesPages]);
   const minimumInventoryForLocalPage = (page) =>
     page.localPageType === "city" ? MIN_LOCAL_RESTAURANTS : MIN_SPECIALIZED_LOCAL_RESTAURANTS;
+  const localInventoryDecision = (page) => getLocalInventoryDecision({
+    pageType: page.localPageType,
+    inventoryCount: page.inventoryCount,
+    parentInventoryCount: page.parentInventoryCount,
+    policy: LOCAL_INVENTORY_POLICY,
+  });
   // Une page cuisine/quartier/intention qui reprend (quasiment) tout l'inventaire de sa ville n'apporte
   // aucun contenu propre : c'est un doublon de la page ville, que Google traite en duplicate/soft 404.
   const duplicatesParentCity = (page) => {
     if (page.seoKind !== "local-listing" || page.localPageType === "city") return false;
-    const parentInventory = Number(page.parentInventoryCount || 0);
-    if (parentInventory <= 0) return false;
-    return Number(page.inventoryCount || 0) >= parentInventory * MAX_LOCAL_PARENT_COVERAGE;
+    return localInventoryDecision(page).reason === "parent-duplicate";
   };
   const isDemotedLocalPage = (page) => page.seoKind === "local-listing"
-    && (Number(page.inventoryCount || 0) < minimumInventoryForLocalPage(page) || duplicatesParentCity(page));
+    && !localInventoryDecision(page).indexable;
 
   const thinLocalPages = pages.filter(
     (page) => page.seoKind === "local-listing"
@@ -2028,11 +2043,25 @@ async function collectSeoPages() {
         + "et exclue(s) du sitemap (doublon de la page ville).",
     );
   }
-  return pages.map((page) => (
-    isDemotedLocalPage(page)
+  return pages.map((page) => {
+    const next = isDemotedLocalPage(page)
       ? { ...page, includeInSitemap: false, robots: "noindex,follow,noarchive" }
-      : page
-  ));
+      : page;
+    if (page.seoKind !== "local-listing") return next;
+    return {
+      ...next,
+      localInventory: {
+        version: 1,
+        path: page.path,
+        pageType: page.localPageType,
+        inventoryCount: page.inventoryCount,
+        parentInventoryCount: page.parentInventoryCount ?? null,
+        itemListComplete: true,
+        policy: LOCAL_INVENTORY_POLICY,
+        indexable: next.includeInSitemap !== false && !/\bnoindex\b/i.test(next.robots || ""),
+      },
+    };
+  });
 }
 
 function normalizeSitemapDate(value) {
@@ -2228,12 +2257,20 @@ function renderPreRenderedHtml(baseHtml, page) {
   if (page.modifiedAt) {
     html = upsertTag(html, /<meta\s+property="article:modified_time"[^>]*>/i, `<meta property="article:modified_time" content="${escapeHtml(page.modifiedAt)}" />`);
   }
-  html = html.replace(/\s*<script\s+id="tok-page-json-ld"[\s\S]*?<\/script>/i, "");
+  // Keep a boundary so removing owned tags cannot join fragments into a new tag.
+  html = html.replace(/\s*<script\s+id="tok-page-json-ld"[\s\S]*?<\/script>/gi, "\n");
+  html = html.replace(/\s*<script\s+id="tok-local-inventory"[\s\S]*?<\/script>/gi, "\n");
   const structuredData = sanitizeStructuredData(page.jsonLd);
   if (structuredData) {
     html = html.replace(
       /<\/head>/i,
       `  <script id="tok-page-json-ld" type="application/ld+json">${escapeJsonForHtml(structuredData)}</script>\n</head>`,
+    );
+  }
+  if (page.localInventory) {
+    html = html.replace(
+      /<\/head>/i,
+      `  <script id="tok-local-inventory" type="application/json">${escapeJsonForHtml(page.localInventory)}</script>\n</head>`,
     );
   }
   html = html.replace(

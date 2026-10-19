@@ -10,6 +10,7 @@ import { getSupabase } from "@/integrations/supabase/client";
 import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
 import { buildRestaurantSeoPath, slugifyRestaurantSegment } from "@/lib/restaurantSlugs";
 import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
+import { parseLocalInventorySnapshot, resolveLocalInventoryPolicy } from "@/lib/seo/localInventoryPolicy.mjs";
 import NotFound from "./NotFound";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
@@ -18,7 +19,8 @@ const supabase = getSupabase();
 const RestaurantDetail = lazy(() => import("./RestaurantDetail"));
 const STOPPIN_VENUE_RADIUS_KM = 5;
 const STOPPIN_PLACE_LABEL_MAX_LENGTH = 160;
-const LOCAL_RESTAURANT_PAGE_SIZE = 60;
+const LOCAL_RESTAURANT_PAGE_SIZE = 54;
+const NEARBY_RESTAURANT_PAGE_SIZE = 60;
 
 const CITY_LABELS: Record<string, string> = {
   geneve: "Genève",
@@ -561,6 +563,15 @@ export default function LocalRestaurants() {
         ? `/restaurants/${params.city}/${canonicalRouteSegment}`
         : `/restaurants/${params.city}`;
 
+  const prerenderedInventory = useMemo(() => {
+    if (path.startsWith("/restaurants-pres/") || typeof document === "undefined") return null;
+    return parseLocalInventorySnapshot(
+      document.getElementById("tok-local-inventory")?.textContent || "",
+      path,
+    );
+  }, [path]);
+  const localInventoryPolicy = resolveLocalInventoryPolicy(prerenderedInventory?.policy);
+
   const {
     data: restaurantPages,
     isLoading,
@@ -592,6 +603,7 @@ export default function LocalRestaurants() {
         return {
           items: filterRestaurantsByIntent(demoRestaurants, intent),
           rawCount: demoRestaurants.length,
+          totalCount: demoRestaurants.length,
           nextOffset: null as number | null,
         };
       }
@@ -606,7 +618,7 @@ export default function LocalRestaurants() {
           p_max_price_range: 4,
           p_search_text: null,
           p_delivery_only: false,
-          p_limit: LOCAL_RESTAURANT_PAGE_SIZE,
+          p_limit: NEARBY_RESTAURANT_PAGE_SIZE,
           p_offset: offset,
         });
 
@@ -615,11 +627,12 @@ export default function LocalRestaurants() {
         return {
           items: filterRestaurantsByIntent(rawItems, intent),
           rawCount: rawItems.length,
-          nextOffset: rawItems.length === LOCAL_RESTAURANT_PAGE_SIZE ? offset + LOCAL_RESTAURANT_PAGE_SIZE : null,
+          totalCount: null as number | null,
+          nextOffset: rawItems.length === NEARBY_RESTAURANT_PAGE_SIZE ? offset + NEARBY_RESTAURANT_PAGE_SIZE : null,
         };
       }
 
-      const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog", {
+      const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog_page", {
         p_query: district || null,
         p_city: city,
         p_cuisine: category || null,
@@ -633,11 +646,31 @@ export default function LocalRestaurants() {
       });
 
       if (error) throw error;
-      const rawItems = data || [];
+      const page = Array.isArray(data) ? data[0] : data;
+      const rawItems = Array.isArray(page?.items) ? page.items : [];
+      const parsedTotalCount = Number(page?.total_count);
+      const rawNextOffset = page?.next_offset;
+      const parsedNextOffset = Number(rawNextOffset);
+      const hasNumericNextOffset = typeof rawNextOffset === "number"
+        || (typeof rawNextOffset === "string" && rawNextOffset.trim() !== "");
+      // The catalog caps each batch at 54. Its cursor, not the visible result count,
+      // determines whether an intent-filtered page can continue to the next batch.
+      const nextOffset = hasNumericNextOffset
+        && Number.isSafeInteger(parsedNextOffset)
+        && parsedNextOffset > offset
+        && rawItems.length > 0
+          ? parsedNextOffset
+          : null;
       return {
         items: filterRestaurantsByIntent(rawItems, intent),
         rawCount: rawItems.length,
-        nextOffset: rawItems.length === LOCAL_RESTAURANT_PAGE_SIZE ? offset + LOCAL_RESTAURANT_PAGE_SIZE : null,
+        totalCount: page?.total_count !== null
+          && page?.total_count !== undefined
+          && Number.isSafeInteger(parsedTotalCount)
+          && parsedTotalCount >= 0
+            ? parsedTotalCount
+            : offset + rawItems.length,
+        nextOffset,
       };
     },
     getNextPageParam: (lastPage) => lastPage.nextOffset ?? undefined,
@@ -662,8 +695,14 @@ export default function LocalRestaurants() {
     knownCitySegment && (!routeSegment || knownDistrictSegment || knownCategorySegment || knownIntentSegment),
   );
   const hasConfirmedEmptyInventory = isListingSuccess && restaurants.length === 0 && !hasNextPage;
-  const minimumInventory = category || district || intent ? MIN_SPECIALIZED_LOCAL_RESTAURANTS : 1;
+  const minimumInventory = params.venueSlug
+    ? 1
+    : category || district || intent
+      ? localInventoryPolicy.minSpecializedRestaurants
+      : localInventoryPolicy.minCityRestaurants;
   const hasThinInventory = isListingSuccess && restaurants.length < minimumInventory && !hasNextPage;
+  const shouldNoindexListing = prerenderedInventory?.indexable === false
+    || (!isLoading && (isError || hasThinInventory));
   const unknownListingRoute = hasConfirmedEmptyInventory && !knownListingRoute;
 
   if (categoryAliasRedirect) {
@@ -738,7 +777,7 @@ export default function LocalRestaurants() {
         description={description}
         path={path}
         jsonLd={jsonLd}
-        robots={!isLoading && (isError || hasThinInventory) ? "noindex,follow,noarchive" : undefined}
+        robots={shouldNoindexListing ? "noindex,follow,noarchive" : undefined}
       />
       <div className="container space-y-8 py-8">
         <section className="space-y-4">

@@ -25,9 +25,13 @@ describe("public restaurant directory pagination and images", () => {
     expect(searchPage).toContain("Charger les ${SEARCH_PAGE_SIZE} suivants");
 
     expect(localPage).toContain("useInfiniteQuery");
-    expect(localPage).toContain("const LOCAL_RESTAURANT_PAGE_SIZE = 60");
+    expect(localPage).toContain("const LOCAL_RESTAURANT_PAGE_SIZE = 54");
+    expect(localPage).toContain('"search_restaurants_catalog_page"');
+    expect(localPage).toContain("page?.next_offset");
+    expect(localPage).toContain("page?.total_count");
     expect(localPage).toContain("p_offset: offset");
-    expect(localPage).toContain("rawItems.length === LOCAL_RESTAURANT_PAGE_SIZE");
+    expect(localPage).toContain("const NEARBY_RESTAURANT_PAGE_SIZE = 60");
+    expect(localPage).toContain("rawItems.length === NEARBY_RESTAURANT_PAGE_SIZE");
     expect(localPage).toContain("Charger plus de restaurants");
   });
 
