@@ -234,7 +234,8 @@ jobs:
         run: pnpm dlx "vercel@${VERCEL_CLI_VERSION}" pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       - name: Build Vercel production output
-        run: pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --prod --token="$VERCEL_TOKEN"
+        # The deploy job runs on a fresh runner: traced dependencies must travel with the output.
+        run: pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --prod --standalone --token="$VERCEL_TOKEN"
 
       - name: Package prebuilt Vercel output
         shell: bash

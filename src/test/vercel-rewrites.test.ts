@@ -258,7 +258,7 @@ describe("vercel config", () => {
     expect(workflow).not.toContain("Trigger Vercel production deploy hook");
     expect(workflow).toContain("VERCEL_CLI_VERSION: 55.0.0");
     expect(workflow).not.toContain("vercel@latest");
-    expect(workflow).toContain('pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --prod --token="$VERCEL_TOKEN"');
+    expect(workflow).toContain('pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --prod --standalone --token="$VERCEL_TOKEN"');
     expect(workflow).toMatch(
       /pnpm dlx "vercel@\$\{VERCEL_CLI_VERSION\}" deploy \\\s+--prebuilt \\\s+--prod \\\s+--archive=tgz \\\s+--token="\$VERCEL_TOKEN"/,
     );
