@@ -208,6 +208,10 @@ The admin area is for platform control. Modules include:
 
 Admin pages must be protected by admin role and, when relevant, super-admin constraints. Never rely only on hidden UI for admin security.
 
+### Restaurant social follow queue
+
+Use the Marketing Studio `social_follow` view for Instagram/Facebook restaurant profile discovery and manually confirmed follow states. Keep profile identity review separate from follow status, and bind confirmations to the current TOK source account ID. Opening a profile must never mark it followed. Preserve the session/CSRF/admin checks in the BFF and the SQL dispatcher, the resumable discovery leases, and the bounded public HTTP transport. Read `docs/marketing/RESTAURANT_SOCIAL_FOLLOW.md` for the workflow, data semantics, tests and rollout order. These external follow records are separate from the app's internal `restaurant_follows` table.
+
 ## 11. Supabase and database principles
 
 Supabase is the central backend. The app uses:

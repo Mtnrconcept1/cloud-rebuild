@@ -14,6 +14,7 @@ import MarketingGovernanceView from "@/components/marketing/views/MarketingGover
 import MarketingOverviewView from "@/components/marketing/views/MarketingOverviewView";
 import MarketingOutreachView from "@/components/marketing/views/MarketingOutreachView";
 import MarketingResultsView from "@/components/marketing/views/MarketingResultsView";
+import MarketingSocialFollowView from "@/components/marketing/views/MarketingSocialFollowView";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -88,6 +89,8 @@ export default function MarketingWorkspace() {
         return <MarketingCampaignsView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} savePending={operations.pendingAction === "save-campaign"} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onSave={operations.saveCampaign} onApprove={operations.approveCampaign} onRecommendChannels={operations.recommendChannels} onItemsUpdated={operations.refresh} onNavigate={setView} onUploadPendingChange={onUploadPendingChange} />;
       case "audiences":
         return <MarketingAudiencesView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onNavigate={setView} onSyncSources={operations.syncSources} onLoadContactsPage={operations.loadContactsPage} contactsRevision={operations.contactsRevision} onQualifyContact={operations.qualifyRestaurantContact} onSuppressContact={operations.suppressContact} />;
+      case "social_follow":
+        return <MarketingSocialFollowView canMutateBackend={operations.canMutateBackend} filters={filters} onFiltersChange={updateFilters} />;
       case "automations":
         return <MarketingAutomationsView snapshot={operations.snapshot} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} autopilot={autopilot.dashboard} autopilotLoading={autopilot.loading} autopilotError={autopilot.error} autopilotPendingAction={autopilot.pendingAction} simulation={autopilot.simulation} onRefreshAutopilot={() => { void autopilot.refresh(); }} onSimulate={autopilot.simulate} onPrepareDraft={autopilot.prepareDraft} onClearSimulation={autopilot.clearSimulation} onSave={operations.saveAutomation} />;
       case "activity":
