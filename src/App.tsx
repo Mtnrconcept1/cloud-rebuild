@@ -455,7 +455,7 @@ function CommercialDemoFrameRouteBoundary({
 }
 
 function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: CommercialDemoFrameConfig | null }) {
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const oauthConsentFrame = pathname === "/oauth/consent";
   const commercialDemoContext = useCommercialDemoFrame();
   useTokLogoDocumentIcons();
@@ -650,7 +650,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/dashboard/equipe" element={<DashboardRoute><DashboardWorkforce /></DashboardRoute>} />
           <Route path="/dashboard/plan-salle" element={<DashboardRoute><FeatureSwitch enabled={dashboardPlanSalleEnabled} fallback="/dashboard"><DashboardPlanSalle /></FeatureSwitch></DashboardRoute>} />
           {/* Plan de salle 2 retire: l'URL reste vivante pour les favoris et renvoie au plan de salle. */}
-          <Route path="/dashboard/plan-salle-v2" element={<Navigate to="/dashboard/plan-salle" replace />} />
+          <Route path="/dashboard/plan-salle-v2" element={<Navigate to={{ pathname: "/dashboard/plan-salle", search, hash }} replace />} />
           <Route path="/dashboard/guide" element={<DashboardRoute><GuideUtilisateur /></DashboardRoute>} />
           <Route path="/dashboard/tok-connect" element={<DashboardRoute><FeatureSwitch enabled={dashboardTokConnectEnabled} fallback="/dashboard"><CommercialDemoSafeEffectsBoundary tool="tok-connect"><DashboardTokConnect /></CommercialDemoSafeEffectsBoundary></FeatureSwitch></DashboardRoute>} />
           <Route path="/courier" element={<ProtectedRoute requiredRole="courier"><FeatureSwitch enabled={courierHomeEnabled}><CourierHome /></FeatureSwitch></ProtectedRoute>} />

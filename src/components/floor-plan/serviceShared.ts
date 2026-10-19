@@ -8,6 +8,15 @@ type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
 export type ServiceReservation = ReservationRow & {
   customer: Pick<ProfileRow, "full_name" | "phone"> | null;
+  honored_at?: string | null;
+};
+
+export type ServiceReservationActionStatus = "confirmed" | "arrived" | "seated" | "no_show";
+
+export type ServiceReservationAction = {
+  status: ServiceReservationActionStatus;
+  label: string;
+  requiresConfirmation?: boolean;
 };
 
 export type ServiceDraftTable = {
@@ -66,7 +75,61 @@ export type ReservationTableRecommendation = {
 // The server is the authority on conflicts: any shorter value here makes the
 // client offer placements the save then refuses as overlapping.
 const DEFAULT_OCCUPATION_MINUTES = 120;
-const RELEASED_RESERVATION_STATUSES = new Set(["cancelled", "canceled", "no_show", "completed", "archived"]);
+const RELEASED_RESERVATION_STATUSES = new Set(["cancelled", "canceled", "no_show", "completed", "archived", "expired", "declined"]);
+const SEATED_RESERVATION_STATUSES = new Set(["seated", "installed", "occupied", "order_taken", "served", "dessert", "bill_requested"]);
+
+function normalizeServiceReservationStatus(status: string | null | undefined) {
+  return String(status || "pending").trim().toLowerCase().replace(/-/g, "_");
+}
+
+export function isActiveServiceReservation(reservation: Pick<ServiceReservation, "status">) {
+  // Billing may set honored_at on arrival; only a terminal status releases the table.
+  return !RELEASED_RESERVATION_STATUSES.has(normalizeServiceReservationStatus(reservation.status));
+}
+
+export function canCloseServiceReservation(reservation: Pick<ServiceReservation, "status">) {
+  return isActiveServiceReservation(reservation)
+    && ["arrived", "seated"].includes(normalizeServiceReservationStatus(reservation.status));
+}
+
+export function getServiceReservationStatusLabel(status: string | null | undefined) {
+  const normalized = normalizeServiceReservationStatus(status);
+  if (SEATED_RESERVATION_STATUSES.has(normalized)) return "Installé";
+  switch (normalized) {
+    case "pending": return "À confirmer";
+    case "confirmed": return "Confirmée";
+    case "arrived": return "Client arrivé";
+    case "no_show": return "Absent";
+    case "cancelled":
+    case "canceled": return "Annulée";
+    case "completed": return "Terminée";
+    case "archived": return "Archivée";
+    case "expired": return "Expirée";
+    case "declined": return "Refusée";
+    default: return "Statut à vérifier";
+  }
+}
+
+/** Seating uses its dedicated forward-only RPC; other steps use the general status RPC. */
+export function getServiceReservationActions(reservation: Pick<ServiceReservation, "status" | "honored_at">): ServiceReservationAction[] {
+  if (!isActiveServiceReservation(reservation)) return [];
+  if (normalizeServiceReservationStatus(reservation.status) === "arrived") {
+    return [{ status: "seated", label: "Installer" }];
+  }
+  if (reservation.honored_at) return [];
+
+  switch (normalizeServiceReservationStatus(reservation.status)) {
+    case "pending":
+      return [{ status: "confirmed", label: "Confirmer" }];
+    case "confirmed":
+      return [
+        { status: "arrived", label: "Client arrivé" },
+        { status: "no_show", label: "Signaler absent", requiresConfirmation: true },
+      ];
+    default:
+      return [];
+  }
+}
 
 const isJsonRecord = (value: Json): value is Record<string, Json> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -76,12 +139,14 @@ export function getSafeTime(value: string | null | undefined) {
 }
 
 export function getReservationCustomerLabel(reservation: ServiceReservation) {
-  return reservation.customer?.full_name || "Client sans nom";
+  return reservation.customer?.full_name?.trim()
+    || reservation.customer?.phone?.trim()
+    || "Client sans nom";
 }
 
 // Rendu dans le châssis (files d'attente, tiroir de table) : suit le thème.
 export function getReservationStatusTone(status: string | null | undefined) {
-  switch (String(status || "").toLowerCase()) {
+  switch (normalizeServiceReservationStatus(status)) {
     case "confirmed":
       return FLOOR_PLAN_TONE_CLASS.emerald;
     case "pending":
@@ -206,7 +271,15 @@ export function scoreReservationPlacement({
   const load = Math.max(0, Math.max(currentTableLoad, currentTableReservations.length));
   const reasons: string[] = [];
 
-  if (capacity <= 0) {
+  if (!isActiveServiceReservation(reservation)) {
+    return { score: 0, wastedSeats: capacity, reasons: ["Réservation dans l’historique"] };
+  }
+
+  if (!table.is_active) {
+    return { score: 0, wastedSeats: capacity, reasons: ["Table masquée"] };
+  }
+
+  if (capacity <= 0 || table.layout.kind !== "table") {
     return {
       score: 0,
       wastedSeats: 0,
@@ -299,8 +372,10 @@ export function getRecommendedTableByReservation({
   const recommendations = new Map<string, ReservationTableRecommendation>();
 
   reservations.forEach((reservation) => {
+    if (!isActiveServiceReservation(reservation)) return;
     const best = tables
-      .filter((table) => getReservationDropState(reservation.id, table.id).ok)
+      .filter((table) => table.is_active && table.capacity > 0 && table.layout.kind === "table"
+        && getReservationDropState(reservation.id, table.id).ok)
       .map((table) => ({
         table,
         ...getPlacementScore(reservation, table),
@@ -360,9 +435,10 @@ export function planAutomaticPlacement({
 }): Record<string, string> {
   const working: Record<string, string | null> = { ...assignments };
   const placed: Record<string, string> = {};
+  const reservableTables = tables.filter((table) => table.is_active && table.capacity > 0 && table.layout.kind === "table");
 
   const queue = [...reservations]
-    .filter((reservation) => !working[reservation.id])
+    .filter((reservation) => isActiveServiceReservation(reservation) && !working[reservation.id])
     .sort((left, right) => (
       Number(right.party_size || 0) - Number(left.party_size || 0)
       || getSafeTime(left.time).localeCompare(getSafeTime(right.time))
@@ -372,14 +448,14 @@ export function planAutomaticPlacement({
   queue.forEach((reservation) => {
     const preferredTableId = preferredTableByUserId?.get(reservation.user_id);
     if (preferredTableId
-      && tables.some((table) => table.id === preferredTableId)
+      && reservableTables.some((table) => table.id === preferredTableId)
       && canPlace(reservation.id, preferredTableId, working)) {
       working[reservation.id] = preferredTableId;
       placed[reservation.id] = preferredTableId;
       return;
     }
 
-    const best = tables
+    const best = reservableTables
       .filter((table) => canPlace(reservation.id, table.id, working))
       .map((table) => ({ table, ...getPlacementScore(reservation, table, working) }))
       .sort((left, right) => (
@@ -398,12 +474,12 @@ export function planAutomaticPlacement({
   return placed;
 }
 
-function getReservationDurationMinutes(reservation: ServiceReservation) {
+export function getServiceReservationDurationMinutes(reservation: ReservationRow) {
   const rawDuration = getReservationMetadataRecord(reservation).duration_minutes
     ?? getReservationMetadataRecord(reservation).durationMinutes;
   const duration = Number(rawDuration);
-  if (Number.isFinite(duration) && duration > 0) {
-    return Math.max(30, Math.round(duration));
+  if (/^\d+$/.test(String(rawDuration ?? "")) && Number.isSafeInteger(duration)) {
+    return Math.max(30, duration);
   }
 
   // One flat default for every party size, matching the server. A per-size
@@ -417,17 +493,18 @@ function getClosestRotationGapMinutes(
 ) {
   const sameDateReservations = tableReservations.filter((candidate) => (
     candidate.id !== reservation.id
+    && isActiveServiceReservation(candidate)
     && candidate.date === reservation.date
   ));
   if (sameDateReservations.length === 0) return null;
 
   const start = getReservationMinutesFromDayStart(reservation);
-  const end = start + getReservationDurationMinutes(reservation);
+  const end = start + getServiceReservationDurationMinutes(reservation);
   let closestGap: number | null = null;
 
   sameDateReservations.forEach((candidate) => {
     const candidateStart = getReservationMinutesFromDayStart(candidate);
-    const candidateEnd = candidateStart + getReservationDurationMinutes(candidate);
+    const candidateEnd = candidateStart + getServiceReservationDurationMinutes(candidate);
     const gap = candidateEnd <= start
       ? start - candidateEnd
       : candidateStart >= end
@@ -474,16 +551,36 @@ function addMinutesToTime(time: string | null | undefined, minutes: number) {
 function getMinutesUntilEstimatedRelease(reservation: ServiceReservation, now: Date) {
   if (!isSameServiceDate(reservation.date, now)) return null;
   return getReservationMinutesFromDayStart(reservation)
-    + DEFAULT_OCCUPATION_MINUTES
+    + getServiceReservationDurationMinutes(reservation)
     - getDateMinutesFromDayStart(now);
 }
 
-function isBlockingReservation(reservation: ServiceReservation) {
-  return !RELEASED_RESERVATION_STATUSES.has(String(reservation.status || "").toLowerCase());
+/** The client being served takes priority over the next rotation, regardless of input order. */
+export function getPrimaryServiceReservation(assignments: ServiceReservation[], now = new Date()) {
+  const timestamp = (reservation: ServiceReservation) => {
+    const value = new Date(`${reservation.date}T${getSafeTime(reservation.time)}:00`).getTime();
+    return Number.isFinite(value) ? value : Number.MAX_SAFE_INTEGER;
+  };
+  const priority = (reservation: ServiceReservation) => {
+    const status = normalizeServiceReservationStatus(reservation.status);
+    if (SEATED_RESERVATION_STATUSES.has(status)) return 0;
+    if (status === "arrived") return 1;
+    const start = timestamp(reservation);
+    const end = start + getServiceReservationDurationMinutes(reservation) * 60_000;
+    if (start <= now.getTime() && end > now.getTime()) return 2;
+    if (start > now.getTime()) return 3;
+    return 4;
+  };
+
+  return assignments.filter(isActiveServiceReservation).sort((left, right) => (
+    priority(left) - priority(right)
+    || (priority(left) === 4 ? timestamp(right) - timestamp(left) : timestamp(left) - timestamp(right))
+    || left.id.localeCompare(right.id)
+  ))[0] || null;
 }
 
 function getOverlappingAssignmentCount(assignments: ServiceReservation[]) {
-  const blockingAssignments = assignments.filter(isBlockingReservation);
+  const blockingAssignments = assignments.filter(isActiveServiceReservation);
   let overlapCount = 0;
 
   for (let leftIndex = 0; leftIndex < blockingAssignments.length; leftIndex += 1) {
@@ -501,6 +598,7 @@ function getOverlappingAssignmentCount(assignments: ServiceReservation[]) {
           time: left.time,
           partySize: Number(left.party_size || 0),
           status: left.status,
+          durationMinutes: getServiceReservationDurationMinutes(left),
         },
         {
           id: right.id,
@@ -508,6 +606,7 @@ function getOverlappingAssignmentCount(assignments: ServiceReservation[]) {
           time: right.time,
           partySize: Number(right.party_size || 0),
           status: right.status,
+          durationMinutes: getServiceReservationDurationMinutes(right),
         },
       )) {
         overlapCount += 1;
@@ -539,7 +638,10 @@ export function getTableServiceState({
     };
   }
 
-  if (assignments.length === 0) {
+  const blockingAssignments = assignments.filter(isActiveServiceReservation);
+  const primary = getPrimaryServiceReservation(blockingAssignments, now);
+
+  if (!primary) {
     return {
       key: "free",
       label: "Libre",
@@ -548,8 +650,6 @@ export function getTableServiceState({
       chipClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
     };
   }
-
-  const blockingAssignments = assignments.filter(isBlockingReservation);
 
   if (getOverlappingAssignmentCount(blockingAssignments) > 0) {
     return {
@@ -561,36 +661,25 @@ export function getTableServiceState({
     };
   }
 
-  const primary = blockingAssignments[0] || assignments[0];
-  const status = String(primary.status || "pending").toLowerCase();
-
-  if (status === "no_show") {
-    return {
-      key: "no-show",
-      label: "No-show",
-      detail: getSafeTime(primary.time),
-      haloClass: "bg-rose-300/55 shadow-[0_28px_65px_-38px_rgba(244,63,94,0.45)]",
-      chipClass: "border-rose-300 bg-rose-50 text-rose-700",
-    };
-  }
+  const status = normalizeServiceReservationStatus(primary.status);
 
   if (status === "arrived") {
     return {
       key: "arrived",
-      label: "Arrive",
+      label: "Client arrivé",
       detail: getSafeTime(primary.time),
       haloClass: "bg-sky-300/55 shadow-[0_28px_65px_-38px_rgba(14,165,233,0.45)]",
       chipClass: "border-sky-300 bg-sky-50 text-sky-700",
     };
   }
 
-  if (["seated", "installed", "occupied", "order_taken", "served", "dessert", "bill_requested"].includes(status)) {
+  if (SEATED_RESERVATION_STATUSES.has(status)) {
     const minutesUntilRelease = getMinutesUntilEstimatedRelease(primary, now);
     if (minutesUntilRelease !== null && minutesUntilRelease >= 0 && minutesUntilRelease <= 15) {
       return {
         key: "soon-free",
-        label: "Bientot libre",
-        detail: `lib. ~${addMinutesToTime(primary.time, DEFAULT_OCCUPATION_MINUTES)}`,
+        label: "Bientôt libre",
+        detail: `lib. ~${addMinutesToTime(primary.time, getServiceReservationDurationMinutes(primary))}`,
         haloClass: "bg-lime-300/55 shadow-[0_28px_65px_-38px_rgba(132,204,22,0.42)]",
         chipClass: "border-lime-300 bg-lime-50 text-lime-800",
       };
@@ -598,8 +687,8 @@ export function getTableServiceState({
 
     return {
       key: "occupied",
-      label: "Occupee",
-      detail: `lib. ~${addMinutesToTime(primary.time, DEFAULT_OCCUPATION_MINUTES)}`,
+      label: "Occupée",
+      detail: `lib. ~${addMinutesToTime(primary.time, getServiceReservationDurationMinutes(primary))}`,
       haloClass: "bg-orange-300/60 shadow-[0_28px_65px_-38px_rgba(249,115,22,0.42)]",
       chipClass: "border-orange-300 bg-orange-50 text-orange-800",
     };
@@ -630,7 +719,7 @@ export function getTableServiceState({
 
   return {
     key: "upcoming",
-    label: "Reservee",
+    label: "Réservée",
     detail: getSafeTime(primary.time),
     haloClass: "bg-amber-300/55 shadow-[0_28px_65px_-38px_rgba(245,158,11,0.4)]",
     chipClass: "border-amber-300 bg-amber-50 text-amber-800",

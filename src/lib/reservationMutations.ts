@@ -259,6 +259,24 @@ export async function updateRestaurantReservationStatus(
   return { ok: true };
 }
 
+/** Seating is operational: an arrival that has already been billed must remain installable. */
+export async function seatRestaurantReservation(reservationId: string): Promise<ReservationStatusResult> {
+  const { data, error } = await (getSupabase().rpc as any)("restaurant_seat_floor_plan_reservation", {
+    p_reservation_id: reservationId,
+  });
+  if (error) {
+    if (error.code === "PGRST202") {
+      throw new Error("L’installation des clients doit être activée sur le serveur. La réservation est conservée ; contactez l’assistance TOK.");
+    }
+    throw error;
+  }
+  const result = getFirstRow<SafeReservationStatusRow>(data);
+  if (!result) throw new Error("Le serveur n’a pas confirmé l’installation du client.");
+  return result.updated
+    ? { ok: true }
+    : { ok: false, errorCode: result.error_code || "validation_error", errorMessage: result.error_message || "Installation impossible." };
+}
+
 export async function cancelReservationByCustomer(
   reservationId: string,
 ): Promise<ReservationMutationResult> {

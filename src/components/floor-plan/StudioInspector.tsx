@@ -127,14 +127,14 @@ export default function StudioInspector({
             </div>
 
             <div className="space-y-1.5">
-              <Label>Nom</Label>
-              <Input className="h-10 rounded-xl" value={selectedTable.table_number} onChange={(event) => onRename(event.target.value)} />
+              <Label htmlFor="floor-plan-element-name">Nom</Label>
+              <Input id="floor-plan-element-name" maxLength={40} className="h-10 rounded-xl" value={selectedTable.table_number} onChange={(event) => onRename(event.target.value)} />
             </div>
 
             <div className="space-y-1.5">
-              <Label>Secteur</Label>
+              <Label htmlFor="floor-plan-element-sector">Secteur</Label>
               <Select value={selectedTable.sector} onValueChange={onSectorChange}>
-                <SelectTrigger className="h-10 min-w-0 rounded-xl">
+                <SelectTrigger id="floor-plan-element-sector" className="h-10 min-w-0 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -185,8 +185,9 @@ export default function StudioInspector({
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Largeur</Label>
+                    <Label htmlFor="floor-plan-element-width">Largeur</Label>
                     <Input
+                      id="floor-plan-element-width"
                       className="h-10 rounded-xl"
                       type="number"
                       min={1}
@@ -204,8 +205,9 @@ export default function StudioInspector({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Profondeur</Label>
+                    <Label htmlFor="floor-plan-element-height">Profondeur</Label>
                     <Input
+                      id="floor-plan-element-height"
                       className="h-10 rounded-xl"
                       type="number"
                       min={1}
@@ -267,9 +269,10 @@ export default function StudioInspector({
 
             <div className="grid gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
               <div className="space-y-1.5">
-                <Label>Rotation</Label>
+                <Label htmlFor="floor-plan-element-rotation">Rotation</Label>
                 <div className="flex items-center gap-2">
                   <Input
+                    id="floor-plan-element-rotation"
                     type="number"
                     min={0}
                     max={359}
@@ -281,8 +284,8 @@ export default function StudioInspector({
                     }}
                     className="h-10 w-[110px] rounded-xl"
                   />
-                  <span className="text-xs text-muted-foreground">deg</span>
-                  <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-xl" onClick={onRotateIncrement}>
+                  <span className="text-xs text-muted-foreground">°</span>
+                  <Button type="button" variant="outline" size="icon" aria-label="Tourner l’élément" className="h-10 w-10 rounded-xl" onClick={onRotateIncrement}>
                     <RotateCw className="h-4 w-4" />
                   </Button>
                 </div>
@@ -290,10 +293,10 @@ export default function StudioInspector({
 
               <div className="flex items-start justify-between gap-3 rounded-xl border border-border bg-muted px-3 py-2">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-foreground">Visible sur le plan</p>
-                  <p className="text-sm text-muted-foreground">Désactivez un élément sans le supprimer définitivement.</p>
+                  <Label htmlFor="floor-plan-element-active" className="font-medium text-foreground">Visible pendant le service</Label>
+                  <p id="floor-plan-element-active-help" className="mt-1 text-sm text-muted-foreground">Un élément masqué reste accessible ici pour le réactiver.</p>
                 </div>
-                <Switch checked={selectedTable.is_active} onCheckedChange={onToggleActive} />
+                <Switch id="floor-plan-element-active" aria-describedby="floor-plan-element-active-help" checked={selectedTable.is_active} onCheckedChange={onToggleActive} />
               </div>
             </div>
 

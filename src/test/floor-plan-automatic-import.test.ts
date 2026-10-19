@@ -168,15 +168,22 @@ describe("automatic floor-plan image import", () => {
     expect(inspector).toContain("getFloorPlanItemResizeBehavior(selectedTable.layout.kind, selectedTable.layout.shape)");
   });
 
-  it("creates switchable variants instead of overwriting the active template immediately", () => {
+  it("keeps AI proposals in editable drafts and saved variants until the room is saved", () => {
     const page = read("src/pages/dashboard/DashboardPlanSalle.tsx");
+    const applyStart = page.indexOf("const applyAILayout =");
+    const applyEnd = page.indexOf("const runCommercialDemoFloorPlanAi =", applyStart);
+    expect(applyStart).toBeGreaterThan(-1);
+    expect(applyEnd).toBeGreaterThan(applyStart);
+    const applyProposal = page.slice(applyStart, applyEnd);
 
     expect(page).toContain('supabase.from("floor_plan_variants" as any)');
-    expect(page).toContain("buildFloorPlanVariantSnapshot");
-    expect(page).toContain("buildDraftTablesFromVariant");
-    expect(page).toContain("Sauver variante");
-    expect(page).toContain("Template actif");
-    expect(page).toContain('source: result.source === "image-import" ? "ai-image" : "ai-generated"');
-    expect(page).toContain("commitHistorySnapshot(buildHistorySnapshot(newTables, {}, null))");
+    expect(page).toContain('aria-label="Sauver variante"');
+    expect(applyProposal).toContain("commitHistorySnapshot");
+    expect(applyProposal).toContain("saveFloorPlanVariantMutation.mutate");
+    expect(applyProposal).toContain('source: result.source === "image-import" ? "ai-image" : "ai-generated"');
+    expect(applyProposal).not.toMatch(/\bsaveMutation\.mutate(?:Async)?\s*\(/);
+    expect(applyProposal).not.toContain("restaurant_save_floor_plan_workspace_v3");
+    // Identity and reservation preservation on variant restore are covered
+    // behaviorally by floor-plan-service-workspace.test.tsx.
   });
 });

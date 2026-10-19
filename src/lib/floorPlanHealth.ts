@@ -14,6 +14,7 @@ export type FloorPlanHealthReservation = {
   assignedTableId: string | null | undefined;
   date?: string | null;
   time?: string | null;
+  durationMinutes?: number;
 };
 
 export type FloorPlanHealthSummary = {
@@ -104,12 +105,14 @@ export function getFloorPlanHealthSummary(input: {
             date: left.date,
             time: left.time || null,
             partySize: Math.max(0, Math.round(left.partySize || 0)),
+            durationMinutes: left.durationMinutes,
           },
           {
             id: right.id,
             date: right.date,
             time: right.time || null,
             partySize: Math.max(0, Math.round(right.partySize || 0)),
+            durationMinutes: right.durationMinutes,
           },
         )) {
           overlappingAssignments += 1;
@@ -143,7 +146,7 @@ export function getFloorPlanHealthSummary(input: {
       activeReservableTables: activeReservableTables.length,
       totalReservableCapacity,
       assignedCovers,
-      headline: "Conflits a corriger",
+      headline: "Conflits à corriger",
       detail: `${formatCriticalHealthDetail({
         invalidAssignments,
         overCapacityAssignments,
@@ -177,6 +180,6 @@ export function getFloorPlanHealthSummary(input: {
     totalReservableCapacity,
     assignedCovers,
     headline: "Service prêt",
-    detail: "Toutes les réservations visibles sont placees correctement.",
+    detail: "Toutes les réservations actives du service sont placées correctement.",
   };
 }

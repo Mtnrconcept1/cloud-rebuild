@@ -64,7 +64,7 @@ describe("ServiceBoard", () => {
 
   it("keeps the service zoom-out button as a decrement instead of a reset", () => {
     const onUpdateCanvasZoom = vi.fn();
-    const { container } = renderServiceBoard({
+    const { container, getByRole } = renderServiceBoard({
       canvasZoom: 0.73,
       canvasZoomLabel: "73%",
       onUpdateCanvasZoom,
@@ -75,6 +75,10 @@ describe("ServiceBoard", () => {
 
     fireEvent.click(zoomOutButton as Element);
     expect(onUpdateCanvasZoom).toHaveBeenCalledWith(0.58);
+
+    onUpdateCanvasZoom.mockClear();
+    fireEvent.click(getByRole("button", { name: "Recentrer le plan" }));
+    expect(onUpdateCanvasZoom).not.toHaveBeenCalled();
   });
 
   it("starts dragging furniture from the whole object surface", () => {
@@ -321,14 +325,15 @@ describe("ServiceBoard", () => {
       onReleaseReservation,
     });
 
-    fireEvent.click(getByRole("button", { name: "Marquer Martin arrive" }));
-    fireEvent.click(getByRole("button", { name: "Installer Martin" }));
-    fireEvent.click(getByRole("button", { name: "Marquer Martin no-show" }));
-    fireEvent.click(getByRole("button", { name: "Liberer T1" }));
+    fireEvent.click(getByRole("button", { name: "Client arrivé" }));
+    expect(() => getByRole("button", { name: "Installer" })).toThrow();
+    fireEvent.click(getByRole("button", { name: "Signaler absent" }));
+    expect(onReservationStatusChange).toHaveBeenCalledTimes(1);
+    fireEvent.click(getByRole("button", { name: "Confirmer l’absence" }));
+    fireEvent.click(getByRole("button", { name: "Retirer Martin de T1" }));
 
     expect(onReservationStatusChange).toHaveBeenNthCalledWith(1, "r1", "arrived");
-    expect(onReservationStatusChange).toHaveBeenNthCalledWith(2, "r1", "seated");
-    expect(onReservationStatusChange).toHaveBeenNthCalledWith(3, "r1", "no_show");
+    expect(onReservationStatusChange).toHaveBeenNthCalledWith(2, "r1", "no_show");
     expect(onReleaseReservation).toHaveBeenCalledWith("r1");
   });
 });

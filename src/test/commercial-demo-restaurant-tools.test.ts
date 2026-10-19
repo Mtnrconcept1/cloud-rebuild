@@ -145,6 +145,7 @@ describe("commercial demo restaurant tool adapters", () => {
     const ownerRestaurants = readFileSync("src/pages/dashboard/useOwnerRestaurants.ts", "utf8");
     const app = readFileSync("src/App.tsx", "utf8");
     const serviceBoard = readFileSync("src/components/floor-plan/ServiceBoard.tsx", "utf8");
+    const serviceActions = readFileSync("src/components/floor-plan/ReservationServiceActions.tsx", "utf8");
     const billing = readFileSync("src/pages/dashboard/DashboardAccountBilling.tsx", "utf8");
 
     expect(performance).toContain("if (isCommercialDemo && commercialDemoFrame)");
@@ -160,8 +161,11 @@ describe("commercial demo restaurant tool adapters", () => {
     expect(reviews.indexOf("if (isCommercialDemo && commercialDemoFrame)")).toBeLessThan(
       reviews.indexOf("const response = await runRestaurantAgent"),
     );
-    expect(serviceBoard).toContain('const canConfirm = primaryStatus === "pending"');
-    expect(serviceBoard).toContain('const canSeat = primaryStatus === "confirmed" || primaryStatus === "arrived"');
+    // Demo and live service use the same allowed transitions in the UI and
+    // the mutation guard; the board no longer defines its own status rules.
+    expect(serviceBoard).toContain("<ReservationServiceActions");
+    expect(serviceActions).toContain("getServiceReservationActions(reservation)");
+    expect(floorPlan).toContain("getServiceReservationActions(reservation).some((action) => action.status === status)");
     expect(billing).toContain('feature: "ai_support_chat"');
     expect(billing).toContain("Désactivé par l'admin");
     expect(ownerRestaurants.indexOf("if (isCommercialDemoFrame && commercialDemoFrame && effectiveDemoRestaurantId)")).toBeLessThan(
@@ -171,7 +175,7 @@ describe("commercial demo restaurant tool adapters", () => {
     expect(ownerRestaurants).toContain("socialLinks: null");
     // "Plan de salle 2" is gone: its URL now lands on the guarded floor plan,
     // so the commercial demo can no longer reach an unguarded second editor.
-    expect(app).toContain('<Route path="/dashboard/plan-salle-v2" element={<Navigate to="/dashboard/plan-salle" replace />} />');
+    expect(app).toContain('<Route path="/dashboard/plan-salle-v2" element={<Navigate to={{ pathname: "/dashboard/plan-salle", search, hash }} replace />} />');
     expect(app).not.toContain("DashboardPlanSalleV2");
   });
 });

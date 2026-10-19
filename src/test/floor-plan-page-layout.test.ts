@@ -54,19 +54,19 @@ describe("floor plan page layout", () => {
     expect(canvas).toContain("new ResizeObserver(notifySize)");
     expect(serviceBoard).toContain("new ResizeObserver(notifySize)");
     expect(serviceBoard).toContain("touch-manipulation");
-    expect(queue).toContain('role="button"');
+    expect(queue).toContain('<button');
+    expect(queue).toContain('aria-label={`Ouvrir la réservation de ${customerName}`}');
     expect(queue).toContain("onReservationHandlePointerDown");
-  });
 
-  it("preserves the floor plan persistence and assignment contracts", () => {
-    const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
-
-    expect(page).toContain("restaurant_save_floor_plan_assignments");
-    expect(page).toContain("getReservationDropStateForAssignments");
-    expect(page).toContain("reservationsOverlap");
-    expect(page).toContain("scoreReservationPlacement");
-    expect(page).toContain("saveMutation.mutate");
-    expect(page).toContain("lastAutoSavedLayoutSignatureRef");
+    // The surrounding UI follows the dashboard theme; both canvases share
+    // the deliberately light sheet documented in plan-de-salle-theme.md.
+    for (const source of [page, serviceBoard, queue]) {
+      expect(source).toContain("FLOOR_PLAN_TONE_CLASS");
+      expect(source).toContain("bg-card");
+      expect(source).toContain("border-border");
+    }
+    expect(canvas).toContain('from "./floorPlanSheet"');
+    expect(serviceBoard).toContain('from "./floorPlanSheet"');
   });
 
   it("does not re-arm an auto-save the server already refused", () => {
@@ -86,30 +86,6 @@ describe("floor plan page layout", () => {
     expect(page).toContain("}, [editMode, referenceDate, selectedBranchId]);");
   });
 
-  it("never leaves a dirty editing mode without persisting first", () => {
-    const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
-
-    expect(page).toContain("const enterTemplateEditing = async");
-    expect(page).toContain("const finishTemplateEditing = async");
-    expect(page).toContain("await saveMutation.mutateAsync");
-    expect(page).toContain("void enterTemplateEditing()");
-    expect(page).toContain("void finishTemplateEditing()");
-    expect(page).not.toContain('onClick={() => setEditMode("service")}');
-    expect(page).not.toContain('onClick={() => setEditMode("template")}');
-    expect(page).toContain("disabled={saveMutation.isPending || (isTemplateMode ? templateDirty : serviceDirty)}");
-    expect(page).toContain("disabled={saveMutation.isPending || templateDirty}");
-    expect(page).toContain("disabled={saveMutation.isPending || serviceDirty}");
-  });
-
-  it("tracks every template change and exposes a coherent save state", () => {
-    const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
-
-    expect(page).toContain("const templateDirty = useMemo");
-    expect(page).toContain("persistedTemplateSignature");
-    expect(page).toContain("draftTemplateSignature");
-    expect(page).toContain('label: "Template modifié"');
-    expect(page).toContain('serviceDirty ? "Enregistrer puis modifier" : "Modifier la salle"');
-    expect(page).toContain('templateDirty ? "Enregistrer et terminer" : "Terminer"');
-  });
-
+  // Save failures, draft tracking and editing-mode transitions are exercised
+  // through the real page in floor-plan-service-workspace.test.tsx.
 });

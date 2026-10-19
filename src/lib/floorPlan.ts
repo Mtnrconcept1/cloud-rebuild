@@ -169,6 +169,7 @@ type FloorPlanReservationSchedule = {
   time: string | null;
   partySize: number;
   status?: string | null;
+  durationMinutes?: number;
 };
 
 const DEFAULT_PADDING = 16;
@@ -1630,12 +1631,13 @@ export function buildFloorPlanViewportModel<TItem extends FloorPlanViewportItem>
     zoom: number;
     canvasWidth?: number;
     canvasHeight?: number;
+    includeInactive?: boolean;
   },
 ): FloorPlanViewportModel<TItem> {
   const canvasWidth = options.canvasWidth ?? DEFAULT_CANVAS_WIDTH;
   const canvasHeight = options.canvasHeight ?? DEFAULT_CANVAS_HEIGHT;
   const visibleItems = items
-    .filter((item) => item.is_active !== false)
+    .filter((item) => options.includeInactive || item.is_active !== false)
     .filter((item) => item.sector === options.sector)
     .sort((left, right) => left.table_number.localeCompare(right.table_number, "fr"))
     .map((item) => {
@@ -1873,13 +1875,15 @@ export function reservationsOverlap(
   left: FloorPlanReservationSchedule,
   right: FloorPlanReservationSchedule,
 ) {
-  if (!left.date || !right.date || left.date !== right.date) return false;
+  if (!left.date || !right.date) return false;
 
-  const windowMinutes = 120;
+  const duration = (value: number | undefined) => (
+    Number.isInteger(value) && Number.isFinite(value) ? Math.max(30, value!) : 120
+  );
   const leftStart = getScheduleTimestamp(left);
   const rightStart = getScheduleTimestamp(right);
-  const leftEnd = leftStart + windowMinutes * 60 * 1000;
-  const rightEnd = rightStart + windowMinutes * 60 * 1000;
+  const leftEnd = leftStart + duration(left.durationMinutes) * 60 * 1000;
+  const rightEnd = rightStart + duration(right.durationMinutes) * 60 * 1000;
 
   return leftStart < rightEnd && rightStart < leftEnd;
 }

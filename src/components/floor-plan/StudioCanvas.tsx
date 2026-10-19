@@ -288,7 +288,7 @@ export default function StudioCanvas({
                       onKeyDown={(event) => handleObjectKeyDown(event, table)}
                       role="button"
                       tabIndex={0}
-                      aria-label={`Sélectionner ${table.table_number}`}
+                      aria-label={`Sélectionner ${table.table_number}${table.is_active ? "" : " · masqué pendant le service"}`}
                       aria-pressed={isSelected}
                     >
                       <div className={cn(
@@ -307,7 +307,7 @@ export default function StudioCanvas({
                           transformOrigin: "center center",
                         }}
                       >
-                        <div className="absolute inset-0">
+                        <div className={cn("absolute inset-0", !table.is_active && "opacity-40 grayscale")}>
                           <FloorPlanItemIllustration
                             kind={table.layout.kind}
                             shape={table.layout.shape}
@@ -333,10 +333,11 @@ export default function StudioCanvas({
                           </>
                         ) : null}
 
-                        {isReservable ? (
+                        {isReservable || !table.is_active ? (
                           <div className="pointer-events-none absolute inset-x-3 top-2 flex justify-center">
                             <div className="rounded-full border border-white/90 bg-white/92 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 shadow-[0_10px_24px_-16px_rgba(15,23,42,0.5)]">
                               {table.table_number}
+                              {!table.is_active ? <span className="ml-1.5 normal-case tracking-normal text-slate-600">· Masqué</span> : null}
                             </div>
                           </div>
                         ) : null}

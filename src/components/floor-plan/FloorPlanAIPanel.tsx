@@ -64,6 +64,8 @@ type ImportImagePayload = {
 interface FloorPlanAIPanelProps {
   restaurantId: string;
   currentLayout: {
+    id?: string;
+    sector?: string;
     table_number: string;
     capacity: number;
     layout: { x: number; y: number; w: number; h: number; shape: string; kind: string };

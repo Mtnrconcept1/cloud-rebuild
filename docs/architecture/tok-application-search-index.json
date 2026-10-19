@@ -2,31 +2,31 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "49f257d78dea6c3dccc1c0894e2f56f12e6bb2c4b23524c70351f232a74785da",
+ "sourceDigest": "c21f5daedab5e6f312dc4982be5b2322ef77d36bb1407565b194f124455da744",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
   "cronJobs": 34,
   "databaseContract": 228,
-  "databaseObjects": 2961,
-  "documents": 215,
+  "databaseObjects": 2965,
+  "documents": 216,
   "edgeFunctions": 119,
   "edgeHttpRoutes": 20,
-  "exportedSymbols": 3778,
+  "exportedSymbols": 3800,
   "featureFlags": 99,
   "frontendRoutes": 143,
   "integrations": 11,
   "marketingOperations": 37,
-  "migrations": 558,
-  "modules": 1709,
+  "migrations": 561,
+  "modules": 1721,
   "pages": 133,
-  "pathLiterals": 797,
+  "pathLiterals": 801,
   "publicAssets": 584,
   "publicEntries": 610,
   "publicNavigableRoutes": 2,
-  "queryParameters": 114,
-  "records": 17825,
-  "repositoryFiles": 3380,
+  "queryParameters": 116,
+  "records": 17906,
+  "repositoryFiles": 3396,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
@@ -1833,7 +1833,7 @@
     "path": "/dashboard/plan-salle-v2",
     "line": 653,
     "surface": "restaurant",
-    "element": "<Navigate to=\"/dashboard/plan-salle\" replace />",
+    "element": "<Navigate to={{ pathname: \"/dashboard/plan-salle\", search, hash }} replace />",
     "components": [
      "Navigate"
     ],
@@ -1841,7 +1841,7 @@
     "guards": [],
     "requiredRoles": [],
     "featureGate": null,
-    "redirectTo": "/dashboard/plan-salle",
+    "redirectTo": "{ pathname: \"/dashboard/plan-salle\", search, hash",
     "source": "src/App.tsx"
    },
    {
@@ -5235,7 +5235,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 938,
+      "line": 729,
       "kind": "function"
      }
     ],
@@ -5290,7 +5290,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 241,
+      "line": 244,
       "kind": "function"
      }
     ],
@@ -19575,6 +19575,33 @@
     ]
    },
    {
+    "value": "/commercial/demo/restaurant",
+    "sources": [
+     {
+      "path": "src/test/floor-plan-navigation.test.tsx",
+      "line": 28
+     }
+    ]
+   },
+   {
+    "value": "/commercial/demo/restaurant/dashboard/plan-salle?date=2026-05-27&reservation=demo-reservation",
+    "sources": [
+     {
+      "path": "src/test/floor-plan-navigation.test.tsx",
+      "line": 32
+     }
+    ]
+   },
+   {
+    "value": "/commercial/demo/restaurant/dashboard/reservations",
+    "sources": [
+     {
+      "path": "src/test/floor-plan-navigation.test.tsx",
+      "line": 28
+     }
+    ]
+   },
+   {
     "value": "/commercial/notifications",
     "sources": [
      {
@@ -21888,6 +21915,18 @@
      {
       "path": "src/pages/dashboard/useDashboardRestaurant.ts",
       "line": 25
+     },
+     {
+      "path": "src/test/floor-plan-navigation.test.tsx",
+      "line": 21
+     },
+     {
+      "path": "src/test/floor-plan-navigation.test.tsx",
+      "line": 23
+     },
+     {
+      "path": "src/test/floor-plan-service-workspace.test.tsx",
+      "line": 242
      }
     ]
    },
@@ -21901,6 +21940,15 @@
      {
       "path": "src/test/route-wiring.test.ts",
       "line": 89
+     }
+    ]
+   },
+   {
+    "value": "/dashboard/plan-salle?date=2026-10-20&branch=branch-a&reservation=bob-tomorrow",
+    "sources": [
+     {
+      "path": "src/test/floor-plan-service-workspace.test.tsx",
+      "line": 514
      }
     ]
    },
@@ -31660,6 +31708,23 @@
     ]
    },
    {
+    "name": "branch",
+    "sources": [
+     {
+      "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
+      "line": 750
+     },
+     {
+      "path": "src/pages/dashboard/DashboardReservations.tsx",
+      "line": 261
+     }
+    ],
+    "routes": [
+     "/dashboard/plan-salle",
+     "/dashboard/reservations"
+    ]
+   },
+   {
     "name": "campaign_checkout",
     "sources": [
      {
@@ -31996,11 +32061,29 @@
       "line": 161
      },
      {
+      "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
+      "line": 754
+     },
+     {
+      "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
+      "line": 754
+     },
+     {
+      "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
+      "line": 2286
+     },
+     {
+      "path": "src/pages/dashboard/DashboardReservations.tsx",
+      "line": 260
+     },
+     {
       "path": "supabase/functions/tok-connect-api/index.ts",
       "line": 317
      }
     ],
     "routes": [
+     "/dashboard/plan-salle",
+     "/dashboard/reservations",
      "/restaurant/:id",
      "/v1/autopilot/plan",
      "/v1/campaigns/preview",
@@ -32988,11 +33071,20 @@
       "line": 288
      },
      {
+      "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
+      "line": 828
+     },
+     {
+      "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
+      "line": 2285
+     },
+     {
       "path": "src/pages/dashboard/DashboardReservations.tsx",
-      "line": 256
+      "line": 259
      }
     ],
     "routes": [
+     "/dashboard/plan-salle",
      "/dashboard/reservations",
      "/reservations"
     ]
@@ -33096,6 +33188,27 @@
     ],
     "routes": [
      "/actualites"
+    ]
+   },
+   {
+    "name": "service",
+    "sources": [
+     {
+      "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
+      "line": 757
+     },
+     {
+      "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
+      "line": 757
+     },
+     {
+      "path": "src/pages/dashboard/DashboardReservations.tsx",
+      "line": 262
+     }
+    ],
+    "routes": [
+     "/dashboard/plan-salle",
+     "/dashboard/reservations"
     ]
    },
    {
@@ -34253,6 +34366,7 @@
      "scripts/test-actualites-billing-postgres.mjs",
      "scripts/test-checkout-security-postgres.mjs",
      "scripts/test-checkout-security-runner.test.mjs",
+     "scripts/test-floor-plan-workspace-postgres.mjs",
      "scripts/test-print-protocol-postgres.mjs",
      "scripts/test-print-protocol-runner.test.mjs",
      "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
@@ -34624,6 +34738,7 @@
      "src/test/flat-reservation-billing-fallback.test.ts",
      "src/test/floor-plan-assignment-governance.test.ts",
      "src/test/floor-plan-automatic-import.test.ts",
+     "src/test/floor-plan-service-workspace.test.tsx",
      "src/test/frontend-10k-readiness.test.ts",
      "src/test/full-audit-remediation-20260711.test.ts",
      "src/test/generate-campaign-ai-optimization.test.ts",
@@ -38440,6 +38555,24 @@
     "path": "supabase/migrations/20261018210100_marketing_mailing_image_upload.sql",
     "lineCount": 102,
     "objectCount": 1
+   },
+   {
+    "name": "20261019090000 Floor Plan Workspace V3",
+    "path": "supabase/migrations/20261019090000_floor_plan_workspace_v3.sql",
+    "lineCount": 355,
+    "objectCount": 3
+   },
+   {
+    "name": "20261019090100 Floor Plan Seating Transition",
+    "path": "supabase/migrations/20261019090100_floor_plan_seating_transition.sql",
+    "lineCount": 120,
+    "objectCount": 1
+   },
+   {
+    "name": "20261019090200 Floor Plan Assignment Activity",
+    "path": "supabase/migrations/20261019090200_floor_plan_assignment_activity.sql",
+    "lineCount": 199,
+    "objectCount": 1
    }
   ],
   "databaseObjects": [
@@ -38450,6 +38583,26 @@
      {
       "path": "supabase/migrations/20260726024000_close_remaining_demo_rls_bypass.sql",
       "line": 49
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private.floor_plan_validate_layout_v3",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261019090000_floor_plan_workspace_v3.sql",
+      "line": 36
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "private.floor_plan_workspace_snapshot_v3",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261019090000_floor_plan_workspace_v3.sql",
+      "line": 4
      }
     ]
    },
@@ -46428,6 +46581,10 @@
      {
       "path": "supabase/migrations/20260712090000_floor_plan_v2_editor_rpc.sql",
       "line": 407
+     },
+     {
+      "path": "supabase/migrations/20261019090200_floor_plan_assignment_activity.sql",
+      "line": 6
      }
     ]
    },
@@ -46503,11 +46660,31 @@
    },
    {
     "type": "function",
+    "name": "public.restaurant_save_floor_plan_workspace_v3",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261019090000_floor_plan_workspace_v3.sql",
+      "line": 71
+     }
+    ]
+   },
+   {
+    "type": "function",
     "name": "public.restaurant_save_golden_tok_drop",
     "sources": [
      {
       "path": "supabase/migrations/20261014030000_golden_tok_accreditations.sql",
       "line": 172
+     }
+    ]
+   },
+   {
+    "type": "function",
+    "name": "public.restaurant_seat_floor_plan_reservation",
+    "sources": [
+     {
+      "path": "supabase/migrations/20261019090100_floor_plan_seating_transition.sql",
+      "line": 3
      }
     ]
    },
@@ -78705,6 +78882,92 @@
     ]
    },
    {
+    "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+    "title": "TOK — Audit et amélioration du plan de salle",
+    "headings": [
+     {
+      "level": 1,
+      "title": "TOK — Audit et amélioration du plan de salle",
+      "line": 1
+     },
+     {
+      "level": 2,
+      "title": "Périmètre et méthode",
+      "line": 10
+     },
+     {
+      "level": 2,
+      "title": "Inventaire des routes et entrées",
+      "line": 18
+     },
+     {
+      "level": 3,
+      "title": "Composants et doublons",
+      "line": 34
+     },
+     {
+      "level": 2,
+      "title": "Incohérences prouvées et corrections du lot",
+      "line": 40
+     },
+     {
+      "level": 2,
+      "title": "Comportement UX attendu",
+      "line": 60
+     },
+     {
+      "level": 2,
+      "title": "Ce qui est vérifié, et ce qui reste à vérifier",
+      "line": 72
+     },
+     {
+      "level": 3,
+      "title": "Résultats de validation locale",
+      "line": 84
+     },
+     {
+      "level": 2,
+      "title": "Livraison et retour arrière",
+      "line": 124
+     },
+     {
+      "level": 2,
+      "title": "Fichiers du lot",
+      "line": 139
+     },
+     {
+      "level": 3,
+      "title": "Routes, pages et dialogue",
+      "line": 143
+     },
+     {
+      "level": 3,
+      "title": "Composants du plan",
+      "line": 150
+     },
+     {
+      "level": 3,
+      "title": "Règles et persistance",
+      "line": 162
+     },
+     {
+      "level": 3,
+      "title": "Tests et migrations",
+      "line": 171
+     },
+     {
+      "level": 3,
+      "title": "Note de livraison",
+      "line": 196
+     },
+     {
+      "level": 3,
+      "title": "Index applicatifs générés",
+      "line": 200
+     }
+    ]
+   },
+   {
     "path": "docs/ci-triggers/20260531-actualites-sponsored-posts.md",
     "title": "20260531 Actualites Sponsored Posts",
     "headings": []
@@ -89320,6 +89583,17 @@
     "lineCount": 40
    },
    {
+    "path": "scripts/test-floor-plan-workspace-postgres.mjs",
+    "exports": [],
+    "environmentNames": [
+     "TOK_FLOORPLAN_PGLITE_MODULE"
+    ],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 375
+   },
+   {
     "path": "scripts/test-golden-tok-responsive.mjs",
     "exports": [],
     "environmentNames": [
@@ -91445,6 +91719,19 @@
     "lineCount": 52
    },
    {
+    "path": "src/components/dashboard/ReservationClosureDialog.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 24,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 119
+   },
+   {
     "path": "src/components/dashboard/RestaurantDashboardHomeView.tsx",
     "exports": [
      {
@@ -91763,7 +92050,7 @@
      },
      {
       "name": "default",
-      "line": 118,
+      "line": 120,
       "kind": "function"
      }
     ],
@@ -91772,7 +92059,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 444
+    "lineCount": 446
    },
    {
     "path": "src/components/floor-plan/FloorPlanItemIllustration.tsx",
@@ -91806,30 +92093,43 @@
     "lineCount": 549
    },
    {
-    "path": "src/components/floor-plan/ServiceBoard.tsx",
+    "path": "src/components/floor-plan/ReservationServiceActions.tsx",
     "exports": [
      {
       "name": "default",
-      "line": 170,
+      "line": 34,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 729
+    "lineCount": 110
+   },
+   {
+    "path": "src/components/floor-plan/ServiceBoard.tsx",
+    "exports": [
+     {
+      "name": "default",
+      "line": 175,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 710
    },
    {
     "path": "src/components/floor-plan/SimpleReservationQueue.tsx",
     "exports": [
      {
       "name": "default",
-      "line": 42,
+      "line": 66,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 221
+    "lineCount": 370
    },
    {
     "path": "src/components/floor-plan/StudioCanvas.tsx",
@@ -91842,7 +92142,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 408
+    "lineCount": 409
    },
    {
     "path": "src/components/floor-plan/StudioInspector.tsx",
@@ -91855,7 +92155,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 316
+    "lineCount": 319
    },
    {
     "path": "src/components/floor-plan/StudioPalette.tsx",
@@ -91868,7 +92168,7 @@
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 290
+    "lineCount": 295
    },
    {
     "path": "src/components/floor-plan/TableConfigDialog.tsx",
@@ -91888,13 +92188,13 @@
     "exports": [
      {
       "name": "default",
-      "line": 146,
+      "line": 154,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 570
+    "lineCount": 620
    },
    {
     "path": "src/components/floor-plan/floorPlanAssets.ts",
@@ -92062,113 +92362,153 @@
       "kind": "typealias"
      },
      {
-      "name": "ServiceDraftTable",
-      "line": 13,
+      "name": "ServiceReservationActionStatus",
+      "line": 14,
       "kind": "typealias"
      },
      {
-      "name": "ReservationDropState",
+      "name": "ServiceReservationAction",
+      "line": 16,
+      "kind": "typealias"
+     },
+     {
+      "name": "ServiceDraftTable",
       "line": 22,
       "kind": "typealias"
      },
      {
+      "name": "ReservationDropState",
+      "line": 31,
+      "kind": "typealias"
+     },
+     {
       "name": "RenderedTableFrame",
-      "line": 27,
+      "line": 36,
       "kind": "typealias"
      },
      {
       "name": "TableDensity",
-      "line": 34,
+      "line": 43,
       "kind": "typealias"
      },
      {
       "name": "TableServiceStateKey",
-      "line": 35,
+      "line": 44,
       "kind": "typealias"
      },
      {
       "name": "TableServiceState",
-      "line": 47,
+      "line": 56,
       "kind": "typealias"
      },
      {
       "name": "ReservationPlacementScore",
-      "line": 55,
+      "line": 64,
       "kind": "typealias"
      },
      {
       "name": "ReservationTableRecommendation",
-      "line": 61,
+      "line": 70,
       "kind": "typealias"
      },
      {
+      "name": "isActiveServiceReservation",
+      "line": 85,
+      "kind": "function"
+     },
+     {
+      "name": "canCloseServiceReservation",
+      "line": 90,
+      "kind": "function"
+     },
+     {
+      "name": "getServiceReservationStatusLabel",
+      "line": 95,
+      "kind": "function"
+     },
+     {
+      "name": "getServiceReservationActions",
+      "line": 114,
+      "kind": "function"
+     },
+     {
       "name": "getSafeTime",
-      "line": 74,
+      "line": 137,
       "kind": "function"
      },
      {
       "name": "getReservationCustomerLabel",
-      "line": 78,
+      "line": 141,
       "kind": "function"
      },
      {
       "name": "getReservationStatusTone",
-      "line": 83,
+      "line": 148,
       "kind": "function"
      },
      {
       "name": "getReservationMiamzPriority",
-      "line": 117,
+      "line": 182,
       "kind": "function"
      },
      {
       "name": "getReservationMiamzPriorityLabel",
-      "line": 125,
+      "line": 190,
       "kind": "function"
      },
      {
       "name": "isZeroAttenteReservation",
-      "line": 143,
+      "line": 208,
       "kind": "function"
      },
      {
       "name": "getReservationSpecialRequest",
-      "line": 147,
+      "line": 212,
       "kind": "function"
      },
      {
       "name": "getShortDateLabel",
-      "line": 158,
+      "line": 223,
       "kind": "function"
      },
      {
       "name": "getTableDensity",
-      "line": 165,
+      "line": 230,
       "kind": "function"
      },
      {
       "name": "getCompactReservationCustomerLabel",
-      "line": 171,
+      "line": 236,
       "kind": "function"
      },
      {
       "name": "scoreReservationPlacement",
-      "line": 193,
+      "line": 258,
       "kind": "function"
      },
      {
       "name": "getRecommendedTableByReservation",
-      "line": 288,
+      "line": 361,
       "kind": "function"
      },
      {
       "name": "planAutomaticPlacement",
-      "line": 338,
+      "line": 413,
+      "kind": "function"
+     },
+     {
+      "name": "getServiceReservationDurationMinutes",
+      "line": 477,
+      "kind": "function"
+     },
+     {
+      "name": "getPrimaryServiceReservation",
+      "line": 559,
       "kind": "function"
      },
      {
       "name": "getTableServiceState",
-      "line": 523,
+      "line": 622,
       "kind": "function"
      }
     ],
@@ -92176,7 +92516,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 639
+    "lineCount": 728
    },
    {
     "path": "src/components/floor-plan/studioShared.ts",
@@ -100862,198 +101202,216 @@
      },
      {
       "name": "RECT_SEAT_ZONES",
-      "line": 181,
-      "kind": "variable"
-     },
-     {
-      "name": "ROUND_SEAT_ZONES",
       "line": 182,
       "kind": "variable"
      },
      {
+      "name": "ROUND_SEAT_ZONES",
+      "line": 183,
+      "kind": "variable"
+     },
+     {
       "name": "CORNER_BENCH_CORNERS",
-      "line": 192,
+      "line": 193,
       "kind": "variable"
      },
      {
       "name": "SEAT_TYPE_LABELS",
-      "line": 194,
+      "line": 195,
       "kind": "variable"
      },
      {
       "name": "RECT_SEAT_ZONE_LABELS",
-      "line": 201,
+      "line": 202,
       "kind": "variable"
      },
      {
       "name": "ROUND_SEAT_ZONE_LABELS",
-      "line": 208,
+      "line": 209,
       "kind": "variable"
      },
      {
       "name": "CORNER_BENCH_LABELS",
-      "line": 219,
+      "line": 220,
       "kind": "variable"
      },
      {
       "name": "isReservableFloorPlanItem",
-      "line": 336,
+      "line": 337,
       "kind": "function"
      },
      {
       "name": "getFloorPlanItemBaseName",
-      "line": 340,
+      "line": 341,
       "kind": "function"
      },
      {
       "name": "getFloorPlanItemTypeLabel",
-      "line": 344,
+      "line": 345,
       "kind": "function"
      },
      {
       "name": "buildSeatLabels",
-      "line": 355,
+      "line": 356,
       "kind": "function"
      },
      {
       "name": "resizeRenderedFloorPlanFrame",
-      "line": 387,
+      "line": 388,
       "kind": "function"
      },
      {
       "name": "getCornerBenchDimensionsFromSeatCounts",
-      "line": 514,
+      "line": 515,
       "kind": "function"
      },
      {
       "name": "getDefaultBenchDimensions",
-      "line": 627,
+      "line": 628,
       "kind": "function"
      },
      {
       "name": "getSeatPlacementsCapacity",
-      "line": 809,
+      "line": 810,
       "kind": "function"
      },
      {
       "name": "getDefaultCornerBenchDimensions",
-      "line": 975,
+      "line": 976,
       "kind": "function"
      },
      {
       "name": "getCornerBenchCapacity",
-      "line": 997,
+      "line": 998,
       "kind": "function"
      },
      {
       "name": "getConfiguredTableCapacity",
-      "line": 1004,
+      "line": 1005,
       "kind": "function"
      },
      {
       "name": "getResolvedFloorPlanDimensions",
-      "line": 1047,
+      "line": 1048,
       "kind": "function"
      },
      {
       "name": "getMinimumTableSize",
-      "line": 1236,
+      "line": 1237,
       "kind": "function"
      },
      {
       "name": "getMinimumFloorPlanResizeSize",
-      "line": 1258,
+      "line": 1259,
       "kind": "function"
      },
      {
       "name": "getFloorPlanContentPadding",
-      "line": 1266,
+      "line": 1267,
       "kind": "function"
      },
      {
       "name": "resizeFloorPlanLayoutToFootprint",
-      "line": 1307,
+      "line": 1308,
       "kind": "function"
      },
      {
       "name": "ensureFloorPlanLayoutFitsCapacity",
-      "line": 1377,
+      "line": 1378,
       "kind": "function"
      },
      {
       "name": "clampFloorPlanLayout",
-      "line": 1423,
+      "line": 1424,
       "kind": "function"
      },
      {
       "name": "resolveFloorPlanViewportZoom",
-      "line": 1502,
+      "line": 1503,
       "kind": "function"
      },
      {
       "name": "getRenderedFloorPlanFrame",
-      "line": 1510,
+      "line": 1511,
       "kind": "function"
      },
      {
       "name": "getLogicalFloorPlanPositionFromRenderedFrame",
-      "line": 1545,
+      "line": 1546,
       "kind": "function"
      },
      {
       "name": "FloorPlanViewportItem",
-      "line": 1580,
+      "line": 1581,
       "kind": "typealias"
      },
      {
       "name": "FloorPlanViewportHitTarget",
-      "line": 1589,
+      "line": 1590,
       "kind": "typealias"
      },
      {
       "name": "FloorPlanViewportModel",
-      "line": 1594,
+      "line": 1595,
       "kind": "typealias"
      },
      {
       "name": "buildFloorPlanViewportModel",
-      "line": 1626,
+      "line": 1627,
       "kind": "function"
      },
      {
       "name": "areFloorPlanLayoutsEquivalent",
-      "line": 1724,
+      "line": 1726,
       "kind": "function"
      },
      {
       "name": "updateFloorPlanItemLayoutById",
-      "line": 1731,
+      "line": 1733,
       "kind": "function"
      },
      {
       "name": "normalizeFloorPlanLayout",
-      "line": 1753,
+      "line": 1755,
       "kind": "function"
      },
      {
       "name": "buildDraftFloorPlanLayout",
-      "line": 1847,
+      "line": 1849,
       "kind": "function"
      },
      {
       "name": "reservationsOverlap",
-      "line": 1872,
+      "line": 1874,
       "kind": "function"
      },
      {
       "name": "FLOOR_PLAN_PRESETS",
-      "line": 1887,
+      "line": 1891,
       "kind": "variable"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 2120
+    "lineCount": 2124
+   },
+   {
+    "path": "src/lib/floorPlanAiMerge.ts",
+    "exports": [
+     {
+      "name": "restoreFloorPlanVariant",
+      "line": 10,
+      "kind": "function"
+     },
+     {
+      "name": "mergeFloorPlanAiLayout",
+      "line": 38,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 89
    },
    {
     "path": "src/lib/floorPlanFrameScheduler.ts",
@@ -101103,18 +101461,18 @@
      },
      {
       "name": "FloorPlanHealthSummary",
-      "line": 19,
+      "line": 20,
       "kind": "typealias"
      },
      {
       "name": "getFloorPlanHealthSummary",
-      "line": 49,
+      "line": 50,
       "kind": "function"
      }
     ],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 183
+    "lineCount": 186
    },
    {
     "path": "src/lib/floorPlanHistory.ts",
@@ -101155,6 +101513,24 @@
     "lineCount": 68
    },
    {
+    "path": "src/lib/floorPlanNavigation.ts",
+    "exports": [
+     {
+      "name": "isValidServiceDate",
+      "line": 2,
+      "kind": "function"
+     },
+     {
+      "name": "buildFloorPlanHref",
+      "line": 10,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 29
+   },
+   {
     "path": "src/lib/floorPlanPersistence.ts",
     "exports": [
      {
@@ -101181,6 +101557,49 @@
     "environmentNames": [],
     "integrations": [],
     "lineCount": 52
+   },
+   {
+    "path": "src/lib/floorPlanWorkspacePersistence.ts",
+    "exports": [
+     {
+      "name": "FloorPlanWorkspaceMode",
+      "line": 22,
+      "kind": "typealias"
+     },
+     {
+      "name": "FloorPlanWorkspaceSnapshot",
+      "line": 23,
+      "kind": "typealias"
+     },
+     {
+      "name": "FloorPlanWorkspaceSaveResult",
+      "line": 29,
+      "kind": "typealias"
+     },
+     {
+      "name": "serializeFloorPlanWorkspaceLayout",
+      "line": 53,
+      "kind": "function"
+     },
+     {
+      "name": "buildFloorPlanWorkspaceSnapshot",
+      "line": 72,
+      "kind": "function"
+     },
+     {
+      "name": "buildFloorPlanWorkspaceRequest",
+      "line": 95,
+      "kind": "function"
+     },
+     {
+      "name": "getFloorPlanWorkspaceSaveError",
+      "line": 168,
+      "kind": "function"
+     }
+    ],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 188
    },
    {
     "path": "src/lib/geo.ts",
@@ -104045,13 +104464,18 @@
       "kind": "function"
      },
      {
+      "name": "seatRestaurantReservation",
+      "line": 263,
+      "kind": "function"
+     },
+     {
       "name": "cancelReservationByCustomer",
-      "line": 262,
+      "line": 280,
       "kind": "function"
      },
      {
       "name": "cancelReservationByRestaurant",
-      "line": 287,
+      "line": 305,
       "kind": "function"
      }
     ],
@@ -104061,7 +104485,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 315
+    "lineCount": 333
    },
    {
     "path": "src/lib/restaurantAdjustments.ts",
@@ -109632,7 +110056,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 938,
+      "line": 729,
       "kind": "function"
      }
     ],
@@ -109641,7 +110065,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 4031
+    "lineCount": 3860
    },
    {
     "path": "src/pages/dashboard/DashboardPromotions.tsx",
@@ -109678,7 +110102,7 @@
     "exports": [
      {
       "name": "default",
-      "line": 241,
+      "line": 244,
       "kind": "function"
      }
     ],
@@ -109687,7 +110111,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 1326
+    "lineCount": 1414
    },
    {
     "path": "src/pages/dashboard/DashboardRestaurant.tsx",
@@ -111272,7 +111696,7 @@
      "stripe",
      "supabase"
     ],
-    "lineCount": 178
+    "lineCount": 182
    },
    {
     "path": "src/test/commercial-demo-role-workspaces.test.ts",
@@ -112033,7 +112457,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 64
+    "lineCount": 69
    },
    {
     "path": "src/test/flat-reservation-billing-fallback.test.ts",
@@ -112045,13 +112469,20 @@
     "lineCount": 56
    },
    {
+    "path": "src/test/floor-plan-ai-merge.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 66
+   },
+   {
     "path": "src/test/floor-plan-assignment-governance.test.ts",
     "exports": [],
     "environmentNames": [],
     "integrations": [
      "supabase"
     ],
-    "lineCount": 62
+    "lineCount": 67
    },
    {
     "path": "src/test/floor-plan-automatic-import.test.ts",
@@ -112061,7 +112492,7 @@
      "openai",
      "supabase"
     ],
-    "lineCount": 183
+    "lineCount": 190
    },
    {
     "path": "src/test/floor-plan-automatic-placement.test.ts",
@@ -112085,11 +112516,18 @@
     "lineCount": 78
    },
    {
+    "path": "src/test/floor-plan-navigation.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 35
+   },
+   {
     "path": "src/test/floor-plan-page-layout.test.ts",
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 116
+    "lineCount": 92
    },
    {
     "path": "src/test/floor-plan-persistence.test.ts",
@@ -112099,11 +112537,34 @@
     "lineCount": 30
    },
    {
+    "path": "src/test/floor-plan-service-ux.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 269
+   },
+   {
+    "path": "src/test/floor-plan-service-workspace.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [
+     "supabase"
+    ],
+    "lineCount": 682
+   },
+   {
+    "path": "src/test/floor-plan-workspace-persistence.test.ts",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 104
+   },
+   {
     "path": "src/test/floor-plan.test.ts",
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 865
+    "lineCount": 889
    },
    {
     "path": "src/test/french-copy-accents.test.ts",
@@ -114045,6 +114506,13 @@
     "lineCount": 219
    },
    {
+    "path": "src/test/reservation-closure-dialog.test.tsx",
+    "exports": [],
+    "environmentNames": [],
+    "integrations": [],
+    "lineCount": 104
+   },
+   {
     "path": "src/test/reservation-confirmation-deposit-ops.test.ts",
     "exports": [],
     "environmentNames": [],
@@ -114070,7 +114538,7 @@
     "integrations": [
      "supabase"
     ],
-    "lineCount": 132
+    "lineCount": 135
    },
    {
     "path": "src/test/reservation-guarantee-request-handler.test.ts",
@@ -114751,7 +115219,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 335
+    "lineCount": 340
    },
    {
     "path": "src/test/service-settings.test.ts",
@@ -115071,7 +115539,7 @@
     "exports": [],
     "environmentNames": [],
     "integrations": [],
-    "lineCount": 286
+    "lineCount": 318
    },
    {
     "path": "src/test/submitSignupValidation.test.ts",
@@ -123379,6 +123847,11 @@
     "extension": ".md"
    },
    {
+    "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+    "category": "documentation",
+    "extension": ".md"
+   },
+   {
     "path": "docs/ci-triggers/20260531-actualites-sponsored-posts.md",
     "category": "documentation",
     "extension": ".md"
@@ -127864,6 +128337,11 @@
     "extension": ".mjs"
    },
    {
+    "path": "scripts/test-floor-plan-workspace-postgres.mjs",
+    "category": "automation-script",
+    "extension": ".mjs"
+   },
+   {
     "path": "scripts/test-golden-tok-responsive.mjs",
     "category": "automation-script",
     "extension": ".mjs"
@@ -128489,6 +128967,11 @@
     "extension": ".tsx"
    },
    {
+    "path": "src/components/dashboard/ReservationClosureDialog.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/components/dashboard/RestaurantDashboardHomeView.css",
     "category": "frontend-component",
     "extension": ".css"
@@ -128600,6 +129083,11 @@
    },
    {
     "path": "src/components/floor-plan/ReservationQueue.tsx",
+    "category": "frontend-component",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/components/floor-plan/ReservationServiceActions.tsx",
     "category": "frontend-component",
     "extension": ".tsx"
    },
@@ -129999,6 +130487,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/lib/floorPlanAiMerge.ts",
+    "category": "application-library",
+    "extension": ".ts"
+   },
+   {
     "path": "src/lib/floorPlanFrameScheduler.ts",
     "category": "application-library",
     "extension": ".ts"
@@ -130014,7 +130507,17 @@
     "extension": ".ts"
    },
    {
+    "path": "src/lib/floorPlanNavigation.ts",
+    "category": "application-library",
+    "extension": ".ts"
+   },
+   {
     "path": "src/lib/floorPlanPersistence.ts",
+    "category": "application-library",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/lib/floorPlanWorkspacePersistence.ts",
     "category": "application-library",
     "extension": ".ts"
    },
@@ -132564,6 +133067,11 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/floor-plan-ai-merge.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
     "path": "src/test/floor-plan-assignment-governance.test.ts",
     "category": "test",
     "extension": ".ts"
@@ -132589,12 +133097,32 @@
     "extension": ".ts"
    },
    {
+    "path": "src/test/floor-plan-navigation.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
     "path": "src/test/floor-plan-page-layout.test.ts",
     "category": "test",
     "extension": ".ts"
    },
    {
     "path": "src/test/floor-plan-persistence.test.ts",
+    "category": "test",
+    "extension": ".ts"
+   },
+   {
+    "path": "src/test/floor-plan-service-ux.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/floor-plan-service-workspace.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
+   },
+   {
+    "path": "src/test/floor-plan-workspace-persistence.test.ts",
     "category": "test",
     "extension": ".ts"
    },
@@ -133707,6 +134235,11 @@
     "path": "src/test/reservation-card-guarantee.test.ts",
     "category": "test",
     "extension": ".ts"
+   },
+   {
+    "path": "src/test/reservation-closure-dialog.test.tsx",
+    "category": "test",
+    "extension": ".tsx"
    },
    {
     "path": "src/test/reservation-confirmation-deposit-ops.test.ts",
@@ -138814,6 +139347,21 @@
     "extension": ".sql"
    },
    {
+    "path": "supabase/migrations/20261019090000_floor_plan_workspace_v3.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261019090100_floor_plan_seating_transition.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
+    "path": "supabase/migrations/20261019090200_floor_plan_assignment_activity.sql",
+    "category": "database-migration",
+    "extension": ".sql"
+   },
+   {
     "path": "supabase/tests/actualites_billing_identity_fixture.sql",
     "category": "supabase-configuration",
     "extension": ".sql"
@@ -140859,6 +141407,20 @@
    "detailRef": "1fa5ede5ce5d"
   },
   {
+   "id": "code-module:83355d1a740b",
+   "type": "code-module",
+   "title": "scripts/test-floor-plan-workspace-postgres.mjs",
+   "description": "Module de 375 lignes; exports: aucun export statique.",
+   "path": "scripts/test-floor-plan-workspace-postgres.mjs",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK_FLOORPLAN_PGLITE_MODULE",
+    "supabase"
+   ],
+   "detailRef": "828f8ee4a4a3"
+  },
+  {
    "id": "code-module:f473faa38d50",
    "type": "code-module",
    "title": "scripts/test-golden-tok-responsive.mjs",
@@ -142668,6 +143230,19 @@
    "detailRef": "6068b6611859"
   },
   {
+   "id": "code-module:fb174ade78e7",
+   "type": "code-module",
+   "title": "src/components/dashboard/ReservationClosureDialog.tsx",
+   "description": "Module de 119 lignes; exports: default.",
+   "path": "src/components/dashboard/ReservationClosureDialog.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default"
+   ],
+   "detailRef": "1752f3aaa24e"
+  },
+  {
    "id": "code-module:0e30ba258b62",
    "type": "code-module",
    "title": "src/components/dashboard/RestaurantDashboardHomeView.tsx",
@@ -142934,7 +143509,7 @@
    "id": "code-module:16c38c4aa503",
    "type": "code-module",
    "title": "src/components/floor-plan/FloorPlanAIPanel.tsx",
-   "description": "Module de 444 lignes; exports: AIFloorPlanTable, AIFloorPlanResult, default.",
+   "description": "Module de 446 lignes; exports: AIFloorPlanTable, AIFloorPlanResult, default.",
    "path": "src/components/floor-plan/FloorPlanAIPanel.tsx",
    "line": 1,
    "surface": null,
@@ -142945,7 +143520,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "721fe40068c4"
+   "detailRef": "f4441fdde332"
   },
   {
    "id": "code-module:9cf190fe6463",
@@ -142975,69 +143550,82 @@
    "detailRef": "42b7a6ecfa70"
   },
   {
+   "id": "code-module:b59a02e1e874",
+   "type": "code-module",
+   "title": "src/components/floor-plan/ReservationServiceActions.tsx",
+   "description": "Module de 110 lignes; exports: default.",
+   "path": "src/components/floor-plan/ReservationServiceActions.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "default"
+   ],
+   "detailRef": "a5c92170dc6f"
+  },
+  {
    "id": "code-module:2958e07a8237",
    "type": "code-module",
    "title": "src/components/floor-plan/ServiceBoard.tsx",
-   "description": "Module de 729 lignes; exports: default.",
+   "description": "Module de 710 lignes; exports: default.",
    "path": "src/components/floor-plan/ServiceBoard.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "e561b917fd5b"
+   "detailRef": "7284f275844f"
   },
   {
    "id": "code-module:8973d68a33a5",
    "type": "code-module",
    "title": "src/components/floor-plan/SimpleReservationQueue.tsx",
-   "description": "Module de 221 lignes; exports: default.",
+   "description": "Module de 370 lignes; exports: default.",
    "path": "src/components/floor-plan/SimpleReservationQueue.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "48ea7b154977"
+   "detailRef": "d67c8e720b82"
   },
   {
    "id": "code-module:ebb5be7b8685",
    "type": "code-module",
    "title": "src/components/floor-plan/StudioCanvas.tsx",
-   "description": "Module de 408 lignes; exports: default.",
+   "description": "Module de 409 lignes; exports: default.",
    "path": "src/components/floor-plan/StudioCanvas.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "fa55bd46782e"
+   "detailRef": "e05f1caa1db0"
   },
   {
    "id": "code-module:aaf108fa1674",
    "type": "code-module",
    "title": "src/components/floor-plan/StudioInspector.tsx",
-   "description": "Module de 316 lignes; exports: default.",
+   "description": "Module de 319 lignes; exports: default.",
    "path": "src/components/floor-plan/StudioInspector.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "89972805eca3"
+   "detailRef": "3cd806e2112d"
   },
   {
    "id": "code-module:6adcbf62bf06",
    "type": "code-module",
    "title": "src/components/floor-plan/StudioPalette.tsx",
-   "description": "Module de 290 lignes; exports: default.",
+   "description": "Module de 295 lignes; exports: default.",
    "path": "src/components/floor-plan/StudioPalette.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "1183b281f186"
+   "detailRef": "0b9cf6cfa29d"
   },
   {
    "id": "code-module:f79fb1c5fbce",
@@ -143056,14 +143644,14 @@
    "id": "code-module:173a12be284c",
    "type": "code-module",
    "title": "src/components/floor-plan/TableContextDrawer.tsx",
-   "description": "Module de 570 lignes; exports: default.",
+   "description": "Module de 620 lignes; exports: default.",
    "path": "src/components/floor-plan/TableContextDrawer.tsx",
    "line": 1,
    "surface": null,
    "tags": [
     "default"
    ],
-   "detailRef": "865b7797545d"
+   "detailRef": "9e0b96e232d5"
   },
   {
    "id": "code-module:6104b0867141",
@@ -143142,7 +143730,7 @@
    "id": "code-module:4b3b934b39d2",
    "type": "code-module",
    "title": "src/components/floor-plan/serviceShared.ts",
-   "description": "Module de 639 lignes; exports: ServiceReservation, ServiceDraftTable, ReservationDropState, RenderedTableFrame, TableDensity, TableServiceStateKey, TableServiceState, ReservationPlacementScore, ReservationTableRecommendation, getSafeTime, getReservationCustomerLabel, getReservationStatusTone, getReservationMiamzPriority, getReservationMiamzPriorityLabel, isZeroAttenteReservation, getReservationSpecialRequest, getShortDateLabel, getTableDensity, getCompactReservationCustomerLabel, scoreReservationPlacement, getRecommendedTableByReservation, planAutomaticPlacement, getTableServiceState.",
+   "description": "Module de 728 lignes; exports: ServiceReservation, ServiceReservationActionStatus, ServiceReservationAction, ServiceDraftTable, ReservationDropState, RenderedTableFrame, TableDensity, TableServiceStateKey, TableServiceState, ReservationPlacementScore, ReservationTableRecommendation, isActiveServiceReservation, canCloseServiceReservation, getServiceReservationStatusLabel, getServiceReservationActions, getSafeTime, getReservationCustomerLabel, getReservationStatusTone, getReservationMiamzPriority, getReservationMiamzPriorityLabel, isZeroAttenteReservation, getReservationSpecialRequest, getShortDateLabel, getTableDensity, getCompactReservationCustomerLabel, scoreReservationPlacement, getRecommendedTableByReservation, planAutomaticPlacement, getServiceReservationDurationMinutes, getPrimaryServiceReservation, getTableServiceState.",
    "path": "src/components/floor-plan/serviceShared.ts",
    "line": 1,
    "surface": null,
@@ -143153,10 +143741,14 @@
     "ReservationTableRecommendation",
     "ServiceDraftTable",
     "ServiceReservation",
+    "ServiceReservationAction",
+    "ServiceReservationActionStatus",
     "TableDensity",
     "TableServiceState",
     "TableServiceStateKey",
+    "canCloseServiceReservation",
     "getCompactReservationCustomerLabel",
+    "getPrimaryServiceReservation",
     "getRecommendedTableByReservation",
     "getReservationCustomerLabel",
     "getReservationMiamzPriority",
@@ -143164,15 +143756,19 @@
     "getReservationSpecialRequest",
     "getReservationStatusTone",
     "getSafeTime",
+    "getServiceReservationActions",
+    "getServiceReservationDurationMinutes",
+    "getServiceReservationStatusLabel",
     "getShortDateLabel",
     "getTableDensity",
     "getTableServiceState",
+    "isActiveServiceReservation",
     "isZeroAttenteReservation",
     "planAutomaticPlacement",
     "scoreReservationPlacement",
     "supabase"
    ],
-   "detailRef": "69d8eb8b6887"
+   "detailRef": "e8a309049a5a"
   },
   {
    "id": "code-module:5b501cb01df1",
@@ -147664,7 +148260,7 @@
    "id": "code-module:c1add176ede6",
    "type": "code-module",
    "title": "src/lib/floorPlan.ts",
-   "description": "Module de 2120 lignes; exports: FloorPlanTableShape, FloorPlanItemCategory, FloorPlanSeatType, FloorPlanLinearSeatType, FloorPlanRectSeatZone, FloorPlanRoundSeatZone, FloorPlanSeatZone, FloorPlanCornerBenchCorner, FloorPlanSeatPlacement, FloorPlanCornerBenchConfig, FloorPlanItemKind, FloorPlanTableLayout, FloorPlanResizeHandle, FloorPlanRenderedFrame, FloorPlanViewportAnchor, FloorPlanInteractiveFrame, FloorPlanResizeBehavior, getFloorPlanItemResizeBehavior, getFloorPlanInteractiveFrame, FloorPlanResolvedDimensions, FloorPlanTablePreset, RECT_SEAT_ZONES, ROUND_SEAT_ZONES, CORNER_BENCH_CORNERS, SEAT_TYPE_LABELS, RECT_SEAT_ZONE_LABELS, ROUND_SEAT_ZONE_LABELS, CORNER_BENCH_LABELS, isReservableFloorPlanItem, getFloorPlanItemBaseName, getFloorPlanItemTypeLabel, buildSeatLabels, resizeRenderedFloorPlanFrame, getCornerBenchDimensionsFromSeatCounts, getDefaultBenchDimensions, getSeatPlacementsCapacity, getDefaultCornerBenchDimensions, getCornerBenchCapacity, getConfiguredTableCapacity, getResolvedFloorPlanDimensions, getMinimumTableSize, getMinimumFloorPlanResizeSize, getFloorPlanContentPadding, resizeFloorPlanLayoutToFootprint, ensureFloorPlanLayoutFitsCapacity, clampFloorPlanLayout, resolveFloorPlanViewportZoom, getRenderedFloorPlanFrame, getLogicalFloorPlanPositionFromRenderedFrame, FloorPlanViewportItem, FloorPlanViewportHitTarget, FloorPlanViewportModel, buildFloorPlanViewportModel, areFloorPlanLayoutsEquivalent, updateFloorPlanItemLayoutById, normalizeFloorPlanLayout, buildDraftFloorPlanLayout, reservationsOverlap, FLOOR_PLAN_PRESETS.",
+   "description": "Module de 2124 lignes; exports: FloorPlanTableShape, FloorPlanItemCategory, FloorPlanSeatType, FloorPlanLinearSeatType, FloorPlanRectSeatZone, FloorPlanRoundSeatZone, FloorPlanSeatZone, FloorPlanCornerBenchCorner, FloorPlanSeatPlacement, FloorPlanCornerBenchConfig, FloorPlanItemKind, FloorPlanTableLayout, FloorPlanResizeHandle, FloorPlanRenderedFrame, FloorPlanViewportAnchor, FloorPlanInteractiveFrame, FloorPlanResizeBehavior, getFloorPlanItemResizeBehavior, getFloorPlanInteractiveFrame, FloorPlanResolvedDimensions, FloorPlanTablePreset, RECT_SEAT_ZONES, ROUND_SEAT_ZONES, CORNER_BENCH_CORNERS, SEAT_TYPE_LABELS, RECT_SEAT_ZONE_LABELS, ROUND_SEAT_ZONE_LABELS, CORNER_BENCH_LABELS, isReservableFloorPlanItem, getFloorPlanItemBaseName, getFloorPlanItemTypeLabel, buildSeatLabels, resizeRenderedFloorPlanFrame, getCornerBenchDimensionsFromSeatCounts, getDefaultBenchDimensions, getSeatPlacementsCapacity, getDefaultCornerBenchDimensions, getCornerBenchCapacity, getConfiguredTableCapacity, getResolvedFloorPlanDimensions, getMinimumTableSize, getMinimumFloorPlanResizeSize, getFloorPlanContentPadding, resizeFloorPlanLayoutToFootprint, ensureFloorPlanLayoutFitsCapacity, clampFloorPlanLayout, resolveFloorPlanViewportZoom, getRenderedFloorPlanFrame, getLogicalFloorPlanPositionFromRenderedFrame, FloorPlanViewportItem, FloorPlanViewportHitTarget, FloorPlanViewportModel, buildFloorPlanViewportModel, areFloorPlanLayoutsEquivalent, updateFloorPlanItemLayoutById, normalizeFloorPlanLayout, buildDraftFloorPlanLayout, reservationsOverlap, FLOOR_PLAN_PRESETS.",
    "path": "src/lib/floorPlan.ts",
    "line": 1,
    "surface": null,
@@ -147729,7 +148325,21 @@
     "resolveFloorPlanViewportZoom",
     "updateFloorPlanItemLayoutById"
    ],
-   "detailRef": "604f60f970ab"
+   "detailRef": "f02f83cdb277"
+  },
+  {
+   "id": "code-module:8c89fd1f2464",
+   "type": "code-module",
+   "title": "src/lib/floorPlanAiMerge.ts",
+   "description": "Module de 89 lignes; exports: restoreFloorPlanVariant, mergeFloorPlanAiLayout.",
+   "path": "src/lib/floorPlanAiMerge.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "mergeFloorPlanAiLayout",
+    "restoreFloorPlanVariant"
+   ],
+   "detailRef": "f1dd1b2b7958"
   },
   {
    "id": "code-module:fbd9c6674474",
@@ -147752,7 +148362,7 @@
    "id": "code-module:7d4ac85402b0",
    "type": "code-module",
    "title": "src/lib/floorPlanHealth.ts",
-   "description": "Module de 183 lignes; exports: FloorPlanHealthTable, FloorPlanHealthReservation, FloorPlanHealthSummary, getFloorPlanHealthSummary.",
+   "description": "Module de 186 lignes; exports: FloorPlanHealthTable, FloorPlanHealthReservation, FloorPlanHealthSummary, getFloorPlanHealthSummary.",
    "path": "src/lib/floorPlanHealth.ts",
    "line": 1,
    "surface": null,
@@ -147762,7 +148372,7 @@
     "FloorPlanHealthTable",
     "getFloorPlanHealthSummary"
    ],
-   "detailRef": "897c9ab6af63"
+   "detailRef": "913a56d801c0"
   },
   {
    "id": "code-module:079cc0ac43c5",
@@ -147783,6 +148393,20 @@
    "detailRef": "803609d3af3d"
   },
   {
+   "id": "code-module:7261665dcd7c",
+   "type": "code-module",
+   "title": "src/lib/floorPlanNavigation.ts",
+   "description": "Module de 29 lignes; exports: isValidServiceDate, buildFloorPlanHref.",
+   "path": "src/lib/floorPlanNavigation.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "buildFloorPlanHref",
+    "isValidServiceDate"
+   ],
+   "detailRef": "c28c7d16fbd8"
+  },
+  {
    "id": "code-module:54c94eb2f14f",
    "type": "code-module",
    "title": "src/lib/floorPlanPersistence.ts",
@@ -147797,6 +148421,25 @@
     "hasFloorPlanAssignmentChanges"
    ],
    "detailRef": "27483f2eebac"
+  },
+  {
+   "id": "code-module:3a56b2e5b1ae",
+   "type": "code-module",
+   "title": "src/lib/floorPlanWorkspacePersistence.ts",
+   "description": "Module de 188 lignes; exports: FloorPlanWorkspaceMode, FloorPlanWorkspaceSnapshot, FloorPlanWorkspaceSaveResult, serializeFloorPlanWorkspaceLayout, buildFloorPlanWorkspaceSnapshot, buildFloorPlanWorkspaceRequest, getFloorPlanWorkspaceSaveError.",
+   "path": "src/lib/floorPlanWorkspacePersistence.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "FloorPlanWorkspaceMode",
+    "FloorPlanWorkspaceSaveResult",
+    "FloorPlanWorkspaceSnapshot",
+    "buildFloorPlanWorkspaceRequest",
+    "buildFloorPlanWorkspaceSnapshot",
+    "getFloorPlanWorkspaceSaveError",
+    "serializeFloorPlanWorkspaceLayout"
+   ],
+   "detailRef": "d08576254b29"
   },
   {
    "id": "code-module:0ba05370ada1",
@@ -149104,7 +149747,7 @@
    "id": "code-module:3e8ed0804f83",
    "type": "code-module",
    "title": "src/lib/reservationMutations.ts",
-   "description": "Module de 315 lignes; exports: ReservationCreateResult, ReservationGuaranteeQuote, ReservationStatusResult, ReservationMutationResult, CancellationReasonCode, CANCELLATION_REASONS, PROGRESSIVE_OFFER_REENTRY_MESSAGE, createReservationWithValidation, getReservationGuaranteeQuote, finalizeReservationGuaranteeSession, markReservationHonored, updateRestaurantReservationStatus, cancelReservationByCustomer, cancelReservationByRestaurant.",
+   "description": "Module de 333 lignes; exports: ReservationCreateResult, ReservationGuaranteeQuote, ReservationStatusResult, ReservationMutationResult, CancellationReasonCode, CANCELLATION_REASONS, PROGRESSIVE_OFFER_REENTRY_MESSAGE, createReservationWithValidation, getReservationGuaranteeQuote, finalizeReservationGuaranteeSession, markReservationHonored, updateRestaurantReservationStatus, seatRestaurantReservation, cancelReservationByCustomer, cancelReservationByRestaurant.",
    "path": "src/lib/reservationMutations.ts",
    "line": 1,
    "surface": null,
@@ -149123,11 +149766,12 @@
     "getReservationGuaranteeQuote",
     "google",
     "markReservationHonored",
+    "seatRestaurantReservation",
     "stripe",
     "supabase",
     "updateRestaurantReservationStatus"
    ],
-   "detailRef": "99d8ee4d7083"
+   "detailRef": "152860b5340a"
   },
   {
    "id": "code-module:bf08478bcf82",
@@ -152274,7 +152918,7 @@
    "id": "code-module:52e383e2378e",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardPlanSalle.tsx",
-   "description": "Module de 4031 lignes; exports: default.",
+   "description": "Module de 3860 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
    "line": 1,
    "surface": null,
@@ -152283,7 +152927,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "1781dedcf664"
+   "detailRef": "c65d46d2cd2d"
   },
   {
    "id": "code-module:124209e663a8",
@@ -152317,7 +152961,7 @@
    "id": "code-module:f39ec1769aae",
    "type": "code-module",
    "title": "src/pages/dashboard/DashboardReservations.tsx",
-   "description": "Module de 1326 lignes; exports: default.",
+   "description": "Module de 1414 lignes; exports: default.",
    "path": "src/pages/dashboard/DashboardReservations.tsx",
    "line": 1,
    "surface": null,
@@ -152326,7 +152970,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "7488bb1e9dd7"
+   "detailRef": "f1baa07a9682"
   },
   {
    "id": "code-module:6261c9a72668",
@@ -154306,7 +154950,7 @@
    "id": "code-module:1f4428704211",
    "type": "code-module",
    "title": "src/test/commercial-demo-restaurant-tools.test.ts",
-   "description": "Module de 178 lignes; exports: aucun export statique.",
+   "description": "Module de 182 lignes; exports: aucun export statique.",
    "path": "src/test/commercial-demo-restaurant-tools.test.ts",
    "line": 1,
    "surface": null,
@@ -154314,7 +154958,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "816645bfaac4"
+   "detailRef": "46ffc699a80a"
   },
   {
    "id": "code-module:d871b2e8ea3c",
@@ -155422,14 +156066,14 @@
    "id": "code-module:dd8bbe6f1929",
    "type": "code-module",
    "title": "src/test/flat-fee-on-arrival.test.ts",
-   "description": "Module de 64 lignes; exports: aucun export statique.",
+   "description": "Module de 69 lignes; exports: aucun export statique.",
    "path": "src/test/flat-fee-on-arrival.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "c23cc595e145"
+   "detailRef": "9b26bac6d4b5"
   },
   {
    "id": "code-module:cab2de561046",
@@ -155445,23 +156089,34 @@
    "detailRef": "8f08db618204"
   },
   {
+   "id": "code-module:f076d7a38e1c",
+   "type": "code-module",
+   "title": "src/test/floor-plan-ai-merge.test.ts",
+   "description": "Module de 66 lignes; exports: aucun export statique.",
+   "path": "src/test/floor-plan-ai-merge.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "efd511b96c47"
+  },
+  {
    "id": "code-module:b8bf61c0628a",
    "type": "code-module",
    "title": "src/test/floor-plan-assignment-governance.test.ts",
-   "description": "Module de 62 lignes; exports: aucun export statique.",
+   "description": "Module de 67 lignes; exports: aucun export statique.",
    "path": "src/test/floor-plan-assignment-governance.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "623d30b010db"
+   "detailRef": "2aa3853f4875"
   },
   {
    "id": "code-module:02b4699b4608",
    "type": "code-module",
    "title": "src/test/floor-plan-automatic-import.test.ts",
-   "description": "Module de 183 lignes; exports: aucun export statique.",
+   "description": "Module de 190 lignes; exports: aucun export statique.",
    "path": "src/test/floor-plan-automatic-import.test.ts",
    "line": 1,
    "surface": null,
@@ -155469,7 +156124,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "87750e9c86ff"
+   "detailRef": "719ad34b74c1"
   },
   {
    "id": "code-module:3278f0e866a4",
@@ -155505,15 +156160,26 @@
    "detailRef": "214e7453d6fc"
   },
   {
+   "id": "code-module:fe3646cf9b40",
+   "type": "code-module",
+   "title": "src/test/floor-plan-navigation.test.tsx",
+   "description": "Module de 35 lignes; exports: aucun export statique.",
+   "path": "src/test/floor-plan-navigation.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "2ec8ddba68b9"
+  },
+  {
    "id": "code-module:61dee43c6a78",
    "type": "code-module",
    "title": "src/test/floor-plan-page-layout.test.ts",
-   "description": "Module de 116 lignes; exports: aucun export statique.",
+   "description": "Module de 92 lignes; exports: aucun export statique.",
    "path": "src/test/floor-plan-page-layout.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "5f190b5e0de4"
+   "detailRef": "8d97968df110"
   },
   {
    "id": "code-module:f5e3898c2a88",
@@ -155527,15 +156193,50 @@
    "detailRef": "71732f259a4a"
   },
   {
+   "id": "code-module:4cc6fa7eb3cb",
+   "type": "code-module",
+   "title": "src/test/floor-plan-service-ux.test.tsx",
+   "description": "Module de 269 lignes; exports: aucun export statique.",
+   "path": "src/test/floor-plan-service-ux.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "b3bdf59abd2b"
+  },
+  {
+   "id": "code-module:5ba811edac36",
+   "type": "code-module",
+   "title": "src/test/floor-plan-service-workspace.test.tsx",
+   "description": "Module de 682 lignes; exports: aucun export statique.",
+   "path": "src/test/floor-plan-service-workspace.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "supabase"
+   ],
+   "detailRef": "62102ca52c4a"
+  },
+  {
+   "id": "code-module:41aaa66ec05b",
+   "type": "code-module",
+   "title": "src/test/floor-plan-workspace-persistence.test.ts",
+   "description": "Module de 104 lignes; exports: aucun export statique.",
+   "path": "src/test/floor-plan-workspace-persistence.test.ts",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "9b82a2240bb9"
+  },
+  {
    "id": "code-module:6942c06c2113",
    "type": "code-module",
    "title": "src/test/floor-plan.test.ts",
-   "description": "Module de 865 lignes; exports: aucun export statique.",
+   "description": "Module de 889 lignes; exports: aucun export statique.",
    "path": "src/test/floor-plan.test.ts",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "1b97be10aac1"
+   "detailRef": "438141c17172"
   },
   {
    "id": "code-module:95ac5f96266c",
@@ -158351,6 +159052,17 @@
    "detailRef": "322d9e68a7c1"
   },
   {
+   "id": "code-module:0f535bfb6234",
+   "type": "code-module",
+   "title": "src/test/reservation-closure-dialog.test.tsx",
+   "description": "Module de 104 lignes; exports: aucun export statique.",
+   "path": "src/test/reservation-closure-dialog.test.tsx",
+   "line": 1,
+   "surface": null,
+   "tags": [],
+   "detailRef": "966899e468f7"
+  },
+  {
    "id": "code-module:53932cd19dea",
    "type": "code-module",
    "title": "src/test/reservation-confirmation-deposit-ops.test.ts",
@@ -158381,14 +159093,14 @@
    "id": "code-module:33242851085e",
    "type": "code-module",
    "title": "src/test/reservation-fee-integrity.test.ts",
-   "description": "Module de 132 lignes; exports: aucun export statique.",
+   "description": "Module de 135 lignes; exports: aucun export statique.",
    "path": "src/test/reservation-fee-integrity.test.ts",
    "line": 1,
    "surface": null,
    "tags": [
     "supabase"
    ],
-   "detailRef": "99b22ae98d78"
+   "detailRef": "0fa3a1c22123"
   },
   {
    "id": "code-module:621a0bfad82c",
@@ -159375,12 +160087,12 @@
    "id": "code-module:875d3f94a138",
    "type": "code-module",
    "title": "src/test/service-board.test.tsx",
-   "description": "Module de 335 lignes; exports: aucun export statique.",
+   "description": "Module de 340 lignes; exports: aucun export statique.",
    "path": "src/test/service-board.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "05e2233dd155"
+   "detailRef": "6db31d7eb813"
   },
   {
    "id": "code-module:9e5bcf177adb",
@@ -159851,12 +160563,12 @@
    "id": "code-module:83d379acbd8f",
    "type": "code-module",
    "title": "src/test/studio-canvas.test.tsx",
-   "description": "Module de 286 lignes; exports: aucun export statique.",
+   "description": "Module de 318 lignes; exports: aucun export statique.",
    "path": "src/test/studio-canvas.test.tsx",
    "line": 1,
    "surface": null,
    "tags": [],
-   "detailRef": "5d0f7e204e75"
+   "detailRef": "024300da0021"
   },
   {
    "id": "code-module:7b8edcaf7cde",
@@ -179060,6 +179772,36 @@
     "table"
    ],
    "detailRef": "7b6901259547"
+  },
+  {
+   "id": "database-object:1dc72d995ca3",
+   "type": "database-object",
+   "title": "private.floor_plan_validate_layout_v3",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261019090000_floor_plan_workspace_v3.sql",
+   "line": 36,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "111010c8bf79"
+  },
+  {
+   "id": "database-object:66e7afbaca1d",
+   "type": "database-object",
+   "title": "private.floor_plan_workspace_snapshot_v3",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261019090000_floor_plan_workspace_v3.sql",
+   "line": 4,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "ec4f5ff0f5cc"
   },
   {
    "id": "database-object:8ccc24092b54",
@@ -200632,19 +201374,19 @@
    "detailRef": "92e25060dff6"
   },
   {
-   "id": "database-object:fc1770773d6a",
+   "id": "database-object:a58ed1ef0b09",
    "type": "database-object",
    "title": "public.restaurant_save_floor_plan_assignments",
-   "description": "Objet PostgreSQL de type function; 2 définition(s) versionnée(s).",
-   "path": "supabase/migrations/20260712090000_floor_plan_v2_editor_rpc.sql",
-   "line": 407,
+   "description": "Objet PostgreSQL de type function; 3 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261019090200_floor_plan_assignment_activity.sql",
+   "line": 6,
    "surface": null,
    "tags": [
     "function",
     "postgresql",
     "supabase"
    ],
-   "detailRef": "127bc4f1ec0c"
+   "detailRef": "275abf7299aa"
   },
   {
    "id": "database-object:afcf2c2eb1a9",
@@ -200752,6 +201494,21 @@
    "detailRef": "49089b338b83"
   },
   {
+   "id": "database-object:bcd6c885f474",
+   "type": "database-object",
+   "title": "public.restaurant_save_floor_plan_workspace_v3",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261019090000_floor_plan_workspace_v3.sql",
+   "line": 71,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "bca3cfbf0f7e"
+  },
+  {
    "id": "database-object:021db6b7e4f6",
    "type": "database-object",
    "title": "public.restaurant_save_golden_tok_drop",
@@ -200765,6 +201522,21 @@
     "supabase"
    ],
    "detailRef": "fc713a698fca"
+  },
+  {
+   "id": "database-object:d82e6a046eb8",
+   "type": "database-object",
+   "title": "public.restaurant_seat_floor_plan_reservation",
+   "description": "Objet PostgreSQL de type function; 1 définition(s) versionnée(s).",
+   "path": "supabase/migrations/20261019090100_floor_plan_seating_transition.sql",
+   "line": 3,
+   "surface": null,
+   "tags": [
+    "function",
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "d8747ad595e5"
   },
   {
    "id": "database-object:34fad0876655",
@@ -220759,6 +221531,20 @@
    "detailRef": "b5c799d7e141"
   },
   {
+   "id": "document-section:4322bea37f64",
+   "type": "document-section",
+   "title": "Ce qui est vérifié, et ce qui reste à vérifier",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 72,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h2"
+   ],
+   "detailRef": "69df9704b526"
+  },
+  {
    "id": "document-section:cbb1f7511aef",
    "type": "document-section",
    "title": "Ce qui est vérifié",
@@ -221669,6 +222455,20 @@
    "detailRef": "8d2c52a48478"
   },
   {
+   "id": "document-section:ef5a2056f61a",
+   "type": "document-section",
+   "title": "Comportement UX attendu",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 60,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h2"
+   ],
+   "detailRef": "184c5bbb56dc"
+  },
+  {
    "id": "document-section:6fcc03019fb6",
    "type": "document-section",
    "title": "Comportement attendu",
@@ -221807,6 +222607,34 @@
     "h2"
    ],
    "detailRef": "667d64c816fe"
+  },
+  {
+   "id": "document-section:2ef1ef8a4787",
+   "type": "document-section",
+   "title": "Composants du plan",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 150,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h3"
+   ],
+   "detailRef": "ba8caedf1442"
+  },
+  {
+   "id": "document-section:de3944636b22",
+   "type": "document-section",
+   "title": "Composants et doublons",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 34,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h3"
+   ],
+   "detailRef": "fc96cb5cb55d"
   },
   {
    "id": "document-section:296e78f54447",
@@ -225799,6 +226627,20 @@
    "detailRef": "64989bebcdb4"
   },
   {
+   "id": "document-section:89db37a6d276",
+   "type": "document-section",
+   "title": "Fichiers du lot",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 139,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h2"
+   ],
+   "detailRef": "59502bd24d6f"
+  },
+  {
    "id": "document-section:1bd1ab05fcab",
    "type": "document-section",
    "title": "Fichiers et frontières",
@@ -227479,6 +228321,20 @@
    "detailRef": "530640d961d8"
   },
   {
+   "id": "document-section:42edabf810a2",
+   "type": "document-section",
+   "title": "Incohérences prouvées et corrections du lot",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 40,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h2"
+   ],
+   "detailRef": "c5c329c01e85"
+  },
+  {
    "id": "document-section:8eaa4873483f",
    "type": "document-section",
    "title": "Index Foreign Key Columns",
@@ -227505,6 +228361,20 @@
     "h2"
    ],
    "detailRef": "bc8e41173825"
+  },
+  {
+   "id": "document-section:4200bea7d3ee",
+   "type": "document-section",
+   "title": "Index applicatifs générés",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 200,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h3"
+   ],
+   "detailRef": "644134d7ff82"
   },
   {
    "id": "document-section:273dda72209d",
@@ -227813,6 +228683,20 @@
     "h2"
    ],
    "detailRef": "f7664d09fe54"
+  },
+  {
+   "id": "document-section:ee67bf53bf74",
+   "type": "document-section",
+   "title": "Inventaire des routes et entrées",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 18,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h2"
+   ],
+   "detailRef": "bd5d2acb8f89"
   },
   {
    "id": "document-section:ada37f5a1d45",
@@ -228429,6 +229313,20 @@
     "h2"
    ],
    "detailRef": "11e4cbb52fd3"
+  },
+  {
+   "id": "document-section:0a50b0d4287a",
+   "type": "document-section",
+   "title": "Livraison et retour arrière",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 124,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h2"
+   ],
+   "detailRef": "1d0d7359ca69"
   },
   {
    "id": "document-section:8ac89afb3322",
@@ -229829,6 +230727,20 @@
     "h2"
    ],
    "detailRef": "a60f5a707dc0"
+  },
+  {
+   "id": "document-section:8b4180be0ae1",
+   "type": "document-section",
+   "title": "Note de livraison",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 196,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h3"
+   ],
+   "detailRef": "e7daa78a4700"
   },
   {
    "id": "document-section:48a9213f629a",
@@ -233947,6 +234859,20 @@
    "detailRef": "ec5ff57f9278"
   },
   {
+   "id": "document-section:242a1846adda",
+   "type": "document-section",
+   "title": "Périmètre et méthode",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h2"
+   ],
+   "detailRef": "bcc96e9e004a"
+  },
+  {
    "id": "document-section:3e7c97499bcf",
    "type": "document-section",
    "title": "Périmètre et provenance",
@@ -236145,6 +237071,20 @@
    "detailRef": "98b7d2b7c791"
   },
   {
+   "id": "document-section:ff74dad496d9",
+   "type": "document-section",
+   "title": "Routes, pages et dialogue",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 143,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h3"
+   ],
+   "detailRef": "bfe1e26faab5"
+  },
+  {
    "id": "document-section:859a0d72138f",
    "type": "document-section",
    "title": "Routing",
@@ -236381,6 +237321,20 @@
     "h1"
    ],
    "detailRef": "6b61d8c945b8"
+  },
+  {
+   "id": "document-section:68036e215179",
+   "type": "document-section",
+   "title": "Règles et persistance",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 162,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h3"
+   ],
+   "detailRef": "e7b42c2d9370"
   },
   {
    "id": "document-section:490f637e6e9d",
@@ -236843,6 +237797,20 @@
     "h2"
    ],
    "detailRef": "7a31fa821183"
+  },
+  {
+   "id": "document-section:43b162898902",
+   "type": "document-section",
+   "title": "Résultats de validation locale",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 84,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h3"
+   ],
+   "detailRef": "1d1ddeead64d"
   },
   {
    "id": "document-section:0eac45841d32",
@@ -239491,6 +240459,20 @@
    "detailRef": "7d7878d6a7a3"
   },
   {
+   "id": "document-section:65291aff6bd1",
+   "type": "document-section",
+   "title": "TOK — Audit et amélioration du plan de salle",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h1"
+   ],
+   "detailRef": "4f3bd417e5fb"
+  },
+  {
    "id": "document-section:7043f98b87e4",
    "type": "document-section",
    "title": "TOK — Proposition UX/UI du 10 octobre 2026",
@@ -242037,6 +243019,20 @@
     "h3"
    ],
    "detailRef": "b9a512d19637"
+  },
+  {
+   "id": "document-section:a825cd3c9ba9",
+   "type": "document-section",
+   "title": "Tests et migrations",
+   "description": "Section de TOK — Audit et amélioration du plan de salle.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 171,
+   "surface": null,
+   "tags": [
+    "TOK — Audit et amélioration du plan de salle",
+    "h3"
+   ],
+   "detailRef": "9d6acaaef42c"
   },
   {
    "id": "document-section:95a23a56085f",
@@ -249423,6 +250419,34 @@
    "detailRef": "32c0320007d2"
   },
   {
+   "id": "document:65291aff6bd1",
+   "type": "document",
+   "title": "TOK — Audit et amélioration du plan de salle",
+   "description": "Document Markdown avec 16 section(s).",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "Ce qui est vérifié, et ce qui reste à vérifier",
+    "Comportement UX attendu",
+    "Composants du plan",
+    "Composants et doublons",
+    "Fichiers du lot",
+    "Incohérences prouvées et corrections du lot",
+    "Index applicatifs générés",
+    "Inventaire des routes et entrées",
+    "Livraison et retour arrière",
+    "Note de livraison",
+    "Périmètre et méthode",
+    "Routes, pages et dialogue",
+    "Règles et persistance",
+    "Résultats de validation locale",
+    "TOK — Audit et amélioration du plan de salle",
+    "Tests et migrations"
+   ],
+   "detailRef": "152e545f4f4e"
+  },
+  {
    "id": "document:7043f98b87e4",
    "type": "document",
    "title": "TOK — Proposition UX/UI du 10 octobre 2026",
@@ -256161,6 +257185,19 @@
    "detailRef": "07472a2392bc"
   },
   {
+   "id": "environment-variable:0ff222669946",
+   "type": "environment-variable",
+   "title": "TOK_FLOORPLAN_PGLITE_MODULE",
+   "description": "Nom de variable d’environnement référencé dans 1 module(s); aucune valeur n’est indexée.",
+   "path": "scripts/test-floor-plan-workspace-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    "scripts/test-floor-plan-workspace-postgres.mjs"
+   ],
+   "detailRef": "cbd939dbf8ca"
+  },
+  {
    "id": "environment-variable:8d629a3c05fb",
    "type": "environment-variable",
    "title": "TOK_GALLERY_IMAGE_BUCKET",
@@ -259143,30 +260180,30 @@
    "detailRef": "120a7613eb03"
   },
   {
-   "id": "exported-symbol:77fe9a5e95af",
+   "id": "exported-symbol:a46829db15f4",
    "type": "exported-symbol",
    "title": "CORNER_BENCH_CORNERS",
    "description": "Export variable de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 192,
+   "line": 193,
    "surface": null,
    "tags": [
     "variable"
    ],
-   "detailRef": "dd86d7f05551"
+   "detailRef": "700c57a94fd6"
   },
   {
-   "id": "exported-symbol:0e90b2501d7f",
+   "id": "exported-symbol:f37b221390ba",
    "type": "exported-symbol",
    "title": "CORNER_BENCH_LABELS",
    "description": "Export variable de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 219,
+   "line": 220,
    "surface": null,
    "tags": [
     "variable"
    ],
-   "detailRef": "1eee4dac74ee"
+   "detailRef": "85ce010c3838"
   },
   {
    "id": "exported-symbol:1789dc3928b3",
@@ -263800,17 +264837,17 @@
    "detailRef": "95c74e2d4284"
   },
   {
-   "id": "exported-symbol:fc1599e2e3f2",
+   "id": "exported-symbol:0c63fc75c611",
    "type": "exported-symbol",
    "title": "FLOOR_PLAN_PRESETS",
    "description": "Export variable de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1887,
+   "line": 1891,
    "surface": null,
    "tags": [
     "variable"
    ],
-   "detailRef": "369d870afdb5"
+   "detailRef": "12a957b1cf8f"
   },
   {
    "id": "exported-symbol:22099a02f938",
@@ -264380,17 +265417,17 @@
    "detailRef": "f3c0b61296f5"
   },
   {
-   "id": "exported-symbol:1c5dbfc47c11",
+   "id": "exported-symbol:6c2efd98a322",
    "type": "exported-symbol",
    "title": "FloorPlanHealthSummary",
    "description": "Export typealias de src/lib/floorPlanHealth.ts.",
    "path": "src/lib/floorPlanHealth.ts",
-   "line": 19,
+   "line": 20,
    "surface": null,
    "tags": [
     "typealias"
    ],
-   "detailRef": "54c401c6bc41"
+   "detailRef": "97ae1ca8ab2e"
   },
   {
    "id": "exported-symbol:9cc4709d8845",
@@ -264718,43 +265755,82 @@
    "detailRef": "f190ec3ddda3"
   },
   {
-   "id": "exported-symbol:e9318ec42db3",
+   "id": "exported-symbol:c31e50646938",
    "type": "exported-symbol",
    "title": "FloorPlanViewportHitTarget",
    "description": "Export typealias de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1589,
+   "line": 1590,
    "surface": null,
    "tags": [
     "typealias"
    ],
-   "detailRef": "1c55c1ded6e2"
+   "detailRef": "8653536e5712"
   },
   {
-   "id": "exported-symbol:74bb4209665d",
+   "id": "exported-symbol:7e02ead17892",
    "type": "exported-symbol",
    "title": "FloorPlanViewportItem",
    "description": "Export typealias de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1580,
+   "line": 1581,
    "surface": null,
    "tags": [
     "typealias"
    ],
-   "detailRef": "38334d37332d"
+   "detailRef": "9f046b24e0f0"
   },
   {
-   "id": "exported-symbol:7f7b0226e9b9",
+   "id": "exported-symbol:e598583ca13c",
    "type": "exported-symbol",
    "title": "FloorPlanViewportModel",
    "description": "Export typealias de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1594,
+   "line": 1595,
    "surface": null,
    "tags": [
     "typealias"
    ],
-   "detailRef": "d227d15a0329"
+   "detailRef": "a61bf37a3ebb"
+  },
+  {
+   "id": "exported-symbol:baa027fd2ce0",
+   "type": "exported-symbol",
+   "title": "FloorPlanWorkspaceMode",
+   "description": "Export typealias de src/lib/floorPlanWorkspacePersistence.ts.",
+   "path": "src/lib/floorPlanWorkspacePersistence.ts",
+   "line": 22,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "28d2e2e6967c"
+  },
+  {
+   "id": "exported-symbol:985abb24f1b0",
+   "type": "exported-symbol",
+   "title": "FloorPlanWorkspaceSaveResult",
+   "description": "Export typealias de src/lib/floorPlanWorkspacePersistence.ts.",
+   "path": "src/lib/floorPlanWorkspacePersistence.ts",
+   "line": 29,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "574481357bd1"
+  },
+  {
+   "id": "exported-symbol:405edc360698",
+   "type": "exported-symbol",
+   "title": "FloorPlanWorkspaceSnapshot",
+   "description": "Export typealias de src/lib/floorPlanWorkspacePersistence.ts.",
+   "path": "src/lib/floorPlanWorkspacePersistence.ts",
+   "line": 23,
+   "surface": null,
+   "tags": [
+    "typealias"
+   ],
+   "detailRef": "1b61c2962546"
   },
   {
    "id": "exported-symbol:bb192465f191",
@@ -271584,30 +272660,30 @@
    "detailRef": "f5e0e43aaac4"
   },
   {
-   "id": "exported-symbol:03a837ba291b",
+   "id": "exported-symbol:55f967991b64",
    "type": "exported-symbol",
    "title": "RECT_SEAT_ZONES",
    "description": "Export variable de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 181,
+   "line": 182,
    "surface": null,
    "tags": [
     "variable"
    ],
-   "detailRef": "a32acd38b4ed"
+   "detailRef": "004df53b4e09"
   },
   {
-   "id": "exported-symbol:6744c65b7896",
+   "id": "exported-symbol:9eaf8c5c4744",
    "type": "exported-symbol",
    "title": "RECT_SEAT_ZONE_LABELS",
    "description": "Export variable de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 201,
+   "line": 202,
    "surface": null,
    "tags": [
     "variable"
    ],
-   "detailRef": "53773683d558"
+   "detailRef": "f2d8cff997b4"
   },
   {
    "id": "exported-symbol:07da091bd13d",
@@ -271976,30 +273052,30 @@
    "detailRef": "157391993bcb"
   },
   {
-   "id": "exported-symbol:e525324239e4",
+   "id": "exported-symbol:7bb73e6c3a7d",
    "type": "exported-symbol",
    "title": "ROUND_SEAT_ZONES",
    "description": "Export variable de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 182,
+   "line": 183,
    "surface": null,
    "tags": [
     "variable"
    ],
-   "detailRef": "d9ee5c347676"
+   "detailRef": "f7d5a074e218"
   },
   {
-   "id": "exported-symbol:30063f63666f",
+   "id": "exported-symbol:b91b0399b3fd",
    "type": "exported-symbol",
    "title": "ROUND_SEAT_ZONE_LABELS",
    "description": "Export variable de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 208,
+   "line": 209,
    "surface": null,
    "tags": [
     "variable"
    ],
-   "detailRef": "a614e7122f1c"
+   "detailRef": "c2c1ee969d58"
   },
   {
    "id": "exported-symbol:2aea4a3176b6",
@@ -272259,18 +273335,18 @@
    "detailRef": "ab00d767adfa"
   },
   {
-   "id": "exported-symbol:b194e7961a41",
+   "id": "exported-symbol:498763329c22",
    "type": "exported-symbol",
    "title": "RenderedTableFrame",
    "description": "Export typealias de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 27,
+   "line": 36,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "d07bc50a688c"
+   "detailRef": "1f308c80b6ae"
   },
   {
    "id": "exported-symbol:cddc88b7ddd0",
@@ -272358,18 +273434,18 @@
    "detailRef": "dc34932cd0d5"
   },
   {
-   "id": "exported-symbol:3e2d3bc4e507",
+   "id": "exported-symbol:f7925693600a",
    "type": "exported-symbol",
    "title": "ReservationDropState",
    "description": "Export typealias de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 22,
+   "line": 31,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "0d859d3f0d89"
+   "detailRef": "c57b2150b860"
   },
   {
    "id": "exported-symbol:878e5283f7fd",
@@ -272498,18 +273574,18 @@
    "detailRef": "ca2db82f9145"
   },
   {
-   "id": "exported-symbol:6fddd90228bb",
+   "id": "exported-symbol:c0915116998d",
    "type": "exported-symbol",
    "title": "ReservationPlacementScore",
    "description": "Export typealias de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 55,
+   "line": 64,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "eb55c2231de1"
+   "detailRef": "dd02b87f1f39"
   },
   {
    "id": "exported-symbol:e29d6037f96d",
@@ -272568,18 +273644,18 @@
    "detailRef": "a9bffe1c9c46"
   },
   {
-   "id": "exported-symbol:4e4bffa730cb",
+   "id": "exported-symbol:0a89e553ebef",
    "type": "exported-symbol",
    "title": "ReservationTableRecommendation",
    "description": "Export typealias de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 61,
+   "line": 70,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "ea641334ceaa"
+   "detailRef": "583a0fa7b26f"
   },
   {
    "id": "exported-symbol:05ad1ac27d65",
@@ -273472,17 +274548,17 @@
    "detailRef": "df6493523695"
   },
   {
-   "id": "exported-symbol:c07242d72aba",
+   "id": "exported-symbol:e61ff24e715b",
    "type": "exported-symbol",
    "title": "SEAT_TYPE_LABELS",
    "description": "Export variable de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 194,
+   "line": 195,
    "surface": null,
    "tags": [
     "variable"
    ],
-   "detailRef": "de8b345d767b"
+   "detailRef": "4ba5b518e13a"
   },
   {
    "id": "exported-symbol:e98c909c4d68",
@@ -274331,18 +275407,18 @@
    "detailRef": "d6d6aa658d55"
   },
   {
-   "id": "exported-symbol:fc0097217e92",
+   "id": "exported-symbol:f48fee1af3ea",
    "type": "exported-symbol",
    "title": "ServiceDraftTable",
    "description": "Export typealias de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 13,
+   "line": 22,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "e2c13183dfbc"
+   "detailRef": "8a1dfbb939c1"
   },
   {
    "id": "exported-symbol:4c400f9138b3",
@@ -274385,6 +275461,34 @@
     "typealias"
    ],
    "detailRef": "f62a92fc5e0e"
+  },
+  {
+   "id": "exported-symbol:ab17ddca3d67",
+   "type": "exported-symbol",
+   "title": "ServiceReservationAction",
+   "description": "Export typealias de src/components/floor-plan/serviceShared.ts.",
+   "path": "src/components/floor-plan/serviceShared.ts",
+   "line": 16,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "034544ba7bd2"
+  },
+  {
+   "id": "exported-symbol:e657aed68f7a",
+   "type": "exported-symbol",
+   "title": "ServiceReservationActionStatus",
+   "description": "Export typealias de src/components/floor-plan/serviceShared.ts.",
+   "path": "src/components/floor-plan/serviceShared.ts",
+   "line": 14,
+   "surface": null,
+   "tags": [
+    "supabase",
+    "typealias"
+   ],
+   "detailRef": "c6940481988b"
   },
   {
    "id": "exported-symbol:93e435147fa8",
@@ -277268,18 +278372,18 @@
    "detailRef": "df097c65a360"
   },
   {
-   "id": "exported-symbol:40314265d60f",
+   "id": "exported-symbol:1409253e950e",
    "type": "exported-symbol",
    "title": "TableDensity",
    "description": "Export typealias de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 34,
+   "line": 43,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "c4ab4e30f36d"
+   "detailRef": "1d0a15dc894c"
   },
   {
    "id": "exported-symbol:c99cac4ac8c2",
@@ -277334,32 +278438,32 @@
    "detailRef": "e52801c018d3"
   },
   {
-   "id": "exported-symbol:755be56dc185",
+   "id": "exported-symbol:ad27bc2db349",
    "type": "exported-symbol",
    "title": "TableServiceState",
    "description": "Export typealias de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 47,
+   "line": 56,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "40cef88af2ed"
+   "detailRef": "fd5c78ce1358"
   },
   {
-   "id": "exported-symbol:dd272ee2f7f0",
+   "id": "exported-symbol:667291d6f980",
    "type": "exported-symbol",
    "title": "TableServiceStateKey",
    "description": "Export typealias de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 35,
+   "line": 44,
    "surface": null,
    "tags": [
     "supabase",
     "typealias"
    ],
-   "detailRef": "0c8e346448f1"
+   "detailRef": "53684e2d910a"
   },
   {
    "id": "exported-symbol:7f2cd6bf8bb0",
@@ -279845,17 +280949,17 @@
    "detailRef": "1afa80b9101a"
   },
   {
-   "id": "exported-symbol:3341b6066a4a",
+   "id": "exported-symbol:5717b818d222",
    "type": "exported-symbol",
    "title": "areFloorPlanLayoutsEquivalent",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1724,
+   "line": 1726,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "398ab62e31c8"
+   "detailRef": "9f490291c16c"
   },
   {
    "id": "exported-symbol:f5ba6b3815ca",
@@ -281147,17 +282251,17 @@
    "detailRef": "87769fd88fd3"
   },
   {
-   "id": "exported-symbol:78d98686b340",
+   "id": "exported-symbol:174ea71780df",
    "type": "exported-symbol",
    "title": "buildDraftFloorPlanLayout",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1847,
+   "line": 1849,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "7d688d2de6c0"
+   "detailRef": "1330a42b062a"
   },
   {
    "id": "exported-symbol:31906f0d77a7",
@@ -281217,17 +282321,56 @@
    "detailRef": "8594b6736b4c"
   },
   {
-   "id": "exported-symbol:0c5452d25e0c",
+   "id": "exported-symbol:032a1a3e394a",
    "type": "exported-symbol",
-   "title": "buildFloorPlanViewportModel",
-   "description": "Export function de src/lib/floorPlan.ts.",
-   "path": "src/lib/floorPlan.ts",
-   "line": 1626,
+   "title": "buildFloorPlanHref",
+   "description": "Export function de src/lib/floorPlanNavigation.ts.",
+   "path": "src/lib/floorPlanNavigation.ts",
+   "line": 10,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "e6750370aa62"
+   "detailRef": "9e61413c83f8"
+  },
+  {
+   "id": "exported-symbol:16987551d5cd",
+   "type": "exported-symbol",
+   "title": "buildFloorPlanViewportModel",
+   "description": "Export function de src/lib/floorPlan.ts.",
+   "path": "src/lib/floorPlan.ts",
+   "line": 1627,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "17e3998c2677"
+  },
+  {
+   "id": "exported-symbol:24de67c5a905",
+   "type": "exported-symbol",
+   "title": "buildFloorPlanWorkspaceRequest",
+   "description": "Export function de src/lib/floorPlanWorkspacePersistence.ts.",
+   "path": "src/lib/floorPlanWorkspacePersistence.ts",
+   "line": 95,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "a8f6d2ce5981"
+  },
+  {
+   "id": "exported-symbol:58d4ecb25ea5",
+   "type": "exported-symbol",
+   "title": "buildFloorPlanWorkspaceSnapshot",
+   "description": "Export function de src/lib/floorPlanWorkspacePersistence.ts.",
+   "path": "src/lib/floorPlanWorkspacePersistence.ts",
+   "line": 72,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "e18bf6b7f8b0"
   },
   {
    "id": "exported-symbol:1f8b1faeb186",
@@ -281858,17 +283001,17 @@
    "detailRef": "56aa444e611b"
   },
   {
-   "id": "exported-symbol:8072b5918be5",
+   "id": "exported-symbol:63d47378d4be",
    "type": "exported-symbol",
    "title": "buildSeatLabels",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 355,
+   "line": 356,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "43393739c1a3"
+   "detailRef": "34d471ce423b"
   },
   {
    "id": "exported-symbol:5ebe935d7177",
@@ -282698,6 +283841,20 @@
    "detailRef": "198e3d5f820b"
   },
   {
+   "id": "exported-symbol:029ae4b195c4",
+   "type": "exported-symbol",
+   "title": "canCloseServiceReservation",
+   "description": "Export function de src/components/floor-plan/serviceShared.ts.",
+   "path": "src/components/floor-plan/serviceShared.ts",
+   "line": 90,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "9c95c2009c8f"
+  },
+  {
    "id": "exported-symbol:6a81020cfe34",
    "type": "exported-symbol",
    "title": "canOperateCommercialDemoHost",
@@ -282822,12 +283979,12 @@
    "detailRef": "a627db281bc2"
   },
   {
-   "id": "exported-symbol:d498ad9e242f",
+   "id": "exported-symbol:ae08be50562c",
    "type": "exported-symbol",
    "title": "cancelReservationByCustomer",
    "description": "Export function de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 262,
+   "line": 280,
    "surface": null,
    "tags": [
     "function",
@@ -282835,15 +283992,15 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "da97f1a7a38a"
+   "detailRef": "4d5d33f6a222"
   },
   {
-   "id": "exported-symbol:4a62b3ec6391",
+   "id": "exported-symbol:825e9bd80e00",
    "type": "exported-symbol",
    "title": "cancelReservationByRestaurant",
    "description": "Export function de src/lib/reservationMutations.ts.",
    "path": "src/lib/reservationMutations.ts",
-   "line": 287,
+   "line": 305,
    "surface": null,
    "tags": [
     "function",
@@ -282851,7 +284008,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "58c21e6214df"
+   "detailRef": "f9872281b34c"
   },
   {
    "id": "exported-symbol:1bc0576cfd10",
@@ -283084,17 +284241,17 @@
    "detailRef": "009946969ddc"
   },
   {
-   "id": "exported-symbol:aa9b9411cf51",
+   "id": "exported-symbol:9b1d58f9c099",
    "type": "exported-symbol",
    "title": "clampFloorPlanLayout",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1423,
+   "line": 1424,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "a8c7565c7cc3"
+   "detailRef": "21ebd837b1d4"
   },
   {
    "id": "exported-symbol:3b7334a4fbd8",
@@ -286126,6 +287283,19 @@
    "detailRef": "409563278781"
   },
   {
+   "id": "exported-symbol:d25b94198659",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/dashboard/ReservationClosureDialog.tsx.",
+   "path": "src/components/dashboard/ReservationClosureDialog.tsx",
+   "line": 24,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "e50fe5b61e02"
+  },
+  {
    "id": "exported-symbol:80c94821f821",
    "type": "exported-symbol",
    "title": "default",
@@ -286367,19 +287537,19 @@
    "detailRef": "54ee2d70d78c"
   },
   {
-   "id": "exported-symbol:92a2f0e60cd0",
+   "id": "exported-symbol:e795ae1cb501",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/floor-plan/FloorPlanAIPanel.tsx.",
    "path": "src/components/floor-plan/FloorPlanAIPanel.tsx",
-   "line": 118,
+   "line": 120,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "8db11b229b30"
+   "detailRef": "b601d8cff75d"
   },
   {
    "id": "exported-symbol:215d3164ee04",
@@ -286395,30 +287565,43 @@
    "detailRef": "8b0959282e46"
   },
   {
-   "id": "exported-symbol:f55ae1b31450",
+   "id": "exported-symbol:239e5910de88",
+   "type": "exported-symbol",
+   "title": "default",
+   "description": "Export function de src/components/floor-plan/ReservationServiceActions.tsx.",
+   "path": "src/components/floor-plan/ReservationServiceActions.tsx",
+   "line": 34,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "3db7dbaf3952"
+  },
+  {
+   "id": "exported-symbol:af7c8d15b613",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/floor-plan/ServiceBoard.tsx.",
    "path": "src/components/floor-plan/ServiceBoard.tsx",
-   "line": 170,
+   "line": 175,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "0d23c75cf716"
+   "detailRef": "eb9583a1b16f"
   },
   {
-   "id": "exported-symbol:b84dd13fd5a1",
+   "id": "exported-symbol:78ca892b57a8",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/floor-plan/SimpleReservationQueue.tsx.",
    "path": "src/components/floor-plan/SimpleReservationQueue.tsx",
-   "line": 42,
+   "line": 66,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "6148a7560b8d"
+   "detailRef": "f66619d09e3a"
   },
   {
    "id": "exported-symbol:e53332de459c",
@@ -286473,17 +287656,17 @@
    "detailRef": "1b8a40e3f2c3"
   },
   {
-   "id": "exported-symbol:f1866feb08a4",
+   "id": "exported-symbol:94a590141317",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/components/floor-plan/TableContextDrawer.tsx.",
    "path": "src/components/floor-plan/TableContextDrawer.tsx",
-   "line": 146,
+   "line": 154,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "ba5d5870d49f"
+   "detailRef": "01a949d39e44"
   },
   {
    "id": "exported-symbol:210ccd1489e5",
@@ -288955,19 +290138,19 @@
    "detailRef": "027f7050ebce"
   },
   {
-   "id": "exported-symbol:494634703ebc",
+   "id": "exported-symbol:ab54519fc908",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardPlanSalle.tsx.",
    "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
-   "line": 938,
+   "line": 729,
    "surface": null,
    "tags": [
     "function",
     "openai",
     "supabase"
    ],
-   "detailRef": "d9637f9a037f"
+   "detailRef": "fb513ad13cb2"
   },
   {
    "id": "exported-symbol:c02520e6d358",
@@ -288998,19 +290181,19 @@
    "detailRef": "6d9ba569d315"
   },
   {
-   "id": "exported-symbol:fbf86b06a9d9",
+   "id": "exported-symbol:6ebe15ac0d31",
    "type": "exported-symbol",
    "title": "default",
    "description": "Export function de src/pages/dashboard/DashboardReservations.tsx.",
    "path": "src/pages/dashboard/DashboardReservations.tsx",
-   "line": 241,
+   "line": 244,
    "surface": null,
    "tags": [
     "function",
     "stripe",
     "supabase"
    ],
-   "detailRef": "6fb7c184e5aa"
+   "detailRef": "97cb950a1dcf"
   },
   {
    "id": "exported-symbol:baecaca79b34",
@@ -289814,17 +290997,17 @@
    "detailRef": "5a0945ceeca1"
   },
   {
-   "id": "exported-symbol:c73d4acafa55",
+   "id": "exported-symbol:bd7d43f802c7",
    "type": "exported-symbol",
    "title": "ensureFloorPlanLayoutFitsCapacity",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1377,
+   "line": 1378,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "937b50722027"
+   "detailRef": "da028556aa3d"
   },
   {
    "id": "exported-symbol:140bbb6081f5",
@@ -292524,18 +293707,18 @@
    "detailRef": "880ff51c5165"
   },
   {
-   "id": "exported-symbol:73131d7420cc",
+   "id": "exported-symbol:1be3d396294b",
    "type": "exported-symbol",
    "title": "getCompactReservationCustomerLabel",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 171,
+   "line": 236,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "1b8aa77638c4"
+   "detailRef": "c2b576dd2861"
   },
   {
    "id": "exported-symbol:6d79a33eac71",
@@ -292552,43 +293735,43 @@
    "detailRef": "14a07fb71cee"
   },
   {
-   "id": "exported-symbol:7b66c525efda",
+   "id": "exported-symbol:998fcbeace83",
    "type": "exported-symbol",
    "title": "getConfiguredTableCapacity",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1004,
+   "line": 1005,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "e95cd945e773"
+   "detailRef": "637b39a8f666"
   },
   {
-   "id": "exported-symbol:db819e220e9d",
+   "id": "exported-symbol:faf229b4523f",
    "type": "exported-symbol",
    "title": "getCornerBenchCapacity",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 997,
+   "line": 998,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "18cc660db24f"
+   "detailRef": "8c80778b0514"
   },
   {
-   "id": "exported-symbol:7ade681e2aec",
+   "id": "exported-symbol:47f76ed2588f",
    "type": "exported-symbol",
    "title": "getCornerBenchDimensionsFromSeatCounts",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 514,
+   "line": 515,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "9a811fcaf0f7"
+   "detailRef": "f0c3d664e5d9"
   },
   {
    "id": "exported-symbol:328836446619",
@@ -292724,30 +293907,30 @@
    "detailRef": "e1a2456dbd9d"
   },
   {
-   "id": "exported-symbol:9812414ffa6e",
+   "id": "exported-symbol:f9e8a59cf280",
    "type": "exported-symbol",
    "title": "getDefaultBenchDimensions",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 627,
+   "line": 628,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "203d2f2ee58a"
+   "detailRef": "2ee876e8c1b1"
   },
   {
-   "id": "exported-symbol:a758f3de967f",
+   "id": "exported-symbol:22dd6753e15e",
    "type": "exported-symbol",
    "title": "getDefaultCornerBenchDimensions",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 975,
+   "line": 976,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "6f0880bfb5b1"
+   "detailRef": "e75049121e9f"
   },
   {
    "id": "exported-symbol:2a68edf101b1",
@@ -293137,30 +294320,30 @@
    "detailRef": "ff61519a0920"
   },
   {
-   "id": "exported-symbol:ea03fc04595a",
+   "id": "exported-symbol:86e9a0ead3e8",
    "type": "exported-symbol",
    "title": "getFloorPlanContentPadding",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1266,
+   "line": 1267,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "0b6a5d9c1db5"
+   "detailRef": "323c4ff5d846"
   },
   {
-   "id": "exported-symbol:e9009b204576",
+   "id": "exported-symbol:e229a19da1cf",
    "type": "exported-symbol",
    "title": "getFloorPlanHealthSummary",
    "description": "Export function de src/lib/floorPlanHealth.ts.",
    "path": "src/lib/floorPlanHealth.ts",
-   "line": 49,
+   "line": 50,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "e4a8daf89510"
+   "detailRef": "286363eb9267"
   },
   {
    "id": "exported-symbol:a2d7fcdcad05",
@@ -293176,17 +294359,17 @@
    "detailRef": "365b4454df29"
   },
   {
-   "id": "exported-symbol:7909971ffa75",
+   "id": "exported-symbol:eb1cd5d55ace",
    "type": "exported-symbol",
    "title": "getFloorPlanItemBaseName",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 340,
+   "line": 341,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "551244d10d2a"
+   "detailRef": "cd2c8f8931c4"
   },
   {
    "id": "exported-symbol:605707a245e2",
@@ -293202,17 +294385,30 @@
    "detailRef": "11cc817bd282"
   },
   {
-   "id": "exported-symbol:60c3bf221a83",
+   "id": "exported-symbol:91404c7c7cfc",
    "type": "exported-symbol",
    "title": "getFloorPlanItemTypeLabel",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 344,
+   "line": 345,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "88640ed81bd9"
+   "detailRef": "2594dc5f4bf6"
+  },
+  {
+   "id": "exported-symbol:1b2d096ea249",
+   "type": "exported-symbol",
+   "title": "getFloorPlanWorkspaceSaveError",
+   "description": "Export function de src/lib/floorPlanWorkspacePersistence.ts.",
+   "path": "src/lib/floorPlanWorkspacePersistence.ts",
+   "line": 168,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "2f8cf8a8240e"
   },
   {
    "id": "exported-symbol:23717e1d31c9",
@@ -293525,17 +294721,17 @@
    "detailRef": "2083e20763ae"
   },
   {
-   "id": "exported-symbol:f3b72abd8929",
+   "id": "exported-symbol:10452408c587",
    "type": "exported-symbol",
    "title": "getLogicalFloorPlanPositionFromRenderedFrame",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1545,
+   "line": 1546,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "10de99c38350"
+   "detailRef": "452cbd13a71f"
   },
   {
    "id": "exported-symbol:6c743f73940a",
@@ -293738,30 +294934,30 @@
    "detailRef": "12f294f3b679"
   },
   {
-   "id": "exported-symbol:e60be9c14854",
+   "id": "exported-symbol:ab163c8b2519",
    "type": "exported-symbol",
    "title": "getMinimumFloorPlanResizeSize",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1258,
+   "line": 1259,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "aa0e0f64b610"
+   "detailRef": "232d3ee8ef5e"
   },
   {
-   "id": "exported-symbol:1a9c053982fd",
+   "id": "exported-symbol:fe21770a95ac",
    "type": "exported-symbol",
    "title": "getMinimumTableSize",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1236,
+   "line": 1237,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "28952c91a251"
+   "detailRef": "aab0ca7ff8d3"
   },
   {
    "id": "exported-symbol:fff632f4c135",
@@ -294507,6 +295703,20 @@
    "detailRef": "79a165cfe1b1"
   },
   {
+   "id": "exported-symbol:eb8c1a5a68c9",
+   "type": "exported-symbol",
+   "title": "getPrimaryServiceReservation",
+   "description": "Export function de src/components/floor-plan/serviceShared.ts.",
+   "path": "src/components/floor-plan/serviceShared.ts",
+   "line": 559,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "3593db6c5f5e"
+  },
+  {
    "id": "exported-symbol:bbac0449158d",
    "type": "exported-symbol",
    "title": "getPrintCatalog",
@@ -294669,18 +295879,18 @@
    "detailRef": "604b600c9c21"
   },
   {
-   "id": "exported-symbol:f3e5bc06ce5b",
+   "id": "exported-symbol:40e744a3a60d",
    "type": "exported-symbol",
    "title": "getRecommendedTableByReservation",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 288,
+   "line": 361,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "3f33ebde61e4"
+   "detailRef": "c91dcf671561"
   },
   {
    "id": "exported-symbol:993b80887b48",
@@ -294725,17 +295935,17 @@
    "detailRef": "fa2cb8c724f1"
   },
   {
-   "id": "exported-symbol:a296580697f4",
+   "id": "exported-symbol:b3404e571d0b",
    "type": "exported-symbol",
    "title": "getRenderedFloorPlanFrame",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1510,
+   "line": 1511,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "10310937e887"
+   "detailRef": "43cbddad275a"
   },
   {
    "id": "exported-symbol:864357e31353",
@@ -294765,18 +295975,18 @@
    "detailRef": "05d1c5cdc92b"
   },
   {
-   "id": "exported-symbol:54e0c15ff507",
+   "id": "exported-symbol:22c7b475402f",
    "type": "exported-symbol",
    "title": "getReservationCustomerLabel",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 78,
+   "line": 141,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "ca33a5d95a5a"
+   "detailRef": "51097afa7313"
   },
   {
    "id": "exported-symbol:41fbf8859ebe",
@@ -294838,46 +296048,46 @@
    "detailRef": "ea7be1dd485d"
   },
   {
-   "id": "exported-symbol:6d5b9ede22b1",
+   "id": "exported-symbol:84f4e5b86111",
    "type": "exported-symbol",
    "title": "getReservationMiamzPriority",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 117,
+   "line": 182,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "dbc3aef92d62"
+   "detailRef": "2ba6cf057f2d"
   },
   {
-   "id": "exported-symbol:18a80b864a23",
+   "id": "exported-symbol:5e7d84ae5804",
    "type": "exported-symbol",
    "title": "getReservationMiamzPriorityLabel",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 125,
+   "line": 190,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "ca35366246d7"
+   "detailRef": "9b555a89aa7c"
   },
   {
-   "id": "exported-symbol:f18780847226",
+   "id": "exported-symbol:8c3edbb80293",
    "type": "exported-symbol",
    "title": "getReservationSpecialRequest",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 147,
+   "line": 212,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "daceb4cb1da4"
+   "detailRef": "97a32440d11a"
   },
   {
    "id": "exported-symbol:c68d3f3bfd65",
@@ -294908,31 +296118,31 @@
    "detailRef": "8a26e82ca922"
   },
   {
-   "id": "exported-symbol:2047eaa863b6",
+   "id": "exported-symbol:37a4a02a5833",
    "type": "exported-symbol",
    "title": "getReservationStatusTone",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 83,
+   "line": 148,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "77cc2bf1f410"
+   "detailRef": "e3808697e038"
   },
   {
-   "id": "exported-symbol:334ddee6a5e0",
+   "id": "exported-symbol:f049b079efaf",
    "type": "exported-symbol",
    "title": "getResolvedFloorPlanDimensions",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1047,
+   "line": 1048,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "08c177891c6d"
+   "detailRef": "5f0abba203fd"
   },
   {
    "id": "exported-symbol:fe1e49c7b9bc",
@@ -295221,18 +296431,18 @@
    "detailRef": "43e86cea6a91"
   },
   {
-   "id": "exported-symbol:f39ff8b670d2",
+   "id": "exported-symbol:5208e28db762",
    "type": "exported-symbol",
    "title": "getSafeTime",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 74,
+   "line": 137,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "b2bbe21e33c6"
+   "detailRef": "43cecf35207c"
   },
   {
    "id": "exported-symbol:5691a9a25694",
@@ -295263,17 +296473,17 @@
    "detailRef": "05b71f642c39"
   },
   {
-   "id": "exported-symbol:186f8b77033a",
+   "id": "exported-symbol:f10779aa3f97",
    "type": "exported-symbol",
    "title": "getSeatPlacementsCapacity",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 809,
+   "line": 810,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "506a96673836"
+   "detailRef": "2cb28a3d4eca"
   },
   {
    "id": "exported-symbol:182eea5e4422",
@@ -295318,6 +296528,48 @@
    "detailRef": "b965fc1abe87"
   },
   {
+   "id": "exported-symbol:cfb8904a6fc2",
+   "type": "exported-symbol",
+   "title": "getServiceReservationActions",
+   "description": "Export function de src/components/floor-plan/serviceShared.ts.",
+   "path": "src/components/floor-plan/serviceShared.ts",
+   "line": 114,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "054a1e4e4181"
+  },
+  {
+   "id": "exported-symbol:c849457f5c4d",
+   "type": "exported-symbol",
+   "title": "getServiceReservationDurationMinutes",
+   "description": "Export function de src/components/floor-plan/serviceShared.ts.",
+   "path": "src/components/floor-plan/serviceShared.ts",
+   "line": 477,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "a64e84c6ca0d"
+  },
+  {
+   "id": "exported-symbol:44f0c1850d19",
+   "type": "exported-symbol",
+   "title": "getServiceReservationStatusLabel",
+   "description": "Export function de src/components/floor-plan/serviceShared.ts.",
+   "path": "src/components/floor-plan/serviceShared.ts",
+   "line": 95,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "cd5a2ad1f4fd"
+  },
+  {
    "id": "exported-symbol:be14f5fad727",
    "type": "exported-symbol",
    "title": "getServiceSettings",
@@ -295332,18 +296584,18 @@
    "detailRef": "78eb3633d140"
   },
   {
-   "id": "exported-symbol:6677f5cc675b",
+   "id": "exported-symbol:22b41dc8a01e",
    "type": "exported-symbol",
    "title": "getShortDateLabel",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 158,
+   "line": 223,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "863b3238780e"
+   "detailRef": "b0cffea1d0ff"
   },
   {
    "id": "exported-symbol:982c414ef5ba",
@@ -295687,32 +296939,32 @@
    "detailRef": "ed5aa70536df"
   },
   {
-   "id": "exported-symbol:a24ff008ab65",
+   "id": "exported-symbol:865757541739",
    "type": "exported-symbol",
    "title": "getTableDensity",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 165,
+   "line": 230,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "3ad20fa17da0"
+   "detailRef": "c803bc9c0dec"
   },
   {
-   "id": "exported-symbol:7537df58fae3",
+   "id": "exported-symbol:36c105bb22cd",
    "type": "exported-symbol",
    "title": "getTableServiceState",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 523,
+   "line": 622,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "2d0a9e275166"
+   "detailRef": "77409dd287e7"
   },
   {
    "id": "exported-symbol:c4655a8de290",
@@ -297003,6 +298255,20 @@
     "function"
    ],
    "detailRef": "5b6025113bd0"
+  },
+  {
+   "id": "exported-symbol:29789fd4e2a6",
+   "type": "exported-symbol",
+   "title": "isActiveServiceReservation",
+   "description": "Export function de src/components/floor-plan/serviceShared.ts.",
+   "path": "src/components/floor-plan/serviceShared.ts",
+   "line": 85,
+   "surface": null,
+   "tags": [
+    "function",
+    "supabase"
+   ],
+   "detailRef": "26a09277b9b2"
   },
   {
    "id": "exported-symbol:610fb440fb5d",
@@ -298354,17 +299620,17 @@
    "detailRef": "100545656016"
   },
   {
-   "id": "exported-symbol:266064d6e734",
+   "id": "exported-symbol:fff5d759f3bd",
    "type": "exported-symbol",
    "title": "isReservableFloorPlanItem",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 336,
+   "line": 337,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "06ce7e1df9a1"
+   "detailRef": "c2679723cda5"
   },
   {
    "id": "exported-symbol:e5493fa367be",
@@ -298874,6 +300140,19 @@
    "detailRef": "a132f461fc72"
   },
   {
+   "id": "exported-symbol:4560e878128f",
+   "type": "exported-symbol",
+   "title": "isValidServiceDate",
+   "description": "Export function de src/lib/floorPlanNavigation.ts.",
+   "path": "src/lib/floorPlanNavigation.ts",
+   "line": 2,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "dba3d89bc087"
+  },
+  {
    "id": "exported-symbol:cfa36b13ffcc",
    "type": "exported-symbol",
    "title": "isValidTokConnectIdempotencyKey",
@@ -298927,18 +300206,18 @@
    "detailRef": "0d20cd770aa6"
   },
   {
-   "id": "exported-symbol:5ea62c5543af",
+   "id": "exported-symbol:52dafdaf5e84",
    "type": "exported-symbol",
    "title": "isZeroAttenteReservation",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 143,
+   "line": 208,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "e954c51fa104"
+   "detailRef": "91aac23ece4d"
   },
   {
    "id": "exported-symbol:b84c2dd946ea",
@@ -300114,6 +301393,19 @@
    "detailRef": "7647e9ba6fb5"
   },
   {
+   "id": "exported-symbol:24231dae5086",
+   "type": "exported-symbol",
+   "title": "mergeFloorPlanAiLayout",
+   "description": "Export function de src/lib/floorPlanAiMerge.ts.",
+   "path": "src/lib/floorPlanAiMerge.ts",
+   "line": 38,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "55da46cc4a9b"
+  },
+  {
    "id": "exported-symbol:948b758980d2",
    "type": "exported-symbol",
    "title": "mergeGenevaCommercialProspects",
@@ -300537,17 +301829,17 @@
    "detailRef": "ca017f0ae267"
   },
   {
-   "id": "exported-symbol:ba045cecb846",
+   "id": "exported-symbol:76e178ce3b9b",
    "type": "exported-symbol",
    "title": "normalizeFloorPlanLayout",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1753,
+   "line": 1755,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "d2beaee28ff6"
+   "detailRef": "e79e5c9ad226"
   },
   {
    "id": "exported-symbol:1b952ac955d4",
@@ -301776,18 +303068,18 @@
    "detailRef": "90007e3e4394"
   },
   {
-   "id": "exported-symbol:9001c814ae54",
+   "id": "exported-symbol:ee8c626d123d",
    "type": "exported-symbol",
    "title": "planAutomaticPlacement",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 338,
+   "line": 413,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "6abbd9d23c2e"
+   "detailRef": "5d950d625ec3"
   },
   {
    "id": "exported-symbol:cc9dbcc11327",
@@ -303226,17 +304518,17 @@
    "detailRef": "0e1e06b8172f"
   },
   {
-   "id": "exported-symbol:f10c621c7107",
+   "id": "exported-symbol:ad809893e15d",
    "type": "exported-symbol",
    "title": "reservationsOverlap",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1872,
+   "line": 1874,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "facf1292249e"
+   "detailRef": "ac91531e41a3"
   },
   {
    "id": "exported-symbol:df18079305b3",
@@ -303281,30 +304573,30 @@
    "detailRef": "3bd2292a92c7"
   },
   {
-   "id": "exported-symbol:f4a5b82cc168",
+   "id": "exported-symbol:61de1402fe11",
    "type": "exported-symbol",
    "title": "resizeFloorPlanLayoutToFootprint",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1307,
+   "line": 1308,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "1efeb074755f"
+   "detailRef": "67015112979f"
   },
   {
-   "id": "exported-symbol:602203a62d31",
+   "id": "exported-symbol:e11daebcf8cb",
    "type": "exported-symbol",
    "title": "resizeRenderedFloorPlanFrame",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 387,
+   "line": 388,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "5ac022c6c1b1"
+   "detailRef": "fdc4b0b72d82"
   },
   {
    "id": "exported-symbol:dc3d7eaf6e66",
@@ -303366,17 +304658,17 @@
    "detailRef": "60c29de172b2"
   },
   {
-   "id": "exported-symbol:22de2b674aa8",
+   "id": "exported-symbol:19d72d2f8027",
    "type": "exported-symbol",
    "title": "resolveFloorPlanViewportZoom",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1502,
+   "line": 1503,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "dc0e945fb1d6"
+   "detailRef": "9bdd7555fbac"
   },
   {
    "id": "exported-symbol:ab43feb62a4f",
@@ -303711,6 +305003,19 @@
     "supabase"
    ],
    "detailRef": "d8148949c900"
+  },
+  {
+   "id": "exported-symbol:de8f6f98e539",
+   "type": "exported-symbol",
+   "title": "restoreFloorPlanVariant",
+   "description": "Export function de src/lib/floorPlanAiMerge.ts.",
+   "path": "src/lib/floorPlanAiMerge.ts",
+   "line": 10,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "18a607ac5297"
   },
   {
    "id": "exported-symbol:7c65d74e086f",
@@ -304446,18 +305751,18 @@
    "detailRef": "3bf252ff3545"
   },
   {
-   "id": "exported-symbol:a6db4a5a3175",
+   "id": "exported-symbol:7b3db96f6813",
    "type": "exported-symbol",
    "title": "scoreReservationPlacement",
    "description": "Export function de src/components/floor-plan/serviceShared.ts.",
    "path": "src/components/floor-plan/serviceShared.ts",
-   "line": 193,
+   "line": 258,
    "surface": null,
    "tags": [
     "function",
     "supabase"
    ],
-   "detailRef": "f29d396df11e"
+   "detailRef": "f2e3a4f7b1f4"
   },
   {
    "id": "exported-symbol:f0165842d0df",
@@ -304549,6 +305854,22 @@
     "supabase"
    ],
    "detailRef": "0bd93af24ece"
+  },
+  {
+   "id": "exported-symbol:3ccccd7936b8",
+   "type": "exported-symbol",
+   "title": "seatRestaurantReservation",
+   "description": "Export function de src/lib/reservationMutations.ts.",
+   "path": "src/lib/reservationMutations.ts",
+   "line": 263,
+   "surface": null,
+   "tags": [
+    "function",
+    "google",
+    "stripe",
+    "supabase"
+   ],
+   "detailRef": "51ccc8d58a29"
   },
   {
    "id": "exported-symbol:250862a6f7a3",
@@ -304736,6 +306057,19 @@
     "function"
    ],
    "detailRef": "914970f7e5fe"
+  },
+  {
+   "id": "exported-symbol:88974faccb7f",
+   "type": "exported-symbol",
+   "title": "serializeFloorPlanWorkspaceLayout",
+   "description": "Export function de src/lib/floorPlanWorkspacePersistence.ts.",
+   "path": "src/lib/floorPlanWorkspacePersistence.ts",
+   "line": 53,
+   "surface": null,
+   "tags": [
+    "function"
+   ],
+   "detailRef": "07fd1cf63e20"
   },
   {
    "id": "exported-symbol:c5c31a03d820",
@@ -306434,17 +307768,17 @@
    "detailRef": "11a019d15a47"
   },
   {
-   "id": "exported-symbol:aa3467dadf9b",
+   "id": "exported-symbol:cd5f66f42532",
    "type": "exported-symbol",
    "title": "updateFloorPlanItemLayoutById",
    "description": "Export function de src/lib/floorPlan.ts.",
    "path": "src/lib/floorPlan.ts",
-   "line": 1731,
+   "line": 1733,
    "surface": null,
    "tags": [
     "function"
    ],
-   "detailRef": "7ad06df89c4f"
+   "detailRef": "fec047abfe00"
   },
   {
    "id": "exported-symbol:72e3553f5944",
@@ -313621,6 +314955,20 @@
     "documentation"
    ],
    "detailRef": "5e0f7b7b17af"
+  },
+  {
+   "id": "file:45458874df1f",
+   "type": "file",
+   "title": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "description": "Fichier du dépôt classé documentation.",
+   "path": "docs/audits/tok-floor-plan-service-ux-2026-10-19.md",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".md",
+    "documentation"
+   ],
+   "detailRef": "5d58af7f41b5"
   },
   {
    "id": "file:7f61ad2842c5",
@@ -326181,6 +327529,20 @@
    "detailRef": "f127bb01ee8f"
   },
   {
+   "id": "file:27f09e8cdd9f",
+   "type": "file",
+   "title": "scripts/test-floor-plan-workspace-postgres.mjs",
+   "description": "Fichier du dépôt classé automation-script.",
+   "path": "scripts/test-floor-plan-workspace-postgres.mjs",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".mjs",
+    "automation-script"
+   ],
+   "detailRef": "f860de968e46"
+  },
+  {
    "id": "file:3d0b61c0e493",
    "type": "file",
    "title": "scripts/test-golden-tok-responsive.mjs",
@@ -327931,6 +329293,20 @@
    "detailRef": "926b9367f121"
   },
   {
+   "id": "file:de3a0c6b746c",
+   "type": "file",
+   "title": "src/components/dashboard/ReservationClosureDialog.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/dashboard/ReservationClosureDialog.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "2b59d73140c9"
+  },
+  {
    "id": "file:2d0d49a4c8e3",
    "type": "file",
    "title": "src/components/dashboard/RestaurantDashboardHomeView.css",
@@ -328251,6 +329627,20 @@
     "frontend-component"
    ],
    "detailRef": "c66c402c8b3e"
+  },
+  {
+   "id": "file:70987be2b9db",
+   "type": "file",
+   "title": "src/components/floor-plan/ReservationServiceActions.tsx",
+   "description": "Fichier du dépôt classé frontend-component.",
+   "path": "src/components/floor-plan/ReservationServiceActions.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "frontend-component"
+   ],
+   "detailRef": "19d8169f68a2"
   },
   {
    "id": "file:faf042b1d83f",
@@ -332159,6 +333549,20 @@
    "detailRef": "b2c8c0393517"
   },
   {
+   "id": "file:7379c251680c",
+   "type": "file",
+   "title": "src/lib/floorPlanAiMerge.ts",
+   "description": "Fichier du dépôt classé application-library.",
+   "path": "src/lib/floorPlanAiMerge.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "application-library"
+   ],
+   "detailRef": "be4307895d78"
+  },
+  {
    "id": "file:5ab8df7a57fa",
    "type": "file",
    "title": "src/lib/floorPlanFrameScheduler.ts",
@@ -332201,6 +333605,20 @@
    "detailRef": "7a417ea33ae6"
   },
   {
+   "id": "file:b5a7dd24f2a0",
+   "type": "file",
+   "title": "src/lib/floorPlanNavigation.ts",
+   "description": "Fichier du dépôt classé application-library.",
+   "path": "src/lib/floorPlanNavigation.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "application-library"
+   ],
+   "detailRef": "51ac4743dd7c"
+  },
+  {
    "id": "file:cca586592d73",
    "type": "file",
    "title": "src/lib/floorPlanPersistence.ts",
@@ -332213,6 +333631,20 @@
     "application-library"
    ],
    "detailRef": "07060d6b8925"
+  },
+  {
+   "id": "file:079420a0482c",
+   "type": "file",
+   "title": "src/lib/floorPlanWorkspacePersistence.ts",
+   "description": "Fichier du dépôt classé application-library.",
+   "path": "src/lib/floorPlanWorkspacePersistence.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "application-library"
+   ],
+   "detailRef": "6824f456cf4a"
   },
   {
    "id": "file:19f3ca5807c1",
@@ -339341,6 +340773,20 @@
    "detailRef": "5510a2b31a54"
   },
   {
+   "id": "file:a99d62667717",
+   "type": "file",
+   "title": "src/test/floor-plan-ai-merge.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/floor-plan-ai-merge.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "3959b27214c7"
+  },
+  {
    "id": "file:c90ebddd3fdb",
    "type": "file",
    "title": "src/test/floor-plan-assignment-governance.test.ts",
@@ -339411,6 +340857,20 @@
    "detailRef": "b3bdbffb1a1a"
   },
   {
+   "id": "file:e150500b3b40",
+   "type": "file",
+   "title": "src/test/floor-plan-navigation.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/floor-plan-navigation.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "2c6f0a1985fc"
+  },
+  {
    "id": "file:b9a1b0e1e857",
    "type": "file",
    "title": "src/test/floor-plan-page-layout.test.ts",
@@ -339437,6 +340897,48 @@
     "test"
    ],
    "detailRef": "515358e1e9f0"
+  },
+  {
+   "id": "file:053576a76c54",
+   "type": "file",
+   "title": "src/test/floor-plan-service-ux.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/floor-plan-service-ux.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "0faf4ef4530c"
+  },
+  {
+   "id": "file:18d7e6d26939",
+   "type": "file",
+   "title": "src/test/floor-plan-service-workspace.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/floor-plan-service-workspace.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "9fbe6934e18f"
+  },
+  {
+   "id": "file:38f2acc9d783",
+   "type": "file",
+   "title": "src/test/floor-plan-workspace-persistence.test.ts",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/floor-plan-workspace-persistence.test.ts",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".ts",
+    "test"
+   ],
+   "detailRef": "eff733fedb9f"
   },
   {
    "id": "file:d7c4f2b3c203",
@@ -342545,6 +344047,20 @@
     "test"
    ],
    "detailRef": "4ad430439032"
+  },
+  {
+   "id": "file:cc30db4beaf6",
+   "type": "file",
+   "title": "src/test/reservation-closure-dialog.test.tsx",
+   "description": "Fichier du dépôt classé test.",
+   "path": "src/test/reservation-closure-dialog.test.tsx",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".tsx",
+    "test"
+   ],
+   "detailRef": "347167e4e9a3"
   },
   {
    "id": "file:b4ec66ed82e1",
@@ -356841,6 +358357,48 @@
    "detailRef": "efa5c991d9f7"
   },
   {
+   "id": "file:ffee8f5c0927",
+   "type": "file",
+   "title": "supabase/migrations/20261019090000_floor_plan_workspace_v3.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261019090000_floor_plan_workspace_v3.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "2c4b601e1aaf"
+  },
+  {
+   "id": "file:97c3c953291c",
+   "type": "file",
+   "title": "supabase/migrations/20261019090100_floor_plan_seating_transition.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261019090100_floor_plan_seating_transition.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "d30b7086f683"
+  },
+  {
+   "id": "file:174064dc2d3d",
+   "type": "file",
+   "title": "supabase/migrations/20261019090200_floor_plan_assignment_activity.sql",
+   "description": "Fichier du dépôt classé database-migration.",
+   "path": "supabase/migrations/20261019090200_floor_plan_assignment_activity.sql",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".sql",
+    "database-migration"
+   ],
+   "detailRef": "62104c32cf1a"
+  },
+  {
    "id": "file:e79b29a1c0b4",
    "type": "file",
    "title": "supabase/tests/actualites_billing_identity_fixture.sql",
@@ -359092,14 +360650,14 @@
    "id": "frontend-route:1e384b00f090",
    "type": "frontend-route",
    "title": "/dashboard/plan-salle-v2",
-   "description": "Redirection vers /dashboard/plan-salle.",
+   "description": "Redirection vers { pathname: \"/dashboard/plan-salle\", search, hash.",
    "path": "src/App.tsx",
    "line": 653,
    "surface": "restaurant",
    "tags": [
     "Navigate"
    ],
-   "detailRef": "587e9afeb2fc"
+   "detailRef": "3c1110f806c0"
   },
   {
    "id": "frontend-route:86e96c40b83f",
@@ -361063,7 +362621,7 @@
    "id": "integration:4226c0e68c60",
    "type": "integration",
    "title": "Supabase",
-   "description": "Intégration externe détectée dans 776 module(s).",
+   "description": "Intégration externe détectée dans 778 module(s).",
    "path": "scripts/app-store-review-account.mjs",
    "line": null,
    "surface": null,
@@ -361111,6 +362669,7 @@
     "scripts/test-actualites-billing-postgres.mjs",
     "scripts/test-checkout-security-postgres.mjs",
     "scripts/test-checkout-security-runner.test.mjs",
+    "scripts/test-floor-plan-workspace-postgres.mjs",
     "scripts/test-print-protocol-postgres.mjs",
     "scripts/test-print-protocol-runner.test.mjs",
     "scripts/test-reservation-guarantee-idempotency-postgres.mjs",
@@ -361482,6 +363041,7 @@
     "src/test/flat-reservation-billing-fallback.test.ts",
     "src/test/floor-plan-assignment-governance.test.ts",
     "src/test/floor-plan-automatic-import.test.ts",
+    "src/test/floor-plan-service-workspace.test.tsx",
     "src/test/frontend-10k-readiness.test.ts",
     "src/test/full-audit-remediation-20260711.test.ts",
     "src/test/generate-campaign-ai-optimization.test.ts",
@@ -361846,7 +363406,7 @@
     "workers/image-ai-worker/runtime-hardening.test.mjs",
     "workers/image-ai-worker/windows-setup.test.mjs"
    ],
-   "detailRef": "f38902282788"
+   "detailRef": "aa9545ba1e6b"
   },
   {
    "id": "integration:c20910a79a78",
@@ -370349,6 +371909,48 @@
    "detailRef": "839abf917116"
   },
   {
+   "id": "migration:d36c0b637136",
+   "type": "migration",
+   "title": "20261019090000 Floor Plan Workspace V3",
+   "description": "Migration SQL de 355 lignes, 3 objets CREATE détectés.",
+   "path": "supabase/migrations/20261019090000_floor_plan_workspace_v3.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "388df597ba2f"
+  },
+  {
+   "id": "migration:542b6d77d443",
+   "type": "migration",
+   "title": "20261019090100 Floor Plan Seating Transition",
+   "description": "Migration SQL de 120 lignes, 1 objets CREATE détectés.",
+   "path": "supabase/migrations/20261019090100_floor_plan_seating_transition.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "e4ee076a67ba"
+  },
+  {
+   "id": "migration:ab5a2b01da9a",
+   "type": "migration",
+   "title": "20261019090200 Floor Plan Assignment Activity",
+   "description": "Migration SQL de 199 lignes, 1 objets CREATE détectés.",
+   "path": "supabase/migrations/20261019090200_floor_plan_assignment_activity.sql",
+   "line": 1,
+   "surface": null,
+   "tags": [
+    "postgresql",
+    "supabase"
+   ],
+   "detailRef": "e42c7a3d50e5"
+  },
+  {
    "id": "package-script:5bd6dc98483a",
    "type": "package-script",
    "title": "audit:business-wiring",
@@ -372472,7 +374074,7 @@
     "openai",
     "supabase"
    ],
-   "detailRef": "1e05cc70bb85"
+   "detailRef": "b1f391c83e57"
   },
   {
    "id": "page:9caeedd480bc",
@@ -372515,7 +374117,7 @@
     "stripe",
     "supabase"
    ],
-   "detailRef": "8967b43ddc03"
+   "detailRef": "3c616b6e0c9c"
   },
   {
    "id": "page:1d140945a02d",
@@ -375961,6 +377563,45 @@
    "detailRef": "6cce60ae20fb"
   },
   {
+   "id": "path-literal:501280056786",
+   "type": "path-literal",
+   "title": "/commercial/demo/restaurant/dashboard/plan-salle?date=2026-05-27&reservation=demo-reservation",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/floor-plan-navigation.test.tsx",
+   "line": 32,
+   "surface": null,
+   "tags": [
+    "src/test/floor-plan-navigation.test.tsx"
+   ],
+   "detailRef": "83784b939a57"
+  },
+  {
+   "id": "path-literal:16acac465659",
+   "type": "path-literal",
+   "title": "/commercial/demo/restaurant/dashboard/reservations",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/floor-plan-navigation.test.tsx",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "src/test/floor-plan-navigation.test.tsx"
+   ],
+   "detailRef": "172ab9d204da"
+  },
+  {
+   "id": "path-literal:fa2fdeb71f7f",
+   "type": "path-literal",
+   "title": "/commercial/demo/restaurant",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/floor-plan-navigation.test.tsx",
+   "line": 28,
+   "surface": null,
+   "tags": [
+    "src/test/floor-plan-navigation.test.tsx"
+   ],
+   "detailRef": "ac8903917ef7"
+  },
+  {
    "id": "path-literal:18c840ba7aaf",
    "type": "path-literal",
    "title": "/commercial/notifications",
@@ -376957,7 +378598,7 @@
    "id": "path-literal:86e96c40b83f",
    "type": "path-literal",
    "title": "/dashboard/plan-salle",
-   "description": "Chemin référencé dans 8 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 11 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/App.tsx",
    "line": 651,
    "surface": null,
@@ -376967,9 +378608,24 @@
     "src/components/dashboard/CommercialDemoScenario.tsx",
     "src/data/userGuideContent.ts",
     "src/lib/featureCatalog.ts",
-    "src/pages/dashboard/useDashboardRestaurant.ts"
+    "src/pages/dashboard/useDashboardRestaurant.ts",
+    "src/test/floor-plan-navigation.test.tsx",
+    "src/test/floor-plan-service-workspace.test.tsx"
    ],
-   "detailRef": "53b8616fef65"
+   "detailRef": "8db6a017e603"
+  },
+  {
+   "id": "path-literal:4c2b90979a83",
+   "type": "path-literal",
+   "title": "/dashboard/plan-salle?date=2026-10-20&branch=branch-a&reservation=bob-tomorrow",
+   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/floor-plan-service-workspace.test.tsx",
+   "line": 514,
+   "surface": null,
+   "tags": [
+    "src/test/floor-plan-service-workspace.test.tsx"
+   ],
+   "detailRef": "03e59554c8f9"
   },
   {
    "id": "path-literal:dc056cff8531",
@@ -393716,6 +395372,20 @@
    "detailRef": "129f29634ed0"
   },
   {
+   "id": "query-parameter:b92c8054196c",
+   "type": "query-parameter",
+   "title": "branch",
+   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
+   "line": 750,
+   "surface": null,
+   "tags": [
+    "src/pages/dashboard/DashboardPlanSalle.tsx",
+    "src/pages/dashboard/DashboardReservations.tsx"
+   ],
+   "detailRef": "5ba7ef99dd6a"
+  },
+  {
    "id": "query-parameter:726c7a93403b",
    "type": "query-parameter",
    "title": "campaign_checkout",
@@ -393962,16 +395632,18 @@
    "id": "query-parameter:5b9435dc79b7",
    "type": "query-parameter",
    "title": "date",
-   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 7 emplacement(s).",
    "path": "src/lib/zeroAttenteReservationContext.ts",
    "line": 76,
    "surface": null,
    "tags": [
     "src/lib/zeroAttenteReservationContext.ts",
     "src/pages/RestaurantDetail.tsx",
+    "src/pages/dashboard/DashboardPlanSalle.tsx",
+    "src/pages/dashboard/DashboardReservations.tsx",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "dc1d7ef2bac0"
+   "detailRef": "5c5825b4434d"
   },
   {
    "id": "query-parameter:25ea31da59a7",
@@ -394803,15 +396475,16 @@
    "id": "query-parameter:311c9f840a9c",
    "type": "query-parameter",
    "title": "reservation",
-   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 4 emplacement(s).",
    "path": "src/pages/Reservations.tsx",
    "line": 288,
    "surface": null,
    "tags": [
     "src/pages/Reservations.tsx",
+    "src/pages/dashboard/DashboardPlanSalle.tsx",
     "src/pages/dashboard/DashboardReservations.tsx"
    ],
-   "detailRef": "145eb51a37ea"
+   "detailRef": "bbf3bcbc6506"
   },
   {
    "id": "query-parameter:16eb7241db4b",
@@ -394893,6 +396566,20 @@
     "src/test/tok-connect-broker.test.ts"
    ],
    "detailRef": "1717f0006396"
+  },
+  {
+   "id": "query-parameter:65b370067ed1",
+   "type": "query-parameter",
+   "title": "service",
+   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
+   "path": "src/pages/dashboard/DashboardPlanSalle.tsx",
+   "line": 757,
+   "surface": null,
+   "tags": [
+    "src/pages/dashboard/DashboardPlanSalle.tsx",
+    "src/pages/dashboard/DashboardReservations.tsx"
+   ],
+   "detailRef": "af7ef5fa6d48"
   },
   {
    "id": "query-parameter:39f1fcc7c252",

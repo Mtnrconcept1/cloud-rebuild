@@ -10,7 +10,7 @@ describe("facturation du forfait a l'arrivee", () => {
   );
   const list = read("src/pages/dashboard/DashboardReservations.tsx");
 
-  it("facture des le passage en arrivee, sans etape de cloture", () => {
+  it("facture des l'arrivee sans attendre la cloture du service", () => {
     expect(migration).toContain("apply_flat_reservation_fee_on_arrival");
     expect(migration).toContain("NEW.billing_fee_chf := 5;");
     expect(migration).toContain("INSERT INTO public.reservation_flat_fee_charges");
@@ -52,12 +52,17 @@ describe("facturation du forfait a l'arrivee", () => {
     expect(migration).toContain("cancelled_by IS NULL");
   });
 
-  it("retire l'etape de cloture de l'ecran, sans condition", () => {
-    // Le forfait n'est plus un repli : « Mon pack » ayant disparu, il n'y a
-    // plus de second modele, donc plus de drapeau a consulter avant de
-    // masquer le parcours de cloture.
+  it("permet de cloturer l'occupation sans reecrire la facturation deja enregistree", () => {
+    const closure = read("src/components/dashboard/ReservationClosureDialog.tsx");
+
+    // La cloture libere la table apres l'arrivee. Elle conserve le point
+    // d'ecriture comptable existant et les montants deja comptabilises.
     expect(list).not.toContain("flatFeeBilling");
-    expect(list).not.toContain("Clôturer la table");
     expect(list).not.toContain("dashboard-pack");
+    expect(list).toContain("canCloseServiceReservation(reservation)");
+    expect(list).toContain("<ReservationClosureDialog");
+    expect(closure).toContain("markReservationHonored(reservation.id, revenueChf)");
+    expect(closure).toContain("revenueChf: alreadyAccounted ? null : revenueChf");
+    expect(closure).not.toContain("supabase");
   });
 });

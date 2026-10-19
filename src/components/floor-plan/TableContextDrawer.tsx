@@ -1,4 +1,4 @@
-import { CalendarClock, CreditCard, Receipt, Star, Table2, UserRound } from "lucide-react";
+import { ArrowUpRight, CalendarClock, CreditCard, Phone, Receipt, Star, Table2, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -12,24 +12,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 import { FLOOR_PLAN_TONE_CLASS } from "./floorPlanTones";
+import ReservationServiceActions from "./ReservationServiceActions";
 import {
   type ReservationPlacementScore,
   type ReservationDropState,
   type ServiceDraftTable,
   type ServiceReservation,
+  type ServiceReservationActionStatus,
   getReservationCustomerLabel,
+  getReservationSpecialRequest,
   getReservationStatusTone,
+  getServiceReservationStatusLabel,
   getSafeTime,
   getShortDateLabel,
   isZeroAttenteReservation,
+  isActiveServiceReservation,
 } from "./serviceShared";
 
 type ReservationPaymentDetails = {
-  isPaid: boolean;
+  isPaid: boolean | null;
   totalAmount: number;
   paymentMethod: string | null;
   cardLabel: string | null;
@@ -67,6 +71,10 @@ type TableContextDrawerProps = {
   onReleaseReservation: (reservationId: string) => void;
   onSelectReservation: (reservationId: string) => void;
   onSelectTable: (tableId: string) => void;
+  onOpenReservationDetails?: (reservationId: string) => void;
+  onReservationStatusChange?: (reservationId: string, status: ServiceReservationActionStatus) => void;
+  pendingReservationStatusId?: string | null;
+  mutationsDisabled?: boolean;
   /** Table attitrée au client de la réservation affichée, s'il en a une. */
   preferredTableId?: string | null;
   /** `null` retire l'attribution. Absent = fonction indisponible (démo). */
@@ -162,24 +170,38 @@ export default function TableContextDrawer({
   onAssignReservationToTable,
   onReleaseReservation,
   onSelectReservation,
-  onSelectTable,
+  onOpenReservationDetails,
+  onReservationStatusChange,
+  pendingReservationStatusId = null,
+  mutationsDisabled = false,
   preferredTableId,
   onSetPreferredTable,
   preferredTablePending = false,
 }: TableContextDrawerProps) {
+  const isActiveReservation = !!selectedReservation && isActiveServiceReservation(selectedReservation);
+  const writesDisabled = mutationsDisabled || pendingReservationStatusId !== null;
+  const alternativeTables = isActiveReservation ? compatibleTables.filter(({ table }) => (
+    table.id !== selectedReservationAssignedTableId && table.is_active && table.capacity > 0 && table.layout.kind === "table"
+  )) : [];
+  const availableReservations = compatibleReservations.filter(isActiveServiceReservation);
+  const specialRequest = selectedReservationSpecialRequest
+    || (selectedReservation ? getReservationSpecialRequest(selectedReservation) : null);
+  const customerPhone = selectedReservation?.customer?.phone?.trim();
+  const phoneDigits = customerPhone?.replace(/[^\d+]/g, "");
+  const telephoneHref = phoneDigits && /^\+?\d{3,}$/.test(phoneDigits) ? `tel:${phoneDigits}` : null;
   const title = selectedReservation && selectedTable
     ? `${selectedTable.table_number} · ${getReservationCustomerLabel(selectedReservation)}`
     : selectedTable
-      ? `Table ${selectedTable.table_number}`
+      ? selectedTable.table_number
       : selectedReservation
         ? getReservationCustomerLabel(selectedReservation)
         : "Contexte service";
   const compatibleTablesSummary = getShortListLabel(
-    compatibleTables.map(({ table, placement }) => `${table.table_number} (${placement.score}/100)`),
+    alternativeTables.slice(1).map(({ table, placement }) => `${table.table_number} (${placement.score}/100)`),
     "Aucune table",
   );
   const compatibleReservationsSummary = getShortListLabel(
-    compatibleReservations.map((reservation) => `${getReservationCustomerLabel(reservation)} ${getSafeTime(reservation.time)}`),
+    availableReservations.map((reservation) => `${getReservationCustomerLabel(reservation)} ${getSafeTime(reservation.time)}`),
     "Aucune suggestion",
   );
   const tableAssignmentsSummary = getShortListLabel(
@@ -192,9 +214,9 @@ export default function TableContextDrawer({
     ? `${selectedReservationPreorderItems.length} produit(s)${formattedPreorderTotal ? ` · ${formattedPreorderTotal}` : ""}`
     : "Aucun produit";
   const paymentSummary = selectedReservationPaymentDetails
-    ? `${selectedReservationPaymentDetails.isPaid ? "Payé" : "À régler"} · ${formatCurrency(selectedReservationPaymentDetails.totalAmount) || "Montant inconnu"}`
+    ? `${selectedReservationPaymentDetails.isPaid === true ? "Payé" : selectedReservationPaymentDetails.isPaid === false ? "À régler" : "À vérifier"} · ${formatCurrency(selectedReservationPaymentDetails.totalAmount) || "Montant inconnu"}`
     : "Aucun paiement";
-  const bestCompatibleTable = selectedReservation && compatibleTables.length > 0 ? compatibleTables[0] : null;
+  const bestCompatibleTable = alternativeTables[0] || null;
 
   // « Attitrer » se lit depuis la table où le client est effectivement posé :
   // c'est le geste naturel du service. À défaut, la table sélectionnée.
@@ -204,11 +226,13 @@ export default function TableContextDrawer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[960px] flex-col gap-0 overflow-hidden rounded-[28px] border border-border bg-background p-0 shadow-2xl sm:max-h-[760px] sm:rounded-[28px]">
+      <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[960px] flex-col gap-0 overflow-hidden rounded-[28px] border border-border bg-background p-0 shadow-2xl sm:max-h-[min(760px,calc(100dvh-2rem))] sm:rounded-[28px]">
         <DialogHeader className="shrink-0 px-5 pb-2 pt-5 pr-12 text-left sm:px-6 sm:pr-12">
           <DialogTitle className="text-xl text-foreground">{title}</DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Actions rapides pour le service. La sélection active reste au premier plan sans inspecteur permanent.
+            {selectedReservation
+              ? isActiveReservation ? "Placement, arrivée et informations du client." : "Historique de la réservation et informations du client."
+              : "Choisissez un client ou consultez les réservations de cette table."}
           </DialogDescription>
         </DialogHeader>
 
@@ -237,7 +261,7 @@ export default function TableContextDrawer({
                             </Badge>
                           ) : null}
                           <Badge className={cn("border", getReservationStatusTone(selectedReservation.status))}>
-                            {selectedReservation.status || "pending"}
+                            {getServiceReservationStatusLabel(selectedReservation.status)}
                           </Badge>
                         </div>
                         <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
@@ -257,12 +281,34 @@ export default function TableContextDrawer({
                       </div>
                     </div>
 
-                    {selectedReservationSpecialRequest ? (
-                      <div className="mt-3 line-clamp-2 rounded-2xl border border-dashed border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
-                        {selectedReservationSpecialRequest}
+                    {customerPhone ? (
+                      <div className="mt-3 flex items-center gap-2 text-sm">
+                        <Phone className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                        {telephoneHref
+                          ? <a href={telephoneHref} className="break-all font-medium text-primary underline-offset-4 hover:underline">{customerPhone}</a>
+                          : <span className="break-all text-foreground">{customerPhone}</span>}
                       </div>
                     ) : null}
-
+                    {specialRequest ? (
+                      <div className="mt-3 rounded-2xl border border-dashed border-border bg-muted px-3 py-2 text-sm">
+                        <p className="font-semibold text-foreground">Demande du client</p>
+                        <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">{specialRequest}</p>
+                      </div>
+                    ) : null}
+                    <ReservationServiceActions
+                      key={selectedReservation.id}
+                      reservation={selectedReservation}
+                      onStatusChange={onReservationStatusChange}
+                      pendingReservationStatusId={pendingReservationStatusId}
+                      disabled={mutationsDisabled || (selectedReservation.status === "arrived" && !selectedReservationAssignedTableId)}
+                      className="mt-3"
+                    />
+                    {isActiveReservation && selectedReservation.status === "arrived" && !selectedReservationAssignedTableId ? (
+                      <p className="mt-2 text-xs text-muted-foreground">Choisissez une table avant d’installer le client.</p>
+                    ) : null}
+                    {isActiveReservation && ["arrived", "seated"].includes(selectedReservation.status || "") && onOpenReservationDetails ? (
+                      <p className="mt-3 text-xs text-muted-foreground">Pour clôturer le service, ouvrez la réservation.</p>
+                    ) : null}
                   </div>
                 ) : null}
 
@@ -287,8 +333,8 @@ export default function TableContextDrawer({
                         </div>
                         <p className="mt-1.5 text-sm text-muted-foreground">
                           {selectedTableAssignments.length > 0
-                            ? `${selectedTableAssignments.length} réservation(s) visibles sur cette table.`
-                            : "Aucune réservation visible sur cette table."}
+                            ? `${selectedTableAssignments.length} réservation(s) sur cette table pour ce service.`
+                            : "Aucune réservation sur cette table pour ce service."}
                         </p>
                       </div>
                     </div>
@@ -302,7 +348,7 @@ export default function TableContextDrawer({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge className={cn("border", FLOOR_PLAN_TONE_CLASS.orange)}>Table recommandee</Badge>
+                      <Badge className={cn("border", FLOOR_PLAN_TONE_CLASS.orange)}>{selectedReservationAssignedTableId ? "Changer de table" : "Table recommandée"}</Badge>
                       <Badge variant="outline" className="border-border bg-card text-foreground">
                         Score {bestCompatibleTable.placement.score}/100
                       </Badge>
@@ -322,31 +368,34 @@ export default function TableContextDrawer({
                   <Button
                     type="button"
                     className="h-10 shrink-0 rounded-2xl"
-                    aria-label={`Affecter table recommandee ${bestCompatibleTable.table.table_number}`}
+                    disabled={writesDisabled}
+                    aria-label={`Placer ${getReservationCustomerLabel(selectedReservation)} à ${bestCompatibleTable.table.table_number}`}
                     onClick={() => onAssignReservationToTable(selectedReservation.id, bestCompatibleTable.table.id)}
                   >
-                    Affecter {bestCompatibleTable.table.table_number}
+                    Placer à {bestCompatibleTable.table.table_number}
                   </Button>
                 </div>
               </div>
             ) : null}
 
             <Accordion type="multiple" className="grid gap-3">
-              {selectedReservation && compatibleTables.length > 0 ? (
+              {selectedReservation && alternativeTables.length > 1 ? (
                 <CompactSection
                   value="compatible-tables"
                   icon={<Table2 className="h-4 w-4" />}
-                  title="Tables compatibles"
+                  title="Autres tables compatibles"
                   subtitle="Suggestions immédiates pour placer cette réservation."
                   summary={compatibleTablesSummary}
                 >
                   <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                    {compatibleTables.map(({ table, placement }) => (
+                    {alternativeTables.slice(1).map(({ table, placement }) => (
                       <Button
                         key={table.id}
                         type="button"
                         variant="outline"
                         className="h-auto justify-between gap-3 rounded-2xl border-border px-4 py-3 text-left"
+                        disabled={writesDisabled}
+                        aria-label={`Placer ${getReservationCustomerLabel(selectedReservation)} à ${table.table_number}`}
                         onClick={() => onAssignReservationToTable(selectedReservation.id, table.id)}
                       >
                         <span className="min-w-0">
@@ -367,7 +416,7 @@ export default function TableContextDrawer({
                 </CompactSection>
               ) : null}
 
-              {selectedTable && selectedTableIsReservable && compatibleReservations.length > 0 ? (
+              {selectedTable && selectedTableIsReservable && (!selectedReservation || isActiveReservation) && availableReservations.length > 0 ? (
                 <CompactSection
                   value="compatible-reservations"
                   icon={<UserRound className="h-4 w-4" />}
@@ -376,12 +425,14 @@ export default function TableContextDrawer({
                   summary={compatibleReservationsSummary}
                 >
                   <div className="grid gap-2">
-                    {compatibleReservations.map((reservation) => (
+                    {availableReservations.map((reservation) => (
                       <Button
                         key={reservation.id}
                         type="button"
                         variant="outline"
                         className="h-auto justify-between rounded-2xl border-border px-4 py-3 text-left"
+                        disabled={writesDisabled || !selectedTable.is_active}
+                        aria-label={`Placer ${getReservationCustomerLabel(reservation)} à ${selectedTable.table_number}`}
                         onClick={() => onAssignReservationToTable(reservation.id, selectedTable.id)}
                       >
                         <span className="font-semibold">{getReservationCustomerLabel(reservation)}</span>
@@ -398,7 +449,7 @@ export default function TableContextDrawer({
                 <CompactSection
                   value="table-planning"
                   icon={<CalendarClock className="h-4 w-4" />}
-                  title="Planning visible sur cette table"
+                  title="Planning de la table"
                   subtitle="Réservations déjà liées à la table."
                   summary={tableAssignmentsSummary}
                 >
@@ -410,8 +461,11 @@ export default function TableContextDrawer({
                         className="flex items-center justify-between rounded-2xl border border-border bg-muted/50 px-4 py-3 text-left transition-colors hover:bg-muted"
                         onClick={() => onSelectReservation(reservation.id)}
                       >
-                        <span className="font-medium text-foreground">{getReservationCustomerLabel(reservation)}</span>
-                        <span className="text-sm text-muted-foreground">{getSafeTime(reservation.time)}</span>
+                        <span className="min-w-0 font-medium text-foreground">{getReservationCustomerLabel(reservation)}</span>
+                        <span className="shrink-0 text-right text-sm text-muted-foreground">
+                          {getSafeTime(reservation.time)}
+                          <span className="mt-0.5 block text-xs">{getServiceReservationStatusLabel(reservation.status)}</span>
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -429,11 +483,11 @@ export default function TableContextDrawer({
                   <div className="flex flex-wrap gap-2">
                     <Badge className={cn(
                       "border",
-                      selectedReservationPaymentDetails.isPaid
+                      selectedReservationPaymentDetails.isPaid === true
                         ? FLOOR_PLAN_TONE_CLASS.emerald
-                        : FLOOR_PLAN_TONE_CLASS.amber,
+                        : selectedReservationPaymentDetails.isPaid === false ? FLOOR_PLAN_TONE_CLASS.amber : FLOOR_PLAN_TONE_CLASS.neutral,
                     )}>
-                      {selectedReservationPaymentDetails.isPaid ? "Payé" : "À régler"}
+                      {selectedReservationPaymentDetails.isPaid === true ? "Payé" : selectedReservationPaymentDetails.isPaid === false ? "À régler" : "Paiement à vérifier"}
                     </Badge>
                     {selectedReservationPaymentDetails.paymentMethod ? (
                       <Badge variant="outline" className="border-border bg-muted text-muted-foreground">
@@ -496,37 +550,31 @@ export default function TableContextDrawer({
               ) : null}
             </Accordion>
 
-            {(selectedReservation || selectedTable) ? <Separator className="bg-border" /> : null}
-
-            {selectedReservation || selectedTable ? (
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <CalendarClock className="h-4 w-4" />
-                <span>La modale reste contextuelle: elle disparaît dès que vous fermez la sélection active.</span>
-              </div>
-            ) : null}
           </div>
         </div>
 
         <DialogFooter className="shrink-0 border-t border-border px-5 pb-4 pt-3 sm:px-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            {selectedReservation && selectedTable && selectedTableIsReservable ? (
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+            {isActiveReservation && selectedReservation && selectedTable && selectedTableIsReservable
+              && selectedTable.id !== selectedReservationAssignedTableId && selectedTable.id !== bestCompatibleTable?.table.id ? (
               <Button
                 type="button"
-                className="h-9 rounded-xl"
+                className="h-auto min-h-10 whitespace-normal rounded-xl"
+                aria-label={`Placer ${getReservationCustomerLabel(selectedReservation)} à ${selectedTable.table_number}`}
                 onClick={() => onAssignReservationToTable(selectedReservation.id, selectedTable.id)}
-                disabled={!selectedPairDropState?.ok}
+                disabled={writesDisabled || !selectedTable.is_active || !selectedPairDropState?.ok}
               >
                 {selectedPairDropState?.ok
-                  ? `Affecter à ${selectedTable.table_number}`
+                  ? `Placer à ${selectedTable.table_number}`
                   : selectedPairDropState?.reason || "Affectation impossible"}
               </Button>
             ) : null}
-            {habitTable && selectedReservation && onSetPreferredTable ? (
+            {isActiveReservation && habitTable && selectedReservation?.user_id && onSetPreferredTable ? (
               <Button
                 type="button"
                 variant={isHabitTablePreferred ? "secondary" : "outline"}
-                className="h-9 rounded-xl"
-                disabled={preferredTablePending}
+                className="h-auto min-h-10 whitespace-normal rounded-xl"
+                disabled={writesDisabled || preferredTablePending}
                 onClick={() => onSetPreferredTable(
                   selectedReservation.user_id,
                   isHabitTablePreferred ? null : habitTable.id,
@@ -538,28 +586,30 @@ export default function TableContextDrawer({
                   : `Toujours ${habitTable.table_number} pour ce client`}
               </Button>
             ) : null}
-            {selectedReservationAssignedTableId ? (
+            {isActiveReservation && selectedReservationAssignedTableId ? (
               <Button
                 type="button"
                 variant="outline"
-                className="h-9 rounded-xl"
+                className="min-h-10 rounded-xl"
+                disabled={writesDisabled}
                 onClick={() => selectedReservation && onReleaseReservation(selectedReservation.id)}
               >
                 Retirer de la table
               </Button>
             ) : null}
-            {selectedTable ? (
+            {selectedReservation && onOpenReservationDetails ? (
               <Button
                 type="button"
                 variant="outline"
-                className="h-9 rounded-xl"
-                onClick={() => onSelectTable(selectedTable.id)}
+                className="min-h-10 rounded-xl"
+                onClick={() => onOpenReservationDetails(selectedReservation.id)}
               >
-                Garder {selectedTable.table_number}
+                Voir la réservation
+                <ArrowUpRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Button>
             ) : null}
-            <Button type="button" variant="secondary" className="h-9 rounded-xl" onClick={onClearSelection}>
-              Fermer la sélection
+            <Button type="button" variant="secondary" className="min-h-10 rounded-xl" onClick={onClearSelection}>
+              Fermer
             </Button>
           </div>
         </DialogFooter>
