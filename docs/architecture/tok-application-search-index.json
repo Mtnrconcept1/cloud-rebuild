@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "3df6a754b203a86d90f16b8a1af00829c42b62d19f5bec47b68118cb40922839",
+ "sourceDigest": "49f257d78dea6c3dccc1c0894e2f56f12e6bb2c4b23524c70351f232a74785da",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,

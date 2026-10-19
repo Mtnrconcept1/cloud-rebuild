@@ -27,7 +27,7 @@ describe("targeted mailing contracts", () => {
     expect(() => parseMailingOptions({ ...options, recipientEmails: emails })).toThrow();
     expect(() => parseMailingOptions({ ...options, selections: {}, recipientEmails: undefined })).toThrow();
     expect(() => mailingAudience({ city: ["Genève"] }, emails)).toThrow();
-    expect(mailingAudienceLabel({}, emails)).toBe("500 destinataire(s) sélectionné(s)");
+    expect(mailingAudienceLabel({}, emails)).toBe("500 destinataires sélectionnés");
     expect(mailingAudienceLabel({}, emails)).not.toContain("@");
   });
   it("keeps legacy generated mode and rejects an invalid image-mode choice", () => {
