@@ -60,7 +60,7 @@ describe("application search index", () => {
     expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/dashboard/equipe")).toBe(true);
     expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/admin/equipe")).toBe(true);
     expect(index.catalogs.featureFlags).toHaveLength(99);
-    expect(index.catalogs.apiRoutes).toHaveLength(9);
+    expect(index.catalogs.apiRoutes).toHaveLength(10);
     expect(index.catalogs.edgeFunctions.length).toBeGreaterThanOrEqual(117);
     expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "ops-admin-approval")).toBe(true);
     expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "ai-restaurant-editor")).toBe(true);
@@ -75,6 +75,8 @@ describe("application search index", () => {
     expect(index.catalogs.files.length).toBeGreaterThan(2_000);
     expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/marketing")).toBe(true);
     expect(index.catalogs.apiRoutes.some((route: { route: string }) => route.route === "/api/marketing/launch")).toBe(true);
+    expect(index.catalogs.apiRoutes.some((route: { route: string }) => route.route === "/api/marketing/social-follow")).toBe(true);
+    expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "marketing-social-follow")).toBe(true);
     expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "tok-connect-remote-mcp")).toBe(true);
     expect(
       index.catalogs.publicRoutes.some((route: { route: string }) => (
@@ -186,8 +188,9 @@ describe("application search index", () => {
   });
 
   it("keeps generated artifacts reviewable and file classifications accurate", () => {
-    // New TOK Équipe pages add searchable routes, database objects and docs. Keep a tight 5% headroom.
-    expect(Buffer.byteLength(serializeIndex(index), "utf8")).toBeLessThan(10_500_000);
+    // The restaurant social queue adds searchable API/Edge routes, SQL objects and docs.
+    // The index is about 10.58 MB; retain a bounded budget with less than 5% headroom.
+    expect(Buffer.byteLength(serializeIndex(index), "utf8")).toBeLessThan(11_000_000);
     expect(renderApplicationReference(index)).not.toMatch(/\n\n$/);
     expect(
       index.catalogs.files.find((item: { path: string }) => item.path === "src/test/application-search-index.test.ts")

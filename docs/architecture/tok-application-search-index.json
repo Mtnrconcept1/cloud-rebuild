@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "9ccf56e08269e967f96ad1dd402ff38722ec47c9c8c7594750f3281fb1afe197",
+ "sourceDigest": "6fa6a5c0aab5ec64df2fed1e0355793529b5497f47c40e920a0089b435eda48d",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 10,
@@ -15183,7 +15183,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 81
+      "line": 83
      },
      {
       "path": "src/test/mobile-association-hosting.test.ts",
@@ -16742,7 +16742,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 169
+      "line": 171
      },
      {
       "path": "src/test/route-wiring.test.ts",
@@ -17747,7 +17747,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 143
+      "line": 145
      },
      {
       "path": "src/test/marketing-bff-client.test.ts",
@@ -17765,6 +17765,10 @@
      {
       "path": "src/marketing/socialFollowClient.ts",
       "line": 25
+     },
+     {
+      "path": "src/test/application-search-index.test.ts",
+      "line": 78
      },
      {
       "path": "src/test/marketing-social-follow-client.test.ts",
@@ -19716,7 +19720,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 103
+      "line": 105
      }
     ]
    },
@@ -23538,7 +23542,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 84
+      "line": 86
      },
      {
       "path": "workers/image-ai-worker/index.js",
@@ -27258,7 +27262,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 108
+      "line": 110
      }
     ]
    },
@@ -28411,7 +28415,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 84
+      "line": 86
      },
      {
       "path": "src/test/image-metadata-ai.test.ts",
@@ -31546,7 +31550,7 @@
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 87
+      "line": 89
      },
      {
       "path": "src/test/tok-connect-edge-functions.test.ts",
@@ -31667,7 +31671,7 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 92
+      "line": 94
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -31697,11 +31701,11 @@
     "sources": [
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 179
+      "line": 181
      },
      {
       "path": "src/test/application-search-index.test.ts",
-      "line": 184
+      "line": 186
      },
      {
       "path": "src/test/google-actions-center-readiness.test.ts",
@@ -97387,42 +97391,42 @@
      },
      {
       "name": "humanizeIdentifier",
-      "line": 469,
+      "line": 470,
       "kind": "function"
      },
      {
       "name": "describeAuditFunction",
-      "line": 481,
+      "line": 482,
       "kind": "function"
      },
      {
       "name": "describeAuditAction",
-      "line": 488,
+      "line": 489,
       "kind": "function"
      },
      {
       "name": "describeAuditEntity",
-      "line": 496,
+      "line": 497,
       "kind": "function"
      },
      {
       "name": "describeAuditActor",
-      "line": 503,
+      "line": 504,
       "kind": "function"
      },
      {
       "name": "explainAuditError",
-      "line": 511,
+      "line": 512,
       "kind": "function"
      },
      {
       "name": "describeAuditLog",
-      "line": 632,
+      "line": 633,
       "kind": "function"
      },
      {
       "name": "summarizeAuditLog",
-      "line": 636,
+      "line": 637,
       "kind": "function"
      }
     ],
@@ -97431,7 +97435,7 @@
      "google",
      "stripe"
     ],
-    "lineCount": 639
+    "lineCount": 640
    },
    {
     "path": "src/lib/adminComptaActions.ts",
@@ -111524,7 +111528,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 198
+    "lineCount": 201
    },
    {
     "path": "src/test/audit-hardening-20260711.test.ts",
@@ -147373,7 +147377,7 @@
    "id": "code-module:49057d39b311",
    "type": "code-module",
    "title": "src/lib/admin/auditLogNarrative.ts",
-   "description": "Module de 639 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
+   "description": "Module de 640 lignes; exports: AuditNarrativeSource, AuditNarrativeStatus, AuditNarrativeActor, AuditNarrativeInput, AuditNarrative, humanizeIdentifier, describeAuditFunction, describeAuditAction, describeAuditEntity, describeAuditActor, explainAuditError, describeAuditLog, summarizeAuditLog.",
    "path": "src/lib/admin/auditLogNarrative.ts",
    "line": 1,
    "surface": null,
@@ -147394,7 +147398,7 @@
     "stripe",
     "summarizeAuditLog"
    ],
-   "detailRef": "612efded64b3"
+   "detailRef": "8ac0960d0819"
   },
   {
    "id": "code-module:011d1dc10823",
@@ -154878,7 +154882,7 @@
    "id": "code-module:99cbe1539462",
    "type": "code-module",
    "title": "src/test/application-search-index.test.ts",
-   "description": "Module de 198 lignes; exports: aucun export statique.",
+   "description": "Module de 201 lignes; exports: aucun export statique.",
    "path": "src/test/application-search-index.test.ts",
    "line": 1,
    "surface": null,
@@ -154888,7 +154892,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "786fd1dbab1f"
+   "detailRef": "27eca52e51d6"
   },
   {
    "id": "code-module:f6d47cf3df51",
@@ -292238,79 +292242,79 @@
    "detailRef": "35cf2f09a4fb"
   },
   {
-   "id": "exported-symbol:94f28c234fa8",
+   "id": "exported-symbol:4e804aaffc8c",
    "type": "exported-symbol",
    "title": "describeAuditAction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 488,
+   "line": 489,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "bf19cd8bda27"
+   "detailRef": "65c7174b34dc"
   },
   {
-   "id": "exported-symbol:d88d19660bd7",
+   "id": "exported-symbol:b8dd36dd4a65",
    "type": "exported-symbol",
    "title": "describeAuditActor",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 503,
+   "line": 504,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "8f5115d9c51d"
+   "detailRef": "c1e9ae713dbc"
   },
   {
-   "id": "exported-symbol:5a2ece64af9a",
+   "id": "exported-symbol:cb983112fb3c",
    "type": "exported-symbol",
    "title": "describeAuditEntity",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 496,
+   "line": 497,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "f462f02089d2"
+   "detailRef": "32e06547518f"
   },
   {
-   "id": "exported-symbol:f4e923066080",
+   "id": "exported-symbol:0910f305fc9d",
    "type": "exported-symbol",
    "title": "describeAuditFunction",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 481,
+   "line": 482,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "48f037301316"
+   "detailRef": "c28cb4fe8e22"
   },
   {
-   "id": "exported-symbol:d0fecf5db819",
+   "id": "exported-symbol:6440f725af5f",
    "type": "exported-symbol",
    "title": "describeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 632,
+   "line": 633,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "0c8dbdbeb2a7"
+   "detailRef": "0b333aeab123"
   },
   {
    "id": "exported-symbol:10f1bf567ca4",
@@ -293016,19 +293020,19 @@
    "detailRef": "538071ecf8d8"
   },
   {
-   "id": "exported-symbol:aa81d60c70b8",
+   "id": "exported-symbol:4b8908b99f09",
    "type": "exported-symbol",
    "title": "explainAuditError",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 511,
+   "line": 512,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "9f65537891ea"
+   "detailRef": "e7c435dffde2"
   },
   {
    "id": "exported-symbol:94c395b452eb",
@@ -299611,19 +299615,19 @@
    "detailRef": "dc9f63bb72e6"
   },
   {
-   "id": "exported-symbol:b0ab137ee611",
+   "id": "exported-symbol:662399c6c3fe",
    "type": "exported-symbol",
    "title": "humanizeIdentifier",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 469,
+   "line": 470,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "81ebe5f4b8cb"
+   "detailRef": "a8b662a29fdc"
   },
   {
    "id": "exported-symbol:cd0c65e7c41c",
@@ -308761,19 +308765,19 @@
    "detailRef": "596a9a69ebd0"
   },
   {
-   "id": "exported-symbol:c76ee4dc4b3b",
+   "id": "exported-symbol:84ed56dfea0a",
    "type": "exported-symbol",
    "title": "summarizeAuditLog",
    "description": "Export function de src/lib/admin/auditLogNarrative.ts.",
    "path": "src/lib/admin/auditLogNarrative.ts",
-   "line": 636,
+   "line": 637,
    "surface": null,
    "tags": [
     "function",
     "google",
     "stripe"
    ],
-   "detailRef": "314dd4d2e683"
+   "detailRef": "6bdc47568df4"
   },
   {
    "id": "exported-symbol:25e70f45a5b2",
@@ -376854,19 +376858,19 @@
    "detailRef": "85882b5af230"
   },
   {
-   "id": "path-literal:245f1d4178d2",
+   "id": "path-literal:234caa27b679",
    "type": "path-literal",
    "title": "/.well-known/apple-app-site-association",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 81,
+   "line": 83,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/mobile-association-hosting.test.ts",
     "src/test/production-preflight-hardening.test.ts"
    ],
-   "detailRef": "6b563f3d2bba"
+   "detailRef": "3aec428b96c3"
   },
   {
    "id": "path-literal:552e0fdf1ace",
@@ -377886,7 +377890,7 @@
     "src/test/tok-intelligence-suite.test.ts",
     "src/test/user-guide.test.ts"
    ],
-   "detailRef": "810736ce2676"
+   "detailRef": "85386758f022"
   },
   {
    "id": "path-literal:4fd0d24b58e2",
@@ -378575,21 +378579,22 @@
     "src/test/marketing-bff-client.test.ts",
     "src/test/marketing-session-recovery.test.tsx"
    ],
-   "detailRef": "c47995c615a4"
+   "detailRef": "a0cab031e582"
   },
   {
    "id": "path-literal:20a42eb9edd3",
    "type": "path-literal",
    "title": "/api/marketing/social-follow",
-   "description": "Chemin référencé dans 6 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "description": "Chemin référencé dans 7 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/marketing/socialFollowClient.ts",
    "line": 25,
    "surface": null,
    "tags": [
     "src/marketing/socialFollowClient.ts",
+    "src/test/application-search-index.test.ts",
     "src/test/marketing-social-follow-client.test.ts"
    ],
-   "detailRef": "d3a9e9d2aea5"
+   "detailRef": "7a30a129ecc3"
   },
   {
    "id": "path-literal:4457ca298944",
@@ -379531,7 +379536,7 @@
     "scripts/application-index-core.mjs",
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "fb9bc73bce33"
+   "detailRef": "65896c76d9c3"
   },
   {
    "id": "path-literal:cf29ad085917",
@@ -381774,18 +381779,18 @@
    "detailRef": "83df956680c8"
   },
   {
-   "id": "path-literal:2d96b55a8fd1",
+   "id": "path-literal:4af3e7bb6cc1",
    "type": "path-literal",
    "title": "/healthz",
    "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 84,
+   "line": 86,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "6e973338af2f"
+   "detailRef": "a4b92c1626f1"
   },
   {
    "id": "path-literal:fded681262f2",
@@ -385495,17 +385500,17 @@
    "detailRef": "c23c4af9fa2b"
   },
   {
-   "id": "path-literal:920a4e2a4f51",
+   "id": "path-literal:05c2693f479e",
    "type": "path-literal",
    "title": "/mon-espace?source=pwa-shortcut",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 108,
+   "line": 110,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts"
    ],
-   "detailRef": "8c90cf832bf3"
+   "detailRef": "c17661ea860e"
   },
   {
    "id": "path-literal:ba53eeb0800b",
@@ -386184,19 +386189,19 @@
    "detailRef": "c5bb27f71afb"
   },
   {
-   "id": "path-literal:a1f7fcf5ef94",
+   "id": "path-literal:7dc31d381ca0",
    "type": "path-literal",
    "title": "/readyz",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 84,
+   "line": 86,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/image-metadata-ai.test.ts",
     "workers/image-ai-worker/index.js"
    ],
-   "detailRef": "bad31d091cb4"
+   "detailRef": "91d034b9133e"
   },
   {
    "id": "path-literal:f7a8242103a1",
@@ -388660,7 +388665,7 @@
     "src/test/tok-connect.test.ts",
     "supabase/functions/tok-connect-api/index.ts"
    ],
-   "detailRef": "c857426f30a6"
+   "detailRef": "9f6fbf30daf7"
   },
   {
    "id": "path-literal:9615b9840a62",
@@ -388732,19 +388737,19 @@
    "detailRef": "2e706e56bb24"
   },
   {
-   "id": "path-literal:c2583ce7b3a3",
+   "id": "path-literal:c83d8cd89cec",
    "type": "path-literal",
    "title": "/v3/CreateBooking/",
    "description": "Chemin référencé dans 3 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 92,
+   "line": 94,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "09e6eb7b2f20"
+   "detailRef": "2ee31eb21d48"
   },
   {
    "id": "path-literal:3f16cef6b097",
@@ -388761,19 +388766,19 @@
    "detailRef": "ef8d28954ebc"
   },
   {
-   "id": "path-literal:c9e20e046af2",
+   "id": "path-literal:ba7cb1120d50",
    "type": "path-literal",
    "title": "/v3/HealthCheck/",
    "description": "Chemin référencé dans 4 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "src/test/application-search-index.test.ts",
-   "line": 179,
+   "line": 181,
    "surface": null,
    "tags": [
     "src/test/application-search-index.test.ts",
     "src/test/google-actions-center-readiness.test.ts",
     "supabase/functions/google-actions-center/index.ts"
    ],
-   "detailRef": "3b2a8cd7ef4e"
+   "detailRef": "db2235530ef4"
   },
   {
    "id": "path-literal:66439908047a",
