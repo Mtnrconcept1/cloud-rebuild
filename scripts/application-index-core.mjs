@@ -763,6 +763,7 @@ function parseMarketingOperations(root, digestSources) {
     "MARKETING_OPERATION_NAMES",
     "MARKETING_OUTREACH_OPERATION_NAMES",
     "MARKETING_AUTOPILOT_OPERATION_NAMES",
+    "MARKETING_DAILY_OPERATION_NAMES",
   ])).map((item) => ({ ...item, path: relativePath }));
 }
 
