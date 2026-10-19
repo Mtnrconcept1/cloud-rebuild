@@ -24,7 +24,8 @@ import {
   MarketingBffError,
   marketingBffRequest,
 } from "@/marketing/marketingBffClient";
-import type { MarketingCalendarItem, MarketingChannelId, MarketingSnapshot, MarketingView } from "@/marketing/types";
+import type { MarketingCalendarItem, MarketingChannelId, MarketingSnapshot } from "@/marketing/types";
+import type { MarketingNavigate } from "@/marketing/useMarketingUrlState";
 import {
   marketingZurichDateKey,
   marketingZurichLocalDateTimeToIso,
@@ -91,7 +92,7 @@ export default function MarketingAgentView({
 }: {
   snapshot: MarketingSnapshot;
   canMutateBackend: boolean;
-  onNavigate: (view: MarketingView) => void;
+  onNavigate: MarketingNavigate;
   onGenerated?: () => Promise<unknown>;
   onUploadPendingChange?: (pending: boolean) => void;
 }) {
@@ -392,14 +393,15 @@ export default function MarketingAgentView({
                       if (onGenerated) void onGenerated().catch(() => undefined);
                     }} />
                   <MarketingPostPreview title={item.title} channel={item.channel} scheduledAt={item.scheduledAt} preview={item.postPreview || { caption: item.content, visualUrl: item.visualUrl }} />
+                  <Button type="button" variant="outline" className="mt-3 w-full" disabled={busy} onClick={() => onNavigate("calendar", { campaignId: result.campaign?.id || item.campaignId || undefined, itemId: item.id, scheduledAt: item.scheduledAt })}>Relire cette publication dans le calendrier</Button>
                 </li>
               ))}
             </ul>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" disabled={busy} onClick={() => onNavigate("campaigns")}>
+              <Button type="button" disabled={busy} onClick={() => onNavigate("campaigns", { campaignId: result.campaign?.id || result.items[0]?.campaignId || undefined })}>
                 Ouvrir les campagnes pour approbation
               </Button>
-              <Button type="button" variant="outline" disabled={busy} onClick={() => onNavigate("calendar")}>Relire et approuver les éléments</Button>
+              <Button type="button" variant="outline" disabled={busy} onClick={() => onNavigate("calendar", { campaignId: result.campaign?.id || result.items[0]?.campaignId || undefined, itemId: result.items[0]?.id, scheduledAt: result.items[0]?.scheduledAt })}>Relire et approuver les éléments</Button>
             </div>
             <p className="text-xs leading-relaxed text-slate-500">
               La génération ne donne aucune autorisation de diffusion. Chaque élément doit être

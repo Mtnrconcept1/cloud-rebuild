@@ -618,7 +618,7 @@ async function authRequest(
 async function serviceRestRequest(
   config: BffConfig,
   path: string,
-  options: { method?: string; body?: JsonObject } = {},
+  options: { method?: string; body?: JsonObject; explainOperationErrors?: boolean } = {},
 ): Promise<unknown> {
   const response = await boundedFetch(
     `${config.supabaseUrl}/rest/v1${path}`,
@@ -633,7 +633,13 @@ async function serviceRestRequest(
     },
     DATABASE_TIMEOUT_MS,
   );
-  if (!response.ok) throw new DownstreamHttpError(response.status);
+  if (!response.ok) {
+    if (options.explainOperationErrors) {
+      const publicError = marketingOperationError(response.value);
+      if (publicError) throw publicError;
+    }
+    throw new DownstreamHttpError(response.status);
+  }
   return response.value;
 }
 
@@ -648,10 +654,12 @@ async function serviceRpc(
   config: BffConfig,
   name: string,
   args: JsonObject,
+  options: { explainOperationErrors?: boolean } = {},
 ): Promise<unknown> {
   return serviceRestRequest(config, `/rpc/${encodeURIComponent(name)}`, {
     method: "POST",
     body: args,
+    explainOperationErrors: options.explainOperationErrors,
   });
 }
 
@@ -1530,6 +1538,92 @@ async function checkMarketingApprovalMedia(config: BffConfig, operation: string,
   throw new PublicBffError(503, "marketing_readiness_unavailable", "La vérification complète des visuels est requise.");
 }
 
+/**
+ * Translate only reviewed SQL business guards. Raw messages, details and hints
+ * can contain private data, so unknown errors keep the existing opaque reply.
+ * This is enabled only for the authenticated marketing operation dispatcher;
+ * authentication and session lookups never disclose database error details.
+ */
+function marketingOperationError(value: unknown): PublicBffError | null {
+  const error = asRecord(value);
+  const guard = `${stringField(error, "code", 5)}:${stringField(error, "message", 200)}`;
+  switch (guard) {
+    case "42501:Campaign approval is required first":
+    case "42501:Campaign approval is required before activation":
+    case "42501:Parent campaign is not approved":
+    case "42501:Parent campaign is no longer approved":
+      return new PublicBffError(400, "marketing_campaign_approval_required",
+        "Approuvez d’abord la campagne dans l’onglet Campagnes, puis approuvez et planifiez cet élément.");
+    case "22023:Approved marketing must be scheduled at least two minutes in the future":
+      return new PublicBffError(400, "marketing_schedule_too_soon",
+        "Choisissez une date de diffusion située au moins deux minutes dans le futur.");
+    case "22023:Individual marketing must be scheduled between 08:00 and 20:00 Europe/Zurich":
+      return new PublicBffError(400, "marketing_schedule_quiet_hours",
+        "Planifiez cet envoi entre 08:00 et 20:00, heure de Zurich.");
+    case "55000:Channel is not configured":
+    case "55000:External channel is blocked by configuration":
+    case "55000:Channel is still blocked by configuration":
+    case "55000:Automation channel is not available":
+      return new PublicBffError(400, "marketing_channel_unavailable",
+        "Le canal de diffusion n’est pas prêt. Vérifiez sa connexion dans l’onglet Intégrations.");
+    case "22023:No eligible contact for this item and channel":
+      return new PublicBffError(400, "marketing_audience_empty",
+        "Aucun destinataire éligible ne correspond à cet envoi. Vérifiez l’audience et les autorisations de contact.");
+    case "42501:Calendar targeting differs from the approved campaign audience":
+      return new PublicBffError(400, "marketing_audience_mismatch",
+        "L’audience de cet élément diffère de celle de la campagne approuvée. Corrigez le ciblage avant de réessayer.");
+    case "22023:Content is required before approval":
+      return new PublicBffError(400, "marketing_content_required",
+        "Complétez et relisez le contenu de cet élément avant de l’approuver.");
+    case "22023:Campaign objective is required":
+    case "22023:Campaign content is required":
+    case "22023:Campaign audience is required":
+    case "22023:At least one campaign channel is required":
+      return new PublicBffError(400, "marketing_campaign_incomplete",
+        "Complétez l’objectif, le contenu, l’audience et les canaux de la campagne avant de l’approuver.");
+    case "22023:Approval reason is required":
+    case "22023:Outreach approval reason is required":
+      return new PublicBffError(400, "marketing_approval_reason_required",
+        "Indiquez un motif de validation suffisamment détaillé avant d’approuver.");
+    case "22023:Terminal calendar item cannot be approved":
+    case "22023:Completed calendar item is immutable":
+      return new PublicBffError(400, "marketing_item_terminal",
+        "Cet élément est déjà terminé ou annulé. Actualisez le calendrier pour consulter son état.");
+    case "22023:Terminal campaign cannot be approved":
+    case "22023:Campaign cannot be approved":
+      return new PublicBffError(400, "marketing_campaign_unavailable",
+        "Cette campagne est en pause, terminée, annulée ou en échec. Vérifiez son état dans l’onglet Campagnes.");
+    case "40001:Campaign was modified by another administrator":
+    case "40001:Calendar item was modified by another administrator":
+    case "40001:Contact was modified by another administrator":
+    case "40001:Automation was modified by another administrator":
+    case "40001:Integration was modified by another administrator":
+    case "40001:Outreach draft was modified by another administrator":
+    case "40001:Outreach opportunity was modified by another administrator":
+    case "40001:Outreach target was modified by another administrator":
+    case "40001:Backlink was modified by another administrator":
+      return new PublicBffError(409, "marketing_edit_conflict",
+        "Cet élément a été modifié depuis son ouverture. Actualisez les données avant de réessayer.");
+    case "P0002:Campaign not found":
+    case "P0002:Calendar item not found":
+    case "P0002:Outreach opportunity not found":
+      return new PublicBffError(404, "marketing_record_not_found",
+        "Cet élément n’existe plus. Actualisez les données pour retrouver les éléments disponibles.");
+    case "22023:Only a pending outreach draft can be approved":
+    case "42501:Opportunity must be pending review without risk flags":
+      return new PublicBffError(400, "marketing_outreach_review_required",
+        "Vérifiez que la proposition est en attente de validation et résolvez les alertes avant de l’approuver.");
+    case "42501:Outreach target is not allowlisted":
+      return new PublicBffError(400, "marketing_outreach_target_unavailable",
+        "Validez la cible de prospection avant d’approuver ce message.");
+    case "22023:Approved outreach draft cannot be edited":
+      return new PublicBffError(400, "marketing_outreach_draft_immutable",
+        "Ce message de prospection est déjà approuvé. Actualisez les données pour consulter sa version validée.");
+    default:
+      return null;
+  }
+}
+
 async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiResponse): Promise<void> {
   if ((req.method ?? "GET").toUpperCase() !== "POST") {
     methodNotAllowed(res, ["POST"]);
@@ -1564,7 +1658,7 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
       p_csrf_hash: session.csrfHash,
       p_operation: operation,
       p_args: args,
-    });
+    }, { explainOperationErrors: true });
     sendJson(res, 200, result);
   } catch (error) {
     if (error instanceof DownstreamHttpError && error.status >= 400 && error.status < 500) {

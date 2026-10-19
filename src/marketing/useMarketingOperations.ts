@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useCallback, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { createFallbackMarketingSnapshot } from "@/marketing/fallbackSnapshot";
 import {
@@ -34,6 +34,7 @@ import {
   type MarketingRestaurantContactDraft,
   type MarketingSourceSyncBatch,
   type MarketingSourceSyncResume,
+  type MarketingSnapshot,
 } from "@/marketing/types";
 
 export type MarketingActionNotice = {
@@ -48,6 +49,13 @@ function safeActionMessage(error: unknown) {
 
 const SOURCE_SYNC_BATCH_SIZE = 500;
 const MAX_SOURCE_SYNC_BATCHES = 20;
+const SNAPSHOT_QUERY_KEY = ["admin-marketing-operations-snapshot"] as const;
+const RELATED_QUERY_KEYS = [
+  SNAPSHOT_QUERY_KEY,
+  ["admin-marketing-review-context"],
+  ["admin-marketing-autopilot-dashboard"],
+  ["admin-marketing-outreach"],
+] as const;
 
 type BoundedSourceSyncResult<Resume> = {
   processed: number;
@@ -166,8 +174,9 @@ async function syncClientConsentsBounded(
 }
 
 export function useMarketingOperations(calendarRange?: { from: string; to: string }) {
+  const queryClient = useQueryClient();
   const initialSnapshot = useRef(createFallbackMarketingSnapshot());
-  const [snapshot, setSnapshot] = useState(initialSnapshot.current);
+  const actionInFlight = useRef(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [notice, setNotice] = useState<MarketingActionNotice>(null);
   const [contactsRevision, setContactsRevision] = useState(0);
@@ -181,7 +190,7 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
 
   const snapshotQuery = useQuery({
     queryKey: [
-      "admin-marketing-operations-snapshot",
+      ...SNAPSHOT_QUERY_KEY,
       calendarRange?.from || "default",
       calendarRange?.to || "default",
     ],
@@ -190,27 +199,48 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
       calendarTo: calendarRange?.to,
     }),
     staleTime: 60_000,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     retry: false,
   });
 
-  useEffect(() => {
-    if (snapshotQuery.data) setSnapshot(snapshotQuery.data);
-  }, [snapshotQuery.data]);
+  // Query owns server state. A separate React copy used to restore obsolete
+  // drafts whenever another cached calendar period became active.
+  const snapshot = snapshotQuery.data ?? initialSnapshot.current;
+  const setSnapshot = useCallback((update: (current: MarketingSnapshot) => MarketingSnapshot) => {
+    queryClient.setQueriesData<MarketingSnapshot>({ queryKey: SNAPSHOT_QUERY_KEY }, (current) => (
+      current ? update(current) : current
+    ));
+  }, [queryClient]);
+  const refreshSnapshots = useCallback(async () => {
+    // A month or detail request may have started while the mutation was in
+    // flight and since become inactive. Cancel it too before invalidation:
+    // otherwise its late response could overwrite the confirmed update.
+    await Promise.all(RELATED_QUERY_KEYS.map((queryKey) => queryClient.cancelQueries({ queryKey })));
+    // Refresh the visible view; mark other periods and detail views stale so
+    // navigating back cannot reuse data from before an approval or edit.
+    await Promise.all(RELATED_QUERY_KEYS.map((queryKey) => (
+      queryClient.invalidateQueries({ queryKey, refetchType: "active" })
+    )));
+  }, [queryClient]);
 
   const runAction = useCallback(async <T,>(key: string, action: () => Promise<T>) => {
+    if (actionInFlight.current) return undefined;
+    actionInFlight.current = true;
     setPendingAction(key);
     setNotice(null);
     try {
+      await queryClient.cancelQueries({ queryKey: SNAPSHOT_QUERY_KEY });
+      await queryClient.cancelQueries({ queryKey: ["admin-marketing-review-context"] });
       return await action();
     } catch (error) {
       const message = safeActionMessage(error);
       setNotice({ tone: "error", message });
       return undefined;
     } finally {
+      actionInFlight.current = false;
       setPendingAction(null);
     }
-  }, []);
+  }, [queryClient]);
 
   const loadContactsPage = useCallback((params: MarketingContactListParams) => (
     listMarketingContactsPage(params)
@@ -282,14 +312,14 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
       if (bundle.complete !== true) {
         throw new Error("Le backend n'a pas confirmé la transaction complète ; le wizard reste ouvert.");
       }
-      await snapshotQuery.refetch();
+      await refreshSnapshots();
       setNotice({
         tone: "success",
         message: `Campagne et ${bundle.items.length} élément(s) calendrier enregistrés atomiquement en brouillon${bundle.duplicate ? " (retry idempotent)" : ""}. Aucun envoi n'a démarré.`,
       });
       return bundle;
     });
-  }, [runAction, snapshot, snapshotQuery]);
+  }, [refreshSnapshots, runAction, snapshot]);
 
   const recommendChannels = useCallback(async (
     audienceFilter: Record<string, unknown>,
@@ -324,9 +354,10 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
           : campaign),
       }));
       setNotice({ tone: "success", message: "Campagne approuvée. Ses éléments restent à approuver et planifier individuellement." });
+      await refreshSnapshots();
       return true;
     });
-  }, [runAction, snapshot.source]);
+  }, [refreshSnapshots, runAction, setSnapshot, snapshot.source]);
 
   const approveItem = useCallback(async (itemId: string, scheduledAt: string) => {
     if (snapshot.source === "fallback") {
@@ -348,9 +379,10 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
           : item),
       }));
       setNotice({ tone: "success", message: "Élément approuvé et planifié. Aucun envoi immédiat n'a été lancé." });
+      await refreshSnapshots();
       return true;
     });
-  }, [runAction, snapshot.source]);
+  }, [refreshSnapshots, runAction, setSnapshot, snapshot.source]);
 
   const toggleGlobalPause = useCallback(async (paused: boolean, reason: string) => {
     if (snapshot.source === "fallback") {
@@ -378,9 +410,10 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
           ? "Pause globale activée : l'orchestrateur refusera les nouveaux traitements."
           : "Pause globale levée. Les éléments approuvés pourront reprendre selon leur calendrier.",
       });
+      await refreshSnapshots();
       return true;
     });
-  }, [runAction, snapshot.source]);
+  }, [refreshSnapshots, runAction, setSnapshot, snapshot.source]);
 
   const saveAutomation = useCallback(async (draft: MarketingAutomationDraft) => {
     if (snapshot.source === "fallback") {
@@ -395,9 +428,10 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
         automations: [automation, ...value.automations.filter((item) => item.id !== automation.id)],
       }));
       setNotice({ tone: "success", message: "Automatisation enregistrée en pause, prête pour validation." });
+      await refreshSnapshots();
       return automation;
     });
-  }, [runAction, snapshot]);
+  }, [refreshSnapshots, runAction, setSnapshot, snapshot]);
 
   const syncSources = useCallback(async () => {
     if (snapshot.source === "fallback") {
@@ -420,7 +454,7 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
           : syncClientConsentsBounded(sourceSyncResume.consents),
       ]);
       setContactsRevision((current) => current + 1);
-      await snapshotQuery.refetch();
+      await refreshSnapshots();
       const complete = catalogResult.complete && consentsResult.complete;
       setSourceSyncResume(complete ? {
         catalog: null,
@@ -451,7 +485,7 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
       });
       return { complete, batches, catalogInserted, clientsInserted, clientsUpdated, suppressed, reconsented };
     });
-  }, [runAction, snapshot.source, snapshotQuery, sourceSyncResume]);
+  }, [refreshSnapshots, runAction, snapshot.source, sourceSyncResume]);
 
   const retryDelivery = useCallback(async (deliveryId: string) => {
     if (snapshot.source === "fallback") {
@@ -462,10 +496,10 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
       await retryMarketingDelivery(deliveryId);
       setNotice({ tone: "success", message: "Nouvelle tentative mise en file de façon idempotente." });
       setDeliveriesRevision((current) => current + 1);
-      await snapshotQuery.refetch();
+      await refreshSnapshots();
       return true;
     });
-  }, [runAction, snapshot.source, snapshotQuery]);
+  }, [refreshSnapshots, runAction, snapshot.source]);
 
   const qualifyRestaurantContact = useCallback(async (draft: MarketingRestaurantContactDraft) => {
     if (snapshot.source === "fallback") {
@@ -475,14 +509,14 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
     return runAction(`qualify-contact-${draft.id || "new"}`, async () => {
       const contact = await upsertMarketingRestaurantContact(draft);
       setContactsRevision((current) => current + 1);
-      await snapshotQuery.refetch();
+      await refreshSnapshots();
       setNotice({
         tone: "success",
         message: "Restaurant qualifié et preuve juridique journalisée. Aucun envoi n'a été déclenché.",
       });
       return contact;
     });
-  }, [runAction, snapshot.source, snapshotQuery]);
+  }, [refreshSnapshots, runAction, snapshot.source]);
 
   const suppressContact = useCallback(async (contactId: string, reason: string) => {
     if (snapshot.source === "fallback") {
@@ -492,14 +526,14 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
     return runAction(`suppress-contact-${contactId}`, async () => {
       await suppressMarketingContact(contactId, reason);
       setContactsRevision((current) => current + 1);
-      await snapshotQuery.refetch();
+      await refreshSnapshots();
       setNotice({
         tone: "warning",
         message: "Opposition enregistrée : les tâches encore en attente ont été annulées.",
       });
       return true;
     });
-  }, [runAction, snapshot.source, snapshotQuery]);
+  }, [refreshSnapshots, runAction, snapshot.source]);
 
   const revealManualTarget = useCallback(async (deliveryId: string, reason: string) => {
     if (snapshot.source === "fallback") {
@@ -546,10 +580,10 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
           : "Action terrain marquée en échec avec sa note de suivi.",
       });
       setDeliveriesRevision((current) => current + 1);
-      await snapshotQuery.refetch();
+      await refreshSnapshots();
       return true;
     });
-  }, [runAction, snapshot.source, snapshotQuery]);
+  }, [refreshSnapshots, runAction, setSnapshot, snapshot.source]);
 
   const cancelItem = useCallback(async (itemId: string, reason: string) => {
     if (snapshot.source === "fallback") {
@@ -563,9 +597,11 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
         calendar: current.calendar.map((item) => item.id === itemId ? { ...item, status: "cancelled" } : item),
       }));
       setNotice({ tone: "success", message: "Élément annulé et décision journalisée." });
+      setDeliveriesRevision((current) => current + 1);
+      await refreshSnapshots();
       return true;
     });
-  }, [runAction, snapshot.source]);
+  }, [refreshSnapshots, runAction, setSnapshot, snapshot.source]);
 
   const completeManualItem = useCallback(async (
     itemId: string,
@@ -603,10 +639,10 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
           ? "Publication manuelle marquée publiée et journalisée."
           : "Publication manuelle marquée en échec avec sa note de suivi.",
       });
-      await snapshotQuery.refetch();
+      await refreshSnapshots();
       return true;
     });
-  }, [runAction, snapshot.source, snapshotQuery]);
+  }, [refreshSnapshots, runAction, setSnapshot, snapshot.source]);
 
   const runDue = useCallback(async () => {
     if (snapshot.source === "fallback") {
@@ -625,17 +661,16 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
       await runMarketingOrchestrator("run_due", undefined, 25);
       setNotice({ tone: "success", message: "Traitement des éléments dus lancé, dans la limite de 25." });
       setDeliveriesRevision((current) => current + 1);
-      await snapshotQuery.refetch();
+      await refreshSnapshots();
       return true;
     });
-  }, [runAction, snapshot.overview.globalPaused, snapshot.overview.schedulerReady, snapshot.source, snapshotQuery]);
+  }, [runAction, snapshot.overview.globalPaused, snapshot.overview.schedulerReady, snapshot.source, refreshSnapshots]);
 
   const refresh = useCallback(async () => {
-    const result = await snapshotQuery.refetch();
+    await refreshSnapshots();
     setContactsRevision((current) => current + 1);
     setDeliveriesRevision((current) => current + 1);
-    return result;
-  }, [snapshotQuery]);
+  }, [refreshSnapshots]);
 
   return {
     snapshot,

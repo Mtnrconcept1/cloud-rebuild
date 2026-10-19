@@ -1,13 +1,15 @@
 import type { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { RefreshCw, ShieldAlert } from "lucide-react";
 
 import AppLoadingScreen from "@/components/ui/app-loading-screen";
 import { Button } from "@/components/ui/button";
 import { useMarketingSession } from "@/marketing/MarketingSessionContext";
+import { marketingLoginReturnTarget } from "@/marketing/useMarketingUrlState";
 
 export default function MarketingProtectedRoute({ children }: { children: ReactNode }) {
   const { status, refreshSession } = useMarketingSession();
+  const location = useLocation();
 
   if (status === "loading") {
     return (
@@ -41,5 +43,5 @@ export default function MarketingProtectedRoute({ children }: { children: ReactN
     );
   }
 
-  return <Navigate to="/marketing/login" replace />;
+  return <Navigate to="/marketing/login" replace state={{ marketingReturnTo: marketingLoginReturnTarget(`${location.pathname}${location.search}`) }} />;
 }
