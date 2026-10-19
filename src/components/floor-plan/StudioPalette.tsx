@@ -139,7 +139,7 @@ export default function StudioPalette({
           <Input
             value={libraryQuery}
             onChange={(event) => onLibraryQueryChange(event.target.value)}
-            placeholder="Rechercher un preset..."
+            placeholder="Rechercher un élément…"
             className="h-10 rounded-xl border-border bg-card pl-9"
           />
         </div>
@@ -249,12 +249,16 @@ export default function StudioPalette({
                 </div>
                 <CollapsibleContent className="border-t border-border p-2">
                   <div className="rounded-[20px] border border-border bg-muted/50 p-1">
+                    <p className="px-3 py-2 text-xs text-muted-foreground">Propositions pour {selectedSector}. Une optimisation conserve les éléments existants ; un nouveau plan remplace cette zone.</p>
                     <FloorPlanAIPanel
                       restaurantId={selectedId}
-                      currentLayout={draftTables.map((table) => ({
+                      currentLayout={draftTables.filter((table) => table.sector === selectedSector).map((table) => ({
+                        id: table.id,
+                        sector: table.sector,
                         table_number: table.table_number,
                         capacity: table.capacity,
                         layout: {
+                          ...table.layout,
                           x: table.layout.x,
                           y: table.layout.y,
                           w: table.layout.w,
@@ -266,6 +270,7 @@ export default function StudioPalette({
                       canvasWidth={canvasWidth}
                       canvasHeight={canvasHeight}
                       onApply={onApplyAILayout}
+                      disabled={tablesLoading}
                     />
                   </div>
                 </CollapsibleContent>

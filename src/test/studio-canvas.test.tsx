@@ -5,6 +5,38 @@ import { describe, expect, it, vi } from "vitest";
 import StudioCanvas from "@/components/floor-plan/StudioCanvas";
 
 describe("StudioCanvas", () => {
+  it("keeps hidden objects selectable so they can be restored to the service plan", () => {
+    const onTablePress = vi.fn();
+    const { getByRole, getByText } = render(
+      <StudioCanvas
+        selectedSector="Salle"
+        canvasWidth={1040}
+        canvasHeight={760}
+        canvasZoom={1}
+        canvasZoomLabel="100%"
+        canvasRef={createRef<HTMLDivElement>()}
+        canvasViewportRef={createRef<HTMLDivElement>()}
+        visibleTables={[{
+          id: "hidden-table", table_number: "T1", capacity: 4, is_active: false, sector: "Salle",
+          layout: { x: 80, y: 90, w: 220, h: 180, rotation: 0, shape: "rect", kind: "table", seatLabels: [1, 1, 1, 1] },
+        }]}
+        selectedTableId={null}
+        draggingTableId={null}
+        onTablePress={onTablePress}
+        onCanvasBackgroundPress={vi.fn()}
+        onStartDraggingTable={vi.fn()}
+        onStartResizingTable={vi.fn()}
+        onStartRotatingTable={vi.fn()}
+        onUpdateCanvasZoom={vi.fn()}
+        onCanvasViewportResize={vi.fn()}
+        getRenderedFrame={() => ({ x: 80, y: 90, w: 220, h: 180 })}
+      />,
+    );
+    expect(getByText("· Masqué")).toBeInTheDocument();
+    fireEvent.click(getByRole("button", { name: "Sélectionner T1 · masqué pendant le service" }));
+    expect(onTablePress).toHaveBeenCalledWith("hidden-table");
+  });
+
   it("renders a full-size responsive work canvas for the floor plan editor", () => {
     const canvasRef = createRef<HTMLDivElement>();
     const canvasViewportRef = createRef<HTMLDivElement>();

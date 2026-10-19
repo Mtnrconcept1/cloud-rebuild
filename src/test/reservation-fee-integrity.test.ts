@@ -45,19 +45,22 @@ describe("reservation fee and Mon pack integrity", () => {
     );
   });
 
-  it("n'expose plus aucune etape de cloture dans les deux dispositions", () => {
+  it("closes occupancy through the existing accounting boundary in both reservation views", () => {
     const dashboard = read("src/pages/dashboard/DashboardReservations.tsx");
+    const closure = read("src/components/dashboard/ReservationClosureDialog.tsx");
 
-    // Le frais est pose des le passage en « arrivee » : il n'y a plus rien a
-    // calculer, donc plus de bouton, plus de modale, et plus d'avertissement
-    // « frais non calcules » a afficher.
+    // Arrival already records the flat fee. Closing occupancy must not add
+    // another accounting writer or recreate the retired Fair Growth flow.
     expect(dashboard).not.toContain("Frais non calculés");
-    expect(dashboard).not.toContain("Clôturer la table");
     expect(dashboard).not.toContain("MarkReservationHonoredDialog");
     expect(dashboard).not.toContain("markReservationHonored");
+    expect(dashboard.match(/Clôturer la table/g)).toHaveLength(2);
+    expect(dashboard).toContain("<ReservationClosureDialog");
+    expect(closure).toContain("markReservationHonored(reservation.id, revenueChf)");
+    expect(closure).not.toContain("supabase.from");
 
-    // Le bouton « Arrivee » reste le seul geste de service, et les transitions
-    // de statut qu'il ouvre sont inchangees.
+    // Dialog behavior and the already-accounted path are exercised by the
+    // real React dialog tests and the PostgreSQL fee-trigger fixture.
     expect(dashboard).toContain("Arrivée");
     expect(dashboard).toContain('arrived: ["arrived", "seated"]');
     expect(dashboard).toContain('seated: ["seated"]');

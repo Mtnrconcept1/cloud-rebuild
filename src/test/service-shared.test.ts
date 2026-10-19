@@ -101,10 +101,10 @@ describe("service shared table state", () => {
     });
 
     expect(state.key).toBe("upcoming");
-    expect(state.label).toBe("Reservee");
+    expect(state.label).toBe("Réservée");
   });
 
-  it("still shows a released reservation state when it is the only table assignment", () => {
+  it("frees a table whose only assignment is a released reservation", () => {
     const state = getTableServiceState({
       isReservable: true,
       assignments: [
@@ -113,8 +113,8 @@ describe("service shared table state", () => {
       now: new Date("2026-05-27T18:30:00"),
     });
 
-    expect(state.key).toBe("no-show");
-    expect(state.label).toBe("No-show");
+    expect(state.key).toBe("free");
+    expect(state.label).toBe("Libre");
   });
 
   it("marks arrived and seated reservations as active service states", () => {
@@ -144,7 +144,7 @@ describe("service shared table state", () => {
     });
 
     expect(state.key).toBe("soon-free");
-    expect(state.label).toBe("Bientot libre");
+    expect(state.label).toBe("Bientôt libre");
     expect(state.detail).toBe("lib. ~22:00");
   });
 
@@ -169,7 +169,7 @@ describe("service shared table state", () => {
     });
 
     expect(state.key).toBe("upcoming");
-    expect(state.label).toBe("Reservee");
+    expect(state.label).toBe("Réservée");
   });
 
   it("prioritizes Zero Attente when the primary reservation is preordered", () => {

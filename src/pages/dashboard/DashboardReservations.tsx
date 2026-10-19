@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import type { Database, Json } from "@/integrations/supabase/types";
@@ -11,6 +11,8 @@ import DirectReservationChannelsCard from "@/components/dashboard/DirectReservat
 import { CommercialDemoReservations } from "@/components/dashboard/CommercialDemoScenario";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import RestaurantCancellationDialog from "@/components/RestaurantCancellationDialog";
+import ReservationClosureDialog from "@/components/dashboard/ReservationClosureDialog";
+import { canCloseServiceReservation } from "@/components/floor-plan/serviceShared";
 import SortControls from "@/components/list/SortControls";
 import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
 import DayNotificationBadge from "@/components/notifications/DayNotificationBadge";
@@ -34,7 +36,8 @@ import {
   processRefund,
 } from "@/lib/refundMutations";
 import { getReservationStatusLockMessage } from "@/lib/statusLocks";
-import { AlertTriangle, Ban, CalendarDays, Check, CreditCard, Dot, MoonStar, Search, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
+import { AlertTriangle, Ban, CalendarDays, Check, CreditCard, Dot, LayoutPanelTop, MoonStar, Receipt, Search, ShieldAlert, SunMedium, UserCheck, Utensils, X } from "lucide-react";
+import { buildFloorPlanHref, isValidServiceDate } from "@/lib/floorPlanNavigation";
 import { getServicePeriodFromMetadata, getServicePeriodLabel } from "@/lib/serviceSettings";
 import { countUnreadOperationNotificationsByDate } from "@/lib/dashboardNotificationBadges";
 import { sortByColumn, type SortColumn, type SortDirection } from "@/lib/listSorting";
@@ -254,22 +257,32 @@ function LiveDashboardReservations() {
   const { selectedId, restaurants, loading: restaurantsLoading, error: restaurantsError } = useDashboardRestaurant();
   const [searchParams] = useSearchParams();
   const reservationTarget = searchParams.get("reservation");
+  const routeDate = searchParams.get("date");
+  const routeBranch = searchParams.get("branch");
+  const routeService = searchParams.get("service");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [referenceDate, setReferenceDate] = useState(getTodayReferenceDate());
-  const [timeRange, setTimeRange] = useState<DashboardTimeRange>("all");
-  const [serviceFilter, setServiceFilter] = useState<ServiceFilter>("all");
+  const [referenceDate, setReferenceDate] = useState(() => isValidServiceDate(routeDate) ? routeDate : getTodayReferenceDate());
+  const [timeRange, setTimeRange] = useState<DashboardTimeRange>(() => isValidServiceDate(routeDate) ? "day" : "all");
+  const [serviceFilter, setServiceFilter] = useState<ServiceFilter>(() => routeService === "lunch" || routeService === "dinner" ? routeService : "all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortKey, setSortKey] = useState<ReservationSortKey>("date");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [isCompactMode, setIsCompactMode] = useState(false);
   const [openDayKey, setOpenDayKey] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<ReservationWithProfile | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [closureTarget, setClosureTarget] = useState<ReservationWithProfile | null>(null);
+  const [searchTerm, setSearchTerm] = useState(() => reservationTarget || "");
   const [viewMode, setViewMode] = useState<OperationViewMode>("details");
   const deepLinkFocusedRef = useRef<string | null>(null);
   const previousReservationTargetRef = useRef<string | null>(null);
   const { unreadNotifications } = useNotificationCenter(100, { realtime: true });
+
+  useEffect(() => {
+    if (!isValidServiceDate(routeDate)) return;
+    setReferenceDate(routeDate);
+    setTimeRange(reservationTarget ? "all" : "day");
+  }, [routeDate, reservationTarget]);
 
   useEffect(() => {
     const previousTarget = previousReservationTargetRef.current;
@@ -303,13 +316,19 @@ function LiveDashboardReservations() {
     }
   }, []);
 
+  const focusedReservationId = reservationTarget && searchTerm === reservationTarget ? reservationTarget : null;
+  const queryDate = !focusedReservationId && timeRange === "day" && isValidServiceDate(referenceDate) ? referenceDate : null;
+  const reservationQueryKey = ["dashboard-all-reservations", effectiveSelectedId, focusedReservationId, queryDate];
   const productionReservationsQuery = useQuery({
-    queryKey: ["dashboard-all-reservations", effectiveSelectedId],
+    queryKey: reservationQueryKey,
     queryFn: async () => {
-      const { data: reservationRows, error: reservationError } = await supabase
+      let request = supabase
         .from("reservations")
         .select("*")
-        .eq("restaurant_id", effectiveSelectedId!)
+        .eq("restaurant_id", effectiveSelectedId!);
+      if (focusedReservationId) request = request.eq("id", focusedReservationId);
+      else if (queryDate) request = request.eq("date", queryDate);
+      const { data: reservationRows, error: reservationError } = await request
         .order("date", { ascending: false })
         .order("time", { ascending: false })
         .limit(DASHBOARD_RESERVATIONS_FETCH_LIMIT);
@@ -377,6 +396,7 @@ function LiveDashboardReservations() {
     if (!reservationTarget) return;
     const target = reservations.find((reservation) => reservation.id === reservationTarget);
     if (!target) return;
+    if (isValidServiceDate(target.date)) setReferenceDate(target.date);
     if (deepLinkFocusedRef.current === target.id) return;
     if (viewMode !== "details") {
       setViewMode("details");
@@ -436,7 +456,7 @@ function LiveDashboardReservations() {
       if (isCommercialDemoRestaurant) {
         return { previousReservations: [] as ReservationWithProfile[], queryKey: null };
       }
-      const queryKey = ["dashboard-all-reservations", selectedId];
+      const queryKey = reservationQueryKey;
       await queryClient.cancelQueries({ queryKey });
       const previousReservations = queryClient.getQueryData<ReservationWithProfile[]>(queryKey) || [];
       queryClient.setQueryData<ReservationWithProfile[]>(queryKey, (current = []) =>
@@ -453,6 +473,7 @@ function LiveDashboardReservations() {
     },
     onSettled: (_data, _error, _variables, context) => {
       if (context?.queryKey) queryClient.invalidateQueries({ queryKey: context.queryKey });
+      if (!isCommercialDemoRestaurant) queryClient.invalidateQueries({ queryKey: ["floor-plan-reservations", effectiveSelectedId] });
     },
   });
 
@@ -679,6 +700,20 @@ function LiveDashboardReservations() {
     return Boolean(allowedTargets[currentStatus]?.includes(targetStatus));
   };
 
+  const reservationFloorPlanHref = (reservation: ReservationWithProfile) => {
+    const branchId = (reservation as ReservationWithProfile & { branch_id?: string | null }).branch_id;
+    return buildFloorPlanHref({
+      date: reservation.date,
+      reservationId: reservation.id,
+      branchId: branchId || routeBranch,
+      service: getServicePeriodFromMetadata(reservation.metadata, reservation.time),
+    });
+  };
+  const returnReservation = focusedReservationId ? reservations.find((reservation) => reservation.id === focusedReservationId) : null;
+  const returnFloorPlanHref = returnReservation
+    ? reservationFloorPlanHref(returnReservation)
+    : buildFloorPlanHref({ date: referenceDate, branchId: routeBranch, service: serviceFilter });
+
   return (
     <DashboardLayout>
       <div
@@ -699,9 +734,17 @@ function LiveDashboardReservations() {
             { label: "Jours groupes", value: groupedReservations.length, icon: SunMedium },
           ]}
           actions={(
-          <Button variant="outline" size="sm" className="sm:hidden" onClick={() => setIsCompactMode((value) => !value)}>
-            {isCompactMode ? "Vue detaillee" : "Mode compact"}
-          </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link to={returnFloorPlanHref}>
+                  <LayoutPanelTop className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Plan de salle
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="sm:hidden" onClick={() => setIsCompactMode((value) => !value)}>
+                {isCompactMode ? "Vue détaillée" : "Mode compact"}
+              </Button>
+            </div>
           )}
         />
 
@@ -760,7 +803,7 @@ function LiveDashboardReservations() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Date de référence</p>
-                <Input type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
+                <Input aria-label="Date de référence" type="date" value={referenceDate} onChange={(event) => { if (isValidServiceDate(event.target.value)) setReferenceDate(event.target.value); }} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Service</p>
@@ -928,6 +971,18 @@ function LiveDashboardReservations() {
                           ) : null}
                         </div>
                         <div className="grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-2 lg:grid-cols-4">
+                          {!isCommercialDemoRestaurant && canCloseServiceReservation(reservation) ? (
+                            <Button size="sm" onClick={() => setClosureTarget(reservation)} disabled={updateStatusMutation.isPending || cancelMutation.isPending}>
+                              <Receipt className="mr-1 h-4 w-4" aria-hidden="true" />
+                              Clôturer la table
+                            </Button>
+                          ) : null}
+                          <Button asChild size="sm" variant="outline">
+                            <Link to={reservationFloorPlanHref(reservation)} aria-label={`Voir ${reservation.customer?.full_name || "ce client"} sur le plan de salle`}>
+                              <LayoutPanelTop className="mr-1 h-4 w-4" aria-hidden="true" />
+                              Voir sur le plan
+                            </Link>
+                          </Button>
                           <Button
                             size="sm"
                             variant="outline"
@@ -1211,6 +1266,18 @@ function LiveDashboardReservations() {
                                       </div>
 
                                       <div className="flex flex-wrap gap-2 sm:justify-end">
+                                        {!isCommercialDemoRestaurant && canCloseServiceReservation(reservation) ? (
+                                          <Button size="sm" onClick={() => setClosureTarget(reservation)} disabled={updateStatusMutation.isPending || cancelMutation.isPending}>
+                                            <Receipt className="mr-1 h-4 w-4" aria-hidden="true" />
+                                            Clôturer la table
+                                          </Button>
+                                        ) : null}
+                                        <Button asChild size="sm" variant="outline">
+                                          <Link to={reservationFloorPlanHref(reservation)} aria-label={`Voir ${reservation.customer?.full_name || "ce client"} sur le plan de salle`}>
+                                            <LayoutPanelTop className="mr-1 h-4 w-4" aria-hidden="true" />
+                                            Voir sur le plan
+                                          </Link>
+                                        </Button>
                                         <Button
                                           size="sm"
                                           variant="outline"
@@ -1290,6 +1357,27 @@ function LiveDashboardReservations() {
           </>
         ) : null}
       </div>
+      {closureTarget && !isCommercialDemoRestaurant ? (
+        <ReservationClosureDialog
+          key={closureTarget.id}
+          reservation={reservations.find((reservation) => reservation.id === closureTarget.id) || closureTarget}
+          onClose={() => setClosureTarget(null)}
+          onCompleted={({ reservationId }) => {
+            const restaurantId = closureTarget.restaurant_id;
+            const applyClosure = (current: ReservationWithProfile[] | undefined) => current?.map((reservation) => (
+              reservation.id === reservationId
+                ? { ...reservation, status: "completed" }
+                : reservation
+            ));
+            queryClient.setQueriesData<ReservationWithProfile[]>({ queryKey: ["dashboard-all-reservations", restaurantId] }, applyClosure);
+            queryClient.setQueriesData<ReservationWithProfile[]>({ queryKey: ["floor-plan-reservations", restaurantId] }, applyClosure);
+            void queryClient.invalidateQueries({ queryKey: ["dashboard-all-reservations", restaurantId] });
+            void queryClient.invalidateQueries({ queryKey: ["floor-plan-reservations", restaurantId] });
+            setClosureTarget((current) => current?.id === reservationId ? null : current);
+            toast({ title: "Table clôturée", description: "La réservation est terminée. Le plan de salle est actualisé." });
+          }}
+        />
+      ) : null}
       <RestaurantCancellationDialog
         open={Boolean(cancelTarget) && !isCommercialDemoRestaurant}
         targetLabel={

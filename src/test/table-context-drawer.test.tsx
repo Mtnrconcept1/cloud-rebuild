@@ -80,13 +80,13 @@ describe("TableContextDrawer", () => {
       />,
     );
 
-    expect(screen.getByText("Table recommandee")).toBeInTheDocument();
+    expect(screen.getByText("Table recommandée")).toBeInTheDocument();
     expect(screen.getByText("T4")).toBeInTheDocument();
     expect(screen.getByText("Score 96/100")).toBeInTheDocument();
     expect(screen.getByText("Capacité parfaite")).toBeInTheDocument();
     expect(screen.getByText("Rotation confortable")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Affecter table recommandee T4" }));
+    fireEvent.click(screen.getByRole("button", { name: "Placer Martin à T4" }));
 
     expect(onAssignReservationToTable).toHaveBeenCalledWith("r1", "t4");
   });

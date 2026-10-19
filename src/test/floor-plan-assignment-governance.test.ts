@@ -22,40 +22,45 @@ function latestMigrationContaining(pattern: RegExp) {
 }
 
 describe("floor plan assignment governance", () => {
-  it("adds an audited transactional RPC for reservation table assignments", () => {
+  it("defines an authorized, audited and replayable workspace RPC", () => {
     // Cible la migration qui *définit* la fonction : une simple mention (un
     // commentaire d'une migration plus récente, par exemple) ne doit pas
     // détourner la recherche vers un fichier qui ne la déclare pas.
     const sql = latestMigrationContaining(
-      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.restaurant_save_floor_plan_assignments/i,
+      /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.restaurant_save_floor_plan_workspace_v3\s*\(/i,
     );
 
-    expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.restaurant_save_floor_plan_assignments/i);
+    expect(sql).toMatch(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+public\.restaurant_save_floor_plan_workspace_v3\s*\(/i);
+    expect(sql).toContain("p_expected_snapshot jsonb");
+    expect(sql).toContain("p_request_id text");
     expect(sql).toContain("pg_advisory_xact_lock");
     expect(sql).toMatch(/public\.auth_can_access_branch\(p_branch_id\)/i);
-    expect(sql).toContain("Table capacity is too low for this reservation");
-    expect(sql).toMatch(/DELETE\s+FROM\s+public\.reservation_slots/i);
-    expect(sql).toMatch(/INSERT\s+INTO\s+public\.reservation_slots/i);
+    expect(sql).toContain("FLOOR_PLAN_REVISION_CONFLICT");
+    expect(sql).toContain("FLOOR_PLAN_REQUEST_ID_REUSED");
+    expect(sql).toContain("private.floor_plan_save_operations");
     expect(sql).toMatch(/INSERT\s+INTO\s+public\.audit_log/i);
+    expect(sql).toMatch(/REVOKE ALL ON FUNCTION public\.restaurant_save_floor_plan_workspace_v3\([^;]+\) FROM PUBLIC, anon;/i);
+    expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.restaurant_save_floor_plan_workspace_v3\([^;]+\) TO authenticated;/i);
   });
 
-  it("routes the dashboard save flow through the RPC instead of direct slot mutations", () => {
+  it("routes dashboard persistence through v3 and prohibits direct room or assignment writes", () => {
     const page = read("src/pages/dashboard/DashboardPlanSalle.tsx");
 
-    expect(page).toContain("restaurant_save_floor_plan_assignments");
-    expect(page).toContain("changedAssignments");
-    expect(page).not.toMatch(/from\("reservation_slots" as any\)\)\s*[\s\S]{0,120}\.delete\(/);
-    expect(page).not.toMatch(/from\("reservation_slots" as any\)\)\s*[\s\S]{0,120}\.insert\(/);
+    expect(page).toContain('"restaurant_save_floor_plan_workspace_v3"');
+    expect(page).toContain("buildFloorPlanWorkspaceRequest");
+    expect(page).not.toContain('"restaurant_save_floor_plan_assignments"');
+    for (const table of ["reservation_tables", "reservation_table_layout_overrides", "reservation_slots"]) {
+      const directWrite = new RegExp(`\\.from\\(\\s*["']${table}["'][^)]*\\)\\s*\\)*\\s*\\.(?:insert|update|upsert|delete)\\s*\\(`);
+      expect(page, `Direct writes to ${table} bypass the atomic workspace RPC`).not.toMatch(directWrite);
+    }
   });
 
-  it("bounds floor-plan reservation reads by the active date range", () => {
+  it("paginates reservations inside a bounded service date window", () => {
     const page = read("src/pages/dashboard/DashboardPlanSalle.tsx");
 
-    expect(page).toContain("FLOOR_PLAN_RESERVATIONS_LIMIT");
-    expect(page).toContain('queryKey: ["floor-plan-reservations", selectedId, referenceDate, timeRange]');
-    expect(page).toContain("getDashboardTimeRangeBounds(referenceDate, timeRange)");
     expect(page).toContain('.gte("date", reservationDateBounds.startIso)');
     expect(page).toContain('.lt("date", reservationDateBounds.endIso)');
-    expect(page).toContain(".limit(FLOOR_PLAN_RESERVATIONS_LIMIT)");
+    expect(page).toContain(".range(offset, offset + FLOOR_PLAN_RESERVATIONS_LIMIT - 1)");
+    expect(page).not.toContain(".limit(FLOOR_PLAN_RESERVATIONS_LIMIT)");
   });
 });

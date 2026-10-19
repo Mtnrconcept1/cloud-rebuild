@@ -804,6 +804,30 @@ describe("floor plan helpers", () => {
     )).toBe(false);
   });
 
+  it("uses declared durations and half-open intervals across midnight", () => {
+    expect(reservationsOverlap(
+      { id: "a", date: "2026-10-19", time: "23:30", partySize: 2, durationMinutes: 180 },
+      { id: "b", date: "2026-10-20", time: "02:00", partySize: 4, durationMinutes: 60 },
+    )).toBe(true);
+    expect(reservationsOverlap(
+      { id: "a", date: "2026-10-19", time: "23:30", partySize: 2, durationMinutes: 180 },
+      { id: "b", date: "2026-10-20", time: "02:30", partySize: 4, durationMinutes: 60 },
+    )).toBe(false);
+    expect(reservationsOverlap(
+      { id: "a", date: "2026-10-19", time: "19:00", partySize: 2, durationMinutes: 30 },
+      { id: "b", date: "2026-10-19", time: "19:30", partySize: 4 },
+    )).toBe(false);
+  });
+
+  it("keeps inactive items selectable only in the room editor", () => {
+    const item = { id: "hidden", table_number: "Table masquée", sector: "Salle", is_active: false, capacity: 2,
+      layout: { x: 40, y: 40, w: 120, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] } };
+    expect(buildFloorPlanViewportModel([item], { sector: "Salle", zoom: 1 }).visibleItems).toHaveLength(0);
+    const editor = buildFloorPlanViewportModel([item], { sector: "Salle", zoom: 1, includeInactive: true });
+    expect(editor.visibleItems).toHaveLength(1);
+    expect(editor.framesById.has("hidden")).toBe(true);
+  });
+
   it("summarizes floor plan service health for placement issues", () => {
     const summary = getFloorPlanHealthSummary({
       tables: [

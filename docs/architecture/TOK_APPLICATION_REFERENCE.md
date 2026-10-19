@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `49f257d78dea6c3dccc1c0894e2f56f12e6bb2c4b23524c70351f232a74785da`
+- Empreinte SHA-256 des sources indexées : `c21f5daedab5e6f312dc4982be5b2322ef77d36bb1407565b194f124455da744`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 9 |
 | cronJobs | 34 |
 | databaseContract | 228 |
-| databaseObjects | 2961 |
-| documents | 215 |
+| databaseObjects | 2965 |
+| documents | 216 |
 | edgeFunctions | 119 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3778 |
+| exportedSymbols | 3800 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 37 |
-| migrations | 558 |
-| modules | 1709 |
+| migrations | 561 |
+| modules | 1721 |
 | pages | 133 |
-| pathLiterals | 797 |
+| pathLiterals | 801 |
 | publicAssets | 584 |
 | publicEntries | 610 |
 | publicNavigableRoutes | 2 |
-| queryParameters | 114 |
-| records | 17825 |
-| repositoryFiles | 3380 |
+| queryParameters | 116 |
+| records | 17906 |
+| repositoryFiles | 3396 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -201,7 +201,7 @@ GitHub Actions : contrôles, synchronisation, déploiement et opérations planif
 | `/dashboard/service` | restaurant | DashboardRoute, DashboardService, FeatureSwitch | DashboardRoute | dashboardServiceEnabled | — | [src/App.tsx:649](../../src/App.tsx#L649) |
 | `/dashboard/equipe` | restaurant | DashboardRoute, DashboardWorkforce | DashboardRoute | — | — | [src/App.tsx:650](../../src/App.tsx#L650) |
 | `/dashboard/plan-salle` | restaurant | DashboardPlanSalle, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardPlanSalleEnabled | — | [src/App.tsx:651](../../src/App.tsx#L651) |
-| `/dashboard/plan-salle-v2` | restaurant | Navigate | — | — | /dashboard/plan-salle | [src/App.tsx:653](../../src/App.tsx#L653) |
+| `/dashboard/plan-salle-v2` | restaurant | Navigate | — | — | { pathname: "/dashboard/plan-salle", search, hash | [src/App.tsx:653](../../src/App.tsx#L653) |
 | `/dashboard/guide` | restaurant | DashboardRoute, GuideUtilisateur | DashboardRoute | — | — | [src/App.tsx:654](../../src/App.tsx#L654) |
 | `/dashboard/tok-connect` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardRoute, DashboardTokConnect, FeatureSwitch | DashboardRoute | dashboardTokConnectEnabled | — | [src/App.tsx:655](../../src/App.tsx#L655) |
 | `/courier` | courier | CourierHome, FeatureSwitch, ProtectedRoute | ProtectedRoute, courier | courierHomeEnabled | — | [src/App.tsx:656](../../src/App.tsx#L656) |
@@ -1418,6 +1418,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commercial/demo-live?surface=client | 1 | [src/test/demo-workspace-access.test.ts:127](../../src/test/demo-workspace-access.test.ts#L127) |
 | /commercial/demo-live?surface=courier | 2 | [src/test/demo-workspace-access.test.ts:60](../../src/test/demo-workspace-access.test.ts#L60) |
 | /commercial/demo-live?surface=restaurant | 2 | [src/test/demo-workspace-access.test.ts:62](../../src/test/demo-workspace-access.test.ts#L62) |
+| /commercial/demo/restaurant | 1 | [src/test/floor-plan-navigation.test.tsx:28](../../src/test/floor-plan-navigation.test.tsx#L28) |
+| /commercial/demo/restaurant/dashboard/plan-salle?date=2026-05-27&reservation=demo-reservation | 1 | [src/test/floor-plan-navigation.test.tsx:32](../../src/test/floor-plan-navigation.test.tsx#L32) |
+| /commercial/demo/restaurant/dashboard/reservations | 1 | [src/test/floor-plan-navigation.test.tsx:28](../../src/test/floor-plan-navigation.test.tsx#L28) |
 | /commercial/notifications | 11 | [src/App.tsx:613](../../src/App.tsx#L613) |
 | /commercial/prospection | 7 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /commercial/route-inconnue | 1 | [src/test/commercial-domain-isolation.test.ts:189](../../src/test/commercial-domain-isolation.test.ts#L189) |
@@ -1470,8 +1473,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/performances | 8 | [src/App.tsx:627](../../src/App.tsx#L627) |
 | /dashboard/photos | 17 | [src/App.tsx:639](../../src/App.tsx#L639) |
 | /dashboard/plan-de-salle | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:211](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L211) |
-| /dashboard/plan-salle | 8 | [src/App.tsx:651](../../src/App.tsx#L651) |
+| /dashboard/plan-salle | 11 | [src/App.tsx:651](../../src/App.tsx#L651) |
 | /dashboard/plan-salle-v2 | 2 | [src/App.tsx:653](../../src/App.tsx#L653) |
+| /dashboard/plan-salle?date=2026-10-20&branch=branch-a&reservation=bob-tomorrow | 1 | [src/test/floor-plan-service-workspace.test.tsx:514](../../src/test/floor-plan-service-workspace.test.tsx#L514) |
 | /dashboard/promotions | 5 | [src/App.tsx:640](../../src/App.tsx#L640) |
 | /dashboard/recommandations | 2 | [src/App.tsx:626](../../src/App.tsx#L626) |
 | /dashboard/reseaux-sociaux | 5 | [src/App.tsx:642](../../src/App.tsx#L642) |
@@ -2056,6 +2060,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | appId | — | 1 | [src/lib/push.ts:84](../../src/lib/push.ts#L84) |
 | appsecret_proof | — | 1 | [supabase/functions/_shared/meta-marketing-health.ts:25](../../supabase/functions/_shared/meta-marketing-health.ts#L25) |
 | authorization_id | /oauth/consent | 3 | [src/lib/authPostLogin.ts:10](../../src/lib/authPostLogin.ts#L10) |
+| branch | /dashboard/plan-salle, /dashboard/reservations | 2 | [src/pages/dashboard/DashboardPlanSalle.tsx:750](../../src/pages/dashboard/DashboardPlanSalle.tsx#L750) |
 | campaign_checkout | /dashboard/actualites, /dashboard/campagnes | 4 | [src/pages/dashboard/DashboardActualites.tsx:285](../../src/pages/dashboard/DashboardActualites.tsx#L285) |
 | campaign_id | /dashboard/actualites, /dashboard/campagnes | 3 | [src/pages/dashboard/DashboardActualites.tsx:305](../../src/pages/dashboard/DashboardActualites.tsx#L305) |
 | channel | — | 1 | [src/marketing/useMarketingUrlState.ts:82](../../src/marketing/useMarketingUrlState.ts#L82) |
@@ -2074,7 +2079,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | countrycode | — | 1 | [src/test/tok-connect-delivery-address.test.ts:15](../../src/test/tok-connect-delivery-address.test.ts#L15) |
 | cuisine | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/pages/Recherche.tsx:240](../../src/pages/Recherche.tsx#L240) |
 | cursor | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 1 | [supabase/functions/tok-connect-api/index.ts:210](../../supabase/functions/tok-connect-api/index.ts#L210) |
-| date | /restaurant/:id, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/lib/zeroAttenteReservationContext.ts:76](../../src/lib/zeroAttenteReservationContext.ts#L76) |
+| date | /dashboard/plan-salle, /dashboard/reservations, /restaurant/:id, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 7 | [src/lib/zeroAttenteReservationContext.ts:76](../../src/lib/zeroAttenteReservationContext.ts#L76) |
 | days | — | 1 | [scripts/google-actions-center-export-feeds.mjs:55](../../scripts/google-actions-center-export-feeds.mjs#L55) |
 | delivery | /recherche | 1 | [src/pages/Recherche.tsx:244](../../src/pages/Recherche.tsx#L244) |
 | demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:85](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L85) |
@@ -2136,13 +2141,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | redirect | /auth, /auth/callback, /auth/demo | 11 | [src/lib/workforceContinuation.ts:40](../../src/lib/workforceContinuation.ts#L40) |
 | redirect_uri | — | 1 | [src/test/tok-connect-broker.test.ts:232](../../src/test/tok-connect-broker.test.ts#L232) |
 | removeRestaurant | — | 1 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:171](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L171) |
-| reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:288](../../src/pages/Reservations.tsx#L288) |
+| reservation | /dashboard/plan-salle, /dashboard/reservations, /reservations | 4 | [src/pages/Reservations.tsx:288](../../src/pages/Reservations.tsx#L288) |
 | reservationStep | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:153](../../src/pages/RestaurantDetail.tsx#L153) |
 | reserve | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:149](../../src/pages/RestaurantDetail.tsx#L149) |
 | resize | — | 1 | [src/lib/optimizedImages.ts:40](../../src/lib/optimizedImages.ts#L40) |
 | restaurant | /equipe/mon-espace, /zero-attente | 2 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
 | restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 2 | [src/test/marketing-studio-references.test.ts:36](../../src/test/marketing-studio-references.test.ts#L36) |
 | scope | /actualites | 4 | [src/pages/Actualites.tsx:249](../../src/pages/Actualites.tsx#L249) |
+| service | /dashboard/plan-salle, /dashboard/reservations | 3 | [src/pages/dashboard/DashboardPlanSalle.tsx:757](../../src/pages/dashboard/DashboardPlanSalle.tsx#L757) |
 | session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:691](../../src/pages/ChefsTable.tsx#L691) |
 | signup_operation_id | /auth, /auth/callback, /auth/demo | 5 | [src/lib/workforceContinuation.ts:38](../../src/lib/workforceContinuation.ts#L38) |
 | slug | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:172](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L172) |
@@ -2466,9 +2472,11 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (827)</summary>
+<details><summary>function (831)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
+- `private.floor_plan_validate_layout_v3` (1 définition(s))
+- `private.floor_plan_workspace_snapshot_v3` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
 - `private_campaign.actualites_billing_dedupe_key` (1 définition(s))
 - `private_campaign.record_actualites_internal_test_conversion` (1 définition(s))
@@ -3125,7 +3133,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restaurant_mark_review_read` (1 définition(s))
 - `public.restaurant_reply_review` (2 définition(s))
 - `public.restaurant_report_review` (1 définition(s))
-- `public.restaurant_save_floor_plan_assignments` (2 définition(s))
+- `public.restaurant_save_floor_plan_assignments` (3 définition(s))
 - `public.restaurant_save_floor_plan_furniture` (1 définition(s))
 - `public.restaurant_save_floor_plan_layouts` (1 définition(s))
 - `public.restaurant_save_floor_plan_layouts_v2` (1 définition(s))
@@ -3133,7 +3141,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restaurant_save_floor_plan_variant_v2` (1 définition(s))
 - `public.restaurant_save_floor_plan_workspace` (1 définition(s))
 - `public.restaurant_save_floor_plan_workspace_v2` (1 définition(s))
+- `public.restaurant_save_floor_plan_workspace_v3` (1 définition(s))
 - `public.restaurant_save_golden_tok_drop` (1 définition(s))
+- `public.restaurant_seat_floor_plan_reservation` (1 définition(s))
 - `public.restaurant_set_cover_media` (1 définition(s))
 - `public.restaurant_set_cuisines` (1 définition(s))
 - `public.restaurant_set_preferred_table` (1 définition(s))
@@ -6312,6 +6322,9 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261018191000 Tok Workforce Launch Access | 60 | 2 | [supabase/migrations/20261018191000_tok_workforce_launch_access.sql:1](../../supabase/migrations/20261018191000_tok_workforce_launch_access.sql#L1) |
 | 20261018210000 Marketing Mailing Recipients | 322 | 3 | [supabase/migrations/20261018210000_marketing_mailing_recipients.sql:1](../../supabase/migrations/20261018210000_marketing_mailing_recipients.sql#L1) |
 | 20261018210100 Marketing Mailing Image Upload | 102 | 1 | [supabase/migrations/20261018210100_marketing_mailing_image_upload.sql:1](../../supabase/migrations/20261018210100_marketing_mailing_image_upload.sql#L1) |
+| 20261019090000 Floor Plan Workspace V3 | 355 | 3 | [supabase/migrations/20261019090000_floor_plan_workspace_v3.sql:1](../../supabase/migrations/20261019090000_floor_plan_workspace_v3.sql#L1) |
+| 20261019090100 Floor Plan Seating Transition | 120 | 1 | [supabase/migrations/20261019090100_floor_plan_seating_transition.sql:1](../../supabase/migrations/20261019090100_floor_plan_seating_transition.sql#L1) |
+| 20261019090200 Floor Plan Assignment Activity | 199 | 1 | [supabase/migrations/20261019090200_floor_plan_assignment_activity.sql:1](../../supabase/migrations/20261019090200_floor_plan_assignment_activity.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6541,7 +6554,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 36 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 269 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 776 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 778 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 65 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6551,18 +6564,18 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 215 |
-| automation-script | 77 |
+| application-library | 218 |
+| automation-script | 78 |
 | documentation | 6 |
 | edge-function-source | 226 |
-| frontend-component | 279 |
+| frontend-component | 281 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
 | frontend-source | 29 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 692 |
+| test | 698 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6655,6 +6668,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Audit codebase TOK - 2026-06-26 | 16 | [docs/audits/codebase-audit-2026-06-26.md:1](../../docs/audits/codebase-audit-2026-06-26.md#L1) |
 | Mobile release readiness | 9 | [docs/audits/mobile-release-readiness-2026-04-30.md:1](../../docs/audits/mobile-release-readiness-2026-04-30.md#L1) |
 | Audit Supabase TOK - 2026-06-19 | 52 | [docs/audits/supabase-audit-2026-06-19.md:1](../../docs/audits/supabase-audit-2026-06-19.md#L1) |
+| TOK — Audit et amélioration du plan de salle | 16 | [docs/audits/tok-floor-plan-service-ux-2026-10-19.md:1](../../docs/audits/tok-floor-plan-service-ux-2026-10-19.md#L1) |
 | 20260531 Actualites Sponsored Posts | 0 | [docs/ci-triggers/20260531-actualites-sponsored-posts.md:1](../../docs/ci-triggers/20260531-actualites-sponsored-posts.md#L1) |
 | TOK — Argumentaire commercial restaurateurs | 27 | [docs/commercial/tok-argumentaire-commerciaux.md:1](../../docs/commercial/tok-argumentaire-commerciaux.md#L1) |
 | Déploiement — carte commerciale TheFork Genève | 1 | [docs/deployments/2026-07-24-commercial-map-thefork-520.md:1](../../docs/deployments/2026-07-24-commercial-map-thefork-520.md#L1) |
@@ -6851,7 +6865,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (215)</summary>
+<details><summary>application-library (218)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/actualitesFeedOrdering.ts`
@@ -6942,10 +6956,13 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/featureVisibility.ts`
 - `src/lib/financialHealth.ts`
 - `src/lib/floorPlan.ts`
+- `src/lib/floorPlanAiMerge.ts`
 - `src/lib/floorPlanFrameScheduler.ts`
 - `src/lib/floorPlanHealth.ts`
 - `src/lib/floorPlanHistory.ts`
+- `src/lib/floorPlanNavigation.ts`
 - `src/lib/floorPlanPersistence.ts`
+- `src/lib/floorPlanWorkspacePersistence.ts`
 - `src/lib/geo.ts`
 - `src/lib/geolocation-native.ts`
 - `src/lib/googleBusinessBooking.ts`
@@ -7071,7 +7088,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (89)</summary>
+<details><summary>automation-script (90)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7150,6 +7167,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/take-screenshots.mjs`
 - `scripts/test-actualites-billing-postgres.mjs`
 - `scripts/test-checkout-security-postgres.mjs`
+- `scripts/test-floor-plan-workspace-postgres.mjs`
 - `scripts/test-golden-tok-responsive.mjs`
 - `scripts/test-print-protocol-postgres.mjs`
 - `scripts/test-reservation-guarantee-idempotency-postgres.mjs`
@@ -7200,7 +7218,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (558)</summary>
+<details><summary>database-migration (561)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7760,10 +7778,13 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261018191000_tok_workforce_launch_access.sql`
 - `supabase/migrations/20261018210000_marketing_mailing_recipients.sql`
 - `supabase/migrations/20261018210100_marketing_mailing_image_upload.sql`
+- `supabase/migrations/20261019090000_floor_plan_workspace_v3.sql`
+- `supabase/migrations/20261019090100_floor_plan_seating_transition.sql`
+- `supabase/migrations/20261019090200_floor_plan_assignment_activity.sql`
 
 </details>
 
-<details><summary>documentation (168)</summary>
+<details><summary>documentation (169)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -7783,6 +7804,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/audits/codebase-audit-2026-06-26.md`
 - `docs/audits/mobile-release-readiness-2026-04-30.md`
 - `docs/audits/supabase-audit-2026-06-19.md`
+- `docs/audits/tok-floor-plan-service-ux-2026-10-19.md`
 - `docs/ci-triggers/20260531-actualites-sponsored-posts.md`
 - `docs/commercial/tok-argumentaire-commerciaux.md`
 - `docs/deployments/2026-07-24-commercial-map-thefork-520.md`
@@ -8167,7 +8189,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (284)</summary>
+<details><summary>frontend-component (286)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8275,6 +8297,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/dashboard/GoldenTokPanel.tsx`
 - `src/components/dashboard/GoogleBusinessBookingCard.tsx`
 - `src/components/dashboard/IllustratedActionCard.tsx`
+- `src/components/dashboard/ReservationClosureDialog.tsx`
 - `src/components/dashboard/RestaurantDashboardHomeView.css`
 - `src/components/dashboard/RestaurantDashboardHomeView.tsx`
 - `src/components/dashboard/TokAiMarketingStudio.tsx`
@@ -8298,6 +8321,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/floor-plan/FloorPlanAIPanel.tsx`
 - `src/components/floor-plan/FloorPlanItemIllustration.tsx`
 - `src/components/floor-plan/ReservationQueue.tsx`
+- `src/components/floor-plan/ReservationServiceActions.tsx`
 - `src/components/floor-plan/ServiceBoard.tsx`
 - `src/components/floor-plan/SimpleReservationQueue.tsx`
 - `src/components/floor-plan/StudioCanvas.tsx`
@@ -9540,7 +9564,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (692)</summary>
+<details><summary>test (698)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9779,13 +9803,18 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/firebase-vapid-key.test.ts`
 - `src/test/flat-fee-on-arrival.test.ts`
 - `src/test/flat-reservation-billing-fallback.test.ts`
+- `src/test/floor-plan-ai-merge.test.ts`
 - `src/test/floor-plan-assignment-governance.test.ts`
 - `src/test/floor-plan-automatic-import.test.ts`
 - `src/test/floor-plan-automatic-placement.test.ts`
 - `src/test/floor-plan-frame-scheduler.test.ts`
 - `src/test/floor-plan-history.test.ts`
+- `src/test/floor-plan-navigation.test.tsx`
 - `src/test/floor-plan-page-layout.test.ts`
 - `src/test/floor-plan-persistence.test.ts`
+- `src/test/floor-plan-service-ux.test.tsx`
+- `src/test/floor-plan-service-workspace.test.tsx`
+- `src/test/floor-plan-workspace-persistence.test.ts`
 - `src/test/floor-plan.test.ts`
 - `src/test/french-copy-accents.test.ts`
 - `src/test/frontend-10k-readiness.test.ts`
@@ -10008,6 +10037,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/reservation-availability.test.ts`
 - `src/test/reservation-branch-rls-visibility.test.ts`
 - `src/test/reservation-card-guarantee.test.ts`
+- `src/test/reservation-closure-dialog.test.tsx`
 - `src/test/reservation-confirmation-deposit-ops.test.ts`
 - `src/test/reservation-email-delivery.test.ts`
 - `src/test/reservation-fee-integrity.test.ts`
