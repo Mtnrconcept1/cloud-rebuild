@@ -141,6 +141,15 @@ describe("progressive reservation offers", () => {
     expect(migration).toContain("WHERE status = 'active'");
   });
 
+  it("keeps homepage progressive offers visible when GPS finds no nearby offers", () => {
+    const home = read("src/pages/Index.tsx");
+
+    expect(home).toContain('queryKey: [...progressiveOffersBaseQuery.queryKey, demoSessionKey]');
+    expect(home).not.toContain('queryKey: [...progressiveOffersBaseQuery.queryKey, geolocationQueryKey, demoSessionKey]');
+    expect(home).toContain("nearbyOffers.length > 0 ? nearbyOffers : imageBackedOffers");
+    expect(home).toContain("selectDailyProgressiveOffers(candidateOffers");
+  });
+
   it("wires progressive offers through restaurant, customer and admin surfaces", () => {
     const dashboardFormules = read("src/pages/dashboard/DashboardFormules.tsx");
     const index = read("src/pages/Index.tsx");
