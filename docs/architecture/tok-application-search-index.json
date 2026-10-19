@@ -2,7 +2,7 @@
  "schemaVersion": 2,
  "repository": "Mtnrconcept1/cloud-rebuild",
  "generatedBy": "scripts/generate-application-index.mjs",
- "sourceDigest": "da6149f37f103c00179ffeb171582c2749f105661d09c0835e879f22d1cc99e6",
+ "sourceDigest": "47b3ea6c935be78c492d8f2262c673162632e96a8866672a43bbeea956a299a0",
  "scope": "État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.",
  "counts": {
   "apiRoutes": 9,
@@ -24,15 +24,15 @@
   "publicAssets": 582,
   "publicEntries": 608,
   "publicNavigableRoutes": 2,
-  "queryParameters": 110,
-  "records": 17760,
-  "repositoryFiles": 3364,
+  "queryParameters": 113,
+  "records": 17765,
+  "repositoryFiles": 3365,
   "routingAuthorities": 35,
   "runtimeOnlyEdgeFunctions": 4,
   "seoBuildRoutes": 39,
   "storageBuckets": 9,
   "workerRoutes": 2,
-  "workflows": 30
+  "workflows": 31
  },
  "catalogs": {
   "frontendRoutes": [
@@ -18014,8 +18014,12 @@
     "value": "/auth/v1/oauth/authorize",
     "sources": [
      {
+      "path": "src/test/tok-connect-broker.test.ts",
+      "line": 231
+     },
+     {
       "path": "supabase/functions/_shared/tok-connect-broker.ts",
-      "line": 156
+      "line": 162
      }
     ]
    },
@@ -18028,7 +18032,7 @@
      },
      {
       "path": "supabase/functions/_shared/tok-connect-broker.ts",
-      "line": 162
+      "line": 168
      }
     ]
    },
@@ -18234,7 +18238,7 @@
     "sources": [
      {
       "path": "supabase/functions/_shared/tok-connect-broker.ts",
-      "line": 224
+      "line": 230
      }
     ]
    },
@@ -28425,7 +28429,7 @@
     "sources": [
      {
       "path": "supabase/functions/_shared/tok-connect-broker.ts",
-      "line": 224
+      "line": 230
      }
     ]
    },
@@ -30701,7 +30705,7 @@
     "sources": [
      {
       "path": "supabase/functions/_shared/tok-connect-broker.ts",
-      "line": 224
+      "line": 230
      }
     ]
    },
@@ -31736,6 +31740,16 @@
     "routes": []
    },
    {
+    "name": "code_challenge_method",
+    "sources": [
+     {
+      "path": "src/test/tok-connect-broker.test.ts",
+      "line": 234
+     }
+    ],
+    "routes": []
+   },
+   {
     "name": "commercialReferral",
     "sources": [
      {
@@ -32143,6 +32157,10 @@
      {
       "path": "src/test/tok-connect-broker.test.ts",
       "line": 114
+     },
+     {
+      "path": "src/test/tok-connect-broker.test.ts",
+      "line": 237
      }
     ],
     "routes": []
@@ -32822,6 +32840,16 @@
     ]
    },
    {
+    "name": "redirect_uri",
+    "sources": [
+     {
+      "path": "src/test/tok-connect-broker.test.ts",
+      "line": 232
+     }
+    ],
+    "routes": []
+   },
+   {
     "name": "removeRestaurant",
     "sources": [
      {
@@ -32939,6 +32967,10 @@
      {
       "path": "src/test/tok-connect-broker.test.ts",
       "line": 103
+     },
+     {
+      "path": "src/test/tok-connect-broker.test.ts",
+      "line": 233
      }
     ],
     "routes": [
@@ -33070,6 +33102,10 @@
      {
       "path": "src/test/tok-connect-broker.test.ts",
       "line": 103
+     },
+     {
+      "path": "src/test/tok-connect-broker.test.ts",
+      "line": 235
      }
     ],
     "routes": []
@@ -33325,6 +33361,16 @@
      "/auth/demo",
      "/commercial"
     ]
+   },
+   {
+    "name": "ui_locales",
+    "sources": [
+     {
+      "path": "src/test/tok-connect-broker.test.ts",
+      "line": 236
+     }
+    ],
+    "routes": []
    },
    {
     "name": "utm_medium",
@@ -75106,6 +75152,11 @@
     ]
    },
    {
+    "name": "Tok Connect Index Refresh",
+    "path": ".github/workflows/tok-connect-index-refresh.yml",
+    "jobs": []
+   },
+   {
     "name": "TOK Connect security regression",
     "path": ".github/workflows/tok-connect-security.yml",
     "jobs": [
@@ -114952,7 +115003,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 221
+    "lineCount": 269
    },
    {
     "path": "src/test/tok-connect-chatgpt-finalization.test.ts",
@@ -118925,12 +118976,12 @@
      },
      {
       "name": "handleTokConnectBroker",
-      "line": 220,
+      "line": 226,
       "kind": "function"
      },
      {
       "name": "resolveTokConnectBrokerAccess",
-      "line": 236,
+      "line": 242,
       "kind": "function"
      }
     ],
@@ -118939,7 +118990,7 @@
      "supabase",
      "vercel"
     ],
-    "lineCount": 248
+    "lineCount": 254
    },
    {
     "path": "supabase/functions/_shared/tok-connect-customer-commerce.ts",
@@ -122339,6 +122390,11 @@
    },
    {
     "path": ".github/workflows/sync-incident-secrets.yml",
+    "category": "ci-workflow",
+    "extension": ".yml"
+   },
+   {
+    "path": ".github/workflows/tok-connect-index-refresh.yml",
     "category": "ci-workflow",
     "extension": ".yml"
    },
@@ -159611,7 +159667,7 @@
    "id": "code-module:99ea0b180084",
    "type": "code-module",
    "title": "src/test/tok-connect-broker.test.ts",
-   "description": "Module de 221 lignes; exports: aucun export statique.",
+   "description": "Module de 269 lignes; exports: aucun export statique.",
    "path": "src/test/tok-connect-broker.test.ts",
    "line": 1,
    "surface": null,
@@ -159619,7 +159675,7 @@
     "supabase",
     "vercel"
    ],
-   "detailRef": "aa850f1727df"
+   "detailRef": "d66aaa5ab7f1"
   },
   {
    "id": "code-module:4da3c87f3106",
@@ -162101,7 +162157,7 @@
    "id": "code-module:c4527207ce87",
    "type": "code-module",
    "title": "supabase/functions/_shared/tok-connect-broker.ts",
-   "description": "Module de 248 lignes; exports: TOK_BROKER_ISSUER, TOK_BROKER_RESOURCE, TOK_BROKER_SCOPE, TokBrokerError, TokBrokerDependencies, tokBrokerHash, tokBrokerChallenge, handleTokConnectBroker, resolveTokConnectBrokerAccess.",
+   "description": "Module de 254 lignes; exports: TOK_BROKER_ISSUER, TOK_BROKER_RESOURCE, TOK_BROKER_SCOPE, TokBrokerError, TokBrokerDependencies, tokBrokerHash, tokBrokerChallenge, handleTokConnectBroker, resolveTokConnectBrokerAccess.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
    "line": 1,
    "surface": null,
@@ -162118,7 +162174,7 @@
     "tokBrokerHash",
     "vercel"
    ],
-   "detailRef": "4c22457711cb"
+   "detailRef": "016ad53434a0"
   },
   {
    "id": "code-module:079f909ea9f2",
@@ -295278,19 +295334,19 @@
    "detailRef": "1a1c712c2906"
   },
   {
-   "id": "exported-symbol:28886394b8b6",
+   "id": "exported-symbol:2aa9e853c1df",
    "type": "exported-symbol",
    "title": "handleTokConnectBroker",
    "description": "Export function de supabase/functions/_shared/tok-connect-broker.ts.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 220,
+   "line": 226,
    "surface": null,
    "tags": [
     "function",
     "supabase",
     "vercel"
    ],
-   "detailRef": "e87c8fe8f1cd"
+   "detailRef": "7874cfb7434a"
   },
   {
    "id": "exported-symbol:8d5b9d07d8df",
@@ -302474,19 +302530,19 @@
    "detailRef": "be31f5ad3a19"
   },
   {
-   "id": "exported-symbol:02439c31ae6c",
+   "id": "exported-symbol:b1c00459ba38",
    "type": "exported-symbol",
    "title": "resolveTokConnectBrokerAccess",
    "description": "Export function de supabase/functions/_shared/tok-connect-broker.ts.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 236,
+   "line": 242,
    "surface": null,
    "tags": [
     "function",
     "supabase",
     "vercel"
    ],
-   "detailRef": "aa581701b827"
+   "detailRef": "477912b2c3f4"
   },
   {
    "id": "exported-symbol:4ab8f750191f",
@@ -310845,6 +310901,20 @@
     "ci-workflow"
    ],
    "detailRef": "4641b28d0262"
+  },
+  {
+   "id": "file:ef0de9a48ceb",
+   "type": "file",
+   "title": ".github/workflows/tok-connect-index-refresh.yml",
+   "description": "Fichier du dépôt classé ci-workflow.",
+   "path": ".github/workflows/tok-connect-index-refresh.yml",
+   "line": null,
+   "surface": null,
+   "tags": [
+    ".yml",
+    "ci-workflow"
+   ],
+   "detailRef": "b632b93a618f"
   },
   {
    "id": "file:31da396d7920",
@@ -373768,17 +373838,18 @@
    "detailRef": "6f6be36dd68d"
   },
   {
-   "id": "path-literal:a092d2f9d74f",
+   "id": "path-literal:31ac1e480bc3",
    "type": "path-literal",
    "title": "/auth/v1/oauth/authorize",
-   "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
-   "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 156,
+   "description": "Chemin référencé dans 2 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
+   "path": "src/test/tok-connect-broker.test.ts",
+   "line": 231,
    "surface": null,
    "tags": [
+    "src/test/tok-connect-broker.test.ts",
     "supabase/functions/_shared/tok-connect-broker.ts"
    ],
-   "detailRef": "e205af61efd0"
+   "detailRef": "99809acbc30d"
   },
   {
    "id": "path-literal:7dfee719accb",
@@ -373792,7 +373863,7 @@
     "src/test/tok-connect-broker.test.ts",
     "supabase/functions/_shared/tok-connect-broker.ts"
    ],
-   "detailRef": "a01fa179c6ae"
+   "detailRef": "0d49cdffa483"
   },
   {
    "id": "path-literal:df46bef5a675",
@@ -373968,17 +374039,17 @@
    "detailRef": "e6208920308d"
   },
   {
-   "id": "path-literal:6433938d86ef",
+   "id": "path-literal:b04cad11463e",
    "type": "path-literal",
    "title": "/authorize",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 224,
+   "line": 230,
    "surface": null,
    "tags": [
     "supabase/functions/_shared/tok-connect-broker.ts"
    ],
-   "detailRef": "2cca9cc9e7ea"
+   "detailRef": "db412b201a75"
   },
   {
    "id": "path-literal:d822148ab793",
@@ -381226,17 +381297,17 @@
    "detailRef": "1afc24bb0a55"
   },
   {
-   "id": "path-literal:caec25101b33",
+   "id": "path-literal:ffe009495bde",
    "type": "path-literal",
    "title": "/register",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 224,
+   "line": 230,
    "surface": null,
    "tags": [
     "supabase/functions/_shared/tok-connect-broker.ts"
    ],
-   "detailRef": "ae575d8da7d3"
+   "detailRef": "35ff9ca875a7"
   },
   {
    "id": "path-literal:11ab7fb216ff",
@@ -383169,17 +383240,17 @@
    "detailRef": "fd55acc7b758"
   },
   {
-   "id": "path-literal:c207460b99d7",
+   "id": "path-literal:51743e5bb9ce",
    "type": "path-literal",
    "title": "/token",
    "description": "Chemin référencé dans 1 emplacement(s) de code; à qualifier comme route, lien ou endpoint selon la source.",
    "path": "supabase/functions/_shared/tok-connect-broker.ts",
-   "line": 224,
+   "line": 230,
    "surface": null,
    "tags": [
     "supabase/functions/_shared/tok-connect-broker.ts"
    ],
-   "detailRef": "93b910009c32"
+   "detailRef": "a463da6eb187"
   },
   {
    "id": "path-literal:fe3b38b687bd",
@@ -392444,6 +392515,19 @@
    "detailRef": "7d1be8e95f29"
   },
   {
+   "id": "query-parameter:08cabf3c788c",
+   "type": "query-parameter",
+   "title": "code_challenge_method",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "src/test/tok-connect-broker.test.ts",
+   "line": 234,
+   "surface": null,
+   "tags": [
+    "src/test/tok-connect-broker.test.ts"
+   ],
+   "detailRef": "1799077b5265"
+  },
+  {
    "id": "query-parameter:18d3dd2df3dd",
    "type": "query-parameter",
    "title": "commercialReferral",
@@ -392795,14 +392879,14 @@
    "id": "query-parameter:1cc5e4d06366",
    "type": "query-parameter",
    "title": "host",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/test/tok-connect-broker.test.ts",
    "line": 114,
    "surface": null,
    "tags": [
     "src/test/tok-connect-broker.test.ts"
    ],
-   "detailRef": "35b09c9a2cd0"
+   "detailRef": "085ef919df4e"
   },
   {
    "id": "query-parameter:1967561f2984",
@@ -393328,6 +393412,19 @@
    "detailRef": "eb1d8cf60909"
   },
   {
+   "id": "query-parameter:7aec2cab2465",
+   "type": "query-parameter",
+   "title": "redirect_uri",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "src/test/tok-connect-broker.test.ts",
+   "line": 232,
+   "surface": null,
+   "tags": [
+    "src/test/tok-connect-broker.test.ts"
+   ],
+   "detailRef": "b6ba3620712c"
+  },
+  {
    "id": "query-parameter:8b58693e43ea",
    "type": "query-parameter",
    "title": "removeRestaurant",
@@ -393425,7 +393522,7 @@
    "id": "query-parameter:8fb9decaced8",
    "type": "query-parameter",
    "title": "scope",
-   "description": "Paramètre d’URL détecté dans 3 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 4 emplacement(s).",
    "path": "src/pages/Actualites.tsx",
    "line": 249,
    "surface": null,
@@ -393433,7 +393530,7 @@
     "src/pages/Actualites.tsx",
     "src/test/tok-connect-broker.test.ts"
    ],
-   "detailRef": "b19dc636b603"
+   "detailRef": "1717f0006396"
   },
   {
    "id": "query-parameter:39f1fcc7c252",
@@ -393526,14 +393623,14 @@
    "id": "query-parameter:90322c68349e",
    "type": "query-parameter",
    "title": "state",
-   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "description": "Paramètre d’URL détecté dans 2 emplacement(s).",
    "path": "src/test/tok-connect-broker.test.ts",
    "line": 103,
    "surface": null,
    "tags": [
     "src/test/tok-connect-broker.test.ts"
    ],
-   "detailRef": "734c29bed8e1"
+   "detailRef": "d7eea1b69c98"
   },
   {
    "id": "query-parameter:380f8a84096d",
@@ -393696,6 +393793,19 @@
     "src/pages/CommercialProspection.tsx"
    ],
    "detailRef": "5d66cb9702c2"
+  },
+  {
+   "id": "query-parameter:cae59757e7d3",
+   "type": "query-parameter",
+   "title": "ui_locales",
+   "description": "Paramètre d’URL détecté dans 1 emplacement(s).",
+   "path": "src/test/tok-connect-broker.test.ts",
+   "line": 236,
+   "surface": null,
+   "tags": [
+    "src/test/tok-connect-broker.test.ts"
+   ],
+   "detailRef": "500f2a2a7d81"
   },
   {
    "id": "query-parameter:8324a1db3934",
@@ -396647,6 +396757,17 @@
     "migration-and-tenant-isolation"
    ],
    "detailRef": "56102a87e1c5"
+  },
+  {
+   "id": "workflow:5f67392cfee6",
+   "type": "workflow",
+   "title": "Tok Connect Index Refresh",
+   "description": "Workflow GitHub Actions; jobs: définition dynamique.",
+   "path": ".github/workflows/tok-connect-index-refresh.yml",
+   "line": null,
+   "surface": null,
+   "tags": [],
+   "detailRef": "7bc717921ca7"
   },
   {
    "id": "workflow:449ccb0fe621",

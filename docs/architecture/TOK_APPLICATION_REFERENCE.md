@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `da6149f37f103c00179ffeb171582c2749f105661d09c0835e879f22d1cc99e6`
+- Empreinte SHA-256 des sources indexées : `47b3ea6c935be78c492d8f2262c673162632e96a8866672a43bbeea956a299a0`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -44,15 +44,15 @@
 | publicAssets | 582 |
 | publicEntries | 608 |
 | publicNavigableRoutes | 2 |
-| queryParameters | 110 |
-| records | 17760 |
-| repositoryFiles | 3364 |
+| queryParameters | 113 |
+| records | 17765 |
+| repositoryFiles | 3365 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 30 |
+| workflows | 31 |
 
 ## État distant observé
 
@@ -1366,7 +1366,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/v1/admin/oauth/clients/ | 1 | [supabase/functions/_shared/tok-connect-broker.ts:134](../../supabase/functions/_shared/tok-connect-broker.ts#L134) |
 | /auth/v1/factors | 4 | [src/test/marketing-bff-security.test.ts:314](../../src/test/marketing-bff-security.test.ts#L314) |
 | /auth/v1/logout?scope=local | 5 | [src/test/marketing-bff-security.test.ts:464](../../src/test/marketing-bff-security.test.ts#L464) |
-| /auth/v1/oauth/authorize | 1 | [supabase/functions/_shared/tok-connect-broker.ts:156](../../supabase/functions/_shared/tok-connect-broker.ts#L156) |
+| /auth/v1/oauth/authorize | 2 | [src/test/tok-connect-broker.test.ts:231](../../src/test/tok-connect-broker.test.ts#L231) |
 | /auth/v1/oauth/token | 2 | [src/test/tok-connect-broker.test.ts:55](../../src/test/tok-connect-broker.test.ts#L55) |
 | /auth/v1/token?grant_type=password | 5 | [src/test/marketing-bff-security.test.ts:240](../../src/test/marketing-bff-security.test.ts#L240) |
 | /auth/v1/user | 9 | [src/test/marketing-bff-security.test.ts:251](../../src/test/marketing-bff-security.test.ts#L251) |
@@ -1377,7 +1377,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth?role=restaurateur | 1 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
 | /auth?type=client | 14 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
 | /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:611](../../src/test/auth-signup-form.test.tsx#L611) |
-| /authorize | 1 | [supabase/functions/_shared/tok-connect-broker.ts:224](../../supabase/functions/_shared/tok-connect-broker.ts#L224) |
+| /authorize | 1 | [supabase/functions/_shared/tok-connect-broker.ts:230](../../supabase/functions/_shared/tok-connect-broker.ts#L230) |
 | /availability | 1 | [supabase/functions/tok-connect-api/index.ts:1039](../../supabase/functions/tok-connect-api/index.ts#L1039) |
 | /budget-auto | 11 | [scripts/prerender-seo.mjs:1070](../../scripts/prerender-seo.mjs#L1070) |
 | /campagnes | 1 | [src/lib/commercialDemoAi.ts:298](../../src/lib/commercialDemoAi.ts#L298) |
@@ -1860,7 +1860,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /recherche?q=pizza&ville=geneve | 1 | [scripts/launch-10k-load-check.mjs:19](../../scripts/launch-10k-load-check.mjs#L19) |
 | /recherche?q=sushi&city=Genève | 2 | [src/test/restaurant-search-preview.test.tsx:30](../../src/test/restaurant-search-preview.test.tsx#L30) |
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
-| /register | 1 | [supabase/functions/_shared/tok-connect-broker.ts:224](../../supabase/functions/_shared/tok-connect-broker.ts#L224) |
+| /register | 1 | [supabase/functions/_shared/tok-connect-broker.ts:230](../../supabase/functions/_shared/tok-connect-broker.ts#L230) |
 | /reseaux-sociaux | 1 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
 | /reservations | 27 | [scripts/prerender-seo.mjs:1262](../../scripts/prerender-seo.mjs#L1262) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
@@ -1996,7 +1996,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-pulse | 10 | [scripts/prerender-seo.mjs:1236](../../scripts/prerender-seo.mjs#L1236) |
 | /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:89](../../supabase/functions/ai-image-enhance/index.ts#L89) |
 | /tok-slot-machine/index.html?v=20260719 | 1 | [src/components/DailyMiamzSlotMachine.tsx:15](../../src/components/DailyMiamzSlotMachine.tsx#L15) |
-| /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:224](../../supabase/functions/_shared/tok-connect-broker.ts#L224) |
+| /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:230](../../supabase/functions/_shared/tok-connect-broker.ts#L230) |
 | /token?grant_type=password | 1 | [server/marketingBff.ts:733](../../server/marketingBff.ts#L733) |
 | /user | 1 | [server/marketingBff.ts:722](../../server/marketingBff.ts#L722) |
 | /user_roles? | 4 | [src/test/marketing-agent-bff.test.ts:28](../../src/test/marketing-agent-bff.test.ts#L28) |
@@ -2064,6 +2064,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | claimPhone | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:81](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L81) |
 | claimRestaurant | — | 2 | [src/components/DirectoryClaimPersistenceBridge.tsx:37](../../src/components/DirectoryClaimPersistenceBridge.tsx#L37) |
 | code | — | 2 | [src/test/workforce-auth-continuation.test.ts:80](../../src/test/workforce-auth-continuation.test.ts#L80) |
+| code_challenge_method | — | 1 | [src/test/tok-connect-broker.test.ts:234](../../src/test/tok-connect-broker.test.ts#L234) |
 | commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:915](../../src/pages/Auth.tsx#L915) |
 | commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:280](../../src/pages/CommercialComptabilite.tsx#L280) |
 | confirmed | /auth, /auth/callback, /auth/demo | 3 | [src/lib/workforceContinuation.ts:37](../../src/lib/workforceContinuation.ts#L37) |
@@ -2090,7 +2091,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | geometry | — | 1 | [src/test/home-canton-hero.test.ts:55](../../src/test/home-canton-hero.test.ts#L55) |
 | guarantee_session_id | /reservations | 2 | [src/pages/Reservations.tsx:163](../../src/pages/Reservations.tsx#L163) |
 | height | — | 1 | [src/lib/optimizedImages.ts:38](../../src/lib/optimizedImages.ts#L38) |
-| host | — | 1 | [src/test/tok-connect-broker.test.ts:114](../../src/test/tok-connect-broker.test.ts#L114) |
+| host | — | 2 | [src/test/tok-connect-broker.test.ts:114](../../src/test/tok-connect-broker.test.ts#L114) |
 | incident | /admin/guardian, /admin/sinistres, /admin/support-resolution | 4 | [src/pages/admin/AdminGuardian.tsx:106](../../src/pages/admin/AdminGuardian.tsx#L106) |
 | job | /courier/jobs | 1 | [src/pages/courier/CourierJobs.tsx:54](../../src/pages/courier/CourierJobs.tsx#L54) |
 | lat | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 2 | [src/pages/LocalRestaurants.tsx:475](../../src/pages/LocalRestaurants.tsx#L475) |
@@ -2129,6 +2130,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | quality | — | 1 | [src/lib/optimizedImages.ts:39](../../src/lib/optimizedImages.ts#L39) |
 | rating | /recherche | 1 | [src/pages/Recherche.tsx:245](../../src/pages/Recherche.tsx#L245) |
 | redirect | /auth, /auth/callback, /auth/demo | 11 | [src/lib/workforceContinuation.ts:40](../../src/lib/workforceContinuation.ts#L40) |
+| redirect_uri | — | 1 | [src/test/tok-connect-broker.test.ts:232](../../src/test/tok-connect-broker.test.ts#L232) |
 | removeRestaurant | — | 1 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:171](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L171) |
 | reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:288](../../src/pages/Reservations.tsx#L288) |
 | reservationStep | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:153](../../src/pages/RestaurantDetail.tsx#L153) |
@@ -2136,14 +2138,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | resize | — | 1 | [src/lib/optimizedImages.ts:40](../../src/lib/optimizedImages.ts#L40) |
 | restaurant | /equipe/mon-espace, /zero-attente | 2 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
 | restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 2 | [src/test/marketing-studio-references.test.ts:36](../../src/test/marketing-studio-references.test.ts#L36) |
-| scope | /actualites | 3 | [src/pages/Actualites.tsx:249](../../src/pages/Actualites.tsx#L249) |
+| scope | /actualites | 4 | [src/pages/Actualites.tsx:249](../../src/pages/Actualites.tsx#L249) |
 | session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:691](../../src/pages/ChefsTable.tsx#L691) |
 | signup_operation_id | /auth, /auth/callback, /auth/demo | 5 | [src/lib/workforceContinuation.ts:38](../../src/lib/workforceContinuation.ts#L38) |
 | slug | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:172](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L172) |
 | sort | /recherche | 1 | [src/pages/Recherche.tsx:249](../../src/pages/Recherche.tsx#L249) |
 | source | /mon-espace | 1 | [public/manifest.json:50](../../public/manifest.json#L50) |
 | sr | — | 1 | [src/test/home-canton-hero.test.ts:56](../../src/test/home-canton-hero.test.ts#L56) |
-| state | — | 1 | [src/test/tok-connect-broker.test.ts:103](../../src/test/tok-connect-broker.test.ts#L103) |
+| state | — | 2 | [src/test/tok-connect-broker.test.ts:103](../../src/test/tok-connect-broker.test.ts#L103) |
 | status | /chefs-table, /dashboard, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 12 | [src/lib/iosCommerceFetch.ts:137](../../src/lib/iosCommerceFetch.ts#L137) |
 | stripe_session_id | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:81](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L81) |
 | subscriptionPlan | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:926](../../src/pages/Auth.tsx#L926) |
@@ -2155,6 +2157,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | token | — | 1 | [supabase/functions/marketing-unsubscribe/index.ts:66](../../supabase/functions/marketing-unsubscribe/index.ts#L66) |
 | tolerance | — | 1 | [src/test/home-canton-hero.test.ts:57](../../src/test/home-canton-hero.test.ts#L57) |
 | type | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:287](../../src/pages/Auth.tsx#L287) |
+| ui_locales | — | 1 | [src/test/tok-connect-broker.test.ts:236](../../src/test/tok-connect-broker.test.ts#L236) |
 | utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:664](../../src/components/ReservationDialog.tsx#L664) |
 | utm_source | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:660](../../src/components/ReservationDialog.tsx#L660) |
 | view | /admin/commandes-reservations, /admin/security-center | 3 | [src/marketing/useMarketingUrlState.ts:84](../../src/marketing/useMarketingUrlState.ts#L84) |
@@ -6409,6 +6412,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Restaurant Image Truth Backfill | backfill | [.github/workflows/restaurant-image-truth-backfill.yml](../../.github/workflows/restaurant-image-truth-backfill.yml) |
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
+| Tok Connect Index Refresh | — | [.github/workflows/tok-connect-index-refresh.yml](../../.github/workflows/tok-connect-index-refresh.yml) |
 | TOK Connect security regression | deno-edge-check, deno-transport, postgres-security | [.github/workflows/tok-connect-security.yml](../../.github/workflows/tok-connect-security.yml) |
 | TOK Workforce PostgreSQL Integration | migration-and-tenant-isolation | [.github/workflows/tok-workforce-postgres.yml](../../.github/workflows/tok-workforce-postgres.yml) |
 
@@ -7149,7 +7153,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (30)</summary>
+<details><summary>ci-workflow (31)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -7179,6 +7183,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/restaurant-image-truth-backfill.yml`
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
+- `.github/workflows/tok-connect-index-refresh.yml`
 - `.github/workflows/tok-connect-security.yml`
 - `.github/workflows/tok-workforce-postgres.yml`
 
