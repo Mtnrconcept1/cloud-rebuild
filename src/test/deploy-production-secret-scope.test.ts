@@ -149,6 +149,7 @@ describe("production deployment secret scope", () => {
       "OPS_GITHUB_CALLBACK_SECRET",
       "OPS_INGEST_SECRET",
       "RESEND_API_KEY",
+      "RESEND_INBOUND_WEBHOOK_SECRET",
       "STRIPE_LIVE_WEBHOOK",
       "STRIPE_PERSONAL_SECRET_KEY",
       "STRIPE_PERSONNAL_SECRET_KEY",
