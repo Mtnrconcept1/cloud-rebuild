@@ -50,6 +50,15 @@ const assert = require('node:assert/strict');
   await db.exec('SET ROLE service_role');
   assert.equal((await db.query('SELECT service_retry_restaurant_photo_transport_errors() AS n')).rows[0].n, 0, 'settlement must not erase the lifetime batch cap');
   await db.exec('RESET ROLE');
+  for (const role of ['anon', 'authenticated']) {
+    await db.exec('SET ROLE ' + role);
+    let deniedRole = false;
+    try { await db.query('SELECT service_retry_restaurant_photo_transport_errors()'); } catch { deniedRole = true; }
+    assert(deniedRole, role + ' must not invoke retry RPC');
+    await db.exec('RESET ROLE');
+  }
+  const retryAcl = (await db.query("SELECT has_function_privilege('anon','service_retry_restaurant_photo_transport_errors()','execute') anon,has_function_privilege('authenticated','service_retry_restaurant_photo_transport_errors()','execute') authenticated,has_function_privilege('service_role','service_retry_restaurant_photo_transport_errors()','execute') service")).rows[0];
+  assert.deepEqual(retryAcl, { anon: false, authenticated: false, service: true });
   const acl = (await db.query("SELECT has_function_privilege('anon','service_claim_thefork_image_truth_reviews(integer)','execute') anon,has_function_privilege('authenticated','service_claim_thefork_image_truth_reviews(integer)','execute') authenticated,has_function_privilege('service_role','service_claim_thefork_image_truth_reviews(integer)','execute') service")).rows[0];
   assert.deepEqual(acl, { anon: false, authenticated: false, service: true });
   console.log('PostgreSQL passed: exact 35/10 batch, replay bound, existing TheFork processing, manual/hash/leased/imaged/global queue preservation, internal ACL.');
