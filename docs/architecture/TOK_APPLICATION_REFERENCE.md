@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `e65654810c8eecef386efe12eee665e69a6d35f363abf58e97abd7d35d035225`
+- Empreinte SHA-256 des sources indexées : `643b642a4bb192050cec2d1d763bbcc56789637af39109f83146c244edfd9186`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,16 +37,16 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 560 |
+| migrations | 561 |
 | modules | 1733 |
 | pages | 133 |
-| pathLiterals | 818 |
+| pathLiterals | 817 |
 | publicAssets | 588 |
 | publicEntries | 614 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 117 |
-| records | 18000 |
-| repositoryFiles | 3413 |
+| records | 18001 |
+| repositoryFiles | 3414 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1807,9 +1807,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/ | 1 | [src/App.tsx:323](../../src/App.tsx#L323) |
 | /marketing/* | 2 | [src/App.tsx:753](../../src/App.tsx#L753) |
 | /marketing/../admin | 1 | [src/test/marketing-login-navigation.test.tsx:71](../../src/test/marketing-login-navigation.test.tsx#L71) |
-| /marketing/brand/tok-v2/instagram-profile.jpeg | 1 | [src/components/marketing/MarketingDailySeries.tsx:196](../../src/components/marketing/MarketingDailySeries.tsx#L196) |
 | /marketing/brand/tok-v3/culinary.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:12](../../src/test/marketing-brand-gallery.test.tsx#L12) |
-| /marketing/brand/tok-v3/instagram-profile.jpeg | 3 | [src/test/marketing-brand-gallery.test.tsx:11](../../src/test/marketing-brand-gallery.test.tsx#L11) |
+| /marketing/brand/tok-v3/instagram-profile.jpeg | 4 | [src/test/marketing-brand-gallery.test.tsx:11](../../src/test/marketing-brand-gallery.test.tsx#L11) |
 | /marketing/brand/tok-v3/studio-chef.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:13](../../src/test/marketing-brand-gallery.test.tsx#L13) |
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
 | /marketing/login | 26 | [src/App.tsx:744](../../src/App.tsx#L744) |
@@ -3028,7 +3027,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.marketing_require_admin` (1 définition(s))
 - `public.marketing_require_service_role` (1 définition(s))
 - `public.marketing_runtime_enabled` (1 définition(s))
-- `public.marketing_schedule_authorized_daily_post` (1 définition(s))
+- `public.marketing_schedule_authorized_daily_post` (2 définition(s))
 - `public.marketing_scheduler_ready` (1 définition(s))
 - `public.marketing_touch_delivery` (1 définition(s))
 - `public.marketing_touch_version` (1 définition(s))
@@ -6362,6 +6361,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261018210100 Marketing Mailing Image Upload | 102 | 1 | [supabase/migrations/20261018210100_marketing_mailing_image_upload.sql:1](../../supabase/migrations/20261018210100_marketing_mailing_image_upload.sql#L1) |
 | 20261019200548 Marketing Daily Instagram | 483 | 15 | [supabase/migrations/20261019200548_marketing_daily_instagram.sql:1](../../supabase/migrations/20261019200548_marketing_daily_instagram.sql#L1) |
 | 20261020135701 Marketing Daily Publication | 223 | 4 | [supabase/migrations/20261020135701_marketing_daily_publication.sql:1](../../supabase/migrations/20261020135701_marketing_daily_publication.sql#L1) |
+| 20261020144007 Marketing Daily Creme Orange Profile | 83 | 1 | [supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql:1](../../supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6591,7 +6591,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 36 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 269 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 785 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 786 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 65 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7254,7 +7254,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (560)</summary>
+<details><summary>database-migration (561)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7816,6 +7816,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261018210100_marketing_mailing_image_upload.sql`
 - `supabase/migrations/20261019200548_marketing_daily_instagram.sql`
 - `supabase/migrations/20261020135701_marketing_daily_publication.sql`
+- `supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql`
 
 </details>
 
