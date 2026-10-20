@@ -80,6 +80,7 @@ describe("marketing login return navigation", () => {
     fireEvent.change(screen.getByLabelText("Mot de passe"), {
       target: { value: "Secret123!" },
     });
+    expect(screen.getByLabelText("Rester connecté sur cet appareil")).not.toBeChecked();
     fireEvent.click(screen.getByLabelText("Rester connecté sur cet appareil"));
     fireEvent.click(screen.getByRole("button", { name: "Continuer en sécurité" }));
 
