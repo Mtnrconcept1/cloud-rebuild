@@ -273,7 +273,7 @@ describe("marketing server-only BFF", () => {
     const recorder = responseRecorder();
     await marketingLoginHandler(
       mutationRequest(
-        { email: "admin@thetok.ch", password: "correct-password" },
+        { email: "admin@thetok.ch", password: "correct-password", remember: true },
         `${MARKETING_CSRF_COOKIE}=${"c".repeat(43)}`,
       ),
       recorder.response,
@@ -284,6 +284,7 @@ describe("marketing server-only BFF", () => {
     expect(recorder.body).not.toMatch(/supabase-access-token|supabase-refresh-token/);
     const cookies = recorder.headers.get("set-cookie") as readonly string[];
     expect(cookies.some((value) => value.startsWith("__Host-tok_marketing_pending=") && value.includes("HttpOnly"))).toBe(true);
+    expect(cookies.some((value) => value.startsWith("__Host-tok_marketing_remember=1;") && value.includes("HttpOnly"))).toBe(true);
     expect(cookies.join(";")).not.toMatch(/supabase-access-token|supabase-refresh-token/);
   });
 
@@ -548,7 +549,7 @@ describe("marketing server-only BFF", () => {
     ))).toBe(true);
   });
 
-  it("finalizes only a fresh AAL2 result into opaque cookies", async () => {
+  it.each([true, false])("finalizes only a fresh AAL2 result with remember=%s", async (remember) => {
     configureServerEnvironment();
     const userId = "11111111-1111-4111-8111-111111111111";
     const factorId = "22222222-2222-4222-8222-222222222222";
@@ -616,7 +617,7 @@ describe("marketing server-only BFF", () => {
     await marketingMfaVerifyHandler(
       mutationRequest(
         { code: "123456" },
-        `${MARKETING_CSRF_COOKIE}=${"c".repeat(43)}; __Host-tok_marketing_pending=${"p".repeat(43)}`,
+        `${MARKETING_CSRF_COOKIE}=${"c".repeat(43)}; __Host-tok_marketing_pending=${"p".repeat(43)}${remember ? "; __Host-tok_marketing_remember=1" : ""}`,
       ),
       recorder.response,
     );
@@ -634,6 +635,9 @@ describe("marketing server-only BFF", () => {
     const csrf = cookies.find((value) => value.startsWith(`${MARKETING_CSRF_COOKIE}=`));
     expect(sid).toContain("HttpOnly");
     expect(sid).toContain("SameSite=Strict");
+    expect(sid?.includes("Max-Age=")).toBe(remember);
+    expect(csrf?.includes("Max-Age=")).toBe(remember);
+    expect(cookies).toContainEqual(expect.stringContaining("__Host-tok_marketing_remember=; Path=/; Max-Age=0"));
     expect(csrf).not.toContain("HttpOnly");
     expect(cookies.join(";")).not.toMatch(/aal2-refresh-token|aal1-access-token/);
     expect(consumedRateKeys.size).toBe(2);

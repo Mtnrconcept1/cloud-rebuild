@@ -25,7 +25,7 @@ describe("marketing MFA recovery", () => {
     const hook = renderHook(useMarketingSession, { wrapper: MarketingSessionProvider });
     await waitFor(() => expect(hook.result.current.status).toBe("unauthenticated"));
     request.mockResolvedValueOnce({ status: "mfa_required" });
-    await act(async () => { await hook.result.current.login("admin@example.com", "password123"); });
+    await act(async () => { await hook.result.current.login("admin@example.com", "password123", false); });
     expect(hook.result.current.status).toBe("challenge-mfa");
     return hook;
   }

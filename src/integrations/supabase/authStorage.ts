@@ -11,6 +11,7 @@ type AuthStorage = {
 };
 
 const SHARED_AUTH_COOKIE_PREFIX = "tok_shared_auth_";
+const SHARED_AUTH_PERSISTENCE_COOKIE = "tok_shared_auth_persistence";
 const SHARED_AUTH_COOKIE_DOMAIN = ".thetok.ch";
 const SHARED_AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 const SHARED_AUTH_COOKIE_CHUNK_SIZE = 3_000;
@@ -57,8 +58,9 @@ function readCookie(name: string) {
   return null;
 }
 
-function writeCookie(name: string, value: string) {
-  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Path=/; Domain=${SHARED_AUTH_COOKIE_DOMAIN}; Max-Age=${SHARED_AUTH_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax; Secure`;
+function writeCookie(name: string, value: string, maxAge?: number) {
+  const persistence = typeof maxAge === "number" ? `; Max-Age=${maxAge}` : "";
+  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Path=/; Domain=${SHARED_AUTH_COOKIE_DOMAIN}${persistence}; SameSite=Lax; Secure`;
 }
 
 function deleteCookie(name: string) {
@@ -88,6 +90,29 @@ function removeSharedCookieValue(key: string) {
   }
 }
 
+function shouldPersistSharedAuthSession() {
+  // Preserve the pre-existing lifetime until a user explicitly chooses a
+  // browser-only session at sign-in. Token refresh must keep that choice.
+  const preference = canUseSharedAuthCookies()
+    ? readCookie(SHARED_AUTH_PERSISTENCE_COOKIE)
+    : localStorage.getItem(SHARED_AUTH_PERSISTENCE_COOKIE);
+  return preference !== "session";
+}
+
+/** Controls the lifetime of the next shared TOK browser session. */
+export function setAuthSessionPersistence(remember: boolean) {
+  if (isNative() || mustIsolateMarketingSession()) return;
+  if (!canUseSharedAuthCookies()) {
+    localStorage.setItem(SHARED_AUTH_PERSISTENCE_COOKIE, remember ? "persistent" : "session");
+    return;
+  }
+  writeCookie(
+    SHARED_AUTH_PERSISTENCE_COOKIE,
+    remember ? "persistent" : "session",
+    remember ? SHARED_AUTH_COOKIE_MAX_AGE_SECONDS : undefined,
+  );
+}
+
 function writeSharedCookieValue(key: string, value: string) {
   removeSharedCookieValue(key);
   const encoded = encodeStorageValue(value);
@@ -101,8 +126,11 @@ function writeSharedCookieValue(key: string, value: string) {
   if (chunks.length > SHARED_AUTH_COOKIE_MAX_CHUNKS) {
     throw new Error("La session TOK dépasse la capacité du stockage partagé.");
   }
-  chunks.forEach((chunk, index) => writeCookie(`${sharedCookieBaseName(key)}_${index}`, chunk));
-  writeCookie(`${sharedCookieBaseName(key)}_count`, String(chunks.length));
+  const maxAge = shouldPersistSharedAuthSession()
+    ? SHARED_AUTH_COOKIE_MAX_AGE_SECONDS
+    : undefined;
+  chunks.forEach((chunk, index) => writeCookie(`${sharedCookieBaseName(key)}_${index}`, chunk, maxAge));
+  writeCookie(`${sharedCookieBaseName(key)}_count`, String(chunks.length), maxAge);
 }
 
 function readSharedCookieValue(key: string) {
@@ -129,7 +157,11 @@ function readSharedCookieValue(key: string) {
 
 const webAuthStorage: AuthStorage = {
   getItem(key) {
-    if (!canUseSharedAuthCookies()) return localStorage.getItem(key);
+    if (!canUseSharedAuthCookies()) {
+      return shouldPersistSharedAuthSession()
+        ? localStorage.getItem(key)
+        : sessionStorage.getItem(key);
+    }
 
     const sharedValue = readSharedCookieValue(key);
     if (sharedValue !== null) {
@@ -148,7 +180,13 @@ const webAuthStorage: AuthStorage = {
   },
   setItem(key, value) {
     if (!canUseSharedAuthCookies()) {
-      localStorage.setItem(key, value);
+      if (shouldPersistSharedAuthSession()) {
+        localStorage.setItem(key, value);
+        sessionStorage.removeItem(key);
+      } else {
+        sessionStorage.setItem(key, value);
+        localStorage.removeItem(key);
+      }
       return;
     }
     writeSharedCookieValue(key, value);
@@ -157,6 +195,7 @@ const webAuthStorage: AuthStorage = {
   removeItem(key) {
     if (canUseSharedAuthCookies()) removeSharedCookieValue(key);
     localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
   },
 };
 

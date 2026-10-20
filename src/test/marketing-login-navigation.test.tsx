@@ -67,6 +67,32 @@ describe("marketing login return navigation", () => {
     expect(`${router.state.location.pathname}${router.state.location.search}`).toBe(marketingLoginReturnTarget(target));
   });
 
+  it("passes the explicit remember-session choice to the isolated login", async () => {
+    session.login.mockResolvedValue(false);
+    const router = createMemoryRouter([
+      { path: "/marketing/login", element: <MarketingLogin /> },
+    ], { initialEntries: ["/marketing/login"] });
+    render(<RouterProvider router={router} />);
+
+    fireEvent.change(screen.getByLabelText("Adresse e-mail administrateur"), {
+      target: { value: "admin@thetok.ch" },
+    });
+    fireEvent.change(screen.getByLabelText("Mot de passe"), {
+      target: { value: "Secret123!" },
+    });
+    expect(screen.getByLabelText("Rester connecté sur cet appareil")).not.toBeChecked();
+    fireEvent.click(screen.getByLabelText("Rester connecté sur cet appareil"));
+    fireEvent.click(screen.getByRole("button", { name: "Continuer en sécurité" }));
+
+    await waitFor(() => {
+      expect(session.login).toHaveBeenCalledWith(
+        "admin@thetok.ch",
+        "Secret123!",
+        true,
+      );
+    });
+  });
+
   it.each([
     "https://evil.example/marketing", "//evil.example/marketing", "/admin", "/marketing/login", "/marketing/../admin",
     "/marketing?view=calendar#access_token=secret", "javascript:alert(1)", { path: "/marketing" },

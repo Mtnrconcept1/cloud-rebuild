@@ -25,6 +25,7 @@ export const MARKETING_CSRF_HEADER = "x-tok-marketing-csrf";
 export const MARKETING_SESSION_COOKIE = "__Host-tok_marketing_sid";
 export const MARKETING_CSRF_COOKIE = "__Host-tok_marketing_csrf";
 export const MARKETING_PENDING_COOKIE = "__Host-tok_marketing_pending";
+export const MARKETING_PENDING_REMEMBER_COOKIE = "__Host-tok_marketing_remember";
 
 const MAX_PENDING_SECONDS = 10 * 60;
 const MAX_SESSION_SECONDS = 4 * 60 * 60;
@@ -302,14 +303,21 @@ export function parseCookies(cookieHeader: string): Record<string, string> {
   return result;
 }
 
-function cookie(name: string, value: string, maxAge: number, httpOnly: boolean): string {
+function cookie(
+  name: string,
+  value: string,
+  maxAge: number | undefined,
+  httpOnly: boolean,
+): string {
   const attributes = [
     `${name}=${value}`,
     "Path=/",
-    `Max-Age=${Math.max(0, Math.floor(maxAge))}`,
     "Secure",
     "SameSite=Strict",
   ];
+  if (typeof maxAge === "number") {
+    attributes.splice(2, 0, `Max-Age=${Math.max(0, Math.floor(maxAge))}`);
+  }
   if (httpOnly) attributes.push("HttpOnly");
   return attributes.join("; ");
 }
@@ -318,11 +326,11 @@ function clearCookie(name: string, httpOnly: boolean): string {
   return `${cookie(name, "", 0, httpOnly)}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 }
 
-function sessionCookie(value: string, maxAge: number): string {
+function sessionCookie(value: string, maxAge?: number): string {
   return cookie(MARKETING_SESSION_COOKIE, value, maxAge, true);
 }
 
-function csrfCookie(value: string, maxAge = MAX_SESSION_SECONDS): string {
+function csrfCookie(value: string, maxAge?: number): string {
   return cookie(MARKETING_CSRF_COOKIE, value, maxAge, false);
 }
 
@@ -330,10 +338,20 @@ function pendingCookie(value: string): string {
   return cookie(MARKETING_PENDING_COOKIE, value, MAX_PENDING_SECONDS, true);
 }
 
+function pendingRememberCookie(remember: boolean): string {
+  return cookie(
+    MARKETING_PENDING_REMEMBER_COOKIE,
+    remember ? "1" : "",
+    remember ? MAX_PENDING_SECONDS : 0,
+    true,
+  );
+}
+
 function clearAuthCookies(): string[] {
   return [
     clearCookie(MARKETING_SESSION_COOKIE, true),
     clearCookie(MARKETING_PENDING_COOKIE, true),
+    clearCookie(MARKETING_PENDING_REMEMBER_COOKIE, true),
     clearCookie(MARKETING_CSRF_COOKIE, false),
   ];
 }
@@ -1128,11 +1146,13 @@ async function login(req: MarketingApiRequest, res: MarketingApiResponse): Promi
   const body = parseJsonBody(req, 16 * 1024);
   const email = stringField(body, "email", 254).trim().toLowerCase();
   const password = stringField(body, "password", 1_024);
+  const remember = body.remember === true;
   if (
     !EMAIL_PATTERN.test(email)
     || password.length < 8
     || password.length > 1_024
-    || Object.keys(body).some((key) => !["email", "password"].includes(key))
+    || (body.remember !== undefined && typeof body.remember !== "boolean")
+    || Object.keys(body).some((key) => !["email", "password", "remember"].includes(key))
   ) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
@@ -1210,6 +1230,7 @@ async function login(req: MarketingApiRequest, res: MarketingApiResponse): Promi
       enrolled ?? { status: "mfa_required" },
       [
         pendingCookie(rawPending),
+        pendingRememberCookie(remember),
         clearCookie(MARKETING_SESSION_COOKIE, true),
       ],
     );
@@ -1353,6 +1374,7 @@ async function verifyMfa(req: MarketingApiRequest, res: MarketingApiResponse): P
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
   const rawPending = cookies[MARKETING_PENDING_COOKIE] ?? "";
+  const remember = cookies[MARKETING_PENDING_REMEMBER_COOKIE] === "1";
   const pending = await getPendingChallenge(config, rawPending);
   const userIpRateKey = await consumeRateLimit(
     config,
@@ -1448,9 +1470,10 @@ async function verifyMfa(req: MarketingApiRequest, res: MarketingApiResponse): P
         },
       },
       [
-        sessionCookie(rawSession, remainingSeconds),
-        csrfCookie(rawCsrf, remainingSeconds),
+        sessionCookie(rawSession, remember ? remainingSeconds : undefined),
+        csrfCookie(rawCsrf, remember ? remainingSeconds : undefined),
         clearCookie(MARKETING_PENDING_COOKIE, true),
+        clearCookie(MARKETING_PENDING_REMEMBER_COOKIE, true),
       ],
     );
   } catch (error) {

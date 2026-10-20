@@ -35,6 +35,7 @@ export default function MarketingLogin() {
   } = useMarketingSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberSession, setRememberSession] = useState(false);
   const [code, setCode] = useState("");
 
   useSeoMeta({
@@ -69,7 +70,7 @@ export default function MarketingLogin() {
       return;
     }
 
-    const started = await login(email, password);
+    const started = await login(email, password, rememberSession);
     if (started) setPassword("");
   };
 
@@ -139,6 +140,20 @@ export default function MarketingLogin() {
                     className="h-12 border-white/10 bg-white/[0.06] text-white"
                   />
                 </div>
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={rememberSession}
+                    onChange={(event) => setRememberSession(event.target.checked)}
+                    disabled={submitting}
+                    aria-describedby="marketing-remember-help"
+                    className="h-4 w-4 rounded border-white/30 accent-orange-500"
+                  />
+                  Rester connecté sur cet appareil
+                </label>
+                <p id="marketing-remember-help" className="text-xs text-slate-400">
+                  La session reste limitée à 4 heures, même sur un appareil mémorisé.
+                </p>
               </>
             ) : (
               <>
