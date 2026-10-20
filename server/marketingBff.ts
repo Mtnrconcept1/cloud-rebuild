@@ -5,6 +5,7 @@ import { MAILING_FIELDS, MailingInputError, assertMailingReady, mailingAudience,
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { MailingImageInputError, validateMailingImage } from "./marketingMailingImage.js";
 import { parseInstagramResearchRequest } from "../supabase/functions/_shared/marketing-instagram-research.js";
+import { parseInstagramReviewRequest } from "../supabase/functions/_shared/marketing-instagram-review.js";
 
 /**
  * Server-only boundary for marketing.thetok.ch.
@@ -1713,6 +1714,28 @@ async function runMarketingOrchestrator(
   const config = readConfig();
   const body = parseJsonBody(req, 16 * 1024);
   const action = stringField(body, "action", 32);
+  if (action === "instagram_review_submit" || action === "instagram_review_list") {
+    let payload;
+    try { payload = parseInstagramReviewRequest(body); }
+    catch { throw new PublicBffError(400, "invalid_request", "Vérifiez le commentaire, la mention de son auteur et la réponse proposée."); }
+    const session = await activeSession(config, req, true);
+    await ensureServiceAdmin(config, session.userId);
+    await consumeRateLimit(config, req, "instagram-review", "connected-account", false);
+    const response = await boundedFetch(`${config.supabaseUrl}/functions/v1/ops-incident-control`, {
+      method: "POST", headers: {
+        apikey: config.serviceRoleKey,
+        ...(!config.serviceRoleKey.startsWith("sb_secret_") ? { Authorization: `Bearer ${config.serviceRoleKey}` } : {}),
+        Accept: "application/json", "Content-Type": "application/json", "x-marketing-actor-user-id": session.userId,
+      }, body: JSON.stringify(payload),
+    }, 25_000);
+    if (!response.ok) {
+      if (response.status === 403) throw new PublicBffError(403, "forbidden", "Validation réservée aux administrateurs TOK.");
+      if (response.status === 400) throw new PublicBffError(400, "invalid_request", "Demande de validation invalide.");
+      throw new PublicBffError(503, "telegram_review_unavailable", "Validation Telegram indisponible. Consultez le suivi avant de réessayer : le message a peut-être été envoyé.");
+    }
+    sendJson(res, 200, response.value);
+    return;
+  }
   if (action === "instagram_discover" || action === "instagram_comments") {
     let payload;
     try { payload = parseInstagramResearchRequest(body); }
