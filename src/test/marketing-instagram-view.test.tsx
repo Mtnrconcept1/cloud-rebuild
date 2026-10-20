@@ -1,10 +1,10 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MarketingInstagramView from "@/components/marketing/views/MarketingInstagramView";
-import { loadInstagramResearch } from "@/marketing/instagramResearchClient";
+import { loadInstagramResearch, submitInstagramTelegramReview, listInstagramTelegramReviews } from "@/marketing/instagramResearchClient";
 import type { InstagramResearchResult } from "../../supabase/functions/_shared/marketing-instagram-research";
 
-vi.mock("@/marketing/instagramResearchClient", () => ({ loadInstagramResearch: vi.fn() }));
+vi.mock("@/marketing/instagramResearchClient", () => ({ loadInstagramResearch: vi.fn(), submitInstagramTelegramReview: vi.fn(), listInstagramTelegramReviews: vi.fn() }));
 const result: InstagramResearchResult = {
   kind: "discovery", observedAt: "2026-10-20T12:00:00Z", accountUsername: "tok_suisse", days: 30,
   warnings: [], truncatedSources: [], accounts: [{ username: "bistrot", name: "Bistrot Genève", followers: 1000, medianEngagementRate: 10, sampledPosts: 1, measuredPosts: 1, url: "https://www.instagram.com/bistrot/" }],
@@ -17,6 +17,28 @@ beforeEach(() => { vi.mocked(loadInstagramResearch).mockReset(); vi.mocked(loadI
 afterEach(() => cleanup());
 
 describe("Instagram research workspace", () => {
+  it("sends the exact selected pair only on request and retrieves the immutable approved text", async () => {
+    render(<MarketingInstagramView canMutateBackend />);
+    expect(submitInstagramTelegramReview).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Rechercher sur Instagram" }));
+    await screen.findByText("Une sortie à Genève");
+    fireEvent.click(screen.getByRole("button", { name: "Préparer une réponse externe" }));
+    fireEvent.change(screen.getByLabelText("Pseudo observé sur Instagram"), { target: { value: "foodie" } });
+    fireEvent.change(screen.getByLabelText("Commentaire observé"), { target: { value: "Une table ?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Préparer la réponse" }));
+    fireEvent.change(screen.getByLabelText("Réponse à relire"), { target: { value: "@foodie Réponse exacte vers https://thetok.ch" } });
+    const payload = { action: "instagram_review_submit" as const, postUrl: "https://www.instagram.com/reel/EXTERNAL/", username: "foodie", commentText: "Une table ?", commentLikes: null, replyText: "@foodie Réponse exacte vers https://thetok.ch", observation: "manual" as const };
+    const review = { id: "review-1", status: "pending" as const, payload, createdAt: result.observedAt, expiresAt: "2026-10-21T12:00:00Z", decidedAt: null };
+    vi.mocked(submitInstagramTelegramReview).mockResolvedValue({ review });
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer sur Telegram pour validation" }));
+    await screen.findByText(/Envoyé sur Telegram/);
+    expect(submitInstagramTelegramReview).toHaveBeenCalledWith(payload);
+    fireEvent.change(screen.getByLabelText("Réponse à relire"), { target: { value: "@foodie texte modifié" } });
+    vi.mocked(listInstagramTelegramReviews).mockResolvedValue({ reviews: [{ ...review, status: "approved" }] });
+    fireEvent.click(screen.getByRole("button", { name: "Actualiser les validations Telegram" }));
+    await screen.findByRole("button", { name: "Copier le texte validé de @foodie" });
+    expect(screen.getByText(`Réponse soumise : ${payload.replyText}`)).toBeInTheDocument();
+  });
   it("starts without network calls and prevents a scan without a verified session", () => {
     render(<MarketingInstagramView canMutateBackend={false} />);
     expect(screen.getByRole("button", { name: "Rechercher sur Instagram" })).toBeDisabled();

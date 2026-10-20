@@ -23,6 +23,7 @@ function upstream(options: { admin?: boolean; session?: boolean; quota?: boolean
     if (url.includes("/user_roles?")) return json(options.admin === false ? [] : [{ user_id: actor }]);
     if (url.endsWith("/rpc/service_consume_marketing_auth_attempt")) return json({ allowed: options.quota !== false, retry_after_seconds: 60 });
     if (url.endsWith("/functions/v1/marketing-orchestrator")) return json({ kind: "discovery", posts: [], accounts: [] }, options.status ?? 200);
+    if (url.endsWith("/functions/v1/ops-incident-control")) return json({ review: { id: "review-1", status: "pending" } }, options.status ?? 200);
     throw new Error("Unexpected route");
   });
 }
@@ -33,6 +34,29 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 describe("Instagram research BFF", () => {
+  const review = { action: "instagram_review_submit", postUrl: "https://www.instagram.com/p/GENEVA/", username: "foodie", commentText: "Une table ?", commentLikes: 10, replyText: "@foodie Découvrez TOK", observation: "manual" };
+  it("forwards Telegram approval pairs through the authenticated service boundary", async () => {
+    const fetchImpl = upstream(); vi.stubGlobal("fetch", fetchImpl);
+    const { res, value } = response(); await marketingOrchestratorHandler(request(review), res);
+    expect(res.statusCode).toBe(200); expect(value().review.status).toBe("pending");
+    const call = fetchImpl.mock.calls.find(([url]) => String(url).endsWith("/functions/v1/ops-incident-control"))!;
+    expect(JSON.parse(String(call[1]?.body))).toEqual(review);
+    expect(new Headers(call[1]?.headers).get("x-marketing-actor-user-id")).toBe(actor);
+  });
+  it.each([{ admin: false }, { session: false }, { quota: false }])("blocks Telegram sends when a session gate fails: %o", async (options) => {
+    const fetchImpl = upstream(options); vi.stubGlobal("fetch", fetchImpl);
+    const { res } = response(); await marketingOrchestratorHandler(request(review), res);
+    expect(res.statusCode).toBeGreaterThanOrEqual(400);
+    expect(fetchImpl.mock.calls.some(([url]) => String(url).includes("/functions/v1/"))).toBe(false);
+  });
+  it("rejects a caller-supplied Telegram chat and preserves ambiguous delivery guidance", async () => {
+    const fetchImpl = upstream(); vi.stubGlobal("fetch", fetchImpl);
+    const first = response(); await marketingOrchestratorHandler(request({ ...review, chat_id: "attacker" }), first.res);
+    expect(first.res.statusCode).toBe(400); expect(fetchImpl).not.toHaveBeenCalled();
+    vi.stubGlobal("fetch", upstream({ status: 503 }));
+    const second = response(); await marketingOrchestratorHandler(request(review), second.res);
+    expect(second.res.statusCode).toBe(503); expect(JSON.stringify(second.value())).toContain("peut-être été envoyé");
+  });
   it("accepts a normalized read request only after admin and rate-limit checks", async () => {
     const fetchImpl = upstream(); vi.stubGlobal("fetch", fetchImpl);
     const { res, value } = response();

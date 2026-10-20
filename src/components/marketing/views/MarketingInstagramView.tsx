@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { loadInstagramResearch } from "@/marketing/instagramResearchClient";
+import { loadInstagramResearch, submitInstagramTelegramReview, listInstagramTelegramReviews } from "@/marketing/instagramResearchClient";
+import type { InstagramReviewView } from "../../../../supabase/functions/_shared/marketing-instagram-review";
 import {
   buildInstagramReply, INSTAGRAM_REPLY_TOPICS, instagramPostUrl, instagramUsername,
   parseInstagramResearchRequest, rankInstagramPosts,
@@ -20,6 +21,14 @@ const warning = (code: string) => code === "instagram_access_required" ? "Autori
   : "Source indisponible ou réponse inexploitable. Réessayez ou ouvrez Instagram.";
 const selectClass = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
 const split = (value: string) => value.split(/[,;\s]+/).filter(Boolean);
+const reviewLabels: Record<InstagramReviewView["status"], string> = {
+  delivering: "Envoi en cours ou interrompu — vérifiez Telegram, ne renvoyez pas ce brouillon.",
+  pending: "Envoyé sur Telegram — en attente de validation",
+  delivery_unknown: "Réception non confirmée — vérifiez Telegram. Aucun renvoi automatique.",
+  approved: "Validé sur Telegram — prêt à publier manuellement",
+  rejected: "Refusé sur Telegram — ne pas publier",
+  expired: "Validation expirée — ne pas publier",
+};
 
 export default function MarketingInstagramView({ canMutateBackend }: { canMutateBackend: boolean }) {
   const [hashtags, setHashtags] = useState("genevefood, restaurantgeneve, sortirageneve");
@@ -41,6 +50,9 @@ export default function MarketingInstagramView({ canMutateBackend }: { canMutate
   const [topic, setTopic] = useState<InstagramReplyTopic>("discovery");
   const [reply, setReply] = useState("");
   const [copyStatus, setCopyStatus] = useState("");
+  const [reviews, setReviews] = useState<InstagramReviewView[]>([]);
+  const [reviewBusy, setReviewBusy] = useState(false);
+  const reviewBusyRef = useRef(false);
   const manualId = useRef(0);
   useEffect(() => () => controller.current?.abort(), []);
   const posts = useMemo(() => rankInstagramPosts(data?.posts ?? [], ranking), [data, ranking]);
@@ -101,6 +113,24 @@ export default function MarketingInstagramView({ canMutateBackend }: { canMutate
     try { await navigator.clipboard.writeText(reply); setCopyStatus("Réponse copiée. Ouvrez Instagram pour la publier."); }
     catch { setCopyStatus("Copie indisponible. Sélectionnez et copiez le texte de la réponse."); }
   }
+  async function telegramReview(submit: boolean) {
+    if (!canMutateBackend || reviewBusyRef.current) return;
+    reviewBusyRef.current = true; setReviewBusy(true); setError("");
+    try {
+      if (submit) {
+        if (!selectedComment?.username || !selectedPost) return;
+        const postUrl = instagramPostUrl(selectedPost.url);
+        if (!postUrl) throw new Error("Lien Instagram invalide.");
+        const { review } = await submitInstagramTelegramReview({ action: "instagram_review_submit", postUrl,
+          username: selectedComment.username, commentText: selectedComment.text, commentLikes: selectedComment.likes,
+          replyText: reply, observation: selectedPost.owned ? "workspace" : "manual" });
+        setReviews(current => [review, ...current.filter(item => item.id !== review.id)].slice(0, 20));
+      } else {
+        setReviews((await listInstagramTelegramReviews()).reviews);
+      }
+    } catch (failure) { setError(failure instanceof Error ? failure.message : "Validation Telegram indisponible."); }
+    finally { reviewBusyRef.current = false; setReviewBusy(false); }
+  }
 
   return <div className="min-w-0 space-y-5">
     <div><h1 className="flex items-center gap-2 text-2xl font-bold"><Instagram className="h-6 w-6 text-orange-500" />Veille Instagram Genève</h1>
@@ -147,8 +177,20 @@ export default function MarketingInstagramView({ canMutateBackend }: { canMutate
         <div><label htmlFor="ig-reply-topic" className="text-sm">Sujet à adapter au commentaire</label><select id="ig-reply-topic" className={selectClass} value={topic} onChange={(event) => { const next = event.target.value as InstagramReplyTopic; setTopic(next); setReply(buildInstagramReply(selectedComment.username!, next, selectedPost.id)); setCopyStatus(""); }}>{Object.entries(INSTAGRAM_REPLY_TOPICS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
         <div><label htmlFor="ig-reply" className="text-sm font-semibold">Réponse à relire</label><Textarea id="ig-reply" className="min-h-32" value={reply} onChange={(event) => { setReply(event.target.value); setCopyStatus(""); }} maxLength={2200} /></div>
         <p className="text-xs text-muted-foreground">Proposition à personnaliser, sans génération IA payante. Répondez au besoin exprimé avant d’ajouter TOK. Aucune réponse en masse ni publication automatique.</p>
-        <div className="flex flex-wrap gap-2"><Button type="button" disabled={!reply.trim() || !canMutateBackend} onClick={() => void copyReply()}>Copier la réponse</Button><Button asChild variant="outline"><a href={instagramPostUrl(selectedPost.url) ?? undefined} target="_blank" rel="noopener noreferrer">Ouvrir la publication pour répondre</a></Button></div>{copyStatus ? <p role="status" className="text-sm">{copyStatus}</p> : null}
+        <div className="flex flex-wrap gap-2"><Button type="button" disabled={!reply.trim() || !canMutateBackend || reviewBusy} onClick={() => void telegramReview(true)}>{reviewBusy ? "Traitement Telegram…" : "Envoyer sur Telegram pour validation"}</Button><Button type="button" variant="outline" disabled={!reply.trim() || !canMutateBackend} onClick={() => void copyReply()}>Copier la réponse</Button><Button asChild variant="outline"><a href={instagramPostUrl(selectedPost.url) ?? undefined} target="_blank" rel="noopener noreferrer">Ouvrir la publication pour répondre</a></Button></div>{copyStatus ? <p role="status" className="text-sm">{copyStatus}</p> : null}
       </div> : null}
     </CardContent></Card> : null}
+    <Card><CardHeader><CardTitle className="text-lg">Validations Telegram</CardTitle></CardHeader><CardContent className="space-y-3">
+      <p className="text-sm text-muted-foreground">Chaque envoi contient le commentaire, son auteur, le lien Instagram et la réponse exacte. Validez ou refusez dans Telegram, puis actualisez ici. Une modification du texte nécessite une nouvelle validation. Aucune publication Instagram automatique.</p>
+      <Button type="button" variant="outline" disabled={!canMutateBackend || reviewBusy} onClick={() => void telegramReview(false)}>Actualiser les validations Telegram</Button>
+      {reviews.map(review => <article key={review.id} className="space-y-2 rounded-xl border p-3">
+        <p role="status" className="text-sm font-semibold">{reviewLabels[review.status]}</p>
+        <p className="whitespace-pre-wrap break-words text-sm">@{review.payload.username} : {review.payload.commentText}</p>
+        <p className="whitespace-pre-wrap break-words text-sm">Réponse soumise : {review.payload.replyText}</p>
+        <a className="text-sm text-orange-600 underline" href={instagramPostUrl(review.payload.postUrl) ?? undefined} target="_blank" rel="noopener noreferrer">Voir le commentaire dans sa publication</a>
+        {review.status === "approved" ? <Button type="button" variant="outline" onClick={() => { void navigator.clipboard.writeText(review.payload.replyText).then(() => setCopyStatus("Réponse validée copiée."), () => setCopyStatus("Sélectionnez et copiez la réponse validée ci-dessus.")); }}>Copier le texte validé de @{review.payload.username}</Button> : null}
+      </article>)}
+      <p className="text-xs text-muted-foreground">Les 20 dernières validations sont affichées. Les données restent accessibles aux administrateurs TOK.</p>
+    </CardContent></Card>
   </div>;
 }

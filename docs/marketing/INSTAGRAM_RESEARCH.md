@@ -8,9 +8,22 @@ La rubrique **Marketing Studio → Veille Instagram** (`/marketing?view=instagra
 2. Lancer la recherche. Le compte TOK connecté est aussi consulté. Les mentions de comptes dans les légendes locales deviennent des candidats ; trois candidats maximum sont vérifiés avec Business Discovery. Une mention ne prouve pas que ce compte est l’auteur de la publication.
 3. Comparer les comptes par taux médian et les publications par taux public ou volume d’interactions. Ouvrir la publication pour vérifier sa pertinence et sa localisation.
 4. Pour une publication TOK, charger les commentaires, éventuellement les pages suivantes. Pour une publication tierce, ouvrir Instagram et saisir le commentaire et le pseudo observés dans le formulaire clairement identifié comme manuel.
-5. Sélectionner un commentaire, choisir un sujet, personnaliser la réponse, la copier puis ouvrir la publication pour répondre depuis le bon compte TOK. Une copie ou une ouverture de page n’est jamais annoncée comme une publication réussie.
+5. Sélectionner un commentaire, choisir un sujet et personnaliser la réponse. Cliquer sur **Envoyer sur Telegram pour validation**. Le bot administrateur TOK reçoit l’auteur, les J’aime observés, le commentaire (extrait si long), le lien Instagram et la réponse exacte, avec **Valider / Refuser**.
+6. Décider dans Telegram puis **Actualiser les validations Telegram** dans le Studio. Seul le texte figé validé est proposé comme texte validé à copier. Une modification du brouillon ne change jamais une réponse déjà soumise ; elle nécessite un nouvel envoi et une nouvelle décision. Publier manuellement dans Instagram depuis le bon compte TOK. Une copie ou une ouverture de page n’est jamais annoncée comme une publication réussie.
 
-Les résultats et propositions restent dans la mémoire de l’écran et disparaissent quand on le quitte. Aucune nouvelle table ni conservation automatique de commentaires n’est introduite. Il n’y a pas de recherche récurrente en arrière-plan ni de diffusion automatique de réponses. Le module de posts quotidiens conserve son fonctionnement.
+Les recherches restent dans la mémoire de l’écran. Les couples commentaire/réponse explicitement envoyés pour validation sont conservés dans `marketing_instagram_reviews` et retrouvables après rechargement (20 derniers affichés). Il n’y a pas de recherche récurrente ni de diffusion automatique de réponses. Le module de posts quotidiens conserve son fonctionnement.
+
+## Validation Telegram
+
+Le BFF exige la session marketing, CSRF, le rôle admin et un quota partagé. Il transmet uniquement à `ops-incident-control` avec authentification de service et identité administrateur déléguée, revalidée dans `user_roles`. Le navigateur ne choisit jamais le bot ou le destinataire. La rubrique Telegram de diffusion marketing reste distincte de ce bot de validation privé.
+
+Le bot et le webhook existants sont réutilisés avec `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, `TELEGRAM_ADMIN_USER_ID` et `TELEGRAM_WEBHOOK_SECRET` ; aucun nouveau webhook n’est enregistré. Dans un chat privé, l’identifiant utilisateur peut reprendre celui du chat ; un groupe exige un administrateur explicitement configuré. Les boutons `igv:` suivent un chemin distinct des validations d’incidents. Le secret du webhook, le chat et l’utilisateur sont vérifiés avant toute décision.
+
+Le texte du commentaire et les métriques sont des observations soumises par le Studio, pas une attestation cryptographique de Meta. Telegram le signale et renvoie vers la publication pour contrôle. Un commentaire long devient un extrait explicite dans Telegram ; la réponse reste intégrale, en texte brut sans interprétation de balisage. L’instantané complet reste en base privée. Le token aléatoire de décision est uniquement stocké sous forme SHA-256 et expire après 24 heures. La décision atomique est liée au chat et, une fois connu, au message Telegram ; elle ne peut être rejouée ni modifier le texte soumis.
+
+Une empreinte unique du contenu bloque les doubles clics et requêtes simultanées. Un délai réseau ou une perte de l’accusé de réception produit `delivery_unknown` ; un arrêt avant cet enregistrement peut laisser `delivering`. **Ne pas renvoyer automatiquement** : le message peut déjà être arrivé. Vérifier Telegram et actualiser le suivi. Un bouton reçu peut encore enregistrer la décision autorisée même si l’accusé d’envoi a été perdu. Une même proposition expirée/refusée n’est pas renvoyée : préparer une proposition révisée. Aucune clé de validation ni identifiant du chat n’est retourné au navigateur.
+
+Référence : [Telegram Bot API — sendMessage et InlineKeyboardButton](https://core.telegram.org/bots/api), vérifiée le 20 octobre 2026.
 
 ## Mesures et couverture
 
@@ -48,8 +61,10 @@ Les entrées et les champs retournés sont bornés ; seuls les liens HTTPS natif
 
 ## Livraison et retour arrière
 
-Risque **niveau 3** : interface administrateur, BFF et Edge Function existante. Livrer l’orchestrateur puis le frontend via le processus de production habituel après fusion autorisée et contrôles CI. Aucun schéma, migration, secret ni configuration de déploiement n’est modifié par cette fonctionnalité.
+Risque **niveau 3** : interface administrateur, BFF, webhook et conservation de décisions. Livrer la migration additive `20261020153214_marketing_instagram_telegram_reviews.sql`, puis `ops-incident-control`, l’orchestrateur et le frontend via le processus habituel après fusion autorisée et contrôles CI. La table a RLS, aucun privilège `anon`/`authenticated`, et des écritures de service uniquement ; un trigger interdit la modification de l’instantané et des décisions finales. Aucun secret ni configuration de déploiement n’est modifié.
 
 La branche seule n’active pas la fonction en production. La recette réelle doit vérifier un compte professionnel local, un hashtag, les compteurs visibles, un compteur masqué, une permission insuffisante, les commentaires d’un média TOK et une réponse externe manuelle. Ne pas confondre les tests avec réponses contrôlées et une validation réelle des permissions Meta.
 
-Retour arrière : revert du commit et redéploiement de l’orchestrateur/frontend précédents. Aucune réponse externe ni donnée de production n’est à annuler du fait de la livraison de code.
+Recette Telegram : sélectionner un vrai commentaire, vérifier l’auteur et le texte, envoyer une fois et constater le message reçu, valider/refuser depuis le compte configuré, puis actualiser le Studio. Vérifier également un double clic, un mauvais utilisateur, une expiration et une interruption réseau. Les tests simulés ne prouvent pas un envoi réel au bot.
+
+Retour arrière : revert du commit et redéploiement des fonctions/frontend précédents. Conserver la table et l’historique, sans migration destructive. Les anciens boutons deviennent inactifs avec l’ancien webhook ; ne pas publier les propositions non validées. Aucune réponse Instagram n’est envoyée par la validation Telegram.

@@ -14,6 +14,9 @@ import {
   type IncidentRoutingDecision,
 } from "../_shared/incident-intelligence.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { authenticateMarketingRequest } from "../_shared/marketing-service-auth.ts";
+import { parseInstagramReviewRequest, InstagramReviewInputError } from "../_shared/marketing-instagram-review.ts";
+import { createInstagramReviewStore, submitInstagramReview, decideInstagramReview, reviewView, InstagramReviewError } from "../_shared/marketing-instagram-telegram.ts";
 import {
   OPENAI_API_KEY,
   createOpenAIResponse,
@@ -1787,10 +1790,21 @@ async function handleTelegramUpdate(req: Request, body: TelegramUpdate) {
   if (!body.callback_query) return { ok: true, ignored: true };
 
   try {
+    if (body.callback_query.data?.startsWith("igv:")) {
+      const admin = validateTelegramAdmin(body.callback_query);
+      const messageId = body.callback_query.message?.message_id;
+      const result = await decideInstagramReview(createInstagramReviewStore(createAdminClient()), body.callback_query.data,
+        admin.chatId, Number(messageId), admin.actor);
+      await answerTelegramCallback(body.callback_query.id, result.status === "approved"
+        ? "Réponse validée. Publication manuelle dans Instagram."
+        : "Réponse refusée. Aucune publication.");
+      await removeTelegramButtons(admin.chatId, Number(messageId));
+      return { reviewId: result.id, status: result.status };
+    }
     return await decideIncidentFromTelegram(body.callback_query);
   } catch (error) {
     if (body.callback_query.id) {
-      const message = error instanceof HttpError && error.status === 409
+      const message = (error instanceof HttpError || error instanceof InstagramReviewError) && error.status === 409
         ? "Cette décision a déjà été traitée ou a expiré."
         : "Impossible de traiter cette décision.";
       await answerTelegramCallback(body.callback_query.id, message, true);
@@ -2080,7 +2094,28 @@ Deno.serve(async (req) => {
     action = asText(body.action, 80).toLowerCase();
     let result: Record<string, unknown>;
 
-    if (action === "scan") {
+    if (action === "instagram_review_submit" || action === "instagram_review_list") {
+      const actor = await authenticateMarketingRequest(req);
+      if (actor.authMode !== "service_role") throw new HttpError(403, "Marketing service session required");
+      const userId = req.headers.get("x-marketing-actor-user-id") || "";
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) throw new HttpError(403, "Delegated administrator required");
+      const { data, error } = await actor.adminClient.from("user_roles").select("user_id").eq("user_id", userId).eq("role", "admin").limit(1).maybeSingle();
+      if (error) throw new HttpError(503, "Administrator check unavailable");
+      if (!data) throw new HttpError(403, "Delegated administrator required");
+      const request = parseInstagramReviewRequest(body);
+      const store = createInstagramReviewStore(actor.adminClient);
+      if (request.action === "instagram_review_list") {
+        result = { reviews: (await store.list()).map(reviewView) };
+      } else {
+        if (!telegramIsConfigured() || !getEnv("TELEGRAM_WEBHOOK_SECRET")) throw new HttpError(503, "telegram_not_configured");
+        const chatId = configuredTelegramChatId();
+        if (chatId.startsWith("-") && !getEnv("TELEGRAM_ADMIN_USER_ID")) throw new HttpError(503, "telegram_admin_not_configured");
+        result = { review: await submitInstagramReview(store, request, userId, chatId, telegramApi) };
+      }
+      await writeAuditLog({ adminClient: actor.adminClient, actor: { ...actor, userId }, functionName: FUNCTION_NAME,
+        action, status: "success", request: req, metadata: { review_id: (result.review as { id?: string } | undefined)?.id || null } });
+      return jsonResponse(result, 200, cors);
+    } else if (action === "scan") {
       await assertScanAuthorized(req);
       result = await scanAuditFailures();
     } else if (action === "ingest") {
@@ -2108,7 +2143,7 @@ Deno.serve(async (req) => {
     });
     return jsonResponse({ ok: true, ...result }, 200, cors);
   } catch (error) {
-    const status = error instanceof HttpError ? error.status : 500;
+    const status = error instanceof HttpError || error instanceof InstagramReviewError ? error.status : error instanceof InstagramReviewInputError ? 400 : 500;
     const message = error instanceof Error ? error.message : "internal_error";
     log.error("request_failed", { action, status, message: sanitizeString(message).slice(0, 500) });
 
