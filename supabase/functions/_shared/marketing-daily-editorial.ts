@@ -208,9 +208,12 @@ export function buildDailyMarketingBrief(localDate: string, recentTitles: string
   const title = subject.titles[titleIndex];
   const sceneIndex = modulo(dayIndex, SCENE_VARIATIONS.length);
   const caption = [
+    title,
     subject.captions[modulo(subjectRound, subject.captions.length)],
-    "Découvrez TOK sur thetok.ch.",
-    `#TOK #Restaurateurs ${subject.hashtag === "#Restaurateurs" ? "#Restaurant" : subject.hashtag}`,
+    "Restaurateurs à Genève : découvrez TOK sur thetok.ch.",
+    `#TOK #RestaurateursGeneve #Geneve #RestaurantGeneve ${subject.hashtag}`,
+    // No third-party @ mention: these posts feature TOK capabilities, not a
+    // verified restaurant or partner. Never invent affiliation for distribution.
   ].join("\n\n");
   const visualPrompt = [
     `Publication Instagram quotidienne TOK du ${localDate}. Audience : restaurateurs francophones. Format 4:5.`,

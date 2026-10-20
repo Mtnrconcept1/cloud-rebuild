@@ -150,4 +150,42 @@ describe("série Instagram quotidienne", () => {
     await expect(updateMarketingDailySeries({ status: "active", localTime: "25:00", expectedVersion: 1 })).rejects.toThrow("Vérifiez l’heure");
     expect(bffRequest).not.toHaveBeenCalled();
   });
+
+  it("exige une autorisation explicite et trente minutes de préparation avant le mode automatique", async () => {
+    bffRequest.mockImplementation((_path, options) => {
+      if (options.body.operation === "admin_get_marketing_daily_series") return Promise.resolve(fixture({}, { publisher_ready: true }));
+      const input = options.body.args.p_payload;
+      return Promise.resolve(fixture({ status: input.status, local_time: input.local_time,
+        publication_mode: input.publication_mode, publication_local_time: input.publication_local_time,
+        publication_authorized: true, owner_authorized: true, version: 2 }, { publisher_ready: true }));
+    });
+    mount();
+    const activate = await screen.findByRole("button", { name: "Activer la série" });
+    fireEvent.change(screen.getByLabelText("Mode de publication"), { target: { value: "automatic" } });
+    fireEvent.change(screen.getByLabelText("Heure de génération"), { target: { value: "15:45" } });
+    expect(activate).toBeDisabled();
+    fireEvent.click(screen.getByRole("checkbox", { name: /J’autorise un post TOK/ }));
+    expect(activate).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Heure de génération"), { target: { value: "15:00" } });
+    expect(activate).toBeEnabled();
+    fireEvent.click(activate);
+    await screen.findByRole("button", { name: "Mettre en pause" });
+    expect(bffRequest).toHaveBeenLastCalledWith("/api/marketing/rpc", { body: {
+      operation: "admin_upsert_marketing_daily_series", args: { p_payload: {
+        status: "active", local_time: "15:00", expected_version: 1,
+        publication_mode: "automatic", publication_local_time: "16:00", authorize_auto_publication: true,
+      } },
+    } });
+    expect(screen.getByText(/Un post par jour à 16:00, après contrôles qualité/)).toBeInTheDocument();
+  });
+
+  it("permet de suspendre une série automatique sans renouveler son autorisation ni son moteur", async () => {
+    bffRequest.mockResolvedValue(fixture({ status: "active", publication_mode: "automatic", publication_authorized: false },
+      { runtime_enabled: false, publisher_ready: false }));
+    mount();
+    fireEvent.click(await screen.findByRole("button", { name: "Mettre en pause" }));
+    await waitFor(() => expect(bffRequest).toHaveBeenLastCalledWith("/api/marketing/rpc", { body: {
+      operation: "admin_upsert_marketing_daily_series", args: { p_payload: { status: "paused", local_time: "10:00", expected_version: 1 } },
+    } }));
+  });
 });

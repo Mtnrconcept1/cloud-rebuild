@@ -108,8 +108,10 @@ describe("daily TOK editorial rotation", () => {
     }
     for (let day = 0; day < 126; day++) {
       const brief = buildDailyMarketingBrief(dateAfter(day));
-      expect(brief.caption).toContain("Découvrez TOK sur thetok.ch.");
-      expect(brief.caption.match(/#[\p{Letter}]+/gu)).toHaveLength(3);
+      expect(brief.caption).toContain("Restaurateurs à Genève : découvrez TOK sur thetok.ch.");
+      expect(brief.caption.startsWith(brief.title + "\n\n")).toBe(true);
+      expect(brief.caption).not.toContain("@");
+      expect(brief.caption.match(/#[\p{Letter}]+/gu)).toHaveLength(5);
       expect(brief.caption.length).toBeLessThan(600);
       expect(`${brief.title} ${brief.caption}`).not.toMatch(/\d|CHF|%|gratuit|garanti|doublez|triplez/i);
     }

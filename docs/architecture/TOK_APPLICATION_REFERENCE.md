@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `d9cdae929c84bdb94e7bdd5164c9ba0dfdb6caae976343a7b774cf046841ad09`
+- Empreinte SHA-256 des sources indexées : `cf66e65166686912e150c9e90516fe613dd3f3d53c34f9a2bc9ecc01cbfc5cfb`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,16 +28,16 @@
 | apiRoutes | 9 |
 | cronJobs | 35 |
 | databaseContract | 228 |
-| databaseObjects | 2976 |
+| databaseObjects | 2978 |
 | documents | 216 |
 | edgeFunctions | 119 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3829 |
+| exportedSymbols | 3830 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 559 |
+| migrations | 560 |
 | modules | 1733 |
 | pages | 133 |
 | pathLiterals | 819 |
@@ -45,8 +45,8 @@
 | publicEntries | 611 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 117 |
-| records | 17988 |
-| repositoryFiles | 3408 |
+| records | 17995 |
+| repositoryFiles | 3410 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1354,7 +1354,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/marketing/mfa/enroll | 1 | [src/marketing/marketingBffClient.ts:10](../../src/marketing/marketingBffClient.ts#L10) |
 | /api/marketing/mfa/verify | 4 | [src/marketing/marketingBffClient.ts:11](../../src/marketing/marketingBffClient.ts#L11) |
 | /api/marketing/orchestrator | 3 | [src/marketing/marketingBffClient.ts:14](../../src/marketing/marketingBffClient.ts#L14) |
-| /api/marketing/rpc | 17 | [src/marketing/marketingBffClient.ts:13](../../src/marketing/marketingBffClient.ts#L13) |
+| /api/marketing/rpc | 19 | [src/marketing/marketingBffClient.ts:13](../../src/marketing/marketingBffClient.ts#L13) |
 | /api/marketing/session | 5 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /api/missing | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
@@ -1808,7 +1808,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/brand/tok-v1/geneva.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:15](../../supabase/functions/_shared/marketing-brand.ts#L15) |
 | /marketing/brand/tok-v1/loyalty.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:16](../../supabase/functions/_shared/marketing-brand.ts#L16) |
 | /marketing/brand/tok-v1/pricing.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:18](../../supabase/functions/_shared/marketing-brand.ts#L18) |
-| /marketing/brand/tok-v2/instagram-profile.jpeg | 4 | [src/components/marketing/MarketingDailySeries.tsx:152](../../src/components/marketing/MarketingDailySeries.tsx#L152) |
+| /marketing/brand/tok-v2/instagram-profile.jpeg | 4 | [src/components/marketing/MarketingDailySeries.tsx:196](../../src/components/marketing/MarketingDailySeries.tsx#L196) |
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
 | /marketing/login | 26 | [src/App.tsx:744](../../src/App.tsx#L744) |
 | /marketing?view=calendar | 1 | [src/test/marketing-login-navigation.test.tsx:79](../../src/test/marketing-login-navigation.test.tsx#L79) |
@@ -1987,7 +1987,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /rpc/service_finalize_marketing_web_session | 1 | [src/test/marketing-bff-security.test.ts:598](../../src/test/marketing-bff-security.test.ts#L598) |
 | /rpc/service_get_marketing_auth_challenge | 3 | [src/test/marketing-bff-security.test.ts:496](../../src/test/marketing-bff-security.test.ts#L496) |
 | /rpc/service_get_marketing_web_session | 6 | [src/test/marketing-agent-bff.test.ts:24](../../src/test/marketing-agent-bff.test.ts#L24) |
-| /rpc/service_marketing_daily_operation | 3 | [src/test/marketing-daily-series-bff.test.ts:30](../../src/test/marketing-daily-series-bff.test.ts#L30) |
+| /rpc/service_marketing_daily_operation | 4 | [src/test/marketing-daily-series-bff.test.ts:30](../../src/test/marketing-daily-series-bff.test.ts#L30) |
 | /rpc/service_marketing_mailing_facets | 1 | [src/test/marketing-agent-bff.test.ts:80](../../src/test/marketing-agent-bff.test.ts#L80) |
 | /rpc/service_revoke_marketing_web_session | 1 | [src/test/marketing-bff-security.test.ts:611](../../src/test/marketing-bff-security.test.ts#L611) |
 | /rpc/service_store_marketing_auth_challenge | 7 | [src/test/marketing-bff-security.test.ts:264](../../src/test/marketing-bff-security.test.ts#L264) |
@@ -2494,7 +2494,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (835)</summary>
+<details><summary>function (836)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2599,7 +2599,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_get_fair_growth_reconciliation` (2 définition(s))
 - `public.admin_get_feature_flag_audit_logs` (1 définition(s))
 - `public.admin_get_marketing_autopilot_dashboard` (1 définition(s))
-- `public.admin_get_marketing_daily_series` (1 définition(s))
+- `public.admin_get_marketing_daily_series` (2 définition(s))
 - `public.admin_get_marketing_overview` (2 définition(s))
 - `public.admin_get_marketplace_alerts` (1 définition(s))
 - `public.admin_get_production_health` (4 définition(s))
@@ -2683,7 +2683,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_upsert_marketing_calendar_item` (1 définition(s))
 - `public.admin_upsert_marketing_campaign` (1 définition(s))
 - `public.admin_upsert_marketing_contact` (1 définition(s))
-- `public.admin_upsert_marketing_daily_series` (1 définition(s))
+- `public.admin_upsert_marketing_daily_series` (2 définition(s))
 - `public.admin_upsert_marketing_outreach_draft` (1 définition(s))
 - `public.admin_upsert_marketing_outreach_opportunity` (1 définition(s))
 - `public.admin_upsert_marketing_outreach_target` (1 définition(s))
@@ -3026,6 +3026,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.marketing_require_admin` (1 définition(s))
 - `public.marketing_require_service_role` (1 définition(s))
 - `public.marketing_runtime_enabled` (1 définition(s))
+- `public.marketing_schedule_authorized_daily_post` (1 définition(s))
 - `public.marketing_scheduler_ready` (1 définition(s))
 - `public.marketing_touch_delivery` (1 définition(s))
 - `public.marketing_touch_version` (1 définition(s))
@@ -5226,7 +5227,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (257)</summary>
+<details><summary>trigger (258)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -5293,6 +5294,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `marketing_campaigns_transition` (1 définition(s))
 - `marketing_contacts_lawful_basis_evidence` (1 définition(s))
 - `marketing_contacts_touch` (1 définition(s))
+- `marketing_daily_publication` (1 définition(s))
 - `marketing_daily_runs_touch` (1 définition(s))
 - `marketing_daily_series_audit` (1 définition(s))
 - `marketing_daily_series_touch` (1 définition(s))
@@ -6357,6 +6359,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261018210000 Marketing Mailing Recipients | 322 | 3 | [supabase/migrations/20261018210000_marketing_mailing_recipients.sql:1](../../supabase/migrations/20261018210000_marketing_mailing_recipients.sql#L1) |
 | 20261018210100 Marketing Mailing Image Upload | 102 | 1 | [supabase/migrations/20261018210100_marketing_mailing_image_upload.sql:1](../../supabase/migrations/20261018210100_marketing_mailing_image_upload.sql#L1) |
 | 20261019200548 Marketing Daily Instagram | 483 | 15 | [supabase/migrations/20261019200548_marketing_daily_instagram.sql:1](../../supabase/migrations/20261019200548_marketing_daily_instagram.sql#L1) |
+| 20261020135701 Marketing Daily Publication | 223 | 4 | [supabase/migrations/20261020135701_marketing_daily_publication.sql:1](../../supabase/migrations/20261020135701_marketing_daily_publication.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6731,7 +6734,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Audit du marketing automatique TOK — 8 octobre 2026 | 7 | [docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md:1](../../docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md#L1) |
 | TOK Marketing Autopilot — runbook d'exploitation | 13 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
 | Marketing : session, recherche de sources et diagnostic Meta | 5 | [docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md:1](../../docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md#L1) |
-| TOK — Série Instagram quotidienne | 13 | [docs/marketing/daily-instagram.md:1](../../docs/marketing/daily-instagram.md#L1) |
+| TOK — Série Instagram quotidienne | 14 | [docs/marketing/daily-instagram.md:1](../../docs/marketing/daily-instagram.md#L1) |
 | Revue Mobile Fullstack - 2026-03-29 | 25 | [docs/mobile-fullstack-review-2026-03-29.md:1](../../docs/mobile-fullstack-review-2026-03-29.md#L1) |
 | Cloudprinter : formats de génération et d’impression | 5 | [docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md:1](../../docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md#L1) |
 | TOK Intelligence Suite — Campaign Studio, Customer Memory, Support & Resolution, Guardian | 11 | [docs/operations/TOK_INTELLIGENCE_SUITE.md:1](../../docs/operations/TOK_INTELLIGENCE_SUITE.md#L1) |
@@ -7249,7 +7252,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (559)</summary>
+<details><summary>database-migration (560)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7810,6 +7813,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261018210000_marketing_mailing_recipients.sql`
 - `supabase/migrations/20261018210100_marketing_mailing_image_upload.sql`
 - `supabase/migrations/20261019200548_marketing_daily_instagram.sql`
+- `supabase/migrations/20261020135701_marketing_daily_publication.sql`
 
 </details>
 
@@ -9563,7 +9567,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (33)</summary>
+<details><summary>supabase-configuration (34)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -9589,6 +9593,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/tests/launch_gate_fixture.sql`
 - `supabase/tests/marketing_campaign_items_preview.sql`
 - `supabase/tests/marketing_daily_instagram.sql`
+- `supabase/tests/marketing_daily_publication.sql`
 - `supabase/tests/marketing_mailing_image_upload.sql`
 - `supabase/tests/marketing_mailing_recipients.sql`
 - `supabase/tests/marketing_targeted_mailing.sql`

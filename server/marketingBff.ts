@@ -114,7 +114,7 @@ export type MarketingAutopilotOperation = (
   typeof MARKETING_AUTOPILOT_OPERATION_NAMES
 )[number];
 
-/** Daily generation has a separate dispatcher; publishing still uses the existing approval flow. */
+/** Daily generation and its explicit standing authorization use a scoped dispatcher. */
 export const MARKETING_DAILY_OPERATION_NAMES = [
   "admin_get_marketing_daily_series",
   "admin_upsert_marketing_daily_series",
@@ -1661,9 +1661,12 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
     const validDailyArgs = operation === "admin_get_marketing_daily_series"
       ? Object.keys(args).length === 0
       : Object.keys(args).length === 1 && isPlainObject(payload)
-        && Object.keys(payload).every((key) => ["status", "local_time", "expected_version"].includes(key))
+        && Object.keys(payload).every((key) => ["status", "local_time", "expected_version", "publication_mode", "publication_local_time", "authorize_auto_publication"].includes(key))
         && (payload.status === "active" || payload.status === "paused")
         && typeof payload.local_time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(payload.local_time)
+        && (payload.publication_mode === undefined || ["draft", "automatic"].includes(String(payload.publication_mode)))
+        && (payload.publication_local_time === undefined || (typeof payload.publication_local_time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(payload.publication_local_time)))
+        && (payload.authorize_auto_publication === undefined || typeof payload.authorize_auto_publication === "boolean")
         && (payload.expected_version === undefined || (Number.isSafeInteger(payload.expected_version) && Number(payload.expected_version) >= 1));
     if (!validDailyArgs) throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
