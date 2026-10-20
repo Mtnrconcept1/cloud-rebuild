@@ -1,0 +1,103 @@
+name: TOK Instagram read-only diagnostic
+
+on:
+  push:
+    branches: [ops/tok-instagram-20261020]
+    paths: [.github/workflows/marketing-meta-diagnostic.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tok-instagram-read-only-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    if: github.repository == 'Mtnrconcept1/cloud-rebuild' && github.ref == 'refs/heads/ops/tok-instagram-20261020'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - name: Inspect the configured TOK account without publishing or deleting
+        env:
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import { createHmac } from 'node:crypto';
+          const token = (process.env.META_SYSTEM_USER_TOKEN || '').trim();
+          const secret = (process.env.META_APP_SECRET || '').trim();
+          const configuration = { graphVersion: 'v26.0', pageId: '1409554725565734', instagramId: '17841447348180505' };
+          if (token.length < 20 || secret.length < 8) {
+            console.log(JSON.stringify({ operation: 'read_only_probe', credentialsConfigured: false,
+              tokenConfigured: token.length >= 20, appSecretConfigured: secret.length >= 8 }));
+            process.exitCode = 1;
+          } else {
+            const proof = createHmac('sha256', secret).update(token).digest('hex');
+            async function read(path, params = {}) {
+              if (!/^(?:[0-9]+(?:\/media)?|me\/permissions)$/.test(path)) throw new Error('invalid_graph_path');
+              const url = new URL(`https://graph.facebook.com/${configuration.graphVersion}/${path}`);
+              for (const [key, value] of Object.entries({ ...params, appsecret_proof: proof })) url.searchParams.set(key, value);
+              const response = await fetch(url, { method: 'GET', headers: { Authorization: `Bearer ${token}` },
+                redirect: 'error', signal: AbortSignal.timeout(15000) });
+              const raw = await response.text();
+              if (raw.length > 256000) throw new Error('meta_response_too_large');
+              let body;
+              try { body = JSON.parse(raw); } catch { throw new Error('meta_response_invalid'); }
+              if (!response.ok || body.error) {
+                const error = new Error('meta_read_failed');
+                error.safeDetails = { httpStatus: response.status, code: body.error?.code ?? null, subcode: body.error?.error_subcode ?? null };
+                throw error;
+              }
+              return body;
+            }
+            try {
+              const page = await read(configuration.pageId, { fields: 'id,name,instagram_business_account' });
+              if (page.id !== configuration.pageId || page.instagram_business_account?.id !== configuration.instagramId) throw new Error('meta_account_mismatch');
+              const instagram = await read(configuration.instagramId, { fields: 'id,username,media_count' });
+              if (instagram.id !== configuration.instagramId || typeof instagram.username !== 'string') throw new Error('meta_account_mismatch');
+              const media = [];
+              const seen = new Set();
+              let after;
+              let complete = false;
+              for (let pageNumber = 0; pageNumber < 20; pageNumber += 1) {
+                const result = await read(`${configuration.instagramId}/media`, {
+                  fields: 'id,media_type,permalink,timestamp', limit: '25', ...(after ? { after } : {})
+                });
+                if (!Array.isArray(result.data)) throw new Error('meta_inventory_invalid');
+                for (const item of result.data) {
+                  if (!/^[0-9]+$/.test(item.id) || seen.has(item.id)) continue;
+                  seen.add(item.id);
+                  const permalink = typeof item.permalink === 'string' && /^https:\/\/(?:www\.)?instagram\.com\//.test(item.permalink) ? item.permalink : null;
+                  media.push({ id: item.id, mediaType: item.media_type, permalink, timestamp: item.timestamp });
+                }
+                if (!result.paging?.next) { complete = true; break; }
+                const cursor = result.paging?.cursors?.after;
+                if (typeof cursor !== 'string' || cursor.length > 2000 || cursor === after) throw new Error('meta_cursor_invalid');
+                after = cursor;
+              }
+              let permissions = { readable: false };
+              try {
+                const result = await read('me/permissions');
+                const granted = new Set((Array.isArray(result.data) ? result.data : [])
+                  .filter((item) => item.status === 'granted').map((item) => item.permission));
+                permissions = { readable: true, instagramContentPublish: granted.has('instagram_content_publish'),
+                  instagramManageContents: granted.has('instagram_manage_contents'), pagesReadEngagement: granted.has('pages_read_engagement') };
+              } catch { /* A permissions-list failure does not invalidate the identity/inventory read. */ }
+              console.log(JSON.stringify({ operation: 'read_only_probe', credentialsConfigured: true, accountVerified: true,
+                pageId: page.id, pageName: page.name, instagramId: instagram.id, username: instagram.username,
+                reportedMediaCount: instagram.media_count, inventoryCount: media.length, inventoryComplete: complete, permissions, media,
+                published: 0, deleted: 0 }, null, 2));
+              if (!complete) process.exitCode = 1;
+            } catch (error) {
+              const allowed = new Set(['meta_account_mismatch','meta_read_failed','meta_response_too_large','meta_response_invalid','meta_inventory_invalid','meta_cursor_invalid']);
+              console.log(JSON.stringify({ operation: 'read_only_probe', accountVerified: false,
+                error: allowed.has(error.message) ? error.message : 'meta_probe_unavailable', ...(error.safeDetails || {}), published: 0, deleted: 0 }));
+              process.exitCode = 1;
+            }
+          }
+          NODE
