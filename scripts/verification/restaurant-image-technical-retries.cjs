@@ -22,7 +22,7 @@ const assert = require('node:assert/strict');
     INSERT INTO restaurant_image_truth_reviews(id,restaurant_id,status) VALUES('30000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000012','queued');
     UPDATE restaurants SET image_url='manual.jpg' WHERE directory_source_reference='13';
     INSERT INTO restaurant_image_truth_reviews(id,restaurant_id,status,decision_reason) VALUES('40000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000013','rejected','openai_http_400');`);
-  const migration = readFileSync(resolve(__dirname, '../../supabase/migrations/20261020223308_retry_technical_restaurant_photo_reviews.sql'), 'utf8');
+  const migration = readFileSync(resolve(__dirname, '../../supabase/migrations/20261020223521_retry_technical_restaurant_photo_reviews.sql'), 'utf8');
   await db.exec(migration);
   const marked = (await db.query("SELECT count(*)::int AS n,count(distinct restaurant_id)::int AS restaurants FROM restaurant_image_truth_reviews WHERE evidence->>'technical_retry_batch'='tok_openai_400_20261021'")).rows[0];
   assert.deepEqual(marked, { n: 35, restaurants: 10 });
