@@ -21,7 +21,7 @@ jobs:
       - name: Checkout public source without persistent credentials
         uses: actions/checkout@v6
         with:
-          fetch-depth: 2
+          fetch-depth: 4
           persist-credentials: false
           filter: blob:none
           sparse-checkout: |
@@ -33,6 +33,8 @@ jobs:
             scripts
             docs
             tests
+            patches
+            workers
             public/marketing
           sparse-checkout-cone-mode: true
       - name: Set up Node
@@ -46,13 +48,14 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.28.1 --activate
           pnpm install --frozen-lockfile
+          npm install --prefix /tmp/tok-sql-tools --no-audit --no-fund @electric-sql/pglite@0.3.15
       - name: Verify and archive only public source and build dependencies
         shell: bash
         run: |
           set -euo pipefail
           git status --short
           git branch --show-current
-          git log -2 --oneline
+          git log -4 --oneline
           git ls-tree -r --name-only HEAD > /tmp/tok-repository-paths.txt
           if git config --local --get-regexp 'http\..*extraheader'; then
             echo 'Unexpected persistent authentication header' >&2
@@ -63,13 +66,15 @@ jobs:
           tar --exclude='./.env' --exclude='./.env.production' --exclude='./.env.production.local' --exclude='./.env.local' \
             --exclude='./dist' --exclude='./.vercel' --exclude='./.supabase' \
             -czf /tmp/tok-instagram-validation-workspace.tar.gz .
-          du -h /tmp/tok-instagram-validation-workspace.tar.gz
+          tar -czf /tmp/tok-sql-tools.tar.gz -C /tmp tok-sql-tools
+          du -h /tmp/tok-instagram-validation-workspace.tar.gz /tmp/tok-sql-tools.tar.gz
       - name: Upload temporary validation workspace
         uses: actions/upload-artifact@v4
         with:
           name: tok-instagram-validation-workspace
           path: |
             /tmp/tok-instagram-validation-workspace.tar.gz
+            /tmp/tok-sql-tools.tar.gz
             /tmp/tok-repository-paths.txt
           retention-days: 1
           compression-level: 0
