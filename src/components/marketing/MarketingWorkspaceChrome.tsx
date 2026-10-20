@@ -20,6 +20,7 @@ import {
   Sparkles,
   Target,
   Users,
+  Instagram,
 } from "lucide-react";
 
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
@@ -64,6 +65,7 @@ const NAV_ITEMS: Array<{
   { id: "integrations", label: "Intégrations", shortLabel: "Intégrations", description: "État réel des fournisseurs", icon: Link2 },
   { id: "governance", label: "Gouvernance", shortLabel: "Gouvernance", description: "Autonomie, approbations et décisions", icon: ShieldCheck },
   { id: "outreach", label: "Prospection & backlinks", shortLabel: "Outreach", description: "Cibles, brouillons et preuves de liens", icon: Target },
+  { id: "instagram", label: "Veille Instagram", shortLabel: "Instagram", description: "Genève, engagement et réponses", icon: Instagram },
   { id: "faq", label: "Mode d'emploi", shortLabel: "Aide", description: "Fonctionnement, règles et paramétrage", icon: BookOpen },
 ];
 

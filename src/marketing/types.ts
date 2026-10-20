@@ -11,6 +11,7 @@ export const MARKETING_VIEWS = [
   "governance",
   "faq",
   "outreach",
+  "instagram",
 ] as const;
 
 export type MarketingView = (typeof MARKETING_VIEWS)[number];

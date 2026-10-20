@@ -14,6 +14,7 @@ import MarketingIntegrationsView from "@/components/marketing/views/MarketingInt
 import MarketingGovernanceView from "@/components/marketing/views/MarketingGovernanceView";
 import MarketingOverviewView from "@/components/marketing/views/MarketingOverviewView";
 import MarketingOutreachView from "@/components/marketing/views/MarketingOutreachView";
+import MarketingInstagramView from "@/components/marketing/views/MarketingInstagramView";
 import MarketingResultsView from "@/components/marketing/views/MarketingResultsView";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ const VIEW_TITLES: Record<MarketingView, string> = {
   integrations: "Intégrations",
   governance: "Gouvernance",
   outreach: "Prospection et backlinks",
+  instagram: "Veille Instagram",
   faq: "Mode d’emploi",
 };
 
@@ -171,6 +173,8 @@ export default function MarketingWorkspace() {
         return <MarketingGovernanceView autopilot={autopilot.dashboard} loading={autopilot.loading} error={autopilot.error} refreshing={autopilot.refreshing} onRefresh={() => { void autopilot.refresh(); }} onNavigate={setView} />;
       case "outreach":
         return <MarketingOutreachView canMutateBackend={operations.canMutateBackend} />;
+      case "instagram":
+        return <MarketingInstagramView canMutateBackend={operations.canMutateBackend} />;
       case "overview":
       default:
         return <MarketingOverviewView snapshot={snapshot} canMutateBackend={operations.canMutateBackend} runPending={operations.pendingAction === "run-due"} onRunDue={operations.runDue} onNavigate={setView} />;
