@@ -56,7 +56,7 @@ BEGIN
           SELECT 1
           FROM public.marketing_contacts AS contact
           WHERE contact.source_objectid::text = restaurant.directory_source_reference
-            AND contact.branch = 'Restaurant rÃ©fÃ©rencÃ© sur TheFork'
+            AND contact.branch = 'Restaurant référencé sur TheFork'
         ) THEN 0
         ELSE 1
       END,

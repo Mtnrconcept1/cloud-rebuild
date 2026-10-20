@@ -35,6 +35,10 @@ await db.exec(fs.readFileSync(require('node:path').resolve(__dirname, '../../sup
 await db.exec(`UPDATE restaurant_image_discovery_jobs SET next_attempt_at=now()+interval '1 day' WHERE restaurant_id NOT IN ('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000006');
 INSERT INTO restaurant_directory_image_jobs VALUES('00000000-0000-0000-0000-000000000001','https://www.tripadvisor.com/old-page'),('00000000-0000-0000-0000-000000000006','https://official-six.ch/');
 UPDATE restaurant_image_discovery_jobs SET source_url='12345' WHERE restaurant_id='00000000-0000-0000-0000-000000000006';`);
+await db.exec(`UPDATE marketing_contacts SET branch='Restaurant référencé sur TheFork' WHERE source_objectid=7;
+UPDATE restaurant_image_discovery_jobs SET next_attempt_at=now() WHERE restaurant_id='00000000-0000-0000-0000-000000000007';`);
+const priority=(await db.query('SELECT * FROM claim_restaurant_image_discovery_jobs_for_edge(1)')).rows;
+if(priority.length!==1||!priority[0].restaurant_id.endsWith('007'))throw Error('TheFork branch priority or UTF8 literal drift');
 const claimed=(await db.query('SELECT * FROM claim_restaurant_image_discovery_jobs_for_edge(3)')).rows;
 if(claimed.length!==2)throw Error('claim eligibility drift');
 if(claimed.find(r=>r.restaurant_id.endsWith('001')).source_url!=='https://restaurant1.ch/')throw Error('repaired source masked by old third-party page');

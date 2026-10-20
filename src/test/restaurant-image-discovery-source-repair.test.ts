@@ -15,6 +15,7 @@ describe("restaurant image discovery source repair", () => {
     expect(claim).toContain("LEAST(GREATEST(COALESCE(p_limit, 1), 1), 3)");
     expect(claim).toContain("FROM PUBLIC, anon, authenticated");
     expect(claim).toContain("TO service_role");
+    expect(claim).toContain("Restaurant référencé sur TheFork");
   });
   it("uses catalogue websites rather than numeric directory identifiers", () => {
     expect(migration).toContain("SELECT source.url INTO v_source_url");
