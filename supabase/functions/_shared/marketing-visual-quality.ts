@@ -1,5 +1,9 @@
 import { readBoundedImageBody } from "./ai-image-response.ts";
-import { TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
+import {
+  TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT,
+  TOK_MARKETING_REFERENCES,
+  TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT,
+} from "./marketing-brand.ts";
 import type { DailyMarketingBrief } from "./marketing-daily-editorial.ts";
 
 export const DAILY_IMAGE_MAX_BYTES = 8_000_000;
@@ -128,7 +132,7 @@ export async function inspectTokDailyImage(options: {
           "brand_identity = identité épurée de la première référence, orange/crème/noir/blanc cassé ou photo chaude, titre sans empattement très gras, aucune surcharge BD ;",
           "logo_intact = un seul logo TOK conforme, visible en haut à gauche, intact et non coupé ;",
           "title_exact = seulement le titre demandé, accents et ponctuation respectés (hors retours à la ligne) ; text_legible = lisible à taille de téléphone, aucun mot corrompu ;",
-          "safe_margins = texte et logo entièrement dans l'image, marge d'au moins 6 %, bon contraste ;",
+          `safe_margins = texte et logo entièrement dans l'image, marge d'au moins ${TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT} % sur chacun des quatre bords, bon contraste. La consigne de génération prévoit ${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} % : refuser si elle n'est pas visiblement respectée ;`,
           "family_match = composition et palette de la famille demandée ; chef_correct = présence ou absence conforme et identité fidèle si présent ;",
           "no_extra_claims = pas de prix, chiffre, remise, promesse, logo tiers, QR code ni autre texte inventé. La lettre TOK dans le logo est autorisée.",
           "Transcrire littéralement le titre effectivement visible dans observed_title. reason : une phrase courte en français, 1000 caractères maximum.",

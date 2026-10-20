@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `3d0e0d66aefbea9c962a50ea23d015f6c04c08249f956fae49469a74e41059f6`
+- Empreinte SHA-256 des sources indexées : `d9cdae929c84bdb94e7bdd5164c9ba0dfdb6caae976343a7b774cf046841ad09`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,7 +32,7 @@
 | documents | 216 |
 | edgeFunctions | 119 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3827 |
+| exportedSymbols | 3829 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
@@ -45,7 +45,7 @@
 | publicEntries | 611 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 117 |
-| records | 17986 |
+| records | 17988 |
 | repositoryFiles | 3408 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1601,7 +1601,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-tok-connect.webp | 1 | [src/lib/dashboardIllustrations.ts:38](../../src/lib/dashboardIllustrations.ts#L38) |
 | /images/doner-kebab-plate.jpeg | 2 | [src/lib/menu-item-images.ts:48](../../src/lib/menu-item-images.ts#L48) |
 | /images/edamame.webp | 1 | [src/lib/menu-item-images.ts:49](../../src/lib/menu-item-images.ts#L49) |
-| /images/edits | 1 | [src/test/marketing-daily-visual.test.ts:99](../../src/test/marketing-daily-visual.test.ts#L99) |
+| /images/edits | 1 | [src/test/marketing-daily-visual.test.ts:103](../../src/test/marketing-daily-visual.test.ts#L103) |
 | /images/emails/tok-reservation-hero.jpg | 2 | [src/test/transactional-email-templates.test.ts:105](../../src/test/transactional-email-templates.test.ts#L105) |
 | /images/emails/tok-reservation-hero.webp | 1 | [src/test/transactional-email-templates.test.ts:106](../../src/test/transactional-email-templates.test.ts#L106) |
 | /images/fattouche.webp | 5 | [src/lib/menu-item-images.ts:21](../../src/lib/menu-item-images.ts#L21) |
@@ -1804,10 +1804,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/ | 1 | [src/App.tsx:323](../../src/App.tsx#L323) |
 | /marketing/* | 2 | [src/App.tsx:753](../../src/App.tsx#L753) |
 | /marketing/../admin | 1 | [src/test/marketing-login-navigation.test.tsx:71](../../src/test/marketing-login-navigation.test.tsx#L71) |
-| /marketing/brand/tok-v1/flash.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:9](../../supabase/functions/_shared/marketing-brand.ts#L9) |
-| /marketing/brand/tok-v1/geneva.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:7](../../supabase/functions/_shared/marketing-brand.ts#L7) |
-| /marketing/brand/tok-v1/loyalty.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:8](../../supabase/functions/_shared/marketing-brand.ts#L8) |
-| /marketing/brand/tok-v1/pricing.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:10](../../supabase/functions/_shared/marketing-brand.ts#L10) |
+| /marketing/brand/tok-v1/flash.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:17](../../supabase/functions/_shared/marketing-brand.ts#L17) |
+| /marketing/brand/tok-v1/geneva.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:15](../../supabase/functions/_shared/marketing-brand.ts#L15) |
+| /marketing/brand/tok-v1/loyalty.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:16](../../supabase/functions/_shared/marketing-brand.ts#L16) |
+| /marketing/brand/tok-v1/pricing.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:18](../../supabase/functions/_shared/marketing-brand.ts#L18) |
 | /marketing/brand/tok-v2/instagram-profile.jpeg | 4 | [src/components/marketing/MarketingDailySeries.tsx:152](../../src/components/marketing/MarketingDailySeries.tsx#L152) |
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
 | /marketing/login | 26 | [src/App.tsx:744](../../src/App.tsx#L744) |
@@ -1877,7 +1877,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /reseaux-sociaux | 1 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
 | /reservations | 27 | [scripts/prerender-seo.mjs:1273](../../scripts/prerender-seo.mjs#L1273) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
-| /responses | 2 | [src/test/marketing-daily-visual.test.ts:83](../../src/test/marketing-daily-visual.test.ts#L83) |
+| /responses | 2 | [src/test/marketing-daily-visual.test.ts:84](../../src/test/marketing-daily-visual.test.ts#L84) |
 | /rest/v1/ | 4 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
 | /rest/v1/profiles | 2 | [src/test/tok-connect-oauth-delegation.test.ts:100](../../src/test/tok-connect-oauth-delegation.test.ts#L100) |
 | /rest/v1/profiles?select=first_name | 1 | [src/test/tok-connect-oauth-delegation.test.ts:102](../../src/test/tok-connect-oauth-delegation.test.ts#L102) |

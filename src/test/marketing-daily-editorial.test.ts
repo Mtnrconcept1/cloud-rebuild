@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES, buildTokMarketingVisualPrompt } from "../../supabase/functions/_shared/marketing-brand";
+import {
+  TOK_MARKETING_BRAND_VERSION,
+  TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT,
+  TOK_MARKETING_REFERENCES,
+  TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT,
+  buildTokMarketingVisualPrompt,
+} from "../../supabase/functions/_shared/marketing-brand";
 import {
   TOK_DAILY_EDITORIAL_SUBJECTS,
   TOK_DAILY_VISUAL_FAMILIES,
@@ -118,6 +124,8 @@ describe("daily TOK editorial rotation", () => {
       expect(prompt).toContain("Une seule scène, une seule image indépendante");
       expect(prompt).toContain("texte et logo produits nativement");
       expect(prompt).toContain("La légende reste hors de l'image");
+      expect(prompt).toContain(`à au moins ${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} % de chacun des quatre bords`);
+      expect(TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT).toBeGreaterThan(TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT);
       expect(brief.visualPrompt.length).toBeLessThan(4000);
       expect(prompt.length).toBeLessThan(8000);
       expect(brief.visualPrompt).toContain(brief.requiresChef ? "Mascotte chef TOK obligatoire" : "Aucune mascotte ni personnage cartoon");
