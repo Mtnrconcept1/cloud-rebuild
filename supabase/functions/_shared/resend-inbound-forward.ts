@@ -124,11 +124,11 @@ export function createForwardStore(client: any): ForwardStore {
   };
 }
 
-export async function forwardInboundEvent(eventValue: unknown, input: { apiKey: string; store: ForwardStore; fetchImpl?: typeof fetch; now?: number }) {
+export async function forwardInboundEvent(eventValue: unknown, input: { apiKey: string; store: ForwardStore; fetchImpl?: typeof fetch; now?: number; waitImpl?: (ms: number, signal: AbortSignal) => Promise<void> }) {
   const event = record(eventValue);
   if (event.type !== 'email.received') return 'ignored';
   const data = record(event.data);
-  if (!UUID.test(data.email_id || '')) throw new ForwardError('invalid_received_id', 400);
+  if (typeof data.email_id !== 'string' || !UUID.test(data.email_id)) throw new ForwardError('invalid_received_id', 400);
   if (!inboundRecipientAllowed(data.to)) return 'ignored';
   const id = data.email_id as string;
   const token = crypto.randomUUID();
@@ -137,10 +137,28 @@ export async function forwardInboundEvent(eventValue: unknown, input: { apiKey: 
   if (claim !== 'claimed') throw new ForwardError(claim === 'blocked' ? 'manual_reconciliation_required' : 'receipt_busy', 503);
   const request = input.fetchImpl || fetch;
   const signal = AbortSignal.timeout(45_000);
+  const wait = input.waitImpl || ((ms: number, signal: AbortSignal) => new Promise<void>((resolve, reject) => {
+    const aborted = () => { clearTimeout(timer); reject(signal.reason); };
+    const timer = setTimeout(() => { signal.removeEventListener('abort', aborted); resolve(); }, ms);
+    signal.addEventListener('abort', aborted, { once: true });
+    if (signal.aborted) aborted();
+  }));
   const api = async (path: string, init: RequestInit = {}) => {
-    const response = await request(`https://api.resend.com${path}`, { ...init, signal, redirect: 'error', headers: { Authorization: `Bearer ${input.apiKey}`, 'Content-Type': 'application/json', ...init.headers } });
-    try { return record(JSON.parse(new TextDecoder().decode(await bytes(response, MAX_JSON)))); }
-    catch (error) { if (error instanceof ForwardError) throw error; throw new ForwardError('invalid_provider_json'); }
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const response = await request(`https://api.resend.com${path}`, { ...init, signal, redirect: 'error', headers: { Authorization: `Bearer ${input.apiKey}`, 'Content-Type': 'application/json', ...init.headers } });
+      if (attempt < 2 && [429, 500, 502, 503, 504].includes(response.status)) {
+        const header = response.headers.get('retry-after');
+        const seconds = header && /^\d+(\.\d+)?$/.test(header) ? Number(header) : header ? (Date.parse(header) - Date.now()) / 1000 : 1 + attempt;
+        if (Number.isFinite(seconds) && seconds >= 0 && seconds <= 5) {
+          await response.body?.cancel();
+          await wait(Math.max(1, seconds * 1000), signal);
+          continue;
+        }
+      }
+      try { return record(JSON.parse(new TextDecoder().decode(await bytes(response, MAX_JSON)))); }
+      catch (error) { if (error instanceof ForwardError) throw error; throw new ForwardError('invalid_provider_json'); }
+    }
+    throw new ForwardError('provider_retry_exhausted');
   };
   try {
     const email = await api(`/emails/receiving/${id}?html_format=cid`);

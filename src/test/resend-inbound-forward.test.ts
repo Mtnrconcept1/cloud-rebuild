@@ -90,6 +90,22 @@ describe('signed inbound forwarding', () => {
     await expect(forwardInboundEvent(event, { apiKey: 'test', store: store(), fetchImpl: provider({ ...message, to: ['somebody@example.com'] }) })).rejects.toMatchObject({ code: 'received_email_mismatch' });
     expect(await forwardInboundEvent(event, { apiKey: 'test', store: store(), fetchImpl: provider({ ...message, from: 'rbarman@hotmail.ch' }) })).toBe('forwarded');
   });
+  it('retries the rate-limited call in place, respects Retry-After and keeps the POST idempotent', async () => {
+    const fetchImpl = provider(); const original = fetchImpl.getMockImplementation()!; let first = true;
+    fetchImpl.mockImplementation(async (...args) => {
+      if (args[1]?.method === 'POST' && first) { first = false; return new Response('{}', { status: 429, headers: { 'retry-after': '2' } }); }
+      return original(...args);
+    });
+    const waitImpl = vi.fn(async () => {});
+    expect(await forwardInboundEvent(event, { apiKey: 'test', store: store(), fetchImpl, waitImpl })).toBe('forwarded');
+    expect(waitImpl.mock.calls[0][0]).toBe(2000);
+    const posts = fetchImpl.mock.calls.filter(([, init]) => init?.method === 'POST');
+    expect(posts).toHaveLength(2); expect(posts[0][1]?.body).toBe(posts[1][1]?.body); expect(posts[0][1]?.headers).toEqual(posts[1][1]?.headers);
+    expect(fetchImpl.mock.calls.filter(([url]) => String(url).includes('?html_format=cid'))).toHaveLength(1);
+    const longWait = vi.fn(async () => new Response('{}', { status: 429, headers: { 'retry-after': '60' } }));
+    await expect(forwardInboundEvent(event, { apiKey: 'test', store: store(), fetchImpl: longWait, waitImpl })).rejects.toMatchObject({ code: 'provider_http_429' });
+    expect(longWait).toHaveBeenCalledTimes(1); expect(waitImpl).toHaveBeenCalledTimes(1);
+  });
   it('refuses unsafe file hosts, oversized files, old ambiguous operations and provider failures', async () => {
     await expect(forwardInboundEvent(event, { apiKey: 'test', store: store(), fetchImpl: provider(message, [{ id: '1', size: 1, download_url: 'http://127.0.0.1/file' }]) })).rejects.toMatchObject({ code: 'invalid_attachment_host', terminal: true });
     await expect(forwardInboundEvent(event, { apiKey: 'test', store: store(), fetchImpl: provider(message, [{ id: '1', size: 13 * 1024 * 1024 }]) })).rejects.toMatchObject({ code: 'attachment_size_limit', terminal: true });
