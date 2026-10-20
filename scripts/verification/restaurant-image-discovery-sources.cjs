@@ -31,7 +31,7 @@ let source=(await db.query("select source_url from restaurant_image_discovery_jo
 if(source.source_url!=='https://restaurant7.ch/')throw Error('website missing');
 await db.exec(migration);
 await db.exec(fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020223007_preserve_restaurant_image_discovery_source_lease.sql'),'utf8'));
-await db.exec(fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020223025_prefer_repaired_restaurant_image_discovery_source.sql'),'utf8'));
+await db.exec(fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020223254_prefer_repaired_restaurant_image_discovery_source.sql'),'utf8'));
 await db.exec(`UPDATE restaurant_image_discovery_jobs SET next_attempt_at=now()+interval '1 day' WHERE restaurant_id NOT IN ('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000006');
 INSERT INTO restaurant_directory_image_jobs VALUES('00000000-0000-0000-0000-000000000001','https://www.tripadvisor.com/old-page'),('00000000-0000-0000-0000-000000000006','https://official-six.ch/');
 UPDATE restaurant_image_discovery_jobs SET source_url='12345' WHERE restaurant_id='00000000-0000-0000-0000-000000000006';`);
