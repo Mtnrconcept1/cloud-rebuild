@@ -4,6 +4,7 @@ import { webcrypto } from "node:crypto";
 import jpeg from "jpeg-js";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { TOK_MARKETING_REFERENCES } from "../../supabase/functions/_shared/marketing-brand";
+import { TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT, TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT } from "../../supabase/functions/_shared/marketing-brand";
 import { buildDailyMarketingBrief } from "../../supabase/functions/_shared/marketing-daily-editorial";
 import { DAILY_VISUAL_CHECKS, readDailyJpegDimensions } from "../../supabase/functions/_shared/marketing-visual-quality";
 
@@ -87,6 +88,9 @@ describe("daily native image and pixel review", () => {
     const images = review.input[1].content.filter((item: { type: string }) => item.type === "input_image");
     expect(images).toHaveLength(TOK_MARKETING_REFERENCES.length + 1);
     expect(images.at(-1).image_url).toBe(`data:image/jpeg;base64,${Buffer.from(imageBytes).toString("base64")}`);
+    const instructions = review.input[1].content.find((item: { type: string }) => item.type === "input_text").text;
+    expect(instructions).toContain(`marge d'au moins ${TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT} %`);
+    expect(instructions).toContain(`${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} %`);
   });
 
   it("recovers an uploaded image after a lost completion acknowledgement without another image generation", async () => {
