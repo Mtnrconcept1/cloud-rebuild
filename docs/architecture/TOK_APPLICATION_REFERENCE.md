@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `c50b03df3a5c69eae1b881833a62c92c9ac9d9731865a677c7a9de023da76f59`
+- Empreinte SHA-256 des sources indexées : `52ad6da7566a79acf7a94dc2e2b90fe02b2f3ad00047476c433cd9305f640cd7`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -6637,7 +6637,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Google | 119 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Openai | 144 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Resend | 40 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Resend | 41 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 269 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 802 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
