@@ -70,6 +70,9 @@ describe("admin accounting data", () => {
       amount_ttc: 69, period_start: "2026-10-14", period_end: "2026-11-13", restaurant_id: "gazelle" }];
     database.rows.restaurant_invoice_line_items = [{ invoice_id: "subscription", item_kind: "restaurant_subscription",
       amount_ttc: 69, occurred_at: "2026-08-01T21:25:00Z", restaurant_id: "gazelle" }];
+    database.rows.ad_campaigns = [{ id: "credit-campaign", restaurant_id: "gazelle",
+      created_at: "2026-10-15T18:03:00Z", payment_status: "paid", payment_method: "credits",
+      paid_amount: 5.4, total_budget: 5.4, title: "Campagne financée par l'abonnement" }];
     database.rows.reservation_flat_fee_charges = [1, 2, 3].map((id) => ({ id: String(id), restaurant_id: "gazelle",
       reservation_id: `r${id}`, honored_at_snapshot: "2026-10-15T18:03:00Z", fee_cents: 500, invoice_id: null }));
     database.rows.reservation_fee_charges = [{ id: "legacy", fee_cents: 99900, honored_at_snapshot: "2026-10-15T18:03:00Z" }];
@@ -81,6 +84,9 @@ describe("admin accounting data", () => {
     expect(result.current.developerReservedShare).toBe(6.9);
     expect(result.current.summary.inflow.payableCollected).toBe(69);
     expect(result.current.payableAccruals.reservationFeeAmount).toBe(15);
+    expect(result.current.payableAccruals.totalAmount).toBe(15);
+    expect(result.current.postedRevenue.campaignAmount).toBe(0);
+    expect(result.current.creditFundedCampaignsTotal).toBe(5.4);
     expect(result.current.reservationFeeRevenueAmount).toBe(0);
   });
 

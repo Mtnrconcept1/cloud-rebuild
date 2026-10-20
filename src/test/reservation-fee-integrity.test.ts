@@ -66,7 +66,8 @@ describe("reservation fee and Mon pack integrity", () => {
   it("uses immutable reservation fee charges as the accounting source of truth", () => {
     const accounting = read("src/pages/admin/adminComptaShared.ts");
 
-    expect(accounting).toContain('.from("reservation_fee_charges")');
+    expect(accounting).toContain('.from("reservation_flat_fee_charges")');
+    expect(accounting).not.toContain('.from("reservation_fee_charges")');
     expect(accounting).toContain("honored_at_snapshot");
     expect(accounting).toContain("fee_cents");
     expect(accounting).toContain("toAmount(row.fee_cents) / 100");
