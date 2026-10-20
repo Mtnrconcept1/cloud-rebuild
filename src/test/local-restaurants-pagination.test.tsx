@@ -4,6 +4,12 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import LocalRestaurants from "@/pages/LocalRestaurants";
+import {
+  extractLocalCuisineSlugs,
+  getLocalCuisineCatalogPrefix,
+  LOCAL_CUISINE_ALIASES,
+  normalizeLocalCuisineSlug,
+} from "@/lib/seo/localCuisineMatching.mjs";
 
 const state = vi.hoisted(() => ({
   rpc: vi.fn(),
@@ -172,6 +178,102 @@ describe("local restaurant catalog pagination", () => {
   });
 });
 
+describe("shared local cuisine matching", () => {
+  it.each(Object.entries(LOCAL_CUISINE_ALIASES))("keeps alias %s discoverable with exact cuisine membership", (alias, canonical) => {
+    const prefix = getLocalCuisineCatalogPrefix(canonical);
+    expect(prefix).toMatch(/^[a-z0-9-]{3,}$/);
+    expect(alias).toContain(prefix);
+    expect(canonical).toContain(prefix);
+    expect(getLocalCuisineCatalogPrefix(alias)).toBe(prefix);
+    expect(extractLocalCuisineSlugs(alias)).toEqual([canonical]);
+    expect(extractLocalCuisineSlugs(null, [alias])).toEqual([canonical]);
+  });
+
+  it("combines explicit cuisines without duplicates and preserves accents and legacy separators", () => {
+    expect(extractLocalCuisineSlugs("Pizzéria +2; Italienne / Pizza | Africaine", ["pizza", "thai"]))
+      .toEqual(["pizza", "italien", "africain", "thai"]);
+    expect(extractLocalCuisineSlugs("Thaïlandaise", null)).toEqual(["thai"]);
+    expect(extractLocalCuisineSlugs("Suisse", "pizza")).toEqual(["suisse"]);
+    expect(normalizeLocalCuisineSlug("constructor")).toBe("constructor");
+  });
+
+  it("keeps marketing route aliases out of cuisine data and leaves an absent filter empty", () => {
+    expect(extractLocalCuisineSlugs("meilleure-pizzeria")).not.toContain("pizza");
+    expect(extractLocalCuisineSlugs("meilleures-pizzerias")).not.toContain("pizza");
+    expect(getLocalCuisineCatalogPrefix("")).toBeNull();
+    expect(getLocalCuisineCatalogPrefix(null)).toBeNull();
+  });
+});
+
+describe("local cuisine membership", () => {
+  it("requests the canonical African cuisine and preserves its two-restaurant noindex", async () => {
+    const africanRestaurants = [
+      ...restaurants(0, 1, { cuisine_type: null, category_slugs: ["africain"] }),
+      ...restaurants(1, 1, { cuisine_type: "Africaine", category_slugs: [] }),
+    ];
+    state.rpc.mockImplementation((_name: string, args: { p_cuisine?: string }) =>
+      Promise.resolve(catalogPage(args.p_cuisine === "africain" ? africanRestaurants : [], null))
+    );
+    insertInventorySnapshot({
+      path: "/restaurants/geneve/africain",
+      pageType: "cuisine",
+      inventoryCount: 2,
+      parentInventoryCount: 54,
+    });
+    setup("/restaurants/geneve/africain");
+
+    expect(robots()).toMatch(/^noindex,/);
+    await waitFor(() => expect(screen.getAllByRole("article")).toHaveLength(2));
+    expect(state.rpc).toHaveBeenCalledWith("search_restaurants_catalog_page", expect.objectContaining({
+      p_city: "Genève", p_cuisine: "africain", p_query: null,
+    }));
+    expect(robots()).toMatch(/^noindex,/);
+    expect(screen.queryByText("Aucun restaurant trouvé pour cette page locale.")).not.toBeInTheDocument();
+  });
+
+  it("shows explicit pizza cuisines and free-text Pizzeria without admitting Italian-only candidates", async () => {
+    const candidates = [
+      ...restaurants(0, 1, { cuisine_type: "Italien", category_slugs: ["italien"] }),
+      ...restaurants(1, 1, { cuisine_type: null, category_slugs: ["pizza"] }),
+      ...restaurants(2, 1, { cuisine_type: "Pizzeria", category_slugs: [] }),
+      ...restaurants(3, 1, { cuisine_type: "Italienne / Pizza", category_slugs: ["italien", "pizza"] }),
+    ];
+    state.rpc.mockResolvedValueOnce(catalogPage(candidates, null));
+    setup("/restaurants/geneve/pizza");
+
+    await waitFor(() => expect(screen.getAllByRole("article")).toHaveLength(3));
+    expect(screen.queryByText("Restaurant 1")).not.toBeInTheDocument();
+    expect(screen.getByText("Restaurant 2")).toBeVisible();
+    expect(screen.getByText("Restaurant 3")).toBeVisible();
+    expect(screen.getByText("Restaurant 4")).toBeVisible();
+    expect(state.rpc).toHaveBeenCalledWith("search_restaurants_catalog_page", expect.objectContaining({
+      p_cuisine: "pizz", p_query: null,
+    }));
+    expect(robots()).toMatch(/^index,/);
+  });
+
+  it("keeps the raw cursor when every candidate in a cuisine batch is rejected", async () => {
+    state.rpc
+      .mockResolvedValueOnce(catalogPage(restaurants(0, 54, { cuisine_type: "Italien", category_slugs: ["italien"] }), 54, 57))
+      .mockResolvedValueOnce(catalogPage(restaurants(54, 3, { cuisine_type: null, category_slugs: ["pizza"] }), null, 57));
+    setup("/restaurants/geneve/pizza");
+
+    const next = await screen.findByRole("button", { name: "Charger plus de restaurants" });
+    expect(screen.queryAllByRole("article")).toHaveLength(0);
+    expect(screen.queryByText("Aucun restaurant trouvé pour cette page locale.")).not.toBeInTheDocument();
+    expect(robots()).toMatch(/^index,/);
+
+    fireEvent.click(next);
+    await waitFor(() => expect(screen.getAllByRole("article")).toHaveLength(3));
+    expect(screen.getByText("Restaurant 55")).toBeVisible();
+    expect(state.rpc).toHaveBeenNthCalledWith(2, "search_restaurants_catalog_page", expect.objectContaining({
+      p_cuisine: "pizz", p_offset: 54,
+    }));
+    expect(screen.queryByRole("button", { name: "Charger plus de restaurants" })).not.toBeInTheDocument();
+    expect(robots()).toMatch(/^index,/);
+  });
+});
+
 describe("local listing inventory policy", () => {
   it("preserves a same-route prerender noindex while loading and after a populated response", async () => {
     insertInventorySnapshot();
@@ -195,7 +297,9 @@ describe("local listing inventory policy", () => {
   });
 
   it.each(["/restaurants/geneve", "/restaurants/geneve/africain"])("noindexes terminal inventory below the shared threshold on %s", async (url) => {
-    state.rpc.mockResolvedValueOnce(catalogPage(restaurants(0, 2), null));
+    state.rpc.mockResolvedValueOnce(catalogPage(restaurants(0, 2, {
+      cuisine_type: url.endsWith("/africain") ? "Africain" : "Suisse",
+    }), null));
     setup(url);
 
     await waitFor(() => expect(screen.getAllByRole("article")).toHaveLength(2));

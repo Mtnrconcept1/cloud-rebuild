@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { formatSeoReadError, loadSeoPageWithRetry } from "./seo-query-retry.mjs";
 
 import { buildRestaurantSeoModel } from "../src/lib/seo/restaurantEntity.mjs";
+import { extractLocalCuisineSlugs } from "../src/lib/seo/localCuisineMatching.mjs";
 import {
   getLocalInventoryDecision,
   resolveLocalInventoryPolicy,
@@ -160,48 +161,10 @@ const LOCAL_CUISINES = [
   { slug: "ethiopien", label: "Éthiopien" },
 ];
 
-const CUISINE_SLUG_ALIASES = new Map([
-  ["pizzeria", "pizza"],
-  ["pizzas", "pizza"],
-  ["italienne", "italien"],
-  ["japonaise", "japonais"],
-  ["indienne", "indien"],
-  ["libanaise", "libanais"],
-  ["africaine", "africain"],
-  ["vegetarienne", "vegetarien"],
-  ["vegetarian", "vegetarien"],
-  ["desserts", "dessert"],
-  ["streetfood", "street-food"],
-  ["fruitsdemer", "fruits-de-mer"],
-  ["fruits-mer", "fruits-de-mer"],
-  ["creperie", "crepes"],
-  ["crepe", "crepes"],
-  ["peruvienne", "peruvien"],
-  ["portugaise", "portugais"],
-  ["americaine", "americain"],
-  ["ethiopienne", "ethiopien"],
-  ["grillade", "grillades"],
-  ["coreenne", "coreen"],
-  ["grecque", "grec"],
-  ["mexicaine", "mexicain"],
-  ["marocaine", "marocain"],
-  ["thailandais", "thai"],
-  ["thailandaise", "thai"],
-  ["chinoise", "chinois"],
-  ["suissee", "suisse"],
-]);
-
 function extractRestaurantCuisineSlugs(value, extraSlugs = []) {
   const knownSlugs = new Set(LOCAL_CUISINES.map((cuisine) => cuisine.slug));
-  const fromFreeText = String(value || "")
-    .split(/[,;|/]+/)
-    .map((part) => part.replace(/\+\s*\d+\s*$/, "").trim());
   // `restaurant_cuisines` est la source structurée et vérifiée ; `cuisine_type` reste le texte libre historique.
-  return [...fromFreeText, ...(Array.isArray(extraSlugs) ? extraSlugs : [])]
-    .map((part) => CUISINE_SLUG_ALIASES.get(slugify(part)) || slugify(part))
-    .filter((cuisineSlug, index, cuisineSlugs) =>
-      knownSlugs.has(cuisineSlug) && cuisineSlugs.indexOf(cuisineSlug) === index
-    );
+  return extractLocalCuisineSlugs(value, extraSlugs).filter((cuisineSlug) => knownSlugs.has(cuisineSlug));
 }
 
 const LOCAL_INTENTS = [

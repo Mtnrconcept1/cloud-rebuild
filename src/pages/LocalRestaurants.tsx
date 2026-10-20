@@ -11,6 +11,12 @@ import { formatRestaurantCategorySummary } from "@/lib/restaurantCategories";
 import { buildRestaurantSeoPath, slugifyRestaurantSegment } from "@/lib/restaurantSlugs";
 import { buildCanonicalUrl, useSeoMeta } from "@/hooks/useSeoMeta";
 import { parseLocalInventorySnapshot, resolveLocalInventoryPolicy } from "@/lib/seo/localInventoryPolicy.mjs";
+import {
+  extractLocalCuisineSlugs,
+  getLocalCuisineCatalogPrefix,
+  LOCAL_CUISINE_ALIASES,
+  normalizeLocalCuisineSlug,
+} from "@/lib/seo/localCuisineMatching.mjs";
 import NotFound from "./NotFound";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
@@ -79,16 +85,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const CATEGORY_ALIASES: Record<string, string> = {
-  pizzeria: "pizza",
-  pizzas: "pizza",
-  italienne: "italien",
-  japonaise: "japonais",
-  indienne: "indien",
-  libanaise: "libanais",
-  africaine: "africain",
-  vegetarienne: "vegetarien",
-  desserts: "dessert",
-  streetfood: "street-food",
+  ...LOCAL_CUISINE_ALIASES,
   "meilleure-pizzeria": "pizza",
   "meilleures-pizzerias": "pizza",
 };
@@ -102,14 +99,7 @@ const INTENT_LABELS: Record<string, string> = {
 const MIN_SPECIALIZED_LOCAL_RESTAURANTS = 3;
 
 function extractRestaurantCuisineSlugs(value: unknown) {
-  return String(value || "")
-    .split(/[,;|/]+/)
-    .map((part) => part.replace(/\+\s*\d+\s*$/, "").trim())
-    .map((part) => {
-      const slug = slugifyRestaurantSegment(part);
-      return CATEGORY_ALIASES[slug] || slug;
-    })
-    .filter((slug, index, slugs) => Boolean(CATEGORY_LABELS[slug]) && slugs.indexOf(slug) === index);
+  return extractLocalCuisineSlugs(value).filter((slug) => Boolean(CATEGORY_LABELS[slug]));
 }
 
 function filterRestaurantsByIntent(restaurants: any[], intent: string) {
@@ -552,6 +542,8 @@ export default function LocalRestaurants() {
     : knownCategorySegment || legacySlugMiss
       ? slugToLabel(canonicalRouteSegment, CATEGORY_LABELS)
       : "";
+  const cuisineSlug = category ? normalizeLocalCuisineSlug(canonicalRouteSegment) : "";
+  const catalogCuisinePrefix = getLocalCuisineCatalogPrefix(cuisineSlug);
   const categoryAliasRedirect = Boolean(
     knownCategorySegment && routeSegment && canonicalRouteSegment !== routeSegment
   );
@@ -635,7 +627,7 @@ export default function LocalRestaurants() {
       const { data, error } = await (supabase.rpc as any)("search_restaurants_catalog_page", {
         p_query: district || null,
         p_city: city,
-        p_cuisine: category || null,
+        p_cuisine: catalogCuisinePrefix,
         p_price_range: null,
         p_delivery_only: false,
         p_min_rating: 0,
@@ -661,8 +653,15 @@ export default function LocalRestaurants() {
         && rawItems.length > 0
           ? parsedNextOffset
           : null;
+      // Keyword matches (for example pizza on an Italian category) are only
+      // candidates. Local cuisine pages use the same explicit tags as prerender.
+      const cuisineItems = cuisineSlug
+        ? rawItems.filter((restaurant: any) =>
+          extractLocalCuisineSlugs(restaurant?.cuisine_type, restaurant?.category_slugs).includes(cuisineSlug)
+        )
+        : rawItems;
       return {
-        items: filterRestaurantsByIntent(rawItems, intent),
+        items: filterRestaurantsByIntent(cuisineItems, intent),
         rawCount: rawItems.length,
         totalCount: page?.total_count !== null
           && page?.total_count !== undefined
