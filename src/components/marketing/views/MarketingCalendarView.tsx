@@ -111,6 +111,11 @@ function getCalendarVisualStatus(item: MarketingCalendarItem): CalendarVisualSta
   return item.status;
 }
 
+function CalendarStatusBadge({ item }: { item: MarketingCalendarItem }) {
+  const style = CALENDAR_STATUS_STYLES[getCalendarVisualStatus(item)];
+  return <span className={cn("inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-semibold", style.className)}>{style.label}</span>;
+}
+
 export default function MarketingCalendarView({
   snapshot,
   filters,
@@ -325,7 +330,7 @@ export default function MarketingCalendarView({
           <CardTitle className="capitalize">{currentMonth.toLocaleDateString("fr-CH", { month: "long", year: "numeric" })}</CardTitle>
           <Button type="button" variant="outline" size="icon" onClick={() => moveMonth(1)} aria-label="Mois suivant"><ChevronRight className="h-4 w-4" /></Button>
         </CardHeader>
-        <div className="hidden flex-wrap items-center gap-2 border-b bg-muted/10 px-4 py-3 md:flex" aria-label="Légende des statuts du calendrier">
+        <div className="flex flex-wrap items-center gap-2 border-b bg-muted/10 px-4 py-3" role="group" aria-label="Légende des statuts du calendrier">
           {CALENDAR_LEGEND_STATUSES.map((status) => {
             const style = CALENDAR_STATUS_STYLES[status];
             return (
@@ -393,7 +398,7 @@ export default function MarketingCalendarView({
                     <p className="mt-2 line-clamp-2 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">{item.postPreview?.caption || item.content || "Aucun texte enregistré"}</p>
                     <span className="mt-2 inline-block text-xs font-semibold text-primary">Voir le visuel et le texte</span>
                   </div>
-                  <div className="flex flex-wrap gap-2"><MarketingChannelBadge channel={item.channel} /><MarketingStatusBadge status={item.status} /></div>
+                  <div className="flex flex-wrap gap-2"><MarketingChannelBadge channel={item.channel} /><CalendarStatusBadge item={item} /></div>
                 </button>
               ))}
               <MarketingPagination page={filters.page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={(page) => onFiltersChange({ page })} />
@@ -416,7 +421,7 @@ export default function MarketingCalendarView({
             <div className="space-y-4">
               <div className="grid gap-3 rounded-xl border p-4 sm:grid-cols-2">
                 <div><p className="text-xs text-muted-foreground">Canal</p><div className="mt-1"><MarketingChannelBadge channel={selectedItem.channel} /></div></div>
-                <div><p className="text-xs text-muted-foreground">Statut</p><div className="mt-1"><MarketingStatusBadge status={selectedItem.status} /></div></div>
+                <div><p className="text-xs text-muted-foreground">Statut</p><div className="mt-1"><CalendarStatusBadge item={selectedItem} /></div></div>
                 <div><p className="text-xs text-muted-foreground">Audience</p><p className="mt-1 text-sm font-medium">{selectedItem.audienceName}</p></div>
                 <div><p className="text-xs text-muted-foreground">Taille éligible</p><p className="mt-1 text-sm font-medium">{selectedItem.audienceSize.toLocaleString("fr-CH")}</p></div>
               </div>
