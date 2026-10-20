@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `c832d5cb1b61def5ca3f0166e16997be732cad9c68487f2ecdc7e7d6cdf4c4b5`
+- Empreinte SHA-256 des sources indexées : `f736b878586e400f88997d0ff8c9190c0ca551be0c6807a9586de14123383573`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1824,17 +1824,17 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing-public | 1 | [src/test/marketing-domain-isolation.test.ts:25](../../src/test/marketing-domain-isolation.test.ts#L25) |
 | /marketing/ | 1 | [src/App.tsx:323](../../src/App.tsx#L323) |
 | /marketing/* | 2 | [src/App.tsx:753](../../src/App.tsx#L753) |
-| /marketing/../admin | 1 | [src/test/marketing-login-navigation.test.tsx:96](../../src/test/marketing-login-navigation.test.tsx#L96) |
+| /marketing/../admin | 1 | [src/test/marketing-login-navigation.test.tsx:97](../../src/test/marketing-login-navigation.test.tsx#L97) |
 | /marketing/brand/tok-v3/culinary.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:12](../../src/test/marketing-brand-gallery.test.tsx#L12) |
 | /marketing/brand/tok-v3/instagram-profile.jpeg | 4 | [src/test/marketing-brand-gallery.test.tsx:11](../../src/test/marketing-brand-gallery.test.tsx#L11) |
 | /marketing/brand/tok-v3/studio-chef.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:13](../../src/test/marketing-brand-gallery.test.tsx#L13) |
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
 | /marketing/login | 28 | [src/App.tsx:744](../../src/App.tsx#L744) |
-| /marketing?view=calendar | 1 | [src/test/marketing-login-navigation.test.tsx:104](../../src/test/marketing-login-navigation.test.tsx#L104) |
-| /marketing?view=calendar#access_token=secret | 1 | [src/test/marketing-login-navigation.test.tsx:97](../../src/test/marketing-login-navigation.test.tsx#L97) |
+| /marketing?view=calendar | 1 | [src/test/marketing-login-navigation.test.tsx:105](../../src/test/marketing-login-navigation.test.tsx#L105) |
+| /marketing?view=calendar#access_token=secret | 1 | [src/test/marketing-login-navigation.test.tsx:98](../../src/test/marketing-login-navigation.test.tsx#L98) |
 | /marketing?view=calendar&campaignId=../../admin&itemId=javascript:bad&from=2026-02-31&to=2026-99-10&page=9007199254740992 | 1 | [src/test/marketing-review-navigation.test.tsx:78](../../src/test/marketing-review-navigation.test.tsx#L78) |
 | /marketing?view=calendar&campaignId=82450000-0000-4000-8000-000000000001&itemId=82450000-0000-4000-8000-000000000002&from=2026-11-01&to=2026-11-30 | 1 | [src/test/marketing-login-navigation.test.tsx:15](../../src/test/marketing-login-navigation.test.tsx#L15) |
-| /marketing?view=calendar&code=secret&next=https%3A%2F%2Fevil.example&itemId=invalid | 1 | [src/test/marketing-login-navigation.test.tsx:103](../../src/test/marketing-login-navigation.test.tsx#L103) |
+| /marketing?view=calendar&code=secret&next=https%3A%2F%2Fevil.example&itemId=invalid | 1 | [src/test/marketing-login-navigation.test.tsx:104](../../src/test/marketing-login-navigation.test.tsx#L104) |
 | /marketing?view=campaigns&q=restaurant&status=draft&page=4&from=2026-10-01&to=2026-10-31 | 1 | [src/test/marketing-review-navigation.test.tsx:66](../../src/test/marketing-review-navigation.test.tsx#L66) |
 | /marketing_calendar_items? | 7 | [src/test/marketing-approval-errors.test.ts:52](../../src/test/marketing-approval-errors.test.ts#L52) |
 | /marketing_campaigns? | 2 | [src/test/marketing-mailing-image-bff.test.ts:83](../../src/test/marketing-mailing-image-bff.test.ts#L83) |
