@@ -2408,7 +2408,7 @@ export async function marketingMcpHandler(req: MarketingApiRequest, res: Marketi
     const claims = readVerifiedTokOAuthClaims(token);
     const userId = stringField(user, "id", 64);
     const clientId = stringField(claims, "client_id", 128);
-    if (claims.sub !== userId || !clientId || !UUID_PATTERN.test(String(claims.session_id || ""))) {
+    if (claims.sub !== userId || !UUID_PATTERN.test(clientId) || !UUID_PATTERN.test(String(claims.session_id || ""))) {
       throw new PublicBffError(403, "oauth_connection_required", "Connexion OAuth TOK requise.");
     }
     await ensureServiceAdmin(config, userId);
@@ -2455,7 +2455,9 @@ export async function marketingMcpHandler(req: MarketingApiRequest, res: Marketi
     try { prepared = buildTokMarketingRequest(name, body.arguments); }
     catch { throw new PublicBffError(400, "invalid_request", "Outil ou paramètres marketing invalides ; confirmation et clé d’idempotence requises pour toute action."); }
     const requestHash = sha256Hex(JSON.stringify(canonicalMarketingJson({ name, args: prepared.args })));
-    const key = prepared.idempotencyKey ? sha256Hex(JSON.stringify([clientId, prepared.idempotencyKey])) : null;
+    // The public client UUID is a namespace, not a password or hash input.
+    // Only the arbitrary request key needs a fixed-length digest (104 chars total).
+    const key = prepared.idempotencyKey ? `mkt:${clientId}:${sha256Hex(prepared.idempotencyKey)}` : null;
     const ledgerQuery = `/tok_connect_mcp_action_idempotency?user_id=eq.${userId}&idempotency_key=eq.${key}`;
     if (key) {
       try {

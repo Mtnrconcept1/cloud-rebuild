@@ -8,7 +8,7 @@ import {
 } from "../../server/marketingBff";
 
 const userId = "11111111-1111-4111-8111-111111111111";
-const clientId = "tok-test-client";
+const clientId = "33333333-3333-4333-8333-333333333333";
 const csrf = "c".repeat(43), sid = "s".repeat(43), code = "q".repeat(43);
 const sessionHash = sha256Hex(sid), csrfHash = sha256Hex(csrf);
 const readTool = "tok_marketing_get_overview";
@@ -184,7 +184,7 @@ describe("TOK Connect marketing BFF bearer and native MFA boundary", () => {
     const replay = recorder(); await marketingMcpHandler(mcpRequest(writeTool, writeArgs), replay.response);
     expect(first.response.statusCode).toBe(200); expect(replay.response.statusCode).toBe(200);
     expect(replay.value).toEqual({ ok: true, effect: 1, replayed: true }); expect(executions).toBe(1);
-    expect(saved?.idempotency_key).toBe(sha256Hex(JSON.stringify([clientId, writeArgs.idempotency_key])));
+    expect(saved?.idempotency_key).toBe(`mkt:${clientId}:${sha256Hex(writeArgs.idempotency_key)}`);
     expect(backend.rpc("service_get_tok_marketing_link")).toHaveLength(2);
   });
   it.each(["conflict", "in-progress"])("does not reexecute an idempotency %s", async (state) => {
