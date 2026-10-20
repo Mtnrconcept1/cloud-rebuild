@@ -290,6 +290,10 @@ verify_jwt = false
 [functions.marketing-provider-webhook]
 verify_jwt = false
 
+# Public provider endpoint authenticated by Svix signature over the original body.
+[functions.resend-inbound-forward]
+verify_jwt = false
+
 [functions.marketing-unsubscribe]
 verify_jwt = false
 
