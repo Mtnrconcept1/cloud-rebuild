@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8c023554fd4b04d2319026470164210b80c58e5670f2dcb8ee01655c4846ec51`
+- Empreinte SHA-256 des sources indexées : `2a277bd868e23b50d0696c04f5befd59bf71ca6a3cd469a2356fad098c4c3cb2`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 217 |
 | edgeFunctions | 119 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3870 |
+| exportedSymbols | 3873 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 562 |
-| modules | 1745 |
+| modules | 1748 |
 | pages | 133 |
 | pathLiterals | 827 |
 | publicAssets | 588 |
 | publicEntries | 614 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18096 |
-| repositoryFiles | 3429 |
+| records | 18105 |
+| repositoryFiles | 3432 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6606,8 +6606,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 36 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 269 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 794 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 272 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 795 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 65 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6617,7 +6617,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 217 |
+| application-library | 218 |
 | automation-script | 78 |
 | documentation | 6 |
 | edge-function-source | 234 |
@@ -6628,7 +6628,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 711 |
+| test | 713 |
 | vercel-api | 9 |
 | worker | 5 |
 
@@ -6919,12 +6919,13 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (217)</summary>
+<details><summary>application-library (218)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/actualitesFeedOrdering.ts`
 - `src/lib/actualitesPersonalizedTrends.ts`
 - `src/lib/admin/auditLogNarrative.ts`
+- `src/lib/adminAccountingRevenue.ts`
 - `src/lib/adminComptaActions.ts`
 - `src/lib/adminDomains.ts`
 - `src/lib/ai/accountingPublicCopy.ts`
@@ -9638,7 +9639,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (711)</summary>
+<details><summary>test (713)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9664,6 +9665,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/actualites-search.test.tsx`
 - `src/test/actualites-sponsored-sql.test.ts`
 - `src/test/address-autocomplete-location-bias.test.tsx`
+- `src/test/admin-accounting-revenue.test.ts`
 - `src/test/admin-actualites-moderation.test.ts`
 - `src/test/admin-actualites-sponsored.test.ts`
 - `src/test/admin-ai-credits-fast-restaurants.test.ts`
@@ -9672,6 +9674,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/admin-commercial-accounts.test.ts`
 - `src/test/admin-commercial-role-assignment.test.ts`
 - `src/test/admin-compta-actions.test.ts`
+- `src/test/admin-compta-data.test.tsx`
 - `src/test/admin-compta-governance.test.ts`
 - `src/test/admin-courier-validation.test.ts`
 - `src/test/admin-dashboard-rls-visibility.test.ts`

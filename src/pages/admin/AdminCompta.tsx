@@ -88,13 +88,11 @@ export default function AdminCompta() {
     summary,
     payableAccruals,
     payableInvoiceSections,
-    paidEventGross,
+    postedRevenue,
     paidCampaignsCount,
-    paidCampaignsTotal,
     creditFundedCampaignsCount,
     creditFundedCampaignsTotal,
     reservationFeeRevenueAmount,
-    tokOneSubscriptionAmount,
     tokOneSubscriptionCount,
     directTokPurchaseRevenueAmount,
     tokCoveredMiamzAmount,
@@ -138,25 +136,25 @@ export default function AdminCompta() {
   const adminRevenueBreakdown: AccountingBreakdownItem[] = [
     {
       label: "Commissions marketplace",
-      amount: summary.inflow.totalCommissions,
+      amount: postedRevenue.commissionAmount,
       helper: "Part TOK de 10 % sur les paiements marketplace.",
       tone: "emerald",
     },
     {
       label: "Frais de réservation",
       amount: reservationFeeRevenueAmount,
-      helper: "Frais fixes liés aux réservations confirmées.",
+      helper: "Frais de réservation encaissés, hors TVA.",
       tone: "sky",
     },
     {
       label: "Campagnes publicitaires",
-      amount: paidCampaignsTotal,
+      amount: postedRevenue.campaignAmount,
       helper: "Budgets publicitaires réellement encaissés.",
       tone: "violet",
     },
     {
       label: "Abonnements Tok One",
-      amount: tokOneSubscriptionAmount,
+      amount: postedRevenue.tokOneSubscriptionAmount,
       helper: "Encaissements Tok One de la période.",
       tone: "orange",
     },
@@ -166,8 +164,10 @@ export default function AdminCompta() {
       helper: "Achats directs des restaurateurs auprès de TOK.",
       tone: "amber",
     },
+    { label: "Autres revenus TOK", amount: postedRevenue.otherRevenueAmount, helper: "Autres écritures de revenu du grand livre.", tone: "sky" },
   ];
   const recordedPlatformExpenseBreakdown: AccountingBreakdownItem[] = [
+    { label: "Frais Stripe", amount: postedRevenue.stripeFeeAmount, helper: "Frais de traitement enregistrés dans le grand livre.", tone: "rose" },
     {
       label: "Charges marketing enregistrées",
       amount: toAmount(platformFinanceSnapshot?.marketing_spent_chf),
@@ -201,7 +201,7 @@ export default function AdminCompta() {
     {
       label: "Part développeur réservée",
       amount: developerReservedShare,
-      helper: "Engagement séparé correspondant à 10 % du revenu TOK reconnu.",
+      helper: "Allocation exacte du grand livre ; abonnements : 10 % du TTC avant TVA et frais Stripe.",
       tone: "violet",
     },
   ];
@@ -224,15 +224,16 @@ export default function AdminCompta() {
       ["Mois", selectedMonth],
       ["Portee", selectedRestaurantName],
       ["Statut periode", lockStatusLabel],
-      ["Revenu Tok", totalRevenue],
+      ["Revenu TOK HT", totalRevenue],
+      ["Recettes TOK TTC", postedRevenue.collectedTtcAmount],
       ["Part developpeur", developerReservedShare],
       ["A encaisser", totalPayableOpen],
       ["A reverser", summary.outflow.payoutsOutstanding],
       ["Net ouvert", netOpen],
-      ["Commissions", summary.inflow.totalCommissions],
-      ["Campagnes", paidCampaignsTotal],
+      ["Commissions HT", postedRevenue.commissionAmount],
+      ["Campagnes", postedRevenue.campaignAmount],
       ["Achats restaurateur TOK", directTokPurchaseRevenueAmount],
-      ["Tok One", tokOneSubscriptionAmount],
+      ["Tok One", postedRevenue.tokOneSubscriptionAmount],
       ["Miamz Tok", tokCoveredMiamzAmount],
       ["Remboursements emis", refundsIssuedTotal],
       [
@@ -530,16 +531,23 @@ export default function AdminCompta() {
               {
                 tone: "emerald",
                 icon: Coins,
-                label: "Revenu Tok",
+                label: "Recettes TOK TTC",
+                value: formatAmount(postedRevenue.collectedTtcAmount),
+                helper: "Part TOK encaissée TVA comprise, hors sommes destinées aux restaurants.",
+              },
+              {
+                tone: "emerald",
+                icon: Coins,
+                label: "Revenu TOK HT",
                 value: formatAmount(totalRevenue),
-                helper: "Commissions, frais réservation, campagnes, achats restaurateur et Tok One.",
+                helper: "Écritures encaissées du grand livre, nettes des remboursements et hors TVA.",
               },
               {
                 tone: "primary",
                 icon: Percent,
                 label: "Part developpeur",
                 value: formatAmount(developerReservedShare),
-                helper: "10% du CA Tok encaissé.",
+                helper: "Montant acquis dans le grand livre ; abonnements : 10 % du TTC encaissé.",
               },
               {
                 tone: "violet",
@@ -562,7 +570,7 @@ export default function AdminCompta() {
             <AccountingBreakdownCard
               title="D'où viennent les recettes Tok"
               description="Chaque poste est rapporté au revenu Tok total du mois sélectionné."
-              totalLabel="Recettes Tok"
+              totalLabel="Recettes TOK HT"
               total={totalRevenue}
               items={adminRevenueBreakdown}
               formatValue={formatAmount}
@@ -753,33 +761,34 @@ export default function AdminCompta() {
               title="Composition du revenu Tok"
               description="Uniquement les flux qui forment le chiffre d'affaires final de Tok."
               value={formatAmount(totalRevenue)}
-              valueLabel="Revenu total"
+              valueLabel="Revenu HT encaissé"
             >
               <AccountingFactList
                 tone="emerald"
                 items={[
                   {
                     label: "Commissions marketplace 10%",
-                    value: formatAmount(summary.inflow.totalCommissions),
-                    helper: `${formatAmount(paidEventGross)} encaisses via Tok avant separation 10% / 90%.`,
+                    value: formatAmount(postedRevenue.commissionAmount),
+                    helper: "Commission TOK réellement comptabilisée, hors TVA et remboursements.",
                   },
                   {
                     label: "Frais de réservation",
                     value: formatAmount(reservationFeeRevenueAmount),
-                    helper: "Frais fixes factures sur les réservations confirmées.",
+                    helper: "Frais encaissés uniquement ; les frais à facturer restent dans les entrées ouvertes.",
                   },
                   {
                     label: "Campagnes publicitaires",
-                    value: formatAmount(paidCampaignsTotal),
+                    value: formatAmount(postedRevenue.campaignAmount),
                     helper: creditFundedCampaignsCount > 0
                       ? `${paidCampaignsCount} campagne${paidCampaignsCount > 1 ? "s" : ""} réglée${paidCampaignsCount > 1 ? "s" : ""} en argent. ${formatAmount(creditFundedCampaignsTotal)} financés par crédits TOK, déjà encaissés à l'abonnement ou à la recharge, donc hors chiffre d'affaires.`
                       : `${paidCampaignsCount} campagne${paidCampaignsCount > 1 ? "s" : ""} réglée${paidCampaignsCount > 1 ? "s" : ""} en argent.`,
                   },
                   {
                     label: "Abonnements Tok One",
-                    value: formatAmount(tokOneSubscriptionAmount),
+                    value: formatAmount(postedRevenue.tokOneSubscriptionAmount),
                     helper: `${tokOneSubscriptionCount} encaissement${tokOneSubscriptionCount > 1 ? "s" : ""}.`,
                   },
+                  { label: "Autres revenus TOK", value: formatAmount(postedRevenue.otherRevenueAmount) },
                   {
                     label: "Achats restaurateur TOK",
                     value: formatAmount(directTokPurchaseRevenueAmount),
