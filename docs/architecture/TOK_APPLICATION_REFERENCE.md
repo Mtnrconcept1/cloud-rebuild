@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8bc4b73982b484235f62c9f263944ec63fa9fec4433bb16b17c33d73e8d2ecf8`
+- Empreinte SHA-256 des sources indexées : `8c0a58dc642fdf7d097a33b5a74ce5f9ebceb11b9163d9994012787465ac9826`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,16 +37,16 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 560 |
+| migrations | 561 |
 | modules | 1741 |
 | pages | 133 |
-| pathLiterals | 828 |
-| publicAssets | 585 |
-| publicEntries | 611 |
+| pathLiterals | 826 |
+| publicAssets | 588 |
+| publicEntries | 614 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18056 |
-| repositoryFiles | 3419 |
+| records | 18062 |
+| repositoryFiles | 3423 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1135,6 +1135,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/brand/tok-v1/loyalty.jpg | media | [public/marketing/brand/tok-v1/loyalty.jpg](../../public/marketing/brand/tok-v1/loyalty.jpg) |
 | /marketing/brand/tok-v1/pricing.jpg | media | [public/marketing/brand/tok-v1/pricing.jpg](../../public/marketing/brand/tok-v1/pricing.jpg) |
 | /marketing/brand/tok-v2/instagram-profile.jpeg | media | [public/marketing/brand/tok-v2/instagram-profile.jpeg](../../public/marketing/brand/tok-v2/instagram-profile.jpeg) |
+| /marketing/brand/tok-v3/culinary.jpeg | media | [public/marketing/brand/tok-v3/culinary.jpeg](../../public/marketing/brand/tok-v3/culinary.jpeg) |
+| /marketing/brand/tok-v3/instagram-profile.jpeg | media | [public/marketing/brand/tok-v3/instagram-profile.jpeg](../../public/marketing/brand/tok-v3/instagram-profile.jpeg) |
+| /marketing/brand/tok-v3/studio-chef.jpeg | media | [public/marketing/brand/tok-v3/studio-chef.jpeg](../../public/marketing/brand/tok-v3/studio-chef.jpeg) |
 | /marketing/campaigns/geneve-20261012/j01.jpg | media | [public/marketing/campaigns/geneve-20261012/j01.jpg](../../public/marketing/campaigns/geneve-20261012/j01.jpg) |
 | /marketing/campaigns/geneve-20261012/j02.jpg | media | [public/marketing/campaigns/geneve-20261012/j02.jpg](../../public/marketing/campaigns/geneve-20261012/j02.jpg) |
 | /marketing/campaigns/geneve-20261012/j03.jpg | media | [public/marketing/campaigns/geneve-20261012/j03.jpg](../../public/marketing/campaigns/geneve-20261012/j03.jpg) |
@@ -1610,7 +1613,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-tok-connect.webp | 1 | [src/lib/dashboardIllustrations.ts:38](../../src/lib/dashboardIllustrations.ts#L38) |
 | /images/doner-kebab-plate.jpeg | 2 | [src/lib/menu-item-images.ts:48](../../src/lib/menu-item-images.ts#L48) |
 | /images/edamame.webp | 1 | [src/lib/menu-item-images.ts:49](../../src/lib/menu-item-images.ts#L49) |
-| /images/edits | 1 | [src/test/marketing-daily-visual.test.ts:103](../../src/test/marketing-daily-visual.test.ts#L103) |
+| /images/edits | 1 | [src/test/marketing-daily-visual.test.ts:109](../../src/test/marketing-daily-visual.test.ts#L109) |
 | /images/emails/tok-reservation-hero.jpg | 2 | [src/test/transactional-email-templates.test.ts:105](../../src/test/transactional-email-templates.test.ts#L105) |
 | /images/emails/tok-reservation-hero.webp | 1 | [src/test/transactional-email-templates.test.ts:106](../../src/test/transactional-email-templates.test.ts#L106) |
 | /images/fattouche.webp | 5 | [src/lib/menu-item-images.ts:21](../../src/lib/menu-item-images.ts#L21) |
@@ -1813,11 +1816,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/ | 1 | [src/App.tsx:323](../../src/App.tsx#L323) |
 | /marketing/* | 2 | [src/App.tsx:753](../../src/App.tsx#L753) |
 | /marketing/../admin | 1 | [src/test/marketing-login-navigation.test.tsx:71](../../src/test/marketing-login-navigation.test.tsx#L71) |
-| /marketing/brand/tok-v1/flash.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:17](../../supabase/functions/_shared/marketing-brand.ts#L17) |
-| /marketing/brand/tok-v1/geneva.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:15](../../supabase/functions/_shared/marketing-brand.ts#L15) |
-| /marketing/brand/tok-v1/loyalty.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:16](../../supabase/functions/_shared/marketing-brand.ts#L16) |
-| /marketing/brand/tok-v1/pricing.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:18](../../supabase/functions/_shared/marketing-brand.ts#L18) |
-| /marketing/brand/tok-v2/instagram-profile.jpeg | 4 | [src/components/marketing/MarketingDailySeries.tsx:196](../../src/components/marketing/MarketingDailySeries.tsx#L196) |
+| /marketing/brand/tok-v3/culinary.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:12](../../src/test/marketing-brand-gallery.test.tsx#L12) |
+| /marketing/brand/tok-v3/instagram-profile.jpeg | 4 | [src/test/marketing-brand-gallery.test.tsx:11](../../src/test/marketing-brand-gallery.test.tsx#L11) |
+| /marketing/brand/tok-v3/studio-chef.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:13](../../src/test/marketing-brand-gallery.test.tsx#L13) |
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
 | /marketing/login | 26 | [src/App.tsx:744](../../src/App.tsx#L744) |
 | /marketing?view=calendar | 1 | [src/test/marketing-login-navigation.test.tsx:79](../../src/test/marketing-login-navigation.test.tsx#L79) |
@@ -3036,7 +3037,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.marketing_require_admin` (1 définition(s))
 - `public.marketing_require_service_role` (1 définition(s))
 - `public.marketing_runtime_enabled` (1 définition(s))
-- `public.marketing_schedule_authorized_daily_post` (1 définition(s))
+- `public.marketing_schedule_authorized_daily_post` (2 définition(s))
 - `public.marketing_scheduler_ready` (1 définition(s))
 - `public.marketing_touch_delivery` (1 définition(s))
 - `public.marketing_touch_version` (1 définition(s))
@@ -6370,6 +6371,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261018210100 Marketing Mailing Image Upload | 102 | 1 | [supabase/migrations/20261018210100_marketing_mailing_image_upload.sql:1](../../supabase/migrations/20261018210100_marketing_mailing_image_upload.sql#L1) |
 | 20261019200548 Marketing Daily Instagram | 483 | 15 | [supabase/migrations/20261019200548_marketing_daily_instagram.sql:1](../../supabase/migrations/20261019200548_marketing_daily_instagram.sql#L1) |
 | 20261020135701 Marketing Daily Publication | 223 | 4 | [supabase/migrations/20261020135701_marketing_daily_publication.sql:1](../../supabase/migrations/20261020135701_marketing_daily_publication.sql#L1) |
+| 20261020144007 Marketing Daily Creme Orange Profile | 83 | 1 | [supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql:1](../../supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6599,7 +6601,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 36 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 269 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 791 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 792 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 65 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7263,7 +7265,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (560)</summary>
+<details><summary>database-migration (561)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7825,6 +7827,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261018210100_marketing_mailing_image_upload.sql`
 - `supabase/migrations/20261019200548_marketing_daily_instagram.sql`
 - `supabase/migrations/20261020135701_marketing_daily_publication.sql`
+- `supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql`
 
 </details>
 
@@ -8800,7 +8803,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (611)</summary>
+<details><summary>public-asset (614)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -9300,6 +9303,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/marketing/brand/tok-v1/loyalty.jpg`
 - `public/marketing/brand/tok-v1/pricing.jpg`
 - `public/marketing/brand/tok-v2/instagram-profile.jpeg`
+- `public/marketing/brand/tok-v3/culinary.jpeg`
+- `public/marketing/brand/tok-v3/instagram-profile.jpeg`
+- `public/marketing/brand/tok-v3/studio-chef.jpeg`
 - `public/marketing/campaigns/geneve-20261012/j01.jpg`
 - `public/marketing/campaigns/geneve-20261012/j02.jpg`
 - `public/marketing/campaigns/geneve-20261012/j03.jpg`

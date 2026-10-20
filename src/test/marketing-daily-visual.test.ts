@@ -91,6 +91,12 @@ describe("daily native image and pixel review", () => {
     const instructions = review.input[1].content.find((item: { type: string }) => item.type === "input_text").text;
     expect(instructions).toContain(`marge d'au moins ${TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT} %`);
     expect(instructions).toContain(`${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} %`);
+    // The reviewer must permit the exact brand elements requested from generation,
+    // while still transcribing only the headline for the strict title comparison.
+    expect(instructions).toContain("intact et non coupé avec sa bulle Miamz!");
+    expect(instructions).toContain("sans inclure le logo, sa bulle Miamz! ni le pied thetok.ch dans observed_title");
+    expect(instructions).toContain("Textes de marque autorisés hors titre : TOK et sa bulle Miamz!");
+    expect(instructions).toContain("aucun accent jaune");
   });
 
   it("recovers an uploaded image after a lost completion acknowledgement without another image generation", async () => {
