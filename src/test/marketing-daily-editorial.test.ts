@@ -44,6 +44,27 @@ describe("daily TOK editorial rotation", () => {
     expect(briefs.filter((brief) => brief.requiresChef)).toHaveLength(28);
   });
 
+  it("applies the approved cream/orange identity in every daily family without inheriting the email copy", () => {
+    expect(TOK_MARKETING_REFERENCES.map((reference) => reference.id)).toEqual(["instagram-profile", "culinary", "studio-chef"]);
+    for (let day = 0; day < 9; day++) {
+      const brief = buildDailyMarketingBrief(dateAfter(day));
+      const prompt = buildTokMarketingVisualPrompt(brief.visualPrompt);
+      expect(brief.brandVersion).toBe("tok-v3-creme-orange-20261020");
+      expect(prompt).toContain("conserver la petite bulle Miamz!");
+      expect(prompt).toContain("Aucun accent jaune");
+      expect(prompt).toContain("Un discret thetok.ch en pied, dans la zone de sécurité");
+      expect(prompt).toContain("Ne pas copier le corps d'email");
+      expect(brief.visualPrompt).toContain("le titre exact, TOK et la bulle Miamz!");
+      expect(brief.visualPrompt).not.toContain("jaune");
+      if (["chef-dark", "chef-cream"].includes(brief.visualFamily)) {
+        expect(brief.visualPrompt).toContain("arche orange arrondie");
+      }
+      if (brief.visualFamily === "food-photo") {
+        expect(brief.visualPrompt).toContain("Zone ivoire supérieure courbe, titre noir");
+      }
+    }
+  });
+
   it("continues after the combined rotation and years later without an end date", () => {
     const first = buildDailyMarketingBrief(dateAfter(0));
     const next = buildDailyMarketingBrief(dateAfter(126));

@@ -11,6 +11,7 @@ const autopilot = read("migrations/20261003070000_marketing_autopilot_foundation
 const mailing = read("migrations/20261018171046_marketing_targeted_mailing.sql");
 const migration = read("migrations/20261019200548_marketing_daily_instagram.sql");
 const publication = read("migrations/20261020135701_marketing_daily_publication.sql");
+const cremeOrange = read("migrations/20261020144007_marketing_daily_creme_orange_profile.sql");
 function block(source, marker, endMarker) {
   const start = source.indexOf(marker);
   if (start < 0 || source.indexOf(marker, start + marker.length) >= 0) throw new Error(`Expected one definition: ${marker}`);
@@ -93,6 +94,8 @@ add("daily migration application 1", migration);
 add("daily migration application 2: idempotent additive replay", migration);
 add("daily publication migration application 1", publication);
 add("daily publication migration application 2", publication);
+add("cream/orange profile migration application 1", cremeOrange);
+add("cream/orange profile migration application 2", cremeOrange);
 if (!process.argv.includes("--bootstrap-only")) {
   add("daily integration assertions", read("tests/marketing_daily_instagram.sql"));
   add("daily publication assertions", read("tests/marketing_daily_publication.sql"));

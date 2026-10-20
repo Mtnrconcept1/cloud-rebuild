@@ -66,6 +66,31 @@ END;
 $$;
 SAVEPOINT authorized_series;
 DO $$
+DECLARE r jsonb; content jsonb; slot_available boolean;
+BEGIN
+  r := pg_temp.claim_publication();
+  content := pg_temp.publication_content(r) || jsonb_build_object(
+    'visual_brand_profile','tok-v3-creme-orange-20261020','profile_version','tok-v3-creme-orange-20261020');
+  PERFORM public.complete_marketing_daily_run((r->>'id')::uuid,(r->>'lease_token')::uuid,content);
+  slot_available := (((clock_timestamp() AT TIME ZONE 'Europe/Zurich')::date + time '23:59') AT TIME ZONE 'Europe/Zurich') >= clock_timestamp()+interval '2 minutes';
+  PERFORM pg_temp.check_publication((SELECT CASE WHEN slot_available THEN status='scheduled' AND approval_status='approved'
+    ELSE status='draft' AND approval_status='pending' END FROM public.marketing_calendar_items),'approved v3 profile schedules under the same standing authorization');
+END;
+$$;
+ROLLBACK TO authorized_series;
+DO $$
+DECLARE r jsonb; content jsonb;
+BEGIN
+  r := pg_temp.claim_publication();
+  content := pg_temp.publication_content(r) || jsonb_build_object(
+    'visual_brand_profile','tok-v3-creme-orange-20261020-unapproved','profile_version','tok-v3-creme-orange-20261020-unapproved');
+  PERFORM public.complete_marketing_daily_run((r->>'id')::uuid,(r->>'lease_token')::uuid,content);
+  PERFORM pg_temp.check_publication((SELECT status='draft' AND approval_status='pending' FROM public.marketing_calendar_items),'unknown profile never auto approves');
+  PERFORM pg_temp.check_publication((SELECT last_error='daily_publication_blocked' FROM public.marketing_daily_runs),'unknown profile leaves an auditable review block');
+END;
+$$;
+ROLLBACK TO authorized_series;
+DO $$
 DECLARE r jsonb; done jsonb; replay jsonb; slot_available boolean;
 BEGIN
   r := pg_temp.claim_publication();

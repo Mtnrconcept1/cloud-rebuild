@@ -10,7 +10,8 @@ export function MarketingBrandReferences() {
       <CardContent className="space-y-3">
         <p className="text-sm text-slate-600">
           Ces références accompagnent chaque génération de visuel : même chef, logo TOK,
-          palette orange, noir et crème, titres condensés et touches de jaune.
+          crème ivoire, orange vermillon, noir et blanc cassé, titres très gras,
+          arches arrondies, soulignements au pinceau et logo avec sa bulle Miamz!.
         </p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {TOK_MARKETING_REFERENCES.map((reference) => (

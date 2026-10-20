@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { TOK_MARKETING_REFERENCES } from "../../../supabase/functions/_shared/marketing-brand";
 import { AlertCircle, CalendarClock, CheckCircle2, CirclePause, Instagram, Play, RefreshCw } from "lucide-react";
 
 import { MarketingPostImage } from "@/components/marketing/MarketingPostPreview";
@@ -193,7 +194,7 @@ export function MarketingDailySeries({ canMutateBackend, onNavigate }: {
           <summary className="min-h-8 cursor-pointer text-sm font-medium">Voir la référence de style du profil Instagram</summary>
           <p className="my-3 text-xs text-muted-foreground">Cette capture guide l’identité de la série. Chaque génération produit un seul post indépendant.</p>
           {referenceMissing ? <p className="text-sm text-muted-foreground">La référence de style ne peut pas être affichée pour le moment.</p>
-            : <img src="/marketing/brand/tok-v2/instagram-profile.jpeg" alt="Référence de style du profil Instagram TOK" width={707} height={1536} loading="lazy" decoding="async" className="h-auto w-full max-w-sm rounded-lg" onError={() => setReferenceMissing(true)} />}
+            : <img src={TOK_MARKETING_REFERENCES[0].path} alt="Référence de style du profil Instagram TOK" width={1122} height={1402} loading="lazy" decoding="async" className="h-auto w-full max-w-sm rounded-lg" onError={() => setReferenceMissing(true)} />}
         </details>
       </CardContent>
     </Card>
