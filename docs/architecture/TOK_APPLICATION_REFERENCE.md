@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `cf66e65166686912e150c9e90516fe613dd3f3d53c34f9a2bc9ecc01cbfc5cfb`
+- Empreinte SHA-256 des sources indexées : `e65654810c8eecef386efe12eee665e69a6d35f363abf58e97abd7d35d035225`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,13 +40,13 @@
 | migrations | 560 |
 | modules | 1733 |
 | pages | 133 |
-| pathLiterals | 819 |
-| publicAssets | 585 |
-| publicEntries | 611 |
+| pathLiterals | 818 |
+| publicAssets | 588 |
+| publicEntries | 614 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 117 |
-| records | 17995 |
-| repositoryFiles | 3410 |
+| records | 18000 |
+| repositoryFiles | 3413 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1135,6 +1135,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/brand/tok-v1/loyalty.jpg | media | [public/marketing/brand/tok-v1/loyalty.jpg](../../public/marketing/brand/tok-v1/loyalty.jpg) |
 | /marketing/brand/tok-v1/pricing.jpg | media | [public/marketing/brand/tok-v1/pricing.jpg](../../public/marketing/brand/tok-v1/pricing.jpg) |
 | /marketing/brand/tok-v2/instagram-profile.jpeg | media | [public/marketing/brand/tok-v2/instagram-profile.jpeg](../../public/marketing/brand/tok-v2/instagram-profile.jpeg) |
+| /marketing/brand/tok-v3/culinary.jpeg | media | [public/marketing/brand/tok-v3/culinary.jpeg](../../public/marketing/brand/tok-v3/culinary.jpeg) |
+| /marketing/brand/tok-v3/instagram-profile.jpeg | media | [public/marketing/brand/tok-v3/instagram-profile.jpeg](../../public/marketing/brand/tok-v3/instagram-profile.jpeg) |
+| /marketing/brand/tok-v3/studio-chef.jpeg | media | [public/marketing/brand/tok-v3/studio-chef.jpeg](../../public/marketing/brand/tok-v3/studio-chef.jpeg) |
 | /marketing/campaigns/geneve-20261012/j01.jpg | media | [public/marketing/campaigns/geneve-20261012/j01.jpg](../../public/marketing/campaigns/geneve-20261012/j01.jpg) |
 | /marketing/campaigns/geneve-20261012/j02.jpg | media | [public/marketing/campaigns/geneve-20261012/j02.jpg](../../public/marketing/campaigns/geneve-20261012/j02.jpg) |
 | /marketing/campaigns/geneve-20261012/j03.jpg | media | [public/marketing/campaigns/geneve-20261012/j03.jpg](../../public/marketing/campaigns/geneve-20261012/j03.jpg) |
@@ -1601,7 +1604,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-tok-connect.webp | 1 | [src/lib/dashboardIllustrations.ts:38](../../src/lib/dashboardIllustrations.ts#L38) |
 | /images/doner-kebab-plate.jpeg | 2 | [src/lib/menu-item-images.ts:48](../../src/lib/menu-item-images.ts#L48) |
 | /images/edamame.webp | 1 | [src/lib/menu-item-images.ts:49](../../src/lib/menu-item-images.ts#L49) |
-| /images/edits | 1 | [src/test/marketing-daily-visual.test.ts:103](../../src/test/marketing-daily-visual.test.ts#L103) |
+| /images/edits | 1 | [src/test/marketing-daily-visual.test.ts:109](../../src/test/marketing-daily-visual.test.ts#L109) |
 | /images/emails/tok-reservation-hero.jpg | 2 | [src/test/transactional-email-templates.test.ts:105](../../src/test/transactional-email-templates.test.ts#L105) |
 | /images/emails/tok-reservation-hero.webp | 1 | [src/test/transactional-email-templates.test.ts:106](../../src/test/transactional-email-templates.test.ts#L106) |
 | /images/fattouche.webp | 5 | [src/lib/menu-item-images.ts:21](../../src/lib/menu-item-images.ts#L21) |
@@ -1804,11 +1807,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing/ | 1 | [src/App.tsx:323](../../src/App.tsx#L323) |
 | /marketing/* | 2 | [src/App.tsx:753](../../src/App.tsx#L753) |
 | /marketing/../admin | 1 | [src/test/marketing-login-navigation.test.tsx:71](../../src/test/marketing-login-navigation.test.tsx#L71) |
-| /marketing/brand/tok-v1/flash.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:17](../../supabase/functions/_shared/marketing-brand.ts#L17) |
-| /marketing/brand/tok-v1/geneva.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:15](../../supabase/functions/_shared/marketing-brand.ts#L15) |
-| /marketing/brand/tok-v1/loyalty.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:16](../../supabase/functions/_shared/marketing-brand.ts#L16) |
-| /marketing/brand/tok-v1/pricing.jpg | 1 | [supabase/functions/_shared/marketing-brand.ts:18](../../supabase/functions/_shared/marketing-brand.ts#L18) |
-| /marketing/brand/tok-v2/instagram-profile.jpeg | 4 | [src/components/marketing/MarketingDailySeries.tsx:196](../../src/components/marketing/MarketingDailySeries.tsx#L196) |
+| /marketing/brand/tok-v2/instagram-profile.jpeg | 1 | [src/components/marketing/MarketingDailySeries.tsx:196](../../src/components/marketing/MarketingDailySeries.tsx#L196) |
+| /marketing/brand/tok-v3/culinary.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:12](../../src/test/marketing-brand-gallery.test.tsx#L12) |
+| /marketing/brand/tok-v3/instagram-profile.jpeg | 3 | [src/test/marketing-brand-gallery.test.tsx:11](../../src/test/marketing-brand-gallery.test.tsx#L11) |
+| /marketing/brand/tok-v3/studio-chef.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:13](../../src/test/marketing-brand-gallery.test.tsx#L13) |
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
 | /marketing/login | 26 | [src/App.tsx:744](../../src/App.tsx#L744) |
 | /marketing?view=calendar | 1 | [src/test/marketing-login-navigation.test.tsx:79](../../src/test/marketing-login-navigation.test.tsx#L79) |
@@ -8784,7 +8786,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (611)</summary>
+<details><summary>public-asset (614)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -9284,6 +9286,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/marketing/brand/tok-v1/loyalty.jpg`
 - `public/marketing/brand/tok-v1/pricing.jpg`
 - `public/marketing/brand/tok-v2/instagram-profile.jpeg`
+- `public/marketing/brand/tok-v3/culinary.jpeg`
+- `public/marketing/brand/tok-v3/instagram-profile.jpeg`
+- `public/marketing/brand/tok-v3/studio-chef.jpeg`
 - `public/marketing/campaigns/geneve-20261012/j01.jpg`
 - `public/marketing/campaigns/geneve-20261012/j02.jpg`
 - `public/marketing/campaigns/geneve-20261012/j03.jpg`
