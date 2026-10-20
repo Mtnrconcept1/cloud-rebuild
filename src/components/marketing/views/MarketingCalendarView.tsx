@@ -53,6 +53,64 @@ import {
 const WEEK_DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const PAGE_SIZE = 8;
 
+const CALENDAR_STATUS_STYLES = {
+  approved: {
+    label: "Approuvé",
+    className: "border-emerald-400/60 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-100",
+  },
+  draft: {
+    label: "Brouillon",
+    className: "border-slate-300 bg-slate-50 text-slate-800 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-100",
+  },
+  scheduled: {
+    label: "Planifié",
+    className: "border-sky-400/60 bg-sky-50 text-sky-900 hover:bg-sky-100 dark:border-sky-500/40 dark:bg-sky-950/40 dark:text-sky-100",
+  },
+  running: {
+    label: "En cours",
+    className: "border-violet-400/60 bg-violet-50 text-violet-900 hover:bg-violet-100 dark:border-violet-500/40 dark:bg-violet-950/40 dark:text-violet-100",
+  },
+  published: {
+    label: "Publié",
+    className: "border-teal-400/60 bg-teal-50 text-teal-900 hover:bg-teal-100 dark:border-teal-500/40 dark:bg-teal-950/40 dark:text-teal-100",
+  },
+  completed: {
+    label: "Terminé",
+    className: "border-green-400/60 bg-green-50 text-green-900 hover:bg-green-100 dark:border-green-500/40 dark:bg-green-950/40 dark:text-green-100",
+  },
+  failed: {
+    label: "Échec",
+    className: "border-rose-400/60 bg-rose-50 text-rose-900 hover:bg-rose-100 dark:border-rose-500/40 dark:bg-rose-950/40 dark:text-rose-100",
+  },
+  cancelled: {
+    label: "Annulé",
+    className: "border-zinc-400/60 bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:border-zinc-600 dark:bg-zinc-900/70 dark:text-zinc-100",
+  },
+  blocked_configuration: {
+    label: "Bloqué",
+    className: "border-amber-400/60 bg-amber-50 text-amber-900 hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-100",
+  },
+} as const;
+
+type CalendarVisualStatus = keyof typeof CALENDAR_STATUS_STYLES;
+
+const CALENDAR_LEGEND_STATUSES: CalendarVisualStatus[] = [
+  "approved",
+  "draft",
+  "scheduled",
+  "running",
+  "published",
+  "completed",
+  "failed",
+  "cancelled",
+  "blocked_configuration",
+];
+
+function getCalendarVisualStatus(item: MarketingCalendarItem): CalendarVisualStatus {
+  if (item.status === "draft" && item.approvalStatus === "approved") return "approved";
+  return item.status;
+}
+
 export default function MarketingCalendarView({
   snapshot,
   filters,
@@ -243,6 +301,8 @@ export default function MarketingCalendarView({
               <SelectItem value="all">Tous les statuts</SelectItem>
               <SelectItem value="draft">Brouillons</SelectItem>
               <SelectItem value="scheduled">Planifiés</SelectItem>
+              <SelectItem value="running">En cours</SelectItem>
+              <SelectItem value="published">Publiés</SelectItem>
               <SelectItem value="completed">Terminés</SelectItem>
               <SelectItem value="failed">Échecs</SelectItem>
               <SelectItem value="blocked_configuration">Bloqués</SelectItem>
@@ -265,6 +325,16 @@ export default function MarketingCalendarView({
           <CardTitle className="capitalize">{currentMonth.toLocaleDateString("fr-CH", { month: "long", year: "numeric" })}</CardTitle>
           <Button type="button" variant="outline" size="icon" onClick={() => moveMonth(1)} aria-label="Mois suivant"><ChevronRight className="h-4 w-4" /></Button>
         </CardHeader>
+        <div className="hidden flex-wrap items-center gap-2 border-b bg-muted/10 px-4 py-3 md:flex" aria-label="Légende des statuts du calendrier">
+          {CALENDAR_LEGEND_STATUSES.map((status) => {
+            const style = CALENDAR_STATUS_STYLES[status];
+            return (
+              <span key={status} className={cn("inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold", style.className)}>
+                {style.label}
+              </span>
+            );
+          })}
+        </div>
         <CardContent className="hidden p-0 md:block">
           <div className="grid grid-cols-7 border-b bg-muted/30">
             {WEEK_DAYS.map((day) => <div key={day} className="px-2 py-3 text-center text-xs font-semibold text-muted-foreground">{day}</div>)}
@@ -277,12 +347,27 @@ export default function MarketingCalendarView({
                 <div key={day.toISOString()} className={cn("min-h-32 border-b border-r p-2", !isSameMonth(day, currentMonth) && "bg-muted/20 text-muted-foreground")}>
                   <div className={cn("mb-2 flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold", isSameDay(day, new Date()) && "bg-orange-500 text-white")}>{format(day, "d")}</div>
                   <div className="space-y-1.5">
-                    {items.slice(0, 3).map((item) => (
-                      <button key={item.id} type="button" onClick={() => openItem(item)} className="block w-full truncate rounded-lg border border-border/60 bg-background px-2 py-1.5 text-left text-[11px] font-medium shadow-sm hover:border-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400">
-                        <span className="mr-1 text-muted-foreground">{new Date(item.scheduledAt).toLocaleTimeString("fr-CH", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Zurich" })}</span>
-                        {item.title}
-                      </button>
-                    ))}
+                    {items.slice(0, 3).map((item) => {
+                      const visualStatus = getCalendarVisualStatus(item);
+                      const style = CALENDAR_STATUS_STYLES[visualStatus];
+                      const time = new Date(item.scheduledAt).toLocaleTimeString("fr-CH", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Zurich" });
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => openItem(item)}
+                          className={cn(
+                            "block w-full truncate rounded-lg border px-2 py-1.5 text-left text-[11px] font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400",
+                            style.className,
+                          )}
+                          title={`${style.label} · ${item.title}`}
+                          aria-label={`${time} — ${style.label} — ${item.title}`}
+                        >
+                          <span className="mr-1 opacity-70">{time}</span>
+                          {item.title}
+                        </button>
+                      );
+                    })}
                     {items.length > 3 ? <p className="px-1 text-[10px] text-muted-foreground">+{items.length - 3} autres</p> : null}
                   </div>
                 </div>
