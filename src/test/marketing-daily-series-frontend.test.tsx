@@ -64,6 +64,16 @@ describe("série Instagram quotidienne", () => {
     expect(bffRequest).not.toHaveBeenCalled();
   });
 
+  it("montre la même référence v3 que le générateur sans activer la publication", async () => {
+    bffRequest.mockResolvedValue(fixture());
+    mount();
+    await screen.findByRole("button", { name: "Activer la série" });
+    fireEvent.click(screen.getByText("Voir la référence de style du profil Instagram"));
+    const image = await screen.findByRole("img", { name: "Référence de style du profil Instagram TOK" });
+    expect(image).toHaveAttribute("src", "/marketing/brand/tok-v3/instagram-profile.jpeg");
+    expect(bffRequest.mock.calls.every((call) => call[1].body.operation === "admin_get_marketing_daily_series")).toBe(true);
+  });
+
   it("active un brouillon quotidien à l’heure choisie puis met la série en pause avec la version confirmée", async () => {
     let current = fixture();
     bffRequest.mockImplementation((_path, options) => {
