@@ -61,7 +61,11 @@ describe("application search index", () => {
     expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/dashboard/equipe")).toBe(true);
     expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/admin/equipe")).toBe(true);
     expect(index.catalogs.featureFlags).toHaveLength(99);
-    expect(index.catalogs.apiRoutes).toHaveLength(9);
+    expect(index.catalogs.apiRoutes).toHaveLength(11);
+    expect(index.catalogs.apiRoutes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ route: "/api/marketing/mcp" }),
+      expect.objectContaining({ route: "/api/marketing/mcp-link" }),
+    ]));
     expect(index.catalogs.edgeFunctions.length).toBeGreaterThanOrEqual(117);
     expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "ops-admin-approval")).toBe(true);
     expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "ai-restaurant-editor")).toBe(true);
@@ -149,7 +153,8 @@ describe("application search index", () => {
     ).toBe(true);
 
     for (const route of index.catalogs.apiRoutes) {
-      const expected = route.route === "/api/marketing/session" ? ["DELETE", "GET"] : ["POST"];
+      const expected = route.route === "/api/marketing/session" ? ["DELETE", "GET"]
+        : route.route === "/api/marketing/mcp-link" ? ["GET", "POST"] : ["POST"];
       expect(route.methods).toEqual(expected);
     }
   });

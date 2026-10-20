@@ -1,6 +1,7 @@
 import { buildCorsHeaders, handleCorsPreflight, isRequestOriginAllowed } from "../_shared/cors.ts";
 import { TOK_ROLE_OPERATION_TOOLS } from "../_shared/tok-connect-role-operations.ts";
 import { TOK_CUSTOMER_OPERATION_TOOLS } from "../_shared/tok-connect-customer-operations.ts";
+import { TOK_MARKETING_OPERATION_TOOLS } from "../_shared/tok-connect-marketing-operations.ts";
 import { projectTokCustomerResult } from "../_shared/tok-connect-customer-result.ts";
 import {
   MCP_LATEST_PROTOCOL_VERSION,
@@ -27,7 +28,7 @@ const INTERNAL_MCP_PROTOCOL_VERSION = "2025-11-25";
 const CLAUDE_ORIGIN = "https://claude.ai";
 const OAUTH_SECURITY = [{ type: "oauth2", scopes: OAUTH_SCOPES }];
 const REMOTE_SERVER_INFO = { name: "TOK Connect Remote MCP", version: "6.1.0" } as const;
-const REMOTE_INSTRUCTIONS = "TOK Connect operates the authenticated customer's and restaurant operator's TOK account through targeted tools. For restaurant discovery, call discover_restaurants with the user's request verbatim; its widget shows ranked clickable cards. To reserve a table, resolve the restaurant, then call prepare_customer_reservation with the requested local date, time and exact party_size. Ask for missing information or an ambiguous restaurant; never invent a time or guest count. The preparation opens the booking widget and checks availability. An explicit request to book a fully specified table authorizes tok_book_table; otherwise show the summary and ask the user. Read the guarantee quote and obtain explicit acceptance of any card guarantee first. Keep the same idempotency_key and identical arguments for retries of the same intent, including after OAuth reconnection. If the outcome is uncertain, read the customer's reservations and reconcile the reference; never generate a new key to bypass an in-progress operation. A created pending reservation is a request awaiting the restaurant, not an accepted booking. Report the actual returned status, reference and any payment requirement; a checkout URL is never proof of payment or confirmation. Cancellation also requires the user's explicit request. Restaurant operations require an owned restaurant selected from tok_list_my_restaurants; never infer ownership from a user-supplied role. All actions use the user's JWT, native TOK business services, ownership checks and audit. For restaurant marketing, first read tok_list_restaurant_marketing_references for the owned restaurant and get_tok_credit_balance. Pass the selected reference_media_ids to generation; if none exist, request references in the native Studio. Read tok_list_restaurant_marketing_assets to retrieve stored images. Never invent an image URL or regenerate with a new key after a timeout. Then use tok_generate_restaurant_campaign_draft to create a native unlaunched Studio draft, and tok_generate_restaurant_marketing_visual for one native gallery visual; these may consume TOK credits and need explicit confirmation, while budgets default to zero and publishing stays protected. To add a menu dish with a photo, first call tok_create_restaurant_menu_item, then tok_generate_restaurant_dish_photo for its returned menu_item_id, show the generated image, and only after user approval use tok_attach_restaurant_dish_photo with the returned assetId. The commercial role remains isolated behind its guarded backend and is unavailable through the public MCP. Generic CRUD, arbitrary RPCs, admin, service-role, scheduler and webhook operations remain unavailable. Host authentication, confirmation and payment controls still apply.";
+const REMOTE_INSTRUCTIONS = "TOK Connect operates the authenticated customer's and restaurant operator's TOK account through targeted tools. For restaurant discovery, call discover_restaurants with the user's request verbatim; its widget shows ranked clickable cards. To reserve a table, resolve the restaurant, then call prepare_customer_reservation with the requested local date, time and exact party_size. Ask for missing information or an ambiguous restaurant; never invent a time or guest count. The preparation opens the booking widget and checks availability. An explicit request to book a fully specified table authorizes tok_book_table; otherwise show the summary and ask the user. Read the guarantee quote and obtain explicit acceptance of any card guarantee first. Keep the same idempotency_key and identical arguments for retries of the same intent, including after OAuth reconnection. If the outcome is uncertain, read the customer's reservations and reconcile the reference; never generate a new key to bypass an in-progress operation. A created pending reservation is a request awaiting the restaurant, not an accepted booking. Report the actual returned status, reference and any payment requirement; a checkout URL is never proof of payment or confirmation. Cancellation also requires the user's explicit request. Restaurant operations require an owned restaurant selected from tok_list_my_restaurants; never infer ownership from a user-supplied role. All actions use the user's JWT, native TOK business services, ownership checks and audit. For restaurant marketing, first read tok_list_restaurant_marketing_references for the owned restaurant and get_tok_credit_balance. Pass the selected reference_media_ids to generation; if none exist, request references in the native Studio. Read tok_list_restaurant_marketing_assets to retrieve stored images. Never invent an image URL or regenerate with a new key after a timeout. Then use tok_generate_restaurant_campaign_draft to create a native unlaunched Studio draft, and tok_generate_restaurant_marketing_visual for one native gallery visual; these may consume TOK credits and need explicit confirmation, while budgets default to zero and publishing stays protected. To add a menu dish with a photo, first call tok_create_restaurant_menu_item, then tok_generate_restaurant_dish_photo for its returned menu_item_id, show the generated image, and only after user approval use tok_attach_restaurant_dish_photo with the returned assetId. The commercial role remains isolated behind its guarded backend and is unavailable through the public MCP. The tok_marketing_* tools operate the separate global marketing portal only after tok_marketing_connect, a separate marketing login with MFA and explicit browser consent for this OAuth client. Check tok_marketing_connection_status first. Marketing access expires with that native session and its revocation. Preserve native approvals, schedule, consent, media validation and global pause. Mutations, paid generation, provider requests, dispatch and Telegram review submission require an explicit user request, confirmed_by_user and one stable idempotency_key. Show the actual result; an approval or schedule is not proof of publication. Never run run_due, enable an automation or send outreach merely to test the integration. Batch launch remains disabled. Generic CRUD, arbitrary RPCs, unrelated admin, service-role, scheduler and webhook operations remain unavailable. Host authentication, confirmation and payment controls still apply.";
 const MODERN_CACHEABLE_METHODS = new Set([
   "tools/list",
   "prompts/list",
@@ -401,6 +402,15 @@ function isUuid(value: string) {
 }
 
 const APP_BRIDGE_TOOL_NAMES = new Set([...APP_BRIDGE_TOOLS.map((tool) => tool.name), ...TOK_CLIENT_TOOL_NAMES, ...TOK_ROLE_TOOL_NAMES, ...TOK_CUSTOMER_OPERATION_NAMES]);
+const TOK_MARKETING_CONNECTION_TOOLS = [
+  { name: "tok_marketing_connect", title: "Connecter le portail marketing TOK", description: "Create a short-lived consent link. The same TOK administrator must sign in separately to marketing.thetok.ch with MFA and approve the connection in the browser. No marketing operation runs. Never ask for passwords, MFA codes, session cookies or API keys.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
+  { name: "tok_marketing_connection_status", title: "État de la connexion marketing", description: "Check whether the separate MFA marketing connection is active and when it expires. Does not disclose session credentials.", inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "tok_marketing_disconnect", title: "Déconnecter le portail marketing", description: "Revoke this OAuth client's marketing connection after the user's explicit request. The native marketing session is preserved.", inputSchema: { type: "object", properties: { confirmed_by_user: { type: "boolean", const: true } }, required: ["confirmed_by_user"], additionalProperties: false }, annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+];
+const TOK_MARKETING_TOOLS = [...TOK_MARKETING_CONNECTION_TOOLS, ...TOK_MARKETING_OPERATION_TOOLS].map(({ name, title, description, inputSchema, annotations }) => ({
+  name, title, description, inputSchema, annotations, securitySchemes: OAUTH_SECURITY, _meta: { securitySchemes: OAUTH_SECURITY },
+}));
+const TOK_MARKETING_TOOL_NAMES = new Set(TOK_MARKETING_TOOLS.map((tool) => tool.name));
 const PUBLIC_READ_ONLY_TOOL_NAMES = new Set<string>();
 
 function isReadOnlyTool(tool: unknown) {
@@ -416,7 +426,7 @@ function filterPublicReadOnlyTools(payload: unknown) {
   if (!result || typeof result !== "object" || Array.isArray(result)) return payload;
   const upstreamTools = Array.isArray((result as JsonRecord).tools) ? (result as JsonRecord).tools as unknown[] : [];
   const seen = new Set(upstreamTools.map((tool) => tool && typeof tool === "object" ? String((tool as JsonRecord).name || "") : ""));
-  const additions = [...APP_BRIDGE_TOOLS.filter(isReadOnlyTool), ...TOK_CLIENT_TOOLS, ...TOK_ROLE_TOOLS, ...TOK_CUSTOMER_OPERATION_PUBLIC_TOOLS]
+  const additions = [...APP_BRIDGE_TOOLS.filter(isReadOnlyTool), ...TOK_CLIENT_TOOLS, ...TOK_ROLE_TOOLS, ...TOK_CUSTOMER_OPERATION_PUBLIC_TOOLS, ...TOK_MARKETING_TOOLS]
     .filter((tool) => !seen.has(tool.name));
   // Explicitly named client writes only. All generic RPC, admin, payment and
   // restaurant tools remain undiscoverable and blocked by default.
@@ -425,7 +435,8 @@ function filterPublicReadOnlyTools(payload: unknown) {
       Boolean(tool && typeof tool === "object")
       && (TOK_CLIENT_MUTATION_NAMES.has(String((tool as JsonRecord).name || ""))
         || TOK_ROLE_TOOL_NAMES.has(String((tool as JsonRecord).name || ""))
-        || TOK_CUSTOMER_OPERATION_NAMES.has(String((tool as JsonRecord).name || "")))
+        || TOK_CUSTOMER_OPERATION_NAMES.has(String((tool as JsonRecord).name || ""))
+        || TOK_MARKETING_TOOL_NAMES.has(String((tool as JsonRecord).name || "")))
     )
   ));
 
@@ -581,8 +592,8 @@ async function resolvePublicReadOnlyToolNames(req: Request) {
   }
 
   if (PUBLIC_READ_ONLY_TOOL_NAMES.size === 0) {
-    for (const tool of [...APP_BRIDGE_TOOLS, ...TOK_CLIENT_TOOLS, ...TOK_ROLE_TOOLS, ...TOK_CUSTOMER_OPERATION_PUBLIC_TOOLS]) {
-      if (isReadOnlyTool(tool) || TOK_CLIENT_MUTATION_NAMES.has(tool.name) || TOK_ROLE_TOOL_NAMES.has(tool.name) || TOK_CUSTOMER_OPERATION_NAMES.has(tool.name))
+    for (const tool of [...APP_BRIDGE_TOOLS, ...TOK_CLIENT_TOOLS, ...TOK_ROLE_TOOLS, ...TOK_CUSTOMER_OPERATION_PUBLIC_TOOLS, ...TOK_MARKETING_TOOLS]) {
+      if (isReadOnlyTool(tool) || TOK_CLIENT_MUTATION_NAMES.has(tool.name) || TOK_ROLE_TOOL_NAMES.has(tool.name) || TOK_CUSTOMER_OPERATION_NAMES.has(tool.name) || TOK_MARKETING_TOOL_NAMES.has(tool.name))
         PUBLIC_READ_ONLY_TOOL_NAMES.add(tool.name);
     }
   }
@@ -705,12 +716,58 @@ async function callAppBridge(req: Request, rpc: McpJsonRpcRequest, name: string)
   });
 }
 
+async function callMarketingBff(req: Request, rpc: McpJsonRpcRequest, name: string) {
+  let authorization = req.headers.get("authorization");
+  if (!authorization) return jsonRpcResult(rpc.id, authToolResult());
+  const args = rpc.params?.arguments;
+  if (!args || typeof args !== "object" || Array.isArray(args)) throw new McpProtocolError(-32602, "tok_marketing_arguments_invalid", 400);
+  let payload: JsonRecord;
+  try {
+    // The public issuer uses opaque broker tokens. Resolve only on this server;
+    // the native OAuth credential is never returned to the MCP client.
+    if (authorization.startsWith("Bearer tok_oa_")) {
+      const [{ createAdminClient }, { resolveTokConnectBrokerAccess }] = await Promise.all([
+        import("../_shared/auth.ts"), import("../_shared/tok-connect-broker.ts"),
+      ]);
+      try { authorization = `Bearer ${(await resolveTokConnectBrokerAccess(createAdminClient(), authorization.slice(7))).accessToken}`; }
+      catch (error) {
+        if (error && typeof error === "object" && "status" in error && error.status === 401) return jsonRpcResult(rpc.id, authToolResult());
+        throw error;
+      }
+    }
+    // Fixed origin and path. No service credential, cookie or caller URL crosses this boundary.
+    const response = await fetch("https://marketing.thetok.ch/api/marketing/mcp", {
+      method: "POST", headers: { authorization, "content-type": "application/json", accept: "application/json" },
+      body: JSON.stringify({ tool: name, arguments: args }), signal: AbortSignal.timeout(125_000), redirect: "error",
+    });
+    if (response.status === 401) return jsonRpcResult(rpc.id, authToolResult());
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error("marketing_empty_response");
+    let length = 0; const chunks: Uint8Array[] = [];
+    try {
+      while (true) { const next = await reader.read(); if (next.done) break; length += next.value.byteLength;
+        if (length > 3 * 1024 * 1024) throw new Error("marketing_response_limit"); chunks.push(next.value); }
+    } finally { await reader.cancel().catch(() => {}); }
+    const bytes = new Uint8Array(length); let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+    const result: unknown = JSON.parse(new TextDecoder().decode(bytes));
+    if (!result || typeof result !== "object" || Array.isArray(result)) throw new Error("marketing_invalid_response");
+    payload = { ...result as JsonRecord, ok: response.ok && (result as JsonRecord).ok !== false };
+  } catch {
+    payload = { ok: false, error: { code: "tok_marketing_result_unconfirmed", message: "Résultat marketing non confirmé. Conservez la même clé d’idempotence et vérifiez l’état natif avant toute relance. Aucun nouvel essai automatique." } };
+  }
+  return jsonRpcResult(rpc.id, { content: [{ type: "text", text: JSON.stringify(payload) }], structuredContent: payload, ...(payload.ok === false ? { isError: true } : {}) });
+}
+
 async function relay(req: Request, rpc: McpJsonRpcRequest) {
   if (rpc.method === "server/discover") {
     return new Response(JSON.stringify(buildServerDiscoverResult(rpc.id)), { status: 200, headers: responseHeaders(req) });
   }
   if (rpc.method === "tools/call") {
     const name = typeof rpc.params?.name === "string" ? rpc.params.name : "";
+    if (TOK_MARKETING_TOOL_NAMES.has(name)) {
+      return new Response(JSON.stringify(normalizeModernResult(req, rpc, await callMarketingBff(req, rpc, name))), { status: 200, headers: responseHeaders(req) });
+    }
     const readOnlyToolNames = await resolvePublicReadOnlyToolNames(req);
     if (!name || !readOnlyToolNames.has(name)) {
       return new Response(JSON.stringify(jsonRpcError(rpc.id, -32602, PUBLIC_MCP_READ_ONLY_ERROR)), {
@@ -771,7 +828,10 @@ Deno.serve(async (req) => {
   try {
     assertMcpAcceptHeader(req);
     assertMcpContentType(req);
-    rpc = await parseMcpJsonRpcRequest(req);
+    rpc = await parseMcpJsonRpcRequest(req, {
+      largeToolNames: ["tok_marketing_agent_upload_mailing_image"],
+      maxRequestBytes: 4 * 1024 * 1024 + 8192,
+    });
     assertMcpProtocolVersion(req, rpc.method);
     assertMcpRoutingHeaders(req, rpc);
     return await relay(req, rpc);

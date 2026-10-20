@@ -26,6 +26,32 @@ function mcpRequest(body: string, headers: Record<string, string> = {}) {
 }
 
 describe("TOK Connect MCP HTTP protocol helpers", () => {
+  it("allows larger images only for the explicitly opted-in upload tool", async () => {
+    const upload = "tok_marketing_agent_upload_mailing_image";
+    const options = { largeToolNames: [upload], maxRequestBytes: 4 * 1024 * 1024 + 8192 };
+    const makeBody = (name: string, method = "tools/call") => JSON.stringify({
+      jsonrpc: "2.0", id: 1, method, params: { name, arguments: { args: { imageBase64: "a".repeat(MCP_MAX_REQUEST_BYTES + 1) } } },
+    });
+    await expect(parseMcpJsonRpcRequest(mcpRequest(makeBody(upload)), options)).resolves.toMatchObject({ params: { name: upload } });
+    await expect(parseMcpJsonRpcRequest(mcpRequest(makeBody(upload)))).rejects.toMatchObject({ httpStatus: 413 });
+    await expect(parseMcpJsonRpcRequest(mcpRequest(makeBody("tok_marketing_agent_generate")), options)).rejects.toMatchObject({ httpStatus: 413 });
+    await expect(parseMcpJsonRpcRequest(mcpRequest(makeBody(upload, "tools/list")), options)).rejects.toMatchObject({ httpStatus: 413 });
+  });
+
+  it("bounds streamed input without Content-Length and cancels on overflow", async () => {
+    let cancelled = false;
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) { controller.enqueue(new Uint8Array(1024 * 1024)); },
+      cancel() { cancelled = true; },
+    });
+    const request = new Request("https://www.thetok.ch/mcp", { method: "POST", body, duplex: "half" } as RequestInit);
+    expect(request.headers.has("content-length")).toBe(false);
+    await expect(parseMcpJsonRpcRequest(request, {
+      largeToolNames: ["tok_marketing_agent_upload_mailing_image"], maxRequestBytes: Number.MAX_SAFE_INTEGER,
+    })).rejects.toMatchObject({ httpStatus: 413, message: "mcp_request_too_large" });
+    expect(cancelled).toBe(true);
+  });
+
   it("parses a JSON-RPC request and distinguishes notifications", async () => {
     const request = await parseMcpJsonRpcRequest(mcpRequest(JSON.stringify({
       jsonrpc: "2.0",

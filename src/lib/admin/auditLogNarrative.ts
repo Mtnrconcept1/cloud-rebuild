@@ -45,6 +45,7 @@ export type AuditNarrative = {
 /** What each Edge Function is for, phrased as a noun group. */
 const FUNCTION_PURPOSE: Record<string, string> = {
   "send-email": "l’envoi des e-mails transactionnels en file d’attente",
+  "resend-inbound-forward": "le transfert sécurisé des e-mails reçus par TOK vers la boîte Outlook de l’administration",
   "send-push": "l’envoi des notifications push en file d’attente",
   "notification-dispatch": "la distribution des notifications programmées",
   "stripe-worker": "le traitement différé des abonnements restaurateur",

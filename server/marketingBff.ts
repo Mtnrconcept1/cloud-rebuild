@@ -6,6 +6,8 @@ import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypt
 import { MailingImageInputError, validateMailingImage } from "./marketingMailingImage.js";
 import { parseInstagramResearchRequest } from "../supabase/functions/_shared/marketing-instagram-research.js";
 import { parseInstagramReviewRequest } from "../supabase/functions/_shared/marketing-instagram-review.js";
+import { buildTokMarketingRequest } from "../supabase/functions/_shared/tok-connect-marketing-operations.js";
+import { readVerifiedTokOAuthClaims } from "../supabase/functions/_shared/tok-connect-oauth-policy.js";
 
 /**
  * Server-only boundary for marketing.thetok.ch.
@@ -135,6 +137,7 @@ const MARKETING_OPERATION_ALLOWLIST = new Set<string>([
 type HeaderValue = string | string[] | undefined;
 
 export interface MarketingApiRequest {
+  url?: string;
   method?: string;
   headers: Record<string, HeaderValue>;
   body?: unknown;
@@ -162,6 +165,10 @@ interface ActiveMarketingSession {
   sessionHash: string;
   csrfHash: string;
 }
+
+// Only the authenticated MCP adapter below can install a delegated session.
+// Neither a request header nor JSON can select this internal context.
+const mcpMarketingSessions = new WeakMap<MarketingApiRequest, ActiveMarketingSession>();
 
 interface PendingAuthChallenge {
   userId: string;
@@ -527,6 +534,10 @@ function parseJsonBody(req: MarketingApiRequest, maxBytes = MAX_REQUEST_BYTES, a
     // The image has a separate binary validator. Every other field keeps the
     // original JSON depth, key, node and string limits.
     assertSafeJson({ ...value, imageBase64: "" });
+  } else if (allowMailingImageBase64 && value.tool === "tok_marketing_agent_upload_mailing_image"
+    && isPlainObject(value.arguments) && isPlainObject(value.arguments.args)
+    && typeof value.arguments.args.imageBase64 === "string") {
+    assertSafeJson({ ...value, arguments: { ...value.arguments, args: { ...value.arguments.args, imageBase64: "" } } });
   } else {
     assertSafeJson(value);
   }
@@ -1077,6 +1088,17 @@ async function activeSession(
   req: MarketingApiRequest,
   requireHeader: boolean,
 ): Promise<ActiveMarketingSession> {
+  const delegated = mcpMarketingSessions.get(req);
+  if (delegated) {
+    const checked = await serviceRpc(config, "service_get_marketing_web_session", {
+      p_sid_hash: delegated.sessionHash, p_csrf_hash: delegated.csrfHash, p_touch: true,
+    });
+    const current = normalizeSession(checked, delegated.sessionHash, delegated.csrfHash);
+    if (!current || current.userId !== delegated.userId) {
+      throw new PublicBffError(401, "marketing_connection_required", "Reconnectez le compte marketing avec la double authentification.");
+    }
+    return current;
+  }
   const cookies = parseCookies(header(req, "cookie"));
   const rawSession = cookies[MARKETING_SESSION_COOKIE] ?? "";
   const rawCsrf = requireHeader
@@ -2389,6 +2411,165 @@ async function runSafely(
   } catch (error) {
     sendError(res, error);
   }
+}
+
+/** Dedicated bearer boundary; the web endpoints continue to require cookies + CSRF. */
+export async function marketingMcpHandler(req: MarketingApiRequest, res: MarketingApiResponse): Promise<void> {
+  await runSafely(res, async () => {
+    if (req.method !== "POST") { methodNotAllowed(res, ["POST"]); return; }
+    validateMarketingRequestContext(req, false);
+    const config = readConfig();
+    const authorization = header(req, "authorization");
+    if (!/^Bearer [A-Za-z0-9_.-]{20,16384}$/.test(authorization)) {
+      throw new PublicBffError(401, "authentication_required", "Connexion TOK requise.");
+    }
+    const token = authorization.slice(7);
+    let user: JsonObject;
+    try { user = await getAuthUser(config, token); }
+    catch { throw new PublicBffError(401, "authentication_required", "Connexion TOK requise."); }
+    // Decode claims only after /auth/v1/user verified this exact access token.
+    const claims = readVerifiedTokOAuthClaims(token);
+    const userId = stringField(user, "id", 64);
+    const clientId = stringField(claims, "client_id", 128);
+    if (claims.sub !== userId || !UUID_PATTERN.test(clientId) || !UUID_PATTERN.test(String(claims.session_id || ""))) {
+      throw new PublicBffError(403, "oauth_connection_required", "Connexion OAuth TOK requise.");
+    }
+    await ensureServiceAdmin(config, userId);
+    const allowed = await serviceRpc(config, "rate_limit_consume", {
+      p_function_name: "tok-marketing-mcp", p_subject: `user:${userId}`, p_max_requests: 60, p_window_seconds: 60,
+    });
+    if (allowed !== true) throw new PublicBffError(429, "rate_limited", "Trop de demandes. Réessayez dans une minute.", 60);
+    const body = parseJsonBody(req, MAX_MAILING_UPLOAD_REQUEST_BYTES, true);
+    if (Object.keys(body).some((key) => !["tool", "arguments"].includes(key)) || !isPlainObject(body.arguments)) {
+      throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+    }
+    const name = stringField(body, "tool", 120);
+    if (name === "tok_marketing_connect") {
+      if (Object.keys(body.arguments).length) throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+      const challenge = opaqueToken();
+      const pending = normalizeRpcObject(await serviceRpc(config, "service_create_tok_marketing_link", {
+        p_user_id: userId, p_client_id: clientId, p_challenge_hash: sha256Hex(challenge),
+      }));
+      if (pending.status !== "pending") throw new PublicBffError(403, "connection_rejected", "Autorisation TOK invalide.");
+      sendJson(res, 200, { ok: true, status: "pending", expires_at: pending.expires_at,
+        authorization_url: `${MARKETING_ORIGIN}/api/marketing/mcp-link?code=${challenge}`,
+        message: "Ouvrez ce lien, connectez-vous au compte marketing avec la double authentification puis autorisez TOK Connect. Aucune action marketing n’a été exécutée." });
+      return;
+    }
+    if (name === "tok_marketing_disconnect") {
+      if (body.arguments.confirmed_by_user !== true || Object.keys(body.arguments).some((key) => key !== "confirmed_by_user")) {
+        throw new PublicBffError(400, "confirmation_required", "Confirmez la déconnexion marketing.");
+      }
+      await serviceRpc(config, "service_revoke_tok_marketing_link", { p_user_id: userId, p_client_id: clientId });
+      sendJson(res, 200, { ok: true, status: "disconnected" }); return;
+    }
+    const linked = normalizeRpcObject(await serviceRpc(config, "service_get_tok_marketing_link", { p_user_id: userId, p_client_id: clientId }));
+    const sessionHash = stringField(linked, "session_hash", 64), csrfHash = stringField(linked, "csrf_hash", 64);
+    const session = /^[0-9a-f]{64}$/.test(sessionHash) && /^[0-9a-f]{64}$/.test(csrfHash)
+      ? normalizeSession(linked, sessionHash, csrfHash) : null;
+    if (name === "tok_marketing_connection_status") {
+      if (Object.keys(body.arguments).length) throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+      sendJson(res, 200, { ok: true, status: session ? "connected" : "disconnected", expires_at: session?.expiresAt || null }); return;
+    }
+    if (!session || session.userId !== userId) {
+      throw new PublicBffError(403, "marketing_connection_required", "Utilisez tok_marketing_connect et validez la connexion marketing avec la double authentification.");
+    }
+    let prepared: ReturnType<typeof buildTokMarketingRequest>;
+    try { prepared = buildTokMarketingRequest(name, body.arguments); }
+    catch { throw new PublicBffError(400, "invalid_request", "Outil ou paramètres marketing invalides ; confirmation et clé d’idempotence requises pour toute action."); }
+    const requestHash = sha256Hex(JSON.stringify(canonicalMarketingJson({ name, args: prepared.args })));
+    // The public client UUID is a namespace, not a password or hash input.
+    // Only the arbitrary request key needs a fixed-length digest (104 chars total).
+    const key = prepared.idempotencyKey ? `mkt:${clientId}:${sha256Hex(prepared.idempotencyKey)}` : null;
+    const ledgerQuery = `/tok_connect_mcp_action_idempotency?user_id=eq.${userId}&idempotency_key=eq.${key}`;
+    if (key) {
+      try {
+        await serviceRestRequest(config, "/tok_connect_mcp_action_idempotency", { method: "POST", body: {
+          user_id: userId, idempotency_key: key, operation: name, request_hash: requestHash,
+        } });
+      } catch (error) {
+        if (!(error instanceof DownstreamHttpError) || error.status !== 409) throw error;
+        const rows = await serviceRestRequest(config, `${ledgerQuery}&select=operation,request_hash,response_body,status_code&limit=1`);
+        const saved = Array.isArray(rows) && rows.length === 1 ? asRecord(rows[0]) : {};
+        if (saved.operation !== name || saved.request_hash !== requestHash) throw new PublicBffError(409, "idempotency_conflict", "Cette clé correspond à une autre action.");
+        if (!Number.isInteger(saved.status_code) || !isPlainObject(saved.response_body)) {
+          throw new PublicBffError(409, "result_unconfirmed", "Résultat non confirmé. Conservez la même clé et vérifiez l’état de l’opération avant toute relance.");
+        }
+        sendMarketingMcpJson(res, Number(saved.status_code), { ...saved.response_body, replayed: true }); return;
+      }
+    }
+    const delegated: MarketingApiRequest = { method: "POST", body: prepared.body, headers: {
+      host: MARKETING_HOST, origin: MARKETING_ORIGIN, "sec-fetch-site": "same-origin", "content-type": "application/json",
+    } };
+    mcpMarketingSessions.set(delegated, session);
+    let output = "", statusCode = 500;
+    const captured: MarketingApiResponse = { statusCode: 500, setHeader() {}, end(value) { output = value || "{}"; statusCode = this.statusCode; } };
+    try {
+      const handler = prepared.endpoint === "rpc" ? marketingRpcHandler : prepared.endpoint === "agent" ? marketingAgentHandler : marketingOrchestratorHandler;
+      await handler(delegated, captured);
+    } finally { mcpMarketingSessions.delete(delegated); }
+    const result = JSON.parse(output) as JsonObject;
+    if (key) await serviceRestRequest(config, ledgerQuery, { method: "PATCH", body: { response_body: result, status_code: statusCode } });
+    sendMarketingMcpJson(res, statusCode, result);
+  });
+}
+
+function canonicalMarketingJson(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalMarketingJson);
+  if (isPlainObject(value)) return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalMarketingJson(value[key])]));
+  return value;
+}
+
+function sendMarketingMcpJson(res: MarketingApiResponse, status: number, value: unknown) {
+  const body = JSON.stringify(value);
+  if (Buffer.byteLength(body, "utf8") > MAX_MAILING_RECIPIENT_RESPONSE_BYTES) {
+    throw new PublicBffError(502, "result_unconfirmed", "Résultat trop volumineux. Vérifiez l’état natif et conservez la même clé d’idempotence.");
+  }
+  setSecurityHeaders(res);
+  res.statusCode = status;
+  res.end(body);
+}
+
+/** Same-origin browser consent. GET displays; only a CSRF-protected POST links. */
+export async function marketingMcpLinkHandler(req: MarketingApiRequest, res: MarketingApiResponse): Promise<void> {
+  await runSafely(res, async () => {
+    if (!["GET", "POST"].includes(req.method || "")) { methodNotAllowed(res, ["GET", "POST"]); return; }
+    // A link opened from the MCP host is a cross-site document navigation.
+    // It may display consent, but never authorizes or consumes the challenge.
+    const navigation = req.method === "GET" && !header(req, "origin")
+      && header(req, "sec-fetch-mode") === "navigate" && header(req, "sec-fetch-dest") === "document";
+    validateMarketingRequestContext(navigation ? { ...req, headers: { ...req.headers, "sec-fetch-site": "none" } } : req, req.method === "POST");
+    const config = readConfig();
+    if (req.method === "POST") {
+      const body = parseJsonBody(req);
+      if (Object.keys(body).some((key) => key !== "code") || !isOpaqueToken(stringField(body, "code", 43))) throw new PublicBffError(400, "invalid_request", "Lien invalide.");
+      const session = await activeSession(config, req, true);
+      const result = normalizeRpcObject(await serviceRpc(config, "service_authorize_tok_marketing_link", {
+        p_challenge_hash: sha256Hex(String(body.code)), p_sid_hash: session.sessionHash, p_csrf_hash: session.csrfHash,
+      }));
+      if (result.ok !== true) throw new PublicBffError(403, "connection_rejected", "Lien expiré ou compte différent. Recréez la connexion depuis TOK Connect.");
+      sendJson(res, 200, { ok: true }); return;
+    }
+    const code = new URL(req.url || "", MARKETING_ORIGIN).searchParams.get("code") || "";
+    if (!isOpaqueToken(code)) throw new PublicBffError(400, "invalid_request", "Lien invalide.");
+    let session: ActiveMarketingSession | null = null;
+    try { session = await activeSession(config, req, false); }
+    catch (error) { if (!(error instanceof PublicBffError) || error.status !== 401) throw error; }
+    const description = session ? normalizeRpcObject(await serviceRpc(config, "service_describe_tok_marketing_link", {
+      p_challenge_hash: sha256Hex(code), p_user_id: session.userId,
+    })) : {};
+    const valid = session && typeof description.client_name === "string";
+    const escape = (value: string) => value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]!));
+    const nonce = opaqueToken();
+    const csrf = parseCookies(header(req, "cookie"))[MARKETING_CSRF_COOKIE] || "";
+    setSecurityHeaders(res);
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.setHeader("Content-Security-Policy", `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'`);
+    res.statusCode = 200;
+    res.end(`<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connexion marketing TOK</title><style nonce="${nonce}">body{margin:0;background:#070d1a;color:#f8fafc;font:18px system-ui;line-height:1.6}main{max-width:620px;margin:8vh auto;padding:28px}h1{font-size:32px}a{color:#ffb166}button{font:inherit;background:#f97316;color:#090d17;border:0;border-radius:12px;padding:14px 20px;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #fff;outline-offset:5px}button:disabled{opacity:.6}#result{min-height:2em}</style><main><h1>Connexion marketing TOK</h1>${valid
+      ? `<p>Autoriser <strong>${escape(String(description.client_name))}</strong> à utiliser les outils marketing du compte <strong>${escape(session.email)}</strong> ?</p><p>Cette connexion permet de consulter et gérer les campagnes, audiences, livraisons, automatisations, contenus IA, mailing, Instagram et prospection. Les actions doivent être demandées explicitement et conservent les validations du portail.</p><p>L’accès expire avec cette session marketing. La déconnexion, la perte du rôle administrateur ou la révocation de TOK Connect coupe l’accès.</p><button id="authorize">Autoriser la connexion</button>`
+      : `<p>${session ? "Ce lien a expiré ou concerne un autre compte TOK." : "Connectez-vous au compte marketing avec la double authentification, puis revenez sur cette page."}</p><p><a href="/" target="_blank" rel="noopener noreferrer">Ouvrir le portail marketing</a></p><button id="reload">Vérifier à nouveau</button>`}<p id="result" role="status" aria-live="polite"></p></main><script nonce="${nonce}">const button=document.getElementById('authorize');if(button)button.addEventListener('click',async()=>{button.disabled=true;const result=document.getElementById('result');result.textContent='Connexion en cours…';try{const response=await fetch('/api/marketing/mcp-link',{method:'POST',headers:{'Content-Type':'application/json','${MARKETING_CSRF_HEADER}':${JSON.stringify(isOpaqueToken(csrf) ? csrf : "")}},body:JSON.stringify({code:${JSON.stringify(code)}})});if(!response.ok)throw new Error();result.textContent='Connexion autorisée. Vous pouvez revenir dans TOK Connect.';button.hidden=true;}catch{result.textContent='Connexion refusée ou expirée. Vérifiez le compte marketing puis recréez le lien depuis TOK Connect.';button.disabled=false;}});document.getElementById('reload')?.addEventListener('click',()=>location.reload());</script></html>`);
+  });
 }
 
 export async function marketingLoginHandler(
