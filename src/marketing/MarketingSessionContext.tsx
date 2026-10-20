@@ -21,7 +21,7 @@ export type MarketingSessionValue = {
   submitting: boolean;
   error: string | null;
   refreshSession: () => Promise<void>;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, remember: boolean) => Promise<boolean>;
   verifyTotp: (code: string) => Promise<boolean>;
   logout: () => Promise<void>;
   clearError: () => void;

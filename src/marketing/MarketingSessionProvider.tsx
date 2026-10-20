@@ -226,7 +226,7 @@ export default function MarketingSessionProvider({ children }: { children: React
     };
   }, [refreshSession, status]);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string, remember: boolean) => {
     const normalizedEmail = email.trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(normalizedEmail) || normalizedEmail.length > 254 || !password || password.length > 1_024) {
       setError(LOGIN_ERROR);
@@ -240,7 +240,7 @@ export default function MarketingSessionProvider({ children }: { children: React
     try {
       const payload = await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.login, {
         method: "POST",
-        body: { email: normalizedEmail, password },
+        body: { email: normalizedEmail, password, remember: remember === true },
         redirectOnUnauthorized: false,
       });
       const snapshot = await hydrateEnrollment(normalizeMarketingSessionPayload(payload));

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
+import { setAuthSessionPersistence } from "@/integrations/supabase/authStorage";
 import { useAuth, type UserRole } from "@/lib/auth-context";
 import { getPlatform } from "@/lib/platform";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
@@ -962,6 +963,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   >({});
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberSession, setRememberSession] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [privilegedSignupSubmitting, setPrivilegedSignupSubmitting] =
     useState(false);
@@ -1879,6 +1881,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
         if (isCaptchaEnabled() && !captchaToken) {
           throw new Error("Validation anti-abus requise.");
         }
+
+        if (!isDemoAuthMode) setAuthSessionPersistence(rememberSession);
 
         const { error } = await supabase.auth.signInWithPassword({
           email: signupForm.email,
@@ -3203,6 +3207,22 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                 </div>
               ) : null}
 
+              {isLogin && !isRecoveringPrivilegedSignup && !isDemoAuthMode && getPlatform() === "web" ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Checkbox
+                    id="remember-session"
+                    checked={rememberSession}
+                    disabled={loading}
+                    onCheckedChange={(checked) =>
+                      setRememberSession(checked === true)
+                    }
+                  />
+                  <Label htmlFor="remember-session" className="cursor-pointer font-normal">
+                    Rester connecté
+                  </Label>
+                </div>
+              ) : null}
+
               {!isRecoveringPrivilegedSignup ? (
                 <TurnstileCaptcha
                   action={isLogin ? "auth_login" : `auth_signup_${roleMode}`}
@@ -3311,6 +3331,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                     className="w-full"
                     onClick={async () => {
                       try {
+                        setAuthSessionPersistence(rememberSession);
                         await startOAuthSignIn("google");
                       } catch {
                         toast({
@@ -3349,6 +3370,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                     className="w-full"
                     onClick={async () => {
                       try {
+                        setAuthSessionPersistence(rememberSession);
                         await startOAuthSignIn("apple");
                       } catch {
                         toast({

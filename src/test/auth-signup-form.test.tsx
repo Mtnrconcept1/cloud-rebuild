@@ -39,6 +39,12 @@ const recoveryMocks = vi.hoisted(() => ({
   remove: vi.fn(),
 }));
 
+const authStorageMocks = vi.hoisted(() => ({
+  setAuthSessionPersistence: vi.fn(),
+}));
+
+vi.mock("@/integrations/supabase/authStorage", () => authStorageMocks);
+
 vi.mock("@/lib/privilegedSignupRecovery", () => ({
   savePrivilegedSignupRecoveryDraft: recoveryMocks.save,
   loadPrivilegedSignupRecoveryDraft: recoveryMocks.load,
@@ -336,6 +342,29 @@ describe("Auth signup form", () => {
     expect(supabaseMocks.signInWithPassword).not.toHaveBeenCalled();
   });
 
+  it.each([true, false])("uses remember-session=%s when signing in", async (remember) => {
+    supabaseMocks.signInWithPassword.mockResolvedValue({
+      data: { session: null, user: null },
+      error: null,
+    });
+    await renderAuth("/auth?type=client");
+
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "client@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Mot de passe"), {
+      target: { value: "Secret123!" },
+    });
+    expect(screen.getByLabelText("Rester connecté")).not.toBeChecked();
+    if (remember) fireEvent.click(screen.getByLabelText("Rester connecté"));
+    fireEvent.click(screen.getByRole("button", { name: "Se connecter" }));
+
+    await waitFor(() => {
+      expect(authStorageMocks.setAuthSessionPersistence).toHaveBeenCalledWith(remember);
+      expect(supabaseMocks.signInWithPassword).toHaveBeenCalled();
+    });
+  });
+
   it("does not expose or provision commercial demo accounts from the public login", async () => {
     await renderAuth("/auth?type=client");
 
@@ -362,6 +391,17 @@ describe("Auth signup form", () => {
         provider: "google",
         options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
+    });
+  });
+
+  it.each(["Google", "Apple"])("uses the remember-session choice before %s OAuth", async (provider) => {
+    supabaseMocks.signInWithOAuth.mockResolvedValue({ error: null });
+    await renderAuth("/auth?type=client");
+    fireEvent.click(screen.getByLabelText("Rester connecté"));
+    fireEvent.click(screen.getByRole("button", { name: `Continuer avec ${provider}` }));
+    await waitFor(() => {
+      expect(supabaseMocks.signInWithOAuth).toHaveBeenCalled();
+      expect(authStorageMocks.setAuthSessionPersistence).toHaveBeenCalledWith(true);
     });
   });
 
