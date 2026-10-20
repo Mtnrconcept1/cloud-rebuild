@@ -50,6 +50,10 @@ export class MarketingBffError extends Error {
 }
 
 const MARKETING_OPERATION_ERRORS: Record<string, { status: number; message: string }> = {
+  instagram_access_required: { status: 403,
+    message: "Vérifiez les autorisations Instagram. Les commentaires de publications tierces doivent être consultés dans Instagram." },
+  instagram_research_unavailable: { status: 503,
+    message: "La veille Instagram est indisponible. Vérifiez la connexion et les autorisations Meta." },
   marketing_daily_runtime_unavailable: { status: 503,
     message: "Le service de génération quotidienne doit être activé avant de démarrer cette série." },
   marketing_daily_scheduler_unavailable: { status: 503,

@@ -4,6 +4,7 @@ import { CAMPAIGN_TEMPLATE_LABELS } from "../supabase/functions/_shared/marketin
 import { MAILING_FIELDS, MailingInputError, assertMailingReady, mailingAudience, mailingScheduleOptions, parseMailingOptions, parseMailingRecipientEmails } from "../supabase/functions/_shared/marketing-mailing.js";
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { MailingImageInputError, validateMailingImage } from "./marketingMailingImage.js";
+import { parseInstagramResearchRequest } from "../supabase/functions/_shared/marketing-instagram-research.js";
 
 /**
  * Server-only boundary for marketing.thetok.ch.
@@ -1712,6 +1713,30 @@ async function runMarketingOrchestrator(
   const config = readConfig();
   const body = parseJsonBody(req, 16 * 1024);
   const action = stringField(body, "action", 32);
+  if (action === "instagram_discover" || action === "instagram_comments") {
+    let payload;
+    try { payload = parseInstagramResearchRequest(body); }
+    catch { throw new PublicBffError(400, "invalid_request", "Vérifiez les sources Instagram et la période."); }
+    const session = await activeSession(config, req, true);
+    await ensureServiceAdmin(config, session.userId);
+    // All admins share the budget of the same connected Instagram account.
+    await consumeRateLimit(config, req, "instagram-research", "connected-account", false);
+    const response = await boundedFetch(`${config.supabaseUrl}/functions/v1/marketing-orchestrator`, {
+      method: "POST", headers: {
+        apikey: config.serviceRoleKey,
+        ...(!config.serviceRoleKey.startsWith("sb_secret_") ? { Authorization: `Bearer ${config.serviceRoleKey}` } : {}),
+        Accept: "application/json", "Content-Type": "application/json", "x-marketing-actor-user-id": session.userId,
+      }, body: JSON.stringify(payload),
+    }, 60_000);
+    if (!response.ok) {
+      if (response.status === 429) throw new PublicBffError(429, "rate_limited", "Meta limite les lectures. Réessayez plus tard.", 60);
+      if (response.status === 403) throw new PublicBffError(403, "instagram_access_required", "Vérifiez les autorisations Instagram ; les commentaires externes s’ouvrent dans Instagram.");
+      if (response.status === 400) throw new PublicBffError(400, "invalid_request", "Demande Instagram invalide.");
+      throw new PublicBffError(503, "instagram_research_unavailable", "La veille Instagram est indisponible. Vérifiez la connexion et les autorisations Meta.");
+    }
+    sendJson(res, 200, response.value);
+    return;
+  }
   if (action !== "run_due" && action !== "run_item" && action !== "check_meta") {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }

@@ -24,6 +24,8 @@ import { prepareTargetedMailingContent } from "../_shared/marketing-mailing-emai
 import { MailingInputError } from "../_shared/marketing-mailing.ts";
 import { runDailyMarketingGeneration } from "../_shared/marketing-daily-generation.ts";
 import { selectTokAiModel } from "../_shared/openai.ts";
+import { loadInstagramResearch, InstagramResearchError } from "../_shared/marketing-instagram-graph.ts";
+import { InstagramInputError } from "../_shared/marketing-instagram-research.ts";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 type ClaimedItem = {
@@ -442,6 +444,17 @@ Deno.serve(async (req) => {
     actor = await attachDelegatedAdminIdentity(actor, req);
     requireRole(actor, ["admin"]);
     const payload = asRecord(await req.json().catch(() => ({})));
+    if (payload.action === "instagram_discover" || payload.action === "instagram_comments") {
+      auditAction = payload.action;
+      if (actor.authMode !== "service_role" || !actor.userId) throw new HttpError(403, "Delegated administrator required");
+      const result = await loadInstagramResearch(actor.adminClient, payload);
+      await writeAuditLog({ adminClient: actor.adminClient, actor, request: req,
+        functionName: "marketing-orchestrator", action: auditAction, status: "success",
+        targetEntityType: "marketing_integrations", metadata: result.kind === "discovery"
+          ? { post_count: result.posts.length, account_count: result.accounts.length, warning_count: result.warnings.length }
+          : { comment_count: result.comments.length } });
+      return jsonResponse(result, 200, corsHeaders);
+    }
     if (payload.action === "generate_daily") {
       auditAction = "generate_daily";
       if (Object.keys(payload).some((key) => key !== "action")) throw new HttpError(400, "Invalid daily generation request");
@@ -519,6 +532,14 @@ Deno.serve(async (req) => {
     });
     return jsonResponse({ ok: true, action, items: itemResults, deliveries: deliveryResults }, 200, corsHeaders);
   } catch (error) {
+    if (error instanceof InstagramInputError || error instanceof InstagramResearchError) {
+      const status = error instanceof InstagramInputError ? 400 : error.status;
+      const code = error instanceof InstagramInputError ? "instagram_request_invalid" : error.code;
+      await writeAuditLog({ adminClient: actor?.adminClient || createAdminClient(), actor, request: req,
+        functionName: "marketing-orchestrator", action: auditAction, status: "failure",
+        targetEntityType: "marketing_integrations", errorMessage: code });
+      return jsonResponse({ error: { code } }, status, { ...corsHeaders, ...(status === 429 ? { "Retry-After": "60" } : {}) });
+    }
     const message = safeMarketingError(error);
     log.error("orchestrator failed", { message });
     await writeAuditLog({
