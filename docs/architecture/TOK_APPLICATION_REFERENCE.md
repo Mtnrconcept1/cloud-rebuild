@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `0864792a40f1ce52fa988a79d5c16cf68bea0cb6dea9cbcff3d15d9e8af9a090`
+- Empreinte SHA-256 des sources indexées : `2356c9f8cfff76507a422f0a701606dc57ceb2e4cf71a4a039d62059709136bc`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 563 |
-| modules | 1751 |
+| modules | 1752 |
 | pages | 133 |
 | pathLiterals | 837 |
 | publicAssets | 588 |
 | publicEntries | 614 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18148 |
-| repositoryFiles | 3438 |
+| records | 18150 |
+| repositoryFiles | 3439 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6647,7 +6647,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 714 |
+| test | 715 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -9662,7 +9662,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (714)</summary>
+<details><summary>test (715)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9992,6 +9992,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-bff-vercel-entrypoints.test.ts`
 - `src/test/marketing-brand-gallery.test.tsx`
 - `src/test/marketing-brand-references.test.ts`
+- `src/test/marketing-calendar-status-colors.test.tsx`
 - `src/test/marketing-campaign-builder.test.tsx`
 - `src/test/marketing-campaign-gallery.test.tsx`
 - `src/test/marketing-campaign-options.test.ts`
