@@ -79,6 +79,7 @@
         "npm:framer-motion@^12.35.1",
         "npm:globals@^15.15.0",
         "npm:input-otp@^1.4.2",
+        "npm:jpeg-js@0.4.4",
         "npm:jsdom@^29.0.2",
         "npm:leaflet@^1.9.4",
         "npm:lucide-react@0.462",

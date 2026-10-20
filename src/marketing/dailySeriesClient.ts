@@ -2,6 +2,8 @@ import { MARKETING_BFF_ENDPOINTS, marketingBffRequest } from "@/marketing/market
 import { marketingPreviewImageUrl } from "@/marketing/postPreview";
 import { MARKETING_TIME_ZONE } from "@/marketing/zurichTime";
 
+export type MarketingDailyPublicationMode = "draft" | "automatic";
+
 export type MarketingDailySeriesStatus = "active" | "paused";
 
 export type MarketingDailyRun = {
@@ -17,6 +19,7 @@ export type MarketingDailyRun = {
   campaignId: string | null;
   title: string;
   imageUrl: string | null;
+  publicationStatus: string | null;
 };
 
 export type MarketingDailySeriesDashboard = {
@@ -24,6 +27,9 @@ export type MarketingDailySeriesDashboard = {
     id: string;
     status: MarketingDailySeriesStatus;
     localTime: string;
+    publicationMode: MarketingDailyPublicationMode;
+    publicationLocalTime: string;
+    publicationAuthorized: boolean;
     version: number;
     ownerAuthorized: boolean;
     activatedAt: string | null;
@@ -36,12 +42,16 @@ export type MarketingDailySeriesDashboard = {
   recentRuns: MarketingDailyRun[];
   runtimeEnabled: boolean;
   schedulerReady: boolean;
+  publisherReady: boolean;
 };
 
 export type MarketingDailySeriesInput = {
   status: MarketingDailySeriesStatus;
   localTime: string;
   expectedVersion: number;
+  publicationMode?: MarketingDailyPublicationMode;
+  publicationLocalTime?: string;
+  authorizeAutoPublication?: boolean;
 };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -88,6 +98,7 @@ export function isMarketingDailyLocalTime(value: string): boolean {
 export function marketingDailyErrorLabel(code: string | null): string | null {
   if (!code) return null;
   const labels: Record<string, string> = {
+    daily_publication_blocked: "Le post est conservé en brouillon : sa publication automatique n’a pas pu être confirmée. Ouvrez-le dans le calendrier.",
     daily_slot_expired: "Le créneau de ce jour est dépassé. La série reprendra au prochain créneau quotidien.",
     daily_retry_exhausted: "Les tentatives de ce jour ont échoué. Consultez le suivi avant la prochaine production.",
     daily_owner_not_authorized: "L’autorisation de la série doit être renouvelée par un administrateur.",
@@ -117,11 +128,14 @@ export function normalizeMarketingDailySeriesDashboard(response: unknown): Marke
   const version = nonNegativeInteger(series?.version);
   const generatedCount = nonNegativeInteger(series?.generated_count);
   const localTime = text(series?.local_time);
+  const publicationMode = series?.publication_mode ?? "draft";
+  const publicationLocalTime = text(series?.publication_local_time) || "16:00";
   if (!item || !series || !seriesId || !version || generatedCount === null
     || !["active", "paused"].includes(text(series.status))
     || series.key !== "tok-instagram" || series.channel !== "instagram"
     || series.timezone !== MARKETING_TIME_ZONE || series.format !== "4:5"
     || series.requires_approval !== true || !isMarketingDailyLocalTime(localTime)
+    || !["draft", "automatic"].includes(String(publicationMode)) || !isMarketingDailyLocalTime(publicationLocalTime)
     || !Array.isArray(item.recent_runs)) {
     throw new Error("L’état de la série quotidienne n’a pas pu être confirmé.");
   }
@@ -131,6 +145,9 @@ export function normalizeMarketingDailySeriesDashboard(response: unknown): Marke
       id: seriesId,
       status: series.status as MarketingDailySeriesStatus,
       localTime,
+      publicationMode: publicationMode as MarketingDailyPublicationMode,
+      publicationLocalTime,
+      publicationAuthorized: series.publication_authorized === true,
       version,
       ownerAuthorized: series.owner_authorized === true,
       activatedAt: timestamp(series.activated_at),
@@ -142,6 +159,7 @@ export function normalizeMarketingDailySeriesDashboard(response: unknown): Marke
     },
     runtimeEnabled: item.runtime_enabled === true,
     schedulerReady: item.scheduler_ready === true,
+    publisherReady: item.publisher_ready === true,
     recentRuns: item.recent_runs.slice(0, 30).flatMap((raw): MarketingDailyRun[] => {
       const run = record(raw);
       const id = uuid(run?.id);
@@ -161,6 +179,7 @@ export function normalizeMarketingDailySeriesDashboard(response: unknown): Marke
         campaignId: uuid(run.campaign_id),
         title: text(run.title, 160) || "Publication Instagram du jour",
         imageUrl: marketingPreviewImageUrl(run.image_url),
+        publicationStatus: text(run.publication_status, 40) || null,
       }];
     }),
   };
@@ -175,6 +194,8 @@ export async function loadMarketingDailySeries(signal?: AbortSignal): Promise<Ma
 
 export async function updateMarketingDailySeries(input: MarketingDailySeriesInput): Promise<MarketingDailySeriesDashboard> {
   if (!["active", "paused"].includes(input.status) || !isMarketingDailyLocalTime(input.localTime)
+    || (input.publicationMode !== undefined && !["draft", "automatic"].includes(input.publicationMode))
+    || (input.publicationLocalTime !== undefined && !isMarketingDailyLocalTime(input.publicationLocalTime))
     || !Number.isSafeInteger(input.expectedVersion) || input.expectedVersion < 1) {
     throw new Error("Vérifiez l’heure et rechargez les réglages de la série.");
   }
@@ -185,6 +206,9 @@ export async function updateMarketingDailySeries(input: MarketingDailySeriesInpu
         status: input.status,
         local_time: input.localTime,
         expected_version: input.expectedVersion,
+        ...(input.publicationMode !== undefined ? { publication_mode: input.publicationMode } : {}),
+        ...(input.publicationLocalTime !== undefined ? { publication_local_time: input.publicationLocalTime } : {}),
+        ...(input.authorizeAutoPublication !== undefined ? { authorize_auto_publication: input.authorizeAutoPublication } : {}),
       } },
     },
   }));

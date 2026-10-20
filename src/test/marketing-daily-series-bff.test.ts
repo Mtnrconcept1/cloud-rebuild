@@ -40,6 +40,16 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("BFF de génération quotidienne Instagram", () => {
+  it("transmet le mandat quotidien explicite sans accepter un acteur ou un compte arbitraire", async () => {
+    const fetchMock = upstream({ series: { status: "active" } });
+    vi.stubGlobal("fetch", fetchMock);
+    const input = { ...payload, publication_mode: "automatic", publication_local_time: "16:00", authorize_auto_publication: true };
+    const res = recorder();
+    await marketingRpcHandler(request("admin_upsert_marketing_daily_series", { p_payload: input }), res.response);
+    expect(res.response.statusCode).toBe(200);
+    const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/rpc/service_marketing_daily_operation"));
+    expect(JSON.parse(String(call?.[1]?.body)).p_args).toEqual({ p_payload: input });
+  });
   it.each([...MARKETING_DAILY_OPERATION_NAMES])("route %s vers le dispatcher quotidien avec session et CSRF hashés", async (operation) => {
     const result = { series: { status: "paused" }, recent_runs: [] };
     const fetchMock = upstream(result);
@@ -67,6 +77,10 @@ describe("BFF de génération quotidienne Instagram", () => {
     { p_payload: { ...payload, requires_approval: false } },
     { p_payload: payload, p_sid_hash: "forged" },
     { p_payload: [] },
+    { p_payload: { ...payload, publication_mode: "other" } },
+    { p_payload: { ...payload, publication_local_time: "25:00" } },
+    { p_payload: { ...payload, authorize_auto_publication: "true" } },
+    { p_payload: { ...payload, publication_account_id: "forged" } },
   ])("refuse une charge utile invalide ou une tentative d’élévation : %o", async (args) => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);

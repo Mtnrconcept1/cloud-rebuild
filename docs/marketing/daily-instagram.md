@@ -2,11 +2,11 @@
 
 ## Périmètre et état de livraison
 
-Cette fonctionnalité prépare **un brouillon Instagram par jour**, avec un visuel individuel et sa légende, sans date de fin. Elle concerne la communication de TOK auprès des restaurateurs ; elle ne remplace pas les références propres aux studios des restaurants.
+Cette fonctionnalité prépare **un post Instagram par jour**, avec un visuel individuel et sa légende, sans date de fin. Le mode initial reste **Brouillon à valider** ; un administrateur peut autoriser explicitement la **Publication automatique** de cette seule série. Elle concerne la communication de TOK auprès des restaurateurs ; elle ne remplace pas les références propres aux studios des restaurants.
 
-La génération quotidienne n’approuve et ne publie aucun post. Chaque résultat retenu rejoint le calendrier avec `status = draft` et `approval_status = pending`. La campagne associée reste également en brouillon. La publication suit ensuite le parcours de validation existant, avec une intégration Instagram opérationnelle et une date de diffusion valide.
+Le générateur crée toujours un résultat en brouillon. En mode automatique, un déclencheur SQL vérifie le mandat enregistré, le compte Instagram exact, les neuf contrôles qualité et un créneau futur avant de programmer ce seul résultat. Le moteur de diffusion existant publie ensuite l’élément approuvé. Tout résultat bloqué reste en brouillon et apparaît dans le suivi ; les anciennes campagnes et les anciens brouillons ne sont pas réapprouvés.
 
-Ce document décrit le code de la fonctionnalité. **Il ne constitue pas une preuve de déploiement ou d’activation en production.** La livraison demandée passe par une branche dédiée et une PR à relire ; aucun merge dans `main` n’est autorisé par cette tâche. La migration initialise la série **en pause**.
+Ce document décrit le code de la fonctionnalité. **Il ne constitue pas une preuve de déploiement ou d’activation en production.** La livraison passe par une branche dédiée, une PR et les contrôles de validation avant une mise en service autorisée. La migration initialise la série **en pause**.
 
 ## Où la configurer
 
@@ -16,10 +16,10 @@ Les réglages sont réservés à une session administrateur marketing avec MFA :
 
 1. Consulter l’état du service et de la planification. L’activation reste désactivée tant que ces prérequis ne sont pas prêts.
 2. Choisir **Heure de génération**. La valeur initiale est **10:00**, fuseau **Europe/Zurich**, avec changement d’heure automatique.
-3. Cliquer sur **Activer la série**. Après une première activation, le bouton devient **Reprendre la série** lorsque celle-ci est en pause.
-4. Pour changer l’heure, utiliser **Enregistrer l’heure**. La version reçue du serveur protège contre l’écrasement des réglages d’un autre administrateur. En cas de conflit, cliquer sur **Recharger les réglages**, puis revoir la modification.
+3. Choisir **Mode de publication**. Pour **Publication automatique**, définir une heure de publication au moins trente minutes après la génération et cocher l’autorisation quotidienne du compte Instagram connecté. Le mandat est lié à l’administrateur et à l’identifiant Instagram exact ; un changement de compte bloque les nouveaux envois. Cliquer sur **Activer la série**. Après une première activation, le bouton devient **Reprendre la série** lorsque celle-ci est en pause.
+4. Pour changer les réglages, utiliser **Enregistrer l’heure** en mode brouillon ou **Enregistrer la série** en mode automatique. La version reçue du serveur protège contre l’écrasement des réglages d’un autre administrateur. En cas de conflit, cliquer sur **Recharger les réglages**, puis revoir la modification.
 5. Utiliser **Mettre en pause** pour arrêter les prochaines prises en charge. Ce bouton reste utilisable lorsque le moteur global est indisponible. Une génération déjà en cours peut encore terminer et enregistrer son brouillon.
-6. Dans **Dernières productions**, **Voir le post** ouvre le bon élément du calendrier avec son identifiant, sa campagne et sa date. Relire la campagne et le post avant leur approbation et leur planification.
+6. Dans **Dernières productions**, **Voir le post** ouvre le bon élément du calendrier avec son identifiant, sa campagne et sa date. Consulter l’état du post dans le calendrier. En mode brouillon, relire la campagne et le post avant leur approbation et leur planification.
 
 Le panneau affiche les 30 dernières productions, les tentatives, la prochaine reprise éventuelle, le nombre de brouillons créés et les erreurs résumées. Il s’actualise toutes les 60 secondes lorsqu’il est visible. Il n’expose pas de bouton pour réinitialiser un jour ayant épuisé ses tentatives.
 
@@ -99,9 +99,21 @@ La fonction pure `buildDailyMarketingBrief(localDate, recentTitles)` utilise une
 | `chef-cream` — chef sur fond crème | Oui |
 | `restaurant-photo` — ambiance de salle | Non |
 
-Le catalogue comporte **112 titres**, soit huit par sujet, deux légendes par sujet et cinq ambiances culinaires. Les titres ont quatre à neuf mots. Chaque légende comprend un appel discret vers `thetok.ch` et trois hashtags. Aucun prix, pourcentage, témoignage, résultat garanti ou chiffre commercial n’est généré.
+Le catalogue comporte **112 titres**, soit huit par sujet, deux légendes par sujet et cinq ambiances culinaires. Les titres ont quatre à neuf mots. Chaque légende comprend l’accroche du visuel, un bénéfice concret vérifiable, un appel vers `thetok.ch` et cinq hashtags : `#TOK`, `#RestaurateursGeneve`, `#Geneve`, `#RestaurantGeneve` et le thème du jour. Aucun compte tiers n’est mentionné : la série présente des fonctionnalités TOK, sans restaurant ni partenaire réel identifié. Un futur post présentant un établissement doit vérifier son identité et son compte avant toute mention ; il passe par la validation manuelle existante. Aucun prix, pourcentage, témoignage, résultat garanti ou chiffre commercial n’est généré.
 
 Les 14 sujets et neuf familles donnent 126 associations avant de répéter un couple. La rotation continue ensuite avec d’autres titres et ambiances. L’historique transmis par la base porte sur les 30 dernières productions réussies ; le helper compare les titres sans tenir compte des différences de casse, accents ou ponctuation. Si toutes les variantes d’un sujet figurent dans l’historique fourni, il choisit la moins récente et expose `titleReused = true`. Il ne promet pas une infinité d’accroches uniques.
+
+## Publication quotidienne autorisée
+
+Le créneau éditorial retenu pour TOK est **16:00 Europe/Zurich**, avec une préparation à **15:00**. Ce choix est un point de départ, pas une promesse de performance : Meta proposait notamment 16 h le 21 octobre et 17 h le 22 octobre 2026, tandis que les principales villes et pays de l’audience existante étaient surtout internationaux. Mesurer ensuite les interactions et visites issues de Genève avant de réviser le créneau.
+
+Le mode automatique est désactivé par défaut. Son enregistrement exige la session administrateur marketing, MFA/CSRF, une version courante, le consentement explicite `authorize_auto_publication`, un moteur de diffusion disponible et exactement une intégration Instagram connectée. Le serveur mémorise son identifiant `ig_user_id` ; le navigateur ne peut pas en fournir un autre.
+
+Seuls les travaux créés **après** ce mandat peuvent être programmés. La finalisation vérifie l’administrateur encore autorisé, la série active, l’absence de pause globale, le même compte Instagram, les neuf critères visuels, le format, la version de marque, trois à cinq hashtags pertinents comprenant TOK et Genève, et l’absence de mention tierce non vérifiée. Le créneau doit rester au moins deux minutes dans le futur. La contrainte quotidienne et la finalisation idempotente empêchent un second post du même travail.
+
+Une erreur de compte, qualité, autorisation, configuration ou créneau conserve le contenu en brouillon avec `daily_publication_blocked`. Aucune image de remplacement n’est achetée pour cet échec de programmation. Le calendrier et l’historique distinguent préparation, programmation et publication réelle. Les traces d’approbation indiquent `daily-series-standing-authorization` : elles ne prétendent pas qu’un humain a relu chaque résultat.
+
+Mettre la série en pause empêche les prochaines productions et la programmation d’une génération encore en cours. Les posts déjà programmés restent dans le calendrier et doivent y être annulés individuellement si nécessaire. Pour revenir au circuit manuel, enregistrer **Brouillon à valider**. Aucun paramètre global d’autonomie, aucune permission Meta, aucun secret et aucun autre canal ne sont modifiés.
 
 ## Fichier natif et contrôle avant enregistrement
 
@@ -133,7 +145,7 @@ Après vérification de l’en-tête JPEG et des dimensions, le contrôle envoie
 
 La transcription du titre visible est aussi comparée au titre attendu. Les retours à la ligne et apostrophes typographiques sont normalisés ; la casse, les mots, les accents et les autres signes restent contrôlés. Un critère faux, absent ou incertain rejette l’image avant son upload. Une nouvelle tentative produit une nouvelle image native lorsque aucun objet validé n’existe.
 
-**Limite : ce contrôle visuel est probabiliste.** Il ne garantit ni une identité pixel par pixel, ni une détection parfaite de chaque faute graphique. Les dimensions, le nombre d’images et les comparaisons de texte sont des contrôles techniques ; l’appréciation du logo, du style et de la lisibilité dépend aussi du modèle. Le brouillon doit donc encore être relu et approuvé dans le calendrier.
+**Limite : ce contrôle visuel est probabiliste.** Il ne garantit ni une identité pixel par pixel, ni une détection parfaite de chaque faute graphique. Les dimensions, le nombre d’images et les comparaisons de texte sont des contrôles techniques ; l’appréciation du logo, du style et de la lisibilité dépend aussi du modèle. En mode brouillon, le résultat doit encore être relu et approuvé dans le calendrier. Le mode automatique repose sur les contrôles probabilistes décrits et sur le mandat explicite de l’administrateur ; il ne prétend pas à une relecture humaine quotidienne.
 
 ### Critères de relecture humaine issus de la référence
 
@@ -178,9 +190,9 @@ Ordre de livraison après relecture de la PR et autorisation d’une mise en ser
 2. Déployer l’Edge Function `marketing-orchestrator` avec ses helpers quotidiens et le contrôle visuel, en conservant le comportement des actions existantes.
 3. Appliquer la nouvelle migration `20261019200548_marketing_daily_instagram.sql` sur la cible contrôlée. Le singleton reste `paused`. Le cron dédié est ajouté seulement si les extensions nécessaires existent ; il n’active pas la série.
 4. Contrôler dans le panneau les indicateurs `runtime_enabled` et `scheduler_ready`, la référence de style et l’heure locale. Corriger les prérequis manquants par le processus d’administration habituel.
-5. Activer la série depuis le panneau administrateur, vérifier la première production et ouvrir son brouillon avec **Voir le post**. Ne pas déclarer la série active tant que cet état n’est pas confirmé par le serveur.
+5. Activer la série depuis le panneau administrateur, vérifier la première production et ouvrir son élément avec **Voir le post**. Ne pas déclarer la série active tant que cet état n’est pas confirmé par le serveur.
 
-La PR de cette tâche doit rester ouverte sans merge dans `main`. L’ordre ci-dessus est un runbook de mise en service ultérieure, pas une affirmation que ces opérations ont été effectuées.
+L’ordre ci-dessus est un runbook de mise en service, pas une preuve que ces opérations ont été effectuées. Pour le mode automatique, appliquer aussi `20261020135701_marketing_daily_publication.sql`, déployer le nouvel éditorial et le panneau avant toute activation.
 
 ## Diagnostic et arrêt
 
@@ -218,7 +230,7 @@ Les traces utiles sont les travaux quotidiens, le journal de l’orchestrateur, 
 | Accès BFF | `server/marketingBff.ts`, `src/marketing/marketingBffClient.ts` |
 | Panneau et client quotidien | `src/components/marketing/MarketingDailySeries.tsx`, `src/marketing/dailySeriesClient.ts`, `src/marketing/useMarketingDailySeries.ts` |
 | Navigation et présentation | `src/components/marketing/views/MarketingAutomationsView.tsx`, `src/components/marketing/views/MarketingAgentView.tsx`, `src/components/marketing/MarketingBrandReferences.tsx`, `src/pages/marketing/MarketingWorkspace.tsx` |
-| Tests SQL | `scripts/marketing-daily-sql-fixture.mjs`, `supabase/tests/marketing_daily_instagram.sql` |
+| Tests SQL | `scripts/marketing-daily-sql-fixture.mjs`, `supabase/tests/marketing_daily_instagram.sql`, `supabase/tests/marketing_daily_publication.sql` |
 
 Tests de la référence et de l’éditorial :
 

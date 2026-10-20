@@ -56,8 +56,10 @@ export function useMarketingDailySeries({ canMutateBackend }: { canMutateBackend
       const result = await updateMarketingDailySeries(input);
       queryClient.setQueryData(QUERY_KEY, result);
       setNotice({ tone: "success", message: result.series.status === "paused"
-        ? "Série en pause. Les brouillons déjà créés restent disponibles."
-        : `Série enregistrée : un nouveau brouillon chaque jour à ${result.series.localTime}, heure de Genève.` });
+        ? "Série en pause. Les contenus déjà créés restent disponibles dans le calendrier."
+        : result.series.publicationMode === "automatic"
+          ? `Publication quotidienne à ${result.series.publicationLocalTime}, heure de Genève, après préparation à ${result.series.localTime} et contrôles qualité.`
+          : `Série enregistrée : un nouveau brouillon chaque jour à ${result.series.localTime}, heure de Genève.` });
       return result;
     } catch (error) {
       const editConflict = error instanceof MarketingBffError && error.status === 409;
