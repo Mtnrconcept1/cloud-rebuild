@@ -55,16 +55,21 @@ Changer l’heure ou mettre en pause puis reprendre ne remet pas le compteur d�
 
 | Élément | Valeur |
 |---|---|
-| Profil de marque | `tok-v2-instagram-20261019` |
+| Profil de marque | `tok-v3-creme-orange-20261020` |
 | Identifiant de la référence principale | `instagram-profile` |
-| Fichier public | `public/marketing/brand/tok-v2/instagram-profile.jpeg` |
-| Chemin servi | `/marketing/brand/tok-v2/instagram-profile.jpeg` |
-| SHA-256 | `c31c13820ed5432a0583e7fd361f2f34c28221249001b7bb88dd37454142ae83` |
-| Références secondaires | `geneva`, `loyalty`, `flash`, `pricing` |
+| Fichier public | `public/marketing/brand/tok-v3/instagram-profile.jpeg` |
+| Chemin servi | `/marketing/brand/tok-v3/instagram-profile.jpeg` |
+| SHA-256 | `c1f8d594e560a4f5e2924cb13956771db6a5a8d086983c42632f6cad51ddc012` |
+| Références secondaires | `culinary`, `studio-chef` |
 
-La capture fournie est conservée **octet pour octet**. Elle contient neuf exemples de style, pas neuf images à reproduire dans un résultat. Les cinq références sont jointes à chaque requête image ; la première fait autorité pour la composition. Les anciennes affiches précisent l’identité du chef et du logo, sans imposer leurs promotions ou leur densité graphique. Une référence absente, modifiée ou trop volumineuse bloque la génération : il n’y a pas de repli vers une image sans références.
+| Référence secondaire | SHA-256 |
+|---|---|
+| `public/marketing/brand/tok-v3/culinary.jpeg` | `7f122ff79592763b564daed1572696c4eb568fcd5f829188874ea60f79ec6aa0` |
+| `public/marketing/brand/tok-v3/studio-chef.jpeg` | `4fa83ddd1b5955af59dd05791fbfc8b6dc480a3e95354c53432069aec19aa5ca` |
 
-Les invariants sont un logo TOK en haut à gauche, une palette orange/crème/noir/blanc cassé, des titres très gras en casse phrase, un message unique, des marges de 6 à 8 % et des photographies chaleureuses lorsque la famille le demande. Le chef apparaît seulement dans deux familles sur neuf. Les textes, logos et éléments artistiques sont produits nativement dans l’image. Aucun ajout en HTML, CSS, SVG, Canvas, Python ou collage n’est autorisé. Les seules transformations techniques admises après génération sont le redimensionnement proportionnel, la compression et le renommage ; la série stocke actuellement le JPEG natif contrôlé.
+La planche Instagram validée est compressée en JPEG sans recadrage ni ajout graphique. Elle contient neuf exemples de style, pas neuf images à reproduire dans un résultat. Les deux visuels fournis — cuisine et Studio marketing — sont conservés octet pour octet. Les trois références sont jointes à chaque requête image ; la première fait autorité pour la composition, les deux suivantes précisent les photos, les arches et le chef. Le corps d’email, les boutons, prix et promotions du visuel Studio ne sont jamais recopiés. Une référence absente, modifiée ou trop volumineuse bloque la génération : aucun repli sans références.
+
+Les invariants sont un logo TOK en haut à gauche avec sa bulle « Miamz! », une palette orange vermillon/crème ivoire/noir/blanc cassé, des titres très gras en casse phrase et un message unique. Les arches arrondies, filets fins et soulignements au pinceau remplacent les accents jaunes. Les photos culinaires et de carte utilisent une zone ivoire supérieure courbe ; les scènes de service et de salle conservent leur photographie chaleureuse. Le pied discret `thetok.ch` est autorisé. Tous les textes, la bulle et le logo restent dans la marge de production de 12 % ; le seuil minimal de relecture de 6 % est conservé. Les petits emblèmes de la tenue du chef ne sont pas des logos principaux supplémentaires. Le chef apparaît seulement dans deux familles sur neuf. Les textes, logos et éléments artistiques sont produits nativement dans l’image. Aucun ajout en HTML, CSS, SVG, Canvas, Python ou collage n’est autorisé. Les seules transformations techniques admises après génération sont le redimensionnement proportionnel, la compression et le renommage ; la série stocke actuellement le JPEG natif contrôlé.
 
 ### Rotation
 
@@ -129,19 +134,19 @@ L’URL publique doit provenir du même projet Supabase que celui déclaré pour
 
 Le budget par traitement visuel est de 120 secondes par défaut : génération au plus 90 secondes, contrôle visuel au plus 30 secondes, sous le verrou SQL de 300 secondes. Ces plafonds ne garantissent pas qu’un fournisseur réponde à temps.
 
-Après vérification de l’en-tête JPEG et des dimensions, le contrôle envoie **les pixels du résultat et les cinq références** à l’API Responses du modèle de relecture configuré. Il exige une réponse JSON stricte et neuf validations :
+Après vérification de l’en-tête JPEG et des dimensions, le contrôle envoie **les pixels du résultat et les trois références** à l’API Responses du modèle de relecture configuré. Il exige une réponse JSON stricte et neuf validations :
 
 | Critère | Relecture attendue |
 |---|---|
 | `single_visual` | Une seule publication ; aucune grille, mosaïque ou interface de capture |
 | `brand_identity` | Identité épurée conforme à la référence principale |
-| `logo_intact` | Un seul logo TOK principal, fidèle, en haut à gauche et non coupé |
-| `title_exact` | Titre demandé, sans ajout ni correction silencieuse |
+| `logo_intact` | Un seul logo TOK principal avec sa bulle Miamz!, fidèle, en haut à gauche et non coupé ; emblèmes sur la tenue autorisés |
+| `title_exact` | Titre demandé, sans ajout ni correction silencieuse ; logo, Miamz! et thetok.ch exclus de la transcription du titre |
 | `text_legible` | Texte lisible et aucun mot corrompu |
 | `safe_margins` | Marge suffisante, texte et logo entièrement visibles |
 | `family_match` | Composition conforme à la famille du jour |
 | `chef_correct` | Présence ou absence correcte, personnage fidèle si demandé |
-| `no_extra_claims` | Aucun prix, chiffre, promesse, autre logo ou texte inventé |
+| `no_extra_claims` | Aucun prix, chiffre, promesse, logo tiers ou texte inventé ; seuls TOK, sa bulle Miamz! et thetok.ch sont autorisés hors titre |
 
 La transcription du titre visible est aussi comparée au titre attendu. Les retours à la ligne et apostrophes typographiques sont normalisés ; la casse, les mots, les accents et les autres signes restent contrôlés. Un critère faux, absent ou incertain rejette l’image avant son upload. Une nouvelle tentative produit une nouvelle image native lorsque aucun objet validé n’existe.
 
@@ -182,11 +187,11 @@ Les éléments existants sont réutilisés. Aucun secret ni configuration de pro
 - Entrées Vault existantes `marketing_edge_url` et `internal_cron_secret`. L’URL doit viser l’orchestrateur du projet Supabase attendu ; la clé cron doit correspondre au secret serveur et comporter au moins 32 caractères. Ne pas afficher leur valeur dans les diagnostics.
 - `OPENAI_API_KEY` et `SUPABASE_URL` dans l’environnement serveur existant, et Storage public `social-post-media` conforme au projet cible. Aucune clé n’est transmise au navigateur.
 - Modèle de relecture fourni par `selectTokAiModel("image_premium")` : `OPENAI_MODEL_IMAGE_PREMIUM`, sinon le modèle stratégique existant (`OPENAI_MODEL_TOK_STRATEGIC`, avec son défaut défini dans `_shared/openai.ts`). Il doit accepter les images et le JSON structuré de l’API Responses. Une chaîne de modèle non vide ne prouve pas que l’accès fournisseur est opérationnel.
-- Référence v2 publiquement accessible avec le SHA attendu sur `https://www.thetok.ch/marketing/brand/tok-v2/instagram-profile.jpeg`.
+- Trois références v3 publiquement accessibles avec leurs SHA attendus, dont le profil sur `https://www.thetok.ch/marketing/brand/tok-v3/instagram-profile.jpeg`.
 
 Ordre de livraison après relecture de la PR et autorisation d’une mise en service :
 
-1. Déployer le frontend et **la référence publique v2**, puis vérifier les octets réellement servis. La présence du fichier dans une branche seule ne suffit pas : le chargeur des références utilise le domaine public ci-dessus.
+1. Déployer le frontend et **les trois références publiques v3**, puis vérifier les trois hashes réellement servis avant de déployer le moteur IA. La présence du fichier dans une branche seule ne suffit pas : le chargeur des références utilise le domaine public ci-dessus.
 2. Déployer l’Edge Function `marketing-orchestrator` avec ses helpers quotidiens et le contrôle visuel, en conservant le comportement des actions existantes.
 3. Appliquer la nouvelle migration `20261019200548_marketing_daily_instagram.sql` sur la cible contrôlée. Le singleton reste `paused`. Le cron dédié est ajouté seulement si les extensions nécessaires existent ; il n’active pas la série.
 4. Contrôler dans le panneau les indicateurs `runtime_enabled` et `scheduler_ready`, la référence de style et l’heure locale. Corriger les prérequis manquants par le processus d’administration habituel.
@@ -213,7 +218,7 @@ L’ordre ci-dessus est un runbook de mise en service, pas une preuve que ces op
 | `marketing_daily_storage_*` | Origine, droits, disponibilité ou upload Storage ; conserver les objets existants pour la reprise déterministe |
 | Conflit de version / HTTP 409 | Recharger les réglages puis revoir l’heure et l’état avant d’enregistrer |
 
-Pour arrêter la série, utiliser **Mettre en pause**. Conserver les brouillons, objets et traces pour le diagnostic. Un retour arrière applicatif doit garder le cron inoffensif grâce à cet état en pause ; ne pas supprimer les tables, réécrire une migration historique ou effacer les travaux pour masquer un échec.
+Pour arrêter la série, utiliser **Mettre en pause**. Conserver les brouillons, objets et traces pour le diagnostic. Pour revenir à la DA précédente, restaurer le profil v2 et la version précédente du moteur, en conservant les fichiers v2 existants. Ne pas modifier les images ou brouillons déjà produits ; conserver leur version de profil. Un retour arrière applicatif doit garder le cron inoffensif grâce à cet état en pause ; ne pas supprimer les tables, réécrire une migration historique ou effacer les travaux pour masquer un échec.
 
 Les traces utiles sont les travaux quotidiens, le journal de l’orchestrateur, les exécutions du cron dédié et les événements d’audit `marketing_daily_claim` / `marketing_daily_complete`. Les journaux applicatifs ne doivent pas contenir les secrets, les preuves de session ou les jetons de verrou.
 
@@ -221,7 +226,7 @@ Les traces utiles sont les travaux quotidiens, le journal de l’orchestrateur, 
 
 | Responsabilité | Fichiers |
 |---|---|
-| Référence et prompt de marque | `public/marketing/brand/tok-v2/instagram-profile.jpeg`, `supabase/functions/_shared/marketing-brand.ts` |
+| Référence et prompt de marque | `public/marketing/brand/tok-v3/instagram-profile.jpeg`, `supabase/functions/_shared/marketing-brand.ts` |
 | Rotation des messages | `supabase/functions/_shared/marketing-daily-editorial.ts` |
 | Prise en charge et action serveur | `supabase/functions/_shared/marketing-daily-generation.ts`, `supabase/functions/marketing-orchestrator/index.ts` |
 | Génération native et récupération | `supabase/functions/_shared/marketing-visual.ts`, `supabase/functions/_shared/marketing-daily-visual.ts` |

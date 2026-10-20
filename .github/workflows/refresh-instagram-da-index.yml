@@ -1,0 +1,35 @@
+name: Refresh Instagram DA index
+on:
+  push:
+    branches: ["feat/instagram-da-creme-orange-20261020"]
+permissions:
+  contents: write
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/feat/instagram-da-creme-orange-20261020'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: feat/instagram-da-creme-orange-20261020
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Install pinned project dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+          pnpm install --frozen-lockfile
+      - name: Regenerate indexes and remove this temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/refresh-instagram-da-index.yml
+          node scripts/generate-application-index.mjs
+          node scripts/generate-application-index.mjs --check
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(marketing): actualiser les index de la DA Instagram"
+          git push origin HEAD:feat/instagram-da-creme-orange-20261020

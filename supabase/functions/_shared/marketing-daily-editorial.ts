@@ -5,14 +5,14 @@ const EDITORIAL_EPOCH = Date.parse("2026-10-19T00:00:00.000Z");
 
 /** The reference contains two mascot compositions among nine independent posts. */
 export const TOK_DAILY_VISUAL_FAMILIES = [
-  { id: "orange-white", label: "Orange et titre blanc", requiresChef: false, direction: "Aplat orange vif, titre blanc cassé, un court soulignement jaune. Composition typographique épurée, sans photo, sans mascotte." },
-  { id: "food-photo", label: "Photographie culinaire", requiresChef: false, direction: "Une seule photographie réaliste de plat, cadrage gourmand, restaurant chaleureux en arrière-plan flou. Titre blanc dans une zone sombre et calme, sans masquer le plat." },
-  { id: "cream-detail", label: "Crème et détail de table", requiresChef: false, direction: "Fond crème chaud, titre noir, une table en trois quarts avec un détail du service : carte orange vierge, assiette ou couverts. Une seule nature morte, sans interface inventée." },
+  { id: "orange-white", label: "Orange et titre blanc", requiresChef: false, direction: "Aplat orange vermillon vif, titre blanc cassé, court soulignement au pinceau crème et détail d'arche ivoire. Composition typographique épurée, sans photo, sans mascotte." },
+  { id: "food-photo", label: "Photographie culinaire", requiresChef: false, direction: "Une seule photographie réaliste de plat, restaurant chaleureux flou. Zone ivoire supérieure courbe, titre noir très gras, court soulignement au pinceau orange et arche orange latérale ; ne pas masquer le plat." },
+  { id: "cream-detail", label: "Crème et détail de table", requiresChef: false, direction: "Fond crème ivoire chaud, titre noir et filet orange fin. Une table en trois quarts avec un détail du service : carte orange vierge, assiette ou couverts. Une seule nature morte, sans interface inventée." },
   { id: "human-service", label: "Le service en situation", requiresChef: false, direction: "Une seule photographie réaliste d'une personne de l'équipe accueillant ou servant des clients. Geste naturel, lumière ambrée, titre blanc dans une zone calme. Aucune mascotte." },
-  { id: "chef-dark", label: "Chef TOK sur fond noir", requiresChef: true, direction: "Chef TOK 3D fidèle aux références, sur fond noir profond, geste accueillant lié au thème. Titre blanc, un petit accent orange. Une seule mascotte, une seule composition." },
-  { id: "cream-menu", label: "Crème et carte gourmande", requiresChef: false, direction: "Fond crème, titre noir, un plat réaliste près d'un téléphone affichant uniquement sa photo, sans texte, chiffre ou interface inventés. Une seule scène de table cohérente." },
-  { id: "orange-black", label: "Orange et titre noir", requiresChef: false, direction: "Aplat orange vif, titre noir très gras, petit cercle jaune partiellement hors cadre ou soulignement court. Sans photo, sans mascotte, sans autre décoration." },
-  { id: "chef-cream", label: "Chef TOK sur fond crème", requiresChef: true, direction: "Chef TOK 3D fidèle aux références sur fond crème, présentant un plat ou une tablette montrant seulement une photo culinaire. Titre noir, geste expressif. Une seule mascotte, aucun collage." },
+  { id: "chef-dark", label: "Chef TOK sur fond noir", requiresChef: true, direction: "Chef TOK 3D fidèle à la référence Studio, sur fond noir profond devant une arche orange arrondie, geste accueillant lié au thème. Titre blanc, court soulignement au pinceau orange. Une seule mascotte, une seule composition." },
+  { id: "cream-menu", label: "Crème et carte gourmande", requiresChef: false, direction: "Fond crème ivoire, titre noir et court soulignement orange dans une zone supérieure courbe. Un plat réaliste près d'un téléphone affichant uniquement sa photo, sans texte, chiffre ou interface inventés ; arche orange latérale. Une seule scène de table cohérente." },
+  { id: "orange-black", label: "Orange et titre noir", requiresChef: false, direction: "Aplat orange vermillon vif, titre noir très gras, court soulignement au pinceau crème et détail d'arche ivoire. Sans photo, sans mascotte, sans autre décoration." },
+  { id: "chef-cream", label: "Chef TOK sur fond crème", requiresChef: true, direction: "Chef TOK 3D fidèle à la référence Studio sur fond crème ivoire, devant une arche orange arrondie, présentant un plat ou une tablette montrant seulement une photo culinaire. Titre noir, court soulignement orange, geste expressif. Une seule mascotte, aucun collage." },
   { id: "restaurant-photo", label: "Ambiance du restaurant", requiresChef: false, direction: "Une seule photographie réaliste de salle ou terrasse accueillante : tables dressées, bois, verre, lumière chaude. Titre blanc sur une zone sombre. Aucun autre logo ni enseigne." },
 ] as const;
 
@@ -218,7 +218,7 @@ export function buildDailyMarketingBrief(localDate: string, recentTitles: string
   const visualPrompt = [
     `Publication Instagram quotidienne TOK du ${localDate}. Audience : restaurateurs francophones. Format 4:5.`,
     `Sujet : ${subject.label}. Un seul bénéfice, exprimé par le titre exact suivant : ${JSON.stringify(title)}.`,
-    "Ne générer aucun autre texte en dehors de ce titre et du logo TOK. La légende reste hors de l'image.",
+    "Textes autorisés : le titre exact, TOK et la bulle Miamz! dans le logo, thetok.ch discret en pied. Ne générer aucun autre texte. La légende reste hors de l'image.",
     `Famille visuelle imposée : ${family.id} — ${family.direction}`,
     family.requiresChef
       ? "Mascotte chef TOK obligatoire, strictement identique aux références maîtresses."
