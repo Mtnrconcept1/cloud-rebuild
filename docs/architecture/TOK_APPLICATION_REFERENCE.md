@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f736b878586e400f88997d0ff8c9190c0ca551be0c6807a9586de14123383573`
+- Empreinte SHA-256 des sources indexées : `cab3f00e444fc8a8c7ff0026dba092f893fe064934a648428fb79d74cbc7b56f`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1622,7 +1622,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-tok-connect.webp | 1 | [src/lib/dashboardIllustrations.ts:38](../../src/lib/dashboardIllustrations.ts#L38) |
 | /images/doner-kebab-plate.jpeg | 2 | [src/lib/menu-item-images.ts:48](../../src/lib/menu-item-images.ts#L48) |
 | /images/edamame.webp | 1 | [src/lib/menu-item-images.ts:49](../../src/lib/menu-item-images.ts#L49) |
-| /images/edits | 1 | [src/test/marketing-daily-visual.test.ts:109](../../src/test/marketing-daily-visual.test.ts#L109) |
+| /images/edits | 3 | [src/test/marketing-daily-visual.test.ts:124](../../src/test/marketing-daily-visual.test.ts#L124) |
 | /images/emails/tok-reservation-hero.jpg | 2 | [src/test/transactional-email-templates.test.ts:105](../../src/test/transactional-email-templates.test.ts#L105) |
 | /images/emails/tok-reservation-hero.webp | 1 | [src/test/transactional-email-templates.test.ts:106](../../src/test/transactional-email-templates.test.ts#L106) |
 | /images/fattouche.webp | 5 | [src/lib/menu-item-images.ts:21](../../src/lib/menu-item-images.ts#L21) |
@@ -1896,7 +1896,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /reseaux-sociaux | 1 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
 | /reservations | 27 | [scripts/prerender-seo.mjs:1273](../../scripts/prerender-seo.mjs#L1273) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
-| /responses | 2 | [src/test/marketing-daily-visual.test.ts:84](../../src/test/marketing-daily-visual.test.ts#L84) |
+| /responses | 4 | [src/test/marketing-daily-visual.test.ts:91](../../src/test/marketing-daily-visual.test.ts#L91) |
 | /rest/v1/ | 4 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
 | /rest/v1/profiles | 2 | [src/test/tok-connect-oauth-delegation.test.ts:100](../../src/test/tok-connect-oauth-delegation.test.ts#L100) |
 | /rest/v1/profiles?select=first_name | 1 | [src/test/tok-connect-oauth-delegation.test.ts:102](../../src/test/tok-connect-oauth-delegation.test.ts#L102) |

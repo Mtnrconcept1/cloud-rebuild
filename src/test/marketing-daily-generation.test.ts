@@ -27,7 +27,7 @@ describe("continuous daily marketing worker", () => {
     expect(generate).not.toHaveBeenCalled();
   });
 
-  it("completes exactly one validated draft from the claimed local date without granting approval", async () => {
+  it("submits one validated result from the claimed local date and leaves approval to the database", async () => {
     const client = clientFor(); generate.mockResolvedValue(visual);
     expect(await runDailyMarketingGeneration(client, options)).toEqual(completed);
     expect(generate).toHaveBeenCalledTimes(1);
@@ -49,15 +49,16 @@ describe("continuous daily marketing worker", () => {
     expect(client.rpc.mock.calls[1][1].p_content.generation_source).toBe("recovered");
   });
 
-  it("records a quality rejection as a bounded retryable error, with no incomplete campaign content", async () => {
+  it.each(["marketing_daily_quality_title_mismatch", "marketing_daily_quality_safe_margins", "marketing_daily_quality_text_legible"])("records %s as a bounded retryable error, with no incomplete campaign content", async (error) => {
     const client = clientFor();
     client.rpc.mockReset().mockResolvedValueOnce({ data: claim, error: null }).mockResolvedValueOnce({ data: {
       id: runId, status: "retrying", campaign_id: null, calendar_item_id: null, next_attempt_at: "2026-10-19T08:05:00Z",
     }, error: null });
-    generate.mockRejectedValue(new Error("marketing_daily_quality_title_mismatch"));
-    expect(await runDailyMarketingGeneration(client, options)).toMatchObject({ status: "retrying", error: "marketing_daily_quality_title_mismatch" });
+    generate.mockRejectedValue(new Error(error));
+    expect(await runDailyMarketingGeneration(client, options)).toMatchObject({ status: "retrying", error });
     expect(client.rpc.mock.calls[1][1]).toEqual({ p_run_id: runId, p_lease_token: lease,
-      p_content: {}, p_error: "marketing_daily_quality_title_mismatch" });
+      p_content: {}, p_error: error });
+    expect(generate).toHaveBeenCalledTimes(1);
   });
 
   it("does not blindly retry completion or generation after an uncertain database acknowledgement", async () => {

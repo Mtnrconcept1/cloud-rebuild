@@ -20,7 +20,8 @@ beforeAll(() => {
   imageBytes = new Uint8Array(jpeg.encode({ width: 1024, height: 1280, data: Buffer.alloc(1024 * 1280 * 4, 255) }, 10).data);
 });
 
-type Mode = "created" | "recovered" | "missing400" | "storage500" | "multiple" | "grid" | "typo" | "square" | "review500" | "incomplete" | "malformed" | "missing-master" | "changed-master";
+type Mode = "created" | "recovered" | "missing400" | "storage500" | "multiple" | "grid" | "typo" | "square" | "review500" | "incomplete" | "malformed" | "missing-master" | "changed-master"
+  | "margins" | "recovered-margins" | "contrast" | "missing-margins" | "nonboolean-margins";
 function mockNetwork(mode: Mode = "created") {
   Object.defineProperty(Blob.prototype, "arrayBuffer", { configurable: true, writable: true, value: function (this: Blob) {
     return new Promise<ArrayBuffer>((resolve, reject) => {
@@ -33,7 +34,7 @@ function mockNetwork(mode: Mode = "created") {
     if (url === imageUrl) {
       expect(request?.redirect).toBe("error");
       expect(request?.headers).toBeUndefined();
-      if (mode === "recovered") return new Response(imageBytes);
+      if (mode === "recovered" || mode === "recovered-margins") return new Response(imageBytes);
       if (mode === "storage500") return new Response("unavailable", { status: 503 });
       if (mode === "missing400") return Response.json({ statusCode: "404", error: "not_found", code: "NoSuchKey" }, { status: 400 });
       return new Response("missing", { status: 404 });
@@ -51,6 +52,7 @@ function mockNetwork(mode: Mode = "created") {
       expect(form.get("size")).toBe("1024x1280");
       expect(form.getAll("image[]")).toHaveLength(TOK_MARKETING_REFERENCES.length);
       expect(form.get("prompt")).toContain(brief.expectedTitle);
+      expect(form.get("prompt")).toContain(`à au moins ${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} % de chacun des quatre bords`);
       const encoded = mode === "square"
         ? jpeg.encode({ width: 100, height: 100, data: Buffer.alloc(100 * 100 * 4, 255) }, 10).data
         : imageBytes;
@@ -59,7 +61,12 @@ function mockNetwork(mode: Mode = "created") {
     }
     expect(url).toBe("https://api.openai.com/v1/responses");
     if (mode === "review500") return new Response("provider details must stay private", { status: 503 });
-    const checks = Object.fromEntries(DAILY_VISUAL_CHECKS.map((key) => [key, !(mode === "grid" && key === "single_visual")]));
+    const checks: Record<string, unknown> = Object.fromEntries(DAILY_VISUAL_CHECKS.map((key) => [key, true]));
+    if (mode === "grid") checks.single_visual = false;
+    if (mode === "margins" || mode === "recovered-margins") checks.safe_margins = false;
+    if (mode === "contrast") checks.text_legible = false;
+    if (mode === "missing-margins") delete checks.safe_margins;
+    if (mode === "nonboolean-margins") checks.safe_margins = "true";
     const text = mode === "malformed" ? "not JSON" : JSON.stringify({ checks,
       observed_title: mode === "typo" ? "Vos reservation. Bien organisées." : brief.expectedTitle.replace(". ", ".\n"),
       reason: "Composition unique et titre conforme aux références TOK." });
@@ -90,7 +97,15 @@ describe("daily native image and pixel review", () => {
     expect(images.at(-1).image_url).toBe(`data:image/jpeg;base64,${Buffer.from(imageBytes).toString("base64")}`);
     const instructions = review.input[1].content.find((item: { type: string }) => item.type === "input_text").text;
     expect(instructions).toContain(`marge d'au moins ${TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT} %`);
-    expect(instructions).toContain(`${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} %`);
+    const marginRule = instructions.split("\n").find((line: string) => line.startsWith("safe_margins ="));
+    expect(marginRule).not.toContain(`${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} %`);
+    expect(marginRule).not.toContain("contraste");
+    expect(marginRule).toContain("62 px à gauche et à droite");
+    expect(marginRule).toContain("77 px en haut et en bas");
+    expect(marginRule).toContain("le titre et le pied thetok.ch");
+    expect(marginRule).toContain("son liseré et sa bulle Miamz!");
+    expect(marginRule).toContain("Les fonds, photographies, arches et filets décoratifs peuvent atteindre les bords");
+    expect(instructions).toContain("text_legible = lisible à taille de téléphone, bon contraste, aucun mot corrompu");
     // The reviewer must permit the exact brand elements requested from generation,
     // while still transcribing only the headline for the strict title comparison.
     expect(instructions).toContain("intact et non coupé avec sa bulle Miamz!");
@@ -116,13 +131,23 @@ describe("daily native image and pixel review", () => {
     ["square", "marketing_daily_image_dimensions"], ["review500", "marketing_daily_review_http_503"],
     ["incomplete", "marketing_daily_review_incomplete"], ["malformed", "marketing_daily_review_invalid"],
     ["missing-master", "marketing_image_response_invalid"], ["changed-master", "marketing_brand_reference_changed"],
+    ["margins", "marketing_daily_quality_safe_margins"], ["recovered-margins", "marketing_daily_quality_safe_margins"],
+    ["contrast", "marketing_daily_quality_text_legible"], ["missing-margins", "marketing_daily_review_invalid"],
+    ["nonboolean-margins", "marketing_daily_quality_safe_margins"],
   ] as const)("rejects %s without uploading or silently accepting a fallback", async (mode, error) => {
-    mockNetwork(mode);
+    const fetcher = mockNetwork(mode);
     const upload = vi.fn();
     const client = { storage: { from: () => ({ upload, getPublicUrl: () => ({ data: { publicUrl: imageUrl } }) }) } };
     const { generateDailyMarketingVisual } = await import("../../supabase/functions/_shared/marketing-daily-visual");
     await expect(generateDailyMarketingVisual(client, options)).rejects.toThrow(error);
     expect(upload).not.toHaveBeenCalled();
+    if (mode === "recovered-margins") {
+      expect(fetcher.mock.calls.filter(([url]) => url.endsWith("/images/edits"))).toHaveLength(0);
+      expect(fetcher.mock.calls.filter(([url]) => url.endsWith("/responses"))).toHaveLength(1);
+    } else if (mode === "margins" || mode === "contrast") {
+      expect(fetcher.mock.calls.filter(([url]) => url.endsWith("/images/edits"))).toHaveLength(1);
+      expect(fetcher.mock.calls.filter(([url]) => url.endsWith("/responses"))).toHaveLength(1);
+    }
   });
 
   it("recognizes Supabase's explicit missing-key response, without treating other storage errors as absence", async () => {
