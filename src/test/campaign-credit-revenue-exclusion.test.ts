@@ -43,10 +43,11 @@ describe("campagnes financees par des credits TOK", () => {
   });
 
   it("exclut ces campagnes du resume de chiffre d'affaires", () => {
-    // buildTokRevenueSummary agrege deja l'abonnement Tok One et les achats de
-    // credits. Y ajouter la depense de credits compterait la meme recette deux
-    // fois : une fois a l'encaissement, une fois a la depense.
-    expect(shared).toContain("buildTokRevenueSummary");
+    // Les recettes viennent des ecritures encaissees du grand livre. Les
+    // campagnes restent consultables, mais leur consommation de credits ne
+    // produit pas une seconde recette apres l'achat du pack ou l'abonnement.
+    expect(shared).toContain("summarizeAdminAccountingRevenue(ledgerQuery.data || [])");
+    expect(shared).toContain("totalRevenue: postedRevenue.totalRevenue");
     expect(shared).toContain(".filter((campaign) => !isCreditFundedCampaign(campaign))");
     expect(shared).toContain("creditFundedCampaignsTotal");
     expect(shared).toContain("creditFundedCampaignsCount");

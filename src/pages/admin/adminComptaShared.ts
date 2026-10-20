@@ -16,10 +16,9 @@ import {
 } from "@/lib/comptaCommissionSources";
 import {
   buildTokAccountingSummary,
-  buildTokRevenueSummary,
   calculateTokCommission,
-  sumDirectTokPurchaseRevenue,
 } from "@/lib/comptaFlow";
+import { buildAdminLedgerExportEntries, summarizeAdminAccountingRevenue, type AccountingLedgerRow } from "@/lib/adminAccountingRevenue";
 import {
   buildAccountingExportEntries,
   type AccountingExportEntry,
@@ -742,7 +741,7 @@ async function fetchAdminExportReservations(selectedRestaurant: string, period: 
 async function fetchAdminExportReservationFees(selectedRestaurant: string, period: AccountingPeriodRange) {
   const buildQuery = () => {
     const query = (supabase as any)
-      .from("reservation_fee_charges")
+      .from("reservation_flat_fee_charges")
       .select(`
         id,
         reservation_id,
@@ -757,10 +756,22 @@ async function fetchAdminExportReservationFees(selectedRestaurant: string, perio
       applyAdminRestaurantFilter(query, selectedRestaurant),
       "honored_at_snapshot",
       period,
-    ).order("honored_at_snapshot", { ascending: true });
+    ).order("honored_at_snapshot", { ascending: true }).order("id");
   };
 
   return fetchPagedRows<AdminReservationFeeAccrualRow>(buildQuery);
+}
+
+async function fetchAdminAccountingLedger(selectedRestaurant: string, period: AccountingPeriodRange) {
+  return fetchPagedRows<AccountingLedgerRow>(() => {
+    // This existing table is not yet in the repository's generated client types.
+    const query = (supabase as any).from("financial_ledger")
+      .select("entry_id,account_code,direction,amount_cents,currency,livemode,effective_at,source_type,source_id,restaurants(name)")
+      .eq("livemode", true)
+      .eq("currency", "CHF");
+    return applyAccountingPeriodRange(applyAdminRestaurantFilter(query, selectedRestaurant), "effective_at", period)
+      .order("effective_at").order("entry_id");
+  });
 }
 
 async function fetchAdminExportCampaigns(selectedRestaurant: string, period: AccountingPeriodRange) {
@@ -840,6 +851,22 @@ export async function fetchAdminAccountingExportEntries({
   period: AccountingPeriodRange;
   perspective?: AccountingExportPerspective;
 }): Promise<AccountingExportEntry[]> {
+  if (perspective === "admin") {
+    const [ledger, invoices, fees] = await Promise.all([
+      fetchAdminAccountingLedger(selectedRestaurant, period),
+      fetchAdminExportInvoices(selectedRestaurant, period),
+      fetchAdminExportReservationFees(selectedRestaurant, period),
+    ]);
+    const balances = buildAccountingExportEntries({ perspective, sources: { invoices } })
+      .map((entry) => entry.status === "paid" ? { ...entry, statementClass: "memo" as const } : entry);
+    const unbilled: AccountingExportEntry[] = fees.filter(isBillableReservationFee).map((fee) => ({
+      date: fee.honored_at_snapshot.slice(0, 10), direction: "inflow", category: "Frais réservation à facturer",
+      label: "Table honorée, non encaissée", restaurantName: fee.restaurants?.name || "Restaurant",
+      reference: fee.reservation_id, amount: getReservationFeeAmount(fee), status: "a_facturer",
+      source: "reservation_flat_fee_charges", statementClass: "asset",
+    }));
+    return [...buildAdminLedgerExportEntries(ledger), ...balances, ...unbilled];
+  }
   const [
     orders,
     reservations,
@@ -952,6 +979,17 @@ export function useAdminReservationFeeInvoiceDetailLines(invoiceId: string | nul
 export function useAdminComptaData(selectedRestaurant: string, selectedMonth: string) {
   const monthBounds = useMemo(() => buildMonthBounds(selectedMonth), [selectedMonth]);
   const monthOptions = useMemo(() => buildMonthOptions(), []);
+
+  const ledgerQuery = useQuery({
+    queryKey: ["admin-compta-ledger", selectedRestaurant, selectedMonth],
+    queryFn: () => fetchAdminAccountingLedger(selectedRestaurant, {
+      preset: "current_month", label: selectedMonth,
+      startDate: monthBounds.monthStart, endDate: monthBounds.monthEnd,
+    }),
+  });
+  const postedRevenue = useMemo(
+    () => summarizeAdminAccountingRevenue(ledgerQuery.data || []), [ledgerQuery.data],
+  );
 
   const periodControlQuery = useQuery({
     queryKey: ["admin-compta-period-control", selectedMonth],
@@ -1105,30 +1143,12 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
 
   const reservationFeeAccrualsQuery = useQuery({
     queryKey: ["admin-compta-reservation-fee-accruals-v2", selectedRestaurant, selectedMonth],
-    queryFn: async () => {
-      let query = (supabase as any)
-        .from("reservation_fee_charges")
-        .select(`
-          id,
-          reservation_id,
-          restaurant_id,
-          honored_at_snapshot,
-          fee_cents,
-          invoice_id,
-          restaurants ( name )
-        `)
-        .gte("honored_at_snapshot", `${monthBounds.monthStart}T00:00:00.000Z`)
-        .lte("honored_at_snapshot", `${monthBounds.monthEnd}T23:59:59.999Z`);
-
-      if (selectedRestaurant !== "all") {
-        query = query.eq("restaurant_id", selectedRestaurant);
-      }
-
-      const { data, error } = await query.order("honored_at_snapshot", { ascending: false });
-      if (error) throw error;
-
-      return (data || []) as AdminReservationFeeAccrualRow[];
-    },
+    queryFn: () => fetchAdminExportReservationFees(selectedRestaurant, {
+      preset: "current_month",
+      label: selectedMonth,
+      startDate: monthBounds.monthStart,
+      endDate: monthBounds.monthEnd,
+    }),
   });
 
   const reservationsQuery = useQuery({
@@ -1441,13 +1461,6 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     () => reservationFeeAccruals.reduce((sum, row) => sum + getReservationFeeAmount(row), 0),
     [reservationFeeAccruals],
   );
-  const reservationFeeRevenueAmount = useMemo(
-    () => (reservationFeeAccrualsQuery.data || []).reduce(
-      (sum, row) => sum + getReservationFeeAmount(row),
-      0,
-    ),
-    [reservationFeeAccrualsQuery.data],
-  );
   // Le chiffre d'affaires ne retient que les campagnes reglees en argent. Une
   // campagne financee par le solde TOK a deja ete encaissee en amont, via
   // l'abonnement ou un pack de recharge, tous deux presents dans ce meme
@@ -1506,31 +1519,6 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       };
     }, { amount: 0, count: 0 });
   }, [selectedRestaurant, tokOnePaymentsQuery.data]);
-  const directTokPurchaseRevenueAmount = useMemo(() => {
-    const paidInvoiceIds = new Set(
-      payableInvoiceSections.history
-        .filter((invoice) => invoice.invoice_type === "payable")
-        .map((invoice) => invoice.id),
-    );
-
-    return sumDirectTokPurchaseRevenue(payableLineItemsQuery.data || [], paidInvoiceIds);
-  }, [payableInvoiceSections.history, payableLineItemsQuery.data]);
-  const totalRevenueSummary = useMemo(
-    () => buildTokRevenueSummary({
-      commissionAmount: summary.inflow.totalCommissions,
-      reservationFeeAmount: reservationFeeRevenueAmount,
-      campaignAmount: paidCampaignsTotal,
-      tokOneSubscriptionAmount: tokOneRevenue.amount,
-      restaurantPurchaseAmount: directTokPurchaseRevenueAmount,
-    }),
-    [
-      directTokPurchaseRevenueAmount,
-      paidCampaignsTotal,
-      reservationFeeRevenueAmount,
-      summary.inflow.totalCommissions,
-      tokOneRevenue.amount,
-    ],
-  );
   const refundOperations = useMemo(
     () => [...(refundedOrdersQuery.data || []), ...(refundedReservationsQuery.data || [])],
     [refundedOrdersQuery.data, refundedReservationsQuery.data],
@@ -1578,7 +1566,8 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     paidEventGross,
     reservationFeeAccrualCount,
     reservationFeeAccrualAmount,
-    reservationFeeRevenueAmount,
+    reservationFeeRevenueAmount: postedRevenue.reservationFeeAmount,
+    postedRevenue,
     paidCampaignsTotal,
     paidCampaignsCount,
     creditFundedCampaignsTotal,
@@ -1587,9 +1576,9 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     tokCoveredMiamzCount: tokCoveredMiamz.count,
     tokOneSubscriptionAmount: tokOneRevenue.amount,
     tokOneSubscriptionCount: tokOneRevenue.count,
-    directTokPurchaseRevenueAmount,
-    totalRevenue: totalRevenueSummary.totalRevenue,
-    developerReservedShare: totalRevenueSummary.developerReservedShare,
+    directTokPurchaseRevenueAmount: postedRevenue.restaurantPurchaseAmount,
+    totalRevenue: postedRevenue.totalRevenue,
+    developerReservedShare: postedRevenue.developerReservedShare,
     refundsIssuedTotal,
     refundsIssuedCount,
     refundsPendingAmount,
@@ -1600,7 +1589,8 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     platformFinanceSnapshot: platformFinanceSnapshotQuery.data || null,
     isPeriodClosed: isAccountingPeriodClosed(periodControlQuery.data),
     monthOptions,
-    isLoading: periodControlQuery.isLoading
+    isLoading: ledgerQuery.isLoading
+      || periodControlQuery.isLoading
       || stripeReconciliationQuery.isLoading
       || platformFinanceSnapshotQuery.isLoading
       || restaurantsQuery.isLoading
@@ -1615,7 +1605,8 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || payableLineItemsQuery.isLoading
       || refundedOrdersQuery.isLoading
       || refundedReservationsQuery.isLoading,
-    error: periodControlQuery.error
+    error: ledgerQuery.error
+      || periodControlQuery.error
       || stripeReconciliationQuery.error
       || platformFinanceSnapshotQuery.error
       || restaurantsQuery.error
