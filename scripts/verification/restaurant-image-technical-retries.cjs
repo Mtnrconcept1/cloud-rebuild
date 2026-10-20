@@ -26,7 +26,7 @@ const assert = require('node:assert/strict');
   const migration = readFileSync(resolve(__dirname, '../../supabase/migrations/20261020223521_retry_technical_restaurant_photo_reviews.sql'), 'utf8');
   await db.exec(migration);
   assert.equal((await db.query("SELECT count(*)::int AS n FROM restaurant_image_truth_reviews WHERE evidence->>'technical_retry_batch'='tok_openai_400_20261021'")).rows[0].n, 0, 'original terminal trigger must block ordinary requeue');
-  await db.exec(readFileSync(resolve(__dirname, '../../supabase/migrations/20261020223634_controlled_retry_restaurant_photo_transport_errors.sql'), 'utf8'));
+  await db.exec(readFileSync(resolve(__dirname, '../../supabase/migrations/20261020223830_controlled_retry_restaurant_photo_transport_errors.sql'), 'utf8'));
   let denied = false;
   try { await db.query('SELECT service_retry_restaurant_photo_transport_errors()'); } catch { denied = true; }
   assert(denied, 'owner call without service role must be denied');
