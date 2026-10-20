@@ -5,6 +5,13 @@ SECURITY DEFINER
 SET search_path = ''
 AS $function$
 BEGIN
+  -- Settlement replaces model evidence; retain the batch audit and lifetime cap.
+  IF OLD.evidence ->> 'technical_retry_batch' = 'tok_openai_400_20261021' THEN
+    NEW.evidence := COALESCE(NEW.evidence, '{}'::jsonb) || jsonb_build_object(
+      'technical_retry_batch', OLD.evidence -> 'technical_retry_batch',
+      'technical_retry_previous_reason', OLD.evidence -> 'technical_retry_previous_reason',
+      'technical_retry_queued_at', OLD.evidence -> 'technical_retry_queued_at');
+  END IF;
   -- Only the internal bounded repair RPC may reopen this technical failure.
   -- Ordinary conflict-upserts retain the immutable terminal decision below.
   IF OLD.status = 'rejected' AND OLD.decision_reason = 'openai_http_400'
