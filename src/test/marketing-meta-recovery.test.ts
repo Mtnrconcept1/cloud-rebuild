@@ -14,6 +14,15 @@ import { MetaPublishError } from "../../supabase/functions/_shared/meta-publishi
 
 const item = { id: "item-1", channel: "facebook", content: { body: "TOK" },
   lease_token: "lease-1", attempt_count: 1, max_attempts: 3 };
+const instagramAccountId = "17841447348180505";
+const dailyApprovalSource = "daily-series-standing-authorization";
+const dailyAuthorization = {
+  account_id: instagramAccountId, authorized_at: "2026-10-20T12:00:00+00:00", series_version: 3,
+};
+const dailyItem = { ...item, channel: "instagram", content: {
+  body: "TOK", generated_by: "marketing-daily-generator", daily_run_id: "run-1", daily_series_id: "series-1",
+  daily_publication_authorization: dailyAuthorization,
+} };
 
 function clientFixture(options: {
   summary?: Record<string, unknown>;
@@ -22,11 +31,24 @@ function clientFixture(options: {
   approved?: boolean;
   persistFails?: boolean;
   completionFails?: boolean;
+  item?: Parameters<typeof processMetaMarketingItem>[1];
+  campaignId?: string;
+  approvalSource?: string;
+  accountId?: string;
+  storedContent?: Record<string, unknown>;
+  replaceContentAtMarker?: Record<string, unknown>;
 } = {}) {
   let summary = options.summary || {};
   let providerId = options.providerId || null;
+  const claimedItem = options.item || item;
+  let storedContent = options.storedContent || claimedItem.content;
+  let accountId = options.accountId || instagramAccountId;
+  let integrationStatus = "connected";
+  let approvalSource = options.approvalSource || "";
+  let version = 1;
   const completions: Record<string, unknown>[] = [];
   const filters: Array<[string, unknown]> = [];
+  const integrationUpdates: Record<string, unknown>[] = [];
   const client = {
     rpc: vi.fn(async (name: string, args?: Record<string, unknown>) => {
       if (name === "marketing_runtime_enabled") return { data: !options.paused, error: null };
@@ -38,43 +60,172 @@ function clientFixture(options: {
     from: (table: string) => {
       let patch: Record<string, unknown> | undefined;
       let columns = "";
+      let expectedVersion: unknown;
       const query = {
         select: (value: string) => { columns = value; return query; },
-        eq: (key: string, value: unknown) => { filters.push([key, value]); return query; },
+        eq: (key: string, value: unknown) => {
+          filters.push([key, value]);
+          if (key === "version") expectedVersion = value;
+          return query;
+        },
         gt: () => query, order: () => query, limit: () => query,
-        update: (value: Record<string, unknown>) => { patch = value; return query; },
+        update: (value: Record<string, unknown>) => {
+          patch = value;
+          if (table === "marketing_integrations") integrationUpdates.push(value);
+          return query;
+        },
         maybeSingle: async () => {
           if (table === "marketing_automations") return { data: { conditions: { global_pause: Boolean(options.paused) } }, error: null };
           if (table === "feature_flags") return { data: { is_active: true }, error: null };
           if (table === "marketing_integrations") return { data: {
-            id: "integration-1", channel: "facebook", status: "connected",
+            id: "integration-1", channel: claimedItem.channel, status: integrationStatus,
             capabilities: { adapter_deployed: true }, secret_ref: "META_SYSTEM_USER_TOKEN",
-            public_configuration: { page_id: "1409554725565734", graph_version: "v26.0" },
+            public_configuration: { page_id: "1409554725565734", ig_user_id: accountId, graph_version: "v26.0" },
+          }, error: null };
+          if (table === "marketing_campaigns") return { data: {
+            status: "draft", approved_at: "2026-10-20T12:05:00Z", metadata: { approval_source: approvalSource },
           }, error: null };
           if (patch) {
+            if (!patch.provider_external_id && options.replaceContentAtMarker) {
+              storedContent = options.replaceContentAtMarker;
+              version += 1;
+            }
+            if (expectedVersion !== undefined && expectedVersion !== version) return { data: null, error: null };
             if (patch.provider_external_id && options.persistFails) return { data: null, error: new Error("Offline") };
             summary = patch.result_summary as Record<string, unknown>;
             if (patch.provider_external_id) providerId = String(patch.provider_external_id);
-            return { data: { id: item.id }, error: null };
+            return { data: { id: claimedItem.id }, error: null };
           }
           if (columns.includes("approval_status")) return { data: {
             approval_status: options.approved === false ? "rejected" : "approved",
-            approved_at: "2026-10-08T10:00:00Z", campaign_id: null,
+            approved_at: "2026-10-08T10:00:00Z", campaign_id: options.campaignId || null,
+            content: storedContent, integration_id: "integration-1", version,
           }, error: null };
           return { data: { provider_external_id: providerId, result_summary: summary,
-            integration_id: "integration-1" }, error: null };
+            integration_id: "integration-1", campaign_id: options.campaignId || null, content: storedContent }, error: null };
         },
         then: (resolve: (value: unknown) => unknown) => Promise.resolve({ error: null }).then(resolve),
       };
       return query;
     },
   };
-  return { client: client as unknown as Parameters<typeof processMetaMarketingItem>[0], completions, filters };
+  return { client: client as unknown as Parameters<typeof processMetaMarketingItem>[0], completions, filters, integrationUpdates,
+    setStoredContent: (content: Record<string, unknown>) => { storedContent = content; version += 1; },
+    setAccountId: (value: string) => { accountId = value; },
+    setIntegrationStatus: (value: string) => { integrationStatus = value; },
+    setApprovalSource: (value: string) => { approvalSource = value; },
+  };
 }
 
 beforeEach(() => {
   publish.mockReset();
   vi.stubGlobal("Deno", { env: { get: () => "server-only-test-credential" } });
+});
+
+describe("Meta daily publication destination", () => {
+  beforeEach(() => {
+    publish.mockImplementation(async ({ beforeExternalPublish }) => {
+      await beforeExternalPublish();
+      return { providerExternalId: "123456789", graphVersion: "v26.0", instagramUserId: instagramAccountId };
+    });
+  });
+
+  it("publishes the daily item only to the Instagram account named by its standing authorization", async () => {
+    const fixture = clientFixture({ item: dailyItem, campaignId: "campaign-1", approvalSource: dailyApprovalSource });
+    expect(await processMetaMarketingItem(fixture.client, dailyItem)).toMatchObject({ status: "published", recovered: false });
+    expect(publish).toHaveBeenCalledOnce();
+    expect(publish.mock.calls[0][0].config.instagramUserId).toBe(instagramAccountId);
+  });
+
+  it("rejects a changed Instagram destination before any provider call", async () => {
+    const fixture = clientFixture({ item: dailyItem, campaignId: "campaign-1", approvalSource: dailyApprovalSource,
+      accountId: "17841440000000000" });
+    expect(await processMetaMarketingItem(fixture.client, dailyItem)).toMatchObject({
+      status: "failed", error: "meta_daily_account_mismatch", ambiguous: false,
+    });
+    expect(publish).not.toHaveBeenCalled();
+  });
+
+  it.each([undefined, null, {}, { ...dailyAuthorization, account_id: "" },
+    { ...dailyAuthorization, account_id: 123456789 }, { ...dailyAuthorization, account_id: "not-an-account" },
+    { ...dailyAuthorization, authorized_at: "invalid" }, { ...dailyAuthorization, series_version: 0 },
+  ])("rejects a missing or invalid daily authorization before any provider call: %j", async (authorization) => {
+    const content: Record<string, unknown> = { body: "TOK", generated_by: "marketing-daily-generator" };
+    if (authorization !== undefined) content.daily_publication_authorization = authorization;
+    const claimedItem = { ...dailyItem, content };
+    const fixture = clientFixture({ item: claimedItem, campaignId: "campaign-1", approvalSource: dailyApprovalSource });
+    expect(await processMetaMarketingItem(fixture.client, claimedItem)).toMatchObject({
+      status: "failed", error: "meta_daily_authorization_invalid", ambiguous: false,
+    });
+    expect(publish).not.toHaveBeenCalled();
+  });
+
+  it("rejects a daily authorization removed from the stored item after it was claimed", async () => {
+    const fixture = clientFixture({ item: dailyItem, campaignId: "campaign-1", approvalSource: dailyApprovalSource,
+      storedContent: { body: "TOK", generated_by: "marketing-daily-generator" } });
+    expect(await processMetaMarketingItem(fixture.client, dailyItem)).toMatchObject({
+      status: "failed", error: "meta_daily_authorization_invalid", ambiguous: false,
+    });
+    expect(publish).not.toHaveBeenCalled();
+  });
+
+  it("rejects a changed authorization snapshot before preparing media", async () => {
+    const fixture = clientFixture({ item: dailyItem, campaignId: "campaign-1", approvalSource: dailyApprovalSource,
+      storedContent: { ...dailyItem.content, daily_publication_authorization: { ...dailyAuthorization, series_version: 4 } } });
+    expect(await processMetaMarketingItem(fixture.client, dailyItem)).toMatchObject({
+      status: "failed", error: "meta_daily_authorization_changed", ambiguous: false,
+    });
+    expect(publish).not.toHaveBeenCalled();
+  });
+
+  it.each(["account", "authorization", "approval source", "integration status"])("rechecks the %s immediately before publication", async (change) => {
+    const fixture = clientFixture({ item: dailyItem, campaignId: "campaign-1", approvalSource: dailyApprovalSource });
+    let externalPosts = 0;
+    publish.mockImplementation(async ({ beforeExternalPublish }) => {
+      if (change === "account") fixture.setAccountId("17841440000000000");
+      if (change === "authorization") fixture.setStoredContent({ ...dailyItem.content,
+        daily_publication_authorization: { ...dailyAuthorization, series_version: 4 } });
+      if (change === "approval source") fixture.setApprovalSource("manual-review");
+      if (change === "integration status") fixture.setIntegrationStatus("disabled");
+      await beforeExternalPublish();
+      externalPosts += 1;
+      return { providerExternalId: "123456789" };
+    });
+    expect(await processMetaMarketingItem(fixture.client, dailyItem)).toMatchObject({ status: "failed", ambiguous: false });
+    expect(externalPosts).toBe(0);
+    expect(fixture.completions[0].p_result).not.toHaveProperty("meta_publish_started_at");
+    for (const update of fixture.integrationUpdates) expect(update).not.toHaveProperty("status");
+  });
+
+  it("does not publish when the stored item changes between the final check and marker write", async () => {
+    const fixture = clientFixture({ item: dailyItem, campaignId: "campaign-1", approvalSource: dailyApprovalSource,
+      replaceContentAtMarker: { ...dailyItem.content, daily_publication_authorization: { ...dailyAuthorization, series_version: 4 } } });
+    let externalPosts = 0;
+    publish.mockImplementation(async ({ beforeExternalPublish }) => {
+      await beforeExternalPublish();
+      externalPosts += 1;
+      return { providerExternalId: "123456789" };
+    });
+    expect(await processMetaMarketingItem(fixture.client, dailyItem)).toMatchObject({
+      status: "retrying", error: "meta_publish_marker_persist_failed", ambiguous: false,
+    });
+    expect(externalPosts).toBe(0);
+    expect(fixture.completions[0].p_result).not.toHaveProperty("meta_publish_started_at");
+  });
+
+  it.each(["facebook", "instagram"])("preserves manually approved %s posts without a daily mandate", async (channel) => {
+    const manual = { ...item, channel, content: { body: "TOK", generated_by: "marketing-daily-generator" } };
+    const fixture = clientFixture({ item: manual, campaignId: "campaign-1", approvalSource: "manual-review" });
+    expect(await processMetaMarketingItem(fixture.client, manual)).toMatchObject({ status: "published" });
+    expect(publish).toHaveBeenCalledOnce();
+  });
+
+  it("recovers a known provider id after the integration changes without calling Meta again", async () => {
+    const fixture = clientFixture({ item: dailyItem, campaignId: "campaign-1", approvalSource: dailyApprovalSource,
+      accountId: "17841440000000000", providerId: "123456789", storedContent: {} });
+    expect(await processMetaMarketingItem(fixture.client, dailyItem)).toMatchObject({ status: "published", recovered: true });
+    expect(publish).not.toHaveBeenCalled();
+  });
 });
 
 describe("Meta durable publication recovery", () => {

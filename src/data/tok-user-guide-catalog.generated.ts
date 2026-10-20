@@ -1,7 +1,7 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "f736b878586e400f88997d0ff8c9190c0ca551be0c6807a9586de14123383573",
+  "sourceDigest": "cab3f00e444fc8a8c7ff0026dba092f893fe064934a648428fb79d74cbc7b56f",
   "routeCount": 143,
   "toolCount": 120
 } as const;

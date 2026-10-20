@@ -1,6 +1,5 @@
 import { readBoundedImageBody } from "./ai-image-response.ts";
 import {
-  TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT,
   TOK_MARKETING_REFERENCES,
   TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT,
 } from "./marketing-brand.ts";
@@ -131,8 +130,8 @@ export async function inspectTokDailyImage(options: {
           "Vérifier chaque critère : single_visual = un seul post et une seule composition, sans grille, écran Instagram, bordure de téléphone de capture ni collage ;",
           "brand_identity = identité de la première référence, crème ivoire/orange vermillon/noir/blanc cassé ou photo chaude, titre sans empattement très gras, arches arrondies et soulignements au pinceau selon la famille, aucun accent jaune ni surcharge BD ;",
           "logo_intact = un seul logo TOK principal, en haut à gauche, conforme, intact et non coupé avec sa bulle Miamz!. Les petits emblèmes TOK sur la toque et le tablier du chef sont autorisés ;",
-          "title_exact = titre demandé, accents et ponctuation respectés (hors retours à la ligne), sans inclure le logo, sa bulle Miamz! ni le pied thetok.ch dans observed_title ; text_legible = lisible à taille de téléphone, aucun mot corrompu ;",
-          `safe_margins = texte et logo entièrement dans l'image, marge d'au moins ${TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT} % sur chacun des quatre bords, bon contraste. La consigne de génération prévoit ${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} % : refuser si elle n'est pas visiblement respectée ;`,
+          "title_exact = titre demandé, accents et ponctuation respectés (hors retours à la ligne), sans inclure le logo, sa bulle Miamz! ni le pied thetok.ch dans observed_title ; text_legible = lisible à taille de téléphone, bon contraste, aucun mot corrompu ;",
+          `safe_margins = le titre et le pied thetok.ch, ainsi que le logo principal complet avec son liseré et sa bulle Miamz!, restent entièrement dans l'image, avec une marge d'au moins ${TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT} % sur chacun des quatre bords : ${Math.ceil(dimensions.width * TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT / 100)} px à gauche et à droite, ${Math.ceil(dimensions.height * TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT / 100)} px en haut et en bas. Mesurer depuis les contours réellement visibles, accents et ponctuation compris. Ce minimum est le seul seuil de marge à valider. Les fonds, photographies, arches et filets décoratifs peuvent atteindre les bords sans faire échouer safe_margins. Refuser si une marge est inférieure au minimum ou incertaine ;`,
           "family_match = composition et palette de la famille demandée ; chef_correct = présence ou absence conforme et identité fidèle si présent ;",
           "no_extra_claims = pas de prix, chiffre, remise, promesse, logo tiers, QR code ni texte inventé. Textes de marque autorisés hors titre : TOK et sa bulle Miamz! dans le logo, thetok.ch discret en pied. Pas de corps d'email ni bouton de l'affiche Studio.",
           "Transcrire littéralement le titre effectivement visible dans observed_title. reason : une phrase courte en français, 1000 caractères maximum.",

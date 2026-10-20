@@ -148,6 +148,8 @@ describe("daily TOK editorial rotation", () => {
       expect(prompt).toContain("texte et logo produits nativement");
       expect(prompt).toContain("La légende reste hors de l'image");
       expect(prompt).toContain(`à au moins ${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} % de chacun des quatre bords`);
+      expect(prompt).toContain("Cette zone prime sur les positions exactes des références");
+      expect(prompt).toContain("Les fonds, photographies, arches et filets décoratifs peuvent atteindre les bords");
       expect(TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT).toBeGreaterThan(TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT);
       expect(brief.visualPrompt.length).toBeLessThan(4000);
       expect(prompt.length).toBeLessThan(8000);

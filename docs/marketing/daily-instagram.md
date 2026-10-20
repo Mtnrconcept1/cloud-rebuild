@@ -120,6 +120,8 @@ Seuls les travaux créés **après** ce mandat peuvent être programmés. La fin
 
 Une erreur de compte, qualité, autorisation, configuration ou créneau conserve le contenu en brouillon avec `daily_publication_blocked`. Aucune image de remplacement n’est achetée pour cet échec de programmation. Le calendrier et l’historique distinguent préparation, programmation et publication réelle. Les traces d’approbation indiquent `daily-series-standing-authorization` : elles ne prétendent pas qu’un humain a relu chaque résultat.
 
+Avant tout appel Meta, le diffuseur compare aussi le compte Instagram de l’intégration avec celui du mandat conservé sur le post. Une preuve manquante, invalide ou modifiée bloque un post approuvé automatiquement. Cette preuve, le compte et l’approbation sont relus avant la publication visible ; l’écriture du marqueur de publication vérifie la version du post pour détecter une modification concurrente. Un changement de compte après programmation entraîne donc un échec explicite, sans publication sur le nouveau compte. Les posts approuvés manuellement suivent leur circuit existant, et un identifiant Meta déjà enregistré est récupéré sans répéter l’envoi.
+
 Mettre la série en pause empêche les prochaines productions et la programmation d’une génération encore en cours. Les posts déjà programmés restent dans le calendrier et doivent y être annulés individuellement si nécessaire. Pour revenir au circuit manuel, enregistrer **Brouillon à valider**. Aucun paramètre global d’autonomie, aucune permission Meta, aucun secret et aucun autre canal ne sont modifiés.
 
 ## Fichier natif et contrôle avant enregistrement
@@ -144,13 +146,15 @@ Après vérification de l’en-tête JPEG et des dimensions, le contrôle envoie
 | `brand_identity` | Identité épurée conforme à la référence principale |
 | `logo_intact` | Un seul logo TOK principal avec sa bulle Miamz!, fidèle, en haut à gauche et non coupé ; emblèmes sur la tenue autorisés |
 | `title_exact` | Titre demandé, sans ajout ni correction silencieuse ; logo, Miamz! et thetok.ch exclus de la transcription du titre |
-| `text_legible` | Texte lisible et aucun mot corrompu |
-| `safe_margins` | Marge suffisante, texte et logo entièrement visibles |
+| `text_legible` | Texte lisible, bon contraste et aucun mot corrompu |
+| `safe_margins` | Au moins 6 % sur chaque bord pour le titre, le pied thetok.ch et le logo principal complet, liseré et bulle Miamz! compris |
 | `family_match` | Composition conforme à la famille du jour |
 | `chef_correct` | Présence ou absence correcte, personnage fidèle si demandé |
 | `no_extra_claims` | Aucun prix, chiffre, promesse, logo tiers ou texte inventé ; seuls TOK, sa bulle Miamz! et thetok.ch sont autorisés hors titre |
 
-La transcription du titre visible est aussi comparée au titre attendu. Les retours à la ligne et apostrophes typographiques sont normalisés ; la casse, les mots, les accents et les autres signes restent contrôlés. Un critère faux, absent ou incertain rejette l’image avant son upload. Une nouvelle tentative produit une nouvelle image native lorsque aucun objet validé n’existe.
+La génération conserve sa cible de 12 % pour absorber les écarts du modèle, tandis que la relecture applique uniquement le minimum de 6 % : **62 px à gauche et à droite, 77 px en haut et en bas** sur le JPEG de 1024 × 1280 px. La mesure part des contours visibles, accents et ponctuation compris. La zone de sécurité prime sur le positionnement exact des exemples de référence. Les fonds, photographies, arches et filets décoratifs peuvent atteindre les bords ; leur présence ne constitue pas un échec de marge. Le contraste reste évalué séparément dans `text_legible`.
+
+La transcription du titre visible est aussi comparée au titre attendu. Les retours à la ligne et apostrophes typographiques sont normalisés ; la casse, les mots, les accents et les autres signes restent contrôlés. Un critère faux, absent ou incertain rejette l’image avant son upload. Une nouvelle tentative produit une nouvelle image native lorsque aucun objet validé n’existe. Un objet déjà présent est contrôlé de nouveau et tout refus, y compris de marge ou de lisibilité, bloque sa réutilisation sans l’écraser ni acheter une image de remplacement.
 
 **Limite : ce contrôle visuel est probabiliste.** Il ne garantit ni une identité pixel par pixel, ni une détection parfaite de chaque faute graphique. Les dimensions, le nombre d’images et les comparaisons de texte sont des contrôles techniques ; l’appréciation du logo, du style et de la lisibilité dépend aussi du modèle. En mode brouillon, le résultat doit encore être relu et approuvé dans le calendrier. Le mode automatique repose sur les contrôles probabilistes décrits et sur le mandat explicite de l’administrateur ; il ne prétend pas à une relecture humaine quotidienne.
 
@@ -218,6 +222,8 @@ L’ordre ci-dessus est un runbook de mise en service, pas une preuve que ces op
 | `marketing_daily_image_*` | Générateur, JPEG, dimensions ou nombre d’images à vérifier |
 | `marketing_daily_key_missing` | Accès serveur au fournisseur manquant ; aucun secret ne doit être saisi dans le panneau utilisateur |
 | `marketing_daily_storage_*` | Origine, droits, disponibilité ou upload Storage ; conserver les objets existants pour la reprise déterministe |
+| `meta_daily_account_mismatch` | Le compte Instagram ne correspond plus au mandat du post ; contrôler la destination avant toute nouvelle approbation |
+| `meta_daily_authorization_invalid` / `meta_daily_authorization_changed` | Preuve du mandat absente, invalide ou modifiée ; le diffuseur refuse la publication automatique |
 | Conflit de version / HTTP 409 | Recharger les réglages puis revoir l’heure et l’état avant d’enregistrer |
 
 Pour arrêter la série, utiliser **Mettre en pause**. Conserver les brouillons, objets et traces pour le diagnostic. Pour revenir à la DA précédente, restaurer le profil v2 et la version précédente du moteur, en conservant les fichiers v2 existants. Ne pas modifier les images ou brouillons déjà produits ; conserver leur version de profil. Un retour arrière applicatif doit garder le cron inoffensif grâce à cet état en pause ; ne pas supprimer les tables, réécrire une migration historique ou effacer les travaux pour masquer un échec.

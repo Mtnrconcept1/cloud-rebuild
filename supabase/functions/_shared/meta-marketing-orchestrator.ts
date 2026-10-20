@@ -30,9 +30,26 @@ type MetaItemState = {
   provider_external_id: string | null;
   result_summary: Record<string, unknown> | null;
   integration_id: string;
+  campaign_id: string | null;
+  content: Record<string, unknown>;
+};
+
+type DailyPublicationAuthorization = {
+  account_id: string;
+  authorized_at: string;
+  series_version: number;
+};
+
+type DailyPublicationContext = {
+  authorization: DailyPublicationAuthorization | null;
+  approvalSource: string;
+  campaignId: string | null;
+  integrationId: string;
+  instagramUserId: string;
 };
 
 const META_SECRET_REF = "META_SYSTEM_USER_TOKEN";
+const DAILY_APPROVAL_SOURCE = "daily-series-standing-authorization";
 
 function stringValue(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -41,6 +58,42 @@ function stringValue(value: unknown) {
 function resultStatus(value: unknown, fallback: string) {
   const record = asRecord(value);
   return stringValue(record.status) || fallback;
+}
+
+function readDailyPublicationAuthorization(
+  content: Record<string, unknown>,
+  approvalSource: string,
+  channel: MetaChannel,
+  instagramUserId: string,
+): DailyPublicationAuthorization | null {
+  // A daily draft may still be approved manually. The campaign marker also
+  // identifies standing approval if its item proof has gone missing.
+  if (!Object.prototype.hasOwnProperty.call(content, "daily_publication_authorization")
+    && approvalSource !== DAILY_APPROVAL_SOURCE) return null;
+  const proof = asRecord(content.daily_publication_authorization);
+  if (channel !== "instagram" || typeof proof.account_id !== "string" || !/^\d{5,30}$/.test(proof.account_id)
+    || typeof proof.authorized_at !== "string" || !/^\d{4}-\d{2}-\d{2}T/.test(proof.authorized_at)
+    || !Number.isFinite(Date.parse(proof.authorized_at))
+    || typeof proof.series_version !== "number" || !Number.isInteger(proof.series_version) || proof.series_version < 1) {
+    throw new MetaPublishError("meta_daily_authorization_invalid");
+  }
+  if (proof.account_id !== instagramUserId) throw new MetaPublishError("meta_daily_account_mismatch");
+  return { account_id: proof.account_id, authorized_at: proof.authorized_at, series_version: proof.series_version };
+}
+
+function sameDailyAuthorization(left: DailyPublicationAuthorization | null, right: DailyPublicationAuthorization | null) {
+  return left === right || Boolean(left && right && left.account_id === right.account_id
+    && left.authorized_at === right.authorized_at && left.series_version === right.series_version);
+}
+
+async function readApprovedCampaign(client: AdminClient, campaignId: string | null) {
+  if (!campaignId) return null;
+  const { data, error } = await client.from("marketing_campaigns").select("status, approved_at, metadata")
+    .eq("id", campaignId).maybeSingle();
+  if (error || !data?.approved_at || ["paused", "completed", "cancelled", "failed"].includes(data.status)) {
+    throw new MetaPublishError("meta_campaign_not_approved");
+  }
+  return data;
 }
 
 async function completeMetaItem(
@@ -64,7 +117,7 @@ async function completeMetaItem(
 async function readItemState(client: AdminClient, item: MetaClaimedItem): Promise<MetaItemState> {
   const { data, error } = await client
     .from("marketing_calendar_items")
-    .select("provider_external_id, result_summary, integration_id")
+    .select("provider_external_id, result_summary, integration_id, campaign_id, content")
     .eq("id", item.id)
     .eq("lease_token", item.lease_token)
     .maybeSingle();
@@ -110,6 +163,7 @@ async function markExternalPublishStarted(
   item: MetaClaimedItem,
   channel: MetaChannel,
   previousSummary: Record<string, unknown>,
+  daily: DailyPublicationContext,
 ) {
   // The internal SQL runtime helper is deliberately not exposed to service_role.
   // Recheck the same two gates through server-only reads instead.
@@ -124,19 +178,30 @@ async function markExternalPublishStarted(
   }
   const { data: state, error: stateError } = await client
     .from("marketing_calendar_items")
-    .select("approval_status, approved_at, campaign_id")
+    .select("approval_status, approved_at, campaign_id, integration_id, content, version")
     .eq("id", item.id).eq("lease_token", item.lease_token)
     .gt("lease_expires_at", new Date().toISOString()).maybeSingle();
-  if (stateError || !state || state.approval_status !== "approved" || !state.approved_at) {
+  if (stateError || !state || state.approval_status !== "approved" || !state.approved_at
+    || !Number.isInteger(state.version) || state.version < 1) {
     throw new MetaPublishError("meta_approval_or_lease_invalid");
   }
-  if (state.campaign_id) {
-    const { data: campaign, error: campaignError } = await client
-      .from("marketing_campaigns").select("status, approved_at")
-      .eq("id", state.campaign_id).maybeSingle();
-    if (campaignError || !campaign?.approved_at
-      || ["paused", "completed", "cancelled", "failed"].includes(campaign.status)) {
-      throw new MetaPublishError("meta_campaign_not_approved");
+  const campaign = await readApprovedCampaign(client, state.campaign_id);
+  const approvalSource = stringValue(asRecord(campaign?.metadata).approval_source);
+  const currentAuthorization = readDailyPublicationAuthorization(asRecord(state.content), approvalSource, channel, daily.instagramUserId);
+  if (!sameDailyAuthorization(currentAuthorization, daily.authorization)
+    || ((currentAuthorization || daily.authorization) && (approvalSource !== daily.approvalSource
+      || state.campaign_id !== daily.campaignId || state.integration_id !== daily.integrationId))) {
+    throw new MetaPublishError("meta_daily_authorization_changed");
+  }
+  if (currentAuthorization) {
+    const { data: currentIntegration, error: integrationError } = await client.from("marketing_integrations")
+      .select("channel, status, public_configuration").eq("id", daily.integrationId).maybeSingle();
+    if (integrationError) throw new MetaPublishError("meta_daily_authorization_unavailable", { retryable: true });
+    // Fail this item without overwriting an administrator's disconnected or
+    // disabled integration state through the general configuration-error path.
+    if (!currentIntegration || currentIntegration.channel !== channel || currentIntegration.status !== "connected"
+      || stringValue(asRecord(currentIntegration.public_configuration).ig_user_id) !== currentAuthorization.account_id) {
+      throw new MetaPublishError("meta_daily_account_mismatch");
     }
   }
   const marker = {
@@ -153,6 +218,7 @@ async function markExternalPublishStarted(
     .eq("lease_token", item.lease_token)
     .eq("approval_status", "approved")
     .eq("approved_at", state.approved_at)
+    .eq("version", state.version)
     .gt("lease_expires_at", new Date().toISOString())
     .select("id")
     .maybeSingle();
@@ -251,6 +317,16 @@ export async function processMetaMarketingItem(client: AdminClient, item: MetaCl
     const instagramUserId = stringValue(publicConfiguration.ig_user_id);
     const systemUserToken = Deno.env.get(META_SECRET_REF)?.trim() || "";
     const appSecret = Deno.env.get("META_APP_SECRET")?.trim() || "";
+    const campaign = await readApprovedCampaign(client, state.campaign_id);
+    const approvalSource = stringValue(asRecord(campaign?.metadata).approval_source);
+    const authorization = readDailyPublicationAuthorization(asRecord(state.content), approvalSource, channel, instagramUserId);
+    if (!sameDailyAuthorization(authorization,
+      readDailyPublicationAuthorization(asRecord(item.content), approvalSource, channel, instagramUserId))) {
+      throw new MetaPublishError("meta_daily_authorization_changed");
+    }
+    const daily: DailyPublicationContext = {
+      authorization, approvalSource, campaignId: state.campaign_id, integrationId: state.integration_id, instagramUserId,
+    };
 
     const published = await publishMetaContent({
       channel,
@@ -268,6 +344,7 @@ export async function processMetaMarketingItem(client: AdminClient, item: MetaCl
           item,
           channel,
           previousSummary,
+          daily,
         );
       },
     });
