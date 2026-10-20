@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8c023554fd4b04d2319026470164210b80c58e5670f2dcb8ee01655c4846ec51`
+- Empreinte SHA-256 des sources indexées : `335132c33b2a8a971278e68bed67e2290ca7850e06d5d785eada2ae7012f954e`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -25,28 +25,28 @@
 
 | Famille | Total |
 | --- | --- |
-| apiRoutes | 9 |
+| apiRoutes | 11 |
 | cronJobs | 35 |
 | databaseContract | 228 |
-| databaseObjects | 2982 |
-| documents | 217 |
+| databaseObjects | 2988 |
+| documents | 218 |
 | edgeFunctions | 119 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3870 |
+| exportedSymbols | 3883 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 562 |
-| modules | 1745 |
+| migrations | 563 |
+| modules | 1751 |
 | pages | 133 |
-| pathLiterals | 827 |
+| pathLiterals | 835 |
 | publicAssets | 588 |
 | publicEntries | 614 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18096 |
-| repositoryFiles | 3429 |
+| records | 18146 |
+| repositoryFiles | 3438 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -423,6 +423,8 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | /api/marketing/launch | POST | marketingLaunchHandler | google, supabase, vercel | [api/marketing/launch.ts](../../api/marketing/launch.ts) |
 | /api/marketing/login | POST | marketingLoginHandler | google, supabase, vercel | [api/marketing/login.ts](../../api/marketing/login.ts) |
 | /api/marketing/logout | POST | marketingLogoutHandler | google, supabase, vercel | [api/marketing/logout.ts](../../api/marketing/logout.ts) |
+| /api/marketing/mcp-link | GET, POST | marketingMcpLinkHandler | google, supabase, vercel | [api/marketing/mcp-link.ts](../../api/marketing/mcp-link.ts) |
+| /api/marketing/mcp | POST | marketingMcpHandler | google, supabase, vercel | [api/marketing/mcp.ts](../../api/marketing/mcp.ts) |
 | /api/marketing/mfa/enroll | POST | marketingMfaEnrollHandler | google, supabase, vercel | [api/marketing/mfa/enroll.ts](../../api/marketing/mfa/enroll.ts) |
 | /api/marketing/mfa/verify | POST | marketingMfaVerifyHandler | google, supabase, vercel | [api/marketing/mfa/verify.ts](../../api/marketing/mfa/verify.ts) |
 | /api/marketing/orchestrator | POST | marketingOrchestratorHandler | google, supabase, vercel | [api/marketing/orchestrator.ts](../../api/marketing/orchestrator.ts) |
@@ -433,45 +435,45 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 
 | Opération | Groupe | Source |
 | --- | --- | --- |
-| admin_approve_marketing_campaign | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:60](../../server/marketingBff.ts#L60) |
-| admin_approve_marketing_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:61](../../server/marketingBff.ts#L61) |
-| admin_cancel_marketing_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:62](../../server/marketingBff.ts#L62) |
-| admin_complete_manual_marketing_delivery | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:63](../../server/marketingBff.ts#L63) |
-| admin_complete_manual_marketing_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:64](../../server/marketingBff.ts#L64) |
-| admin_create_marketing_campaign_bundle | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:65](../../server/marketingBff.ts#L65) |
-| admin_estimate_marketing_audience | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:66](../../server/marketingBff.ts#L66) |
-| admin_get_marketing_overview | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:67](../../server/marketingBff.ts#L67) |
-| admin_list_marketing_automations | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:68](../../server/marketingBff.ts#L68) |
-| admin_list_marketing_calendar | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:69](../../server/marketingBff.ts#L69) |
-| admin_list_marketing_campaigns | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:70](../../server/marketingBff.ts#L70) |
-| admin_list_marketing_campaign_items | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:71](../../server/marketingBff.ts#L71) |
-| admin_list_marketing_contacts | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:72](../../server/marketingBff.ts#L72) |
-| admin_list_marketing_deliveries | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:73](../../server/marketingBff.ts#L73) |
-| admin_list_marketing_integrations | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:74](../../server/marketingBff.ts#L74) |
-| admin_reveal_manual_delivery_target | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:75](../../server/marketingBff.ts#L75) |
-| admin_retry_marketing_delivery | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:76](../../server/marketingBff.ts#L76) |
-| admin_set_marketing_global_pause | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:77](../../server/marketingBff.ts#L77) |
-| admin_suppress_marketing_contact | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:78](../../server/marketingBff.ts#L78) |
-| admin_sync_marketing_client_consents | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:79](../../server/marketingBff.ts#L79) |
-| admin_sync_marketing_prospect_catalog | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:80](../../server/marketingBff.ts#L80) |
-| admin_upsert_marketing_automation | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:81](../../server/marketingBff.ts#L81) |
-| admin_upsert_marketing_calendar_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:82](../../server/marketingBff.ts#L82) |
-| admin_upsert_marketing_campaign | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:83](../../server/marketingBff.ts#L83) |
-| admin_upsert_marketing_contact | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:84](../../server/marketingBff.ts#L84) |
-| admin_list_marketing_outreach | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:90](../../server/marketingBff.ts#L90) |
-| admin_upsert_marketing_outreach_target | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:91](../../server/marketingBff.ts#L91) |
-| admin_upsert_marketing_outreach_opportunity | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:92](../../server/marketingBff.ts#L92) |
-| admin_upsert_marketing_outreach_draft | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:93](../../server/marketingBff.ts#L93) |
-| admin_approve_marketing_outreach_draft | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:94](../../server/marketingBff.ts#L94) |
-| admin_record_marketing_outreach_result | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:95](../../server/marketingBff.ts#L95) |
-| admin_upsert_marketing_backlink | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:96](../../server/marketingBff.ts#L96) |
-| admin_get_marketing_autopilot_dashboard | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:108](../../server/marketingBff.ts#L108) |
-| admin_prepare_marketing_automation_action | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:109](../../server/marketingBff.ts#L109) |
-| admin_simulate_marketing_automation | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:110](../../server/marketingBff.ts#L110) |
-| admin_update_marketing_provider_control | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:111](../../server/marketingBff.ts#L111) |
-| admin_upsert_marketing_asset | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:112](../../server/marketingBff.ts#L112) |
-| admin_get_marketing_daily_series | MARKETING_DAILY_OPERATION_NAMES | [server/marketingBff.ts:121](../../server/marketingBff.ts#L121) |
-| admin_upsert_marketing_daily_series | MARKETING_DAILY_OPERATION_NAMES | [server/marketingBff.ts:122](../../server/marketingBff.ts#L122) |
+| admin_approve_marketing_campaign | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:62](../../server/marketingBff.ts#L62) |
+| admin_approve_marketing_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:63](../../server/marketingBff.ts#L63) |
+| admin_cancel_marketing_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:64](../../server/marketingBff.ts#L64) |
+| admin_complete_manual_marketing_delivery | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:65](../../server/marketingBff.ts#L65) |
+| admin_complete_manual_marketing_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:66](../../server/marketingBff.ts#L66) |
+| admin_create_marketing_campaign_bundle | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:67](../../server/marketingBff.ts#L67) |
+| admin_estimate_marketing_audience | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:68](../../server/marketingBff.ts#L68) |
+| admin_get_marketing_overview | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:69](../../server/marketingBff.ts#L69) |
+| admin_list_marketing_automations | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:70](../../server/marketingBff.ts#L70) |
+| admin_list_marketing_calendar | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:71](../../server/marketingBff.ts#L71) |
+| admin_list_marketing_campaigns | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:72](../../server/marketingBff.ts#L72) |
+| admin_list_marketing_campaign_items | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:73](../../server/marketingBff.ts#L73) |
+| admin_list_marketing_contacts | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:74](../../server/marketingBff.ts#L74) |
+| admin_list_marketing_deliveries | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:75](../../server/marketingBff.ts#L75) |
+| admin_list_marketing_integrations | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:76](../../server/marketingBff.ts#L76) |
+| admin_reveal_manual_delivery_target | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:77](../../server/marketingBff.ts#L77) |
+| admin_retry_marketing_delivery | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:78](../../server/marketingBff.ts#L78) |
+| admin_set_marketing_global_pause | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:79](../../server/marketingBff.ts#L79) |
+| admin_suppress_marketing_contact | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:80](../../server/marketingBff.ts#L80) |
+| admin_sync_marketing_client_consents | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:81](../../server/marketingBff.ts#L81) |
+| admin_sync_marketing_prospect_catalog | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:82](../../server/marketingBff.ts#L82) |
+| admin_upsert_marketing_automation | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:83](../../server/marketingBff.ts#L83) |
+| admin_upsert_marketing_calendar_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:84](../../server/marketingBff.ts#L84) |
+| admin_upsert_marketing_campaign | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:85](../../server/marketingBff.ts#L85) |
+| admin_upsert_marketing_contact | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:86](../../server/marketingBff.ts#L86) |
+| admin_list_marketing_outreach | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:92](../../server/marketingBff.ts#L92) |
+| admin_upsert_marketing_outreach_target | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:93](../../server/marketingBff.ts#L93) |
+| admin_upsert_marketing_outreach_opportunity | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:94](../../server/marketingBff.ts#L94) |
+| admin_upsert_marketing_outreach_draft | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:95](../../server/marketingBff.ts#L95) |
+| admin_approve_marketing_outreach_draft | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:96](../../server/marketingBff.ts#L96) |
+| admin_record_marketing_outreach_result | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:97](../../server/marketingBff.ts#L97) |
+| admin_upsert_marketing_backlink | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:98](../../server/marketingBff.ts#L98) |
+| admin_get_marketing_autopilot_dashboard | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:110](../../server/marketingBff.ts#L110) |
+| admin_prepare_marketing_automation_action | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:111](../../server/marketingBff.ts#L111) |
+| admin_simulate_marketing_automation | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:112](../../server/marketingBff.ts#L112) |
+| admin_update_marketing_provider_control | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:113](../../server/marketingBff.ts#L113) |
+| admin_upsert_marketing_asset | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:114](../../server/marketingBff.ts#L114) |
+| admin_get_marketing_daily_series | MARKETING_DAILY_OPERATION_NAMES | [server/marketingBff.ts:123](../../server/marketingBff.ts#L123) |
+| admin_upsert_marketing_daily_series | MARKETING_DAILY_OPERATION_NAMES | [server/marketingBff.ts:124](../../server/marketingBff.ts#L124) |
 
 ## Fonctions Edge Supabase
 
@@ -1301,7 +1303,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /actualites/post-1 | 4 | [src/test/seo-crawl-hardening.test.ts:114](../../src/test/seo-crawl-hardening.test.ts#L114) |
 | /actualites/post-thin | 2 | [src/test/seo-crawl-hardening.test.ts:119](../../src/test/seo-crawl-hardening.test.ts#L119) |
 | /actualites?post= | 1 | [src/test/actualites-search-seo.test.ts:36](../../src/test/actualites-search-seo.test.ts#L36) |
-| /admin | 75 | [scripts/application-index-core.mjs:167](../../scripts/application-index-core.mjs#L167) |
+| /admin | 76 | [scripts/application-index-core.mjs:167](../../scripts/application-index-core.mjs#L167) |
 | /admin/ | 4 | [src/App.tsx:317](../../src/App.tsx#L317) |
 | /admin/:path* | 1 | [src/test/vercel-rewrites.test.ts:90](../../src/test/vercel-rewrites.test.ts#L90) |
 | /admin/actualites | 5 | [src/App.tsx:672](../../src/App.tsx#L672) |
@@ -1379,12 +1381,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/v1/ | 1 | [src/lib/commercialDemoEffects.ts:74](../../src/lib/commercialDemoEffects.ts#L74) |
 | /auth/v1/admin/oauth/clients | 1 | [supabase/functions/_shared/tok-connect-broker.ts:127](../../supabase/functions/_shared/tok-connect-broker.ts#L127) |
 | /auth/v1/admin/oauth/clients/ | 1 | [supabase/functions/_shared/tok-connect-broker.ts:134](../../supabase/functions/_shared/tok-connect-broker.ts#L134) |
+| /auth/v1/admin/users/ | 1 | [src/test/tok-connect-marketing-bff.test.ts:48](../../src/test/tok-connect-marketing-bff.test.ts#L48) |
 | /auth/v1/factors | 4 | [src/test/marketing-bff-security.test.ts:314](../../src/test/marketing-bff-security.test.ts#L314) |
 | /auth/v1/logout?scope=local | 5 | [src/test/marketing-bff-security.test.ts:464](../../src/test/marketing-bff-security.test.ts#L464) |
 | /auth/v1/oauth/authorize | 2 | [src/test/tok-connect-broker.test.ts:231](../../src/test/tok-connect-broker.test.ts#L231) |
 | /auth/v1/oauth/token | 2 | [src/test/tok-connect-broker.test.ts:55](../../src/test/tok-connect-broker.test.ts#L55) |
 | /auth/v1/token?grant_type=password | 5 | [src/test/marketing-bff-security.test.ts:240](../../src/test/marketing-bff-security.test.ts#L240) |
-| /auth/v1/user | 9 | [src/test/marketing-bff-security.test.ts:251](../../src/test/marketing-bff-security.test.ts#L251) |
+| /auth/v1/user | 10 | [src/test/marketing-bff-security.test.ts:251](../../src/test/marketing-bff-security.test.ts#L251) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /auth?confirmed=1 | 2 | [src/test/auth-signup-form.test.tsx:525](../../src/test/auth-signup-form.test.tsx#L525) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
@@ -1526,7 +1529,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /equipe\mon-espace?restaurant= | 1 | [src/test/workforce-auth-continuation.test.ts:39](../../src/test/workforce-auth-continuation.test.ts#L39) |
 | /espace-client | 4 | [scripts/prerender-seo.mjs:1276](../../scripts/prerender-seo.mjs#L1276) |
 | /espaces | 30 | [scripts/prerender-seo.mjs:1282](../../scripts/prerender-seo.mjs#L1282) |
-| /factors | 1 | [server/marketingBff.ts:844](../../server/marketingBff.ts#L844) |
+| /factors | 1 | [server/marketingBff.ts:855](../../server/marketingBff.ts#L855) |
 | /fallback.jpg | 4 | [src/test/security-url-helpers.test.ts:17](../../src/test/security-url-helpers.test.ts#L17) |
 | /favicon-180x180.png | 2 | [src/hooks/useTokLogo.ts:25](../../src/hooks/useTokLogo.ts#L25) |
 | /favicon-192x192.png | 2 | [src/test/favicon-branding.test.ts:53](../../src/test/favicon-branding.test.ts#L53) |
@@ -1810,7 +1813,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /inventory/partners/{partnerId}/merchants/{merchantId}/availability:replace | 1 | [supabase/functions/google-actions-center-sync/index.ts:52](../../supabase/functions/google-actions-center-sync/index.ts#L52) |
 | /launch | 1 | [src/components/launch/LaunchArtwork.tsx:51](../../src/components/launch/LaunchArtwork.tsx#L51) |
 | /logotok.png | 9 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
-| /logout?scope=local | 1 | [server/marketingBff.ts:793](../../server/marketingBff.ts#L793) |
+| /logout?scope=local | 1 | [server/marketingBff.ts:804](../../server/marketingBff.ts#L804) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:30](../../src/hooks/useTokLogo.ts#L30) |
 | /marketing | 33 | [scripts/application-index-core.mjs:168](../../scripts/application-index-core.mjs#L168) |
 | /marketing-public | 1 | [src/test/marketing-domain-isolation.test.ts:25](../../src/test/marketing-domain-isolation.test.ts#L25) |
@@ -1990,17 +1993,23 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurateurs/lausanne | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
 | /robots.txt | 5 | [supabase/functions/discover-thefork-official-sites/index.ts:348](../../supabase/functions/discover-thefork-official-sites/index.ts#L348) |
 | /rpc/ | 1 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
+| /rpc/rate_limit_consume | 1 | [src/test/tok-connect-marketing-bff.test.ts:50](../../src/test/tok-connect-marketing-bff.test.ts#L50) |
+| /rpc/service_authorize_tok_marketing_link | 1 | [src/test/tok-connect-marketing-bff.test.ts:55](../../src/test/tok-connect-marketing-bff.test.ts#L55) |
 | /rpc/service_clear_marketing_auth_attempt | 4 | [src/test/marketing-bff-security.test.ts:373](../../src/test/marketing-bff-security.test.ts#L373) |
 | /rpc/service_consume_marketing_auth_attempt | 12 | [src/test/marketing-agent-bff.test.ts:29](../../src/test/marketing-agent-bff.test.ts#L29) |
+| /rpc/service_create_tok_marketing_link | 1 | [src/test/tok-connect-marketing-bff.test.ts:51](../../src/test/tok-connect-marketing-bff.test.ts#L51) |
+| /rpc/service_describe_tok_marketing_link | 1 | [src/test/tok-connect-marketing-bff.test.ts:54](../../src/test/tok-connect-marketing-bff.test.ts#L54) |
 | /rpc/service_execute_marketing_ | 4 | [src/test/marketing-approval-errors.test.ts:53](../../src/test/marketing-approval-errors.test.ts#L53) |
-| /rpc/service_execute_marketing_admin_operation | 4 | [src/test/marketing-agent-bff.test.ts:59](../../src/test/marketing-agent-bff.test.ts#L59) |
+| /rpc/service_execute_marketing_admin_operation | 7 | [src/test/marketing-agent-bff.test.ts:59](../../src/test/marketing-agent-bff.test.ts#L59) |
 | /rpc/service_execute_marketing_outreach_operation | 1 | [src/test/marketing-approval-errors.test.ts:108](../../src/test/marketing-approval-errors.test.ts#L108) |
 | /rpc/service_finalize_marketing_web_session | 1 | [src/test/marketing-bff-security.test.ts:598](../../src/test/marketing-bff-security.test.ts#L598) |
 | /rpc/service_get_marketing_auth_challenge | 3 | [src/test/marketing-bff-security.test.ts:496](../../src/test/marketing-bff-security.test.ts#L496) |
-| /rpc/service_get_marketing_web_session | 7 | [src/test/marketing-agent-bff.test.ts:24](../../src/test/marketing-agent-bff.test.ts#L24) |
+| /rpc/service_get_marketing_web_session | 8 | [src/test/marketing-agent-bff.test.ts:24](../../src/test/marketing-agent-bff.test.ts#L24) |
+| /rpc/service_get_tok_marketing_link | 1 | [src/test/tok-connect-marketing-bff.test.ts:52](../../src/test/tok-connect-marketing-bff.test.ts#L52) |
 | /rpc/service_marketing_daily_operation | 4 | [src/test/marketing-daily-series-bff.test.ts:30](../../src/test/marketing-daily-series-bff.test.ts#L30) |
 | /rpc/service_marketing_mailing_facets | 1 | [src/test/marketing-agent-bff.test.ts:80](../../src/test/marketing-agent-bff.test.ts#L80) |
 | /rpc/service_revoke_marketing_web_session | 1 | [src/test/marketing-bff-security.test.ts:611](../../src/test/marketing-bff-security.test.ts#L611) |
+| /rpc/service_revoke_tok_marketing_link | 1 | [src/test/tok-connect-marketing-bff.test.ts:56](../../src/test/tok-connect-marketing-bff.test.ts#L56) |
 | /rpc/service_store_marketing_auth_challenge | 7 | [src/test/marketing-bff-security.test.ts:264](../../src/test/marketing-bff-security.test.ts#L264) |
 | /secrets | 1 | [src/test/production-preflight-hardening.test.ts:205](../../src/test/production-preflight-hardening.test.ts#L205) |
 | /setWebhook | 1 | [src/test/incident-secret-sync-readiness.test.ts:58](../../src/test/incident-secret-sync-readiness.test.ts#L58) |
@@ -2035,10 +2044,11 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-pulse | 10 | [scripts/prerender-seo.mjs:1247](../../scripts/prerender-seo.mjs#L1247) |
 | /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:89](../../supabase/functions/ai-image-enhance/index.ts#L89) |
 | /tok-slot-machine/index.html?v=20260719 | 1 | [src/components/DailyMiamzSlotMachine.tsx:15](../../src/components/DailyMiamzSlotMachine.tsx#L15) |
+| /tok_connect_mcp_action_idempotency | 2 | [server/marketingBff.ts:2462](../../server/marketingBff.ts#L2462) |
 | /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:230](../../supabase/functions/_shared/tok-connect-broker.ts#L230) |
-| /token?grant_type=password | 1 | [server/marketingBff.ts:785](../../server/marketingBff.ts#L785) |
-| /user | 1 | [server/marketingBff.ts:774](../../server/marketingBff.ts#L774) |
-| /user_roles? | 9 | [src/test/marketing-agent-bff.test.ts:28](../../src/test/marketing-agent-bff.test.ts#L28) |
+| /token?grant_type=password | 1 | [server/marketingBff.ts:796](../../server/marketingBff.ts#L796) |
+| /user | 1 | [server/marketingBff.ts:785](../../server/marketingBff.ts#L785) |
+| /user_roles? | 10 | [src/test/marketing-agent-bff.test.ts:28](../../src/test/marketing-agent-bff.test.ts#L28) |
 | /users/[email] | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /users/private%40example.test#token | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /v1/appScreenshotSets | 1 | [scripts/app-store-connect-upload-screenshots.mjs:216](../../scripts/app-store-connect-upload-screenshots.mjs#L216) |
@@ -2104,7 +2114,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | claimName | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:84](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L84) |
 | claimPhone | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:81](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L81) |
 | claimRestaurant | — | 2 | [src/components/DirectoryClaimPersistenceBridge.tsx:37](../../src/components/DirectoryClaimPersistenceBridge.tsx#L37) |
-| code | — | 2 | [src/test/workforce-auth-continuation.test.ts:80](../../src/test/workforce-auth-continuation.test.ts#L80) |
+| code | — | 4 | [server/marketingBff.ts:2528](../../server/marketingBff.ts#L2528) |
 | code_challenge_method | — | 1 | [src/test/tok-connect-broker.test.ts:234](../../src/test/tok-connect-broker.test.ts#L234) |
 | commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:915](../../src/pages/Auth.tsx#L915) |
 | commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:280](../../src/pages/CommercialComptabilite.tsx#L280) |
@@ -2506,7 +2516,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (837)</summary>
+<details><summary>function (842)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3213,6 +3223,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.send_gift_points_v2` (1 définition(s))
 - `public.service_apply_directory_cuisine_evidence` (1 définition(s))
 - `public.service_apply_directory_cuisine_osm_evidence` (1 définition(s))
+- `public.service_authorize_tok_marketing_link` (1 définition(s))
 - `public.service_claim_directory_cuisine_jobs` (1 définition(s))
 - `public.service_claim_directory_cuisine_osm_jobs` (1 définition(s))
 - `public.service_claim_directory_image_jobs` (1 définition(s))
@@ -3226,6 +3237,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_consume_marketing_auth_attempt` (1 définition(s))
 - `public.service_create_tok_connect_broker_session` (1 définition(s))
 - `public.service_create_tok_connect_oauth_permit` (1 définition(s))
+- `public.service_create_tok_marketing_link` (1 définition(s))
+- `public.service_describe_tok_marketing_link` (1 définition(s))
 - `public.service_dispatch_marketing_notification_item` (1 définition(s))
 - `public.service_execute_marketing_admin_operation` (1 définition(s))
 - `public.service_execute_marketing_autopilot_operation` (1 définition(s))
@@ -3234,6 +3247,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_get_marketing_auth_challenge` (1 définition(s))
 - `public.service_get_marketing_web_session` (1 définition(s))
 - `public.service_get_tok_connect_broker_client` (1 définition(s))
+- `public.service_get_tok_marketing_link` (1 définition(s))
 - `public.service_import_marketing_prospect_coordinates` (1 définition(s))
 - `public.service_list_marketing_ai_runs` (1 définition(s))
 - `public.service_marketing_daily_operation` (1 définition(s))
@@ -3244,6 +3258,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_resolve_tok_connect_broker_access` (1 définition(s))
 - `public.service_revoke_marketing_web_session` (1 définition(s))
 - `public.service_revoke_tok_connect_broker_session` (1 définition(s))
+- `public.service_revoke_tok_marketing_link` (1 définition(s))
 - `public.service_rotate_tok_connect_broker_refresh` (1 définition(s))
 - `public.service_send_marketing_in_app_delivery` (1 définition(s))
 - `public.service_start_marketing_ai_run` (1 définition(s))
@@ -4858,7 +4873,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (379)</summary>
+<details><summary>table (380)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5239,6 +5254,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `tok_connect_private.broker_refresh_history` (1 définition(s))
 - `tok_connect_private.broker_sessions` (1 définition(s))
 - `tok_connect_private.execution_permits` (1 définition(s))
+- `tok_connect_private.marketing_links` (1 définition(s))
 
 </details>
 
@@ -6378,6 +6394,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261020135701 Marketing Daily Publication | 223 | 4 | [supabase/migrations/20261020135701_marketing_daily_publication.sql:1](../../supabase/migrations/20261020135701_marketing_daily_publication.sql#L1) |
 | 20261020144007 Marketing Daily Creme Orange Profile | 83 | 1 | [supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql:1](../../supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql#L1) |
 | 20261020153214 Marketing Instagram Telegram Reviews | 42 | 4 | [supabase/migrations/20261020153214_marketing_instagram_telegram_reviews.sql:1](../../supabase/migrations/20261020153214_marketing_instagram_telegram_reviews.sql#L1) |
+| 20261020211506 Tok Connect Marketing Native Links | 129 | 6 | [supabase/migrations/20261020211506_tok_connect_marketing_native_links.sql:1](../../supabase/migrations/20261020211506_tok_connect_marketing_native_links.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6607,7 +6624,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 36 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 269 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 794 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 797 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 65 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6620,7 +6637,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 217 |
 | automation-script | 78 |
 | documentation | 6 |
-| edge-function-source | 234 |
+| edge-function-source | 235 |
 | frontend-component | 281 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
@@ -6628,8 +6645,8 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 711 |
-| vercel-api | 9 |
+| test | 714 |
+| vercel-api | 11 |
 | worker | 5 |
 
 ## Documentation existante
@@ -6845,6 +6862,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | TOK Connect — sécurisation et mise en service | 12 | [docs/tok-connect/SECURITY_HARDENING.md:1](../../docs/tok-connect/SECURITY_HARDENING.md#L1) |
 | Recette TOK Connect dans ChatGPT | 9 | [docs/tok-connect/TESTING.md:1](../../docs/tok-connect/TESTING.md#L1) |
 | TOK Connect Full App MCP (surface historique interne) | 9 | [docs/tok-connect/full-app-mcp.md:1](../../docs/tok-connect/full-app-mcp.md#L1) |
+| Portail marketing dans TOK Connect | 4 | [docs/tok-connect/marketing-mcp.md:1](../../docs/tok-connect/marketing-mcp.md#L1) |
 | Espace Comptabilité Administrateur | 11 | [implementation_plan_compta.md:1](../../implementation_plan_compta.md#L1) |
 | Refonte de la Facturation avec Suivi des Commandes | 11 | [implementation_plan_invoice_refactor.md:1](../../implementation_plan_invoice_refactor.md#L1) |
 | CapApp-SPM | 1 | [ios/App/CapApp-SPM/README.md:1](../../ios/App/CapApp-SPM/README.md#L1) |
@@ -7271,7 +7289,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (562)</summary>
+<details><summary>database-migration (563)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7835,10 +7853,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261020135701_marketing_daily_publication.sql`
 - `supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql`
 - `supabase/migrations/20261020153214_marketing_instagram_telegram_reviews.sql`
+- `supabase/migrations/20261020211506_tok_connect_marketing_native_links.sql`
 
 </details>
 
-<details><summary>documentation (170)</summary>
+<details><summary>documentation (171)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8010,10 +8029,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/tok-connect/SECURITY_HARDENING.md`
 - `docs/tok-connect/TESTING.md`
 - `docs/tok-connect/full-app-mcp.md`
+- `docs/tok-connect/marketing-mcp.md`
 
 </details>
 
-<details><summary>edge-function-source (234)</summary>
+<details><summary>edge-function-source (235)</summary>
 
 - `supabase/functions/_shared/ai-image-operation.ts`
 - `supabase/functions/_shared/ai-image-response.ts`
@@ -8110,6 +8130,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/tok-connect-discovery-widget.ts`
 - `supabase/functions/_shared/tok-connect-discovery.ts`
 - `supabase/functions/_shared/tok-connect-floorplan-operations.ts`
+- `supabase/functions/_shared/tok-connect-marketing-operations.ts`
 - `supabase/functions/_shared/tok-connect-marketing-visual.ts`
 - `supabase/functions/_shared/tok-connect-oauth-policy.ts`
 - `supabase/functions/_shared/tok-connect-oauth.ts`
@@ -8710,7 +8731,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (48)</summary>
+<details><summary>frontend-source (49)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -8757,6 +8778,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/fixtures/golden-tok-preview.tsx`
 - `src/test/setup.ts`
 - `src/test/sql/marketing_instagram_reviews_smoke.sql`
+- `src/test/sql/tok_connect_marketing_links_smoke.sql`
 - `src/test/sql/tok_workforce_launch_smoke.sql`
 - `src/test/sql/tok_workforce_postgres_smoke.sql`
 - `src/vite-env.d.ts`
@@ -9638,7 +9660,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (711)</summary>
+<details><summary>test (714)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10292,6 +10314,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-connect-full-app-mcp.test.ts`
 - `src/test/tok-connect-image-bridge.test.ts`
 - `src/test/tok-connect-legal-content.test.ts`
+- `src/test/tok-connect-marketing-bff.test.ts`
+- `src/test/tok-connect-marketing-operations.test.ts`
+- `src/test/tok-connect-marketing-router.test.ts`
 - `src/test/tok-connect-marketing-visual.test.ts`
 - `src/test/tok-connect-marketplace-preflight.test.ts`
 - `src/test/tok-connect-mcp-http.test.ts`
@@ -10354,12 +10379,14 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>vercel-api (9)</summary>
+<details><summary>vercel-api (11)</summary>
 
 - `api/marketing/agent.ts`
 - `api/marketing/launch.ts`
 - `api/marketing/login.ts`
 - `api/marketing/logout.ts`
+- `api/marketing/mcp-link.ts`
+- `api/marketing/mcp.ts`
 - `api/marketing/mfa/enroll.ts`
 - `api/marketing/mfa/verify.ts`
 - `api/marketing/orchestrator.ts`

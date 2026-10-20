@@ -33,15 +33,36 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-export async function parseMcpJsonRpcRequest(req: Request): Promise<McpJsonRpcRequest> {
+export async function parseMcpJsonRpcRequest(
+  req: Request,
+  options: { largeToolNames?: readonly string[]; maxRequestBytes?: number } = {},
+): Promise<McpJsonRpcRequest> {
+  const hardLimit = 4 * 1024 * 1024 + 8192;
+  const configured = options.maxRequestBytes;
+  const maxBytes = options.largeToolNames?.length && typeof configured === "number" && Number.isSafeInteger(configured)
+    ? Math.min(hardLimit, Math.max(MCP_MAX_REQUEST_BYTES, configured)) : MCP_MAX_REQUEST_BYTES;
   const advertisedLength = Number(req.headers.get("content-length") || 0);
-  if (Number.isFinite(advertisedLength) && advertisedLength > MCP_MAX_REQUEST_BYTES) {
+  if (Number.isFinite(advertisedLength) && advertisedLength > maxBytes) {
     throw new McpProtocolError(-32600, "mcp_request_too_large", 413);
   }
 
-  const body = await req.text();
-  if (new TextEncoder().encode(body).byteLength > MCP_MAX_REQUEST_BYTES) {
-    throw new McpProtocolError(-32600, "mcp_request_too_large", 413);
+  let byteLength = 0, body = "";
+  const reader = req.body?.getReader();
+  if (reader) {
+    const decoder = new TextDecoder();
+    try {
+      while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        byteLength += chunk.value.byteLength;
+        if (byteLength > maxBytes) {
+          await reader.cancel().catch(() => undefined);
+          throw new McpProtocolError(-32600, "mcp_request_too_large", 413);
+        }
+        body += decoder.decode(chunk.value, { stream: true });
+      }
+      body += decoder.decode();
+    } finally { reader.releaseLock(); }
   }
   if (!body.trim()) throw new McpProtocolError(-32600, "invalid_request");
 
@@ -62,6 +83,13 @@ export async function parseMcpJsonRpcRequest(req: Request): Promise<McpJsonRpcRe
   }
   if (value.params !== undefined && !isRecord(value.params)) {
     throw new McpProtocolError(-32602, "invalid_params");
+  }
+  // Only the specifically opted-in tool can use the larger transport budget.
+  // All other methods and tools retain the default even on this endpoint.
+  if (Math.max(byteLength, Number.isFinite(advertisedLength) ? advertisedLength : 0) > MCP_MAX_REQUEST_BYTES
+    && (value.method !== "tools/call" || !isRecord(value.params)
+      || typeof value.params.name !== "string" || !options.largeToolNames?.includes(value.params.name))) {
+    throw new McpProtocolError(-32600, "mcp_request_too_large", 413);
   }
   if (
     value.id !== undefined &&

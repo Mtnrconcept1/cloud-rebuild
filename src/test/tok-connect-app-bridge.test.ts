@@ -111,7 +111,7 @@ describe("TOK Connect authenticated application bridge", () => {
     expect(migration).toContain("grant all on table public.tok_connect_mcp_action_idempotency to service_role");
   });
 
-  it("keeps the full execution bridge defined internally while the public MCP publishes only read-only tools", () => {
+  it("keeps generic execution internal while named marketing tools use the isolated MFA portal", () => {
     for (const tool of ["tok_list_capabilities", "tok_invoke_capability", "tok_invoke_rpc", "tok_data", "tok_commercial"]) {
       expect(remote).toContain(`name: "${tool}"`);
     }
@@ -123,6 +123,8 @@ describe("TOK Connect authenticated application bridge", () => {
     expect(remote).toContain("public_mcp_read_only");
     expect(remote).toContain("callAppBridge");
     expect(remote).toContain("annotations?.readOnlyHint === true");
-    expect(remote).toContain("Generic CRUD, arbitrary RPCs, admin, service-role, scheduler and webhook operations remain unavailable");
+    expect(remote).toContain("Generic CRUD, arbitrary RPCs, unrelated admin, service-role, scheduler and webhook operations remain unavailable");
+    expect(remote).toContain("TOK_MARKETING_TOOL_NAMES.has(name)");
+    expect(remote).toContain("https://marketing.thetok.ch/api/marketing/mcp");
   });
 });
