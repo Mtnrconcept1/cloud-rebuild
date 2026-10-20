@@ -9,7 +9,7 @@ export function MarketingBrandReferences() {
       <CardHeader><CardTitle className="text-base">Direction artistique TOK</CardTitle></CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-slate-600">
-          Ces quatre références accompagnent chaque génération de visuel : même chef, logo TOK,
+          Ces références accompagnent chaque génération de visuel : même chef, logo TOK,
           palette orange, noir et crème, titres condensés et touches de jaune.
         </p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

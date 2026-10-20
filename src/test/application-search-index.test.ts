@@ -67,8 +67,16 @@ describe("application search index", () => {
     expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "ai-restaurant-editor")).toBe(true);
     expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "golden-tok-membership")).toBe(true);
     expect(index.catalogs.edgeHttpRoutes).toHaveLength(20);
-    expect(index.catalogs.marketingOperations).toHaveLength(37);
-    expect(index.catalogs.cronJobs).toHaveLength(34);
+    expect(index.catalogs.marketingOperations).toHaveLength(39);
+    expect(
+      index.catalogs.marketingOperations
+        .filter((operation: { group: string }) => operation.group === "MARKETING_DAILY_OPERATION_NAMES")
+        .map((operation: { name: string }) => operation.name),
+    ).toEqual(["admin_get_marketing_daily_series", "admin_upsert_marketing_daily_series"]);
+    expect(index.catalogs.cronJobs).toHaveLength(35);
+    expect(
+      index.catalogs.cronJobs.find((job: { name: string }) => job.name === "tok-marketing-daily-generator"),
+    ).toMatchObject({ schedules: ["*/5 * * * *"] });
     expect(index.catalogs.storageBuckets).toHaveLength(9);
     expect(index.catalogs.databaseContract.length).toBeGreaterThanOrEqual(228);
     expect(index.catalogs.pages.length).toBeGreaterThan(100);

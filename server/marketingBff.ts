@@ -114,10 +114,19 @@ export type MarketingAutopilotOperation = (
   typeof MARKETING_AUTOPILOT_OPERATION_NAMES
 )[number];
 
+/** Daily generation has a separate dispatcher; publishing still uses the existing approval flow. */
+export const MARKETING_DAILY_OPERATION_NAMES = [
+  "admin_get_marketing_daily_series",
+  "admin_upsert_marketing_daily_series",
+] as const;
+
+export type MarketingDailyOperation = (typeof MARKETING_DAILY_OPERATION_NAMES)[number];
+
 const MARKETING_OPERATION_ALLOWLIST = new Set<string>([
   ...MARKETING_OPERATION_NAMES,
   ...MARKETING_OUTREACH_OPERATION_NAMES,
   ...MARKETING_AUTOPILOT_OPERATION_NAMES,
+  ...MARKETING_DAILY_OPERATION_NAMES,
 ]);
 
 type HeaderValue = string | string[] | undefined;
@@ -1602,8 +1611,15 @@ function marketingOperationError(value: unknown): PublicBffError | null {
     case "40001:Outreach opportunity was modified by another administrator":
     case "40001:Outreach target was modified by another administrator":
     case "40001:Backlink was modified by another administrator":
+    case "40001:Daily series was modified by another administrator":
       return new PublicBffError(409, "marketing_edit_conflict",
         "Cet élément a été modifié depuis son ouverture. Actualisez les données avant de réessayer.");
+    case "55000:Daily generation runtime is disabled":
+      return new PublicBffError(503, "marketing_daily_runtime_unavailable",
+        "Le service de génération quotidienne doit être activé avant de démarrer cette série.");
+    case "55000:Daily generation scheduler is unavailable":
+      return new PublicBffError(503, "marketing_daily_scheduler_unavailable",
+        "La planification quotidienne doit être configurée avant de démarrer cette série.");
     case "P0002:Campaign not found":
     case "P0002:Calendar item not found":
     case "P0002:Outreach opportunity not found":
@@ -1640,6 +1656,17 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
   if (!isPlainObject(args) || Object.keys(body).some((key) => !["operation", "args"].includes(key))) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
+  if (MARKETING_DAILY_OPERATION_NAMES.includes(operation as MarketingDailyOperation)) {
+    const payload = args.p_payload;
+    const validDailyArgs = operation === "admin_get_marketing_daily_series"
+      ? Object.keys(args).length === 0
+      : Object.keys(args).length === 1 && isPlainObject(payload)
+        && Object.keys(payload).every((key) => ["status", "local_time", "expected_version"].includes(key))
+        && (payload.status === "active" || payload.status === "paused")
+        && typeof payload.local_time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(payload.local_time)
+        && (payload.expected_version === undefined || (Number.isSafeInteger(payload.expected_version) && Number(payload.expected_version) >= 1));
+    if (!validDailyArgs) throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
   await checkMarketingApprovalMedia(config, operation, args);
@@ -1652,7 +1679,9 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
           operation as MarketingAutopilotOperation,
         )
         ? "service_execute_marketing_autopilot_operation"
-        : "service_execute_marketing_admin_operation";
+        : MARKETING_DAILY_OPERATION_NAMES.includes(operation as MarketingDailyOperation)
+          ? "service_marketing_daily_operation"
+          : "service_execute_marketing_admin_operation";
     const result = await serviceRpc(config, serviceOperation, {
       p_sid_hash: session.sessionHash,
       p_csrf_hash: session.csrfHash,

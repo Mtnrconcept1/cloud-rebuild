@@ -19,6 +19,7 @@ import {
   MarketingStatusBadge,
   formatMarketingDate,
 } from "@/components/marketing/MarketingShared";
+import { MarketingDailySeries } from "@/components/marketing/MarketingDailySeries";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +49,7 @@ import type {
   MarketingChannelId,
   MarketingSnapshot,
 } from "@/marketing/types";
+import type { MarketingNavigate } from "@/marketing/useMarketingUrlState";
 
 const EMPTY_AUTOMATION: MarketingAutomationDraft = {
   name: "",
@@ -87,6 +89,7 @@ export default function MarketingAutomationsView({
   onPrepareDraft,
   onClearSimulation,
   onSave,
+  onNavigate,
 }: {
   snapshot: MarketingSnapshot;
   canMutateBackend: boolean;
@@ -101,6 +104,7 @@ export default function MarketingAutomationsView({
   onPrepareDraft: (reason: string) => Promise<unknown>;
   onClearSimulation: () => void;
   onSave: (draft: MarketingAutomationDraft) => Promise<unknown>;
+  onNavigate: MarketingNavigate;
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draft, setDraft] = useState<MarketingAutomationDraft>(EMPTY_AUTOMATION);
@@ -137,13 +141,15 @@ export default function MarketingAutomationsView({
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-700 dark:text-orange-300">Cockpit Autopilot</p>
           <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Automatisations TOK</h1>
-          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Huit modèles bornés : chaque parcours commence par une simulation et ne peut produire qu'un brouillon. Aucun envoi, publication, impression, achat ou dépense n'est disponible ici.</p>
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Gérez votre série Instagram quotidienne et préparez vos autres automatisations à partir des huit modèles TOK.</p>
         </div>
         <Button type="button" variant="outline" onClick={onRefreshAutopilot} disabled={autopilotLoading || Boolean(autopilotPendingAction)}>
           <RefreshCw className={cn("mr-2 h-4 w-4", autopilotLoading && "animate-spin")} />
           Actualiser le cockpit
         </Button>
       </div>
+
+      <MarketingDailySeries canMutateBackend={canMutateBackend} onNavigate={onNavigate} />
 
       <Alert className="border-amber-500/30 bg-amber-500/10">
         <ShieldCheck className="h-4 w-4 text-amber-700 dark:text-amber-300" />

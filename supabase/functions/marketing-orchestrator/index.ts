@@ -22,6 +22,8 @@ import {
 import { processMetaMarketingItem } from "../_shared/meta-marketing-orchestrator.ts";
 import { prepareTargetedMailingContent } from "../_shared/marketing-mailing-email.ts";
 import { MailingInputError } from "../_shared/marketing-mailing.ts";
+import { runDailyMarketingGeneration } from "../_shared/marketing-daily-generation.ts";
+import { selectTokAiModel } from "../_shared/openai.ts";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 type ClaimedItem = {
@@ -426,6 +428,7 @@ Deno.serve(async (req) => {
   if (preflight) return preflight;
   const log = makeLogger("marketing-orchestrator");
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+  let auditAction = "run";
 
   try {
     if (req.method !== "POST") throw new HttpError(405, "Method not allowed");
@@ -439,6 +442,22 @@ Deno.serve(async (req) => {
     actor = await attachDelegatedAdminIdentity(actor, req);
     requireRole(actor, ["admin"]);
     const payload = asRecord(await req.json().catch(() => ({})));
+    if (payload.action === "generate_daily") {
+      auditAction = "generate_daily";
+      if (Object.keys(payload).some((key) => key !== "action")) throw new HttpError(400, "Invalid daily generation request");
+      const result = await runDailyMarketingGeneration(actor.adminClient, {
+        apiKey: Deno.env.get("OPENAI_API_KEY")?.trim() || "",
+        reviewModel: selectTokAiModel("image_premium"),
+        supabaseUrl: Deno.env.get("SUPABASE_URL")?.trim() || "",
+      });
+      await writeAuditLog({ adminClient: actor.adminClient, actor, request: req,
+        functionName: "marketing-orchestrator", action: auditAction,
+        status: result.status === "failed" || result.status === "retrying" ? "failure" : "success",
+        targetEntityType: "marketing_daily_runs",
+        metadata: { status: result.status, run_id: "id" in result ? result.id : null,
+          error_code: "error" in result ? result.error : null } });
+      return jsonResponse({ ok: result.status === "succeeded" || result.status === "idle", action: auditAction, result }, 200, corsHeaders);
+    }
     if (payload.action === "check_meta") {
       if (actor.authMode !== "service_role" || !actor.userId) throw new HttpError(403, "Delegated administrator required");
       if (Object.keys(payload).some((key) => key !== "action")) throw new HttpError(400, "Invalid health request");
@@ -507,9 +526,9 @@ Deno.serve(async (req) => {
       actor,
       request: req,
       functionName: "marketing-orchestrator",
-      action: "run",
+      action: auditAction,
       status: "failure",
-      targetEntityType: "marketing_calendar_items",
+      targetEntityType: auditAction === "generate_daily" ? "marketing_daily_runs" : "marketing_calendar_items",
       errorMessage: message,
     });
     if (error instanceof HttpError) return jsonResponse({ error: message }, error.status, corsHeaders);

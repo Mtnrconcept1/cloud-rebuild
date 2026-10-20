@@ -209,6 +209,13 @@ export default function MarketingAgentView({
         </AlertDescription>
       </Alert>
 
+      <Card className="border-orange-500/25 bg-orange-500/5">
+        <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div><h2 className="font-semibold">Un post Instagram chaque jour</h2><p className="mt-1 text-sm text-muted-foreground">Une série continue, des sujets variés et l’identité TOK. Retrouvez ses réglages dans Automatisations.</p></div>
+          <Button type="button" variant="outline" className="min-h-11 shrink-0" disabled={busy} onClick={() => onNavigate("automations")}>Configurer la série quotidienne</Button>
+        </CardContent>
+      </Card>
+
       <MarketingMailingBuilder pending={pending} disabled={!canMutateBackend || uploadingIds.length > 0} onGenerate={generate} />
       <MarketingCampaignBuilder snapshot={snapshot} pending={pending} disabled={!canMutateBackend || uploadingIds.length > 0} onGenerate={generate} />
       {error ? <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{error}</AlertDescription></Alert> : null}

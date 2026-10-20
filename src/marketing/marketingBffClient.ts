@@ -50,6 +50,10 @@ export class MarketingBffError extends Error {
 }
 
 const MARKETING_OPERATION_ERRORS: Record<string, { status: number; message: string }> = {
+  marketing_daily_runtime_unavailable: { status: 503,
+    message: "Le service de génération quotidienne doit être activé avant de démarrer cette série." },
+  marketing_daily_scheduler_unavailable: { status: 503,
+    message: "La planification quotidienne doit être configurée avant de démarrer cette série." },
   marketing_campaign_approval_required: { status: 400,
     message: "Approuvez d’abord la campagne dans l’onglet Campagnes, puis approuvez et planifiez cet élément." },
   marketing_schedule_too_soon: { status: 400,

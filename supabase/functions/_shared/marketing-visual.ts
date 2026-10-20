@@ -55,10 +55,15 @@ async function loadReferences(): Promise<Blob[]> {
   }
 }
 
+/** Both generation and the daily visual reviewer use the same pinned masters. */
+export function loadTokMarketingReferences(): Promise<Blob[]> {
+  referenceCache ??= loadReferences().catch((error) => { referenceCache = undefined; throw error; });
+  return referenceCache;
+}
+
 export async function buildTokMarketingImageForm(prompt: string, format: CampaignFormat = "4:5"): Promise<FormData> {
   if (!Object.hasOwn(CAMPAIGN_FORMAT_SIZES, format)) throw new Error("marketing_image_format_invalid");
-  referenceCache ??= loadReferences().catch((error) => { referenceCache = undefined; throw error; });
-  const references = await referenceCache;
+  const references = await loadTokMarketingReferences();
   const form = new FormData();
   form.set("model", "gpt-image-2");
   form.set("prompt", buildTokMarketingVisualPrompt(prompt, format));

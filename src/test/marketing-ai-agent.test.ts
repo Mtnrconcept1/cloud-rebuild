@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES } from "../../supabase/functions/_shared/marketing-brand";
 
 import {
   MarketingPlanError,
@@ -164,8 +165,8 @@ describe("marketing AI bundle payload", () => {
     expect(bundle.items[0].content.visual_brand_profile).toBeUndefined();
     expect(bundle.items[1].content.subject).toBe("Objet retenu");
     expect(bundle.items[1].content.visual_url).toBe("https://cdn/x.png");
-    expect(bundle.items[1].content.visual_brand_profile).toBe("tok-v1-20261011");
-    expect(bundle.items[1].content.visual_reference_ids).toEqual(["geneva", "loyalty", "flash", "pricing"]);
+    expect(bundle.items[1].content.visual_brand_profile).toBe(TOK_MARKETING_BRAND_VERSION);
+    expect(bundle.items[1].content.visual_reference_ids).toEqual(TOK_MARKETING_REFERENCES.map((reference) => reference.id));
     expect(bundle.items[1].content.format).toBe("16:9");
   });
   it("keeps guided per-item ratios authoritative while preserving the legacy format alias", () => {
