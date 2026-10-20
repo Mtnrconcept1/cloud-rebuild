@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `2356c9f8cfff76507a422f0a701606dc57ceb2e4cf71a4a039d62059709136bc`
+- Empreinte SHA-256 des sources indexées : `4ea8d8274298991883fc1db4118a3fc4a168fe13d21dbadde04345fba7964221`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,7 +28,7 @@
 | apiRoutes | 11 |
 | cronJobs | 35 |
 | databaseContract | 228 |
-| databaseObjects | 2988 |
+| databaseObjects | 2989 |
 | documents | 218 |
 | edgeFunctions | 119 |
 | edgeHttpRoutes | 20 |
@@ -37,16 +37,16 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 563 |
-| modules | 1752 |
+| migrations | 568 |
+| modules | 1755 |
 | pages | 133 |
 | pathLiterals | 837 |
 | publicAssets | 588 |
 | publicEntries | 614 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18150 |
-| repositoryFiles | 3439 |
+| records | 18168 |
+| repositoryFiles | 3447 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2518,7 +2518,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (842)</summary>
+<details><summary>function (843)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2801,7 +2801,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.claim_restaurant_commission_collections` (1 définition(s))
 - `public.claim_restaurant_daily_dish_run` (2 définition(s))
 - `public.claim_restaurant_image_discovery_jobs` (2 définition(s))
-- `public.claim_restaurant_image_discovery_jobs_for_edge` (1 définition(s))
+- `public.claim_restaurant_image_discovery_jobs_for_edge` (2 définition(s))
 - `public.claim_restaurant_image_truth_reviews` (1 définition(s))
 - `public.claim_restaurant_subscription_activation_jobs` (2 définition(s))
 - `public.claim_stripe_webhook_event` (1 définition(s))
@@ -3080,7 +3080,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.prepare_actualites_media_for_indexing` (3 définition(s))
 - `public.prepare_print_fulfillment_submission` (1 définition(s))
 - `public.prepare_restaurant_media_for_indexing` (1 définition(s))
-- `public.preserve_terminal_restaurant_image_truth_review` (1 définition(s))
+- `public.preserve_terminal_restaurant_image_truth_review` (2 définition(s))
 - `public.prevent_accounting_period_mutation_when_locked` (1 définition(s))
 - `public.prevent_commercial_compensation_profile_event_mutation` (1 définition(s))
 - `public.prevent_commercial_contract_evidence_mutation` (1 définition(s))
@@ -3112,7 +3112,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.queue_directory_image_candidate` (1 définition(s))
 - `public.queue_notification_deliveries` (3 définition(s))
 - `public.queue_reservation_card_cancellation_fee` (1 définition(s))
-- `public.queue_restaurant_image_discovery_after_name_verification` (2 définition(s))
+- `public.queue_restaurant_image_discovery_after_name_verification` (4 définition(s))
 - `public.queue_tok_paid_invoice_email` (1 définition(s))
 - `public.rate_limit_consume` (1 définition(s))
 - `public.read_meal_formula_max_tables_per_service` (1 définition(s))
@@ -3231,7 +3231,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_claim_directory_image_jobs` (1 définition(s))
 - `public.service_claim_directory_name_jobs` (1 définition(s))
 - `public.service_claim_thefork_image_discovery_jobs` (2 définition(s))
-- `public.service_claim_thefork_image_truth_reviews` (1 définition(s))
+- `public.service_claim_thefork_image_truth_reviews` (2 définition(s))
 - `public.service_claim_thefork_official_site_discovery_jobs` (4 définition(s))
 - `public.service_claim_tok_connect_broker_refresh` (1 définition(s))
 - `public.service_clear_marketing_auth_attempt` (1 définition(s))
@@ -3258,6 +3258,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_prepare_marketing_email_delivery` (1 définition(s))
 - `public.service_record_marketing_email_sent` (1 définition(s))
 - `public.service_resolve_tok_connect_broker_access` (1 définition(s))
+- `public.service_retry_restaurant_photo_transport_errors` (1 définition(s))
 - `public.service_revoke_marketing_web_session` (1 définition(s))
 - `public.service_revoke_tok_connect_broker_session` (1 définition(s))
 - `public.service_revoke_tok_marketing_link` (1 définition(s))
@@ -6397,6 +6398,11 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261020144007 Marketing Daily Creme Orange Profile | 83 | 1 | [supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql:1](../../supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql#L1) |
 | 20261020153214 Marketing Instagram Telegram Reviews | 42 | 4 | [supabase/migrations/20261020153214_marketing_instagram_telegram_reviews.sql:1](../../supabase/migrations/20261020153214_marketing_instagram_telegram_reviews.sql#L1) |
 | 20261020211506 Tok Connect Marketing Native Links | 129 | 6 | [supabase/migrations/20261020211506_tok_connect_marketing_native_links.sql:1](../../supabase/migrations/20261020211506_tok_connect_marketing_native_links.sql#L1) |
+| 20261020222733 Repair Restaurant Image Discovery Sources | 128 | 1 | [supabase/migrations/20261020222733_repair_restaurant_image_discovery_sources.sql:1](../../supabase/migrations/20261020222733_repair_restaurant_image_discovery_sources.sql#L1) |
+| 20261020223007 Preserve Restaurant Image Discovery Source Lease | 93 | 1 | [supabase/migrations/20261020223007_preserve_restaurant_image_discovery_source_lease.sql:1](../../supabase/migrations/20261020223007_preserve_restaurant_image_discovery_source_lease.sql#L1) |
+| 20261020223254 Prefer Repaired Restaurant Image Discovery Source | 118 | 1 | [supabase/migrations/20261020223254_prefer_repaired_restaurant_image_discovery_source.sql:1](../../supabase/migrations/20261020223254_prefer_repaired_restaurant_image_discovery_source.sql#L1) |
+| 20261020223521 Retry Technical Restaurant Photo Reviews | 144 | 1 | [supabase/migrations/20261020223521_retry_technical_restaurant_photo_reviews.sql:1](../../supabase/migrations/20261020223521_retry_technical_restaurant_photo_reviews.sql#L1) |
+| 20261020223830 Controlled Retry Restaurant Photo Transport Errors | 117 | 2 | [supabase/migrations/20261020223830_controlled_retry_restaurant_photo_transport_errors.sql:1](../../supabase/migrations/20261020223830_controlled_retry_restaurant_photo_transport_errors.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6621,12 +6627,12 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 119 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 143 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 144 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 36 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 269 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 797 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 800 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 65 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6637,7 +6643,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 217 |
-| automation-script | 78 |
+| automation-script | 80 |
 | documentation | 6 |
 | edge-function-source | 235 |
 | frontend-component | 281 |
@@ -6647,7 +6653,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 715 |
+| test | 716 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7161,7 +7167,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (90)</summary>
+<details><summary>automation-script (92)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7247,6 +7253,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/test-reservation-notifications-postgres.mjs`
 - `scripts/test-tok-special-offer-stock-postgres.mjs`
 - `scripts/tok-connect-smoke.mjs`
+- `scripts/verification/restaurant-image-discovery-sources.cjs`
+- `scripts/verification/restaurant-image-technical-retries.cjs`
 - `scripts/verify-supabase-runtime-security.mjs`
 - `scripts/write-apple-app-site-association.mjs`
 - `scripts/write-commercial-demo-secrets-env.mjs`
@@ -7291,7 +7299,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (563)</summary>
+<details><summary>database-migration (568)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7856,6 +7864,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261020144007_marketing_daily_creme_orange_profile.sql`
 - `supabase/migrations/20261020153214_marketing_instagram_telegram_reviews.sql`
 - `supabase/migrations/20261020211506_tok_connect_marketing_native_links.sql`
+- `supabase/migrations/20261020222733_repair_restaurant_image_discovery_sources.sql`
+- `supabase/migrations/20261020223007_preserve_restaurant_image_discovery_source_lease.sql`
+- `supabase/migrations/20261020223254_prefer_repaired_restaurant_image_discovery_source.sql`
+- `supabase/migrations/20261020223521_retry_technical_restaurant_photo_reviews.sql`
+- `supabase/migrations/20261020223830_controlled_retry_restaurant_photo_transport_errors.sql`
 
 </details>
 
@@ -9662,7 +9675,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (715)</summary>
+<details><summary>test (716)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10173,6 +10186,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-entity-seo.test.ts`
 - `src/test/restaurant-image-backfill-auth.test.ts`
 - `src/test/restaurant-image-discovery-reactivation.test.ts`
+- `src/test/restaurant-image-discovery-source-repair.test.ts`
 - `src/test/restaurant-image-discovery-trigger.test.ts`
 - `src/test/restaurant-image-mapped-ip-guard.test.ts`
 - `src/test/restaurant-image-safe-fetch.test.ts`

@@ -1,0 +1,50 @@
+// Disposable PostgreSQL verification. Install @electric-sql/pglite in a scratch
+// directory and set TOK_PGLITE_MODULE to its absolute module path when needed.
+const {PGlite}=require(process.env.TOK_PGLITE_MODULE || '@electric-sql/pglite');
+const fs=require('fs');
+(async()=>{
+const db=new PGlite();
+await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role; CREATE SCHEMA auth; CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql AS $$SELECT 'service_role'::text$$;
+CREATE TABLE restaurants(id uuid PRIMARY KEY,is_active boolean,is_directory_listing boolean,directory_public_name_verified boolean,image_url text,directory_public_name_source_url text,directory_source_reference text,name text,address text,city text);
+CREATE TABLE marketing_contacts(source_objectid bigint,source_reference text,website text,branch text);
+CREATE TABLE restaurant_directory_image_jobs(restaurant_id uuid,source_page_url text);
+CREATE TABLE restaurant_image_discovery_jobs(restaurant_id uuid PRIMARY KEY,source_url text,status text,next_attempt_at timestamptz,updated_at timestamptz,last_error text,lease_token uuid,lease_expires_at timestamptz,attempts integer DEFAULT 0);
+INSERT INTO restaurants SELECT ('00000000-0000-0000-0000-'||lpad(n::text,12,'0'))::uuid,true,true,true,case when n=3 then 'manual.jpg' end,null,n::text,'Restaurant '||n,'Rue 1','Genève' FROM generate_series(1,5)n;
+INSERT INTO marketing_contacts SELECT n,n::text,'https://restaurant'||n||'.ch/',null FROM generate_series(1,5)n;
+INSERT INTO restaurant_image_discovery_jobs SELECT id,case when directory_source_reference='4' then 'https://existing.ch/' else directory_source_reference end,case when directory_source_reference='2' then 'processing' else 'no_candidate' end,now(),now(),null,null,null,0 FROM restaurants;`);
+const migration=fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020222733_repair_restaurant_image_discovery_sources.sql'),'utf8');
+await db.exec(migration);
+await db.exec(fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020223007_preserve_restaurant_image_discovery_source_lease.sql'),'utf8'));
+let rows=(await db.query('select source_url,status from restaurant_image_discovery_jobs order by restaurant_id')).rows;
+const expected=['https://restaurant1.ch/','2','3','https://existing.ch/','https://restaurant5.ch/'];
+if(JSON.stringify(rows.map(r=>r.source_url))!==JSON.stringify(expected))throw Error(JSON.stringify(rows));
+await db.exec(`CREATE TRIGGER queue_test AFTER INSERT OR UPDATE ON restaurants FOR EACH ROW EXECUTE FUNCTION queue_restaurant_image_discovery_after_name_verification();
+INSERT INTO restaurants VALUES('00000000-0000-0000-0000-000000000006',true,true,true,null,null,'6','Restaurant 6','Rue 1','Genève');`);
+let noSource=(await db.query("select source_url from restaurant_image_discovery_jobs where restaurant_id='00000000-0000-0000-0000-000000000006'")).rows[0];
+if(noSource.source_url!==null)throw Error('numeric identifier leaked');
+await db.exec(`INSERT INTO marketing_contacts VALUES(7,'7','https://restaurant7.ch/',null);
+INSERT INTO restaurants VALUES('00000000-0000-0000-0000-000000000007',true,true,true,null,null,'7','Restaurant 7','Rue 1','Genève');`);
+await db.exec(`UPDATE restaurants SET directory_public_name_source_url='https://changed.ch/' WHERE directory_source_reference='2';`);
+let leased=(await db.query("select source_url,status from restaurant_image_discovery_jobs where restaurant_id='00000000-0000-0000-0000-000000000002'")).rows[0];
+if(leased.source_url!=='2'||leased.status!=='processing')throw Error('active lease source changed');
+let source=(await db.query("select source_url from restaurant_image_discovery_jobs where restaurant_id='00000000-0000-0000-0000-000000000007'")).rows[0];
+if(source.source_url!=='https://restaurant7.ch/')throw Error('website missing');
+await db.exec(migration);
+await db.exec(fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020223007_preserve_restaurant_image_discovery_source_lease.sql'),'utf8'));
+await db.exec(fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020223254_prefer_repaired_restaurant_image_discovery_source.sql'),'utf8'));
+await db.exec(`UPDATE restaurant_image_discovery_jobs SET next_attempt_at=now()+interval '1 day' WHERE restaurant_id NOT IN ('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000006');
+INSERT INTO restaurant_directory_image_jobs VALUES('00000000-0000-0000-0000-000000000001','https://www.tripadvisor.com/old-page'),('00000000-0000-0000-0000-000000000006','https://official-six.ch/');
+UPDATE restaurant_image_discovery_jobs SET source_url='12345' WHERE restaurant_id='00000000-0000-0000-0000-000000000006';`);
+await db.exec(`UPDATE marketing_contacts SET branch='Restaurant référencé sur TheFork' WHERE source_objectid=7;
+UPDATE restaurant_image_discovery_jobs SET next_attempt_at=now() WHERE restaurant_id='00000000-0000-0000-0000-000000000007';`);
+const priority=(await db.query('SELECT * FROM claim_restaurant_image_discovery_jobs_for_edge(1)')).rows;
+if(priority.length!==1||!priority[0].restaurant_id.endsWith('007'))throw Error('TheFork branch priority or UTF8 literal drift');
+const claimed=(await db.query('SELECT * FROM claim_restaurant_image_discovery_jobs_for_edge(3)')).rows;
+if(claimed.length!==2)throw Error('claim eligibility drift');
+if(claimed.find(r=>r.restaurant_id.endsWith('001')).source_url!=='https://restaurant1.ch/')throw Error('repaired source masked by old third-party page');
+if(claimed.find(r=>r.restaurant_id.endsWith('006')).source_url!=='https://official-six.ch/')throw Error('numeric source returned instead of official fallback');
+if((await db.query('SELECT * FROM claim_restaurant_image_discovery_jobs_for_edge(3)')).rows.length!==0)throw Error('active leases claimed twice');
+console.log('PostgreSQL replay passed: source repair, processing/manual/valid-source preservation, trigger website/null source, idempotent replay.');
+await db.close();
+})();
+
