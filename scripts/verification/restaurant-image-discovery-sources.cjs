@@ -14,7 +14,7 @@ INSERT INTO marketing_contacts SELECT n,n::text,'https://restaurant'||n||'.ch/' 
 INSERT INTO restaurant_image_discovery_jobs SELECT id,case when directory_source_reference='4' then 'https://existing.ch/' else directory_source_reference end,case when directory_source_reference='2' then 'processing' else 'no_candidate' end,now(),now(),null,null,null FROM restaurants;`);
 const migration=fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020222733_repair_restaurant_image_discovery_sources.sql'),'utf8');
 await db.exec(migration);
-await db.exec(fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020222907_preserve_restaurant_image_discovery_source_lease.sql'),'utf8'));
+await db.exec(fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020223007_preserve_restaurant_image_discovery_source_lease.sql'),'utf8'));
 let rows=(await db.query('select source_url,status from restaurant_image_discovery_jobs order by restaurant_id')).rows;
 const expected=['https://restaurant1.ch/','2','3','https://existing.ch/','https://restaurant5.ch/'];
 if(JSON.stringify(rows.map(r=>r.source_url))!==JSON.stringify(expected))throw Error(JSON.stringify(rows));
@@ -30,7 +30,8 @@ if(leased.source_url!=='2'||leased.status!=='processing')throw Error('active lea
 let source=(await db.query("select source_url from restaurant_image_discovery_jobs where restaurant_id='00000000-0000-0000-0000-000000000007'")).rows[0];
 if(source.source_url!=='https://restaurant7.ch/')throw Error('website missing');
 await db.exec(migration);
-await db.exec(fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020222907_preserve_restaurant_image_discovery_source_lease.sql'),'utf8'));
+await db.exec(fs.readFileSync(require('node:path').resolve(__dirname, '../../supabase/migrations/20261020223007_preserve_restaurant_image_discovery_source_lease.sql'),'utf8'));
 console.log('PostgreSQL replay passed: source repair, processing/manual/valid-source preservation, trigger website/null source, idempotent replay.');
 await db.close();
 })();
+
