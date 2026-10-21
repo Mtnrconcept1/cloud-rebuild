@@ -13,6 +13,7 @@ import {
 import { Link } from "react-router-dom";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -216,32 +217,22 @@ export default function DashboardCampaignStudio() {
   };
 
   return (
-    <DashboardLayout contentWidth="full">
+    <DashboardLayout contentWidth="full" mainClassName="tok-restaurant-page tok-page-campaign-studio">
       <div className="mx-auto max-w-7xl space-y-6">
-        <div className="rounded-3xl border bg-gradient-to-br from-orange-50 via-background to-amber-50 p-6 shadow-sm dark:from-orange-950/25 dark:to-amber-950/10">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-3xl">
-              <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary">
-                <Sparkles className="h-4 w-4" />
-                TOK Campaign Studio
-              </div>
-              <h1 className="font-display text-3xl font-bold">
-                Transformer un objectif commercial en campagne contrôlée
-              </h1>
-              <p className="mt-3 text-muted-foreground">
-                L’IA analyse les données du restaurant et prépare un plan. Le
-                moteur publicitaire TOK reste seul responsable de la
-                facturation, du ciblage et du lancement.
-              </p>
-            </div>
+        <DashboardPageHero
+          badge="Marketing"
+          title="Campaign Studio IA"
+          description="Transformez un objectif commercial en campagne contrôlée. L’IA prépare le plan ; vous gardez la main sur le budget, le ciblage et le lancement."
+          icon={Sparkles}
+          actions={(
             <Button asChild variant="outline">
               <Link to="/dashboard/campagnes">
                 <Megaphone className="mr-2 h-4 w-4" />
                 Ouvrir les campagnes
               </Link>
             </Button>
-          </div>
-        </div>
+          )}
+        />
 
         {!selectedId ? (
           <Card>
@@ -250,7 +241,7 @@ export default function DashboardCampaignStudio() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+          <div className="tok-campaign-studio-workbench grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
             <div className="space-y-6">
               <Card>
                 <CardHeader>

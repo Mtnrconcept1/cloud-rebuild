@@ -4,8 +4,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, ReceiptText, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { CommercialDemoAccounting } from "@/components/dashboard/CommercialDemoScenario";
-import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
+import { AccountingFactList, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { TokPayableInvoiceDialog } from "@/components/invoices/TokPayableInvoiceDialog";
 import { useAuth } from "@/lib/auth-context";
 import type { PayableInvoiceRow } from "@/lib/payableInvoice";
@@ -194,11 +195,12 @@ function LiveDashboardFacturesOutflow() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-expenses">
       <div className="space-y-6">
-        <AccountingHero
+        <DashboardPageHero
+          icon={ArrowUpRight}
           badge="Sorties d'argent"
-          title="Factures recues de TOK"
+          title="Sorties et dépenses"
           description={selectedRestaurant
             ? `Commencez par ce qui est déjà facturé par TOK, puis regardez ce qui risque d'arriver dans la prochaine facturé.`
             : "Sélectionnez un restaurant pour afficher ses sorties d'argent."}

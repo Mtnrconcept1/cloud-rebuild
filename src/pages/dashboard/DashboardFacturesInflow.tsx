@@ -4,8 +4,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDownRight, Coins, Download, FileUp, Megaphone, RefreshCcw, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { CommercialDemoAccounting } from "@/components/dashboard/CommercialDemoScenario";
-import { AccountingFactList, AccountingHero, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
+import { AccountingFactList, AccountingMetricCard, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { InvoiceDetailAccordion } from "@/components/invoices/InvoiceDetailAccordion";
 import { COMMISSION_SOURCE_LABELS, COMMISSION_SOURCE_ORDER } from "@/lib/comptaCommissionSources";
 import { useAuth } from "@/lib/auth-context";
@@ -275,11 +276,12 @@ function LiveDashboardFacturesInflow() {
   const totalOpenReceivable = summary.inflow.receivableFromTok + uninvoicedRestaurantShareTotal;
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-income">
       <div className="space-y-6">
-        <AccountingHero
+        <DashboardPageHero
+          icon={ArrowDownRight}
           badge="Entrees d'argent"
-          title="Factures faites a TOK"
+          title="Entrées et recettes"
           description={selectedRestaurant
             ? `Commencez par les montants que vous devez encore facturer a TOK, puis par les factures déjà emises et non reglees.`
             : "Sélectionnez un restaurant pour afficher ses entrées d'argent."}

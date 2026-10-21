@@ -466,7 +466,7 @@ export default function DashboardRestaurant() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-restaurant">
       <div className="space-y-6">
         {dashboardAccessLocked ? (
           <div className="max-w-3xl rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
@@ -568,7 +568,9 @@ export default function DashboardRestaurant() {
           />
         ) : null}
 
-        <div className="max-w-3xl space-y-4">
+        <div className="tok-restaurant-profile-form max-w-3xl space-y-4">
+          <section className="tok-profile-general space-y-4">
+            <h2 className="font-display text-2xl">Informations générales</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Nom</Label>
@@ -674,13 +676,17 @@ export default function DashboardRestaurant() {
             />
           </div>
 
+          </section>
+          <section className="tok-profile-media space-y-4">
+            <h2 className="font-display text-2xl">Photo de l’établissement</h2>
           <ImageUpload
             label="Photo du restaurant"
             value={form.image_url}
             onChange={(url) => setForm({ ...form, image_url: url })}
           />
+          </section>
 
-          <div className="mt-6 space-y-4 border-t pt-4">
+          <div className="tok-profile-wide mt-6 space-y-4 border-t pt-4">
             <div>
               <h3 className="font-semibold">Commodités et services</h3>
               <p className="text-sm text-muted-foreground">
@@ -797,7 +803,7 @@ export default function DashboardRestaurant() {
             </div>
           )}
 
-          <div className="mt-6 border-t pt-4">
+          <div className="tok-profile-wide mt-6 border-t pt-4">
             <h3 className="mb-4 font-semibold">
               Modes de consommation alternatifs
             </h3>
@@ -850,7 +856,7 @@ export default function DashboardRestaurant() {
           </Button>
 
           {restaurant && (
-            <div className="mt-6 border-t pt-4">
+            <div className="tok-profile-wide mt-6 border-t pt-4">
               <h3 className="mb-4 flex items-center gap-2 font-semibold">
                 <CreditCard className="h-5 w-5" /> Moyens de paiement acceptés
               </h3>
@@ -932,7 +938,7 @@ export default function DashboardRestaurant() {
           )}
 
           {restaurant && (
-            <div className="mt-6 border-t pt-4">
+            <div className="tok-profile-wide mt-6 border-t pt-4">
               <h3 className="mb-4 flex items-center gap-2 font-semibold">
                 <CreditCard className="h-5 w-5" /> Paiements Stripe Connect
               </h3>

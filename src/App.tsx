@@ -1,3 +1,4 @@
+import { isCustomerWorkspacePath } from "@/lib/customerWorkspaceRoutes";
 import { lazy, Suspense, useEffect, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -309,7 +310,7 @@ function FeatureSwitch({ enabled, fallback = "/", children }: { enabled: boolean
 }
 
 function shouldShowPublicNavbar(pathname: string) {
-  return !(
+  return !isCustomerWorkspacePath(pathname) && !(
     pathname === "/espaces" ||
     pathname === "/dashboard" ||
     pathname.startsWith("/dashboard/") ||
@@ -325,7 +326,7 @@ function shouldShowPublicNavbar(pathname: string) {
 }
 
 function shouldShowPublicFooter(pathname: string) {
-  return shouldShowPublicNavbar(pathname);
+  return shouldShowPublicNavbar(pathname) || isCustomerWorkspacePath(pathname);
 }
 
 const adminBackButtonPortalStyle: CSSProperties = {

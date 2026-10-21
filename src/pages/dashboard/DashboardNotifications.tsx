@@ -3,8 +3,9 @@ import NotificationHistoryList from "@/components/notifications/NotificationHist
 
 export default function DashboardNotifications() {
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-notifications">
       <NotificationHistoryList
+        className="tok-restaurant-notifications"
         title="Notifications"
         description="Historique des commandes, réservations, incidents support et alertes de votre restaurant."
         fallbackTarget="/dashboard/notifications"

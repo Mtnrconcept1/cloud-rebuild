@@ -22,7 +22,7 @@ export default function DashboardWorkforce() {
   const {selectedId,loading,isDemoMode}=useDashboardRestaurant();
   const settings=useWorkforceSettings(isDemoMode?null:selectedId);
   const enabled=!isDemoMode && settings.data?.enabled===true;
-  return <DashboardLayout>
+  return <DashboardLayout mainClassName="tok-restaurant-page tok-page-workforce">
     <div className="space-y-6">
       <DashboardPageHero badge="Gestion du personnel" icon={Clock3} title="TOK Équipe"
         description="Vos collaborateurs, votre planning de service, les heures travaillées et les congés dans un seul espace, aux couleurs de TOK."

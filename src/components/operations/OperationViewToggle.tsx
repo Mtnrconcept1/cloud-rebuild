@@ -1,16 +1,17 @@
-import { Grid2X2, LayoutGrid, List } from "lucide-react";
+import { Columns3, Grid2X2, LayoutGrid, List } from "lucide-react";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-export type OperationViewMode = "gallery" | "list" | "details";
+export type OperationViewMode = "gallery" | "list" | "details" | "board";
 
 type OperationViewToggleProps = {
   value: OperationViewMode;
   onChange: (value: OperationViewMode) => void;
   ariaLabel: string;
+  includeBoard?: boolean;
 };
 
-export default function OperationViewToggle({ value, onChange, ariaLabel }: OperationViewToggleProps) {
+export default function OperationViewToggle({ value, onChange, ariaLabel, includeBoard = false }: OperationViewToggleProps) {
   return (
     <ToggleGroup
       type="single"
@@ -21,6 +22,12 @@ export default function OperationViewToggle({ value, onChange, ariaLabel }: Oper
       className="justify-start rounded-xl border bg-muted/20 p-1"
       aria-label={ariaLabel}
     >
+      {includeBoard ? (
+        <ToggleGroupItem value="board" aria-label="Afficher le tableau par statut" className="h-9 gap-2 rounded-lg px-3">
+          <Columns3 className="h-4 w-4" />
+          <span className="hidden sm:inline">Tableau</span>
+        </ToggleGroupItem>
+      ) : null}
       <ToggleGroupItem value="gallery" aria-label="Afficher en galerie" className="h-9 gap-2 rounded-lg px-3">
         <Grid2X2 className="h-4 w-4" />
         <span className="hidden sm:inline">Galerie</span>

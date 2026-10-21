@@ -26,7 +26,7 @@ export default function DashboardCrm() {
     : null);
 
   return (
-    <DashboardLayout contentWidth="full">
+    <DashboardLayout contentWidth="full" mainClassName="tok-restaurant-page tok-page-crm">
       <CrmAccessGuard
         surface="restaurant"
         requiresPremiumCrm

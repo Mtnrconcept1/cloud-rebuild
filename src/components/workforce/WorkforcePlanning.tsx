@@ -1,13 +1,13 @@
 import { useMemo,useState,type FormEvent } from "react";
 import { addWeeks, subWeeks, format, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarDays, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card,CardContent,CardHeader,CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
+import WorkforceWeekGrid from "@/components/workforce/WorkforceWeekGrid";
 import { useToast } from "@/hooks/use-toast";
 import { employeeName, weekRange, workedHours, dateIsValid } from "@/lib/tokWorkforce";
 import { useWorkforceEmployees,useWorkforceShifts,useWorkforceAbsences,useWorkforceRefresh,workforceDb } from "@/hooks/useTokWorkforce";
@@ -69,29 +69,16 @@ export default function WorkforcePlanning({restaurantId}:{restaurantId:string}) 
       <CardContent>
         {isPending?<p className="text-muted-foreground">Chargement des services…</p>:null}
         {isError?<p role="alert" className="text-destructive">Impossible de charger le planning.</p>:null}
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-7">
-          {days.map(day=>{
-            const dayId=format(day,"yyyy-MM-dd");
-            return <div key={dayId} className="min-h-36 min-w-0 rounded-xl border border-border/60 bg-muted/20 p-2" onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const shiftId=event.dataTransfer.getData("text/tok-workforce-shift");if(shifts.some(item=>item.id===shiftId&&!item.status.includes("cancelled")))change.mutate({id:shiftId,patch:{shift_date:dayId}});}}>
-              <p className="mb-3 rounded-lg bg-primary/10 px-2 py-1.5 text-center text-xs font-bold uppercase text-primary">{format(day,"EEE d",{locale:fr})}</p>
-              <div className="space-y-2">{shifts.filter(s=>s.shift_date===dayId).map(shift=>
-                <div key={shift.id} draggable title="Glisser sur un autre jour" onDragStart={event=>event.dataTransfer.setData("text/tok-workforce-shift",shift.id)} className="cursor-grab rounded-xl border border-primary/20 bg-card p-2 shadow-sm">
-                  <p className="text-xs font-semibold break-words">{employeeName(employees.find(e=>e.id===shift.employee_id))}</p>
-                  <p className="text-xs text-muted-foreground">{shift.start_time.slice(0,5)}–{shift.end_time.slice(0,5)} · {shift.break_minutes} min pause</p>
-                  <div className="mt-2 flex flex-wrap items-center gap-1">
-                    <Badge className="text-[10px]" variant={shift.status==="cancelled"?"destructive":"secondary"}>{shift.status==="confirmed"?"Confirmé":shift.status==="completed"?"Terminé":shift.status==="cancelled"?"Annulé":"Prévu"}</Badge>
-                    <button className="text-[11px] text-primary underline" disabled={change.isPending} onClick={()=>change.mutate({id:shift.id,patch:{status:shift.status==="planned"?"confirmed":"planned"}})} type="button">{shift.status==="planned"?"Confirmer":"Modifier"}</button>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between gap-2">
-                    <button className="text-[11px] text-muted-foreground underline" type="button" disabled={change.isPending} onClick={()=>change.mutate({id:shift.id,patch:{shift_date:format(addDays(day,1),"yyyy-MM-dd")}})}>Décaler +1 j</button>
-                    <button type="button" aria-label="Supprimer le service" className="text-destructive" disabled={remove.isPending} onClick={()=>{if(window.confirm("Supprimer ce service ?"))remove.mutate(shift.id);}}><Trash2 className="h-3.5 w-3.5"/></button>
-                  </div>
-                </div>)}
-                {absences.filter(a=>a.start_date<=dayId&&a.end_date>=dayId).map(absence=><p key={absence.id} className="rounded-lg bg-amber-500/10 px-2 py-1 text-xs text-amber-700 dark:text-amber-300">{employeeName(employees.find(e=>e.id===absence.employee_id))} · Absence</p>)}
-              </div>
-            </div>;
-          })}
-        </div>
+        <WorkforceWeekGrid
+          days={days}
+          employees={employees}
+          shifts={shifts}
+          absences={absences}
+          changing={change.isPending}
+          removing={remove.isPending}
+          onChange={(payload) => change.mutate(payload)}
+          onDelete={(id) => { if (window.confirm("Supprimer ce service ?")) remove.mutate(id); }}
+        />
       </CardContent>
     </Card>
     <Card className="rounded-2xl border-primary/25">

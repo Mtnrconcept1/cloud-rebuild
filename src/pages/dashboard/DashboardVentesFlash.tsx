@@ -195,7 +195,7 @@ export default function DashboardVentesFlash() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-flash-sales">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Ventes courtes"
@@ -260,7 +260,7 @@ export default function DashboardVentesFlash() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="tok-offer-catalog space-y-3">
             {sales.map((sale) => {
               const isSoldOut = isSpecialOfferSoldOut(sale);
               const isEffectivelyActive = isSpecialOfferEffectivelyActive(sale);
@@ -271,7 +271,7 @@ export default function DashboardVentesFlash() {
                 : 0;
 
               return (
-                <Card key={sale.id}>
+                <Card className="tok-offer-card" key={sale.id}>
                   <CardContent className="flex items-center gap-4 py-4">
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex items-center gap-2">
