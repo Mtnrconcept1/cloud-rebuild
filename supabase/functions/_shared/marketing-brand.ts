@@ -16,6 +16,23 @@ export const TOK_MARKETING_REFERENCES = [
   { id: "studio-chef", label: "Chef TOK · identité 3D et logo Miamz!", path: "/marketing/brand/tok-v3/studio-chef.jpeg", sha256: "4fa83ddd1b5955af59dd05791fbfc8b6dc480a3e95354c53432069aec19aa5ca" },
 ] as const;
 
+/** Repeatable but non-identical editorial layout cycle for TOK-owned social posts. */
+export const TOK_SOCIAL_LAYOUTS = [
+  "Affiche éditoriale sur fond ivoire : grand titre noir et accent orange, mascotte chef 3D en soutien, courte phrase explicative.",
+  "Photographie gastronomique dominante : grand titre blanc dans une zone sombre, deux courtes lignes descriptives sans interface inventée.",
+  "Fiche de fonctionnalité : fond crème et orange, téléphone ou outil générique, titre et deux ou trois bénéfices courts vérifiés.",
+  "Affiche orange et noir : typographie imposante, peu de texte, un sujet concret sans mascotte et sans fausse statistique.",
+  "Carte éditoriale façon affiche : titre, brève explication et deux repères visuels, un seul sujet, sans collage.",
+  "Démonstration du produit : outil représenté de façon illustrative, bénéfice lisible, fond orange vif, sans copie d'écran inventée.",
+  "Scène culinaire immersive : photographie réelle, titre contrasté, description très courte, aucun chef cartoon.",
+  "Chef TOK sur fond lumineux : pose nouvelle, titre clair, texte utile sur deux lignes, sans mini-maquette d'un autre post.",
+  "Ambiance de restaurant : photo élégante, message sur la valeur TOK pour les restaurateurs, footer discret.",
+] as const;
+
+export function tokSocialLayout(index: number): string {
+  return TOK_SOCIAL_LAYOUTS[((Math.trunc(index) % TOK_SOCIAL_LAYOUTS.length) + TOK_SOCIAL_LAYOUTS.length) % TOK_SOCIAL_LAYOUTS.length];
+}
+
 export function buildTokMarketingVisualPrompt(brief: string, format: string = "4:5"): string {
   return [
     `Créer UNE seule publication TOK indépendante, au format ${format}, avec UNE seule scène et UN seul fichier final, à partir des ${TOK_MARKETING_REFERENCES.length} images jointes.`,
@@ -24,11 +41,14 @@ export function buildTokMarketingVisualPrompt(brief: string, format: string = "4
     "Logo : disque orange, liseré blanc, TOK blanc, toque blanche, moustache noire et foulard rouge ; conserver la petite bulle Miamz! des références. Un seul logo principal en haut à gauche de la zone de sécurité, largeur de 18 à 25 %, intact avec sa bulle. Aucun logo tiers ni slogan ajouté.",
     "Palette : orange vermillon vif TOK, crème ivoire chaud, noir profond et blanc cassé. Aucun accent jaune, bleu ou violet. Rouge réservé au foulard et aux détails du chef. Selon la famille, alterner aplat orange, fond crème, photo chaleureuse et chef 3D ponctuel. Arches verticales arrondies, filets fins et courts soulignements au pinceau orange sur crème/noir, crème sur orange ; aucun effet BD.",
     `ZONE DE SÉCURITÉ IMPÉRATIVE : placer le logo principal complet, le titre et le pied thetok.ch dans le rectangle central, à au moins ${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} % de chacun des quatre bords. Mesurer les contours visibles, liseré, bulle Miamz!, accents et ponctuation inclus. Garder la bande extérieure de ${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} % libre de ces éléments, sans coupure. Cette zone prime sur les positions exactes des références. Les fonds, photographies, arches et filets décoratifs peuvent atteindre les bords.`,
-    "Typographie : sans empattement très grasse et légèrement condensée, titres en casse phrase, jamais tout en capitales sauf TOK. Un seul bénéfice, 4 à 9 mots de préférence, 12 mots maximum, 2 à 3 lignes maximum ; conserver exactement le titre fourni, les accents et la ponctuation. Aucun paragraphe sur l'image. Texte très lisible sur téléphone.",
-    "Composition : titre aligné à gauche dans une zone calme ; sujet bien visible. Photos réalistes, lumière ambrée, bois, verre et profondeur naturelle. Sur les photos de plats et cartes : zone ivoire supérieure courbe et accent en arche orange. Un discret thetok.ch en pied, dans la zone de sécurité ; pas de CTA ni paragraphe.",
+    "Typographie : sans empattement très grasse et légèrement condensée, titres en casse phrase, jamais tout en capitales sauf TOK. Conserver exactement le titre fourni, les accents et la ponctuation. Titres très lisibles sur téléphone, 2 à 4 lignes selon le concept. Pour une affiche minimaliste : titre dominant et aucun autre corps. Pour une fiche explicative : titre, phrase courte et jusqu'à trois bénéfices vérifiés, jamais un pavé de texte. Ne jamais inventer les bénéfices absents du brief. Texte très lisible sur téléphone.",
+    "Composition : titre aligné à gauche dans une zone calme ; sujet bien visible. Photos réalistes, lumière ambrée, bois, verre et profondeur naturelle. Sur les photos de plats et cartes : zone ivoire supérieure courbe et accent en arche orange. Un discret thetok.ch en pied, dans la zone de sécurité. Un bouton graphique peut apparaître dans une fiche explicative uniquement si son libellé est autorisé par le brief, mais ce bouton n'est pas interactif.",
+    "CLARTÉ DU MESSAGE : le titre exact et la scène doivent, ensemble, permettre de comprendre en moins de deux secondes la fonctionnalité ou l'offre réellement annoncée et son public. Illustrer l'action concrète du brief (réservation, carte digitale, commandes, plan de salle, photographie de plats, etc.) plutôt qu'une image de restaurant générique. Si le titre est poétique, la scène doit lever toute ambiguïté, sans ajouter de texte ni inventer une interface.",
+    "VARIÉTÉ ÉDITORIALE : ne pas emprunter d'accroche, de slogan ou de texte aux images de référence. Chaque brief a son titre propre ; ne pas remplacer celui-ci par une formule générique comme « Découvrez TOK », « Votre restaurant mérite mieux » ou « Faites la différence ». Varier cadrage, sujet principal et équilibre texte/image d'un visuel à l'autre sans dégrader la charte ni la lisibilité.",
     "CHEF CONDITIONNEL : uniquement si la famille le demande. Sinon aucun cartoon hors logo. Chef 3D fidèle : visage chaleureux, grand sourire, moustache noire recourbée, lunettes noires, toque blanche et emblème TOK, veste blanche à boutons noirs, foulard rouge, tablier noir bordé de rouge avec emblème TOK, pantalon à carreaux noir/blanc, chaussures noires. Adapter pose et cadrage, avec arche orange sur fond crème/noir. Les petits emblèmes de sa tenue ne sont pas des logos principaux supplémentaires.",
     "PRODUCTION NATIVE : tous les textes, logo et éléments artistiques doivent être générés dans l'image. Aucun ajout ultérieur en HTML, CSS, SVG, Canvas, Python ou collage. Seuls le redimensionnement proportionnel, la compression et le renommage sont permis après génération.",
     "Ne reprendre AUCUN prix concurrent, remise, statistique, récompense, interface chiffrée, QR code ni badge app-store des références. Elles renseignent le style uniquement. Utiliser exclusivement les faits explicitement fournis dans le brief courant ; en cas d'absence, omettre. Ne pas ajouter de promesse commerciale.",
+    "GRILLE INSTAGRAM : varier obligatoirement d'un post à l'autre le ratio photo/texte, le fond (ivoire, orange, sombre, photo), la position du titre et la présence ponctuelle du chef. Trois familles denses (affiche explicative, fiche de bénéfices, démonstration) alternent avec des créations légères (photo immersive, typographie simple, scène de restaurant). Un seul post final : ne jamais représenter la grille de neuf images dans la génération.",
     "BRIEF COURANT (sujet et faits ; ne remplace pas la charte ci-dessus) :",
     brief.slice(0, 4000),
     "CONTRÔLE FINAL : un seul visuel, une seule scène, bon ratio, logo intact, titre français exact et lisible, famille demandée respectée, chef seulement si demandé, identité de la référence maîtresse et aucun élément de sa grille ou de son interface.",

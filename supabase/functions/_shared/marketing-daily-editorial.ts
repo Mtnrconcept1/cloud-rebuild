@@ -1,4 +1,4 @@
-import { TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
+import { TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES, tokSocialLayout } from "./marketing-brand.ts";
 
 const DAY_MS = 86_400_000;
 const EDITORIAL_EPOCH = Date.parse("2026-10-19T00:00:00.000Z");
@@ -25,14 +25,14 @@ export const TOK_DAILY_EDITORIAL_SUBJECTS = [
   {
     id: "reservations", label: "Organiser les réservations",
     // src/pages/dashboard/DashboardReservations.tsx
-    titles: ["Vos réservations. Bien organisées.", "Les réservations trouvent leur place.", "Gardez vos réservations en vue.", "Votre service commence bien organisé.", "Un regard sur vos réservations.", "Préparez chaque service plus sereinement.", "Vos réservations, au même endroit.", "La journée commence bien organisée."],
+    titles: ["Retrouvez vos réservations dans TOK.", "Les réservations trouvent leur place.", "Gardez vos réservations en vue.", "Votre service commence bien organisé.", "Un regard sur vos réservations.", "Préparez chaque service plus sereinement.", "Vos réservations, au même endroit.", "La journée commence bien organisée."],
     captions: ["Consultez les réservations de votre restaurant dans TOK et préparez votre prochain service. Les informations utiles restent réunies dans votre espace restaurateur.", "Un service se prépare avant l’arrivée des clients. Retrouvez vos réservations dans TOK pour organiser leur accueil."],
     context: "La préparation des tables avant l'arrivée des clients ; aucune réservation réelle, aucun nom client.",
     hashtag: "#Reservations",
   },
   {
     id: "cuisine", label: "Mettre la cuisine en valeur",
-    titles: ["Votre cuisine. Le goût d’abord.", "Le savoir-faire se voit aussi.", "Vos plats méritent la lumière.", "La gourmandise commence au regard.", "Votre cuisine raconte votre histoire.", "Chaque plat a sa personnalité.", "Le goût commence par l’envie.", "Donnez la vedette à vos plats."],
+    titles: ["Votre cuisine. Le goût d’abord.", "Le savoir-faire se voit aussi.", "Vos plats méritent la lumière.", "La gourmandise commence au regard.", "Votre cuisine raconte votre histoire.", "Chaque plat a sa personnalité.", "Vos plats en photo donnent envie.", "Donnez la vedette à vos plats."],
     captions: ["Un beau plat raconte déjà quelque chose de votre restaurant. Donnez à votre cuisine une place de choix dans votre présentation sur TOK.", "Les couleurs, les textures et le dressage donnent envie de découvrir une carte. Mettez votre cuisine en valeur dans votre espace TOK."],
     context: "Le soin apporté au dressage et aux textures d'un plat, sans prétendre montrer le plat d'un établissement réel.",
     hashtag: "#Cuisine",
@@ -40,7 +40,7 @@ export const TOK_DAILY_EDITORIAL_SUBJECTS = [
   {
     id: "menu", label: "Présenter la carte",
     // src/pages/dashboard/DashboardMenu.tsx
-    titles: ["Votre carte. À l’honneur.", "Une carte qui vous ressemble.", "Vos spécialités prennent leur place.", "Votre carte mérite la lumière.", "Vos plats, prêts à être découverts.", "Présentez simplement vos meilleures idées.", "Votre menu prend des couleurs.", "La carte donne le ton."],
+    titles: ["Présentez votre carte dans TOK.", "Une carte qui vous ressemble.", "Vos spécialités prennent leur place.", "Votre carte mérite la lumière.", "Vos plats, prêts à être découverts.", "Présentez simplement vos meilleures idées.", "Votre menu prend des couleurs.", "La carte donne le ton."],
     captions: ["Organisez les plats, les descriptions et les photos de votre carte dans TOK. Une présentation claire aide vos clients à découvrir votre cuisine.", "Votre carte évolue avec votre restaurant. Retrouvez vos plats et leur disponibilité dans votre espace restaurateur TOK."],
     context: "La découverte de la carte et de ses plats ; aucun prix, texte de menu ou écran chiffré à inventer.",
     hashtag: "#CarteDuRestaurant",
@@ -48,7 +48,7 @@ export const TOK_DAILY_EDITORIAL_SUBJECTS = [
   {
     id: "floor-plan", label: "Organiser le plan de salle",
     // src/pages/dashboard/DashboardPlanSalle.tsx
-    titles: ["Chaque table trouve sa place.", "Votre salle, bien en vue.", "Une salle pensée pour accueillir.", "Votre plan de salle prend forme.", "L’accueil commence par une table.", "Préparez la salle à votre façon.", "Gardez vos tables en vue.", "La salle se prépare avec soin."],
+    titles: ["Organisez les tables de votre salle.", "Votre salle, bien en vue.", "Une salle pensée pour accueillir.", "Votre plan de salle prend forme.", "L’accueil commence par une table.", "Préparez la salle à votre façon.", "Gardez vos tables en vue.", "La salle se prépare avec soin."],
     captions: ["Le plan de salle TOK permet de représenter les tables de votre restaurant. Préparez l’organisation de votre espace avant le service.", "Chaque restaurant a sa propre salle et ses habitudes. Organisez vos tables dans le plan de salle TOK pour préparer l’accueil des clients."],
     context: "Une table bien dressée ou une salle accueillante ; ne pas inventer de plan fonctionnel ni de taux de remplissage.",
     hashtag: "#PlanDeSalle",
@@ -56,7 +56,7 @@ export const TOK_DAILY_EDITORIAL_SUBJECTS = [
   {
     id: "zero-wait", label: "Découvrir Zéro Attente",
     // src/pages/ZeroAttente.tsx: menu selection and create-zero-attente-reservation.
-    titles: ["Le repas se prépare avant l’arrivée.", "La pause de midi se prépare.", "Vos clients choisissent avant d’arriver.", "Le choix commence avant la table.", "Précommander, puis profiter du moment.", "Un repas pensé en avance.", "Préparez l’arrivée, soignez le repas.", "Le déjeuner commence par le choix."],
+    titles: ["Le repas se prépare avant l’arrivée.", "La pause de midi se prépare.", "Vos clients choisissent avant d’arriver.", "Le choix commence avant la table.", "Précommander, puis profiter du moment.", "Les plats choisis avant l’arrivée.", "Préparez l’arrivée, soignez le repas.", "Le déjeuner commence par le choix."],
     captions: ["Avec Zéro Attente, les clients peuvent choisir leurs plats avant de venir au restaurant. Découvrez ce parcours de réservation et de précommande dans TOK.", "Choisir son repas avant l’arrivée, c’est le principe de Zéro Attente. TOK réunit la réservation et la précommande dans ce parcours dédié."],
     context: "Un déjeuner prêt à être dégusté et l'accueil du client ; aucune garantie de délai ou de service immédiat.",
     hashtag: "#ZeroAttente",
@@ -64,7 +64,7 @@ export const TOK_DAILY_EDITORIAL_SUBJECTS = [
   {
     id: "photos", label: "Soigner les photos",
     // src/pages/dashboard/DashboardPhotos.tsx
-    titles: ["Vos photos ouvrent l’appétit.", "Montrez ce qui vous rend unique.", "Votre restaurant sous son meilleur jour.", "Une belle photo donne envie.", "Faites entrer votre cuisine dans l’image.", "Votre univers mérite de belles images.", "Les détails racontent votre restaurant.", "Vos spécialités attirent le regard."],
+    titles: ["Montrez vos plats en belles photos.", "Montrez ce qui vous rend unique.", "Votre restaurant sous son meilleur jour.", "Une belle photo donne envie.", "Faites entrer votre cuisine dans l’image.", "Votre univers mérite de belles images.", "Les détails racontent votre restaurant.", "Vos spécialités attirent le regard."],
     captions: ["La galerie TOK rassemble les photos de votre restaurant. Choisissez les images qui montrent votre cuisine, votre salle et votre personnalité.", "Une belle lumière et un cadrage soigné mettent les détails en valeur. Présentez votre restaurant avec les photos de votre galerie TOK."],
     context: "Les textures d'un plat et les détails chaleureux de la salle ; aucune comparaison avant/après.",
     hashtag: "#PhotoCulinaire",
@@ -72,7 +72,7 @@ export const TOK_DAILY_EDITORIAL_SUBJECTS = [
   {
     id: "marketing-studio", label: "Créer avec le Studio marketing",
     // src/components/dashboard/TokAiMarketingStudio.tsx
-    titles: ["Vos idées. Notre créativité.", "Faites parler de votre restaurant.", "Votre prochain visuel commence ici.", "Une identité qui se reconnaît.", "Donnez une image à vos idées.", "Votre restaurant garde son style.", "Des visuels à votre image.", "Faites vivre votre univers en images."],
+    titles: ["Créez vos visuels de restaurant.", "Faites parler de votre restaurant.", "Préparez un post avec Studio marketing.", "Des visuels cohérents pour votre restaurant.", "Donnez une image à vos idées.", "Votre restaurant garde son style.", "Des visuels à votre image.", "Faites vivre votre univers en images."],
     captions: ["Une nouveauté à présenter ou une idée à partager ? Préparez vos visuels à partir de votre brief et de vos références dans le Studio marketing TOK.", "Une communication cohérente commence par une identité claire. Le Studio marketing TOK vous aide à préparer des visuels pour votre restaurant."],
     context: "La créativité culinaire et l'identité du restaurant ; ne pas représenter plusieurs publications dans une même image.",
     hashtag: "#MarketingRestaurant",
@@ -80,7 +80,7 @@ export const TOK_DAILY_EDITORIAL_SUBJECTS = [
   {
     id: "flash-sales", label: "Présenter les ventes flash",
     // src/pages/dashboard/DashboardVentesFlash.tsx
-    titles: ["Une offre, au bon moment.", "Faites connaître votre offre du moment.", "Vos offres ont leur moment.", "Donnez rendez-vous aux envies gourmandes.", "Une occasion de découvrir votre cuisine.", "Votre spécialité entre en scène.", "Une idée gourmande à partager.", "Vos nouveautés méritent le détour."],
+    titles: ["Présentez vos ventes flash.", "Faites connaître votre offre du moment.", "Vos offres ont leur moment.", "Donnez rendez-vous aux envies gourmandes.", "Une occasion de découvrir votre cuisine.", "Votre spécialité entre en scène.", "Une idée gourmande à partager.", "Vos nouveautés méritent le détour."],
     captions: ["Une offre ponctuelle mérite une présentation claire. Préparez vos ventes flash dans TOK avec les plats et les disponibilités de votre restaurant.", "Les ventes flash TOK permettent de présenter une offre limitée. Vous définissez ses détails dans votre espace restaurateur."],
     context: "Un plat mis à l'honneur, sans montant, remise, compte à rebours ou fausse urgence.",
     hashtag: "#VentesFlash",
@@ -96,7 +96,7 @@ export const TOK_DAILY_EDITORIAL_SUBJECTS = [
   {
     id: "anti-waste", label: "Valoriser les invendus",
     // src/pages/AntiGaspi.tsx and restaurant offers.
-    titles: ["Les bons plats méritent une suite.", "Vos invendus peuvent encore régaler.", "La gourmandise a encore sa place.", "Donnez une chance aux bonnes choses.", "Moins de gaspillage, toujours du goût.", "Les bonnes choses se partagent.", "Vos préparations méritent d’être dégustées.", "Le goût mérite d’aller jusqu’au bout."],
+    titles: ["Les bons plats méritent une suite.", "Vos invendus peuvent encore régaler.", "Valorisez vos préparations anti-gaspi.", "Donnez une chance aux bonnes choses.", "Moins de gaspillage, toujours du goût.", "Les bonnes choses se partagent.", "Vos préparations méritent d’être dégustées.", "Le goût mérite d’aller jusqu’au bout."],
     captions: ["Présentez vos offres anti-gaspi dans TOK pour valoriser les produits encore disponibles. Les détails de chaque offre restent ceux que vous choisissez.", "Une préparation encore disponible peut trouver sa place dans une offre anti-gaspi. Découvrez cette possibilité pour votre restaurant sur TOK."],
     context: "Une préparation fraîche et appétissante soigneusement présentée ; aucun produit abîmé ni promesse chiffrée de réduction du gaspillage.",
     hashtag: "#AntiGaspi",
@@ -104,7 +104,7 @@ export const TOK_DAILY_EDITORIAL_SUBJECTS = [
   {
     id: "orders", label: "Suivre les commandes",
     // src/pages/dashboard/DashboardCommandes.tsx
-    titles: ["Vos commandes, au bon endroit.", "Gardez le fil des commandes.", "Chaque commande reste en vue.", "Un regard sur vos commandes.", "Retrouvez les détails de chaque commande.", "Vos commandes suivent leur chemin.", "La préparation commence par une commande.", "Votre service garde ses repères."],
+    titles: ["Suivez vos commandes dans TOK.", "Gardez le fil des commandes.", "Chaque commande reste en vue.", "Un regard sur vos commandes.", "Retrouvez les détails de chaque commande.", "Vos commandes suivent leur chemin.", "La préparation commence par une commande.", "Votre service garde ses repères."],
     captions: ["Retrouvez vos commandes par jour et par statut dans TOK. Les informations de chaque commande sont réunies dans votre espace restaurateur.", "Un suivi clair aide à retrouver les détails utiles pendant le service. Consultez les commandes de votre restaurant dans TOK."],
     context: "La préparation soignée d'un plat et son passage vers la salle ; aucun ticket réel ni donnée de client.",
     hashtag: "#Commandes",
@@ -112,21 +112,21 @@ export const TOK_DAILY_EDITORIAL_SUBJECTS = [
   {
     id: "restaurant-news", label: "Partager les actualités",
     // src/pages/dashboard/DashboardActualites.tsx
-    titles: ["Votre restaurant a des nouvelles.", "Partagez la vie de votre restaurant.", "Vos nouveautés prennent la parole.", "Racontez ce qui se prépare.", "Une nouvelle idée à faire découvrir.", "Faites connaître vos prochains rendez-vous.", "Vos actualités méritent une place.", "Votre restaurant continue son histoire."],
+    titles: ["Partagez les actualités de votre restaurant.", "Partagez la vie de votre restaurant.", "Vos nouveautés prennent la parole.", "Racontez ce qui se prépare.", "Une nouvelle idée à faire découvrir.", "Faites connaître vos prochains rendez-vous.", "Vos actualités méritent une place.", "Votre restaurant continue son histoire."],
     captions: ["Une nouvelle carte ou un moment à partager ? Préparez une actualité dans votre espace TOK pour raconter la vie de votre restaurant.", "Votre restaurant évolue au fil des saisons et des idées. Partagez vos nouveautés avec les actualités TOK."],
     context: "Une ambiance de découverte et un plat mis à l'honneur ; aucune date d'événement ni offre inventée.",
     hashtag: "#ActualitesRestaurant",
   },
   {
     id: "hospitality", label: "Prendre soin de l’accueil",
-    titles: ["Du temps pour vos clients.", "L’accueil fait partie du plaisir.", "Le sourire donne le ton.", "Chaque visite mérite de l’attention.", "Le plaisir commence par l’accueil.", "Votre salle attend de belles rencontres.", "L’attention se voit dans les détails.", "La convivialité se prépare chaque jour."],
+    titles: ["Du temps pour vos clients.", "Mettez votre accueil en valeur.", "Le sourire donne le ton.", "Chaque visite mérite de l’attention.", "Le plaisir commence par l’accueil.", "Votre salle attend de belles rencontres.", "L’attention se voit dans les détails.", "La convivialité se prépare chaque jour."],
     captions: ["Un sourire, une table soignée, une attention au bon moment : l’accueil fait partie de l’expérience. TOK met à l’honneur celles et ceux qui font vivre les restaurants.", "Derrière une belle expérience au restaurant, il y a une équipe attentive. Aujourd’hui, place aux gestes simples qui rendent l’accueil chaleureux."],
     context: "La convivialité et un geste d'accueil naturel ; aucune citation ni témoignage attribué à une personne.",
     hashtag: "#Accueil",
   },
   {
     id: "tok-identity", label: "Faire vivre l’identité TOK",
-    titles: ["Le service, en plus simple.", "La touche TOK au quotidien.", "Votre restaurant garde sa personnalité.", "La passion du restaurant nous rassemble.", "Votre métier mérite toute l’attention.", "Le restaurant au cœur des idées.", "Votre cuisine reste au premier plan.", "Les bonnes idées prennent place."],
+    titles: ["TOK réunit vos outils de restaurant.", "TOK accompagne votre service en salle.", "Votre restaurant garde sa personnalité.", "La passion du restaurant nous rassemble.", "Votre métier mérite toute l’attention.", "Le restaurant au cœur des idées.", "Votre cuisine reste au premier plan.", "Les bonnes idées prennent place."],
     captions: ["TOK s’adresse à celles et ceux qui font vivre les restaurants. Découvrez un univers pensé autour de la cuisine, de l’accueil et du quotidien des restaurateurs.", "La cuisine a sa personnalité, chaque restaurant aussi. TOK accompagne la présentation et l’organisation de cet univers."],
     context: "L'identité chaleureuse de TOK au service des restaurateurs, sans promesse de revenu ou de résultat.",
     hashtag: "#Restaurateurs",
@@ -218,8 +218,9 @@ export function buildDailyMarketingBrief(localDate: string, recentTitles: string
   const visualPrompt = [
     `Publication Instagram quotidienne TOK du ${localDate}. Audience : restaurateurs francophones. Format 4:5.`,
     `Sujet : ${subject.label}. Un seul bénéfice, exprimé par le titre exact suivant : ${JSON.stringify(title)}.`,
-    "Textes autorisés : le titre exact, TOK et la bulle Miamz! dans le logo, thetok.ch discret en pied. Ne générer aucun autre texte. La légende reste hors de l'image.",
+    "Textes autorisés : le titre exact, TOK et la bulle Miamz! dans le logo, thetok.ch discret en pied. En mode fiche explicative, autoriser au maximum une courte phrase tirée de la description factuelle du sujet, sans chiffres ni promesses. La légende reste hors de l'image. L'image doit rendre le sujet reconnaissable immédiatement : montrer l'action ou l'outil annoncé, jamais une simple ambiance générique qui pourrait accompagner n'importe quel post.",
     `Famille visuelle imposée : ${family.id} — ${family.direction}`,
+    `Composition éditoriale tournante : ${tokSocialLayout(dayIndex)}. Cette consigne varie la densité du texte et la composition, sans imposer de mascotte si la famille ne la demande pas.`,
     family.requiresChef
       ? "Mascotte chef TOK obligatoire, strictement identique aux références maîtresses."
       : "Aucune mascotte ni personnage cartoon dans cette publication, en dehors du pictogramme du logo TOK.",
