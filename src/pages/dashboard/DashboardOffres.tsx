@@ -345,7 +345,7 @@ export default function DashboardOffres() {
 
               return (
                 <Card key={offer.id}>
-                  <CardContent className={cn("flex gap-4 py-4", offerViewMode === "gallery" ? "flex-col" : "items-center")}>
+                  <CardContent className={cn("flex gap-4", offerViewMode === "gallery" ? "flex-col py-5" : offerViewMode === "list" ? "items-center py-2.5" : "items-center py-4")}>
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex items-center gap-2">
                         <p className="truncate text-sm font-semibold">{offer.title}</p>
@@ -366,7 +366,7 @@ export default function DashboardOffres() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className={cn("text-xs text-muted-foreground", offerViewMode === "list" && "hidden")}>
                         {offer.quantity_available} restant(s)
                         {offer.available_date ? ` · ${offer.available_date}` : ""}
                         {offer.pickup_start && offer.pickup_end ? ` · ${offer.pickup_start.slice(0, 5)}-${offer.pickup_end.slice(0, 5)}` : ""}
