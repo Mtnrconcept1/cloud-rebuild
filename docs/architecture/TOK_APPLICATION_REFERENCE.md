@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `beff275d3db90a22e9a23e273c0ac7270f29d9ba799edc25e9452d629e0897d4`
+- Empreinte SHA-256 des sources indexées : `cfe031f1990f51ee11b3f0815183eabd50e3586dbcfd1c3b2ef3db681d6ad682`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 11 |
 | cronJobs | 36 |
 | databaseContract | 228 |
-| databaseObjects | 3018 |
-| documents | 220 |
+| databaseObjects | 3026 |
+| documents | 221 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3967 |
+| exportedSymbols | 3977 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 572 |
-| modules | 1794 |
+| migrations | 573 |
+| modules | 1799 |
 | pages | 133 |
 | pathLiterals | 878 |
 | publicAssets | 589 |
 | publicEntries | 615 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18444 |
-| repositoryFiles | 3500 |
+| records | 18484 |
+| repositoryFiles | 3508 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1371,7 +1371,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/marketing/mfa/enroll | 1 | [src/marketing/marketingBffClient.ts:10](../../src/marketing/marketingBffClient.ts#L10) |
 | /api/marketing/mfa/verify | 4 | [src/marketing/marketingBffClient.ts:11](../../src/marketing/marketingBffClient.ts#L11) |
 | /api/marketing/orchestrator | 7 | [src/marketing/marketingBffClient.ts:14](../../src/marketing/marketingBffClient.ts#L14) |
-| /api/marketing/rpc | 19 | [src/marketing/marketingBffClient.ts:13](../../src/marketing/marketingBffClient.ts#L13) |
+| /api/marketing/rpc | 21 | [src/marketing/marketingBffClient.ts:13](../../src/marketing/marketingBffClient.ts#L13) |
 | /api/marketing/session | 7 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /api/missing | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
@@ -2665,7 +2665,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_get_cancellation_fraud_metrics` (1 définition(s))
 - `public.admin_get_fair_growth_reconciliation` (2 définition(s))
 - `public.admin_get_feature_flag_audit_logs` (1 définition(s))
-- `public.admin_get_marketing_autopilot_dashboard` (1 définition(s))
+- `public.admin_get_marketing_autopilot_dashboard` (2 définition(s))
 - `public.admin_get_marketing_content_review_status` (1 définition(s))
 - `public.admin_get_marketing_daily_series` (2 définition(s))
 - `public.admin_get_marketing_overview` (2 définition(s))
@@ -3426,7 +3426,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (704)</summary>
+<details><summary>index (712)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3864,17 +3864,23 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `marketing_ai_runs_campaign_idx` (1 définition(s))
 - `marketing_ai_runs_created_at_idx` (1 définition(s))
 - `marketing_asset_rights_current_idx` (1 définition(s))
+- `marketing_attribution_analytics_time_idx` (1 définition(s))
 - `marketing_attribution_facts_campaign_time_idx` (1 définition(s))
 - `marketing_attribution_facts_type_time_idx` (1 définition(s))
 - `marketing_automation_actions_run_idx` (1 définition(s))
 - `marketing_automation_runs_created_idx` (1 définition(s))
 - `marketing_automation_simulation_receipts_expiry_idx` (1 définition(s))
 - `marketing_backlinks_status_idx` (1 définition(s))
+- `marketing_calendar_analytics_created_idx` (1 définition(s))
+- `marketing_calendar_analytics_provider_idx` (1 définition(s))
+- `marketing_calendar_analytics_published_idx` (1 définition(s))
+- `marketing_calendar_analytics_schedule_idx` (1 définition(s))
 - `marketing_calendar_campaign_schedule_idx` (1 définition(s))
 - `marketing_calendar_due_idx` (1 définition(s))
 - `marketing_calendar_integration_review_idx` (1 définition(s))
 - `marketing_calendar_lease_idx` (1 définition(s))
 - `marketing_calendar_notification_campaign_unique` (1 définition(s))
+- `marketing_campaigns_analytics_created_idx` (1 définition(s))
 - `marketing_campaigns_client_request_unique` (1 définition(s))
 - `marketing_contacts_category_prefix_idx` (1 définition(s))
 - `marketing_contacts_city_prefix_idx` (1 définition(s))
@@ -3908,6 +3914,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `marketing_deliveries_provider_message_unique` (1 définition(s))
 - `marketing_deliveries_provider_prefix_idx` (1 définition(s))
 - `marketing_deliveries_status_channel_list_idx` (1 définition(s))
+- `marketing_events_analytics_identity_idx` (1 définition(s))
+- `marketing_events_analytics_time_idx` (1 définition(s))
 - `marketing_events_campaign_time_idx` (1 définition(s))
 - `marketing_events_delivery_time_idx` (1 définition(s))
 - `marketing_events_provider_unique` (1 définition(s))
@@ -6480,6 +6488,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261021020001 Marketing Content Review Publication Gate | 92 | 3 | [supabase/migrations/20261021020001_marketing_content_review_publication_gate.sql:1](../../supabase/migrations/20261021020001_marketing_content_review_publication_gate.sql#L1) |
 | 20261021093000 Tok Inbound Forward Receipts | 18 | 1 | [supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql:1](../../supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql#L1) |
 | 20261021100000 Marketing Campaign Approval Schedules Items | 140 | 1 | [supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql:1](../../supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql#L1) |
+| 20261022000000 Marketing Analytics Evidence | 391 | 9 | [supabase/migrations/20261022000000_marketing_analytics_evidence.sql:1](../../supabase/migrations/20261022000000_marketing_analytics_evidence.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6710,7 +6719,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 42 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 271 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 818 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 819 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6721,17 +6730,17 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 218 |
-| automation-script | 86 |
+| automation-script | 87 |
 | documentation | 6 |
 | edge-function-source | 240 |
-| frontend-component | 288 |
+| frontend-component | 289 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
-| frontend-source | 34 |
+| frontend-source | 35 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 735 |
+| test | 737 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -6858,6 +6867,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Audit du marketing automatique TOK — 8 octobre 2026 | 7 | [docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md:1](../../docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md#L1) |
 | TOK Marketing Autopilot — runbook d'exploitation | 13 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
 | Marketing : session, recherche de sources et diagnostic Meta | 5 | [docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md:1](../../docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md#L1) |
+| Analytics TOK — données et preuves | 7 | [docs/marketing/analytics-evidence.md:1](../../docs/marketing/analytics-evidence.md#L1) |
 | TOK — Série Instagram quotidienne | 14 | [docs/marketing/daily-instagram.md:1](../../docs/marketing/daily-instagram.md#L1) |
 | Revue Mobile Fullstack - 2026-03-29 | 25 | [docs/mobile-fullstack-review-2026-03-29.md:1](../../docs/mobile-fullstack-review-2026-03-29.md#L1) |
 | Cloudprinter : formats de génération et d’impression | 5 | [docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md:1](../../docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md#L1) |
@@ -7248,7 +7258,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (98)</summary>
+<details><summary>automation-script (100)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7337,9 +7347,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/test-reservation-notifications-postgres.mjs`
 - `scripts/test-tok-special-offer-stock-postgres.mjs`
 - `scripts/tok-connect-smoke.mjs`
+- `scripts/verification/fixtures/marketing-analytics-evidence.sql`
 - `scripts/verification/restaurant-image-discovery-sources.cjs`
 - `scripts/verification/restaurant-image-technical-retries.cjs`
 - `scripts/verification/test-inbound-forward-receipts.mjs`
+- `scripts/verification/test-marketing-analytics.mjs`
 - `scripts/verification/test-marketing-content-review-publication.mjs`
 - `scripts/verification/test-marketing-content-reviews.mjs`
 - `scripts/verify-supabase-runtime-security.mjs`
@@ -7387,7 +7399,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (572)</summary>
+<details><summary>database-migration (573)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7961,10 +7973,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261021020001_marketing_content_review_publication_gate.sql`
 - `supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql`
 - `supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql`
+- `supabase/migrations/20261022000000_marketing_analytics_evidence.sql`
 
 </details>
 
-<details><summary>documentation (173)</summary>
+<details><summary>documentation (174)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8044,6 +8057,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md`
 - `docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md`
 - `docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md`
+- `docs/marketing/analytics-evidence.md`
 - `docs/marketing/campaigns/2026-10-12-geneve-visuals.json`
 - `docs/marketing/daily-instagram.md`
 - `docs/mobile-fullstack-review-2026-03-29.md`
@@ -8387,7 +8401,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (297)</summary>
+<details><summary>frontend-component (298)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8577,6 +8591,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/marketing/MarketingShared.tsx`
 - `src/components/marketing/MarketingSourceDiscovery.tsx`
 - `src/components/marketing/MarketingWorkspaceChrome.tsx`
+- `src/components/marketing/analyticsPresentation.ts`
 - `src/components/marketing/views/MarketingActivityView.tsx`
 - `src/components/marketing/views/MarketingAgentView.tsx`
 - `src/components/marketing/views/MarketingAudiencesView.tsx`
@@ -8856,7 +8871,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (51)</summary>
+<details><summary>frontend-source (52)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -8873,6 +8888,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/main.tsx`
 - `src/marketing/MarketingSessionContext.tsx`
 - `src/marketing/MarketingSessionProvider.tsx`
+- `src/marketing/analyticsPeriod.ts`
 - `src/marketing/autopilotClient.ts`
 - `src/marketing/autopilotTypes.ts`
 - `src/marketing/campaignStatus.ts`
@@ -9789,7 +9805,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (735)</summary>
+<details><summary>test (737)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10113,6 +10129,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-agent-bff.test.ts`
 - `src/test/marketing-ai-agent.test.ts`
 - `src/test/marketing-ai-editorial-provider.test.ts`
+- `src/test/marketing-analytics-client.test.tsx`
+- `src/test/marketing-analytics-results.test.tsx`
 - `src/test/marketing-approval-errors.test.ts`
 - `src/test/marketing-approval-readiness.test.ts`
 - `src/test/marketing-autopilot-frontend.test.tsx`
