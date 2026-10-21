@@ -534,7 +534,7 @@ export default function MarketingCampaignsView({
               </Card>
             );
           })}
-          <div className="xl:col-span-2"><MarketingPagination page={filters.page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={(page) => onFiltersChange({ page })} /></div>
+          <div className={cn(campaignViewMode === "details" ? "xl:col-span-2" : campaignViewMode === "gallery" ? "sm:col-span-2 2xl:col-span-3" : "col-span-1")}><MarketingPagination page={filters.page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={(page) => onFiltersChange({ page })} /></div>
         </div>
       ) : (
         <MarketingEmptyState title="Aucune campagne confirmée" description={snapshot.source === "fallback" ? "Le backend est indisponible ; aucune campagne fictive n'est affichée." : "Créez un brouillon ou modifiez les filtres actuels."} action={<Button type="button" variant="outline" onClick={() => setWizardOpen(true)}><Plus className="mr-2 h-4 w-4" />Ouvrir le studio</Button>} />
