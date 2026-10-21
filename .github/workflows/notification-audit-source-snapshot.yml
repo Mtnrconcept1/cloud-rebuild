@@ -1,0 +1,54 @@
+name: Notification audit source snapshot
+on:
+  push:
+    branches: [fix/notification-business-wiring-20261021]
+    paths: [.github/workflows/notification-audit-source-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  source-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Package tracked source only for the notification audit
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib, subprocess, tarfile
+          root = pathlib.Path.cwd()
+          paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          extensions = {'.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json', '.sql', '.md', '.yml', '.yaml', '.toml', '.css', '.html'}
+          roots = {'src', 'supabase', 'scripts', 'docs', '.github'}
+          selected = []
+          for name in paths:
+              if not name:
+                  continue
+              path = pathlib.PurePosixPath(name)
+              if len(path.parts) > 1 and path.parts[0] not in roots:
+                  continue
+              if path.suffix not in extensions or any(p.startswith('.env') or p in {'.temp', 'node_modules'} for p in path.parts):
+                  continue
+              if any(word in name.lower() for word in ('service-account', 'credentials.json', 'private-key')):
+                  continue
+              source = root / name
+              if not source.is_file() or source.is_symlink():
+                  continue
+              selected.append(name)
+          out = root / '_notification_source'
+          out.mkdir()
+          manifest = {'commit': subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip(), 'files': {p: hashlib.sha256((root / p).read_bytes()).hexdigest() for p in selected}}
+          (out / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
+          with tarfile.open(out / 'source.tar.gz', 'w:gz') as archive:
+              for name in selected:
+                  archive.add(root / name, arcname=name, recursive=False)
+          print(f'Packaged {len(selected)} tracked source files; no deployment or application execution.')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: notification-audit-source
+          path: _notification_source/
+          retention-days: 1
+          if-no-files-found: error
