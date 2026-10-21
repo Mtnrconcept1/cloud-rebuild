@@ -850,7 +850,7 @@ export default function DashboardMenu() {
               </div>
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div className="flex flex-1 flex-wrap items-end gap-3">
-                  <SortControls
+                  <SortControls<"name" | "category" | "price" | "availability">
                     className="w-full max-w-lg"
                     columns={[{ key: "name", label: "Nom" }, { key: "category", label: "Catégorie" }, { key: "price", label: "Prix" }, { key: "availability", label: "Disponibilité" }]}
                     sortKey={menuSortKey}
