@@ -11,7 +11,9 @@ La rubrique **Marketing Studio → Veille Instagram** (`/marketing?view=instagra
 5. Sélectionner un commentaire, choisir un sujet et personnaliser la réponse. Cliquer sur **Envoyer sur Telegram pour validation**. Le bot administrateur TOK reçoit l’auteur, les J’aime observés, le commentaire (extrait si long), le lien Instagram et la réponse exacte, avec **Valider / Refuser**.
 6. Décider dans Telegram puis **Actualiser les validations Telegram** dans le Studio. Seul le texte figé validé est proposé comme texte validé à copier. Une modification du brouillon ne change jamais une réponse déjà soumise ; elle nécessite un nouvel envoi et une nouvelle décision. Publier manuellement dans Instagram depuis le bon compte TOK. Une copie ou une ouverture de page n’est jamais annoncée comme une publication réussie.
 
-Les recherches restent dans la mémoire de l’écran. Les couples commentaire/réponse explicitement envoyés pour validation sont conservés dans `marketing_instagram_reviews` et retrouvables après rechargement (20 derniers affichés). Il n’y a pas de recherche récurrente ni de diffusion automatique de réponses. Le module de posts quotidiens conserve son fonctionnement.
+Les recherches restent dans la mémoire de l’écran. Les couples commentaire/réponse explicitement envoyés pour validation sont conservés dans `marketing_instagram_reviews` et retrouvables après rechargement (20 derniers affichés). Il n’y a pas de recherche récurrente ni de diffusion automatique de réponses.
+
+Le circuit des publications et campagnes, y compris les contenus quotidiens, est décrit dans [Validation Telegram des contenus Marketing](./TELEGRAM_CONTENT_REVIEWS.md). Il ajoute une approbation du contenu aux conditions natives de diffusion ; le présent circuit de commentaires conserve une publication manuelle dans Instagram.
 
 ## Validation Telegram
 

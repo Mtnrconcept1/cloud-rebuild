@@ -31,10 +31,11 @@ describe("TOK marketing BFF operation catalogue", () => {
     ].sort());
     expect([...TOK_MARKETING_ORCHESTRATOR_ACTIONS].sort()).toEqual([
       "run_due", "run_item", "check_meta", "instagram_discover", "instagram_comments", "instagram_review_submit", "instagram_review_list",
+      "content_review_status", "content_review_retry",
     ].sort());
     for (const action of [...TOK_MARKETING_AGENT_ACTIONS, ...TOK_MARKETING_ORCHESTRATOR_ACTIONS]) expect(source).toContain(`"${action}"`);
-    expect(TOK_MARKETING_OPERATION_TOOLS).toHaveLength(53);
-    expect(new Set(TOK_MARKETING_OPERATION_TOOLS.map((tool) => tool.name)).size).toBe(53);
+    expect(TOK_MARKETING_OPERATION_TOOLS).toHaveLength(55);
+    expect(new Set(TOK_MARKETING_OPERATION_TOOLS.map((tool) => tool.name)).size).toBe(55);
     expect(TOK_MARKETING_OPERATION_TOOLS.every((tool) => tool.name.startsWith("tok_marketing_"))).toBe(true);
     expect(TOK_MARKETING_OPERATION_TOOLS.some((tool) => ["launch", "generate_daily"].includes(tool.backendOperation))).toBe(false);
   });
