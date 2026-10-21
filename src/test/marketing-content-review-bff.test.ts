@@ -56,7 +56,11 @@ describe("Marketing content review BFF", () => {
     expect(forwarded.p_csrf_hash).toMatch(/^[0-9a-f]{64}$/);
     if (body.action === "content_review_retry") expect(forwarded.p_args).toMatchObject({ p_expected_revision: 4, p_expected_review_id: reviewId });
     else expect(Object.keys(forwarded.p_args)).toHaveLength(2);
-    expect(fetchImpl.mock.calls.some(([url]) => String(url).includes("/functions/v1/") || String(url).includes("api.telegram.org"))).toBe(false);
+    for (const [input] of fetchImpl.mock.calls) {
+      const url = new URL(String(input));
+      expect(url.origin).toBe("https://project.supabase.co");
+      expect(url.pathname.startsWith("/functions/v1/")).toBe(false);
+    }
     expect(JSON.stringify(value())).not.toMatch(/sb_secret_|token_hash|chat_id|p_sid_hash/);
   });
 
