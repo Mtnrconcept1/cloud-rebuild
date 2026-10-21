@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `dc559bef475a9ce7b03ed00e3dc4e5fbab04e9e689e48252cf4661eb42041366`
+- Empreinte SHA-256 des sources indexées : `494e3a0fcc7d56f95579781ed370e9a8ac348d5d9d0598c45599eb5319689d5d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,16 +37,16 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 571 |
-| modules | 1793 |
+| migrations | 572 |
+| modules | 1794 |
 | pages | 133 |
-| pathLiterals | 877 |
+| pathLiterals | 878 |
 | publicAssets | 589 |
 | publicEntries | 615 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18439 |
-| repositoryFiles | 3498 |
+| records | 18444 |
+| repositoryFiles | 3500 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1649,7 +1649,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-leman-signature-fast.webp | 2 | [src/components/home/HeroSection.tsx:41](../../src/components/home/HeroSection.tsx#L41) |
+| /images/home/tok-leman-signature-fast.webp | 1 | [src/test/home-core-web-vitals.test.ts:17](../../src/test/home-core-web-vitals.test.ts#L17) |
+| /images/home/tok-leman-signature.webp | 3 | [src/components/home/HeroSection.tsx:41](../../src/components/home/HeroSection.tsx#L41) |
 | /images/home/tok-logo-ui.webp | 2 | [src/components/restaurateurs/ReservationCostCalculator.tsx:47](../../src/components/restaurateurs/ReservationCostCalculator.tsx#L47) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
@@ -2633,7 +2634,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_activate_all_feature_flags` (2 définition(s))
 - `public.admin_add_commercial_compensation_adjustment` (2 définition(s))
 - `public.admin_apply_feature_flag_preset` (1 définition(s))
-- `public.admin_approve_marketing_campaign` (1 définition(s))
+- `public.admin_approve_marketing_campaign` (2 définition(s))
 - `public.admin_approve_marketing_item` (1 définition(s))
 - `public.admin_approve_marketing_outreach_draft` (1 définition(s))
 - `public.admin_archive_catalog_collection` (1 définition(s))
@@ -6478,6 +6479,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261021020000 Marketing Content Reviews | 613 | 26 | [supabase/migrations/20261021020000_marketing_content_reviews.sql:1](../../supabase/migrations/20261021020000_marketing_content_reviews.sql#L1) |
 | 20261021020001 Marketing Content Review Publication Gate | 92 | 3 | [supabase/migrations/20261021020001_marketing_content_review_publication_gate.sql:1](../../supabase/migrations/20261021020001_marketing_content_review_publication_gate.sql#L1) |
 | 20261021093000 Tok Inbound Forward Receipts | 18 | 1 | [supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql:1](../../supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql#L1) |
+| 20261021100000 Marketing Campaign Approval Schedules Items | 140 | 1 | [supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql:1](../../supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6708,7 +6710,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 42 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 271 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 817 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 818 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6729,7 +6731,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 734 |
+| test | 735 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7385,7 +7387,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (571)</summary>
+<details><summary>database-migration (572)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7958,6 +7960,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261021020000_marketing_content_reviews.sql`
 - `supabase/migrations/20261021020001_marketing_content_review_publication_gate.sql`
 - `supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql`
+- `supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql`
 
 </details>
 
@@ -9786,7 +9789,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (734)</summary>
+<details><summary>test (735)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10123,6 +10126,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-brand-gallery.test.tsx`
 - `src/test/marketing-brand-references.test.ts`
 - `src/test/marketing-calendar-status-colors.test.tsx`
+- `src/test/marketing-campaign-approval-cascade.test.ts`
 - `src/test/marketing-campaign-builder.test.tsx`
 - `src/test/marketing-campaign-gallery.test.tsx`
 - `src/test/marketing-campaign-options.test.ts`

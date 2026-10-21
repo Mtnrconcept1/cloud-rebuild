@@ -54,3 +54,4 @@ if (isNative()) {
     console.warn("Native plugin initialization failed", error);
   });
 }
+// HeroSection owns responsive hero-image selection; keep bootstrap free of fixed hero preloads.
