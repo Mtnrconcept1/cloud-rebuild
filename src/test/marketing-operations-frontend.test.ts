@@ -351,6 +351,30 @@ describe("marketing operations frontend contracts", () => {
     expect(operations).toContain("if (!snapshot.overview.schedulerReady)");
   });
 
+  it("filters and sorts marketing automation and integration inventories without enabling restricted actions", () => {
+    const automations = read("src/components/marketing/views/MarketingAutomationsView.tsx");
+    const integrations = read("src/components/marketing/views/MarketingIntegrationsView.tsx");
+
+    for (const token of [
+      "automationSearch", "automationStatus", "automationChannel", "automationSortKey",
+      "automationSortDirection", "OperationViewToggle", "automationViewMode",
+      "customAutomations.map", "automation.isSystem",
+      'automationStatus !== "all"', 'automationChannel !== "all"',
+      'status: "paused"', "disabled aria-label",
+    ]) {
+      expect(automations).toContain(token);
+    }
+
+    for (const token of [
+      "integrationSortKey", "integrationSortDirection", "integrationViewMode",
+      "OperationViewToggle", "SortControls", "providers.map", "channels.map",
+      'filters.status === "all" || integration.status === filters.status',
+      "provider.control.status", "onSaveProviderControl",
+    ]) {
+      expect(integrations).toContain(token);
+    }
+  });
+
   it("provides every requested operational view", () => {
     const workspace = read("src/pages/marketing/MarketingWorkspace.tsx");
     for (const view of ["Overview", "Calendar", "Campaigns", "Audiences", "Automations", "Activity", "Results", "Integrations"]) {
