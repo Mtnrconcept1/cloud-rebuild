@@ -54,3 +54,5 @@ if (isNative()) {
     console.warn("Native plugin initialization failed", error);
   });
 }
+
+// Temporary index-sync trigger; removed after the generated application index is refreshed.
