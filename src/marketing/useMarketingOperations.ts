@@ -353,7 +353,11 @@ export function useMarketingOperations(calendarRange?: { from: string; to: strin
             }
           : campaign),
       }));
-      setNotice({ tone: "success", message: "Campagne approuvée. Ses éléments restent à approuver et planifier individuellement." });
+      const scheduledItemCount = typeof result.scheduled_item_count === "number" ? result.scheduled_item_count : null;
+      setNotice({
+        tone: "success",
+        message: `Campagne approuvée${scheduledItemCount === null ? "" : ` : ${scheduledItemCount} publication(s)`} et planifiée. Les publications associées sont approuvées automatiquement ; la validation Telegram reste distincte avant diffusion lorsqu’elle est requise.`,
+      });
       await refreshSnapshots();
       return true;
     });

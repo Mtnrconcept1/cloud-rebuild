@@ -633,7 +633,7 @@ export default function MarketingCampaignsView({
 
       <Dialog open={Boolean(approvalCampaign)} onOpenChange={(open) => { if (!open) closeCampaign(); }}>
         <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-4xl">
-          <DialogHeader><DialogTitle>{approvalCampaign?.name}</DialogTitle><DialogDescription>Relisez les visuels et les textes avant d'approuver la campagne. Chaque publication garde sa validation séparée dans le calendrier.</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>{approvalCampaign?.name}</DialogTitle><DialogDescription>Relisez les visuels et les textes avant d'approuver la campagne. Cette approbation approuve et planifie automatiquement ses publications ; la validation Telegram reste un garde distinct avant diffusion.</DialogDescription></DialogHeader>
           {reviewPending ? <p role="status" className="rounded-xl border bg-muted/20 p-3 text-sm">Actualisation de la campagne sélectionnée. Les actions seront disponibles après confirmation.</p> : null}
           {reviewError ? <p role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-3 text-sm">{reviewError}</p> : null}
           {approvalCampaign ? <div className="flex flex-wrap items-center justify-between gap-3"><MarketingStatusBadge status={getMarketingCampaignDisplayStatus(approvalCampaign)} />{returnItem && onNavigate ? <Button type="button" variant="outline" disabled={currentReview?.uploading || Boolean(pendingAction)} onClick={() => openCalendarItem(returnItem)}><ArrowLeft className="mr-2 h-4 w-4" />Retrouver la publication sélectionnée</Button> : null}</div> : null}
