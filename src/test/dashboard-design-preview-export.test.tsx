@@ -95,6 +95,33 @@ function previewHref(route: string) {
   return match ? `${baseUrl}${match.id}.html` : null;
 }
 
+function validateStaticCharts(container: HTMLElement) {
+  return Array.from(container.querySelectorAll<HTMLElement>(".recharts-responsive-container")).map(chart => {
+    const svg = chart.querySelector<SVGSVGElement>("svg.recharts-surface");
+    const width = Number(svg?.getAttribute("width"));
+    const height = Number(svg?.getAttribute("height"));
+    const viewBox = svg?.getAttribute("viewBox")?.trim().split(/\s+/).map(Number) || [];
+    if (!svg || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0 ||
+        viewBox.length !== 4 || viewBox.some(value => !Number.isFinite(value)) || viewBox[2] <= 0 || viewBox[3] <= 0) {
+      throw new Error("Visual export contains a chart without a dimensioned SVG surface.");
+    }
+    // Count only real data geometry, never grid lines, axes, or clipping rectangles.
+    const dataMarks = Array.from(svg.querySelectorAll<SVGElement>(".recharts-bar-rectangle path, .recharts-line-curve, .recharts-area-area, .recharts-area-curve, .recharts-pie-sector path, .recharts-radial-bar-sector path, .recharts-scatter-symbol")).filter(mark => {
+      if (mark.getAttribute("display") === "none" || mark.getAttribute("visibility") === "hidden" || mark.style.display === "none" || mark.style.visibility === "hidden" || mark.style.opacity === "0") return false;
+      const geometry = mark.getAttribute("d") || "";
+      if (!geometry || /NaN|Infinity/.test(geometry) || !/[LlHhVvCcSsQqTtAaZz]/.test(geometry)) return false;
+      if (mark.closest(".recharts-bar-rectangle")) {
+        return Number(mark.getAttribute("width")) > 0 && Number(mark.getAttribute("height")) > 0;
+      }
+      return true;
+    });
+    if (!dataMarks.length) throw new Error("Visual export contains a chart without visible data geometry.");
+    chart.dataset.previewChart = "true";
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    return { width, height, dataMarks: dataMarks.length };
+  });
+}
+
 function sanitizeMarkup(container: HTMLElement) {
   const clone = container.cloneNode(true) as HTMLElement;
   clone.querySelectorAll("script, iframe, object, embed").forEach(node => node.remove());
@@ -148,12 +175,15 @@ function sanitizeMarkup(container: HTMLElement) {
     replacement.append(...Array.from(form.childNodes));
     form.replaceWith(replacement);
   });
-  return clone.innerHTML;
+  const charts = validateStaticCharts(clone);
+  return { markup: clone.innerHTML, charts };
 }
 
 function html(title: string, body: string, cssFiles: string[]) {
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${escape(title)} — TOK · revue visuelle</title>${cssFiles.map(file => `<link rel="stylesheet" href="/assets/${escape(file)}">`).join("")}<style>
 body{margin:0}.preview-notice{position:relative;z-index:1000;background:#2c211b;color:#fff5e8;padding:12px 22px;font:13px/1.5 system-ui;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.preview-notice a{color:#ffd4ab;text-decoration:underline}.preview-notice small{opacity:.8}.preview-index{max-width:1180px;margin:auto;padding:50px 24px 80px;background:#fcf8f2;color:#32261e;min-height:100vh;font:15px/1.5 system-ui}.preview-index h1{font:54px/1.1 Georgia,serif;margin:12px 0 20px}.preview-index h2{font:30px/1.3 Georgia,serif;margin:42px 0 18px}.preview-index p{max-width:780px}.preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px}.preview-card{display:block;border:1px solid #e9ddce;border-radius:16px;padding:18px 20px;background:#fff;color:inherit;text-decoration:none;transition:transform .15s,border-color .15s}.preview-card:hover{transform:translateY(-2px);border-color:#f97316}.preview-card small{display:block;color:#7d6f62;font-size:11px;margin-top:8px}.preview-card strong{display:block}.preview-badge{display:inline-block;background:#ffeddc;color:#a24d19;border-radius:99px;padding:6px 11px;font-size:12px;font-weight:600}.preview-content form{pointer-events:none}.preview-content button,.preview-content input,.preview-content textarea,.preview-content select{pointer-events:none}.preview-content [data-preview-frozen-control]{opacity:1!important}.preview-content img{opacity:1!important}.preview-content .tok-workspace-sidebar{top:0}.preview-content [data-preview-surface]{min-height:100vh}@media(max-width:600px){.preview-index h1{font-size:38px}.preview-notice{font-size:11px;padding:10px 14px}}
+.preview-content [data-preview-chart]{max-width:100%;min-width:0}.preview-content [data-preview-chart]>div,.preview-content [data-preview-chart] .recharts-wrapper{width:100%!important;height:100%!important;max-width:100%;min-width:0}.preview-content [data-preview-chart] .recharts-surface{display:block;width:100%;height:100%;max-width:100%}
+@media(max-width:767px){.preview-notice[data-preview-surface="restaurant"]{position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px);margin-top:calc(env(safe-area-inset-top,0px) + 80px)}.preview-content[data-preview-surface="restaurant"] .tok-dashboard-shell .tok-workspace-content{padding-top:16px!important}}
 </style></head><body>${body}</body></html>`;
 }
 
@@ -167,16 +197,39 @@ describe.skipIf(!enabled)("isolated dashboard visual export", () => {
     vi.stubGlobal("XMLHttpRequest", class { constructor() { blockNetwork("XMLHttpRequest"); } });
     vi.stubGlobal("WebSocket", class { constructor() { blockNetwork("WebSocket"); } });
     vi.stubGlobal("EventSource", class { constructor() { blockNetwork("EventSource"); } });
-    vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
+    // jsdom has no layout engine. Supply only chart measurements; the real
+    // Recharts components still calculate axes, scales, and SVG data geometry.
+    vi.stubGlobal("ResizeObserver", class {
+      constructor(private readonly callback: ResizeObserverCallback) {}
+      observe(target: Element) {
+        if (!target.classList.contains("recharts-responsive-container")) return;
+        const width = 675;
+        const height = target.closest(".tok-overview-chart") ? 215 : target.closest(".h-80") ? 320 : target.closest(".h-64") ? 256 : 280;
+        const size = { inlineSize: width, blockSize: height };
+        this.callback([{ target, contentRect: new DOMRect(0, 0, width, height), borderBoxSize: [size], contentBoxSize: [size], devicePixelContentBoxSize: [size] }], this as unknown as ResizeObserver);
+      }
+      unobserve() {}
+      disconnect() {}
+    });
+    const matchMedia = window.matchMedia.bind(window);
+    vi.stubGlobal("matchMedia", (query: string) => ({ ...matchMedia(query), matches: query === "(prefers-reduced-motion: reduce)" || matchMedia(query).matches }));
     Object.defineProperty(Element.prototype, "scrollIntoView", { configurable: true, value: vi.fn() });
     Object.defineProperty(Element.prototype, "scrollTo", { configurable: true, value: vi.fn() });
   });
   afterEach(() => { cleanup(); clients.splice(0).forEach(client => client.clear()); });
   afterAll(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
+  it("rejects empty chart containers and SVGs containing only axes", () => {
+    const container = document.createElement("div");
+    container.innerHTML = '<div class="recharts-responsive-container"><div style="width:0px;height:0px"></div></div>';
+    expect(() => validateStaticCharts(container)).toThrow("without a dimensioned SVG");
+    container.innerHTML = '<div class="recharts-responsive-container"><svg class="recharts-surface" width="675" height="215" viewBox="0 0 675 215"><path class="recharts-cartesian-axis-line" d="M0,0L675,0" /></svg></div>';
+    expect(() => validateStaticCharts(container)).toThrow("without visible data geometry");
+  });
+
   it("renders each real page to static, non-transactional HTML", async () => {
     const cssFiles = readdirSync(path.join(staticRoot, "assets")).filter(file => file.endsWith(".css")).sort((a, b) => Number(b.startsWith("index-")) - Number(a.startsWith("index-")) || a.localeCompare(b));
-    const results: Array<{ id: string; route: string; source: string; title: string; status: string; characters: number }> = [];
+    const results: Array<{ id: string; route: string; source: string; title: string; status: string; characters: number; charts: Array<{ width: number; height: number; dataMarks: number }> }> = [];
     const errors: string[] = [];
     expect(cssFiles.length).toBeGreaterThan(0);
     for (const page of pages) {
@@ -194,7 +247,7 @@ describe.skipIf(!enabled)("isolated dashboard visual export", () => {
         await act(async () => { await new Promise(resolve => setTimeout(resolve, 35)); });
         if (client.isFetching() === 0 && attempt >= 2) break;
       }
-      const markup = sanitizeMarkup(mounted.container);
+      const { markup, charts } = sanitizeMarkup(mounted.container);
       const queryErrors = client.getQueryCache().getAll().filter(query => query.state.status === "error").map(query => `${query.queryHash}: ${String(query.state.error)}`);
       const errorToasts = state.toast.mock.calls.filter(([toast]) => toast?.variant === "destructive");
       if (client.isFetching() || queryErrors.length || state.networkAttempts.length || errorToasts.length) {
@@ -206,14 +259,15 @@ describe.skipIf(!enabled)("isolated dashboard visual export", () => {
       expect(markup.length, page.id).toBeGreaterThan(1000);
       expect(markup, page.id).not.toMatch(/visual-preview-fixture|access_token|service_role/);
       expect(markup, page.id).not.toMatch(/Cannot read properties|Network forbidden|>NaN</);
-      const banner = `<aside class="preview-notice"><a href="${baseUrl}">← Toutes les pages</a><strong>Aperçu visuel — données de démonstration</strong><small>${escape(page.label)} · navigation de revue uniquement, actions métier inactives</small></aside>`;
-      writeFileSync(path.join(outputRoot, `${page.id}.html`), html(page.label, `${banner}<div class="preview-content">${markup}</div>`, cssFiles));
-      results.push({ id: page.id, route: page.route, source: `src/pages/${page.module}.tsx`, title: page.label, status: "rendered", characters: markup.length });
+      const banner = `<aside class="preview-notice" data-preview-surface="${page.surface}"><a href="${baseUrl}">← Toutes les pages</a><strong>Aperçu visuel — données de démonstration</strong><small>${escape(page.label)} · navigation de revue uniquement, actions métier inactives</small></aside>`;
+      writeFileSync(path.join(outputRoot, `${page.id}.html`), html(page.label, `${banner}<div class="preview-content" data-preview-surface="${page.surface}">${markup}</div>`, cssFiles));
+      results.push({ id: page.id, route: page.route, source: `src/pages/${page.module}.tsx`, title: page.label, status: "rendered", characters: markup.length, charts });
       cleanup(); client.clear();
     }
     expect(errors, "Every page must finish its mocked data loading successfully").toEqual([]);
     expect(previewMutationLog).toEqual([]);
     expect(results).toHaveLength(42);
+    expect(results.find(page => page.id === "restaurant-accueil")?.charts.length, "The activity chart must be exported").toBeGreaterThan(0);
     const sections = (["restaurant", "client"] as const).map(surface => `<section><h2>${surface === "restaurant" ? "Espace restaurateur · 31 vues" : "Espace client · 11 vues"}</h2><div class="preview-grid">${pages.filter(page => page.surface === surface).map(page => `<a class="preview-card" href="${baseUrl}${page.id}.html"><strong>${escape(page.label)}</strong><small>${escape(page.route)}</small></a>`).join("")}</div></section>`).join("");
     writeFileSync(path.join(outputRoot, "index.html"), html("Dashboards", `<main class="preview-index"><span class="preview-badge">TOK · Revue de design</span><h1>Vos nouveaux espaces,<br>page par page.</h1><p><strong>Aperçu visuel — données de démonstration.</strong> Ces pages statiques sont rendues avec les composants réels de la branche de refonte et ses feuilles de style. Camille Martin, La Table d’Octobre et tous les chiffres présentés sont fictifs.</p><p>Parcourez les 42 vues pour examiner le design sur ordinateur et mobile. Les listes non renseignées montrent les états vides de l’application. Les actions métier, formulaires, paiements et liens externes sont inactifs dans cette galerie.</p>${sections}<p style="margin-top:40px;font-size:12px;color:#7d6f62">Version ${escape(process.env.GITHUB_SHA || "locale")}. Cette galerie est générée uniquement pour la preview ; elle ne fait pas partie du build de production.</p></main>`, cssFiles));
     writeFileSync(path.join(outputRoot, "manifest.json"), JSON.stringify({ commit: process.env.GITHUB_SHA || "local", generatedFromRealComponents: true, fixtureDate: PREVIEW_DATE, pages: results }, null, 2));
