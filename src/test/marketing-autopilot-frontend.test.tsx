@@ -129,7 +129,7 @@ describe("frontend TOK Marketing Autopilot", () => {
     });
     expect(dashboard.automations[0]).toMatchObject({ id: "tok.zero_attente", status: "disabled" });
     expect(dashboard.assets).toMatchObject({ approved: 2, withCurrentRights: 1, pendingRights: 4 });
-    expect(dashboard.analytics.completeness).toBe(0.5);
+    expect(dashboard.analytics.completeness).toBe(7 / 12);
     expect(dashboard.analytics.metrics.find((metric) => metric.key === "spend")?.value).toBeNull();
     expect(dashboard.analytics.metrics.find((metric) => metric.key === "cac")?.value).toBeNull();
     expect(dashboard.analytics.metrics.find((metric) => metric.key === "revenue")?.value).toBe(123.45);

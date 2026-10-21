@@ -94,7 +94,11 @@ export default function MarketingWorkspace() {
     return () => { window.removeEventListener("beforeunload", preventLeavingDuringUpload); };
   }, [uploadPending]);
   const autopilotEnabled = ["automations", "integrations", "results", "governance"].includes(filters.view);
-  const autopilot = useMarketingAutopilot({ enabled: autopilotEnabled });
+  const autopilot = useMarketingAutopilot({
+    enabled: autopilotEnabled,
+    from: filters.view === "results" ? filters.from : undefined,
+    to: filters.view === "results" ? filters.to : undefined,
+  });
   const defaultCalendarRange = currentMarketingMonthRange();
   const operations = useMarketingOperations(filters.view === "calendar"
     ? {
@@ -166,7 +170,7 @@ export default function MarketingWorkspace() {
       case "activity":
         return <MarketingActivityView snapshot={operations.snapshot} filters={filters} canMutateBackend={operations.canMutateBackend} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onLoadDeliveriesPage={operations.loadDeliveriesPage} deliveriesRevision={operations.deliveriesRevision} onRetry={operations.retryDelivery} onRevealManualTarget={operations.revealManualTarget} onCompleteManual={operations.completeManualDelivery} />;
       case "results":
-        return <MarketingResultsView snapshot={operations.snapshot} filters={filters} autopilot={autopilot.dashboard} autopilotLoading={autopilot.loading} autopilotError={autopilot.error} onFiltersChange={updateFilters} onRefreshAutopilot={() => { void autopilot.refresh(); }} />;
+        return <MarketingResultsView snapshot={operations.snapshot} filters={filters} autopilot={autopilot.dashboard} autopilotLoading={autopilot.loading || autopilot.refreshing} autopilotError={autopilot.error} onFiltersChange={updateFilters} onRefreshAutopilot={() => { void autopilot.refresh(); }} />;
       case "integrations":
         return <MarketingIntegrationsView snapshot={operations.snapshot} filters={filters} autopilot={autopilot.dashboard} autopilotLoading={autopilot.loading} autopilotError={autopilot.error} autopilotPendingAction={autopilot.pendingAction} onFiltersChange={updateFilters} onRefreshAutopilot={() => { void autopilot.refresh(); }} onSaveProviderControl={autopilot.saveProviderControl} />;
       case "governance":
