@@ -20,7 +20,7 @@ export const RESTAURANT_GUIDE_CHAPTERS: readonly GuideChapter[] = [
   {
     id: "reussite-et-performances",
     eyebrow: "01 · Le quotidien",
-    title: "Reussite et performances",
+    title: "Pilotage",
     summary: "Retrouvez ce qui demande votre attention et suivez l’évolution de votre établissement.",
     steps: [
       "Depuis « Vue d'ensemble », consultez les informations importantes de la journée et les dernières activités.",
@@ -66,7 +66,7 @@ export const RESTAURANT_GUIDE_CHAPTERS: readonly GuideChapter[] = [
   {
     id: "paiements",
     eyebrow: "03 · Votre abonnement et vos factures",
-    title: "Paiements",
+    title: "Finances",
     summary: "Gardez une vue claire sur votre abonnement et les documents comptables disponibles.",
     steps: [
       "Ouvrez « Mon compte/Facturation » pour retrouver les informations de votre abonnement et vos moyens de paiement.",
@@ -110,7 +110,7 @@ export const RESTAURANT_GUIDE_CHAPTERS: readonly GuideChapter[] = [
   {
     id: "page-du-restaurant",
     eyebrow: "05 · Votre vitrine et vos offres",
-    title: "Page du restaurant",
+    title: "Mon restaurant",
     summary: "Mettez à jour les informations et les offres que vos clients découvrent sur TOK.",
     steps: [
       "Dans « Mon restaurant », vérifiez votre nom, votre adresse, vos horaires et vos informations de contact.",
@@ -140,7 +140,7 @@ export const RESTAURANT_GUIDE_CHAPTERS: readonly GuideChapter[] = [
   {
     id: "support",
     eyebrow: "06 · Rester informé et demander de l’aide",
-    title: "Support",
+    title: "Assistance",
     summary: "Retrouvez les messages importants et une aide adaptée à votre situation.",
     steps: [
       "Consultez régulièrement « Notifications » pour ne pas manquer une information concernant votre restaurant.",
@@ -165,7 +165,7 @@ export const RESTAURANT_GUIDE_ROUTE_LABELS: Record<string, string> = {
   "/dashboard": "Vue d'ensemble",
   "/dashboard/advisor": "Assistant IA",
   "/dashboard/commandes": "Commandes et retraits",
-  "/dashboard/reservations": "Reservations",
+  "/dashboard/reservations": "Réservations",
   "/dashboard/performances": "Performances",
   "/dashboard/comparaison": "Comparaison",
   "/dashboard/avis": "Avis clients",
@@ -173,10 +173,10 @@ export const RESTAURANT_GUIDE_ROUTE_LABELS: Record<string, string> = {
   "/dashboard/campaign-studio": "Campaign Studio IA",
   "/dashboard/crm": "CRM clients",
   "/dashboard/promotions": "Promotions",
-  "/dashboard/reseaux-sociaux": "Reseaux sociaux",
+  "/dashboard/reseaux-sociaux": "Réseaux sociaux",
   "/dashboard/photos": "Studio Marketing",
   "/dashboard/actualites": "Actualités",
-  "/dashboard/mon-compte-facturation": "Mon compte/Facturation",
+  "/dashboard/mon-compte-facturation": "Mon compte / Facturation",
   "/dashboard/factures": "Comptabilité & factures",
   "/dashboard/tok-connect": "Tok Connect",
   "/dashboard/restaurant": "Mon restaurant",

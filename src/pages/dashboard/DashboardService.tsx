@@ -236,7 +236,7 @@ export default function DashboardService() {
 
   if (restaurantFailed) {
     return (
-      <DashboardLayout>
+      <DashboardLayout mainClassName="tok-restaurant-page tok-page-service">
         <div role="alert" className="mx-auto max-w-lg rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center">
           <p className="font-semibold text-destructive">Impossible de charger les réglages de service.</p>
           <p className="mt-1 text-sm text-muted-foreground">Vos paramètres existants restent inchangés. Réessayez dans un instant.</p>
@@ -250,7 +250,7 @@ export default function DashboardService() {
 
   if (restaurantPending || !restaurant) {
     return (
-      <DashboardLayout>
+      <DashboardLayout mainClassName="tok-restaurant-page tok-page-service">
         <div role="status" className="flex items-center justify-center py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
           <span className="sr-only">Chargement des réglages de service</span>
@@ -260,7 +260,7 @@ export default function DashboardService() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-service">
       <div className="space-y-4">
         <DashboardPageHero
           badge="Services restaurant"

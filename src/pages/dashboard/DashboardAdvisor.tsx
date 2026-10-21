@@ -1087,7 +1087,7 @@ export default function DashboardAdvisor() {
 
   if (!restaurant) {
     return (
-      <DashboardLayout>
+      <DashboardLayout mainClassName="tok-restaurant-page tok-page-advisor">
         <div className="space-y-4 py-12 text-center">
           <Bot className="mx-auto h-12 w-12 text-muted-foreground" />
           <h2 className="font-display text-2xl font-bold">Aucun restaurant</h2>
@@ -1098,24 +1098,24 @@ export default function DashboardAdvisor() {
   }
 
   return (
-    <DashboardLayout constrainToViewport>
+    <DashboardLayout constrainToViewport mainClassName="tok-restaurant-page tok-page-advisor">
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="mb-4 flex shrink-0 flex-col items-stretch justify-between gap-3 border-b pb-4 sm:flex-row sm:items-center">
+        <div className="tok-editorial-header tok-advisor-header mb-4 flex shrink-0 flex-col items-stretch justify-between gap-3 border-b pb-4 sm:flex-row sm:items-center">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600">
+            <div className="tok-advisor-avatar flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600">
               <Bot className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0">
               <h1 className="flex flex-wrap items-center gap-2 font-display text-xl font-bold">
-                Assistant IA
+                Votre assistant TOK
                 <Badge variant="outline" className="text-[10px] font-semibold uppercase tracking-wider">
                   Beta
                 </Badge>
               </h1>
-              <p className="truncate text-xs text-muted-foreground">Analyse vos donnees et optimise vos performances</p>
+              <p className="truncate text-xs text-muted-foreground">Un coup de main pour chaque décision, à partir de vos données.</p>
             </div>
           </div>
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
+          <div className="tok-advisor-actions flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
             <Button type="button" variant={editMode ? "default" : "outline"} size="sm"
               disabled={isCommercialDemo} onClick={() => setEditMode((value) => !value)}
               className="min-w-0 flex-[1_1_10rem] gap-1.5 sm:flex-none">
@@ -1182,9 +1182,9 @@ export default function DashboardAdvisor() {
           </div>
         ) : null}
 
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
+        <div className="tok-advisor-conversation min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
           {messages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center space-y-8 px-4">
+            <div className="tok-advisor-welcome flex h-full flex-col items-center justify-center space-y-8 px-4">
               <div className="space-y-2 text-center">
                 <DashboardIllustrationMedia
                   illustration={DASHBOARD_ILLUSTRATIONS.restaurantAdvisor}

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
+import RestaurantMenuCatalog from "@/components/dashboard/RestaurantMenuCatalog";
 import DailyDishAiPanel from "@/components/dashboard/DailyDishAiPanel";
 import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
 import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
@@ -761,11 +762,11 @@ export default function DashboardMenu() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-menu">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Carte restaurant"
-          title="Menu"
+          title="Votre carte"
           description="Organisez les plats, les prix, les photos et la disponibilité avant qu'ils apparaissent dans les parcours client."
           icon={BookOpen}
           tone="emerald"
@@ -802,44 +803,13 @@ export default function DashboardMenu() {
         {!restaurant ? (
           <p className="py-8 text-center text-muted-foreground">Sélectionnez un restaurant pour gérer ses produits.</p>
         ) : (
-          <div className="space-y-3">
-            {items?.map((item) => (
-              <div key={item.id} className="flex items-center gap-4 rounded-xl border bg-card p-4">
-                {item.image_url && (
-                  <img src={item.image_url} alt={item.name} className="h-16 w-16 rounded-lg object-cover" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-semibold">{item.name}</h4>
-                    {item.category && (
-                      <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                        {item.category}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm font-bold text-primary">{Number(item.price).toFixed(2)} CHF</p>
-                </div>
-                <Switch
-                  checked={item.is_available ?? true}
-                  onCheckedChange={() => toggleAvailability(item.id, item.is_available ?? true)}
-                />
-                <Button size="icon" variant="ghost" onClick={() => openEdit(item)}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-destructive"
-                  onClick={() => handleDelete(item.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            {(!items || items.length === 0) && (
-              <p className="py-8 text-center text-muted-foreground">Aucun plat dans le menu</p>
-            )}
-          </div>
+          <RestaurantMenuCatalog
+            key={restaurant.id}
+            items={items || []}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+            onToggleAvailability={toggleAvailability}
+          />
         )}
 
         <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
@@ -927,7 +897,7 @@ export default function DashboardMenu() {
         </Dialog>
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-          <DialogContent className="max-h-[min(92vh,900px)] overflow-y-auto sm:max-w-3xl">
+          <DialogContent className="tok-menu-editor max-h-[min(92vh,900px)] overflow-y-auto sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>{editingId ? "Modifier le plat" : "Nouveau plat"}</DialogTitle>
             </DialogHeader>

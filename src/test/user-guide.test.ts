@@ -25,12 +25,12 @@ describe("guides d’utilisation TOK", () => {
     const source = readFileSync(path.join(process.cwd(), "src/components/DashboardLayout.tsx"), "utf8");
     const names = RESTAURANT_GUIDE_CHAPTERS.map((chapter) => chapter.title);
     expect(names).toEqual([
-      "Reussite et performances",
+      "Pilotage",
       "Marketing",
-      "Paiements",
+      "Finances",
       "Mon offre",
-      "Page du restaurant",
-      "Support",
+      "Mon restaurant",
+      "Assistance",
     ]);
     for (const chapter of RESTAURANT_GUIDE_CHAPTERS) {
       expect(source).toContain(`title: "${chapter.title}"`);

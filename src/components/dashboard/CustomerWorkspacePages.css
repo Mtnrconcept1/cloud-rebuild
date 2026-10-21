@@ -1,0 +1,332 @@
+/* Client workspace layouts. Account data, feature gates and transaction controls
+   remain in their page components. Public/admin pages do not use these hooks. */
+.tok-hospitality-workspace .tok-customer-page {
+  min-width: 0;
+  --customer-paper: #fffdfa;
+  --customer-ink: #30271f;
+  --customer-line: #e9e0d5;
+  --customer-soft: #f2ebe2;
+  --customer-peach: #fcebd8;
+}
+.tok-hospitality-workspace .tok-customer-page-hero,
+.tok-hospitality-workspace .tok-customer-notifications > div:first-child {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: 290px;
+  overflow: hidden;
+  padding: 30px var(--workspace-gutter, 24px);
+  border: 0;
+  border-radius: 0;
+  background: #f8f5ef;
+  box-shadow: none;
+}
+.tok-hospitality-workspace .tok-customer-page-hero::before,
+.tok-hospitality-workspace .tok-customer-notifications > div:first-child::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background: linear-gradient(90deg, #f8f5ef 0%, rgb(248 245 239 / 97%) 26%, rgb(248 245 239 / 85%) 46%, rgb(248 245 239 / 8%) 74%), url('/images/dashboard/restaurant-ambience.webp') right 54% / cover;
+}
+.tok-hospitality-workspace .tok-customer-page-hero__copy { width: 100%; min-width: 0; }
+.tok-hospitality-workspace .tok-customer-page-hero__eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  color: #675c50;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.tok-hospitality-workspace .tok-customer-page-hero__eyebrow svg { width: 12px; height: 12px; }
+.tok-hospitality-workspace .tok-customer-page-hero h1,
+.tok-hospitality-workspace .tok-customer-notifications h1 {
+  max-width: 780px;
+  color: var(--customer-ink);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(36px, 4.1vw, 62px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.tok-hospitality-workspace .tok-customer-page-hero__subtitle {
+  max-width: 700px;
+  margin-top: 9px;
+  color: var(--customer-ink);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(20px, 2vw, 29px);
+  font-weight: 500;
+  line-height: 1.32;
+  letter-spacing: -.025em;
+  text-wrap: pretty;
+}
+.tok-hospitality-workspace .tok-customer-page-hero__description {
+  max-width: 620px;
+  margin-top: 12px;
+  color: #665c53;
+  font-size: 14px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.tok-hospitality-workspace .tok-customer-page-hero__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.tok-hospitality-workspace .tok-customer-page-hero__actions :is(a, button) { min-height: 48px; padding-inline: 24px; border-radius: 12px; }
+.tok-hospitality-workspace .tok-customer-page :is(a, button, input, select, textarea):focus-visible { outline: 2px solid #d55c16; outline-offset: 3px; }
+.tok-hospitality-workspace :is(.tok-customer-note-card, .tok-customer-miamz-card, .tok-customer-calendar-card, .tok-customer-profile-form-card, .tok-customer-history-panel) {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--customer-line);
+  border-radius: 18px;
+  background: var(--customer-paper);
+  box-shadow: 0 3px 14px rgb(84 53 24 / 2%);
+}
+.tok-hospitality-workspace :is(.tok-customer-note-card, .tok-customer-miamz-card) { background: linear-gradient(130deg, #fff1e2, var(--customer-peach)); border-color: #f3dec7; }
+.tok-hospitality-workspace :is(.tok-customer-note-card, .tok-customer-miamz-card, .tok-customer-calendar-card, .tok-customer-profile-form-card, .tok-customer-profile-shortcut) :is(h2, h3),
+.tok-hospitality-workspace .tok-customer-memory .tok-customer-memory-controls h3 {
+  color: var(--customer-ink);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -.025em;
+}
+.tok-hospitality-workspace .tok-customer-note-card > svg { width: 32px; height: 32px; margin-bottom: 16px; color: #d45913; }
+.tok-hospitality-workspace .tok-customer-note-card > p,
+.tok-hospitality-workspace .tok-customer-miamz-card > p,
+.tok-hospitality-workspace .tok-customer-profile-form-card > header > p { margin-top: 10px; color: #6e6256; font-size: 14px; line-height: 1.7; }
+/* Home: the live activity and the account's real loyalty balance remain distinct. */
+.tok-hospitality-workspace .tok-customer-home-focus { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(270px, 1fr); gap: 18px; }
+.tok-hospitality-workspace .tok-customer-activity-card {
+  min-height: 235px;
+  padding: 26px;
+  border-color: var(--customer-line);
+  border-radius: 18px;
+  background: var(--customer-paper);
+  box-shadow: none;
+}
+.tok-hospitality-workspace .tok-customer-activity-card h2 { font-size: clamp(24px, 2.15vw, 32px); font-weight: 600; letter-spacing: -.035em; }
+.tok-hospitality-workspace .tok-customer-activity-card__body { height: 100%; }
+.tok-hospitality-workspace .tok-customer-activity-card .tok-client-hero-illustration { width: 100px; height: 100px; }
+.tok-hospitality-workspace .tok-customer-metric {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  column-gap: 13px;
+  align-content: center;
+  min-height: 102px;
+  padding: 18px 38px 18px 18px;
+  border-color: var(--customer-line);
+  border-radius: 16px;
+  background: var(--customer-paper);
+}
+.tok-hospitality-workspace .tok-customer-metric > div { grid-row: 1 / 3; align-self: center; width: 44px; height: 44px; margin: 0; border-radius: 50%; }
+.tok-hospitality-workspace .tok-customer-metric > p { grid-column: 2; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+.tok-hospitality-workspace .tok-customer-metric > p:first-of-type { font-size: 27px; line-height: 1.15; }
+.tok-hospitality-workspace .tok-customer-metric .tok-client-card-arrow { right: 10px; padding: 0; border: 0; background: transparent; transform: translateY(-50%); }
+.tok-hospitality-workspace .tok-customer-miamz-card__balance { display: flex; align-items: center; gap: 18px; margin-block: 24px 12px; }
+.tok-hospitality-workspace .tok-customer-miamz-card__icon { display: grid; place-items: center; flex: 0 0 64px; height: 64px; border-radius: 50%; background: rgb(255 253 250 / 80%); color: #e96c1c; }
+.tok-hospitality-workspace .tok-customer-miamz-card__icon svg { width: 32px; height: 32px; }
+.tok-hospitality-workspace .tok-customer-miamz-card__balance p { min-width: 0; }
+.tok-hospitality-workspace .tok-customer-miamz-card__balance strong { display: block; color: var(--customer-ink); font: 600 clamp(36px, 3.8vw, 52px)/1.1 "Playfair Display", Georgia, serif; overflow-wrap: anywhere; }
+.tok-hospitality-workspace .tok-customer-miamz-card__balance p span { color: #6e6256; font-size: 13px; }
+.tok-hospitality-workspace .tok-customer-quick-actions .tok-client-quick-action { min-height: 135px; border-radius: 16px; }
+/* Existing sorting and the three operational views stay visible under the band. */
+.tok-hospitality-workspace :is(.tok-customer-sort-bar, .tok-customer-view-bar, .tok-customer-filter-bar) {
+  min-width: 0;
+  padding: 16px 20px;
+  border: 1px solid var(--customer-line);
+  border-radius: 14px;
+  background: var(--customer-paper);
+  box-shadow: none;
+}
+.tok-hospitality-workspace .tok-customer-view-bar [role="group"] { border: 0; background: var(--customer-soft); }
+.tok-hospitality-workspace .tok-customer-view-bar [data-state="on"] { background: #eb7225; color: white; }
+.tok-hospitality-workspace .tok-customer-reservations-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+.tok-hospitality-workspace .tok-customer-reservations-aside { display: grid; gap: 16px; }
+.tok-hospitality-workspace .tok-customer-calendar-card { padding: 20px 14px; }
+.tok-hospitality-workspace .tok-customer-calendar-card > h2 { padding-inline: 10px; font-size: 22px; }
+.tok-hospitality-workspace .tok-customer-calendar-card .rdp { padding: 16px 4px 8px; }
+.tok-hospitality-workspace .tok-customer-calendar-card th,
+.tok-hospitality-workspace .tok-customer-calendar-card td { width: 36px; }
+.tok-hospitality-workspace .tok-customer-calendar-card .tok-customer-calendar-day { border-radius: 50%; background: #ffe5cd; color: #9f3e09; font-weight: 700; }
+.tok-hospitality-workspace .tok-customer-calendar-legend { display: flex; align-items: center; gap: 8px; padding-inline: 10px; color: #75685c; font-size: 11px; }
+.tok-hospitality-workspace .tok-customer-calendar-legend span { width: 10px; height: 10px; border-radius: 50%; background: #ef7827; }
+.tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card, .tok-customer-order-detail) { border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); box-shadow: 0 3px 14px rgb(84 53 24 / 2%); }
+.tok-hospitality-workspace :is(article.tok-customer-reservation-card, article.tok-customer-order-card) { padding: 22px; }
+.tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card) > button { min-height: 118px; padding: 22px; background: var(--customer-paper); }
+.tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card) > button:hover { background: #fbf5ec; }
+.tok-hospitality-workspace .tok-customer-reservation-card :is(h3, p.font-bold),
+.tok-hospitality-workspace .tok-customer-order-card :is(p.font-bold, p.text-sm.font-bold) { white-space: normal; overflow: visible; font-family: "Playfair Display", Georgia, serif; font-size: 21px; font-weight: 600; line-height: 1.35; }
+.tok-hospitality-workspace .tok-customer-order-detail > div:first-child h3 { font: 600 23px/1.3 "Playfair Display", Georgia, serif; }
+/* Reviews use the restaurant's actual photograph and keep publication/reply status. */
+.tok-hospitality-workspace .tok-customer-reviews-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; align-items: start; }
+.tok-hospitality-workspace .tok-customer-review-card { border-color: var(--customer-line); border-radius: 18px; }
+.tok-hospitality-workspace .tok-customer-review-card__content { padding: 22px; }
+.tok-hospitality-workspace .tok-customer-review-card__heading { gap: 20px; }
+.tok-hospitality-workspace .tok-customer-review-card__photo { width: 128px; height: 128px; border-radius: 12px; }
+.tok-hospitality-workspace .tok-customer-review-card__heading a { font: 600 23px/1.3 "Playfair Display", Georgia, serif; }
+.tok-hospitality-workspace .tok-customer-review-card__replies { margin: 0 16px 16px; border: 0; border-radius: 12px; background: var(--customer-soft); }
+.tok-hospitality-workspace .tok-customer-reviews-aside > img { width: 100%; height: 230px; margin-block: 20px; border-radius: 12px; object-fit: cover; }
+/* Each profile destination gets its own title, all six tabs stay accessible. */
+.tok-hospitality-workspace .tok-customer-profile-tabs { padding: 7px; border: 1px solid var(--customer-line); border-radius: 14px; background: var(--customer-paper); }
+.tok-hospitality-workspace .tok-customer-profile-tabs [role="tab"] { min-height: 44px; border-radius: 9px; color: #6c5f53; }
+.tok-hospitality-workspace .tok-customer-profile .tok-customer-profile-tabs [role="tab"][data-state="active"] { background: #ef7827; color: white; box-shadow: none; }
+.tok-hospitality-workspace .tok-customer-profile-columns { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; align-items: start; }
+.tok-hospitality-workspace .tok-customer-profile-form { display: grid; grid-template-columns: minmax(130px, 170px) minmax(0, 1fr); gap: 26px; align-items: start; }
+.tok-hospitality-workspace .tok-customer-profile-avatar > .relative > div { width: 132px; height: 132px; border-color: var(--customer-soft); }
+.tok-hospitality-workspace .tok-customer-profile-fields { min-width: 0; }
+.tok-hospitality-workspace .tok-customer-profile-fields > .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tok-hospitality-workspace .tok-customer-profile-fields > .grid > :last-child { grid-column: 1 / -1; }
+.tok-hospitality-workspace .tok-customer-profile-fields :is(input, [role="combobox"]) { min-width: 0; min-height: 44px; border-color: #dfd6cc; border-radius: 9px; background: #fffefc; }
+.tok-hospitality-workspace .tok-customer-profile-save { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--customer-line); }
+.tok-hospitality-workspace .tok-customer-profile-save > button { min-height: 48px; padding-inline: 28px; }
+.tok-hospitality-workspace .tok-customer-profile-aside { display: grid; gap: 16px; }
+.tok-hospitality-workspace .tok-customer-profile-shortcut { display: flex; align-items: center; gap: 12px; min-height: 118px; padding: 20px; border: 1px solid var(--customer-line); border-radius: 16px; background: var(--customer-paper); }
+.tok-hospitality-workspace .tok-customer-profile-shortcut > svg { flex: 0 0 22px; color: #d66018; }
+.tok-hospitality-workspace .tok-customer-profile-shortcut > svg:last-child { width: 16px; flex-basis: 16px; color: #857466; }
+.tok-hospitality-workspace .tok-customer-profile-shortcut h3 { font-size: 20px; }
+.tok-hospitality-workspace .tok-customer-profile-shortcut p { margin-top: 5px; color: #75685c; font-size: 12px; line-height: 1.5; }
+.tok-hospitality-workspace .tok-customer-favorites[data-state="active"] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.tok-hospitality-workspace .tok-customer-favorites > div:not(.tok-customer-favorite-card) { grid-column: 1 / -1; }
+.tok-hospitality-workspace .tok-customer-favorite-card { min-width: 0; overflow: hidden; border-color: var(--customer-line); border-radius: 16px; box-shadow: 0 3px 14px rgb(84 53 24 / 2%); }
+.tok-hospitality-workspace .tok-customer-favorite-card:hover { border-color: #eaa56d; }
+.tok-hospitality-workspace .tok-customer-favorite-card__photo { width: 100%; aspect-ratio: 1.8; object-fit: cover; }
+.tok-hospitality-workspace .tok-customer-favorite-card__body { display: grid; gap: 9px; padding: 17px; }
+.tok-hospitality-workspace .tok-customer-favorite-card__body h2 { font: 600 23px/1.3 "Playfair Display", Georgia, serif; letter-spacing: -.025em; }
+.tok-hospitality-workspace .tok-customer-cuisine-tag { justify-self: start; max-width: 100%; padding: 5px 11px; border-radius: 999px; background: var(--customer-soft); color: #78685a; font-size: 11px; }
+.tok-hospitality-workspace .tok-customer-favorite-card__action { display: flex; justify-content: center; align-items: center; gap: 12px; min-height: 42px; margin-top: 3px; padding: 8px 12px; border-radius: 10px; background: #ed7424; color: white; font-size: 13px; font-weight: 600; }
+.tok-hospitality-workspace .tok-customer-membership-card { border-color: #edba8d; background: linear-gradient(125deg, #fff5e9, #fce8d1); }
+.tok-hospitality-workspace .tok-customer-membership-card h3 { font: 600 32px/1.2 "Playfair Display", Georgia, serif; color: var(--customer-ink); }
+.tok-hospitality-workspace .tok-customer-membership-card [class*="text-violet"] { color: #ad4e12; }
+.tok-hospitality-workspace .tok-customer-membership-card [class*="bg-violet-100"] { background: #ffe1c4; }
+.tok-hospitality-workspace .tok-customer-membership-card a.bg-violet-600 { background: #ed7424; }
+.tok-hospitality-workspace .tok-customer-subscription > div > div:not(.tok-customer-membership-card):not(.grid) { padding: 22px; border: 1px solid var(--customer-line); border-radius: 18px; background: var(--customer-paper); }
+.tok-hospitality-workspace .tok-customer-loyalty-status > .glass-morphism { min-height: 240px; border: 0; border-radius: 18px; background: linear-gradient(120deg, #df590a, #fa9833); color: white; box-shadow: none; }
+.tok-hospitality-workspace .tok-customer-loyalty-status > .glass-morphism::before { background: transparent; }
+.tok-hospitality-workspace .tok-customer-loyalty-status h3 { font-size: 48px; }
+.tok-hospitality-workspace .tok-customer-loyalty-status :is(.text-muted-foreground, .text-pink-500, .text-foreground) { color: white; }
+.tok-hospitality-workspace .tok-customer-loyalty-status [role="progressbar"] { height: 10px; background: rgb(255 255 255 / 25%); }
+.tok-hospitality-workspace .tok-customer-loyalty-status [role="progressbar"] > div { background: white; }
+.tok-hospitality-workspace .tok-customer-loyalty-status .bg-background\/70 { background: rgb(109 45 6 / 20%); }
+.tok-hospitality-workspace .tok-customer-gift-card { border-width: 1px; border-color: #efcfad; background: #fff1e1; }
+/* Memory keeps explicit confirmation, export, removal and privacy controls. */
+.tok-hospitality-workspace .tok-customer-memory-layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 22px; align-items: start; }
+.tok-hospitality-workspace .tok-customer-memory-summary > div { border-color: var(--customer-line); border-radius: 16px; box-shadow: none; }
+.tok-hospitality-workspace .tok-customer-memory-summary p.text-3xl { font-family: "Playfair Display", Georgia, serif; font-size: 34px; }
+.tok-hospitality-workspace .tok-customer-memory-main > div,
+.tok-hospitality-workspace .tok-customer-memory-item { border-color: var(--customer-line); border-radius: 18px; box-shadow: none; }
+.tok-hospitality-workspace .tok-customer-memory-controls { padding: 4px; border-color: #f3dec7; border-radius: 18px; background: linear-gradient(125deg, #fff1e2, #fbe8d2); box-shadow: none; }
+.tok-hospitality-workspace .tok-customer-memory-controls button { width: 100%; min-height: 44px; white-space: normal; }
+.tok-hospitality-workspace .tok-customer-memory-controls .flex-col { flex-direction: column; }
+.tok-hospitality-workspace .tok-customer-memory-controls .text-xs { font-size: 12px; line-height: 1.7; }
+.tok-hospitality-workspace .tok-customer-memory-item p.font-semibold { font-family: "Playfair Display", Georgia, serif; font-size: 21px; line-height: 1.3; }
+/* Notification list uses its existing accessible actions and unread indicators. */
+.tok-hospitality-workspace .tok-customer-notifications-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
+.tok-hospitality-workspace .tok-customer-notifications { display: contents; }
+.tok-hospitality-workspace .tok-customer-notifications > div:first-child { margin-inline: calc(-1 * var(--workspace-gutter, 24px)); grid-column: 1 / -1; flex-direction: column; align-items: flex-start; justify-content: center; gap: 24px; }
+.tok-hospitality-workspace .tok-customer-notifications > div:first-child > div { max-width: 760px; }
+.tok-hospitality-workspace .tok-customer-notifications > div:first-child > div > div:first-child { width: 44px; height: 44px; margin-top: 9px; border-radius: 50%; background: #ffe9d5; }
+.tok-hospitality-workspace .tok-customer-notifications > div:first-child > button { margin-left: 60px; }
+.tok-hospitality-workspace .tok-customer-notifications > div:not(:first-child) { grid-column: 1; margin-top: 0; }
+.tok-hospitality-workspace .tok-customer-notifications-aside { grid-column: 2; grid-row: 2; }
+.tok-hospitality-workspace .tok-customer-notifications article { min-height: 126px; padding: 18px; border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); box-shadow: none; }
+.tok-hospitality-workspace .tok-customer-notifications article > button > span:first-child > span:first-child { font: 600 22px/1.35 "Playfair Display", Georgia, serif; }
+/* Payment outcomes stay honest: the page only restyles each existing state. */
+.tok-hospitality-workspace .tok-customer-confirmation-content:has(.tok-customer-confirmation-summary) { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: 22px; align-items: start; }
+.tok-hospitality-workspace .tok-customer-confirmation-summary { grid-column: 2; grid-row: 1; padding: 24px; border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); }
+.tok-hospitality-workspace .tok-customer-confirmation-summary + div { grid-column: 1; grid-row: 1; margin-top: 0; }
+.tok-hospitality-workspace .tok-customer-confirmation-summary .grid { grid-template-columns: 1fr; }
+.tok-hospitality-workspace .tok-customer-confirmation-summary .grid > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px; text-align: left; border: 0; border-radius: 10px; background: #f6eee4; }
+.tok-hospitality-workspace .tok-customer-confirmation-summary .flex > a { width: 100%; min-height: 46px; }
+.tok-hospitality-workspace .tok-customer-confirmation-order { padding: 26px; border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); }
+.tok-hospitality-workspace .tok-customer-confirmation-order h2 { font: 600 26px/1.3 "Playfair Display", Georgia, serif; }
+.tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 { padding: 18px 0; border-left: 0; border-top: 1px solid var(--customer-line); border-bottom: 1px solid var(--customer-line); }
+/* Keep the existing dark preference usable without leaking light surfaces. */
+.dark .tok-hospitality-workspace .tok-customer-page { --customer-paper: #28231d; --customer-ink: #fff6ec; --customer-line: #514335; --customer-soft: #352d24; --customer-peach: #432f1e; }
+.dark .tok-hospitality-workspace :is(.tok-customer-page-hero, .tok-customer-notifications > div:first-child) { background: #211b16; }
+.dark .tok-hospitality-workspace .tok-customer-page-hero::before,
+.dark .tok-hospitality-workspace .tok-customer-notifications > div:first-child::before { background: linear-gradient(90deg, #211b16 0%, rgb(33 27 22 / 95%) 35%, rgb(33 27 22 / 70%) 65%, rgb(33 27 22 / 30%)), url('/images/dashboard/restaurant-ambience.webp') right center / cover; }
+.dark .tok-hospitality-workspace :is(.tok-customer-page-hero__eyebrow, .tok-customer-page-hero__description, .tok-customer-note-card > p, .tok-customer-miamz-card > p, .tok-customer-profile-shortcut p, .tok-customer-profile-form-card > header > p, .tok-customer-miamz-card__balance p span) { color: #d5c5b4; }
+.dark .tok-hospitality-workspace :is(.tok-customer-note-card, .tok-customer-miamz-card, .tok-customer-memory-controls, .tok-customer-membership-card, .tok-customer-gift-card) { border-color: #64472d; background: linear-gradient(120deg, #33271c, #45301e); }
+.dark .tok-hospitality-workspace .tok-customer-profile-fields :is(input, [role="combobox"]) { border-color: #5a4b3e; background: #28231d; }
+.dark .tok-hospitality-workspace .tok-customer-profile-tabs [role="tab"] { color: #d9c9b8; }
+.dark .tok-hospitality-workspace .tok-customer-profile .tok-customer-profile-tabs [role="tab"][data-state="active"] { color: white; }
+.dark .tok-hospitality-workspace .tok-customer-miamz-card__icon { background: #57402b; color: #ffbc87; }
+.dark .tok-hospitality-workspace :is(.tok-customer-cuisine-tag, .tok-customer-calendar-legend) { color: #d5c5b4; }
+.dark .tok-hospitality-workspace .tok-customer-membership-card [class*="text-violet"] { color: #ffc08e; }
+.dark .tok-hospitality-workspace .tok-customer-membership-card :is([class*="bg-violet-100"], .bg-white\/60) { background: #523924; }
+.dark .tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card) > button:hover,
+.dark .tok-hospitality-workspace .tok-customer-confirmation-summary .grid > div { background: #352c22; }
+@media (max-width: 1199px) {
+  .tok-hospitality-workspace .tok-customer-page-hero h1 { max-width: 680px; font-size: 48px; }
+  .tok-hospitality-workspace :is(.tok-customer-reservations-layout, .tok-customer-profile-columns, .tok-customer-memory-layout, .tok-customer-reviews-layout, .tok-customer-notifications-layout) { grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; }
+  .tok-hospitality-workspace .tok-customer-profile-form { grid-template-columns: 1fr; }
+  .tok-hospitality-workspace .tok-customer-profile-avatar { flex-direction: row; align-items: center; }
+  .tok-hospitality-workspace .tok-customer-profile-avatar > .relative > div { width: 100px; height: 100px; }
+  .tok-hospitality-workspace .tok-customer-calendar-card th,
+  .tok-hospitality-workspace .tok-customer-calendar-card td { width: 31px; }
+  .tok-hospitality-workspace .tok-customer-calendar-card td > :is(button, div) { width: 31px; }
+  .tok-hospitality-workspace .tok-customer-review-card__photo { width: 88px; height: 106px; }
+  .tok-hospitality-workspace .tok-customer-home-focus { grid-template-columns: minmax(0, 1.4fr) minmax(250px, 1fr); }
+}
+@media (max-width: 1023px) {
+  .tok-hospitality-workspace :is(.tok-customer-reservations-layout, .tok-customer-profile-columns, .tok-customer-memory-layout, .tok-customer-reviews-layout, .tok-customer-notifications-layout) { grid-template-columns: minmax(0, 1fr); }
+  .tok-hospitality-workspace .tok-customer-notifications-aside { grid-column: 1; grid-row: auto; }
+  .tok-hospitality-workspace .tok-customer-reservations-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tok-hospitality-workspace .tok-customer-profile-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tok-hospitality-workspace .tok-customer-profile-aside > :first-child { grid-column: 1 / -1; }
+  .tok-hospitality-workspace .tok-customer-reviews-aside > img { height: 200px; }
+  .tok-hospitality-workspace .tok-customer-favorites[data-state="active"] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .tok-hospitality-workspace .tok-customer-confirmation-content:has(.tok-customer-confirmation-summary) { grid-template-columns: minmax(0, 1fr); }
+  .tok-hospitality-workspace .tok-customer-confirmation-summary,
+  .tok-hospitality-workspace .tok-customer-confirmation-summary + div { grid-column: 1; grid-row: auto; }
+}
+@media (max-width: 639px) {
+  .tok-hospitality-workspace :is(.tok-customer-page-hero, .tok-customer-notifications > div:first-child) { min-height: 240px; padding: 25px 18px; }
+  .tok-hospitality-workspace .tok-customer-page-hero::before,
+  .tok-hospitality-workspace .tok-customer-notifications > div:first-child::before { opacity: .45; }
+  .tok-hospitality-workspace .tok-customer-page-hero h1,
+  .tok-hospitality-workspace .tok-customer-notifications h1 { font-size: 36px; line-height: 1.12; }
+  .tok-hospitality-workspace .tok-customer-page-hero__subtitle { font-size: 21px; }
+  .tok-hospitality-workspace .tok-customer-page-hero__description { font-size: 13px; }
+  .tok-hospitality-workspace .tok-customer-page-hero__eyebrow { margin-bottom: 14px; font-size: 10px; }
+  .tok-hospitality-workspace .tok-customer-page-hero__actions :is(a, button) { width: 100%; padding-inline: 16px; }
+  .tok-hospitality-workspace .tok-customer-home-focus { grid-template-columns: 1fr; }
+  .tok-hospitality-workspace .tok-customer-activity-card { padding: 20px; }
+  .tok-hospitality-workspace .tok-customer-activity-card__body { grid-template-columns: minmax(0, 1fr) 64px; gap: 8px; }
+  .tok-hospitality-workspace .tok-customer-activity-card .tok-client-hero-illustration { display: block; width: 64px; height: 64px; }
+  .tok-hospitality-workspace .tok-customer-metric { grid-template-columns: 32px minmax(0, 1fr); column-gap: 8px; padding: 14px 12px; }
+  .tok-hospitality-workspace .tok-customer-metric > div { width: 32px; height: 32px; }
+  .tok-hospitality-workspace .tok-customer-metric > p:first-of-type { font-size: 23px; }
+  .tok-hospitality-workspace .tok-customer-metric > p:last-of-type { margin-top: 3px; font-size: 10px; }
+  .tok-hospitality-workspace .tok-customer-metric .tok-client-card-arrow { display: none; }
+  .tok-hospitality-workspace :is(.tok-customer-reservations-aside, .tok-customer-profile-aside) { grid-template-columns: 1fr; }
+  .tok-hospitality-workspace .tok-customer-calendar-card .rdp { display: flex; justify-content: center; }
+  .tok-hospitality-workspace .tok-customer-profile-form-card { padding: 20px 16px; }
+  .tok-hospitality-workspace .tok-customer-profile-avatar { flex-direction: column; }
+  .tok-hospitality-workspace .tok-customer-profile-fields > .grid { grid-template-columns: 1fr; }
+  .tok-hospitality-workspace .tok-customer-profile-tabs [role="tab"] { padding-inline: 4px; }
+  .tok-hospitality-workspace .tok-customer-favorites[data-state="active"] { grid-template-columns: 1fr; }
+  .tok-hospitality-workspace .tok-customer-favorite-card__photo { aspect-ratio: 2; }
+  .tok-hospitality-workspace .tok-customer-review-card__content { padding: 16px; }
+  .tok-hospitality-workspace .tok-customer-review-card__heading { gap: 12px; }
+  .tok-hospitality-workspace .tok-customer-review-card__photo { width: 72px; height: 86px; }
+  .tok-hospitality-workspace .tok-customer-review-card__heading a { font-size: 21px; }
+  .tok-hospitality-workspace .tok-customer-notifications > div:first-child > button { margin-left: 0; width: 100%; }
+  .tok-hospitality-workspace .tok-customer-notifications article { flex-wrap: wrap; padding: 14px; }
+  .tok-hospitality-workspace .tok-customer-notifications article > button { flex-basis: 100%; }
+  .tok-hospitality-workspace .tok-customer-notifications article > div { margin-left: auto; }
+  .tok-hospitality-workspace .tok-customer-confirmation-order { padding: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tok-hospitality-workspace .tok-customer-page * { scroll-behavior: auto; transition-duration: 0s; }
+}
+
+.tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 > div { gap: 12px; }
+.tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 > div > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 > div > span:last-child { flex-shrink: 0; }

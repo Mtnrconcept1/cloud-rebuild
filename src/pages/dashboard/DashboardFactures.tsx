@@ -4,8 +4,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowDownRight, ArrowUpRight, Bot, Coins, FileDown, FileText, HandCoins, History, Loader2, Megaphone, ReceiptText, Settings, Wallet } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { CommercialDemoAccounting } from "@/components/dashboard/CommercialDemoScenario";
-import { AccountingDigestCard, AccountingFactList, AccountingHero, AccountingPanel } from "@/components/invoices/AccountingCockpit";
+import { AccountingDigestCard, AccountingFactList, AccountingPanel } from "@/components/invoices/AccountingCockpit";
 import { AccountingBreakdownCard, type AccountingBreakdownItem } from "@/components/invoices/AccountingBreakdownCard";
 import { Badge } from "@/components/ui/badge";
 import { AiLoadingState } from "@/components/ui/ai-loading-state";
@@ -346,11 +347,12 @@ function LiveDashboardFactures() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-accounting">
       <div className="space-y-5">
-        <AccountingHero
+        <DashboardPageHero
+          icon={Coins}
           badge="Comptabilite restaurateur"
-          title="Vue comptable"
+          title="Comptabilité et factures"
           description={selectedRestaurant
             ? "Les chiffres essentiels: ce que Tok vous doit, ce que vous devez à Tok, les ajustements fidélité couverts et le net ouvert."
             : "Sélectionnez un restaurant depuis la barre latérale pour ouvrir la comptabilité."}

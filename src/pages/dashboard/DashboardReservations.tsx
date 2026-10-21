@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
 import type { Database, Json } from "@/integrations/supabase/types";
@@ -17,6 +19,7 @@ import DayNotificationBadge from "@/components/notifications/DayNotificationBadg
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -44,6 +47,7 @@ import {
   formatDashboardDateHeading,
   getTodayReferenceDate,
   isDateInDashboardTimeRange,
+  parseLocalDateOnly,
   type DashboardTimeRange,
 } from "@/lib/dashboardTimeRange";
 import {
@@ -258,6 +262,11 @@ function LiveDashboardReservations() {
   const queryClient = useQueryClient();
   const [referenceDate, setReferenceDate] = useState(getTodayReferenceDate());
   const [timeRange, setTimeRange] = useState<DashboardTimeRange>("all");
+  const [calendarMonth, setCalendarMonth] = useState(() => parseLocalDateOnly(getTodayReferenceDate()));
+  const calendarReferenceDate = useMemo(() => {
+    const parsed = parseLocalDateOnly(referenceDate);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+  }, [referenceDate]);
   const [serviceFilter, setServiceFilter] = useState<ServiceFilter>("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortKey, setSortKey] = useState<ReservationSortKey>("date");
@@ -270,6 +279,18 @@ function LiveDashboardReservations() {
   const deepLinkFocusedRef = useRef<string | null>(null);
   const previousReservationTargetRef = useRef<string | null>(null);
   const { unreadNotifications } = useNotificationCenter(100, { realtime: true });
+
+  useEffect(() => {
+    if (calendarReferenceDate) setCalendarMonth(calendarReferenceDate);
+  }, [calendarReferenceDate]);
+
+  const selectCalendarDay = (day: Date | undefined) => {
+    if (!day) return;
+    const date = format(day, "yyyy-MM-dd");
+    setReferenceDate(date);
+    setTimeRange("day");
+    setOpenDayKey(date);
+  };
 
   useEffect(() => {
     const previousTarget = previousReservationTargetRef.current;
@@ -680,14 +701,14 @@ function LiveDashboardReservations() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-reservations">
       <div
         className="space-y-6"
         data-commercial-demo-source={isCommercialDemoRestaurant ? "isolated-snapshot" : undefined}
       >
         <DashboardPageHero
           badge="Salle et couverts"
-          title="Reservations"
+          title="Vos réservations"
           description="Suivez les tables a confirmer, les services midi/soir, les risques de no-show et les détails de paiement par jour."
           icon={CalendarDays}
           tone="amber"
@@ -729,7 +750,7 @@ function LiveDashboardReservations() {
 
         {selectedRestaurant && !reservationsError ? (
           <>
-            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3 shadow-sm sm:grid-cols-2 sm:p-4 xl:grid-cols-7">
+            <div className="tok-operation-filters grid grid-cols-1 gap-3 rounded-xl border bg-card p-3 shadow-sm sm:grid-cols-2 sm:p-4 xl:grid-cols-7">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Rechercher</p>
                 <div className="relative">
@@ -746,7 +767,7 @@ function LiveDashboardReservations() {
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Période</p>
                 <Select value={timeRange} onValueChange={(value) => setTimeRange(value as DashboardTimeRange)}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Période des réservations">
                     <SelectValue placeholder="Toutes" />
                   </SelectTrigger>
                   <SelectContent>
@@ -760,12 +781,12 @@ function LiveDashboardReservations() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Date de référence</p>
-                <Input type="date" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
+                <Input type="date" aria-label="Date de référence des réservations" value={referenceDate} onChange={(event) => setReferenceDate(event.target.value)} />
               </div>
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Service</p>
                 <Select value={serviceFilter} onValueChange={(value) => setServiceFilter(value as ServiceFilter)}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Service des réservations">
                     <SelectValue placeholder="Tous les services" />
                   </SelectTrigger>
                   <SelectContent>
@@ -778,7 +799,7 @@ function LiveDashboardReservations() {
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Statut</p>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Statut des réservations">
                     <SelectValue placeholder="Tous les statuts" />
                   </SelectTrigger>
                   <SelectContent>
@@ -800,7 +821,7 @@ function LiveDashboardReservations() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-2 md:gap-3">
+            <div className="tok-service-metrics grid grid-cols-3 gap-2 md:gap-3">
               <Card className="rounded-xl">
                 <CardContent className="flex items-center justify-between gap-2 p-3 sm:py-4">
                   <div>
@@ -835,7 +856,48 @@ function LiveDashboardReservations() {
               </Card>
             </div>
 
-            <div className="flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="tok-reservations-workspace">
+              <aside className="tok-reservation-calendar" aria-label="Calendrier des réservations">
+                <h2>Calendrier</h2>
+                <p>Sélectionnez une date pour afficher les réservations du jour.</p>
+                <Calendar
+                  mode="single"
+                  className="tok-reservation-date-picker"
+                  classNames={{
+                    months: "tok-calendar-months",
+                    month: "tok-calendar-month space-y-4",
+                    head_row: "tok-calendar-weekdays",
+                    row: "tok-calendar-week-row",
+                  }}
+                  locale={fr}
+                  weekStartsOn={1}
+                  month={calendarMonth}
+                  onMonthChange={setCalendarMonth}
+                  selected={timeRange === "day" ? calendarReferenceDate : undefined}
+                  onSelect={selectCalendarDay}
+                  labels={{
+                    labelNext: () => "Mois suivant",
+                    labelPrevious: () => "Mois précédent",
+                  }}
+                  modifiers={{
+                    activePeriod: calendarReferenceDate && timeRange !== "all"
+                      ? (day) => isDateInDashboardTimeRange(day, timeRange, referenceDate)
+                      : [],
+                  }}
+                  modifiersClassNames={{ activePeriod: "tok-calendar-active-period" }}
+                />
+                <p className="tok-calendar-period" aria-live="polite">
+                  {timeRange === "all"
+                    ? "Toutes les dates"
+                    : `${DASHBOARD_TIME_RANGE_OPTIONS.find((option) => option.value === timeRange)?.label} · ${calendarReferenceDate ? format(calendarReferenceDate, "d MMMM yyyy", { locale: fr }) : referenceDate}`}
+                </p>
+                <div className="tok-calendar-actions">
+                  <Button variant="outline" size="sm" onClick={() => selectCalendarDay(parseLocalDateOnly(getTodayReferenceDate()))}>Aujourd’hui</Button>
+                  <Button variant="outline" size="sm" onClick={() => setTimeRange("all")}>Toutes les dates</Button>
+                </div>
+              </aside>
+              <div className="tok-reservation-results space-y-4">
+            <div className="tok-operation-viewbar flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-semibold">Vue des réservations</p>
                 <p className="text-xs text-muted-foreground">Galerie pour distinguer les types, liste pour traiter vite, détails pour ouvrir les jours.</p>
@@ -861,7 +923,7 @@ function LiveDashboardReservations() {
                         {dateGroup.groups.length} service{dateGroup.groups.length > 1 ? "s" : ""}
                       </Badge>
                     </div>
-                    <div className={viewMode === "gallery" ? "grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3" : "space-y-3"}>
+                    <div className={viewMode === "gallery" ? "tok-reservation-gallery grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3" : "space-y-3"}>
                       {dateGroup.groups.flatMap((group) => group.items).map((reservation) => {
                   const metadata = extractMetadata(reservation);
                   const servicePeriod = getServicePeriodFromMetadata(reservation.metadata, reservation.time);
@@ -927,7 +989,7 @@ function LiveDashboardReservations() {
                             </p>
                           ) : null}
                         </div>
-                        <div className="grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="tok-reservation-card-actions grid grid-cols-1 gap-2 border-t pt-3 sm:grid-cols-2 lg:grid-cols-4">
                           <Button
                             size="sm"
                             variant="outline"
@@ -1284,9 +1346,12 @@ function LiveDashboardReservations() {
                   </AccordionItem>
                 ))}
               </Accordion>
-            ) : (
+            ) : null}
+            {groupedReservations.length === 0 ? (
               <p className="py-10 text-center text-muted-foreground">Aucune réservation pour les filtres sélectionnés.</p>
-            )}
+            ) : null}
+              </div>
+            </div>
           </>
         ) : null}
       </div>

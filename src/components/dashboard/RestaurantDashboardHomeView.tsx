@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
 import { useMemo } from "react";
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Link, useLocation } from "react-router-dom";
 import {
   ArrowRight,
@@ -246,13 +247,13 @@ function DashboardStatCard({
 }) {
   const toneClasses = DASHBOARD_TONES[tone];
   const className = cn(
-    "block w-full tok-dashboard-kpi relative overflow-hidden rounded-3xl p-5 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+    "block w-full tok-dashboard-kpi tok-overview-stat relative overflow-hidden rounded-3xl p-5 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
     toneClasses.card,
   );
   const content = (
     <>
       <div className={cn("pointer-events-none absolute inset-0 bg-gradient-to-br opacity-0 dark:opacity-100", toneClasses.glow)} />
-      <div className="relative z-10 flex items-center justify-between gap-5">
+      <div className="tok-overview-stat-content relative z-10 flex items-center justify-between gap-5">
         <div className="flex min-w-0 items-center gap-5">
           <div className={cn("flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl sm:h-20 sm:w-20", toneClasses.icon)}>
             <Icon className="h-8 w-8" />
@@ -848,23 +849,20 @@ export default function RestaurantDashboardHomeView({
       />
 
       <div
-        className="flex flex-col gap-6"
+        className="tok-restaurant-overview flex flex-col gap-6"
         data-commercial-demo-source={demoSnapshot ? "isolated-snapshot" : undefined}
         data-mobile-restaurant-overview
       >
         <div className="order-1 hidden md:block">
           <DashboardPageHero
-            badge="Dashboard restaurateur"
-            title={<>Bonjour, <span className="text-[#ff6a1a]">{restaurantName}</span></>}
-            description="Vue courte de l'activité du restaurant : commandes, réservations, service du jour et revenu du mois restent visibles sans chercher dans les onglets."
+            badge={restaurantName}
+            title={<>Bonjour {userPresentation.firstName},</>}
+            description="Votre restaurant, en un coup d’œil."
+            className="tok-overview-hero"
+            actions={<span className="tok-overview-date"><CalendarDays className="h-4 w-4" aria-hidden="true" />{new Intl.DateTimeFormat("fr-CH", { day: "numeric", month: "long", year: "numeric" }).format(new Date())}</span>}
             icon={LayoutDashboard}
             tone="orange"
             visualLabel="Accueil"
-            stats={[
-              { label: "Commandes à venir", value: totalUpcomingOrders, icon: ShoppingCart },
-              { label: "Réservations à venir", value: totalUpcomingReservations, icon: CalendarDays },
-              { label: "CA du jour", value: formatRestaurantDashboardChf(todayRevenue), icon: TrendingUp },
-            ]}
           />
         </div>
 
@@ -896,27 +894,64 @@ export default function RestaurantDashboardHomeView({
           />
         </div>
 
-        <div className="order-4 md:order-3">
+        <div className="tok-overview-promotion order-4 md:order-8">
           <ActualitesBoostBanner enabled={marketingEnabled} />
         </div>
 
         {leadingContent ? (
-          <div className="order-5 md:order-2">
+          <div className="tok-overview-leading order-5 md:order-2">
             {leadingContent}
           </div>
         ) : null}
 
-        <div className="order-6 hidden space-y-4 md:order-4 md:block">
-          <DashboardStatCard label="Commandes à venir" value={String(totalUpcomingOrders)} icon={ShoppingCart} tone="violet" to={ordersTarget} />
+        <div className="tok-overview-primary-stats order-6 hidden md:order-3 md:grid">
           <DashboardStatCard label="Réservations à venir" value={String(totalUpcomingReservations)} icon={CalendarDays} tone="orange" to={reservationsTarget} />
+          <DashboardStatCard label="Commandes à venir" value={String(totalUpcomingOrders)} icon={ShoppingCart} tone="orange" to={ordersTarget} />
           <DashboardStatCard label="Chiffre d'affaires du jour" value={formatRestaurantDashboardChf(todayRevenue)} icon={TrendingUp} tone="emerald" to={performancesTarget} />
           <DashboardStatCard label="Campagnes pub actives" value={String(activeCampaignsCount)} icon={Megaphone} tone="amber" to={campaignsTarget} />
+        </div>
+
+        <div className="tok-overview-activity-grid order-7 hidden md:order-4 md:grid">
+          <Card className="tok-dashboard-section tok-overview-activity">
+            <CardHeader className="flex-row flex-wrap items-center justify-between gap-3 space-y-0">
+              <CardTitle>Votre activité</CardTitle>
+              {performancesTarget ? <Link to={performancesTarget} className="tok-overview-text-link">Toutes les performances <ArrowRight className="h-4 w-4" /></Link> : null}
+            </CardHeader>
+            <CardContent>
+              <p className="mb-5 text-sm text-muted-foreground">Chiffre d’affaires du jour et moyenne quotidienne du mois en cours.</p>
+              <div className="tok-overview-chart" aria-label={`Chiffre d'affaires aujourd'hui : ${formatRestaurantDashboardChf(todayRevenue)}. Moyenne quotidienne du mois : ${formatRestaurantDashboardChf(averageDailyRevenue)}.`}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[{ label: "Aujourd’hui", revenue: todayRevenue }, { label: "Moyenne du mois", revenue: averageDailyRevenue }]} margin={{ top: 12, right: 16, bottom: 0, left: 0 }} barCategoryGap="28%">
+                    <CartesianGrid vertical={false} stroke="currentColor" strokeOpacity={0.09} />
+                    <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "currentColor", fontSize: 12 }} dy={8} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: "currentColor", fontSize: 11 }} width={58} tickFormatter={(value: number) => new Intl.NumberFormat("fr-CH", { notation: "compact" }).format(value)} />
+                    <Tooltip formatter={(value: number) => [formatRestaurantDashboardChf(value), "Chiffre d’affaires"]} cursor={{ fill: "rgba(222, 120, 41, .06)" }} contentStyle={{ borderRadius: 12, borderColor: "hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--foreground))" }} />
+                    <Bar dataKey="revenue" radius={[6, 6, 0, 0]} maxBarSize={92} isAnimationActive={false}>
+                      <Cell fill="#e16c1b" /><Cell fill="#edc39d" />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="tok-overview-revenue-total"><span>Revenus du mois</span><strong>{formatRestaurantDashboardChf(monthlyRevenue)}</strong></div>
+            </CardContent>
+          </Card>
+          <Card className="tok-dashboard-section tok-overview-next-actions">
+            <CardHeader><CardTitle>À faire aujourd’hui</CardTitle></CardHeader>
+            <CardContent className="space-y-0">
+              <OverviewListRow to={reservationsTarget}><span className="tok-overview-action-icon"><CalendarDays className="h-5 w-5" /></span><span><strong>Préparer vos réservations</strong><small>{totalUpcomingReservations} réservation{totalUpcomingReservations > 1 ? "s" : ""} à venir</small></span><ArrowRight className="h-4 w-4" /></OverviewListRow>
+              <OverviewListRow to={ordersTarget}><span className="tok-overview-action-icon"><ShoppingCart className="h-5 w-5" /></span><span><strong>Suivre les commandes</strong><small>{readyOrdersCount} prête{readyOrdersCount > 1 ? "s" : ""} · {totalUpcomingOrders} à venir</small></span><ArrowRight className="h-4 w-4" /></OverviewListRow>
+              <OverviewListRow to={campaignsTarget}><span className="tok-overview-action-icon"><Megaphone className="h-5 w-5" /></span><span><strong>Piloter vos campagnes</strong><small>{activeCampaignsCount} campagne{activeCampaignsCount > 1 ? "s" : ""} active{activeCampaignsCount > 1 ? "s" : ""}</small></span><ArrowRight className="h-4 w-4" /></OverviewListRow>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="tok-overview-service-stats order-8 hidden md:order-6 md:grid">
           <DashboardStatCard label="Midi aujourd'hui" value={String(todayServiceCounts.lunch)} icon={SunMedium} tone="sky" to={reservationsTarget} />
           <DashboardStatCard label="Soir aujourd'hui" value={String(todayServiceCounts.dinner)} icon={MoonStar} tone="violet" to={reservationsTarget} />
           <DashboardStatCard label="Revenus du mois" value={formatRestaurantDashboardChf(monthlyRevenue)} icon={TrendingUp} tone="emerald" to={performancesTarget} />
         </div>
 
-        <div className="order-7 hidden grid-cols-1 gap-6 md:order-5 md:grid md:grid-cols-2">
+        <div className="tok-overview-upcoming order-9 hidden grid-cols-1 gap-5 md:order-5 md:grid md:grid-cols-2">
           <Card className="tok-dashboard-section min-w-0 rounded-3xl border border-border/70">
             <CardHeader className="flex flex-row items-center justify-between gap-3">
               <CardTitle className="flex min-w-0 items-center gap-3 text-xl font-bold">

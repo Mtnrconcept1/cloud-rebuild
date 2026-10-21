@@ -216,7 +216,7 @@ export default function DashboardPerformances() {
   const combinedError = restaurantError || getErrorMessage(performanceError) || getErrorMessage(invoicesError) || null;
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-performance">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Analyse restaurateur"

@@ -1,0 +1,132 @@
+name: Dashboard design preview
+
+# This temporary preview is explicitly requested for the dashboard redesign.
+# It cannot run on main or on another pull request's branch.
+on:
+  push:
+    branches:
+      - codex/dashboard-ivory-redesign
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dashboard-design-preview
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10.28.1
+  VERCEL_CLI_VERSION: 55.0.0
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Existing official project, also asserted after pulling its settings.
+  VERCEL_ORG_ID: team_FvFPXdOD5Vw9DAQS5grAuJAv
+  VERCEL_PROJECT_ID: prj_v4X2Bhefbcf12CVIanrvS62q9Vy6
+
+jobs:
+  preview:
+    if: >-
+      ${{ github.repository == 'Mtnrconcept1/cloud-rebuild' &&
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/codex/dashboard-ivory-redesign' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    # Reuse the existing credential container and all of its protection rules,
+    # without recording a deployment to the production environment.
+    environment:
+      name: production
+      deployment: false
+
+    steps:
+      - name: Checkout the exact preview commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate the preview boundary and application types
+        run: |
+          pnpm exec vitest run src/test/dashboard-preview-deployment.test.ts
+          pnpm run typecheck
+          pnpm run docs:application-index:check
+
+      - name: Pull the branch preview settings
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          test -n "$VERCEL_TOKEN" || (echo "::error::Missing existing Vercel credential." && exit 1)
+          pnpm dlx "vercel@${VERCEL_CLI_VERSION}" pull \
+            --yes --environment=preview --git-branch="$GITHUB_REF_NAME" --token="$VERCEL_TOKEN"
+
+      - name: Verify the existing project and preview public configuration
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          import { parse } from "dotenv";
+          const project = JSON.parse(fs.readFileSync(".vercel/project.json", "utf8"));
+          if (project.orgId !== process.env.VERCEL_ORG_ID || project.projectId !== process.env.VERCEL_PROJECT_ID) {
+            throw new Error("Refusing to build a preview for an unexpected Vercel project.");
+          }
+          const env = parse(fs.readFileSync(".vercel/.env.preview.local", "utf8"));
+          const url = env.VITE_SUPABASE_URL?.trim();
+          const key = (env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_ANON_KEY)?.trim();
+          if (!url || !key || url.includes("example.supabase.co") || key === "ci-public-placeholder") {
+            throw new Error("The Vercel Preview environment must have its real Supabase public configuration.");
+          }
+          console.log("Verified existing project and Preview configuration; values remain private.");
+          NODE
+
+      - name: Build the preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: pnpm dlx "vercel@${VERCEL_CLI_VERSION}" build --target=preview --standalone --token="$VERCEL_TOKEN"
+
+      - name: Export the dashboard visual review gallery
+        run: node scripts/dashboard-design-preview-export.mjs
+
+      - name: Publish the preview
+        id: publish
+        shell: bash
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          preview_output="$(
+            pnpm dlx "vercel@${VERCEL_CLI_VERSION}" deploy \
+              --prebuilt --target=preview --archive=tgz --token="$VERCEL_TOKEN" \
+              --meta githubDeployment=1 \
+              --meta githubCommitRef="$GITHUB_REF_NAME" \
+              --meta githubCommitSha="$GITHUB_SHA"
+          )"
+          export DASHBOARD_PREVIEW_URL="$(printf '%s\n' "$preview_output" | tail -n 1 | tr -d '\r')"
+          node --input-type=module <<'NODE'
+          import fs from "node:fs";
+          const url = new URL(process.env.DASHBOARD_PREVIEW_URL);
+          if (url.protocol !== "https:" || url.username || url.password ||
+              !/^cloud-rebuild-recovered-[a-z0-9-]+-mtnrconcepts-projects\.vercel\.app$/.test(url.hostname)) {
+            throw new Error("Vercel did not return an owned dashboard preview URL.");
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `preview_url=${url.origin}\n`);
+          const galleryUrl = `${url.origin}/dashboard-design-preview/`;
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            `## Dashboard design preview\n\nVisual review (42 real pages, fictional data): ${galleryUrl}\n\nApplication: ${url.origin}\n\nCommit: ${process.env.GITHUB_SHA}\n\n`);
+          console.log(`Dashboard preview: ${galleryUrl}`);
+          NODE
+
+      - name: Remove downloaded environment values
+        if: ${{ always() }}
+        run: rm -f -- .vercel/.env.preview.local

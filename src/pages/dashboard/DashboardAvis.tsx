@@ -548,7 +548,7 @@ export default function DashboardAvis() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-reviews">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Relation client"
@@ -680,7 +680,7 @@ export default function DashboardAvis() {
         {restaurantError || error ? <p className="text-destructive">Erreur: {restaurantError || error}</p> : null}
         {!loading && !restaurantError && !error && !items.length ? <p>Aucun avis disponible.</p> : null}
 
-        <div className="grid gap-3">
+        <div className="tok-review-list grid gap-3">
           {filteredItems.map((review) => {
             const isRead = Boolean(review.restaurant_read_at);
             const isFlagged = getEffectiveStatus(review) === "flagged";
@@ -691,7 +691,7 @@ export default function DashboardAvis() {
 
             return (
               <Card key={review.id} className={isFlagged ? "border-amber-300 bg-amber-50/40" : undefined}>
-                <CardContent className="space-y-4 pt-6">
+                <CardContent className="tok-review-workbench space-y-4 pt-6">
                   <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div className="min-w-0 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
@@ -746,7 +746,7 @@ export default function DashboardAvis() {
                     </Button>
                   </div>
 
-                  <div className="grid gap-3 lg:grid-cols-[1fr_320px]">
+                  <div className="tok-review-response grid gap-3 lg:grid-cols-[1fr_320px]">
                     <div className="space-y-2 rounded-lg border p-3">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-sm font-medium">Réponse restaurateur</p>

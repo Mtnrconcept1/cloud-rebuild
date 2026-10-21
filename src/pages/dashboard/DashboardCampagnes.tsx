@@ -513,7 +513,7 @@ export default function DashboardCampagnes() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-campaigns">
       <AlertDialog open={!!paidCampaign} onOpenChange={(open) => { if (!open) setPaidCampaign(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -674,7 +674,7 @@ export default function DashboardCampagnes() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-8">
+          <div className="tok-campaign-actions grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-8">
             <CampaignMetricTile icon={Megaphone} label="Campagnes actives" value={activeCampaigns.length} />
             <CampaignMetricTile icon={Wallet} label="Coût global" value={formatChf(portfolioMetrics.spent)} />
             <CampaignMetricTile icon={Eye} label="Impressions" value={portfolioMetrics.impressions.toLocaleString("fr-CH")} />
@@ -686,7 +686,7 @@ export default function DashboardCampagnes() {
           </div>
         </section>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="tok-campaign-metrics grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Card>
             <CardContent className="py-4">
               <p className="text-xs text-muted-foreground">Conversions sponsorisées ({periodDays}j)</p>
@@ -730,7 +730,7 @@ export default function DashboardCampagnes() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,360px)] 2xl:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]">
+          <div className="tok-campaign-workbench grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,360px)] 2xl:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]">
             <Tabs defaultValue="active" className="min-w-0">
               <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <TabsList className="w-full justify-start sm:w-auto">

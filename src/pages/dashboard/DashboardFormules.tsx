@@ -1585,7 +1585,7 @@ export default function DashboardFormules() {
   }, [formulas]);
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-formulas">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Offre menu"

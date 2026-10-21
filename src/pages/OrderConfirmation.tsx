@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import CustomerPageHero from "@/components/dashboard/CustomerPageHero";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import OrderPaymentBreakdown from "@/components/orders/OrderPaymentBreakdown";
 import { Button } from "@/components/ui/button";
@@ -417,11 +418,19 @@ export default function OrderConfirmation() {
 
   return (
     <CustomerDashboardLayout>
-      <div className="mx-auto max-w-4xl space-y-6">
+      <div className="tok-customer-page tok-customer-confirmation space-y-6">
+        <CustomerPageHero
+          breadcrumb="Mes achats · Confirmation"
+          title={state === "success" ? "Paiement confirmé" : state === "cancelled" ? "Paiement annulé" : state === "cancelling" ? "Annulation sécurisée" : state === "error" ? "Vérification nécessaire" : "Confirmation du paiement"}
+          subtitle={state === "success" ? "Merci, votre commande est bien enregistrée." : "Retrouvez ici le statut de votre paiement."}
+          description={state === "success" && orderReference ? `Commande ${orderReference}` : undefined}
+          className={state === "success" ? "tok-customer-confirmation-hero--success" : undefined}
+        />
+        <div className="tok-customer-confirmation-content space-y-6">
         {state === "cancelling" ? (
           <div className="rounded-3xl border bg-card p-8 text-center shadow-sm">
             <Loader2 className="mx-auto h-10 w-10 animate-spin text-amber-600" />
-            <h1 className="mt-4 font-display text-3xl font-bold">Annulation sécurisée</h1>
+            <h2 className="mt-4 font-display text-3xl font-bold">Annulation sécurisée</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Nous fermons la session Stripe et libérons la commande ainsi que le stock réservés. Ne relancez pas encore le paiement.
             </p>
@@ -431,7 +440,7 @@ export default function OrderConfirmation() {
         {state === "processing" ? (
           <div className="rounded-3xl border bg-card p-8 text-center shadow-sm">
             <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
-            <h1 className="mt-4 font-display text-3xl font-bold">Confirmation du paiement</h1>
+            <h2 className="mt-4 font-display text-3xl font-bold">Confirmation du paiement</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Nous finalisons votre commande Stripe et preparons le récapitulatif.
             </p>
@@ -442,7 +451,7 @@ export default function OrderConfirmation() {
           <div className="space-y-4 rounded-3xl border bg-card p-8 shadow-sm">
             <div className="space-y-2 text-center">
               <CreditCard className="mx-auto h-10 w-10 text-muted-foreground" />
-              <h1 className="font-display text-3xl font-bold">Paiement annulé</h1>
+              <h2 className="font-display text-3xl font-bold">Paiement annulé</h2>
               <p className="text-sm text-muted-foreground">
                 Votre panier a été conservé. Vous pouvez reprendre le paiement ou modifier votre commande.
               </p>
@@ -462,7 +471,7 @@ export default function OrderConfirmation() {
           <div className="space-y-4 rounded-3xl border border-destructive/20 bg-destructive/5 p-8 shadow-sm">
             <div className="space-y-2 text-center">
               <CreditCard className="mx-auto h-10 w-10 text-destructive" />
-              <h1 className="font-display text-3xl font-bold">Vérification nécessaire</h1>
+              <h2 className="font-display text-3xl font-bold">Vérification nécessaire</h2>
               <p className="text-sm text-destructive">
                 {errorMessage || "Le paiement semble valide, mais la finalisation n'a pas abouti."}
               </p>
@@ -493,10 +502,10 @@ export default function OrderConfirmation() {
 
         {state === "success" ? (
           <>
-            <div className="space-y-4 rounded-3xl border bg-card p-8 shadow-sm">
+            <div className="tok-customer-confirmation-summary space-y-4 rounded-3xl border bg-card p-8 shadow-sm">
               <div className="space-y-2 text-center">
                 <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" />
-                <h1 className="font-display text-3xl font-bold">Paiement confirmé</h1>
+                <h2 className="font-display text-3xl font-bold">Paiement confirmé</h2>
                 <p className="text-sm text-muted-foreground">
                   {restaurantCount > 1
                     ? "Votre paiement a confirme plusieurs commandes. Retrouvez le détail ci-dessous."
@@ -553,7 +562,7 @@ export default function OrderConfirmation() {
                     : null;
 
                   return (
-                    <div key={order.id} className="rounded-3xl border bg-card p-6 shadow-sm">
+                    <div key={order.id} className="tok-customer-confirmation-order rounded-3xl border bg-card p-6 shadow-sm">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-1">
                           <p className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
@@ -604,6 +613,7 @@ export default function OrderConfirmation() {
             )}
           </>
         ) : null}
+        </div>
       </div>
     </CustomerDashboardLayout>
   );
