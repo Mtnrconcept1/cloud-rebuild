@@ -576,6 +576,11 @@ Deno.serve(async (req) => {
         );
       }
       if (uri === ACTION_WINDOW_RESOURCE_URI) return new Response(JSON.stringify(cleanActionResource(rpc.id)), { status: 200, headers: responseHeaders(req) });
+      // The canonical server returns generic JSON for unknown URIs; dispatch
+      // Full App resources directly to their owner so the HTML widget loads.
+      if (uri === "ui://tok-connect/full-app-console-v1.html" || uri.startsWith("tok://full-app/")) {
+        return relay(req, await internalMcp(FULL_APP_MCP, rpc, req));
+      }
       return await fallbackRead(req, rpc);
     }
 
