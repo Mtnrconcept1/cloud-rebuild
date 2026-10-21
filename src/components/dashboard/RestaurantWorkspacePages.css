@@ -297,3 +297,61 @@
 @media (prefers-reduced-motion: reduce) {
   .tok-menu-category { transition: none; }
 }
+
+/* Search, sorting and accessible display modes for the redesigned restaurant collections. */
+.tok-hospitality-workspace .tok-menu-list-controls { margin-top: 12px; }
+.tok-hospitality-workspace .tok-menu-items[data-view="gallery"] {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 14px;
+}
+.tok-hospitality-workspace .tok-menu-items[data-view="gallery"] .tok-menu-dish {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  padding: 12px;
+}
+.tok-hospitality-workspace .tok-menu-items[data-view="gallery"] .tok-menu-dish-photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+.tok-hospitality-workspace .tok-menu-items[data-view="gallery"] :is(.tok-menu-dish-price, .tok-menu-dish-actions) {
+  grid-column: auto;
+}
+.tok-hospitality-workspace .tok-menu-items[data-view="list"] .tok-menu-dish {
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px 0;
+}
+.tok-hospitality-workspace .tok-menu-items[data-view="list"] .tok-menu-dish-copy h3 { font-size: 16px; }
+.tok-hospitality-workspace .tok-menu-items[data-view="list"] .tok-menu-dish-price { gap: 5px; }
+.tok-hospitality-workspace .tok-offer-catalog[data-view="list"] { grid-template-columns: minmax(0, 1fr); }
+.tok-hospitality-workspace .tok-offer-catalog[data-view="details"] {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+}
+.tok-hospitality-workspace .tok-offer-catalog[data-view="list"] .tok-offer-card > div {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+}
+.tok-hospitality-workspace .tok-offer-catalog[data-view="list"] .tok-offer-card > div > div:first-child {
+  min-height: 0;
+}
+.tok-hospitality-workspace .tok-offer-catalog[data-view="list"] .tok-offer-card > div > div:first-child > div:first-child > p {
+  flex: 0 1 auto;
+  margin: 0;
+  font-size: 17px;
+}
+.tok-hospitality-workspace .tok-offer-catalog[data-view="list"] .tok-offer-card > div > div:last-child {
+  border-top: 0;
+  padding-top: 0;
+}
+@media (max-width: 640px) {
+  .tok-hospitality-workspace .tok-offer-catalog[data-view="list"] .tok-offer-card > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

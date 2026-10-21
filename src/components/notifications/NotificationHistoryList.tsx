@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, CheckCheck, ExternalLink, Inbox } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
+import type { SortDirection } from "@/lib/listSorting";
 import { useNotificationCenter, type TokNotification } from "@/hooks/useNotificationCenter";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -47,6 +52,11 @@ export default function NotificationHistoryList({
 }: NotificationHistoryListProps) {
   const navigate = useNavigate();
   const [visibleLimit, setVisibleLimit] = useState(() => Math.min(limit, 20));
+  const [notificationSearch, setNotificationSearch] = useState("");
+  const [notificationReadFilter, setNotificationReadFilter] = useState("all");
+  const [notificationSortKey, setNotificationSortKey] = useState<"date" | "title">("date");
+  const [notificationSortDirection, setNotificationSortDirection] = useState<SortDirection>("desc");
+  const [notificationViewMode, setNotificationViewMode] = useState<OperationViewMode>("details");
   const { user, role } = useAuth();
   const {
     inAppEnabled,
@@ -59,7 +69,21 @@ export default function NotificationHistoryList({
   } = useNotificationCenter(limit, { realtime: true });
   const navigationRole = routeRole ?? role;
   const notificationCenterTarget = fallbackTarget || getNotificationCenterPathForRole(navigationRole);
-  const visibleNotifications = notifications.slice(0, visibleLimit);
+  const filteredNotifications = useMemo(() => {
+    const query = notificationSearch.trim().toLocaleLowerCase("fr-CH");
+    const collator = new Intl.Collator("fr-CH", { sensitivity: "base", numeric: true });
+    return notifications.filter((notification) => {
+      if (notificationReadFilter === "unread" && notification.read_at) return false;
+      if (notificationReadFilter === "read" && !notification.read_at) return false;
+      return !query || `${notification.title} ${notification.body}`.toLocaleLowerCase("fr-CH").includes(query);
+    }).sort((left, right) => {
+      const comparison = notificationSortKey === "title"
+        ? collator.compare(left.title, right.title)
+        : (left.created_at || "").localeCompare(right.created_at || "");
+      return (notificationSortDirection === "asc" ? comparison : -comparison) || left.id.localeCompare(right.id);
+    });
+  }, [notifications, notificationSearch, notificationReadFilter, notificationSortKey, notificationSortDirection]);
+  const visibleNotifications = filteredNotifications.slice(0, visibleLimit);
 
   const openNotification = (notification: TokNotification) => {
     const target = getNotificationTarget(notification, navigationRole, notificationCenterTarget);
@@ -110,6 +134,28 @@ export default function NotificationHistoryList({
         </Button>
       </div>
 
+      <div className="space-y-3 rounded-2xl border bg-card p-4">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input aria-label="Rechercher dans les notifications" value={notificationSearch} onChange={(event) => { setNotificationSearch(event.target.value); setVisibleLimit(Math.min(limit, 20)); }} placeholder="Rechercher une notification…" />
+          <Select value={notificationReadFilter} onValueChange={(value) => { setNotificationReadFilter(value); setVisibleLimit(Math.min(limit, 20)); }}>
+            <SelectTrigger aria-label="Filtrer les notifications par lecture"><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="all">Toutes les notifications</SelectItem><SelectItem value="unread">Non lues</SelectItem><SelectItem value="read">Lues</SelectItem></SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <SortControls<"date" | "title">
+            className="w-full max-w-lg"
+            columns={[{ key: "date", label: "Date" }, { key: "title", label: "Titre" }]}
+            sortKey={notificationSortKey}
+            direction={notificationSortDirection}
+            onSortKeyChange={(key) => { setNotificationSortKey(key); setVisibleLimit(Math.min(limit, 20)); }}
+            onDirectionChange={(direction) => { setNotificationSortDirection(direction); setVisibleLimit(Math.min(limit, 20)); }}
+          />
+          <OperationViewToggle value={notificationViewMode} onChange={setNotificationViewMode} ariaLabel="Mode d’affichage de l’historique des notifications" />
+        </div>
+        <p className="text-xs text-muted-foreground">{filteredNotifications.length} notification(s) correspondante(s) parmi {notifications.length} chargée(s).</p>
+      </div>
+
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((index) => (
@@ -120,18 +166,20 @@ export default function NotificationHistoryList({
         <div className="rounded-3xl border border-destructive/30 bg-destructive/5 p-8 text-center text-sm text-destructive">
           Impossible de charger l'historique des notifications.
         </div>
-      ) : notifications.length === 0 ? (
+      ) : filteredNotifications.length === 0 ? (
         <div className="rounded-3xl border border-dashed p-10 text-center text-muted-foreground">
           <Inbox className="mx-auto mb-3 h-8 w-8 opacity-60" />
-          {emptyLabel}
+          {notifications.length === 0 ? emptyLabel : "Aucune notification ne correspond aux filtres sélectionnés."}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className={cn("gap-3", notificationViewMode === "gallery" ? "grid sm:grid-cols-2" : "space-y-3")}>
           {visibleNotifications.map((notification) => (
             <article
               key={notification.id}
               className={cn(
                 "flex w-full items-start justify-between gap-2 rounded-3xl border p-3 shadow-sm transition-colors hover:border-primary/35 hover:bg-primary/5 sm:gap-4 sm:p-4",
+                 notificationViewMode === "list" && "py-2",
+                 notificationViewMode === "gallery" && "flex-col",
                 notification.read_at ? "bg-card" : "border-primary/30 bg-primary/[0.06]",
               )}
             >
@@ -144,7 +192,7 @@ export default function NotificationHistoryList({
                   <span className="break-words text-sm font-semibold leading-5">{notification.title}</span>
                   {!notification.read_at ? <Badge className="text-[10px]">Nouveau</Badge> : null}
                 </span>
-                <span className="mt-1 block break-words text-sm leading-5 text-muted-foreground">{notification.body}</span>
+                {notificationViewMode !== "list" ? <span className={cn("mt-1 block break-words text-sm leading-5 text-muted-foreground", notificationViewMode === "gallery" && "line-clamp-2")}>{notification.body}</span> : null}
                 <span className="mt-1 block text-xs text-muted-foreground">{formatNotificationDate(notification.created_at)}</span>
               </button>
               <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center">
@@ -162,12 +210,12 @@ export default function NotificationHistoryList({
               </div>
             </article>
           ))}
-          {visibleNotifications.length < notifications.length ? (
+          {visibleNotifications.length < filteredNotifications.length ? (
             <Button
               type="button"
               variant="outline"
               className="w-full rounded-2xl"
-              onClick={() => setVisibleLimit((current) => Math.min(current + 20, notifications.length))}
+              onClick={() => setVisibleLimit((current) => Math.min(current + 20, filteredNotifications.length))}
             >
               Charger plus de notifications
             </Button>

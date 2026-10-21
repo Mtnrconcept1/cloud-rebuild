@@ -2,6 +2,11 @@ import { useMemo, useState } from "react";
 import { BookOpen, ImageIcon, Pencil, Trash2, Utensils } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
+import type { SortDirection } from "@/lib/listSorting";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +35,11 @@ export default function RestaurantMenuCatalog({
   onToggleAvailability,
 }: RestaurantMenuCatalogProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [menuSearch, setMenuSearch] = useState("");
+  const [menuAvailability, setMenuAvailability] = useState("all");
+  const [menuSortKey, setMenuSortKey] = useState<"name" | "category" | "price" | "availability">("name");
+  const [menuSortDirection, setMenuSortDirection] = useState<SortDirection>("asc");
+  const [menuViewMode, setMenuViewMode] = useState<OperationViewMode>("details");
   const categories = useMemo(() => {
     const counts = new Map<string, number>();
     for (const item of items) {
@@ -39,9 +49,22 @@ export default function RestaurantMenuCatalog({
     return [...counts.entries()];
   }, [items]);
   const activeCategory = categories.some(([category]) => category === selectedCategory) ? selectedCategory : null;
-  const visibleItems = activeCategory
-    ? items.filter((item) => (item.category?.trim() || "Sans catégorie") === activeCategory)
-    : items;
+  const visibleMenuItems = useMemo(() => {
+    const query = menuSearch.trim().toLocaleLowerCase("fr-CH");
+    const collator = new Intl.Collator("fr-CH", { sensitivity: "base", numeric: true });
+    return items.filter((item) => {
+      if (activeCategory && (item.category?.trim() || "Sans catégorie") !== activeCategory) return false;
+      if (menuAvailability === "available" && item.is_available === false) return false;
+      if (menuAvailability === "unavailable" && item.is_available !== false) return false;
+      return !query || `${item.name} ${item.description || ""} ${item.category || ""}`.toLocaleLowerCase("fr-CH").includes(query);
+    }).sort((left, right) => {
+      const comparison = menuSortKey === "price" ? Number(left.price) - Number(right.price)
+        : menuSortKey === "availability" ? Number(left.is_available !== false) - Number(right.is_available !== false)
+        : menuSortKey === "category" ? collator.compare(left.category || "", right.category || "")
+        : collator.compare(left.name, right.name);
+      return (menuSortDirection === "asc" ? comparison : -comparison) || left.id.localeCompare(right.id);
+    });
+  }, [items, activeCategory, menuSearch, menuAvailability, menuSortKey, menuSortDirection]);
 
   return (
     <div className="tok-menu-catalog">
@@ -79,9 +102,35 @@ export default function RestaurantMenuCatalog({
       <section className="tok-menu-dishes" aria-label="Plats du menu">
         <div className="tok-menu-dishes-heading">
           <h2>{activeCategory ? `Plats de la catégorie « ${activeCategory} »` : "Votre carte"}</h2>
-          <span aria-live="polite">{visibleItems.length} plat{visibleItems.length > 1 ? "s" : ""}</span>
+          <span aria-live="polite">{visibleMenuItems.length} plat{visibleMenuItems.length > 1 ? "s" : ""}</span>
         </div>
-        {visibleItems.map((item) => (
+        <div className="tok-menu-list-controls space-y-3 pb-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input aria-label="Rechercher un plat" value={menuSearch} onChange={(event) => setMenuSearch(event.target.value)} placeholder="Rechercher un plat…" />
+            <Select value={menuAvailability} onValueChange={setMenuAvailability}>
+              <SelectTrigger aria-label="Filtrer par disponibilité"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les plats</SelectItem>
+                <SelectItem value="available">Disponibles</SelectItem>
+                <SelectItem value="unavailable">Épuisés</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <SortControls<"name" | "category" | "price" | "availability">
+              className="w-full max-w-lg"
+              columns={[{ key: "name", label: "Nom" }, { key: "category", label: "Catégorie" }, { key: "price", label: "Prix" }, { key: "availability", label: "Disponibilité" }]}
+              sortKey={menuSortKey}
+              direction={menuSortDirection}
+              onSortKeyChange={setMenuSortKey}
+              onDirectionChange={setMenuSortDirection}
+            />
+            <OperationViewToggle value={menuViewMode} onChange={setMenuViewMode} ariaLabel="Mode d’affichage des plats du menu" />
+          </div>
+          <Button type="button" variant="ghost" size="sm" onClick={() => { setMenuSearch(""); setMenuAvailability("all"); setSelectedCategory(null); }}>Effacer les filtres</Button>
+        </div>
+        <div className="tok-menu-items" data-view={menuViewMode}>
+        {visibleMenuItems.map((item) => (
           <article key={item.id} className="tok-menu-dish">
             <div className="tok-menu-dish-photo">
               {item.image_url ? (
@@ -92,7 +141,7 @@ export default function RestaurantMenuCatalog({
             </div>
             <div className="tok-menu-dish-copy">
               <h3>{item.name}</h3>
-              {item.description ? <p>{item.description}</p> : null}
+              {item.description && menuViewMode === "details" ? <p>{item.description}</p> : null}
               {item.category ? <span className="tok-menu-dish-category">{item.category}</span> : null}
             </div>
             <div className="tok-menu-dish-price">
@@ -116,7 +165,8 @@ export default function RestaurantMenuCatalog({
             </div>
           </article>
         ))}
-        {items.length === 0 ? <p className="py-8 text-center text-muted-foreground">Aucun plat dans le menu</p> : null}
+        {!visibleMenuItems.length ? <p className="py-8 text-center text-muted-foreground">{items.length ? "Aucun plat ne correspond aux filtres." : "Aucun plat dans le menu"}</p> : null}
+        </div>
       </section>
     </div>
   );

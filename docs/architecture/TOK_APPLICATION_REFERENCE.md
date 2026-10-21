@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `beff275d3db90a22e9a23e273c0ac7270f29d9ba799edc25e9452d629e0897d4`
+- Empreinte SHA-256 des sources indexées : `730603e6ea950b1677b89bc87457536e5194531e97d0ec8d25aebe6041395d61`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 572 |
-| modules | 1794 |
+| modules | 1795 |
 | pages | 133 |
 | pathLiterals | 878 |
 | publicAssets | 589 |
 | publicEntries | 615 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18444 |
-| repositoryFiles | 3500 |
+| records | 18446 |
+| repositoryFiles | 3501 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6731,7 +6731,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 735 |
+| test | 736 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -9789,7 +9789,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (735)</summary>
+<details><summary>test (736)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10336,6 +10336,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-slug-seo.test.ts`
 - `src/test/restaurant-social-post-reactions.test.ts`
 - `src/test/restaurant-special-offer-governance.test.ts`
+- `src/test/restaurant-special-offer-list-controls.test.ts`
 - `src/test/restaurant-stripe-adjustments.test.ts`
 - `src/test/restaurateur-commercial-pages.test.ts`
 - `src/test/restaurateur-onboarding-reliability.test.ts`

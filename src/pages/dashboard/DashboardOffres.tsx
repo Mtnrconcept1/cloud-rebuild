@@ -16,6 +16,10 @@ import { Leaf, Percent, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
+import type { SortDirection } from "@/lib/listSorting";
+import { cn } from "@/lib/utils";
 import {
   getCommercialDemoAntiWasteOffers,
   getCommercialDemoClientMenuItems,
@@ -99,6 +103,12 @@ export default function DashboardOffres() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [offerSearch, setOfferSearch] = useState("");
+  const [offerStatus, setOfferStatus] = useState("all");
+  const [offerTypeFilter, setOfferTypeFilter] = useState("all");
+  const [offerSortKey, setOfferSortKey] = useState<"date" | "name" | "price" | "stock">("date");
+  const [offerSortDirection, setOfferSortDirection] = useState<SortDirection>("desc");
+  const [offerViewMode, setOfferViewMode] = useState<OperationViewMode>("details");
   const offersQueryKey = ["dashboard-offers", selectedId, demoSessionId] as const;
 
   const { data: offers, isLoading } = useQuery<OfferRecord[]>({
@@ -127,6 +137,24 @@ export default function DashboardOffres() {
     },
     enabled: !!selectedId,
   });
+
+  const visibleOffers = useMemo(() => {
+    const query = offerSearch.trim().toLocaleLowerCase("fr-CH");
+    const collator = new Intl.Collator("fr-CH", { sensitivity: "base", numeric: true });
+    return (offers || []).filter((offer) => {
+      if (offerStatus === "active" && !isSpecialOfferEffectivelyActive(offer)) return false;
+      if (offerStatus === "sold_out" && !isSpecialOfferSoldOut(offer)) return false;
+      if (offerStatus === "inactive" && (isSpecialOfferEffectivelyActive(offer) || isSpecialOfferSoldOut(offer))) return false;
+      if (offerTypeFilter !== "all" && offer.offer_type !== offerTypeFilter) return false;
+      return !query || offer.title.toLocaleLowerCase("fr-CH").includes(query);
+    }).sort((left, right) => {
+      const comparison = offerSortKey === "name" ? collator.compare(left.title, right.title)
+        : offerSortKey === "price" ? Number(left.discounted_price) - Number(right.discounted_price)
+        : offerSortKey === "stock" ? left.quantity_available - right.quantity_available
+        : (left.available_date || "").localeCompare(right.available_date || "");
+      return (offerSortDirection === "asc" ? comparison : -comparison) || left.id.localeCompare(right.id);
+    });
+  }, [offers, offerSearch, offerStatus, offerTypeFilter, offerSortKey, offerSortDirection]);
 
   const updateCommercialDemoOffers = (updater: (current: OfferRecord[]) => OfferRecord[]) => {
     if (!isCommercialDemo || !commercialDemoFrame || selectedId !== commercialDemoFrame.snapshot.demo_restaurant.id) {
@@ -253,6 +281,39 @@ export default function DashboardOffres() {
           )}
         />
 
+        {selectedId && offers?.length ? (
+          <Card>
+            <CardContent className="space-y-4 p-4">
+              <div className="grid gap-3 md:grid-cols-3">
+                <Input aria-label="Rechercher une offre anti-gaspi" value={offerSearch} onChange={(event) => setOfferSearch(event.target.value)} placeholder="Rechercher une offre…" />
+                <Select value={offerStatus} onValueChange={setOfferStatus}>
+                  <SelectTrigger aria-label="Filtrer les offres par statut"><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">Tous les statuts</SelectItem><SelectItem value="active">Actives</SelectItem><SelectItem value="inactive">Inactives</SelectItem><SelectItem value="sold_out">Épuisées</SelectItem></SelectContent>
+                </Select>
+                <Select value={offerTypeFilter} onValueChange={setOfferTypeFilter}>
+                  <SelectTrigger aria-label="Filtrer les offres par type"><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">Tous les types</SelectItem>{OFFER_TYPES.map((type) => <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <SortControls<"date" | "name" | "price" | "stock">
+                  className="w-full max-w-lg"
+                  columns={[{ key: "date", label: "Date" }, { key: "name", label: "Titre" }, { key: "price", label: "Prix remisé" }, { key: "stock", label: "Stock" }]}
+                  sortKey={offerSortKey}
+                  direction={offerSortDirection}
+                  onSortKeyChange={setOfferSortKey}
+                  onDirectionChange={setOfferSortDirection}
+                />
+                <OperationViewToggle value={offerViewMode} onChange={setOfferViewMode} ariaLabel="Mode d’affichage des offres anti-gaspi" />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs text-muted-foreground">{visibleOffers.length} offre(s) sur {offers.length}</p>
+                <Button type="button" size="sm" variant="ghost" onClick={() => { setOfferSearch(""); setOfferStatus("all"); setOfferTypeFilter("all"); }}>Effacer les filtres</Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
         {!selectedId ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
@@ -272,8 +333,8 @@ export default function DashboardOffres() {
             </CardContent>
           </Card>
         ) : (
-          <div className="tok-offer-catalog space-y-3">
-            {offers.map((offer) => {
+          <div className={cn("tok-offer-catalog gap-3", offerViewMode === "gallery" ? "grid md:grid-cols-2 xl:grid-cols-3" : "space-y-3")} data-view={offerViewMode}>
+            {visibleOffers.map((offer) => {
               const isSoldOut = isSpecialOfferSoldOut(offer);
               const isEffectivelyActive = isSpecialOfferEffectivelyActive(offer);
               const originalPrice = Number(offer.original_price);
@@ -284,7 +345,7 @@ export default function DashboardOffres() {
 
               return (
                 <Card className="tok-offer-card" key={offer.id}>
-                  <CardContent className="flex items-center gap-4 py-4">
+                  <CardContent className={cn("flex gap-4", offerViewMode === "gallery" ? "flex-col py-5" : offerViewMode === "list" ? "items-center py-2.5" : "items-center py-4")}>
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex items-center gap-2">
                         <p className="truncate text-sm font-semibold">{offer.title}</p>
@@ -305,7 +366,7 @@ export default function DashboardOffres() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className={cn("text-xs text-muted-foreground", offerViewMode === "list" && "hidden")}>
                         {offer.quantity_available} restant(s)
                         {offer.available_date ? ` · ${offer.available_date}` : ""}
                         {offer.pickup_start && offer.pickup_end ? ` · ${offer.pickup_start.slice(0, 5)}-${offer.pickup_end.slice(0, 5)}` : ""}
@@ -317,7 +378,7 @@ export default function DashboardOffres() {
                         {Number(offer.discounted_price).toFixed(2)} CHF
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                       <Switch
                         checked={isEffectivelyActive}
                         disabled={isSoldOut}
@@ -336,6 +397,7 @@ export default function DashboardOffres() {
                 </Card>
               );
             })}
+            {!visibleOffers.length ? <p className="rounded-xl border p-6 text-center text-sm text-muted-foreground">Aucune offre ne correspond aux filtres.</p> : null}
           </div>
         )}
       </div>

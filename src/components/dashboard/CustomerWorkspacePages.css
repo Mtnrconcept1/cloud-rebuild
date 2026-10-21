@@ -330,3 +330,35 @@
 .tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 > div { gap: 12px; }
 .tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 > div > span:first-child { min-width: 0; overflow-wrap: anywhere; }
 .tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 > div > span:last-child { flex-shrink: 0; }
+
+/* Display choices for client review history without overriding the customer dashboard design. */
+.tok-hospitality-workspace .tok-customer-review-list[data-view="gallery"] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.tok-hospitality-workspace .tok-customer-review-list[data-view="gallery"] .tok-customer-review-card__heading {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.tok-hospitality-workspace .tok-customer-review-list[data-view="gallery"] .tok-customer-review-card__photo {
+  width: 100%;
+  height: auto;
+  max-height: 180px;
+  aspect-ratio: 16 / 9;
+}
+.tok-hospitality-workspace .tok-customer-review-list[data-view="list"] .tok-customer-review-card__content {
+  padding: 12px 16px;
+}
+.tok-hospitality-workspace .tok-customer-review-list[data-view="list"] .tok-customer-review-card__photo {
+  width: 52px;
+  height: 52px;
+}
+.tok-hospitality-workspace .tok-customer-review-list[data-view="list"] .tok-customer-review-card__heading a {
+  font-size: 17px;
+}
+@media (max-width: 780px) {
+  .tok-hospitality-workspace .tok-customer-review-list[data-view="gallery"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

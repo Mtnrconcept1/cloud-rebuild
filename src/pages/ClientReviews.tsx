@@ -7,6 +7,10 @@ import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
 import CustomerPageHero from "@/components/dashboard/CustomerPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
+import type { SortDirection } from "@/lib/listSorting";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
@@ -98,6 +102,10 @@ export default function ClientReviews() {
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const { user } = useAuth();
   const [filter, setFilter] = useState<ReviewFilter>("all");
+  const [reviewSearch, setReviewSearch] = useState("");
+  const [reviewSortKey, setReviewSortKey] = useState<"date" | "restaurant" | "rating">("date");
+  const [reviewSortDirection, setReviewSortDirection] = useState<SortDirection>("desc");
+  const [reviewViewMode, setReviewViewMode] = useState<OperationViewMode>("details");
 
   const reviewsQuery = useQuery({
     queryKey: ["client-reviews", user?.id],
@@ -132,10 +140,25 @@ export default function ClientReviews() {
     [isCommercialDemoClient, reviewsQuery.data],
   );
 
-  const filteredReviews = useMemo(
-    () => reviews.filter((review) => matchesFilter(review, filter)),
-    [filter, reviews],
-  );
+  const filteredReviews = useMemo(() => {
+    const query = reviewSearch.trim().toLocaleLowerCase("fr-CH");
+    const collator = new Intl.Collator("fr-CH", { sensitivity: "base", numeric: true });
+    return reviews.filter((review) => {
+      if (!matchesFilter(review, filter)) return false;
+      const restaurant = firstRestaurant(review.restaurants);
+      return !query || `${restaurant?.name || ""} ${restaurant?.city || ""} ${review.comment || ""}`
+        .toLocaleLowerCase("fr-CH").includes(query);
+    }).sort((left, right) => {
+      const leftRestaurant = firstRestaurant(left.restaurants);
+      const rightRestaurant = firstRestaurant(right.restaurants);
+      const leftRating = Number(left.rating ?? left.restaurant_rating ?? left.food_rating ?? 0);
+      const rightRating = Number(right.rating ?? right.restaurant_rating ?? right.food_rating ?? 0);
+      const comparison = reviewSortKey === "date" ? left.created_at.localeCompare(right.created_at)
+        : reviewSortKey === "rating" ? leftRating - rightRating
+        : collator.compare(leftRestaurant?.name || "", rightRestaurant?.name || "");
+      return (reviewSortDirection === "asc" ? comparison : -comparison) || left.id.localeCompare(right.id);
+    });
+  }, [reviews, filter, reviewSearch, reviewSortKey, reviewSortDirection]);
 
   return (
     <CustomerDashboardLayout>
@@ -167,6 +190,21 @@ export default function ClientReviews() {
           ))}
         </div>
 
+        <div className="tok-customer-view-bar space-y-3 rounded-2xl border bg-card p-4">
+          <Input aria-label="Rechercher dans mes avis" value={reviewSearch} onChange={(event) => setReviewSearch(event.target.value)} placeholder="Restaurant, ville ou commentaire…" />
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <SortControls<"date" | "restaurant" | "rating">
+              className="w-full max-w-lg"
+              columns={[{ key: "date", label: "Date" }, { key: "restaurant", label: "Restaurant" }, { key: "rating", label: "Note" }]}
+              sortKey={reviewSortKey}
+              direction={reviewSortDirection}
+              onSortKeyChange={setReviewSortKey}
+              onDirectionChange={setReviewSortDirection}
+            />
+            <OperationViewToggle value={reviewViewMode} onChange={setReviewViewMode} ariaLabel="Mode d’affichage de mes avis" />
+          </div>
+          <p className="text-xs text-muted-foreground">{filteredReviews.length} avis parmi {reviews.length} chargés (100 au maximum).</p>
+        </div>
         <div className="tok-customer-reviews-layout">
           <div className="min-w-0">
         {!isCommercialDemoClient && reviewsQuery.isLoading ? (
@@ -185,7 +223,7 @@ export default function ClientReviews() {
           <div className="rounded-2xl border border-dashed p-8 text-center sm:p-12">
             <Star className="mx-auto h-10 w-10 text-muted-foreground/50" />
             <h2 className="mt-4 font-display text-xl font-bold">
-              {filter === "all" ? "Aucun avis pour le moment" : "Aucun avis dans cette catégorie"}
+              {reviewSearch.trim() ? "Aucun avis ne correspond à la recherche" : filter === "all" ? "Aucun avis pour le moment" : "Aucun avis dans cette catégorie"}
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
               Après une commande ou une réservation terminée, vous pourrez partager votre expérience avec la communauté TOK.
@@ -195,7 +233,7 @@ export default function ClientReviews() {
             ) : null}
           </div>
         ) : (
-          <div className="tok-customer-review-list space-y-4">
+          <div className={cn("tok-customer-review-list", reviewViewMode === "gallery" ? "grid gap-4 sm:grid-cols-2" : "space-y-4")} data-view={reviewViewMode}>
             {filteredReviews.map((review) => {
               const restaurant = firstRestaurant(review.restaurants);
               const status = statusPresentation(review.status);
@@ -231,9 +269,9 @@ export default function ClientReviews() {
                       </div>
                     </div>
 
-                    {review.comment ? <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6">{review.comment}</p> : null}
+                    {review.comment ? <p className={cn("mt-4 whitespace-pre-wrap break-words text-sm leading-6", reviewViewMode === "list" && "line-clamp-1", reviewViewMode === "gallery" && "line-clamp-3")}>{review.comment}</p> : null}
 
-                    <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <div className={cn("mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground", reviewViewMode !== "details" && "hidden")}>
                       {review.food_rating ? <span className="rounded-full bg-muted px-2.5 py-1">Cuisine {review.food_rating}/5</span> : null}
                       {review.service_rating ? <span className="rounded-full bg-muted px-2.5 py-1">Service {review.service_rating}/5</span> : null}
                       {review.speed_rating ? <span className="rounded-full bg-muted px-2.5 py-1">Rapidité {review.speed_rating}/5</span> : null}
@@ -241,7 +279,7 @@ export default function ClientReviews() {
 
                   </div>
 
-                  {replies.length > 0 ? (
+                  {replies.length > 0 && reviewViewMode === "details" ? (
                     <div className="tok-customer-review-card__replies space-y-3 border-t bg-muted/25 p-4 sm:p-5">
                       <p className="flex items-center gap-2 text-sm font-semibold">
                         <MessageSquareReply className="h-4 w-4 text-primary" />Réponse du restaurant
@@ -256,6 +294,7 @@ export default function ClientReviews() {
                       ))}
                     </div>
                   ) : null}
+                  {replies.length > 0 && reviewViewMode !== "details" ? <p className="border-t p-3 text-xs text-muted-foreground">{replies.length} réponse(s) — passez en vue détaillée pour les lire.</p> : null}
                 </article>
               );
             })}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Bot,
   CalendarClock,
@@ -20,6 +20,9 @@ import {
   formatMarketingDate,
 } from "@/components/marketing/MarketingShared";
 import { MarketingDailySeries } from "@/components/marketing/MarketingDailySeries";
+import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
+import type { SortDirection } from "@/lib/listSorting";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,11 +112,33 @@ export default function MarketingAutomationsView({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draft, setDraft] = useState<MarketingAutomationDraft>(EMPTY_AUTOMATION);
   const [draftReason, setDraftReason] = useState("");
+  const [automationSearch, setAutomationSearch] = useState("");
+  const [automationStatus, setAutomationStatus] = useState("all");
+  const [automationChannel, setAutomationChannel] = useState("all");
+  const [automationSortKey, setAutomationSortKey] = useState<"name" | "channel" | "status">("name");
+  const [automationSortDirection, setAutomationSortDirection] = useState<SortDirection>("asc");
+  const [automationViewMode, setAutomationViewMode] = useState<OperationViewMode>("details");
   const valid = draft.name.trim().length >= 3
     && draft.description.trim().length >= 12
     && draft.trigger.trim().length >= 3
     && draft.action.trim().length >= 3;
-  const customAutomations = snapshot.automations.filter((automation) => !automation.isSystem);
+  const customAutomations = useMemo(() => {
+    const query = automationSearch.trim().toLocaleLowerCase("fr-CH");
+    const collator = new Intl.Collator("fr-CH", { sensitivity: "base", numeric: true });
+    return snapshot.automations.filter((automation) => {
+      if (automation.isSystem) return false;
+      if (automationStatus !== "all" && automation.status !== automationStatus) return false;
+      if (automationChannel !== "all" && automation.channel !== automationChannel) return false;
+      return !query || `${automation.name} ${automation.description} ${automation.trigger} ${automation.action}`
+        .toLocaleLowerCase("fr-CH").includes(query);
+    }).sort((left, right) => {
+      const comparison = automationSortKey === "channel"
+        ? collator.compare(left.channel, right.channel)
+        : automationSortKey === "status" ? collator.compare(left.status, right.status)
+        : collator.compare(left.name, right.name);
+      return (automationSortDirection === "asc" ? comparison : -comparison) || left.id.localeCompare(right.id);
+    });
+  }, [snapshot.automations, automationSearch, automationStatus, automationChannel, automationSortKey, automationSortDirection]);
   const canUseAutopilot = autopilot.source === "backend" && !autopilotLoading;
 
   const save = async () => {
@@ -215,8 +240,46 @@ export default function MarketingAutomationsView({
 
       {snapshot.overview.globalPaused ? <Alert className="border-amber-500/25 bg-amber-500/5"><CirclePause className="h-4 w-4 text-amber-700 dark:text-amber-300" /><AlertTitle>Pause globale active</AlertTitle><AlertDescription>Les règles peuvent être préparées, mais leur activation et leur exécution restent interdites.</AlertDescription></Alert> : null}
 
+      <Card>
+        <CardContent className="space-y-4 p-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <Input aria-label="Rechercher une règle personnalisée" value={automationSearch} onChange={(event) => setAutomationSearch(event.target.value)} placeholder="Règle, déclencheur ou action…" />
+            <Select value={automationStatus} onValueChange={setAutomationStatus}>
+              <SelectTrigger aria-label="Filtrer les règles par statut"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="draft">Brouillons</SelectItem>
+                <SelectItem value="paused">En pause</SelectItem>
+                <SelectItem value="active">Actives</SelectItem>
+                <SelectItem value="disabled">Désactivées</SelectItem>
+                <SelectItem value="error">En erreur</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={automationChannel} onValueChange={setAutomationChannel}>
+              <SelectTrigger aria-label="Filtrer les règles par canal"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="all">Tous les canaux</SelectItem>{snapshot.channels.map((channel) => <SelectItem key={channel.id} value={channel.id}>{channel.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <SortControls<"name" | "channel" | "status">
+              className="w-full max-w-lg"
+              columns={[{ key: "name", label: "Nom" }, { key: "channel", label: "Canal" }, { key: "status", label: "Statut" }]}
+              sortKey={automationSortKey}
+              direction={automationSortDirection}
+              onSortKeyChange={setAutomationSortKey}
+              onDirectionChange={setAutomationSortDirection}
+            />
+            <OperationViewToggle value={automationViewMode} onChange={setAutomationViewMode} ariaLabel="Mode d’affichage des règles marketing" />
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>{customAutomations.length} règle(s) affichée(s)</span>
+            <Button type="button" variant="ghost" size="sm" onClick={() => { setAutomationSearch(""); setAutomationStatus("all"); setAutomationChannel("all"); }}>Effacer les filtres</Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {customAutomations.length ? (
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className={cn("grid gap-4", automationViewMode === "gallery" ? "md:grid-cols-2 2xl:grid-cols-3" : automationViewMode === "details" ? "xl:grid-cols-2" : "grid-cols-1")}>
           {customAutomations.map((automation) => {
             const channel = snapshot.channels.find((item) => item.id === automation.channel);
             const channelBlocked = !channel || !["available", "manual"].includes(channel.availability);
@@ -227,10 +290,10 @@ export default function MarketingAutomationsView({
                   <CardTitle className="pt-2">{automation.name}</CardTitle><p className="text-sm leading-relaxed text-muted-foreground">{automation.description}</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-2"><div className="rounded-xl border bg-muted/20 p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Déclencheur</p><p className="mt-1 text-sm">{automation.trigger}</p></div><div className="rounded-xl border bg-muted/20 p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Action</p><p className="mt-1 text-sm">{automation.action}</p></div></div>
+                  <div className={cn("grid gap-3 sm:grid-cols-2", automationViewMode === "details" ? "" : "hidden")}><div className="rounded-xl border bg-muted/20 p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Déclencheur</p><p className="mt-1 text-sm">{automation.trigger}</p></div><div className="rounded-xl border bg-muted/20 p-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Action</p><p className="mt-1 text-sm">{automation.action}</p></div></div>
                   <div className="flex items-center justify-between gap-3"><MarketingChannelBadge channel={automation.channel} />{channel ? <MarketingStatusBadge status={channel.availability} /> : null}</div>
                   <p className="flex items-start gap-2 rounded-xl bg-amber-500/10 p-3 text-xs text-amber-950 dark:text-amber-100"><ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />Moteur à connecter : cette règle reste inexécutable.</p>
-                  {channelBlocked ? <p className="flex items-start gap-2 rounded-xl bg-rose-500/10 p-3 text-xs text-rose-900 dark:text-rose-100"><ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />Canal indisponible en plus du moteur absent.</p> : null}
+                  {channelBlocked && automationViewMode !== "list" ? <p className="flex items-start gap-2 rounded-xl bg-rose-500/10 p-3 text-xs text-rose-900 dark:text-rose-100"><ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />Canal indisponible en plus du moteur absent.</p> : null}
                 </CardContent>
               </Card>
             );

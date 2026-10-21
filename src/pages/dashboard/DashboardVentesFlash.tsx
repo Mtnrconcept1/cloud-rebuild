@@ -16,6 +16,10 @@ import { Plus, Percent, Trash2, Zap } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
+import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
+import type { SortDirection } from "@/lib/listSorting";
+import { cn } from "@/lib/utils";
 import {
   getCommercialDemoClientMenuItems,
   getCommercialDemoFlashSales,
@@ -87,6 +91,11 @@ export default function DashboardVentesFlash() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
+  const [saleSearch, setSaleSearch] = useState("");
+  const [saleStatus, setSaleStatus] = useState("all");
+  const [saleSortKey, setSaleSortKey] = useState<"date" | "name" | "price" | "stock">("date");
+  const [saleSortDirection, setSaleSortDirection] = useState<SortDirection>("desc");
+  const [saleViewMode, setSaleViewMode] = useState<OperationViewMode>("details");
   const salesQueryKey = ["dashboard-flash-sales", selectedId, demoSessionId] as const;
 
   const { data: sales, isLoading } = useQuery<FlashSaleRecord[]>({
@@ -115,6 +124,23 @@ export default function DashboardVentesFlash() {
     },
     enabled: !!selectedId,
   });
+
+  const visibleSales = useMemo(() => {
+    const query = saleSearch.trim().toLocaleLowerCase("fr-CH");
+    const collator = new Intl.Collator("fr-CH", { sensitivity: "base", numeric: true });
+    return (sales || []).filter((sale) => {
+      if (saleStatus === "active" && !isSpecialOfferEffectivelyActive(sale)) return false;
+      if (saleStatus === "sold_out" && !isSpecialOfferSoldOut(sale)) return false;
+      if (saleStatus === "inactive" && (isSpecialOfferEffectivelyActive(sale) || isSpecialOfferSoldOut(sale))) return false;
+      return !query || sale.title.toLocaleLowerCase("fr-CH").includes(query);
+    }).sort((left, right) => {
+      const comparison = saleSortKey === "name" ? collator.compare(left.title, right.title)
+        : saleSortKey === "price" ? Number(left.discounted_price) - Number(right.discounted_price)
+        : saleSortKey === "stock" ? left.quantity_available - right.quantity_available
+        : (left.sale_date || "").localeCompare(right.sale_date || "");
+      return (saleSortDirection === "asc" ? comparison : -comparison) || left.id.localeCompare(right.id);
+    });
+  }, [sales, saleSearch, saleStatus, saleSortKey, saleSortDirection]);
 
   const updateCommercialDemoSales = (updater: (current: FlashSaleRecord[]) => FlashSaleRecord[]) => {
     if (!isCommercialDemo || !commercialDemoFrame || selectedId !== commercialDemoFrame.snapshot.demo_restaurant.id) {
@@ -241,6 +267,35 @@ export default function DashboardVentesFlash() {
           )}
         />
 
+        {selectedId && sales?.length ? (
+          <Card>
+            <CardContent className="space-y-4 p-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input aria-label="Rechercher une vente flash" value={saleSearch} onChange={(event) => setSaleSearch(event.target.value)} placeholder="Rechercher une vente flash…" />
+                <Select value={saleStatus} onValueChange={setSaleStatus}>
+                  <SelectTrigger aria-label="Filtrer les ventes flash par statut"><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">Tous les statuts</SelectItem><SelectItem value="active">Actives</SelectItem><SelectItem value="inactive">Inactives</SelectItem><SelectItem value="sold_out">Épuisées</SelectItem></SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <SortControls<"date" | "name" | "price" | "stock">
+                  className="w-full max-w-lg"
+                  columns={[{ key: "date", label: "Date" }, { key: "name", label: "Titre" }, { key: "price", label: "Prix remisé" }, { key: "stock", label: "Stock" }]}
+                  sortKey={saleSortKey}
+                  direction={saleSortDirection}
+                  onSortKeyChange={setSaleSortKey}
+                  onDirectionChange={setSaleSortDirection}
+                />
+                <OperationViewToggle value={saleViewMode} onChange={setSaleViewMode} ariaLabel="Mode d’affichage des ventes flash" />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs text-muted-foreground">{visibleSales.length} vente(s) sur {sales.length}</p>
+                <Button type="button" size="sm" variant="ghost" onClick={() => { setSaleSearch(""); setSaleStatus("all"); }}>Effacer les filtres</Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
         {!selectedId ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
@@ -260,8 +315,8 @@ export default function DashboardVentesFlash() {
             </CardContent>
           </Card>
         ) : (
-          <div className="tok-offer-catalog space-y-3">
-            {sales.map((sale) => {
+          <div className={cn("tok-offer-catalog gap-3", saleViewMode === "gallery" ? "grid md:grid-cols-2 xl:grid-cols-3" : "space-y-3")} data-view={saleViewMode}>
+            {visibleSales.map((sale) => {
               const isSoldOut = isSpecialOfferSoldOut(sale);
               const isEffectivelyActive = isSpecialOfferEffectivelyActive(sale);
               const originalPrice = Number(sale.original_price);
@@ -272,7 +327,7 @@ export default function DashboardVentesFlash() {
 
               return (
                 <Card className="tok-offer-card" key={sale.id}>
-                  <CardContent className="flex items-center gap-4 py-4">
+                  <CardContent className={cn("flex gap-4", saleViewMode === "gallery" ? "flex-col py-5" : saleViewMode === "list" ? "items-center py-2.5" : "items-center py-4")}>
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex items-center gap-2">
                         <p className="truncate text-sm font-semibold">{sale.title}</p>
@@ -290,7 +345,7 @@ export default function DashboardVentesFlash() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className={cn("text-xs text-muted-foreground", saleViewMode === "list" && "hidden")}>
                         {sale.quantity_available} restant(s)
                         {sale.sale_date ? ` · ${sale.sale_date}` : ""}
                         {sale.sale_start && sale.sale_end ? ` · ${sale.sale_start.slice(0, 5)}-${sale.sale_end.slice(0, 5)}` : ""}
@@ -302,7 +357,7 @@ export default function DashboardVentesFlash() {
                         {Number(sale.discounted_price).toFixed(2)} CHF
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                       <Switch
                         checked={isEffectivelyActive}
                         disabled={isSoldOut}
@@ -321,6 +376,7 @@ export default function DashboardVentesFlash() {
                 </Card>
               );
             })}
+            {!visibleSales.length ? <p className="rounded-xl border p-6 text-center text-sm text-muted-foreground">Aucune vente flash ne correspond aux filtres.</p> : null}
           </div>
         )}
       </div>
