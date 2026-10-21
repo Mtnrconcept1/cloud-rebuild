@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, User, Trophy, Gift, Camera, Mail, Phone, MapPin, Heart, Settings, Shield, Bell, Trash2, AlertTriangle, Crown, CalendarCheck, Truck, Percent, Headphones, Zap, CreditCard } from "lucide-react";
+import { ArrowRight, User, Trophy, Gift, MapPin, Heart, Settings, Shield, Bell, Trash2, AlertTriangle, Crown, CalendarCheck, Truck, CreditCard } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   AlertDialog,
