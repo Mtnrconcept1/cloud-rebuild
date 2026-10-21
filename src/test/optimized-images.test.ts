@@ -28,5 +28,7 @@ describe("optimized image URLs", () => {
     expect(getOptimizedImageSrcSet("javascript:alert(1)", "card")).toBeUndefined();
     expect(getOptimizedImageSrcSet("data:image/svg+xml;base64,ZmFrZQ==", "card")).toBeUndefined();
     expect(getOptimizedImageSizes("card")).toContain("100vw");
+    expect(getOptimizedImageUrl(url, "hero")).toContain("width=1920&height=960&quality=90");
+    expect(getOptimizedImageSrcSet(url, "hero")).toContain("width=2560");
   });
 });

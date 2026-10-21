@@ -35,7 +35,7 @@ describe("homepage semantic search", () => {
   it("uses a portrait hero asset on mobile and the supplied Léman illustration on desktop", () => {
     setup();
     expect(document.querySelectorAll(".tok-home-hero__background img")).toHaveLength(1);
-    expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/home/tok-leman-signature-fast.webp");
+    expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/home/tok-leman-signature.webp");
   });
   it("renders the correct canton art for device localization on desktop and mobile", () => {
     render(<MemoryRouter><HeroSection locationCanton="JU" /></MemoryRouter>);

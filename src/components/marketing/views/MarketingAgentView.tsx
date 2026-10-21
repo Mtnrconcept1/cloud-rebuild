@@ -411,9 +411,9 @@ export default function MarketingAgentView({
               <Button type="button" variant="outline" disabled={busy} onClick={() => onNavigate("calendar", { campaignId: result.campaign?.id || result.items[0]?.campaignId || undefined, itemId: result.items[0]?.id, scheduledAt: result.items[0]?.scheduledAt })}>Relire et approuver les éléments</Button>
             </div>
             <p className="text-xs leading-relaxed text-slate-500">
-              La génération ne donne aucune autorisation de diffusion. Chaque élément doit être
-              relu puis approuvé séparément dans le calendrier ; les canaux non confirmés restent
-              bloqués et la pause globale conserve toujours la priorité.
+              La génération ne donne aucune autorisation de diffusion. Une campagne relue puis approuvée
+              approuve et planifie automatiquement ses publications ; les éléments autonomes restent validables
+              individuellement. Les canaux non confirmés et la pause globale conservent toujours la priorité.
             </p>
           </CardContent>
         </Card>

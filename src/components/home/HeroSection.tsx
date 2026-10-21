@@ -38,7 +38,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
   const canton = selectedCity ? cantonFromPlaceName(selectedCity) : locationCanton;
   const worldArt = !pending ? resolveWorldArt(selectedCity || gpsCity, selectedCity ? null : gpsCountry) : null;
   const cantonImage = !pending && canton ? cantonHeroSrc(canton) : null;
-  const desktopImage = cantonImage || worldArt?.desktop || (pending ? null : "/images/home/tok-leman-signature-fast.webp");
+  const desktopImage = cantonImage || worldArt?.desktop || (pending ? null : "/images/home/tok-leman-signature.webp");
   const mobileImage = worldArt?.mobile || desktopImage;
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
