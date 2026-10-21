@@ -327,7 +327,7 @@ export default function DashboardVentesFlash() {
 
               return (
                 <Card key={sale.id}>
-                  <CardContent className={cn("flex gap-4 py-4", saleViewMode === "gallery" ? "flex-col" : "items-center")}>
+                  <CardContent className={cn("flex gap-4", saleViewMode === "gallery" ? "flex-col py-5" : saleViewMode === "list" ? "items-center py-2.5" : "items-center py-4")}>
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex items-center gap-2">
                         <p className="truncate text-sm font-semibold">{sale.title}</p>
@@ -345,7 +345,7 @@ export default function DashboardVentesFlash() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className={cn("text-xs text-muted-foreground", saleViewMode === "list" && "hidden")}>
                         {sale.quantity_available} restant(s)
                         {sale.sale_date ? ` · ${sale.sale_date}` : ""}
                         {sale.sale_start && sale.sale_end ? ` · ${sale.sale_start.slice(0, 5)}-${sale.sale_end.slice(0, 5)}` : ""}
