@@ -34,9 +34,24 @@ describe("dashboard preview deployment boundary", () => {
     expect(workflow).toMatch(/environment:\s+name: production\s+deployment: false/);
     expect(workflow).toContain("persist-credentials: false");
     const secretNames = [...workflow.matchAll(/\$\{\{ secrets\.([A-Z_]+) \}\}/g)].map((match) => match[1]);
-    expect(secretNames).toEqual(["VERCEL_TOKEN", "VERCEL_TOKEN", "VERCEL_TOKEN"]);
+    expect(secretNames).toEqual(["VERCEL_TOKEN", "VITE_SUPABASE_PUBLISHABLE_KEY", "SUPABASE_ANON_KEY", "VERCEL_TOKEN", "VERCEL_TOKEN"]);
     const setup = workflow.slice(0, workflow.indexOf("      - name: Pull the branch preview settings"));
     expect(setup).not.toContain("${{ secrets.");
+  });
+
+  it("prepares only existing public frontend fallback values after the project gate", () => {
+    const gate = workflow.indexOf("      - name: Verify the existing project");
+    const preparation = workflow.indexOf("      - name: Prepare existing public frontend configuration for the preview");
+    const build = workflow.indexOf("      - name: Build the preview");
+    expect(gate).toBeGreaterThan(0);
+    expect(preparation).toBeGreaterThan(gate);
+    expect(build).toBeGreaterThan(preparation);
+    const step = workflow.slice(preparation, build);
+    expect(step).toContain("DASHBOARD_PREVIEW_FALLBACK_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}");
+    expect(step).toContain("DASHBOARD_PREVIEW_FALLBACK_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}");
+    expect(step).not.toContain("VERCEL_TOKEN");
+    expect(step).toContain("node scripts/dashboard-design-preview-env.mjs");
+    expect(workflow).toMatch(/name: Remove downloaded environment values\s+if: \$\{\{ always\(\) \}\}\s+run: rm -f -- \.vercel\/\.env\.preview\.local/);
   });
 
   it("builds and publishes only a branch preview of the immutable commit", () => {

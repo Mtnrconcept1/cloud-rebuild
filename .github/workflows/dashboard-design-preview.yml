@@ -59,7 +59,7 @@ jobs:
 
       - name: Validate the preview boundary and application types
         run: |
-          pnpm exec vitest run src/test/dashboard-preview-deployment.test.ts
+          pnpm exec vitest run src/test/dashboard-preview-deployment.test.ts src/test/dashboard-design-preview-env.test.ts
           pnpm run typecheck
           pnpm run docs:application-index:check
 
@@ -71,24 +71,25 @@ jobs:
           pnpm dlx "vercel@${VERCEL_CLI_VERSION}" pull \
             --yes --environment=preview --git-branch="$GITHUB_REF_NAME" --token="$VERCEL_TOKEN"
 
-      - name: Verify the existing project and preview public configuration
+      - name: Verify the existing project
         shell: bash
         run: |
           node --input-type=module <<'NODE'
           import fs from "node:fs";
-          import { parse } from "dotenv";
           const project = JSON.parse(fs.readFileSync(".vercel/project.json", "utf8"));
           if (project.orgId !== process.env.VERCEL_ORG_ID || project.projectId !== process.env.VERCEL_PROJECT_ID) {
             throw new Error("Refusing to build a preview for an unexpected Vercel project.");
           }
-          const env = parse(fs.readFileSync(".vercel/.env.preview.local", "utf8"));
-          const url = env.VITE_SUPABASE_URL?.trim();
-          const key = (env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_ANON_KEY)?.trim();
-          if (!url || !key || url.includes("example.supabase.co") || key === "ci-public-placeholder") {
-            throw new Error("The Vercel Preview environment must have its real Supabase public configuration.");
-          }
-          console.log("Verified existing project and Preview configuration; values remain private.");
+          console.log("Verified the existing preview project.");
           NODE
+
+      - name: Prepare existing public frontend configuration for the preview
+        env:
+          # These are the same PUBLIC frontend keys already used by deploy-production.yml.
+          # The resolver keeps a complete Preview pair and never combines projects.
+          DASHBOARD_PREVIEW_FALLBACK_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          DASHBOARD_PREVIEW_FALLBACK_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node scripts/dashboard-design-preview-env.mjs
 
       - name: Build the preview
         env:

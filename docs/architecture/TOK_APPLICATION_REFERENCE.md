@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7efa9e684671823c24f11383b8be0e7e95ebea1b9da6d3fa42bb6183bcf44d97`
+- Empreinte SHA-256 des sources indexées : `0048d89cb7f44a2fcb36bc8863618980e2606d89c9f61b614254305344a4500d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 219 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3914 |
+| exportedSymbols | 3918 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 569 |
-| modules | 1779 |
+| modules | 1781 |
 | pages | 133 |
 | pathLiterals | 874 |
 | publicAssets | 589 |
 | publicEntries | 615 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18306 |
-| repositoryFiles | 3480 |
+| records | 18314 |
+| repositoryFiles | 3482 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1260,7 +1260,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 267 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 268 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:94](../../src/test/application-search-index.test.ts#L94) |
@@ -6674,9 +6674,9 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 41 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 271 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 807 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 809 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 68 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
@@ -6685,7 +6685,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 218 |
-| automation-script | 83 |
+| automation-script | 84 |
 | documentation | 6 |
 | edge-function-source | 237 |
 | frontend-component | 287 |
@@ -6695,7 +6695,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 728 |
+| test | 729 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7211,7 +7211,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (95)</summary>
+<details><summary>automation-script (96)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7232,6 +7232,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/codex-auto-post-edit-validation.mjs`
 - `scripts/codex-auto-pre-edit.mjs`
 - `scripts/contracts/tok-connect-public-mutations.json`
+- `scripts/dashboard-design-preview-env.mjs`
 - `scripts/dashboard-design-preview-export.mjs`
 - `scripts/dashboard-design-preview.fixtures.ts`
 - `scripts/ensure-supabase-auth-security.mjs`
@@ -9739,7 +9740,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (728)</summary>
+<details><summary>test (729)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -9921,6 +9922,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/dashboard-advisor-history.test.ts`
 - `src/test/dashboard-campaign-unification.test.ts`
 - `src/test/dashboard-commands-collapse.test.tsx`
+- `src/test/dashboard-design-preview-env.test.ts`
 - `src/test/dashboard-design-preview-export.test.tsx`
 - `src/test/dashboard-grouping.test.ts`
 - `src/test/dashboard-illustration-media.test.tsx`
