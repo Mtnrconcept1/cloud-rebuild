@@ -56,6 +56,22 @@ export function getNotificationTarget(notification: RoutableNotification, role: 
       : getNotificationCenterPathForRole(role, fallback);
   }
 
+  // Business destinations follow the active role, never an admin URL
+  // carried by an older notification while the user views another space.
+  if (notification.type === "golden_tok") {
+    if (role === "admin") return "/admin/drops";
+    if (role === "restaurateur") return "/dashboard/formules";
+    return getNotificationCenterPathForRole(role, fallback);
+  }
+  if (notification.type === "signup_application") {
+    return role === "admin" ? "/admin/utilisateurs?tab=applications" : "/auth";
+  }
+  if (notification.type === "restaurant_subscription") {
+    if (role === "admin") return "/admin/restaurants";
+    if (role === "restaurateur") return "/dashboard/mon-compte-facturation";
+    return getNotificationCenterPathForRole(role, fallback);
+  }
+
   const supportIncidentId = firstString(data.support_incident_id, data.incident_id, data.ticket_id);
   const aiSupportTicketId = firstString(data.ai_support_ticket_id, data.support_ticket_id);
   if (supportIncidentId || aiSupportTicketId) {

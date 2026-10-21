@@ -63,9 +63,28 @@ function createUniqueNotificationTopic(topicPrefix: string, userId: string) {
   return `${topicPrefix}:${userId}:${globalNotificationTopicSequence}:${randomPart}`;
 }
 
-function invalidateNotificationQueries(queryClient: QueryClient, userId: string) {
+function invalidateNotificationQueries(queryClient: QueryClient, userId: string, notification?: RealtimeNotification) {
   queryClient.invalidateQueries({ queryKey: ["navbar-notifications", userId] });
   queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+  const data = notification?.data && typeof notification.data === "object" && !Array.isArray(notification.data)
+    ? notification.data : {};
+  const restaurantId = typeof data.restaurant_id === "string" && data.restaurant_id.trim()
+    ? data.restaurant_id.trim() : null;
+  if (notification?.type === "golden_tok") {
+    if (data.recipient_role === "admin") queryClient.invalidateQueries({ queryKey: ["admin-golden-tok-applications"] });
+    if (restaurantId && data.recipient_role === "restaurateur") {
+      queryClient.invalidateQueries({ queryKey: ["golden-tok-accreditation", restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ["golden-tok-formulas", restaurantId] });
+    }
+  } else if (notification?.type === "signup_application") {
+    if (data.recipient_role === "admin") queryClient.invalidateQueries({ queryKey: ["admin-signup-applications"] });
+    else queryClient.invalidateQueries({ queryKey: ["signup-application", userId] });
+  } else if (notification?.type === "restaurant_subscription") {
+    if (data.recipient_role === "admin") queryClient.invalidateQueries({ queryKey: ["admin-restaurant-subscriptions"] });
+    if (restaurantId && data.recipient_role === "restaurateur") {
+      queryClient.invalidateQueries({ queryKey: ["restaurant-subscription-self-service", restaurantId] });
+    }
+  }
 }
 
 function subscribeNotifications(
@@ -122,7 +141,7 @@ export function createRealtimeNotificationManager({
         const subscribers = new Map<symbol, NotificationSubscriber>();
         const notifySubscribers = (notification?: RealtimeNotification) => {
           for (const current of subscribers.values()) {
-            invalidateNotificationQueries(current.queryClient, userId);
+            invalidateNotificationQueries(current.queryClient, userId, notification);
             if (notification) {
               current.onInsert?.(notification);
             }

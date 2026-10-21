@@ -24,6 +24,9 @@ CREATE TABLE IF NOT EXISTS public.notification_business_events (
 CREATE INDEX IF NOT EXISTS notification_business_events_pending_idx
   ON public.notification_business_events(next_attempt_at,created_at,id)
   WHERE status IN ('queued','retrying');
+CREATE INDEX IF NOT EXISTS email_queue_signup_notification_lookup_idx
+  ON public.email_queue(lower(to_email),(metadata->>'application_id'),(metadata->>'kind'),created_at)
+  WHERE metadata->>'kind' IN ('signup_admin_alert','signup_decision');
 ALTER TABLE public.notification_business_events ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.notification_business_events FROM PUBLIC,anon,authenticated;
 GRANT SELECT,INSERT,UPDATE,DELETE ON public.notification_business_events TO service_role;
@@ -103,6 +106,7 @@ BEGIN
         SELECT NOT EXISTS(
           SELECT 1 FROM public.email_queue q JOIN auth.users u ON u.id=e.user_id
           WHERE lower(q.to_email)=lower(u.email)
+            AND q.metadata->>'kind' IN ('signup_admin_alert','signup_decision')
             AND q.metadata->>'kind'=e.legacy_email_kind
             AND q.metadata->>'application_id'=e.data->>'application_id'
             AND q.created_at>=e.created_at
@@ -282,8 +286,8 @@ BEGIN
     v_event:='reply';
     v_type:='support_reply';
     v_title:='Le support TOK vous a répondu';
-    v_body:='Une nouvelle réponse du support est disponible dans votre conversation TOK.';
-    v_owner_url:=CASE WHEN v_owner_role='restaurateur' THEN '/dashboard/support' ELSE '/?chat=open' END;
+    v_body:='Une nouvelle réponse du support est disponible. Ouvrez votre conversation depuis l’aide TOK ou votre espace support.';
+    v_owner_url:=CASE WHEN v_owner_role='restaurateur' THEN '/dashboard/support' ELSE '/aide' END;
     v_data:=jsonb_build_object('support_incident_id',n->>'incident_id');
 
   ELSIF TG_TABLE_NAME='support_incidents' THEN
@@ -300,7 +304,7 @@ BEGIN
     v_type:='support_status';
     v_title:='Votre dossier support a été mis à jour';
     v_body:=CASE WHEN v_event='resolved' THEN 'Votre dossier a été marqué comme résolu. Consultez votre conversation pour les détails.' ELSE 'Votre dossier support est clôturé. Consultez votre conversation pour les détails.' END;
-    v_owner_url:=CASE WHEN v_owner_role='restaurateur' THEN '/dashboard/support' ELSE '/?chat=open' END;
+    v_owner_url:=CASE WHEN v_owner_role='restaurateur' THEN '/dashboard/support' ELSE '/aide' END;
     v_data:=jsonb_build_object('support_incident_id',v_source);
   ELSE RETURN NEW;
   END IF;

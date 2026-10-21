@@ -105,5 +105,23 @@ SELECT public.notification_test_assert(NOT has_table_privilege('authenticated','
 SELECT public.notification_test_assert(NOT has_function_privilege('authenticated','public.process_notification_business_events(integer)','EXECUTE'),'ordinary users cannot dispatch');
 SELECT public.notification_test_assert(NOT has_function_privilege('anon','public.queue_business_notification(text,uuid,text,text,text,text,jsonb,text)','EXECUTE'),'anonymous callers cannot forge notifications');
 SELECT public.notification_test_assert((SELECT count(*)=1 FROM cron.job WHERE jobname='tok-process-business-notifications'),'one bounded retry schedule is installed');
+-- A user who owns the restaurant and is also admin receives one projection.
+INSERT INTO public.user_roles VALUES ('00000000-0000-4000-8000-000000000001','admin');
+UPDATE public.restaurants SET owner_id='00000000-0000-4000-8000-000000000001' WHERE id='10000000-0000-4000-8000-000000000001';
+UPDATE public.golden_tok_accreditations SET status='pending' WHERE restaurant_id='10000000-0000-4000-8000-000000000001';
+SELECT public.process_notification_business_events(100);
+SELECT public.notification_test_assert((SELECT count(*)=2 FROM public.notifications WHERE type='golden_tok' AND data->>'event'='pending' AND user_id='00000000-0000-4000-8000-000000000001'),'admin who owns the restaurant is not double-notified');
+-- A persistent enqueue error is retained, bounded and does not loop.
+INSERT INTO public.notification_preferences VALUES ('00000000-0000-4000-8000-000000000004','{"email":"invalid-boolean"}','{}');
+SELECT public.queue_business_notification('bounded-retry-fixture','00000000-0000-4000-8000-000000000004','applicant','Fixture','Fixture','fixture','{}');
+DO $$ BEGIN
+  FOR i IN 1..6 LOOP
+    UPDATE public.notification_business_events SET next_attempt_at=now() WHERE event_key='bounded-retry-fixture' AND status='retrying';
+    PERFORM public.process_notification_business_events(100);
+  END LOOP;
+END $$;
+SELECT public.notification_test_assert((SELECT status='failed' AND attempts=5 AND next_attempt_at IS NULL FROM public.notification_business_events WHERE event_key='bounded-retry-fixture'),'persistent errors stop after five attempts');
+SELECT public.queue_business_notification('bounded-retry-fixture','00000000-0000-4000-8000-000000000004','applicant','Fixture','Fixture','fixture','{}');
+SELECT public.notification_test_assert((SELECT count(*)=1 FROM public.notification_business_events WHERE event_key='bounded-retry-fixture'),'capture idempotency preserves a single event recipient');
 \endif
 ROLLBACK;
