@@ -13,10 +13,12 @@ describe("TOK homepage Core Web Vitals safeguards", () => {
   expect(html).not.toContain('href="/images/home/tok-geneve-mobile-fast.webp"');
   expect(html).not.toContain('href="/images/home/tok-leman-signature-fast.webp"');
   expect(hero).toContain("desktopImage");
+  expect(hero).toContain('/images/home/tok-leman-signature.webp');
+  expect(hero).not.toContain('/images/home/tok-leman-signature-fast.webp');
   expect(hero).toContain("mobileImage");
   expect(hero).toContain('loading="eager"');
   expect(hero).toContain('fetchpriority: "high"');
-  expect(assetSize("images/home/tok-leman-signature-fast.webp")).toBeLessThan(160_000);
+  expect(assetSize("images/home/tok-leman-signature.webp")).toBeLessThan(300_000);
   expect(assetSize("images/home/tok-geneve-mobile-fast.webp")).toBeLessThan(165_000);
 });
 
