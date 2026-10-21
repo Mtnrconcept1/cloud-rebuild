@@ -1,0 +1,58 @@
+name: Business notifications PostgreSQL
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/*business_notification*.sql'
+      - 'src/test/sql/business_notifications_smoke.sql'
+      - '.github/workflows/business-notifications-postgres.yml'
+  push:
+    branches: [fix/notification-business-wiring-20261021]
+    paths:
+      - 'supabase/migrations/*business_notification*.sql'
+      - 'src/test/sql/business_notifications_smoke.sql'
+      - '.github/workflows/business-notifications-postgres.yml'
+permissions:
+  contents: read
+jobs:
+  transactional-notification-wiring:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: notification_fixture
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: notification_fixture
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Extract only the existing notification queue functions
+        run: |
+          python3 - <<'PY'
+          import pathlib,re
+          functions = [('supabase/migrations/20260329140000_fix_notification_pipeline_newsletter_column.sql','enqueue_notification'),('supabase/migrations/20260907011600_notification_delivery_reliability.sql','queue_notification_deliveries')]
+          output = []
+          for path,name in functions:
+              source=pathlib.Path(path).read_text()
+              match=re.search(r'CREATE OR REPLACE FUNCTION public\.'+name+r'\([\s\S]*?\n\$\$;',source)
+              if not match: raise SystemExit('Missing reviewed fixture function: '+name)
+              output.append(match.group(0))
+          pathlib.Path('src/test/sql/_notification_queue_fixture.sql').write_text('\n'.join(output))
+          PY
+      - name: Verify notification events without production access
+        run: |
+          apply_patch=false
+          if test -f supabase/migrations/20261021110000_business_notification_event_wiring.sql; then apply_patch=true; fi
+          psql -X -v ON_ERROR_STOP=1 -v apply_notification_patch="$apply_patch" -f src/test/sql/business_notifications_smoke.sql
