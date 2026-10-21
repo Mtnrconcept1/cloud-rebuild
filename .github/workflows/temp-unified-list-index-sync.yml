@@ -1,0 +1,35 @@
+name: Temporary TOK unified list index sync
+on:
+  push:
+    branches:
+      - codex/tok-unified-list-controls-20261021
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.ref == 'refs/heads/codex/tok-unified-list-controls-20261021'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Regenerate the canonical application index then remove this workflow
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/temp-unified-list-index-sync.yml
+          pnpm docs:application-index
+          git add docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(index): refresh unified TOK list reference"
+          git push origin HEAD:codex/tok-unified-list-controls-20261021
