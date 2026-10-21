@@ -6,6 +6,7 @@ import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypt
 import { MailingImageInputError, validateMailingImage } from "./marketingMailingImage.js";
 import { parseInstagramResearchRequest } from "../supabase/functions/_shared/marketing-instagram-research.js";
 import { parseInstagramReviewRequest } from "../supabase/functions/_shared/marketing-instagram-review.js";
+import { parseMarketingContentReviewRequest } from "../supabase/functions/_shared/marketing-content-review-request.js";
 import { buildTokMarketingRequest } from "../supabase/functions/_shared/tok-connect-marketing-operations.js";
 import { readVerifiedTokOAuthClaims } from "../supabase/functions/_shared/tok-connect-oauth-policy.js";
 
@@ -1604,6 +1605,15 @@ function marketingOperationError(value: unknown): PublicBffError | null {
   const error = asRecord(value);
   const guard = `${stringField(error, "code", 5)}:${stringField(error, "message", 200)}`;
   switch (guard) {
+    case "40001:Content review changed; refresh before retrying":
+      return new PublicBffError(409, "marketing_content_review_changed",
+        "La validation ou le contenu a changé. Actualisez le suivi Telegram avant de relancer l’envoi.");
+    case "22023:Content review cannot be retried in its current state":
+      return new PublicBffError(409, "marketing_content_review_not_retryable",
+        "Cette validation ne peut pas être relancée dans son état actuel. Actualisez son suivi.");
+    case "42501:Marketing content Telegram approval required":
+      return new PublicBffError(409, "marketing_content_review_required",
+        "Le contenu courant attend votre validation dans Telegram avant sa diffusion.");
     case "42501:Campaign approval is required first":
     case "42501:Campaign approval is required before activation":
     case "42501:Parent campaign is not approved":
@@ -1759,6 +1769,31 @@ async function runMarketingOrchestrator(
   const config = readConfig();
   const body = parseJsonBody(req, 16 * 1024);
   const action = stringField(body, "action", 32);
+  if (action === "content_review_status" || action === "content_review_retry") {
+    let payload;
+    try { payload = parseMarketingContentReviewRequest(body); }
+    catch { throw new PublicBffError(400, "invalid_request", "Demande de validation Telegram invalide."); }
+    const session = await activeSession(config, req, true);
+    await ensureServiceAdmin(config, session.userId);
+    await consumeRateLimit(config, req, "content-review", session.userId, false);
+    // Status never sends. An explicit retry only queues a new attempt; the
+    // independent worker delivers it even after the browser session closes.
+    const args: JsonObject = { p_target_type: payload.targetType, p_target_id: payload.targetId };
+    if (payload.action === "content_review_retry") {
+      args.p_expected_revision = payload.expectedRevision;
+      args.p_expected_review_id = payload.expectedReviewId;
+      args.p_reason = "Relance de la validation Telegram demandée par l’administrateur";
+    }
+    const result = await serviceRpc(config, "service_execute_marketing_admin_operation", {
+      p_sid_hash: session.sessionHash,
+      p_csrf_hash: session.csrfHash,
+      p_operation: payload.action === "content_review_status"
+        ? "admin_get_marketing_content_review_status" : "admin_retry_marketing_content_review",
+      p_args: args,
+    }, { explainOperationErrors: true });
+    sendJson(res, 200, result);
+    return;
+  }
   if (action === "instagram_review_submit" || action === "instagram_review_list") {
     let payload;
     try { payload = parseInstagramReviewRequest(body); }
