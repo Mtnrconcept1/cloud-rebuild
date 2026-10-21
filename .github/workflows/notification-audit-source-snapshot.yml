@@ -1,0 +1,103 @@
+name: Finalize notification registry validation
+on:
+  push:
+    branches: [fix/notification-business-wiring-20261021]
+    paths: [.github/workflows/notification-audit-source-snapshot.yml]
+permissions:
+  contents: write
+concurrency:
+  group: finish-notification-business-wiring-20261021
+  cancel-in-progress: false
+jobs:
+  finish:
+    if: github.ref == 'refs/heads/fix/notification-business-wiring-20261021'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+      VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Verify dedicated branch and update the exact registry contract
+        run: |
+          test "$GITHUB_REF" = refs/heads/fix/notification-business-wiring-20261021
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain)"
+          git switch -C fix/notification-business-wiring-20261021
+          git fetch origin 4a55e19d4437b3f401dae62382a8151ba9e0410a --depth=1
+          pnpm install --frozen-lockfile
+          mkdir -p _notification_validation
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/test/application-search-index.test.ts')
+          old='    expect(index.catalogs.cronJobs).toHaveLength(36);'
+          new='''    expect(index.catalogs.cronJobs).toHaveLength(37);
+              expect(
+                index.catalogs.cronJobs.find((job: { name: string }) => job.name === "tok-process-business-notifications"),
+              ).toMatchObject({ schedules: ["* * * * *"] });'''.replace('\n          ', '\n')
+          source=p.read_text()
+          if source.count(old)!=1: raise SystemExit('Registry assertion changed unexpectedly')
+          p.write_text(source.replace(old,new))
+          PY
+          git rm .github/workflows/notification-audit-source-snapshot.yml
+          git add src/test/application-search-index.test.ts
+          pnpm docs:application-index
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          pnpm docs:application-index:check | tee _notification_validation/index.log
+          git diff --cached --check
+      - name: Validate registry and notification regressions before commit
+        run: |
+          set -o pipefail
+          pnpm exec vitest run --mode production src/test/application-search-index.test.ts src/test/notification-business-dispatch.test.ts src/test/notification-business-routing.test.ts src/test/realtime-notifications.test.ts src/test/realtime-notification-recovery.test.ts src/test/notification-campaign-idempotency.test.ts src/test/notification-support-realtime-publication.test.ts src/test/admin-notifications-governance.test.ts src/test/dashboard-notification-day-badges.test.ts src/test/notifications-ai-admin-hardening.test.ts src/test/notifications-sinistres-governance.test.ts src/test/support-notification-governance.test.ts src/test/golden-tok-accreditation.test.ts 2>&1 | tee _notification_validation/vitest.log
+          pnpm exec eslint src/test/application-search-index.test.ts 2>&1 | tee _notification_validation/lint.log
+          pnpm typecheck 2>&1 | tee _notification_validation/typecheck.log
+          pnpm build 2>&1 | tee _notification_validation/build.log
+      - name: Commit only validated registry changes to the dedicated branch
+        run: |
+          test "$(git ls-remote origin "$GITHUB_REF" | cut -f1)" = "$GITHUB_SHA"
+          python3 - <<'PY'
+          import subprocess
+          allowed={'.github/workflows/notification-audit-source-snapshot.yml','src/test/application-search-index.test.ts','docs/architecture/TOK_APPLICATION_REFERENCE.md','docs/architecture/tok-application-search-index.json','src/data/tok-user-guide-catalog.generated.ts'}
+          changed=set(subprocess.check_output(['git','diff','--cached','--name-only']).decode().splitlines())
+          if not changed or not changed<=allowed: raise SystemExit('Unexpected staged files')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test(notifications): register and verify the durable notification scheduler'
+          git push origin HEAD:refs/heads/fix/notification-business-wiring-20261021
+          test -z "$(git status --porcelain --untracked-files=no)"
+          git rev-parse HEAD | tee _notification_validation/commit.txt
+      - name: Package all complete changed files
+        run: |
+          python3 - <<'PY'
+          import pathlib,subprocess,hashlib,json,zipfile
+          root=pathlib.Path.cwd(); base='4a55e19d4437b3f401dae62382a8151ba9e0410a'
+          paths=subprocess.check_output(['git','diff','--name-only',base,'HEAD']).decode().splitlines()
+          manifest={'base':base,'commit':subprocess.check_output(['git','rev-parse','HEAD']).decode().strip(),'files':{}}
+          with zipfile.ZipFile('_notification_validation/TOK_notifications_fichiers_complets.zip','w',zipfile.ZIP_DEFLATED) as archive:
+              for name in paths:
+                  p=root/name
+                  if p.is_file():
+                      archive.write(p,name); manifest['files'][name]=hashlib.sha256(p.read_bytes()).hexdigest()
+              archive.writestr('MANIFEST.json',json.dumps(manifest,indent=2,ensure_ascii=False))
+          (root/'_notification_validation/manifest.json').write_text(json.dumps(manifest,indent=2,ensure_ascii=False))
+          print(json.dumps({'commit':manifest['commit'],'files':paths},indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: notification-audit-final-validation
+          path: _notification_validation/
+          retention-days: 3
+          if-no-files-found: warn
