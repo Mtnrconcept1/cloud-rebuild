@@ -105,6 +105,6 @@ describe("retired one-button launch", () => {
     expect(view).not.toContain("MARKETING_BFF_ENDPOINTS.launch");
     expect(view).not.toContain("Approuver et lancer la campagne");
     expect(view).toContain("Ouvrir les campagnes pour approbation");
-    expect(view).toContain("Chaque élément doit être");
+    expect(view).toContain("approuve et planifie automatiquement ses publications");
   });
 });
