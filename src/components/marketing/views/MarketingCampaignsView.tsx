@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, ImageIcon, Images, Megaphone, Plus, RefreshCw, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { MarketingPostImage, MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
+import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
 import { MarketingMailingImageUpload } from "@/components/marketing/MarketingMailingImageUpload";
 import { compareMarketingRevisions, loadMarketingCampaignItems } from "@/marketing/marketingClient";
 import { isMarketingMailingReady } from "@/marketing/postPreview";
@@ -31,6 +33,7 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import type { SortDirection } from "@/lib/listSorting";
 import {
   isPublicMarketingChannel,
   type MarketingAudienceKind,
@@ -210,6 +213,9 @@ export default function MarketingCampaignsView({
   const [campaignReview, setCampaignReview] = useState<CampaignReviewState | null>(null);
   const currentReview = campaignReview?.campaignId === approvalCampaign?.id ? campaignReview : null;
   const [clientRequestId, setClientRequestId] = useState<string>(crypto.randomUUID());
+  const [campaignViewMode, setCampaignViewMode] = useState<OperationViewMode>("details");
+  const [campaignSortKey, setCampaignSortKey] = useState<"updated" | "name" | "start" | "sent">("updated");
+  const [campaignSortDirection, setCampaignSortDirection] = useState<SortDirection>("desc");
   const [channelRecommendation, setChannelRecommendation] = useState<{
     audienceKey: string;
     channel: MarketingChannelId;
@@ -226,7 +232,17 @@ export default function MarketingCampaignsView({
       .filter((campaign) => !query || `${campaign.name} ${campaign.objective} ${campaign.audienceName}`.toLowerCase().includes(query))
       .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
   }, [filters.query, filters.status, snapshot.campaigns]);
-  const pageItems = filtered.slice((filters.page - 1) * PAGE_SIZE, filters.page * PAGE_SIZE);
+  const sortedCampaigns = useMemo(() => {
+    const collator = new Intl.Collator("fr-CH", { sensitivity: "base", numeric: true });
+    return [...filtered].sort((left, right) => {
+      const comparison = campaignSortKey === "sent" ? left.sent - right.sent
+        : campaignSortKey === "name" ? collator.compare(left.name, right.name)
+        : campaignSortKey === "start" ? (left.startsAt || "").localeCompare(right.startsAt || "")
+        : left.updatedAt.localeCompare(right.updatedAt);
+      return (campaignSortDirection === "asc" ? comparison : -comparison) || left.id.localeCompare(right.id);
+    });
+  }, [filtered, campaignSortKey, campaignSortDirection]);
+  const pageItems = sortedCampaigns.slice((filters.page - 1) * PAGE_SIZE, filters.page * PAGE_SIZE);
   const selectableChannels = snapshot.channels.filter((channel) => ["available", "manual"].includes(channel.availability));
   const selectedAudience = snapshot.audiences.find((audience) => audience.id === wizard.audienceId);
   const selectedAudienceKind = selectedAudience?.kind || wizard.audienceKind;
@@ -425,13 +441,44 @@ export default function MarketingCampaignsView({
         </CardContent>
       </Card>
 
+      <Card>
+        <CardContent className="flex flex-col gap-4 p-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="mb-2 text-xs text-muted-foreground">{filtered.length} campagne(s) dans la sélection</p>
+            <SortControls
+              className="max-w-lg"
+              columns={[{ key: "updated", label: "Dernière modification" }, { key: "name", label: "Nom" }, { key: "start", label: "Date de début" }, { key: "sent", label: "Nombre d’envois" }]}
+              sortKey={campaignSortKey}
+              direction={campaignSortDirection}
+              onSortKeyChange={(key) => { setCampaignSortKey(key); onFiltersChange({ page: 1 }); }}
+              onDirectionChange={(direction) => { setCampaignSortDirection(direction); onFiltersChange({ page: 1 }); }}
+            />
+          </div>
+          <OperationViewToggle value={campaignViewMode} onChange={setCampaignViewMode} ariaLabel="Mode d’affichage des campagnes marketing" />
+        </CardContent>
+      </Card>
+
       {pageItems.length ? (
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className={cn("grid gap-4", campaignViewMode === "gallery" ? "sm:grid-cols-2 2xl:grid-cols-3" : campaignViewMode === "details" ? "xl:grid-cols-2" : "grid-cols-1")}>
           {pageItems.map((campaign) => {
             const deliveryRate = campaign.sent ? campaign.delivered / campaign.sent : 0;
             const campaignItems = snapshot.calendar.filter((item) => item.campaignId === campaign.id);
             const visualItems = campaignItems.filter((item) => item.visualUrl);
-            return (
+            return campaignViewMode === "list" ? (
+              <Card key={campaign.id} className="min-w-0">
+                <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{campaign.name}</p>
+                    <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{campaign.objective} · {campaign.audienceName}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Mis à jour {formatMarketingDate(campaign.updatedAt)} · {campaign.sent.toLocaleString("fr-CH")} envois</p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <MarketingStatusBadge status={getMarketingCampaignDisplayStatus(campaign)} />
+                    <Button type="button" size="sm" variant="outline" onClick={() => openCampaign(campaign)}>Voir et approuver</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
               <Card key={campaign.id} className="min-w-0 overflow-hidden">
                 <CardHeader className="space-y-3">
                   <div className="flex min-w-0 items-start justify-between gap-3">
@@ -463,18 +510,18 @@ export default function MarketingCampaignsView({
                     )}
                     {campaignItems.length ? <Button type="button" size="sm" variant="ghost" className="mt-2 w-full" onClick={() => openCampaign(campaign)}>Relire les publications et les visuels</Button> : null}
                   </div>
-                  <div className="rounded-xl border bg-muted/20 p-3">
+                  <div className={cn("rounded-xl border bg-muted/20 p-3", campaignViewMode === "gallery" && "hidden")}>
                     <p className="text-xs text-muted-foreground">Audience</p>
                     <p className="mt-1 truncate text-sm font-semibold">{campaign.audienceName}</p>
                   </div>
-                  <div className="grid grid-cols-4 gap-2 text-center">
+                  <div className={cn("grid grid-cols-4 gap-2 text-center", campaignViewMode === "gallery" && "hidden")}>
                     <div><p className="text-lg font-bold">{campaign.sent.toLocaleString("fr-CH")}</p><p className="text-[10px] text-muted-foreground">envoyés</p></div>
                     <div><p className="text-lg font-bold">{campaign.delivered.toLocaleString("fr-CH")}</p><p className="text-[10px] text-muted-foreground">distribués</p></div>
                     <div><p className="text-lg font-bold">{campaign.clicked.toLocaleString("fr-CH")}</p><p className="text-[10px] text-muted-foreground">clics</p></div>
                     <div><p className="text-lg font-bold">{campaign.conversions.toLocaleString("fr-CH")}</p><p className="text-[10px] text-muted-foreground">conversions</p></div>
                   </div>
-                  <div><div className="mb-2 flex items-center justify-between text-xs"><span className="text-muted-foreground">Distribution</span><span className="font-semibold">{formatMarketingPercent(deliveryRate)}</span></div><Progress value={deliveryRate * 100} className="h-2" /></div>
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground">
+                  <div className={cn(campaignViewMode === "gallery" && "hidden")}><div className="mb-2 flex items-center justify-between text-xs"><span className="text-muted-foreground">Distribution</span><span className="font-semibold">{formatMarketingPercent(deliveryRate)}</span></div><Progress value={deliveryRate * 100} className="h-2" /></div>
+                  <div className={cn("flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground", campaignViewMode === "gallery" && "hidden")}>
                     <span>{campaign.startsAt ? `Début ${formatMarketingDate(campaign.startsAt)}` : "Date à définir"}</span>
                     <span>Mis à jour {formatMarketingDate(campaign.updatedAt)}</span>
                   </div>
