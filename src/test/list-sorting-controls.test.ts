@@ -49,19 +49,20 @@ describe("shared list sorting controls", () => {
     }
   });
   it("exposes filters, sorting and three presentation modes on restaurant menu items", () => {
-    const source = readProjectFile("src/pages/dashboard/DashboardMenu.tsx");
-    expect(source).toContain("visibleMenuItems.map");
-    expect(source).toContain("menuCategories");
-    expect(source).toContain("menuAvailability");
-    expect(source).toContain("menuSearch.trim()");
-    expect(source).toContain("menuSortKey");
-    expect(source).toContain("menuSortDirection");
-    expect(source).toContain("OperationViewToggle");
-    expect(source).toContain('menuViewMode === "gallery"');
-    expect(source).toContain('menuViewMode === "list"');
-    expect(source).toContain("toggleAvailability(item.id");
-    expect(source).toContain("openEdit(item)");
-    expect(source).toContain("handleDelete(item.id)");
+    const source = readProjectFile("src/components/dashboard/RestaurantMenuCatalog.tsx");
+    const page = readProjectFile("src/pages/dashboard/DashboardMenu.tsx");
+    const styles = readProjectFile("src/components/dashboard/RestaurantWorkspacePages.css");
+    for (const token of [
+      "visibleMenuItems.map", "selectedCategory", "menuAvailability",
+      "menuSearch.trim()", "menuSortKey", "menuSortDirection",
+      "OperationViewToggle", "data-view={menuViewMode}",
+      "onToggleAvailability(item.id", "onEdit(item)", "onDelete(item.id)",
+    ]) {
+      expect(source).toContain(token);
+    }
+    expect(page).toContain("RestaurantMenuCatalog");
+    expect(styles).toContain('tok-menu-items[data-view="gallery"]');
+    expect(styles).toContain('tok-menu-items[data-view="list"]');
   });
 
   it("filters shared notification history before progressive display and preserves read actions", () => {

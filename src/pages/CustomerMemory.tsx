@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Brain,
   Check,
   Download,
   Loader2,
@@ -14,6 +13,7 @@ import {
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import CustomerPageHero from "@/components/dashboard/CustomerPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -228,7 +228,7 @@ export default function CustomerMemory() {
   });
 
   const renderItem = (item: CustomerMemoryItem) => (
-    <Card key={item.id} className="overflow-hidden">
+    <Card key={item.id} className="tok-customer-memory-item overflow-hidden">
       <CardContent className="p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
@@ -308,22 +308,84 @@ export default function CustomerMemory() {
 
   return (
     <CustomerDashboardLayout>
-      <div className="space-y-6">
-        <div className="rounded-3xl border bg-gradient-to-br from-orange-50 via-background to-amber-50 p-6 dark:from-orange-950/20 dark:to-amber-950/10">
-          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-            <Brain className="h-4 w-4" />
-            TOK Customer Memory
-          </div>
-          <h1 className="mt-3 font-display text-3xl font-bold">
-            Ma mémoire TOK
-          </h1>
-          <p className="mt-3 max-w-3xl text-muted-foreground">
-            Consultez, confirmez, corrigez, exportez ou effacez ce que TOK
-            utilise pour personnaliser vos recommandations. Aucune préférence
-            déduite n’est active sans votre confirmation.
-          </p>
+      <div className="tok-customer-page tok-customer-memory space-y-6">
+        <CustomerPageHero
+          breadcrumb="Ma mémoire TOK"
+          title="Ma mémoire TOK"
+          subtitle="Une expérience qui suit vos envies."
+          description="Consultez, confirmez, corrigez, exportez ou effacez ce que TOK utilise pour personnaliser vos recommandations. Aucune préférence déduite n’est active sans votre confirmation."
+        />
+        <div className="tok-customer-memory-summary grid gap-4 sm:grid-cols-3">
+          <Card>
+            <CardContent className="p-5">
+              <p className="text-sm text-muted-foreground">
+                Préférences actives
+              </p>
+              <p className="mt-2 text-3xl font-bold">{activeItems.length}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-5">
+              <p className="text-sm text-muted-foreground">
+                Suggestions à confirmer
+              </p>
+              <p className="mt-2 text-3xl font-bold">{pendingItems.length}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-5">
+              <p className="text-sm text-muted-foreground">Total visible</p>
+              <p className="mt-2 text-3xl font-bold">{items.length}</p>
+            </CardContent>
+          </Card>
         </div>
+        <div className="tok-customer-memory-layout">
+          <div className="tok-customer-memory-main space-y-6">
+        <div className="tok-customer-memory-items space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display text-2xl font-bold">
+              Éléments mémorisés
+            </h2>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => memoryQuery.refetch()}
+              disabled={memoryQuery.isFetching}
+            >
+              <RefreshCcw
+                className={`mr-2 h-4 w-4 ${
+                  memoryQuery.isFetching ? "animate-spin" : ""
+                }`}
+              />
+              Actualiser
+            </Button>
+          </div>
 
+          {memoryQuery.isLoading ? (
+            <Card>
+              <CardContent className="flex items-center justify-center p-8">
+                <Loader2 className="h-5 w-5 animate-spin" />
+              </CardContent>
+            </Card>
+          ) : items.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center text-muted-foreground">
+                TOK ne mémorise actuellement aucune préférence.
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {pendingItems.map(renderItem)}
+              {activeItems.map(renderItem)}
+              {items
+                .filter(
+                  (item) =>
+                    item.status !== "pending" && item.status !== "active",
+                )
+                .map(renderItem)}
+            </>
+          )}
+        </div>
         {!memoryQuery.data?.consentGranted ? (
           <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/20">
             <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -401,32 +463,6 @@ export default function CustomerMemory() {
             </CardContent>
           </Card>
         )}
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground">
-                Préférences actives
-              </p>
-              <p className="mt-2 text-3xl font-bold">{activeItems.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground">
-                Suggestions à confirmer
-              </p>
-              <p className="mt-2 text-3xl font-bold">{pendingItems.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground">Total visible</p>
-              <p className="mt-2 text-3xl font-bold">{items.length}</p>
-            </CardContent>
-          </Card>
-        </div>
-
         <Card>
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -455,56 +491,11 @@ export default function CustomerMemory() {
             </p>
           </CardContent>
         </Card>
-
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-2xl font-bold">
-              Éléments mémorisés
-            </h2>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => memoryQuery.refetch()}
-              disabled={memoryQuery.isFetching}
-            >
-              <RefreshCcw
-                className={`mr-2 h-4 w-4 ${
-                  memoryQuery.isFetching ? "animate-spin" : ""
-                }`}
-              />
-              Actualiser
-            </Button>
           </div>
-
-          {memoryQuery.isLoading ? (
-            <Card>
-              <CardContent className="flex items-center justify-center p-8">
-                <Loader2 className="h-5 w-5 animate-spin" />
-              </CardContent>
-            </Card>
-          ) : items.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center text-muted-foreground">
-                TOK ne mémorise actuellement aucune préférence.
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              {pendingItems.map(renderItem)}
-              {activeItems.map(renderItem)}
-              {items
-                .filter(
-                  (item) =>
-                    item.status !== "pending" && item.status !== "active",
-                )
-                .map(renderItem)}
-            </>
-          )}
-        </div>
-
-        <Card>
+          <aside className="tok-customer-memory-aside">
+        <Card className="tok-customer-memory-controls">
           <CardHeader>
-            <CardTitle>Contrôle et portabilité</CardTitle>
+            <CardTitle>Vous gardez le contrôle</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -549,6 +540,8 @@ export default function CustomerMemory() {
             </div>
           </CardContent>
         </Card>
+          </aside>
+        </div>
       </div>
     </CustomerDashboardLayout>
   );

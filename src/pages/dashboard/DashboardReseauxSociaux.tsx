@@ -196,11 +196,11 @@ export default function DashboardReseauxSociaux() {
   const connectedProfiles = items.filter((item) => Object.values(getSocialLinks(item.opening_hours)).some(Boolean)).length;
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-social">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Présence digitale"
-          title="Reseaux sociaux"
+          title="Réseaux sociaux"
           description="Centralisez Instagram, Facebook, site web et TikTok pour maintenir une fiche restaurant coherente partout."
           icon={Globe}
           tone="sky"

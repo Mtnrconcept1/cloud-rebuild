@@ -174,8 +174,8 @@ export default function DashboardSupport() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-support">
+      <div className="tok-support-workspace space-y-6">
         <DashboardPageHero
           badge="Support restaurateur"
           title="Aide et support"

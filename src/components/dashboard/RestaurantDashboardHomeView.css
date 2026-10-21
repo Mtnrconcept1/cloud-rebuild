@@ -38,3 +38,41 @@
     max-width: 36rem;
   }
 }
+
+/* The desktop overview follows the supplied hospitality mockup with live values. */
+.tok-hospitality-workspace .tok-restaurant-overview { gap: 20px; }
+.tok-hospitality-workspace .tok-overview-hero .tok-hospitality-hero-copy { min-height: 244px; }
+.tok-hospitality-workspace .tok-overview-hero .tok-hospitality-hero-copy h1 { font-size: clamp(38px, 4.2vw, 68px); }
+.tok-hospitality-workspace .tok-overview-hero .tok-hospitality-hero-copy p { max-width: 90%; font-family: var(--workspace-serif); font-size: clamp(19px, 2vw, 28px); line-height: 1.35; color: hsl(var(--foreground)); }
+.tok-hospitality-workspace .tok-overview-date { display: flex; align-items: center; gap: 10px; font-size: 13px; color: hsl(var(--foreground)); }
+.tok-hospitality-workspace .tok-overview-primary-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.tok-hospitality-workspace .tok-overview-service-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.tok-hospitality-workspace .tok-overview-stat { padding: 18px; border: 1px solid hsl(var(--border)); border-radius: 16px; background: hsl(var(--card)); box-shadow: none; }
+.tok-hospitality-workspace .tok-overview-stat-content { gap: 10px; }
+.tok-hospitality-workspace .tok-overview-stat-content > div:first-child { gap: 14px; align-items: flex-start; }
+.tok-hospitality-workspace .tok-overview-stat-content > div:last-child { display: none; }
+.tok-hospitality-workspace .tok-overview-stat .tok-kpi-icon { width: 45px; height: 45px; border-radius: 50%; background: #fff0df; color: #d6550b; box-shadow: none; }
+.tok-hospitality-workspace .tok-overview-stat .tok-kpi-icon svg { width: 23px; height: 23px; }
+.tok-hospitality-workspace .tok-overview-stat p:first-child { font: 500 12px/1.5 "DM Sans", sans-serif; }
+.tok-hospitality-workspace .tok-overview-stat .tok-kpi-value { margin-top: 7px; font: 600 clamp(22px, 2.15vw, 35px)/1.15 var(--workspace-serif); color: hsl(var(--foreground)); font-variant-numeric: tabular-nums; }
+.tok-hospitality-workspace .tok-overview-activity-grid { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 18px; }
+.tok-hospitality-workspace .tok-overview-text-link { display: inline-flex; align-items: center; gap: 8px; color: #b64c0a; font-size: 12px; }
+.tok-hospitality-workspace .tok-overview-chart { height: 215px; width: 100%; color: hsl(var(--muted-foreground)); }
+.tok-hospitality-workspace .tok-overview-revenue-total { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid hsl(var(--border)); font-size: 13px; }
+.tok-hospitality-workspace .tok-overview-revenue-total strong { font: 600 22px var(--workspace-serif); }
+.tok-hospitality-workspace .tok-overview-next-actions a, .tok-hospitality-workspace .tok-overview-next-actions [aria-disabled="true"] { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; padding: 18px 0; border: 0; border-bottom: 1px solid hsl(var(--border)); border-radius: 0; background: transparent; }
+.tok-hospitality-workspace .tok-overview-next-actions a:last-child { border-bottom: 0; }
+.tok-hospitality-workspace .tok-overview-action-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: #d6550b; background: #fff0df; }
+.tok-hospitality-workspace .tok-overview-next-actions strong { display: block; font-size: 13px; line-height: 1.45; font-weight: 600; }
+.tok-hospitality-workspace .tok-overview-next-actions small { display: block; margin-top: 5px; color: hsl(var(--muted-foreground)); font-size: 12px; }
+.tok-hospitality-workspace .tok-overview-upcoming .tok-kpi-icon { width: 36px; height: 36px; border-radius: 50%; color: #d6550b; background: #fff0df; box-shadow: none; }
+.tok-hospitality-workspace .tok-overview-upcoming .tok-kpi-icon svg { width: 19px; height: 19px; }
+.tok-hospitality-workspace .tok-overview-leading { display: grid; gap: 16px; }
+.tok-hospitality-workspace .tok-overview-promotion > section { border-radius: 18px; }
+.dark .tok-hospitality-workspace .tok-overview-action-icon, .dark .tok-hospitality-workspace .tok-overview-stat .tok-kpi-icon, .dark .tok-hospitality-workspace .tok-overview-upcoming .tok-kpi-icon { color: #ffba82; background: #472c1b; }
+.dark .tok-hospitality-workspace .tok-overview-text-link { color: #ffc18b; }
+@media (min-width: 768px) and (max-width: 1199px) {
+  .tok-hospitality-workspace .tok-overview-primary-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tok-hospitality-workspace .tok-overview-activity-grid { grid-template-columns: minmax(0, 1fr); }
+  .tok-hospitality-workspace .tok-overview-service-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { MessageSquareReply, RefreshCcw, Search, Star } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import CustomerPageHero from "@/components/dashboard/CustomerPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -161,21 +162,20 @@ export default function ClientReviews() {
 
   return (
     <CustomerDashboardLayout>
-      <div className="space-y-6">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-primary">Mon activité</p>
-            <h1 className="mt-1 font-display text-3xl font-bold">Mes avis</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Retrouvez vos avis, leur statut de publication et les réponses des restaurants.
-            </p>
-          </div>
-          <Button asChild variant="outline" className="min-h-11 w-full sm:w-auto">
-            <Link to="/recherche"><Search className="mr-2 h-4 w-4" />Découvrir un restaurant</Link>
-          </Button>
-        </header>
+      <div className="tok-customer-page tok-customer-reviews space-y-6">
+        <CustomerPageHero
+          breadcrumb="Mes avis"
+          title="Mes avis"
+          subtitle="Vos expériences, vos bonnes adresses."
+          description="Retrouvez vos avis, leur statut de publication et les réponses des restaurants."
+          actions={
+            <Button asChild variant="outline" className="min-h-11">
+              <Link to="/recherche"><Search className="mr-2 h-4 w-4" />Découvrir un restaurant</Link>
+            </Button>
+          }
+        />
 
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer les avis">
+        <div className="tok-customer-filter-bar flex flex-wrap gap-2" role="group" aria-label="Filtrer les avis">
           {FILTERS.map((item) => (
             <Button
               key={item.id}
@@ -190,7 +190,7 @@ export default function ClientReviews() {
           ))}
         </div>
 
-        <div className="space-y-3 rounded-2xl border bg-card p-4">
+        <div className="tok-customer-view-bar space-y-3 rounded-2xl border bg-card p-4">
           <Input aria-label="Rechercher dans mes avis" value={reviewSearch} onChange={(event) => setReviewSearch(event.target.value)} placeholder="Restaurant, ville ou commentaire…" />
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <SortControls<"date" | "restaurant" | "rating">
@@ -205,7 +205,8 @@ export default function ClientReviews() {
           </div>
           <p className="text-xs text-muted-foreground">{filteredReviews.length} avis parmi {reviews.length} chargés (100 au maximum).</p>
         </div>
-
+        <div className="tok-customer-reviews-layout">
+          <div className="min-w-0">
         {!isCommercialDemoClient && reviewsQuery.isLoading ? (
           <div className="space-y-3" aria-label="Chargement des avis">
             {[1, 2, 3].map((item) => <div key={item} className="h-40 animate-pulse rounded-2xl bg-muted" />)}
@@ -232,7 +233,7 @@ export default function ClientReviews() {
             ) : null}
           </div>
         ) : (
-          <div className={cn("gap-4", reviewViewMode === "gallery" ? "grid sm:grid-cols-2" : "space-y-4")}>
+          <div className={cn("tok-customer-review-list", reviewViewMode === "gallery" ? "grid gap-4 sm:grid-cols-2" : "space-y-4")} data-view={reviewViewMode}>
             {filteredReviews.map((review) => {
               const restaurant = firstRestaurant(review.restaurants);
               const status = statusPresentation(review.status);
@@ -242,13 +243,13 @@ export default function ClientReviews() {
                 .sort((left, right) => left.created_at.localeCompare(right.created_at));
 
               return (
-                <article key={review.id} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
-                  <div className="p-4 sm:p-5">
-                    <div className="flex min-w-0 items-start gap-3">
+                <article key={review.id} className="tok-customer-review-card overflow-hidden rounded-2xl border bg-card shadow-sm">
+                  <div className="tok-customer-review-card__content p-4 sm:p-5">
+                    <div className="tok-customer-review-card__heading flex min-w-0 items-start gap-3">
                       <img
                         src={restaurant?.image_url || "/images/kebab-box-spread.jpeg"}
                         alt=""
-                        className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                        className="tok-customer-review-card__photo h-12 w-12 shrink-0 rounded-xl object-cover"
                         loading="lazy"
                       />
                       <div className="min-w-0 flex-1">
@@ -279,7 +280,7 @@ export default function ClientReviews() {
                   </div>
 
                   {replies.length > 0 && reviewViewMode === "details" ? (
-                    <div className="space-y-3 border-t bg-muted/25 p-4 sm:p-5">
+                    <div className="tok-customer-review-card__replies space-y-3 border-t bg-muted/25 p-4 sm:p-5">
                       <p className="flex items-center gap-2 text-sm font-semibold">
                         <MessageSquareReply className="h-4 w-4 text-primary" />Réponse du restaurant
                       </p>
@@ -293,12 +294,21 @@ export default function ClientReviews() {
                       ))}
                     </div>
                   ) : null}
-                {replies.length > 0 && reviewViewMode !== "details" ? <p className="border-t p-3 text-xs text-muted-foreground">{replies.length} réponse(s) — passez en vue détaillée pour les lire.</p> : null}
+                  {replies.length > 0 && reviewViewMode !== "details" ? <p className="border-t p-3 text-xs text-muted-foreground">{replies.length} réponse(s) — passez en vue détaillée pour les lire.</p> : null}
                 </article>
               );
             })}
           </div>
         )}
+          </div>
+          <aside className="tok-customer-note-card tok-customer-reviews-aside">
+            <h2>Un repas à raconter ?</h2>
+            <p>Votre expérience aide la communauté TOK à découvrir de belles adresses.</p>
+            <img src="/images/dashboard/restaurant-ambience.webp" alt="" loading="lazy" />
+            <Button asChild className="w-full"><Link to="/commandes">Retrouver mes achats</Link></Button>
+            <Button asChild variant="outline" className="mt-3 w-full"><Link to="/reservations">Retrouver mes réservations</Link></Button>
+          </aside>
+        </div>
       </div>
     </CustomerDashboardLayout>
   );

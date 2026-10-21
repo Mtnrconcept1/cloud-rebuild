@@ -1,0 +1,42 @@
+/* Shared by the restaurant dashboard and the manager’s /equipe/gestion workspace. */
+/* The weekly planning displays every real shift in the employee's own row. */
+.tok-workforce-week-scroll { min-width: 0; max-width: 100%; overflow-x: auto; border: 1px solid hsl(var(--border)); border-radius: 14px; }
+.tok-workforce-week-scroll:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; }
+.tok-workforce-week { width: 100%; min-width: 1060px; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 12px; }
+.tok-workforce-week th { font-weight: 500; }
+.tok-workforce-week thead th { padding: 14px 8px; text-align: center; background: hsl(var(--muted) / .5); border-bottom: 1px solid hsl(var(--border)); text-transform: capitalize; }
+.tok-workforce-week th:first-child { width: 180px; position: sticky; left: 0; z-index: 1; }
+.tok-workforce-week thead th:first-child { z-index: 2; background: hsl(var(--muted)); }
+.tok-workforce-week :is(th, td) + :is(th, td) { border-left: 1px solid hsl(var(--border)); }
+.tok-workforce-week tbody tr + tr > * { border-top: 1px solid hsl(var(--border)); }
+.tok-workforce-week tbody > tr > th { padding: 16px 12px; text-align: left; vertical-align: middle; background: hsl(var(--card)); }
+.tok-workforce-week tbody td { padding: 10px 7px; vertical-align: middle; }
+.tok-workforce-week small { display: block; color: hsl(var(--muted-foreground)); font-size: 11px; margin-top: 3px; font-weight: 400; }
+.tok-workforce-person { display: flex; gap: 9px; align-items: center; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.tok-workforce-initial { display: grid; place-items: center; flex: 0 0 36px; height: 36px; border-radius: 50%; background: #ffe6d2; color: #bd501a; font-size: 18px; }
+.tok-workforce-week tr:nth-child(3n + 2) .tok-workforce-initial { background: #e4ebd9; color: #507134; }
+.tok-workforce-week tr:nth-child(3n + 3) .tok-workforce-initial { background: #e9e2f0; color: #74558e; }
+.tok-workforce-day-shifts { display: grid; gap: 7px; }
+.tok-workforce-shift { border: 1px solid #f0d5be; border-radius: 9px; background: #ffecd9; padding: 9px; cursor: grab; }
+.tok-workforce-shift > strong { display: block; font-weight: 600; text-align: center; font-size: 12px; white-space: nowrap; }
+.tok-workforce-shift > small { text-align: center; }
+.tok-workforce-shift[data-status="confirmed"], .tok-workforce-shift[data-status="completed"] { border-color: #d9e3c8; background: #e8efdc; }
+.tok-workforce-shift[data-status="cancelled"] { border-color: #edc9c4; background: #fff0ee; }
+.tok-workforce-shift-status, .tok-workforce-shift-actions { display: flex; gap: 5px; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 10px; }
+.tok-workforce-shift-status button { color: #9d4214; text-decoration: underline; text-underline-offset: 3px; }
+.tok-workforce-shift-actions button:first-child { color: hsl(var(--muted-foreground)); text-decoration: underline; text-underline-offset: 3px; }
+.tok-workforce-shift button { min-height: 25px; }
+.tok-workforce-shift button:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.tok-workforce-shift button:disabled { opacity: .5; }
+.tok-workforce-absence { margin: 0; border-radius: 8px; padding: 8px; text-align: center; background: #fff0ce; color: #8a6218; font-size: 11px; }
+.tok-workforce-day-empty { display: block; padding: 12px 0; text-align: center; color: hsl(var(--muted-foreground)); }
+.dark .tok-workforce-shift { border-color: #6d4c33; background: #412c1e; }
+.dark .tok-workforce-shift[data-status="confirmed"], .dark .tok-workforce-shift[data-status="completed"] { border-color: #51623d; background: #2d3924; }
+.dark .tok-workforce-shift[data-status="cancelled"] { border-color: #71463e; background: #492922; }
+.dark .tok-workforce-shift-status button { color: #ffc29b; }
+.dark .tok-workforce-absence { background: #463619; color: #ffdd92; }
+
+@media (max-width: 639px) {
+  .tok-workforce-week th:first-child { width: 148px; }
+  .tok-workforce-week { min-width: 1028px; }
+}

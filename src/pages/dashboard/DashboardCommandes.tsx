@@ -8,6 +8,7 @@ import DayNotificationBadge from "@/components/notifications/DayNotificationBadg
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
+import RestaurantOrderBoard from "@/components/dashboard/RestaurantOrderBoard";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { CommercialDemoOrders } from "@/components/dashboard/CommercialDemoScenario";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
@@ -362,7 +363,7 @@ function LiveDashboardCommandes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortKey, setSortKey] = useState<DashboardOrderSortKey>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [viewMode, setViewMode] = useState<OperationViewMode>("details");
+  const [viewMode, setViewMode] = useState<OperationViewMode>(orderTarget ? "details" : "board");
   const [demoActionPending, setDemoActionPending] = useState(false);
   const deepLinkFocusedRef = useRef<string | null>(null);
   const previousOrderTargetRef = useRef<string | null>(null);
@@ -721,15 +722,118 @@ function LiveDashboardCommandes() {
     void updateStatus(order.id, normalizedStatus);
   };
 
+  const renderOrderCard = (order: DashboardOrder) => {
+    const orderType = classifyDashboardOrderType(order);
+    const orderTypeMeta = getDashboardOrderTypeMeta(orderType);
+    const customer = order.customer;
+    const items = order.order_items ?? [];
+    const itemCount = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+    const restaurantViewedAt = typeof order.restaurant_viewed_at === "string" ? order.restaurant_viewed_at : null;
+    const isAwaitingRestaurantAcceptance = normalizeOrderStatus(order.status) === "confirmed";
+    const orderStatusLockMessage = getOrderStatusLockMessage(order);
+    const isOrderStatusLocked = Boolean(orderStatusLockMessage);
+    const statusOptions = isCommercialDemoRestaurant ? getCommercialDemoStatusOptions(order) : getStatusOptions(order);
+
+    return (
+      <article
+        id={`order-${order.id}`}
+        key={order.id}
+        tabIndex={-1}
+        className={`tok-order-card min-w-0 rounded-2xl border bg-card p-4 shadow-sm ring-1 transition hover:border-primary/30 ${orderTypeMeta.cardClassName}${order.id === orderTarget ? " ring-2 ring-primary ring-offset-2" : " ring-transparent"}`}
+      >
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="break-words text-base font-bold">{order.order_number || `#${order.id.slice(0, 8)}`}</span>
+              <OrderStatusBadge status={normalizeOrderStatus(order.status)} />
+              {orderTypeMeta.badgeLabel ? (
+                <Badge variant="outline" className={orderTypeMeta.badgeClassName}>{orderTypeMeta.badgeLabel}</Badge>
+              ) : (
+                <Badge variant="outline">À la carte</Badge>
+              )}
+              <Badge variant="outline" className={restaurantViewedAt ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}>
+                <Eye className="mr-1 h-3 w-3" />
+                {restaurantViewedAt ? "Vue" : "À voir"}
+              </Badge>
+            </div>
+            <p className="text-sm font-medium">{customer?.full_name || "Client anonyme"}</p>
+            <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+              <div className="rounded-lg border bg-background/70 p-2">
+                <p className="text-muted-foreground">Montant</p>
+                <p className="font-bold text-primary">{Number(order.total_amount).toFixed(2)} CHF</p>
+              </div>
+              <div className="rounded-lg border bg-background/70 p-2">
+                <p className="text-muted-foreground">Articles</p>
+                <p className="font-semibold">{itemCount || items.length}</p>
+              </div>
+              <div className="rounded-lg border bg-background/70 p-2">
+                <p className="text-muted-foreground">Date</p>
+                <p className="font-semibold">{new Date(order.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}</p>
+              </div>
+            </div>
+            {viewMode !== "list" ? (
+              <p className="line-clamp-2 text-xs text-muted-foreground">
+                {items.slice(0, 3).map((item) => `${item.quantity}x ${item.name || "Article"}`).join(" · ") || "Détail article indisponible"}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+            {!restaurantViewedAt ? (
+              <Button size="sm" variant="outline" onClick={() => void markOrderSeen(order.id)} disabled={cancelMutation.isPending || demoActionPending}>
+                <Eye className="mr-1 h-4 w-4" />
+                Vue
+              </Button>
+            ) : null}
+            {isAwaitingRestaurantAcceptance ? (
+              <Button size="sm" onClick={() => handleStatusSelection(order, "accepted")} disabled={isOrderStatusLocked || cancelMutation.isPending || demoActionPending}>
+                <CheckCircle className="mr-1 h-4 w-4" />
+                Accepter
+              </Button>
+            ) : null}
+            <Button size="sm" variant="outline" className="text-destructive" onClick={() => setCancelTarget(order)} disabled={isCommercialDemoRestaurant || !canCancelOrder(order) || cancelMutation.isPending || demoActionPending}>
+              <Ban className="mr-1 h-4 w-4" />
+              Annuler
+            </Button>
+          </div>
+        </div>
+        {viewMode === "board" ? (
+          <div className="tok-order-board-card-footer">
+            <Select
+              value={normalizeOrderStatus(order.status)}
+              onValueChange={(value) => handleStatusSelection(order, value)}
+              disabled={isOrderStatusLocked || cancelMutation.isPending || demoActionPending}
+            >
+              <SelectTrigger aria-label={`Statut de la commande ${order.order_number || order.id}`}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status} value={status}>{STATUS_LABELS[status] || status}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" onClick={() => {
+              setViewMode("details");
+              setOpenDayKey(order.created_at.slice(0, 10));
+            }}>
+              Détails
+            </Button>
+            {orderStatusLockMessage ? <p className="text-xs text-muted-foreground">{orderStatusLockMessage}</p> : null}
+          </div>
+        ) : null}
+      </article>
+    );
+  };
+
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-orders">
       <div
         className="space-y-6"
         data-commercial-demo-source={isCommercialDemoRestaurant ? "isolated-snapshot" : undefined}
       >
         <DashboardPageHero
           badge="Operations restaurant"
-          title="Commandes"
+          title="Commandes et retraits"
           description="Pilotez les commandes par jour, source et statut avec les informations client, paiement et livraison au même endroit."
           icon={ClipboardList}
           tone="violet"
@@ -762,7 +866,7 @@ function LiveDashboardCommandes() {
 
         {!effectiveRestaurantsLoading && !effectiveRestaurantsError && selectedRestaurant && !ordersError ? (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 gap-3 rounded-xl border bg-card p-3 shadow-sm md:grid-cols-2 md:p-4 xl:grid-cols-7">
+            <div className="tok-operation-filters grid grid-cols-1 gap-3 rounded-xl border bg-card p-3 shadow-sm md:grid-cols-2 md:p-4 xl:grid-cols-7">
               <div className="space-y-1">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Rechercher</p>
                 <div className="relative">
@@ -813,92 +917,21 @@ function LiveDashboardCommandes() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="tok-operation-viewbar flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-semibold">Vue des commandes</p>
-                <p className="text-xs text-muted-foreground">Galerie pour scanner, liste pour traiter, détails pour piloter par jour.</p>
+                <p className="text-xs text-muted-foreground">Tableau par statut, galerie, liste ou détails par jour : choisissez votre vue de travail.</p>
               </div>
-              <OperationViewToggle value={viewMode} onChange={setViewMode} ariaLabel="Mode de vue des commandes restaurant" />
+              <OperationViewToggle includeBoard value={viewMode} onChange={setViewMode} ariaLabel="Mode de vue des commandes restaurant" />
             </div>
 
-            {viewMode !== "details" && filteredOrders.length > 0 ? (
-              <div className={viewMode === "gallery" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
-                {sortedOrders.map((order) => {
-                  const orderType = classifyDashboardOrderType(order);
-                  const orderTypeMeta = getDashboardOrderTypeMeta(orderType);
-                  const customer = order.customer;
-                  const items = order.order_items ?? [];
-                  const itemCount = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-                  const restaurantViewedAt = typeof order.restaurant_viewed_at === "string" ? order.restaurant_viewed_at : null;
-                  const isAwaitingRestaurantAcceptance = normalizeOrderStatus(order.status) === "confirmed";
-                  const orderStatusLockMessage = getOrderStatusLockMessage(order);
-                  const isOrderStatusLocked = Boolean(orderStatusLockMessage);
+            {viewMode === "board" ? (
+              <RestaurantOrderBoard orders={sortedOrders} renderOrder={renderOrderCard} />
+            ) : null}
 
-                  return (
-                    <article
-                      id={`order-${order.id}`}
-                      key={order.id}
-                      tabIndex={-1}
-                      className={`min-w-0 rounded-2xl border bg-card p-4 shadow-sm ring-1 transition hover:border-primary/30 ${orderTypeMeta.cardClassName}${order.id === orderTarget ? " ring-2 ring-primary ring-offset-2" : " ring-transparent"}`}
-                    >
-                      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0 space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="break-words text-base font-bold">{order.order_number || `#${order.id.slice(0, 8)}`}</span>
-                            <OrderStatusBadge status={normalizeOrderStatus(order.status)} />
-                            {orderTypeMeta.badgeLabel ? (
-                              <Badge variant="outline" className={orderTypeMeta.badgeClassName}>{orderTypeMeta.badgeLabel}</Badge>
-                            ) : (
-                              <Badge variant="outline">À la carte</Badge>
-                            )}
-                            <Badge variant="outline" className={restaurantViewedAt ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}>
-                              <Eye className="mr-1 h-3 w-3" />
-                              {restaurantViewedAt ? "Vue" : "À voir"}
-                            </Badge>
-                          </div>
-                          <p className="text-sm font-medium">{customer?.full_name || "Client anonyme"}</p>
-                          <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
-                            <div className="rounded-lg border bg-background/70 p-2">
-                              <p className="text-muted-foreground">Montant</p>
-                              <p className="font-bold text-primary">{Number(order.total_amount).toFixed(2)} CHF</p>
-                            </div>
-                            <div className="rounded-lg border bg-background/70 p-2">
-                              <p className="text-muted-foreground">Articles</p>
-                              <p className="font-semibold">{itemCount || items.length}</p>
-                            </div>
-                            <div className="rounded-lg border bg-background/70 p-2">
-                              <p className="text-muted-foreground">Date</p>
-                              <p className="font-semibold">{new Date(order.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}</p>
-                            </div>
-                          </div>
-                          {viewMode === "gallery" ? (
-                            <p className="line-clamp-2 text-xs text-muted-foreground">
-                              {items.slice(0, 3).map((item) => `${item.quantity}x ${item.name || "Article"}`).join(" · ") || "Détail article indisponible"}
-                            </p>
-                          ) : null}
-                        </div>
-                        <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
-                          {!restaurantViewedAt ? (
-                            <Button size="sm" variant="outline" onClick={() => void markOrderSeen(order.id)} disabled={cancelMutation.isPending || demoActionPending}>
-                              <Eye className="mr-1 h-4 w-4" />
-                              Vue
-                            </Button>
-                          ) : null}
-                          {isAwaitingRestaurantAcceptance ? (
-                            <Button size="sm" onClick={() => handleStatusSelection(order, "accepted")} disabled={isOrderStatusLocked || cancelMutation.isPending || demoActionPending}>
-                              <CheckCircle className="mr-1 h-4 w-4" />
-                              Accepter
-                            </Button>
-                          ) : null}
-                          <Button size="sm" variant="outline" className="text-destructive" onClick={() => setCancelTarget(order)} disabled={isCommercialDemoRestaurant || !canCancelOrder(order) || cancelMutation.isPending || demoActionPending}>
-                            <Ban className="mr-1 h-4 w-4" />
-                            Annuler
-                          </Button>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
+            {(viewMode === "gallery" || viewMode === "list") && filteredOrders.length > 0 ? (
+              <div className={viewMode === "gallery" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
+                {sortedOrders.map(renderOrderCard)}
               </div>
             ) : null}
 

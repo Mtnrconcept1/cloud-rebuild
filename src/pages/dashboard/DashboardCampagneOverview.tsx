@@ -144,7 +144,7 @@ export default function DashboardCampagneOverview() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-campaign-overview">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Marketing restaurant"

@@ -80,13 +80,15 @@ function renderDashboardCommandes() {
     },
   });
 
-  return render(
+  const view = render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
         <DashboardCommandes />
       </MemoryRouter>
     </QueryClientProvider>,
   );
+  fireEvent.click(screen.getByLabelText("Afficher les détails"));
+  return view;
 }
 
 describe("DashboardCommandes day accordion", () => {

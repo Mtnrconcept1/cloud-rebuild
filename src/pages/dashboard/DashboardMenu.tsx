@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
-import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
-import SortControls from "@/components/list/SortControls";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
+import RestaurantMenuCatalog from "@/components/dashboard/RestaurantMenuCatalog";
 import DailyDishAiPanel from "@/components/dashboard/DailyDishAiPanel";
 import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
 import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
@@ -40,8 +39,6 @@ import {
 } from "@/lib/commercialDemoRestaurantTools";
 import { invokeSupabaseFunction } from "@/lib/session";
 import { useDashboardRestaurant } from "./useDashboardRestaurant";
-import { cn } from "@/lib/utils";
-import type { SortDirection } from "@/lib/listSorting";
 
 const supabase = getSupabase();
 
@@ -192,12 +189,6 @@ export default function DashboardMenu() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [menuSearch, setMenuSearch] = useState("");
-  const [menuCategory, setMenuCategory] = useState("all");
-  const [menuAvailability, setMenuAvailability] = useState("all");
-  const [menuSortKey, setMenuSortKey] = useState<"name" | "category" | "price" | "availability">("name");
-  const [menuSortDirection, setMenuSortDirection] = useState<SortDirection>("asc");
-  const [menuViewMode, setMenuViewMode] = useState<OperationViewMode>("details");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MenuItemForm>(emptyItem);
   const [categoryMode, setCategoryMode] = useState<"preset" | "custom">("preset");
@@ -286,29 +277,6 @@ export default function DashboardMenu() {
     },
     enabled: !!restaurant,
   });
-
-  const menuCategories = useMemo(() => Array.from(new Set((items || [])
-    .map((item) => item.category?.trim())
-    .filter((category): category is string => Boolean(category))))
-    .sort((left, right) => left.localeCompare(right, "fr-CH")), [items]);
-
-  const visibleMenuItems = useMemo(() => {
-    const query = menuSearch.trim().toLocaleLowerCase("fr-CH");
-    const collator = new Intl.Collator("fr-CH", { sensitivity: "base", numeric: true });
-    const matching = (items || []).filter((item) => {
-      if (menuCategory !== "all" && item.category !== menuCategory) return false;
-      if (menuAvailability === "available" && item.is_available === false) return false;
-      if (menuAvailability === "unavailable" && item.is_available !== false) return false;
-      return !query || `${item.name} ${item.category || ""} ${item.description || ""}`.toLocaleLowerCase("fr-CH").includes(query);
-    });
-    return matching.sort((left, right) => {
-      const comparison = menuSortKey === "price" ? Number(left.price) - Number(right.price)
-        : menuSortKey === "category" ? collator.compare(left.category || "", right.category || "")
-        : menuSortKey === "availability" ? Number(left.is_available !== false) - Number(right.is_available !== false)
-        : collator.compare(left.name, right.name);
-      return (menuSortDirection === "asc" ? comparison : -comparison) || left.id.localeCompare(right.id);
-    });
-  }, [items, menuSearch, menuCategory, menuAvailability, menuSortKey, menuSortDirection]);
 
   const restaurantMediaPickerBaseQuery = {
     queryKey: ["restaurant-media-picker", restaurant?.id],
@@ -794,11 +762,11 @@ export default function DashboardMenu() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-menu">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Carte restaurant"
-          title="Menu"
+          title="Votre carte"
           description="Organisez les plats, les prix, les photos et la disponibilité avant qu'ils apparaissent dans les parcours client."
           icon={BookOpen}
           tone="emerald"
@@ -835,65 +803,13 @@ export default function DashboardMenu() {
         {!restaurant ? (
           <p className="py-8 text-center text-muted-foreground">Sélectionnez un restaurant pour gérer ses produits.</p>
         ) : (
-          <div className="space-y-4">
-            <div className="space-y-3 rounded-2xl border bg-card p-4">
-              <div className="grid gap-3 md:grid-cols-3">
-                <Input aria-label="Rechercher un plat" value={menuSearch} onChange={(event) => setMenuSearch(event.target.value)} placeholder="Rechercher un plat…" />
-                <Select value={menuCategory} onValueChange={setMenuCategory}>
-                  <SelectTrigger aria-label="Filtrer par catégorie"><SelectValue placeholder="Catégorie" /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">Toutes les catégories</SelectItem>{menuCategories.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select value={menuAvailability} onValueChange={setMenuAvailability}>
-                  <SelectTrigger aria-label="Filtrer par disponibilité"><SelectValue placeholder="Disponibilité" /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">Tous les plats</SelectItem><SelectItem value="available">Disponibles</SelectItem><SelectItem value="unavailable">Indisponibles</SelectItem></SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div className="flex flex-1 flex-wrap items-end gap-3">
-                  <SortControls<"name" | "category" | "price" | "availability">
-                    className="w-full max-w-lg"
-                    columns={[{ key: "name", label: "Nom" }, { key: "category", label: "Catégorie" }, { key: "price", label: "Prix" }, { key: "availability", label: "Disponibilité" }]}
-                    sortKey={menuSortKey}
-                    direction={menuSortDirection}
-                    onSortKeyChange={setMenuSortKey}
-                    onDirectionChange={setMenuSortDirection}
-                  />
-                  <Button variant="ghost" size="sm" onClick={() => { setMenuSearch(""); setMenuCategory("all"); setMenuAvailability("all"); }}>Effacer les filtres</Button>
-                </div>
-                <OperationViewToggle value={menuViewMode} onChange={setMenuViewMode} ariaLabel="Mode d’affichage des plats du menu" />
-              </div>
-              <p className="text-xs text-muted-foreground">{visibleMenuItems.length} plat(s) sur {items?.length || 0}</p>
-            </div>
-            <div className={cn("gap-3", menuViewMode === "gallery" ? "grid sm:grid-cols-2 xl:grid-cols-3" : "space-y-3")}>
-            {visibleMenuItems.map((item) => (
-              <div key={item.id} className={cn("flex gap-4 rounded-xl border bg-card p-4", menuViewMode === "gallery" ? "flex-col" : "items-center", menuViewMode === "list" && "p-3")}>
-                {item.image_url && menuViewMode !== "list" && (
-                  <img src={item.image_url} alt={item.name} loading="lazy" className={cn("rounded-lg object-cover", menuViewMode === "gallery" ? "aspect-[4/3] w-full" : "h-16 w-16")} />
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-semibold">{item.name}</h4>
-                    {item.category && (
-                      <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                        {item.category}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm font-bold text-primary">{Number(item.price).toFixed(2)} CHF</p>
-                  {menuViewMode === "details" && item.description ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.description}</p> : null}
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <Switch aria-label={`Disponibilité de ${item.name}`} checked={item.is_available ?? true} onCheckedChange={() => toggleAvailability(item.id, item.is_available ?? true)} />
-                  <Button size="icon" variant="ghost" aria-label={`Modifier ${item.name}`} onClick={() => openEdit(item)}><Pencil className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" className="text-destructive" aria-label={`Supprimer ${item.name}`} onClick={() => handleDelete(item.id)}><Trash2 className="h-4 w-4" /></Button>
-                </div>
-              </div>
-            ))}
-            {!visibleMenuItems.length && (
-              <p className="py-8 text-center text-muted-foreground">{items?.length ? "Aucun plat ne correspond aux filtres sélectionnés." : "Aucun plat dans le menu"}</p>
-            )}
-            </div>
-          </div>
+          <RestaurantMenuCatalog
+            key={restaurant.id}
+            items={items || []}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+            onToggleAvailability={toggleAvailability}
+          />
         )}
 
         <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
@@ -981,7 +897,7 @@ export default function DashboardMenu() {
         </Dialog>
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-          <DialogContent className="max-h-[min(92vh,900px)] overflow-y-auto sm:max-w-3xl">
+          <DialogContent className="tok-menu-editor max-h-[min(92vh,900px)] overflow-y-auto sm:max-w-3xl">
             <DialogHeader>
               <DialogTitle>{editingId ? "Modifier le plat" : "Nouveau plat"}</DialogTitle>
             </DialogHeader>

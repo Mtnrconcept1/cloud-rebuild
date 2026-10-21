@@ -235,7 +235,7 @@ export default function DashboardOffres() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-offers">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Offres restaurant"
@@ -333,7 +333,7 @@ export default function DashboardOffres() {
             </CardContent>
           </Card>
         ) : (
-          <div className={cn("gap-3", offerViewMode === "gallery" ? "grid md:grid-cols-2 xl:grid-cols-3" : "space-y-3")}>
+          <div className={cn("tok-offer-catalog gap-3", offerViewMode === "gallery" ? "grid md:grid-cols-2 xl:grid-cols-3" : "space-y-3")} data-view={offerViewMode}>
             {visibleOffers.map((offer) => {
               const isSoldOut = isSpecialOfferSoldOut(offer);
               const isEffectivelyActive = isSpecialOfferEffectivelyActive(offer);
@@ -344,7 +344,7 @@ export default function DashboardOffres() {
                 : 0;
 
               return (
-                <Card key={offer.id}>
+                <Card className="tok-offer-card" key={offer.id}>
                   <CardContent className={cn("flex gap-4", offerViewMode === "gallery" ? "flex-col py-5" : offerViewMode === "list" ? "items-center py-2.5" : "items-center py-4")}>
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex items-center gap-2">

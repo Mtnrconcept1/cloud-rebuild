@@ -1,3 +1,7 @@
+import "@/components/dashboard/WorkspaceDesign.css";
+import "@/components/dashboard/RestaurantWorkspacePages.css";
+import WorkspaceNavigationSection from "@/components/dashboard/WorkspaceNavigationSection";
+import WorkspaceToolbar, { WorkspaceAccountLink, WorkspaceToolSearch } from "@/components/dashboard/WorkspaceToolbar";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -52,6 +56,7 @@ import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
+import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
@@ -79,12 +84,12 @@ const MARKETING_STUDIO_NAV_CLASS =
 
 const NAV_SECTIONS: NavSection[] = [
   {
-    title: "Reussite et performances",
+    title: "Pilotage",
     items: [
       { to: "/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard, feature: "dashboard-overview" },
       { to: "/dashboard/advisor", label: "Assistant IA", icon: Bot, feature: "dashboard-advisor" },
       { to: "/dashboard/commandes", label: "Commandes et retraits", icon: ShoppingCart, feature: "dashboard-commandes" },
-      { to: "/dashboard/reservations", label: "Reservations", icon: CalendarDays, feature: "dashboard-reservations" },
+      { to: "/dashboard/reservations", label: "Réservations", icon: CalendarDays, feature: "dashboard-reservations" },
       { to: "/dashboard/performances", label: "Performances", icon: BarChart3, feature: "dashboard-performances" },
       { to: "/dashboard/comparaison", label: "Comparaison", icon: Scale, feature: "dashboard-comparaison" },
       { to: "/dashboard/avis", label: "Avis clients", icon: MessageSquareText, feature: "dashboard-avis" },
@@ -97,15 +102,15 @@ const NAV_SECTIONS: NavSection[] = [
       { to: "/dashboard/campaign-studio", label: "Campaign Studio IA", icon: Bot, feature: "dashboard-campaign-studio" },
       { to: "/dashboard/crm", label: "CRM clients", icon: Users, feature: "dashboard-crm" },
       { to: "/dashboard/promotions", label: "Promotions", icon: Megaphone, feature: "dashboard-promotions" },
-      { to: "/dashboard/reseaux-sociaux", label: "Reseaux sociaux", icon: Share2, feature: "dashboard-reseaux-sociaux" },
+      { to: "/dashboard/reseaux-sociaux", label: "Réseaux sociaux", icon: Share2, feature: "dashboard-reseaux-sociaux" },
       { to: "/dashboard/photos", label: "Studio Marketing", icon: Camera, feature: "dashboard-photos", emphasis: "marketing-studio" },
       { to: "/dashboard/actualites", label: "Actualités", icon: Newspaper, feature: "dashboard-actualites" },
     ],
   },
   {
-    title: "Paiements",
+    title: "Finances",
     items: [
-      { to: "/dashboard/mon-compte-facturation", label: "Mon compte/Facturation", icon: CreditCard, feature: "dashboard-billing" },
+      { to: "/dashboard/mon-compte-facturation", label: "Mon compte / Facturation", icon: CreditCard, feature: "dashboard-billing" },
       { to: "/dashboard/factures", label: "Comptabilité & factures", icon: ReceiptText, feature: "dashboard-factures" },
     ],
   },
@@ -116,7 +121,7 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: "Page du restaurant",
+    title: "Mon restaurant",
     items: [
       { to: "/dashboard/restaurant", label: "Mon restaurant", icon: UtensilsCrossed, feature: "dashboard-restaurant" },
       { to: "/dashboard/menu", label: "Menu", icon: BookOpen, feature: "dashboard-menu" },
@@ -129,7 +134,7 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: "Support",
+    title: "Assistance",
     items: [
       { to: "/dashboard/notifications", label: "Notifications", icon: Bell },
       { to: "/dashboard/support", label: "Aide et support", icon: CircleHelp, feature: "dashboard-support" },
@@ -162,8 +167,10 @@ function RestaurantSelector({ collapsed = false }: { collapsed?: boolean }) {
   const selected = restaurants.find((r) => r.id === selectedId);
 
   return (
-    <div ref={ref} className="relative mb-3 px-2">
+    <div ref={ref} className="tok-workspace-restaurant-selector relative mb-3 px-2">
       <button
+        aria-label={selected?.name ? `Choisir un restaurant : ${selected.name}` : "Choisir un restaurant"}
+        aria-expanded={open}
         onClick={() => setOpen(!open)}
         className={cn(
           "flex w-full items-center rounded-2xl border bg-sidebar-accent/50 text-sm font-semibold transition-colors dark:border-border dark:bg-card/78 dark:text-slate-100 shadow-sm dark:hover:bg-[#0c1b38]",
@@ -221,8 +228,13 @@ function NavItems({
   return (
     <>
       {sections.map((section) => (
-        <div key={section.title}>
-          {!collapsed && <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground dark:text-slate-400">{section.title}</p>}
+        <WorkspaceNavigationSection
+          key={section.title}
+          title={section.title === "Mon offre" ? "Tok Connect" : section.title}
+          icon={section.items[0].icon}
+          active={section.items.some((item) => isDashboardNavItemActive(pathname, item.to))}
+          collapsed={collapsed}
+        >
           {section.items.map((item) => {
             const isMarketingStudio = item.emphasis === "marketing-studio";
             const isActive = isDashboardNavItemActive(pathname, item.to);
@@ -245,7 +257,9 @@ function NavItems({
               return (
                 <div
                   key={item.to}
-                  className="flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 opacity-40 cursor-not-allowed select-none"
+                  className="tok-workspace-nav-link flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 opacity-40 cursor-not-allowed select-none"
+                  aria-disabled="true"
+                  aria-label={collapsed ? `${item.label} — ${lockTitle}` : undefined}
                   title={lockTitle}
                 >
                   <item.icon className="h-4 w-4" />
@@ -264,8 +278,10 @@ function NavItems({
                 key={item.to}
                 to={item.to}
                 aria-current={isActive ? "page" : undefined}
+                aria-label={collapsed ? item.label : undefined}
+                title={collapsed ? item.label : undefined}
                 className={cn(
-                  "flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
+                  "tok-workspace-nav-link flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
                   isMarketingStudio
                     ? MARKETING_STUDIO_NAV_CLASS
                     : isActive
@@ -286,7 +302,7 @@ function NavItems({
               </Link>
             );
           })}
-        </div>
+        </WorkspaceNavigationSection>
       ))}
     </>
   );
@@ -307,6 +323,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
+  const logoSrc = useTokLogoSrc();
   const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, onboardingConfigurationUnlocked, isDemoMode } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
   const workforceSettings = useWorkforceSettings(isDemoMode ? null : selectedId);
@@ -391,41 +408,36 @@ export default function DashboardLayout({
   });
 
   return (
-    <div className="tok-workspace-shell tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row">
+    <div className="tok-workspace-shell tok-hospitality-workspace tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row">
       {/* SIDEBAR */}
       <aside
         ref={sidebarRef}
+        data-collapsed={collapsed}
         className={cn(
           "tok-workspace-sidebar tok-dashboard-sidebar hidden overflow-y-auto overscroll-contain border-r bg-sidebar transition-all md:sticky md:top-0 md:flex md:h-[100dvh] md:shrink-0 md:self-start md:flex-col",
           collapsed ? "w-[80px]" : "w-72"
         )}
       >
-        <div className="flex items-center justify-between p-3">
-          {!collapsed && (
-            <h2 className="font-display text-xl font-bold text-foreground dark:text-white">
-              Dashboard
-            </h2>
-          )}
-          <Button size="icon" variant="ghost" aria-label={collapsed ? "Développer la navigation" : "Réduire la navigation"} className="rounded-xl dark:hover:bg-white/10" onClick={() => setCollapsed(!collapsed)}>
-            {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+        <div className="tok-workspace-brand">
+          <Link to="/dashboard" aria-label="TOK — Tableau de bord" className="tok-workspace-logo-link">
+            <img src={logoSrc} alt="TOK" width={178} height={116} className="tok-workspace-logo" />
+            {!collapsed && <span>Espace restaurateur</span>}
+          </Link>
+          <Button size="icon" variant="ghost" aria-label={collapsed ? "Développer la navigation" : "Réduire la navigation"} className="tok-workspace-collapse rounded-xl dark:hover:bg-white/10" onClick={() => setCollapsed(!collapsed)}>
+            {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
           </Button>
         </div>
 
         <RestaurantSelector collapsed={collapsed} />
 
         {!collapsed && !commercialDemoFrame ? (
-          <div className="px-2 pb-2">
+          <details className="tok-workspace-role-switch">
+            <summary>Changer d’espace <ChevronDown className="h-3.5 w-3.5" /></summary>
             <RoleSpaceMenuSection />
-          </div>
+          </details>
         ) : null}
 
-        {!commercialDemoFrame ? (
-          <div className="px-2 pb-2">
-            <ChefHelpButton surface="restaurant" collapsed={collapsed} />
-          </div>
-        ) : null}
-
-        <nav className="flex flex-col gap-1 px-2 pb-3">
+        <nav aria-label="Navigation de l’espace restaurateur" className="flex flex-col gap-1 px-2 pb-3">
           <NavItems
             pathname={pathname}
             sections={sections}
@@ -439,7 +451,8 @@ export default function DashboardLayout({
         </nav>
 
         {!commercialDemoFrame ? (
-          <div className="mt-auto border-t px-3 py-3 dark:border-[#5f7aad]/28">
+          <div className="tok-workspace-sidebar-footer mt-auto border-t px-3 py-3 dark:border-[#5f7aad]/28">
+            <ChefHelpButton surface="restaurant" collapsed={collapsed} />
             <SignOutButton
               iconOnly={collapsed}
               className={cn(
@@ -452,7 +465,7 @@ export default function DashboardLayout({
         ) : null}
       </aside>
 
-      <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40] flex items-center gap-2">
+      <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40] flex items-center gap-2 md:hidden">
         <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-sm backdrop-blur-md hover:bg-background dark:border-border dark:bg-card/95 dark:text-white shadow-sm" />
         <NotificationBell />
         {!commercialDemoFrame ? <SignOutButton iconOnly className="hidden min-[420px]:inline-flex" /> : null}
@@ -539,12 +552,23 @@ export default function DashboardLayout({
       </div>
 
       {/* MAIN */}
+      <div className="tok-workspace-body min-w-0 flex-1" data-constrained={constrainToViewport}>
+        <WorkspaceToolbar
+          className="hidden md:flex"
+          search={<WorkspaceToolSearch tools={sections.flatMap((section) => section.items
+            .filter((item) => canAccessRestaurantDashboardRoute({ pathname: item.to, dashboardAccessLocked, onboardingConfigurationUnlocked, disabledFeatures }))
+            .map((item) => ({ ...item, group: section.title })))} />}
+        >
+          <ThemeToggleButton className="h-10 w-10 rounded-full" />
+          <NotificationBell buttonClassName="h-10 w-10 shadow-none" />
+          {!commercialDemoFrame ? <WorkspaceAccountLink to="/dashboard/mon-compte-facturation" /> : null}
+        </WorkspaceToolbar>
       <main
         className={cn(
           "tok-workspace-content relative min-w-0 flex-1 overflow-x-clip p-4 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] sm:p-5 sm:pb-[calc(env(safe-area-inset-bottom,0px)+2.5rem)] md:p-6 md:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]",
           constrainToViewport && "flex h-[100dvh] min-h-0 flex-col overflow-y-hidden",
           mainClassName,
-          "pt-[calc(env(safe-area-inset-top,0px)+5rem)] sm:pt-[calc(env(safe-area-inset-top,0px)+5rem)] md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]",
+          "pt-[calc(env(safe-area-inset-top,0px)+5rem)] sm:pt-[calc(env(safe-area-inset-top,0px)+5rem)] md:pt-4",
         )}
       >
         <div
@@ -556,7 +580,7 @@ export default function DashboardLayout({
         >
           <BackNavigationButton
             fallback={backFallback}
-            className={cn("mb-4", constrainToViewport && "shrink-0")}
+            className={cn("tok-workspace-back mb-4", constrainToViewport && "shrink-0")}
           />
           {isDemoMode ? (
             <div className="mb-6 rounded-3xl border border-sky-200 bg-sky-50/95 p-5 text-sky-950 shadow-sm dark:border-sky-400/25 dark:bg-sky-500/10 dark:text-sky-50" role="status" data-testid="commercial-demo-banner">
@@ -610,6 +634,7 @@ export default function DashboardLayout({
             ) : children}
         </div>
       </main>
+      </div>
     </div>
   );
 }

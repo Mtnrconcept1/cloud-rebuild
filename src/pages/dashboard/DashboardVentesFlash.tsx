@@ -221,7 +221,7 @@ export default function DashboardVentesFlash() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-flash-sales">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Ventes courtes"
@@ -315,7 +315,7 @@ export default function DashboardVentesFlash() {
             </CardContent>
           </Card>
         ) : (
-          <div className={cn("gap-3", saleViewMode === "gallery" ? "grid md:grid-cols-2 xl:grid-cols-3" : "space-y-3")}>
+          <div className={cn("tok-offer-catalog gap-3", saleViewMode === "gallery" ? "grid md:grid-cols-2 xl:grid-cols-3" : "space-y-3")} data-view={saleViewMode}>
             {visibleSales.map((sale) => {
               const isSoldOut = isSpecialOfferSoldOut(sale);
               const isEffectivelyActive = isSpecialOfferEffectivelyActive(sale);
@@ -326,7 +326,7 @@ export default function DashboardVentesFlash() {
                 : 0;
 
               return (
-                <Card key={sale.id}>
+                <Card className="tok-offer-card" key={sale.id}>
                   <CardContent className={cn("flex gap-4", saleViewMode === "gallery" ? "flex-col py-5" : saleViewMode === "list" ? "items-center py-2.5" : "items-center py-4")}>
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex items-center gap-2">
