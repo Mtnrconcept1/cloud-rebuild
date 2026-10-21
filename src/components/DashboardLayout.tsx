@@ -1,3 +1,4 @@
+import "@/components/dashboard/WorkspaceDesign.css";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -52,6 +53,7 @@ import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
+import { useTokLogoSrc } from "@/hooks/useTokLogo";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
@@ -307,6 +309,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
+  const logoSrc = useTokLogoSrc();
   const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, onboardingConfigurationUnlocked, isDemoMode } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
   const workforceSettings = useWorkforceSettings(isDemoMode ? null : selectedId);
@@ -391,7 +394,7 @@ export default function DashboardLayout({
   });
 
   return (
-    <div className="tok-workspace-shell tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row">
+    <div className="tok-workspace-shell tok-hospitality-workspace tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row">
       {/* SIDEBAR */}
       <aside
         ref={sidebarRef}
@@ -402,9 +405,9 @@ export default function DashboardLayout({
       >
         <div className="flex items-center justify-between p-3">
           {!collapsed && (
-            <h2 className="font-display text-xl font-bold text-foreground dark:text-white">
-              Dashboard
-            </h2>
+            <Link to="/dashboard" aria-label="TOK — Tableau de bord" className="inline-flex min-h-14 items-center rounded-xl focus-visible:ring-2 focus-visible:ring-primary">
+              <img src={logoSrc} alt="TOK" width={98} height={64} className="h-16 w-auto object-contain" />
+            </Link>
           )}
           <Button size="icon" variant="ghost" aria-label={collapsed ? "Développer la navigation" : "Réduire la navigation"} className="rounded-xl dark:hover:bg-white/10" onClick={() => setCollapsed(!collapsed)}>
             {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}

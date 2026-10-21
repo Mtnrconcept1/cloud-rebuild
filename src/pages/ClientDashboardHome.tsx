@@ -225,12 +225,13 @@ function MetricCard({
   return (
     <Link
       to={to}
-      className="group min-w-0 rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="tok-client-metric group relative min-w-0 rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       <div className={cn("mb-3 flex h-9 w-9 items-center justify-center rounded-xl", accent)}>
         <Icon className="h-4 w-4" aria-hidden="true" />
       </div>
-      <p className="truncate text-2xl font-bold">{value}</p>
+      <ArrowRight aria-hidden="true" className="tok-client-card-arrow h-4 w-4" />
+      <p className="truncate font-display text-3xl font-bold">{value}</p>
       <p className="mt-1 text-xs text-muted-foreground">{label}</p>
     </Link>
   );
@@ -450,8 +451,8 @@ function LiveClientDashboardHome() {
           </div>
         ) : (
           <>
-            <section className="overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/15 via-background to-pink-500/10 p-5 shadow-sm sm:p-7">
-              <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+            <section className="tok-client-activity-hero relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/15 via-background to-pink-500/10 p-5 shadow-sm sm:p-7">
+              <div className="relative z-10 grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                 <div className="min-w-0">
                   {priorityOrder ? (
                     <>
@@ -502,7 +503,7 @@ function LiveClientDashboardHome() {
                 <DashboardIllustrationMedia
                   eager
                   illustration={heroIllustration}
-                  className="mx-auto h-28 w-28 rounded-[2rem] sm:h-32 sm:w-32 lg:mx-0 lg:h-36 lg:w-36"
+                  className="tok-client-hero-illustration mx-auto h-28 w-28 rounded-[2rem] sm:h-32 sm:w-32 lg:mx-0 lg:h-36 lg:w-36"
                   imageClassName="p-3 drop-shadow-[0_20px_26px_rgba(194,78,24,0.20)]"
                 />
               </div>
@@ -529,12 +530,14 @@ function LiveClientDashboardHome() {
                   <Link
                     key={action.to}
                     to={clientTarget(action.to)}
-                    className="group min-w-0 rounded-2xl border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:p-5"
+                    className="tok-client-quick-action group relative min-w-0 overflow-hidden rounded-2xl border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:p-5"
                   >
                     <div className={cn("mb-3 flex h-10 w-10 items-center justify-center rounded-xl", action.accent)}>
                       <action.icon className="h-5 w-5" aria-hidden="true" />
                     </div>
-                    <p className="break-words text-sm font-bold sm:text-base">{action.label}</p>
+                    <action.icon className="tok-client-action-watermark" aria-hidden="true" />
+                    <ArrowRight className="tok-client-card-arrow h-4 w-4" aria-hidden="true" />
+                    <p className="relative break-words text-sm font-bold sm:text-base">{action.label}</p>
                     <p className="mt-1 hidden text-xs text-muted-foreground sm:block">{action.description}</p>
                   </Link>
                 ))}

@@ -1,3 +1,4 @@
+import "@/components/dashboard/WorkspaceDesign.css";
 import { Link, useLocation } from "react-router-dom";
 import {
   BadgePercent,
@@ -185,7 +186,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   };
 
   return (
-    <div className="tok-workspace-shell min-h-screen overflow-x-hidden bg-background pt-16">
+    <div className="tok-workspace-shell tok-hospitality-workspace min-h-screen overflow-x-hidden bg-background pt-16">
       <div className="container px-3 py-4 sm:px-4 sm:py-6 md:flex md:gap-7 md:py-8">
         <nav aria-label="Navigation de l’espace client" className="mb-4 md:hidden">
           <div className="flex snap-x gap-2 overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

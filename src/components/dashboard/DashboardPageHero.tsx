@@ -89,9 +89,9 @@ export default function DashboardPageHero({
 
   return (
     <Card className={cn("tok-dashboard-hero rounded-3xl border border-border/70", className)}>
-      <CardContent className={cn("relative p-5 sm:p-7 lg:p-8", compact && "p-4 sm:p-5 lg:p-6")}>
-        <div className={cn("grid items-center gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,24rem)]", compact && "gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,21rem)]")}>
-          <div className={cn("relative z-10 min-w-0 space-y-6", compact && "space-y-3")}>
+      <CardContent className={cn("tok-hospitality-hero-layout relative p-5 sm:p-7 lg:p-8", compact && "p-4 sm:p-5 lg:p-6")}>
+        <div className={cn("tok-hospitality-hero-grid grid items-center gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,24rem)]", compact && "gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,21rem)]")}>
+          <div className={cn("tok-hospitality-hero-copy relative z-10 min-w-0 space-y-6", compact && "space-y-3")}>
             <Badge
               variant="outline"
               className={cn("rounded-full border-primary/45 bg-primary/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.26em] text-primary dark:border-[#2d69b8]/70 dark:bg-[#071c3c]/75 dark:text-[#8ec7ff] dark:shadow-[0_0_28px_rgba(30,105,216,0.22)]", compact && "px-3 py-1.5")}
@@ -121,10 +121,10 @@ export default function DashboardPageHero({
             ) : null}
           </div>
 
-          <div className="pointer-events-none relative z-10 hidden lg:block">
+          <div className="tok-hospitality-hero-console relative z-10 hidden lg:block">
             <div className={cn("absolute inset-x-2 top-0 h-1 rounded-full bg-gradient-to-r", toneClasses.line)} />
             <div className={cn(
-              "relative mt-6 w-full rounded-3xl border border-[#6b7da7]/35 bg-white/80 p-5 backdrop-blur dark:bg-[#07142b]/74",
+              "tok-hospitality-console-panel relative mt-6 w-full rounded-3xl border border-[#6b7da7]/35 bg-white/80 p-5 backdrop-blur dark:bg-[#07142b]/74",
               compact && "mt-3 p-3",
               "dark:shadow-[0_26px_74px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)]",
               toneClasses.glow,
@@ -178,7 +178,7 @@ export default function DashboardPageHero({
                     className={cn("h-36 w-36", compact && "h-28 w-28")}
                   />
                 ) : (
-                <div className="mt-5 grid grid-cols-5 items-end gap-2">
+                <div aria-hidden="true" className="mt-5 grid grid-cols-5 items-end gap-2">
                   {[42, 64, 52, 76, 58].map((height, index) => (
                     <span
                       key={`${height}-${index}`}
