@@ -55,3 +55,5 @@ if (isNative()) {
   });
 }
 // HeroSection owns responsive hero-image selection; keep bootstrap free of fixed hero preloads.
+
+// Background heroes use responsive high-quality sources; avoid reintroducing fixed compressed preloads here.
