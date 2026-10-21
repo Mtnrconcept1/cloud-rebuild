@@ -1,7 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  canonicalEvidenceUrl,
+  coverImageFilename,
+  isOwnedRestaurantImageUrl,
+  restaurantEntityImages,
+  reviewCoverMetadata,
+} from "../_shared/restaurant-cover-evidence.ts";
 
 const FUNCTION_NAME = "verify-directory-image-truth";
-const VERIFIER_MODEL = "tok-official-source-verifier-v1";
+const VERIFIER_MODEL = "tok-official-source-verifier-v2";
 const DEFAULT_BATCH_SIZE = 6;
 const MAX_BATCH_SIZE = 8;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -33,25 +40,6 @@ const BLOCKED_HOSTS = [
   "restaurantguru.com",
   "falstaff.com",
   "mapstr.com",
-];
-const BLOCKED_IMAGE_PARTS = [
-  "logo",
-  "favicon",
-  "icon",
-  "avatar",
-  "sprite",
-  "pixel",
-  "tracking",
-  "emoji",
-  "badge",
-  "placeholder",
-  "default-image",
-  "map-marker",
-  "spinner",
-  "loader",
-  "payment",
-  "social",
-  "dummy",
 ];
 const GENERIC_NAME_TOKENS = new Set([
   "restaurant",
@@ -399,29 +387,14 @@ async function sha256Hex(bytes: Uint8Array) {
 }
 
 function imageKindFromUrl(value: string): VerificationDecision["imageKind"] {
-  const lower = value.toLowerCase();
+  const lower = coverImageFilename(value);
   if (/logo|brand|favicon/.test(lower)) return "logo";
   if (/menu|carte/.test(lower)) return "menu";
   if (/terrace|terrasse/.test(lower)) return "terrace";
-  if (/interior|inside|salle|restaurant/.test(lower)) return "interior";
+  if (/interior|inside|salle/.test(lower)) return "interior";
   if (/food|dish|plate|plat|cuisine/.test(lower)) return "food";
   if (/exterior|facade|outside/.test(lower)) return "exterior";
   return "unknown";
-}
-
-function pageReferencesImage(html: string, imageUrl: string) {
-  if (!imageUrl) return false;
-  const decoded = html.replace(/&amp;/gi, "&").replace(/\\u0026/gi, "&").replace(/\\\//g, "/");
-  if (decoded.includes(imageUrl)) return true;
-  try {
-    const url = new URL(imageUrl);
-    if (decoded.includes(url.pathname)) return true;
-    const filename = url.pathname.split("/").filter(Boolean).at(-1) || "";
-    if (filename.length >= 10 && decoded.includes(filename)) return true;
-  } catch {
-    return false;
-  }
-  return false;
 }
 
 async function downloadImage(candidateUrl: string): Promise<DownloadedImage> {
@@ -494,13 +467,14 @@ async function verifyOfficialSource(
       evidence: { candidate_host: candidateHost },
     };
   }
-  if (BLOCKED_IMAGE_PARTS.some((part) => row.candidate_url.toLowerCase().includes(part))) {
+  const candidateMetadata = reviewCoverMetadata(row.candidate_url);
+  if (candidateMetadata) {
     return {
-      decision: "rejected",
-      confidence: 0.99,
-      imageKind: "logo",
-      reason: "blocked_image_url_pattern",
-      evidence: {},
+      decision: candidateMetadata.decision,
+      confidence: candidateMetadata.decision === "rejected" ? 0.99 : 0.5,
+      imageKind: imageKindFromUrl(row.candidate_url),
+      reason: candidateMetadata.reason,
+      evidence: { visual_review_performed: false },
     };
   }
 
@@ -516,6 +490,19 @@ async function verifyOfficialSource(
       imageKind: "unknown",
       reason: message,
       evidence: {},
+    };
+  }
+
+  const finalMetadata = reviewCoverMetadata(downloaded.finalUrl);
+  if (finalMetadata) {
+    return {
+      decision: finalMetadata.decision,
+      confidence: finalMetadata.decision === "rejected" ? 0.99 : 0.5,
+      imageKind: imageKindFromUrl(downloaded.finalUrl),
+      reason: finalMetadata.reason,
+      evidence: { final_image_url: downloaded.finalUrl, visual_review_performed: false },
+      mimeType: downloaded.mimeType,
+      sizeBytes: downloaded.bytes.byteLength,
     };
   }
 
@@ -589,7 +576,7 @@ async function verifyOfficialSource(
     return {
       decision: row.attempt_number < 5 ? "retry" : "manual_review",
       confidence: 0.35,
-      imageKind: imageKindFromUrl(row.candidate_url),
+      imageKind: imageKindFromUrl(downloaded.finalUrl),
       reason: "official_source_identity_not_verified",
       evidence: { source_candidates: sourceCandidates, ...dimensions },
       imageSha256: imageHash,
@@ -613,26 +600,68 @@ async function verifyOfficialSource(
   }
 
   const originalImageUrl = String(imageJob?.source_image_url || "").trim();
-  const originalReferenced = originalImageUrl ? pageReferencesImage(sourcePage.html, originalImageUrl) : false;
-  const candidateReferenced = pageReferencesImage(sourcePage.html, row.candidate_url);
-  const candidateSameHost = hostOf(row.candidate_url) === sourceHost;
-  const originalSameHost = originalImageUrl ? hostOf(originalImageUrl) === sourceHost : false;
-  const storageCandidate = candidateHost.endsWith("supabase.co");
-  const provenanceVerified = candidateReferenced
-    || candidateSameHost
-    || originalReferenced
-    || (storageCandidate && Boolean(originalImageUrl) && (originalReferenced || originalSameHost));
+  const entityImages = restaurantEntityImages(sourcePage.html, sourcePage.url, {
+    name: row.restaurant_name,
+    address: row.restaurant_address,
+    city: row.restaurant_city,
+  });
+  const candidateEntityLinked = [row.candidate_url, downloaded.finalUrl]
+    .some((value) => entityImages.includes(canonicalEvidenceUrl(value) || ""));
+  const originalEntityLinked = entityImages.includes(canonicalEvidenceUrl(originalImageUrl) || "");
+  const storageCandidate = isOwnedRestaurantImageUrl(row.candidate_url, env("SUPABASE_URL"))
+    && isOwnedRestaurantImageUrl(downloaded.finalUrl, env("SUPABASE_URL"));
+  let originalHashMatches = false;
+  let originalFinalUrl = "";
+  let originalMetadata = null as ReturnType<typeof reviewCoverMetadata>;
+
+  if (!candidateEntityLinked && storageCandidate && originalEntityLinked) {
+    try {
+      const original = await downloadImage(originalImageUrl);
+      originalHashMatches = await sha256Hex(original.bytes) === imageHash;
+      if (originalHashMatches) {
+        originalFinalUrl = original.finalUrl;
+        originalMetadata = reviewCoverMetadata(originalImageUrl) || reviewCoverMetadata(original.finalUrl);
+      }
+    } catch {
+      // No byte comparison means the stored copy remains unproven.
+    }
+  }
+
+  const associatedImageUrl = originalHashMatches ? originalFinalUrl : downloaded.finalUrl;
+  if (originalMetadata) {
+    return {
+      decision: originalMetadata.decision,
+      confidence: originalMetadata.decision === "rejected" ? 0.99 : 0.5,
+      imageKind: imageKindFromUrl(associatedImageUrl),
+      reason: originalMetadata.reason,
+      evidence: {
+        source_image_url: originalImageUrl,
+        original_final_url: originalFinalUrl,
+        original_hash_matches: true,
+        visual_review_performed: false,
+        ...dimensions,
+      },
+      imageSha256: imageHash,
+      mimeType: downloaded.mimeType,
+      sizeBytes: downloaded.bytes.byteLength,
+    };
+  }
+  const provenanceVerified = candidateEntityLinked || originalHashMatches;
 
   if (!provenanceVerified) {
     return {
       decision: "manual_review",
       confidence: 0.55,
-      imageKind: imageKindFromUrl(originalImageUrl || row.candidate_url),
-      reason: "official_source_image_provenance_ambiguous",
+      imageKind: imageKindFromUrl(associatedImageUrl),
+      reason: "official_source_image_identity_ambiguous",
       evidence: {
         source_url: sourcePage.url,
         source_image_url: originalImageUrl || null,
         identity_score: identity.score,
+        candidate_entity_linked: candidateEntityLinked,
+        original_entity_linked: originalEntityLinked,
+        original_hash_matches: originalHashMatches,
+        visual_review_performed: false,
         ...dimensions,
       },
       imageSha256: imageHash,
@@ -645,7 +674,7 @@ async function verifyOfficialSource(
   return {
     decision: "verified",
     confidence,
-    imageKind: imageKindFromUrl(originalImageUrl || row.candidate_url),
+    imageKind: imageKindFromUrl(associatedImageUrl),
     reason: "official_source_identity_verified",
     evidence: {
       source_url: sourcePage.url,
@@ -655,10 +684,10 @@ async function verifyOfficialSource(
       name_matched: identity.nameMatched,
       city_matched: identity.cityMatched,
       address_matched: identity.addressMatched,
-      candidate_referenced: candidateReferenced,
-      original_referenced: originalReferenced,
-      candidate_same_host: candidateSameHost,
-      original_same_host: originalSameHost,
+      candidate_entity_linked: candidateEntityLinked,
+      original_entity_linked: originalEntityLinked,
+      original_hash_matches: originalHashMatches,
+      visual_review_performed: false,
       ...dimensions,
     },
     imageSha256: imageHash,

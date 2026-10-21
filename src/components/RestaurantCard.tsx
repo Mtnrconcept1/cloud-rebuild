@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
 import PriceRangeIcons from "./PriceRangeIcons";
+import RestaurantCardImage from "./RestaurantCardImage";
 import { trackSponsoredClick, trackImpression, trackClick } from "@/lib/analytics";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
@@ -16,7 +17,7 @@ import SponsoredRestaurantTemplateCard from "@/components/campaigns/SponsoredRes
 import { useSponsoredImpressionOnView } from "@/hooks/useSponsoredImpressionOnView";
 import { buildRestaurantSeoPath } from "@/lib/restaurantSlugs";
 import { cn } from "@/lib/utils";
-import { getOptimizedImageSizes, getOptimizedImageSrcSet, getOptimizedImageUrl } from "@/lib/optimizedImages";
+import { getOptimizedImageUrl } from "@/lib/optimizedImages";
 import type { CampaignCreativeConfig } from "@/lib/campaignCreative";
 import { selectRestaurantCardReservationSlots } from "@/lib/reservationAvailability";
 import { getConfiguredServiceSettings } from "@/lib/serviceSettings";
@@ -181,7 +182,6 @@ export default function RestaurantCard({
     : globalActiveFeatures;
   const resolvedImage = getImageUrl(sponsoredPromoImage || imageUrl, cuisine);
   const optimizedImage = getOptimizedImageUrl(resolvedImage, "card");
-  const optimizedSrcSet = getOptimizedImageSrcSet(resolvedImage, "card");
   const organicImpressionTracked = useRef(false);
   const isSponsored = Boolean(sponsoredCampaignId);
   const showDelivery = activeFeatures.has("livraison") && deliveryAvailable;
@@ -433,16 +433,10 @@ export default function RestaurantCard({
         ) : null}
 
         <div className="relative aspect-[16/10] overflow-hidden">
-          <img
-            src={optimizedImage}
-            width={640}
-            height={400}
-            srcSet={optimizedSrcSet}
-            sizes={optimizedSrcSet ? getOptimizedImageSizes("card") : undefined}
-            alt={name}
+          <RestaurantCardImage
+            imageUrl={resolvedImage}
+            name={name}
             className="h-full w-full object-cover transition-transform duration-500 motion-safe:group-hover:scale-105"
-            loading="lazy"
-            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent dark:from-slate-950/80 dark:via-slate-950/25" />
 

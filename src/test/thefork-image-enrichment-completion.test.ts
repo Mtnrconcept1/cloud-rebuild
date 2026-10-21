@@ -133,7 +133,7 @@ describe("TheFork directory image enrichment completion", () => {
     expect(existsSync(truthWorkerPath)).toBe(true);
     if (!existsSync(truthWorkerPath)) return;
     const verifier = read(truthWorkerPath);
-    expect(verifier).toContain("tok-official-source-verifier-v1");
+    expect(verifier).toContain("tok-official-source-verifier-v2");
     expect(verifier).toContain("imageDimensions");
     expect(verifier).toContain("restaurant_directory_image_jobs");
     expect(verifier).toContain("source_page_url, source_image_url");
