@@ -112,9 +112,12 @@ async function callDispatcher(
   const baseUrl = getEnv("SUPABASE_URL");
   const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
 
-  if (!baseUrl || !serviceRoleKey) return;
+  if (!baseUrl || !serviceRoleKey) {
+    throw new Error(`${functionName} dispatcher configuration missing`);
+  }
 
-  const response = await fetch(`${baseUrl}/functions/v1/${functionName}`, {
+  const response = await fetch(`${baseUrl.replace(/\/+$/, "")}/functions/v1/${functionName}`, {
+    signal: AbortSignal.timeout(10_000),
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -128,8 +131,23 @@ async function callDispatcher(
   });
 
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`${functionName} failed: ${response.status} ${body}`);
+    // Never propagate a provider body that may contain private data.
+    throw new Error(`${functionName} failed: ${response.status}`);
+  }
+  const result: unknown = await response.json().catch(() => null);
+  if (!result || typeof result !== "object" || Array.isArray(result)) {
+    throw new Error(`${functionName} returned an invalid acknowledgement`);
+  }
+  const summary = result as Record<string, unknown>;
+  if (summary.ok === false || summary.success === false || summary.error) {
+    throw new Error(`${functionName} reported an application error`);
+  }
+  if (typeof summary.processed !== "number" || !Number.isFinite(summary.processed) || summary.processed < 0
+      || (summary.failed !== undefined && (typeof summary.failed !== "number" || !Number.isFinite(summary.failed) || summary.failed < 0))) {
+    throw new Error(`${functionName} returned an invalid acknowledgement`);
+  }
+  if (typeof summary.failed === "number" && summary.failed > 0) {
+    throw new Error(`${functionName} reported ${summary.failed} failed deliveries`);
   }
 }
 

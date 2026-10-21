@@ -1,0 +1,47 @@
+name: Business notifications TypeScript
+on:
+  pull_request:
+    paths:
+      - 'src/lib/notificationRouting.ts'
+      - 'src/lib/realtimeNotifications.ts'
+      - 'supabase/functions/_shared/notifications.ts'
+      - 'supabase/functions/send-email/index.ts'
+      - 'src/test/notification-business-*.test.ts'
+      - '.github/workflows/business-notifications-typescript.yml'
+  push:
+    branches: [fix/notification-business-wiring-20261021]
+    paths:
+      - 'src/lib/notificationRouting.ts'
+      - 'src/lib/realtimeNotifications.ts'
+      - 'supabase/functions/_shared/notifications.ts'
+      - 'supabase/functions/send-email/index.ts'
+      - 'src/test/notification-business-*.test.ts'
+      - '.github/workflows/business-notifications-typescript.yml'
+permissions:
+  contents: read
+jobs:
+  dispatch-and-routing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+      VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Verify dispatch, routing, realtime and existing notification contracts
+        run: pnpm exec vitest run src/test/notification-business-dispatch.test.ts src/test/notification-business-routing.test.ts src/test/realtime-notifications.test.ts src/test/realtime-notification-recovery.test.ts src/test/notification-campaign-idempotency.test.ts src/test/notification-support-realtime-publication.test.ts src/test/admin-notifications-governance.test.ts src/test/dashboard-notification-day-badges.test.ts src/test/notifications-ai-admin-hardening.test.ts src/test/notifications-sinistres-governance.test.ts src/test/support-notification-governance.test.ts src/test/golden-tok-accreditation.test.ts
+      - name: Lint notification changes
+        run: pnpm exec eslint src/lib/notificationRouting.ts src/lib/realtimeNotifications.ts supabase/functions/_shared/notifications.ts supabase/functions/send-email/index.ts src/test/notification-business-dispatch.test.ts src/test/notification-business-routing.test.ts
+      - run: pnpm typecheck
+      - run: pnpm build

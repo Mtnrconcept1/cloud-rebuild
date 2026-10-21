@@ -57,7 +57,9 @@ function buildNotificationEmailBody(notification: any) {
     ? notification.data
     : {};
   const rawUrl = typeof data.url === "string" ? data.url : null;
-  const appBaseUrl = Deno.env.get("APP_BASE_URL") || Deno.env.get("PUBLIC_APP_URL") || Deno.env.get("SITE_URL") || "https://www.thetok.ch";
+  const appBaseUrl = data.recipient_role === "admin"
+    ? "https://admin.thetok.ch"
+    : Deno.env.get("APP_BASE_URL") || Deno.env.get("PUBLIC_APP_URL") || Deno.env.get("SITE_URL") || "https://www.thetok.ch";
   const fullUrl = rawUrl
     ? (/^https?:\/\//.test(rawUrl) ? rawUrl : `${appBaseUrl}${rawUrl}`)
     : null;
