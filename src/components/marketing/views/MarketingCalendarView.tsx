@@ -22,6 +22,7 @@ import {
 import { MarketingPostImage, MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
 import SortControls from "@/components/list/SortControls";
 import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
+import { MarketingContentReview } from "@/components/marketing/MarketingContentReview";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -470,6 +471,14 @@ export default function MarketingCalendarView({
                 scheduledAt={selectedItem.scheduledAt}
                 preview={selectedItem.postPreview || { caption: selectedItem.content, visualUrl: selectedItem.visualUrl, visualFormat: selectedItem.format || undefined }}
               />
+              <div className="space-y-2">
+                {selectedItem.campaignId ? <p className="text-xs text-muted-foreground">La validation de cette publication est incluse dans le dossier Telegram de sa campagne.</p> : null}
+                <MarketingContentReview targetType={selectedItem.campaignId ? "campaign" : "item"} targetId={selectedItem.campaignId || selectedItem.id}
+                  revisionKey={selectedItem.campaignId ? JSON.stringify([selectedItem.id, selectedItem.updatedAt, selectedCampaign?.updatedAt,
+                    snapshot.calendar.filter((item) => item.campaignId === selectedItem.campaignId).map((item) => [item.id, item.updatedAt])]) : selectedItem.updatedAt}
+                  enabled={snapshot.source !== "fallback" && !reviewPending && !reviewError}
+                  canRetry={canMutateBackend && !pendingAction} />
+              </div>
               {selectedItem.manualOutcome || selectedItem.manualNote ? (
                 <div className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Suivi manuel</p>

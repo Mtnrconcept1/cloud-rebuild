@@ -62,6 +62,8 @@ const orchestratorDefinitions: readonly Definition[] = [
   ["instagram_comments", "execute", ["mediaId", "after"]],
   ["instagram_review_submit", "execute", ["postUrl", "username", "commentText", "commentLikes", "replyText", "observation"]],
   ["instagram_review_list", "read", []],
+  ["content_review_status", "read", ["targetType", "targetId"]],
+  ["content_review_retry", "execute", ["targetType", "targetId", "expectedRevision", "expectedReviewId"]],
 ];
 
 export const TOK_MARKETING_RPC_OPERATIONS = rpcDefinitions.map(([name]) => name);
@@ -85,6 +87,10 @@ export interface TokMarketingTool {
 function argumentSchema(key: string): Row {
   const label = key.replace(/^p_/, "").replace(/_/g, " ");
   const description = `${label}. Native marketing BFF argument; its business validation remains authoritative.`;
+  if (key === "targetType") return { type: "string", enum: ["campaign", "item"], description: "Use campaign and its campaign UUID for a campaign or any attached publication. Use item only for a standalone publication." };
+  if (key === "targetId") return { type: "string", format: "uuid", description: "UUID of the canonical campaign or standalone publication selected by targetType." };
+  if (key === "expectedRevision") return { type: "integer", minimum: 1, maximum: Number.MAX_SAFE_INTEGER, description: "Current revision returned by content_review_status. Refresh the status before retrying; never invent a revision." };
+  if (key === "expectedReviewId") return { type: ["string", "null"], format: "uuid", description: "Current review.id returned by content_review_status, or explicit null when review is null. Required for an atomic retry." };
   if (["p_payload", "p_input", "p_filter", "campaignOptions", "mailingOptions"].includes(key)) return { type: "object", description };
   if (["p_channels", "channels", "formats", "recipientEmails", "hashtags", "usernames"].includes(key)) return { type: "array", items: { type: "string" }, description };
   if (["p_limit", "p_offset", "limit", "itemCount", "days", "commentLikes"].includes(key)) return { type: ["integer", "null"], description };
@@ -98,15 +104,20 @@ function tool(endpoint: TokMarketingEndpoint, [operation, access, allowedArgs]: 
   const suffix = endpoint === "rpc" ? operation.replace(/^admin_/, "") : `${endpoint}_${operation}`;
   const name = `tok_marketing_${suffix.replace(/marketing_/g, "")}`;
   const requiresConfirmation = access !== "read";
+  const contentReviewDescription = operation === "content_review_status"
+    ? " Reads Telegram content-review status without sending a message. Use the campaign target for any publication attached to a campaign."
+    : operation === "content_review_retry"
+      ? " Queues an explicit retry of a failed, uncertain, rejected or expired Telegram content review. First read content_review_status and supply its exact revision and review.id (or null). Use the campaign target for attached publications. It does not schedule or publish content."
+      : "";
   return {
     name, title: name.replace(/^tok_marketing_/, "").replace(/_/g, " "),
-    description: `Marketing TOK: ${operation}. Requires an authenticated marketing administrator session with MFA. ${requiresConfirmation ? "Explicit user confirmation and a stable idempotency key are required. " : ""}The native marketing service validates permissions, revisions and publication readiness.`,
+    description: `Marketing TOK: ${operation}. Requires an authenticated marketing administrator session with MFA. ${requiresConfirmation ? "Explicit user confirmation and a stable idempotency key are required. " : ""}The native marketing service validates permissions, revisions and publication readiness.${contentReviewDescription}`,
     endpoint, path: `/api/marketing/${endpoint}`, backendOperation: operation, access, requiresConfirmation, allowedArgs,
     inputSchema: {
       type: "object", additionalProperties: false,
       required: requiresConfirmation ? ["args", "confirmed_by_user", "idempotency_key"] : ["args"],
       properties: {
-        args: { type: "object", description: "Arguments of this fixed native marketing operation. Supply only the named business fields; never provide authentication credentials.", properties: Object.fromEntries(allowedArgs.map((key) => [key, argumentSchema(key)])), additionalProperties: false },
+        args: { type: "object", description: "Arguments of this fixed native marketing operation. Supply only the named business fields; never provide authentication credentials.", properties: Object.fromEntries(allowedArgs.map((key) => [key, argumentSchema(key)])), ...(contentReviewDescription ? { required: [...allowedArgs] } : {}), additionalProperties: false },
         ...(requiresConfirmation ? {
           confirmed_by_user: { type: "boolean", const: true },
           idempotency_key: { type: "string", minLength: 8, maxLength: 120, pattern: "^[A-Za-z0-9][A-Za-z0-9:_-]{7,119}$", description: "Stable key for one reviewed intent. Reuse this exact key and arguments for retries." },

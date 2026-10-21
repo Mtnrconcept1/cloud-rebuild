@@ -97,12 +97,12 @@ describe("global marketing tools through the actual TOK remote MCP router", () =
     expect(request.body).toEqual({ tool: "tok_marketing_get_overview", arguments: args });
   });
 
-  it("advertises all 53 business tools and three marketing connection tools", async () => {
+  it("advertises all 55 business tools and three marketing connection tools", async () => {
     const { body } = await rpc("tools/list", {}, null);
     const names = body.result.tools.map((tool: { name: string }) => tool.name) as string[];
     const marketing = names.filter((name) => name.startsWith("tok_marketing_"));
-    expect(marketing).toHaveLength(56);
-    expect(new Set(marketing).size).toBe(56);
+    expect(marketing).toHaveLength(58);
+    expect(new Set(marketing).size).toBe(58);
     expect(marketing.sort()).toEqual([
       ...TOK_MARKETING_OPERATION_TOOLS.map((tool) => tool.name),
       "tok_marketing_connect", "tok_marketing_connection_status", "tok_marketing_disconnect",

@@ -18,6 +18,12 @@ import { authenticateMarketingRequest } from "../_shared/marketing-service-auth.
 import { parseInstagramReviewRequest, InstagramReviewInputError } from "../_shared/marketing-instagram-review.ts";
 import { createInstagramReviewStore, submitInstagramReview, decideInstagramReview, reviewView, InstagramReviewError } from "../_shared/marketing-instagram-telegram.ts";
 import {
+  createMarketingContentReviewStore,
+  processMarketingContentReview,
+  decideMarketingContentReview,
+  MarketingContentReviewError,
+} from "../_shared/marketing-content-telegram.ts";
+import {
   OPENAI_API_KEY,
   createOpenAIResponse,
   estimateOpenAITextCostChf,
@@ -877,12 +883,19 @@ async function telegramApi(method: string, payload: Record<string, unknown>) {
   });
   const result = await response.json().catch(() => ({})) as {
     ok?: boolean;
+    error_code?: number;
     description?: string;
     result?: unknown;
   };
 
   if (!response.ok || result.ok !== true) {
-    throw new HttpError(502, `telegram_api_error:${asText(result.description, 220, String(response.status))}`);
+    // A structured 4xx refusal is a known non-delivery. Timeouts, malformed
+    // acknowledgements and server failures remain ambiguous and must not be
+    // blindly replayed by the content-review worker.
+    throw new HttpError(502, `telegram_api_error:${asText(result.description, 220, String(response.status))}`, {
+      telegramRejected: result.ok === false && typeof result.error_code === "number"
+        && result.error_code >= 400 && result.error_code < 500,
+    });
   }
 
   return result.result;
@@ -1790,6 +1803,19 @@ async function handleTelegramUpdate(req: Request, body: TelegramUpdate) {
   if (!body.callback_query) return { ok: true, ignored: true };
 
   try {
+    if (body.callback_query.data?.startsWith("mcv:")) {
+      const admin = validateTelegramAdmin(body.callback_query);
+      const messageId = Number(body.callback_query.message?.message_id);
+      const result = await decideMarketingContentReview(
+        createMarketingContentReviewStore(createAdminClient()), body.callback_query.data,
+        admin.chatId, messageId, admin.actor,
+      );
+      await answerTelegramCallback(body.callback_query.id, result.status === "approved"
+        ? "Contenu validé. La diffusion suit la programmation confirmée dans TOK."
+        : "Contenu refusé. Corrigez-le dans TOK avant une nouvelle validation.");
+      await removeTelegramButtons(admin.chatId, messageId);
+      return { reviewId: result.id, status: result.status };
+    }
     if (body.callback_query.data?.startsWith("igv:")) {
       const admin = validateTelegramAdmin(body.callback_query);
       const messageId = body.callback_query.message?.message_id;
@@ -1804,8 +1830,8 @@ async function handleTelegramUpdate(req: Request, body: TelegramUpdate) {
     return await decideIncidentFromTelegram(body.callback_query);
   } catch (error) {
     if (body.callback_query.id) {
-      const message = (error instanceof HttpError || error instanceof InstagramReviewError) && error.status === 409
-        ? "Cette décision a déjà été traitée ou a expiré."
+      const message = (error instanceof HttpError || error instanceof InstagramReviewError || error instanceof MarketingContentReviewError) && error.status === 409
+        ? "Ce contenu a changé, cette décision a déjà été traitée ou a expiré."
         : "Impossible de traiter cette décision.";
       await answerTelegramCallback(body.callback_query.id, message, true);
     }
@@ -2094,7 +2120,26 @@ Deno.serve(async (req) => {
     action = asText(body.action, 80).toLowerCase();
     let result: Record<string, unknown>;
 
-    if (action === "instagram_review_submit" || action === "instagram_review_list") {
+    if (action === "content_review_process") {
+      if (Object.keys(body).some((key) => key !== "action")) throw new HttpError(400, "invalid_content_review_worker_request");
+      // This fixed queue worker has no caller-selected target, content, bot or
+      // recipient. Its scheduler credential is accepted only for this action.
+      const actor = await authenticateMarketingRequest(req, { allowSchedulerSecret: true });
+      if (actor.authMode !== "service_role" && actor.authMode !== "scheduler_secret") {
+        throw new HttpError(403, "Marketing worker session required");
+      }
+      if (!telegramIsConfigured() || !getEnv("TELEGRAM_WEBHOOK_SECRET")) throw new HttpError(503, "telegram_not_configured");
+      const chatId = configuredTelegramChatId();
+      if (chatId.startsWith("-") && !getEnv("TELEGRAM_ADMIN_USER_ID")) throw new HttpError(503, "telegram_admin_not_configured");
+      const processed = await processMarketingContentReview(
+        createMarketingContentReviewStore(actor.adminClient), chatId, telegramApi,
+        { supabaseUrl: getEnv("SUPABASE_URL") },
+      );
+      await writeAuditLog({ adminClient: actor.adminClient, actor, functionName: FUNCTION_NAME,
+        action, status: ["failed", "delivery_unknown"].includes(processed.status) ? "failure" : "success",
+        request: req, metadata: { review_id: processed.review?.id || null, delivery_status: processed.status } });
+      return jsonResponse(processed, 200, cors);
+    } else if (action === "instagram_review_submit" || action === "instagram_review_list") {
       const actor = await authenticateMarketingRequest(req);
       if (actor.authMode !== "service_role") throw new HttpError(403, "Marketing service session required");
       const userId = req.headers.get("x-marketing-actor-user-id") || "";
@@ -2143,7 +2188,8 @@ Deno.serve(async (req) => {
     });
     return jsonResponse({ ok: true, ...result }, 200, cors);
   } catch (error) {
-    const status = error instanceof HttpError || error instanceof InstagramReviewError ? error.status : error instanceof InstagramReviewInputError ? 400 : 500;
+    const status = error instanceof HttpError || error instanceof InstagramReviewError || error instanceof MarketingContentReviewError
+      ? error.status : error instanceof InstagramReviewInputError ? 400 : 500;
     const message = error instanceof Error ? error.message : "internal_error";
     log.error("request_failed", { action, status, message: sanitizeString(message).slice(0, 500) });
 

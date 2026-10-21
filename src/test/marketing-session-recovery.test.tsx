@@ -89,7 +89,13 @@ describe("marketing session focus recovery", () => {
 
   beforeEach(() => {
     request.mockReset();
-    request.mockImplementation(() => new Promise(() => {}));
+    request.mockImplementation((path, options) => {
+      if (path === "/api/marketing/orchestrator" && options?.body?.action === "content_review_status") {
+        return Promise.resolve({ target_type: "campaign", target_id: campaignId, revision: 1,
+          status: "queued", updated_at: "2026-10-21T09:00:00Z", review: null });
+      }
+      return new Promise(() => {});
+    });
     documentFocused = true;
     visibility = "visible";
     vi.spyOn(document, "hasFocus").mockImplementation(() => documentFocused);
@@ -142,6 +148,11 @@ describe("marketing session focus recovery", () => {
     ], { initialEntries: [initialReview] });
     render(<MarketingSessionProvider><RouterProvider router={router} /></MarketingSessionProvider>);
     await screen.findByRole("button", { name: "Relire et approuver la campagne" });
+    await screen.findByText("En file d’attente");
+    expect(request.mock.calls.filter(([path]) => path === "/api/marketing/orchestrator")).toEqual([
+      ["/api/marketing/orchestrator", expect.objectContaining({ method: "POST", requireCsrf: true,
+        body: { action: "content_review_status", targetType: "campaign", targetId: campaignId } })],
+    ]);
     return router;
   }
 
@@ -181,7 +192,7 @@ describe("marketing session focus recovery", () => {
     expect(new URLSearchParams(router.state.location.search).get("view")).toBe("campaigns");
     expect(new URLSearchParams(router.state.location.search).get("campaignId")).toBe(campaignId);
     expect(new URLSearchParams(router.state.location.search).get("itemId")).toBe(itemId);
-    expect(request).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls.filter(([path]) => path === "/api/marketing/session")).toHaveLength(1);
   });
 
   it("blocks the protected review on a real window return even while its iframe remains the active element", async () => {
@@ -197,7 +208,7 @@ describe("marketing session focus recovery", () => {
     returnToWindow();
     expect(screen.getByText("Vérification de la session marketing")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Relire et approuver la campagne" })).not.toBeInTheDocument();
-    expect(request).toHaveBeenCalledTimes(2);
+    expect(request.mock.calls.filter(([path]) => path === "/api/marketing/session")).toHaveLength(2);
     await act(async () => { pending.resolve(authenticatedSession()); });
     expect(screen.getByRole("button", { name: "Relire et approuver la campagne" })).toBeInTheDocument();
     expect(`${router.state.location.pathname}${router.state.location.search}`).toBe(initialReview);

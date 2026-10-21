@@ -4,6 +4,7 @@ import { MarketingPostImage, MarketingPostPreview } from "@/components/marketing
 import SortControls from "@/components/list/SortControls";
 import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
 import { MarketingMailingImageUpload } from "@/components/marketing/MarketingMailingImageUpload";
+import { MarketingContentReview } from "@/components/marketing/MarketingContentReview";
 import { compareMarketingRevisions, loadMarketingCampaignItems } from "@/marketing/marketingClient";
 import { isMarketingMailingReady } from "@/marketing/postPreview";
 import { getMarketingCampaignDisplayStatus } from "@/marketing/campaignStatus";
@@ -81,7 +82,7 @@ const EMPTY_WIZARD: WizardState = {
 
 type CampaignReviewState = { campaignId: string; ready: boolean; uploading: boolean; incompleteMailings: number };
 
-function CampaignPostsGallery({ campaignId, loadItems, disabled, onReviewChange, onItemsUpdated, onUploadPendingChange, onOpenItem, navigationPending, snapshotItems }: {
+function CampaignPostsGallery({ campaignId, loadItems, disabled, onReviewChange, onItemsUpdated, onUploadPendingChange, onOpenItem, navigationPending, snapshotItems, campaignUpdatedAt, contentReviewEnabled, canRetryContentReview }: {
   campaignId: string;
   loadItems: typeof loadMarketingCampaignItems;
   disabled: boolean;
@@ -91,6 +92,9 @@ function CampaignPostsGallery({ campaignId, loadItems, disabled, onReviewChange,
   onOpenItem?: (item: MarketingCalendarItem) => void;
   navigationPending?: boolean;
   snapshotItems: MarketingCalendarItem[];
+  campaignUpdatedAt: string;
+  contentReviewEnabled: boolean;
+  canRetryContentReview: boolean;
 }) {
   const [items, setItems] = useState<MarketingCalendarItem[]>([]);
   const [cursor, setCursor] = useState<Record<string, string> | null>(null);
@@ -137,6 +141,11 @@ function CampaignPostsGallery({ campaignId, loadItems, disabled, onReviewChange,
   }, [campaignId, loaded, loading, error, cursor, uploading, incompleteMailings, onReviewChange]);
 
   return (
+    <>
+    <MarketingContentReview targetType="campaign" targetId={campaignId}
+      revisionKey={JSON.stringify([campaignUpdatedAt, currentItems.map((item) => [item.id, item.updatedAt])])}
+      enabled={contentReviewEnabled && loaded && !loading && !error && !uploading}
+      canRetry={canRetryContentReview} />
     <section className="min-w-0 space-y-4" aria-label="Publications de la campagne" aria-busy={loading}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><h3 className="font-semibold">Visuels et textes à relire</h3><p className="text-xs text-muted-foreground">Toutes les dates de cette campagne, y compris hors du mois affiché.</p></div>
@@ -163,6 +172,7 @@ function CampaignPostsGallery({ campaignId, loadItems, disabled, onReviewChange,
       </div>
       {cursor ? <Button type="button" variant="outline" disabled={loading || uploading} onClick={() => void load(cursor)}>Charger les publications suivantes</Button> : null}
     </section>
+    </>
   );
 }
 
@@ -628,6 +638,8 @@ export default function MarketingCampaignsView({
           {reviewError ? <p role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-3 text-sm">{reviewError}</p> : null}
           {approvalCampaign ? <div className="flex flex-wrap items-center justify-between gap-3"><MarketingStatusBadge status={getMarketingCampaignDisplayStatus(approvalCampaign)} />{returnItem && onNavigate ? <Button type="button" variant="outline" disabled={currentReview?.uploading || Boolean(pendingAction)} onClick={() => openCalendarItem(returnItem)}><ArrowLeft className="mr-2 h-4 w-4" />Retrouver la publication sélectionnée</Button> : null}</div> : null}
           {approvalCampaign ? <CampaignPostsGallery key={approvalCampaign.id} campaignId={approvalCampaign.id} loadItems={onLoadCampaignItems}
+            campaignUpdatedAt={approvalCampaign.updatedAt} contentReviewEnabled={snapshot.source !== "fallback" && !reviewPending && !reviewError}
+            canRetryContentReview={canMutateBackend && !pendingAction}
             disabled={!canMutateBackend || Boolean(approvalCampaign.approvedAt) || ["completed", "cancelled", "failed"].includes(approvalCampaign.status) || Boolean(pendingAction)} onReviewChange={setCampaignReview} onItemsUpdated={onItemsUpdated} onUploadPendingChange={onUploadPendingChange} onOpenItem={onNavigate ? openCalendarItem : undefined} navigationPending={Boolean(pendingAction)} snapshotItems={snapshot.calendar} /> : null}
           {approvalCampaign && !approvalCampaign.approvedAt && approvalCampaign.status === "draft" ? <>
           <div><Label htmlFor="campaign-approval-reason">Motif de l'approbation</Label><Textarea id="campaign-approval-reason" className="mt-2" value={approvalReason} onChange={(event) => setApprovalReason(event.target.value)} maxLength={400} placeholder="Minimum 8 caractères, conservé dans l'audit…" /></div>
