@@ -134,3 +134,20 @@ describe("restaurant workspace tool access integration", () => {
     expect(within(dialog).queryByRole("option", { name: "Menu" })).not.toBeInTheDocument();
   });
 });
+
+describe("page-specific workspace photography", () => {
+  it("uses the favorite artwork for the actual profile tab, then updates on navigation", () => {
+    const { container } = render(<CustomerShell />);
+    const shell = container.querySelector<HTMLElement>(".tok-hospitality-workspace")!;
+    expect(shell.style.getPropertyValue("--workspace-hero-image")).toBe('url("/images/dashboard-scenes/client-favoris.webp")');
+    fireEvent.click(screen.getByRole("link", { name: "Mon profil" }));
+    expect(shell.style.getPropertyValue("--workspace-hero-image")).toBe('url("/images/dashboard-scenes/client-profil.webp")');
+  });
+
+  it("gives the restaurant overview its own photo without changing access controls", () => {
+    const { container } = renderRestaurantShell();
+    const shell = container.querySelector<HTMLElement>(".tok-hospitality-workspace")!;
+    expect(shell.style.getPropertyValue("--workspace-hero-image")).toBe('url("/images/dashboard-scenes/restaurant-accueil.webp")');
+    expect(screen.getByRole("link", { name: "TOK — Tableau de bord" })).toHaveAttribute("href", "/dashboard");
+  });
+});
