@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
 import MarketingMetaConnection from "@/components/marketing/MarketingMetaConnection";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
+import SortControls from "@/components/list/SortControls";
+import type { SortDirection } from "@/lib/listSorting";
 import { Cable, CheckCircle2, KeyRound, PauseCircle, RefreshCw, Search, ServerCog, ShieldCheck, Wrench } from "lucide-react";
 
 import {
@@ -52,14 +55,33 @@ export default function MarketingIntegrationsView({
   const [selectedChannel, setSelectedChannel] = useState<MarketingIntegration | null>(null);
   const [controlStatus, setControlStatus] = useState<MarketingProviderControlInput["status"]>("paused");
   const [controlReason, setControlReason] = useState("");
+  const [integrationSortKey, setIntegrationSortKey] = useState<"name" | "status" | "checked">("name");
+  const [integrationSortDirection, setIntegrationSortDirection] = useState<SortDirection>("asc");
+  const [integrationViewMode, setIntegrationViewMode] = useState<OperationViewMode>("details");
   const query = filters.query.trim().toLowerCase();
-  const providers = useMemo(() => autopilot.providers.filter((provider) => (
-    !query || `${provider.label} ${provider.provider} ${provider.category} ${provider.capabilities.join(" ")}`.toLowerCase().includes(query)
-  )), [autopilot.providers, query]);
-  const channels = useMemo(() => snapshot.integrations.filter((integration) => (
-    (filters.status === "all" || integration.status === filters.status)
-    && (!query || `${integration.name} ${integration.channel} ${integration.description}`.toLowerCase().includes(query))
-  )), [filters.status, query, snapshot.integrations]);
+  const providers = useMemo(() => {
+    const collator = new Intl.Collator("fr-CH", { sensitivity: "base", numeric: true });
+    return autopilot.providers.filter((provider) => (
+      !query || `${provider.label} ${provider.provider} ${provider.category} ${provider.capabilities.join(" ")}`.toLowerCase().includes(query)
+    )).sort((left, right) => {
+      const comparison = integrationSortKey === "status" ? collator.compare(left.status, right.status)
+        : integrationSortKey === "checked" ? (left.lastCheckedAt || "").localeCompare(right.lastCheckedAt || "")
+        : collator.compare(left.label, right.label);
+      return (integrationSortDirection === "asc" ? comparison : -comparison) || left.provider.localeCompare(right.provider);
+    });
+  }, [autopilot.providers, query, integrationSortKey, integrationSortDirection]);
+  const channels = useMemo(() => {
+    const collator = new Intl.Collator("fr-CH", { sensitivity: "base", numeric: true });
+    return snapshot.integrations.filter((integration) => (
+      (filters.status === "all" || integration.status === filters.status)
+      && (!query || `${integration.name} ${integration.channel} ${integration.description}`.toLowerCase().includes(query))
+    )).sort((left, right) => {
+      const comparison = integrationSortKey === "status" ? collator.compare(left.status, right.status)
+        : integrationSortKey === "checked" ? (left.lastCheckedAt || "").localeCompare(right.lastCheckedAt || "")
+        : collator.compare(left.name, right.name);
+      return (integrationSortDirection === "asc" ? comparison : -comparison) || left.id.localeCompare(right.id);
+    });
+  }, [filters.status, query, snapshot.integrations, integrationSortKey, integrationSortDirection]);
 
   const openProvider = (provider: MarketingAutopilotProvider) => {
     setSelectedProvider(provider);
@@ -107,13 +129,29 @@ export default function MarketingIntegrationsView({
         </CardContent>
       </Card>
 
+      <Card>
+        <CardContent className="flex flex-col gap-3 p-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex-1">
+            <SortControls<"name" | "status" | "checked">
+              className="max-w-lg"
+              columns={[{ key: "name", label: "Nom" }, { key: "status", label: "État" }, { key: "checked", label: "Dernière vérification" }]}
+              sortKey={integrationSortKey}
+              direction={integrationSortDirection}
+              onSortKeyChange={setIntegrationSortKey}
+              onDirectionChange={setIntegrationSortDirection}
+            />
+          </div>
+          <OperationViewToggle value={integrationViewMode} onChange={setIntegrationViewMode} ariaLabel="Mode d’affichage des intégrations marketing" />
+        </CardContent>
+      </Card>
+
       <section className="space-y-4" aria-labelledby="provider-heading">
         <div><h2 id="provider-heading" className="text-lg font-semibold">Fournisseurs techniques</h2><p className="text-sm text-muted-foreground">État observé par le backend et contrôle local fail-closed.</p></div>
         {autopilotError ? <Alert variant="destructive"><ServerCog className="h-4 w-4" /><AlertTitle>État fournisseur indisponible</AlertTitle><AlertDescription>{autopilotError} Aucun fournisseur n'est supposé connecté.</AlertDescription></Alert> : null}
         {autopilotLoading ? (
           <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">{Array.from({ length: 6 }, (_, index) => <Skeleton key={index} className="h-64 rounded-2xl" />)}</div>
         ) : providers.length ? (
-          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          <div className={cn("grid gap-4", integrationViewMode === "list" ? "grid-cols-1" : "md:grid-cols-2 2xl:grid-cols-3")}>
             {providers.map((provider) => (
               <Card key={provider.provider} className="min-w-0">
                 <CardHeader>
@@ -122,9 +160,9 @@ export default function MarketingIntegrationsView({
                   <p className="text-xs text-muted-foreground">{provider.category} · identifiant {provider.provider}</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex flex-wrap gap-2">{provider.capabilities.length ? provider.capabilities.map((capability) => <Badge key={capability} variant="secondary">{capability}</Badge>) : <span className="text-xs text-muted-foreground">Capacités non confirmées</span>}</div>
-                  <div className="rounded-xl border bg-muted/20 p-3 text-xs"><p className="text-muted-foreground">Compte</p><p className="mt-1 font-medium">{provider.accountLabel || "Non confirmé"}</p><p className="mt-2 text-muted-foreground">Dernière vérification</p><p className="mt-1 font-medium">{formatMarketingDate(provider.lastCheckedAt)}</p></div>
-                  {provider.statusReason ? <p className="text-xs text-muted-foreground">{provider.statusReason}</p> : null}
+                  <div className={cn("flex flex-wrap gap-2", integrationViewMode === "list" && "hidden")}>{provider.capabilities.length ? provider.capabilities.map((capability) => <Badge key={capability} variant="secondary">{capability}</Badge>) : <span className="text-xs text-muted-foreground">Capacités non confirmées</span>}</div>
+                  <div className={cn("rounded-xl border bg-muted/20 p-3 text-xs", integrationViewMode !== "details" && "hidden")}><p className="text-muted-foreground">Compte</p><p className="mt-1 font-medium">{provider.accountLabel || "Non confirmé"}</p><p className="mt-2 text-muted-foreground">Dernière vérification</p><p className="mt-1 font-medium">{formatMarketingDate(provider.lastCheckedAt)}</p></div>
+                  {provider.statusReason && integrationViewMode === "details" ? <p className="text-xs text-muted-foreground">{provider.statusReason}</p> : null}
                   <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 p-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-amber-950 dark:text-amber-100">Contrôle</p><p className="mt-1 text-sm">{provider.control.status === "paused" ? "En pause" : "Non configuré"}</p></div><ShieldCheck className="h-5 w-5 text-amber-700 dark:text-amber-300" /></div>
                   <Button type="button" variant="outline" className="w-full" disabled={autopilot.source !== "backend" || Boolean(autopilotPendingAction)} onClick={() => openProvider(provider)}><PauseCircle className="mr-2 h-4 w-4" />Gérer le blocage</Button>
                 </CardContent>
@@ -137,11 +175,11 @@ export default function MarketingIntegrationsView({
       <section className="space-y-4 border-t pt-6" aria-labelledby="channel-heading">
         <div><h2 id="channel-heading" className="text-lg font-semibold">Canaux et capacités historiques</h2><p className="text-sm text-muted-foreground">Disponibilité métier existante, indépendante du fournisseur utilisé.</p></div>
         {channels.length ? (
-          <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          <div className={cn("grid gap-4", integrationViewMode === "list" ? "grid-cols-1" : "md:grid-cols-2 2xl:grid-cols-3")}>
             {channels.map((integration) => (
               <Card key={integration.id} className="min-w-0">
                 <CardHeader><div className="flex items-start justify-between gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-700 dark:text-sky-300">{integration.status === "manual" ? <Wrench className="h-5 w-5" /> : <Cable className="h-5 w-5" />}</span><MarketingStatusBadge status={integration.status} /></div><CardTitle className="pt-2">{integration.name}</CardTitle><div><MarketingChannelBadge channel={integration.channel} /></div></CardHeader>
-                <CardContent className="space-y-4"><p className="min-h-10 text-sm leading-relaxed text-muted-foreground">{integration.description}</p><div className="rounded-xl border bg-muted/20 p-3 text-xs"><p className="text-muted-foreground">Dernière vérification</p><p className="mt-1 font-medium">{formatMarketingDate(integration.lastCheckedAt)}</p></div><Button type="button" variant="outline" className="w-full" onClick={() => setSelectedChannel(integration)}><Wrench className="mr-2 h-4 w-4" />Voir la checklist</Button></CardContent>
+                <CardContent className="space-y-4"><p className={cn("min-h-10 text-sm leading-relaxed text-muted-foreground", integrationViewMode === "list" && "hidden")}>{integration.description}</p><div className={cn("rounded-xl border bg-muted/20 p-3 text-xs", integrationViewMode !== "details" && "hidden")}><p className="text-muted-foreground">Dernière vérification</p><p className="mt-1 font-medium">{formatMarketingDate(integration.lastCheckedAt)}</p></div><Button type="button" variant="outline" className="w-full" onClick={() => setSelectedChannel(integration)}><Wrench className="mr-2 h-4 w-4" />Voir la checklist</Button></CardContent>
               </Card>
             ))}
           </div>

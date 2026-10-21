@@ -20,6 +20,8 @@ import {
   formatMarketingDate,
 } from "@/components/marketing/MarketingShared";
 import { MarketingPostImage, MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
+import SortControls from "@/components/list/SortControls";
+import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -34,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import type { SortDirection } from "@/lib/listSorting";
 import { isMarketingMailingReady } from "@/marketing/postPreview";
 import {
   isPublicMarketingChannel,
@@ -150,6 +153,9 @@ export default function MarketingCalendarView({
   const [manualItem, setManualItem] = useState<MarketingCalendarItem | null>(null);
   const [manualOutcome, setManualOutcome] = useState<"published" | "failed">("published");
   const [manualNote, setManualNote] = useState("");
+  const [agendaViewMode, setAgendaViewMode] = useState<OperationViewMode>("details");
+  const [agendaSortKey, setAgendaSortKey] = useState<"date" | "title" | "channel" | "status">("date");
+  const [agendaSortDirection, setAgendaSortDirection] = useState<SortDirection>("asc");
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const days = eachDayOfInterval({
@@ -177,7 +183,24 @@ export default function MarketingCalendarView({
       .sort((left, right) => left.scheduledAt.localeCompare(right.scheduledAt));
   }, [filters.campaignId, filters.channel, filters.query, filters.status, snapshot.calendar, visibleRange.from, visibleRange.to]);
 
-  const agenda = filtered.slice((filters.page - 1) * PAGE_SIZE, filters.page * PAGE_SIZE);
+  const sortedAgenda = useMemo(() => {
+    const collator = new Intl.Collator("fr-CH", { sensitivity: "base", numeric: true });
+    return [...filtered].sort((left, right) => {
+      const leftValue = agendaSortKey === "date" ? left.scheduledAt
+        : agendaSortKey === "title" ? left.title
+        : agendaSortKey === "channel" ? left.channel
+        : getCalendarVisualStatus(left);
+      const rightValue = agendaSortKey === "date" ? right.scheduledAt
+        : agendaSortKey === "title" ? right.title
+        : agendaSortKey === "channel" ? right.channel
+        : getCalendarVisualStatus(right);
+      const comparison = agendaSortKey === "date"
+        ? leftValue.localeCompare(rightValue)
+        : collator.compare(leftValue, rightValue);
+      return (agendaSortDirection === "asc" ? comparison : -comparison) || left.id.localeCompare(right.id);
+    });
+  }, [filtered, agendaSortKey, agendaSortDirection]);
+  const agenda = sortedAgenda.slice((filters.page - 1) * PAGE_SIZE, filters.page * PAGE_SIZE);
 
   const moveMonth = (delta: number) => {
     const next = addMonths(currentMonth, delta);
@@ -383,20 +406,36 @@ export default function MarketingCalendarView({
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><CalendarDays className="h-5 w-5 text-orange-500" /> Agenda filtré</CardTitle>
+        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <CardTitle className="flex items-center gap-2"><CalendarDays className="h-5 w-5 text-orange-500" /> Agenda filtré</CardTitle>
+            <p className="text-xs text-muted-foreground">{filtered.length} publication(s) dans la sélection</p>
+          </div>
+          <OperationViewToggle value={agendaViewMode} onChange={setAgendaViewMode} ariaLabel="Mode d’affichage de l’agenda marketing" />
         </CardHeader>
         <CardContent>
+          <SortControls
+            className="mb-4 max-w-lg"
+            columns={[{ key: "date", label: "Date de publication" }, { key: "title", label: "Titre" }, { key: "channel", label: "Canal" }, { key: "status", label: "Statut" }]}
+            sortKey={agendaSortKey}
+            direction={agendaSortDirection}
+            onSortKeyChange={(key) => { setAgendaSortKey(key); onFiltersChange({ page: 1 }); }}
+            onDirectionChange={(direction) => { setAgendaSortDirection(direction); onFiltersChange({ page: 1 }); }}
+          />
           {agenda.length ? (
-            <div className="space-y-3">
+            <div className={cn("gap-3", agendaViewMode === "gallery" ? "grid sm:grid-cols-2 xl:grid-cols-3" : "space-y-3")}>
               {agenda.map((item) => (
-                <button key={item.id} type="button" onClick={() => openItem(item)} className="flex w-full min-w-0 flex-col gap-3 rounded-2xl border p-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 sm:flex-row sm:items-center">
-                  <MarketingPostImage url={item.postPreview?.visualUrl || item.visualUrl} title={item.title} compact />
+                <button key={item.id} type="button" onClick={() => openItem(item)} className={cn(
+                  "flex w-full min-w-0 gap-3 rounded-2xl border p-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400",
+                  agendaViewMode === "gallery" ? "flex-col" : "flex-col sm:flex-row sm:items-center",
+                  agendaViewMode === "list" && "py-3",
+                )}>
+                  {agendaViewMode !== "list" ? <MarketingPostImage url={item.postPreview?.visualUrl || item.visualUrl} title={item.title} compact={agendaViewMode !== "gallery"} /> : null}
                   <div className="min-w-0 flex-1">
                     <p className="break-words font-semibold">{item.title}</p>
                     <p className="mt-1 truncate text-xs text-muted-foreground">{item.campaignName} · {formatMarketingDate(item.scheduledAt)}</p>
-                    <p className="mt-2 line-clamp-2 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">{item.postPreview?.caption || item.content || "Aucun texte enregistré"}</p>
-                    <span className="mt-2 inline-block text-xs font-semibold text-primary">Voir le visuel et le texte</span>
+                    {agendaViewMode === "details" ? <p className="mt-2 line-clamp-2 break-words text-sm text-muted-foreground [overflow-wrap:anywhere]">{item.postPreview?.caption || item.content || "Aucun texte enregistré"}</p> : null}
+                    {agendaViewMode !== "list" ? <span className="mt-2 inline-block text-xs font-semibold text-primary">Voir le visuel et le texte</span> : null}
                   </div>
                   <div className="flex flex-wrap gap-2"><MarketingChannelBadge channel={item.channel} /><CalendarStatusBadge item={item} /></div>
                 </button>

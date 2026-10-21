@@ -351,6 +351,57 @@ describe("marketing operations frontend contracts", () => {
     expect(operations).toContain("if (!snapshot.overview.schedulerReady)");
   });
 
+  it("keeps marketing list filtering, sorting and presentation modes independent", () => {
+    const calendar = read("src/components/marketing/views/MarketingCalendarView.tsx");
+    const campaigns = read("src/components/marketing/views/MarketingCampaignsView.tsx");
+    const viewToggle = read("src/components/operations/OperationViewToggle.tsx");
+
+    expect(calendar).toContain("agendaSortKey");
+    expect(calendar).toContain("agendaSortDirection");
+    expect(calendar).toContain("sortedAgenda.slice((filters.page - 1) * PAGE_SIZE");
+    expect(calendar).toContain('agendaViewMode === "gallery"');
+    expect(calendar).toContain('agendaViewMode === "list"');
+    expect(calendar).toContain("OperationViewToggle");
+    expect(calendar).toContain("onFiltersChange({ page: 1 })");
+    expect(calendar).toContain("filters.channel === \"all\" || item.channel === filters.channel");
+
+    expect(campaigns).toContain("campaignSortKey");
+    expect(campaigns).toContain("campaignSortDirection");
+    expect(campaigns).toContain("sortedCampaigns.slice((filters.page - 1) * PAGE_SIZE");
+    expect(campaigns).toContain('campaignViewMode === "gallery"');
+    expect(campaigns).toContain('campaignViewMode === "list"');
+    expect(campaigns).toContain("OperationViewToggle");
+    expect(campaigns).toContain("onFiltersChange({ page: 1 })");
+
+    for (const mode of ['value="gallery"', 'value="list"', 'value="details"']) {
+      expect(viewToggle).toContain(mode);
+    }
+  });
+
+  it("filters and sorts marketing automation and integration inventories without enabling restricted actions", () => {
+    const automations = read("src/components/marketing/views/MarketingAutomationsView.tsx");
+    const integrations = read("src/components/marketing/views/MarketingIntegrationsView.tsx");
+
+    for (const token of [
+      "automationSearch", "automationStatus", "automationChannel", "automationSortKey",
+      "automationSortDirection", "OperationViewToggle", "automationViewMode",
+      "customAutomations.map", "automation.isSystem",
+      'automationStatus !== "all"', 'automationChannel !== "all"',
+      'status: "paused"', "disabled aria-label",
+    ]) {
+      expect(automations).toContain(token);
+    }
+
+    for (const token of [
+      "integrationSortKey", "integrationSortDirection", "integrationViewMode",
+      "OperationViewToggle", "SortControls", "providers.map", "channels.map",
+      'filters.status === "all" || integration.status === filters.status',
+      "provider.control.status", "onSaveProviderControl",
+    ]) {
+      expect(integrations).toContain(token);
+    }
+  });
+
   it("provides every requested operational view", () => {
     const workspace = read("src/pages/marketing/MarketingWorkspace.tsx");
     for (const view of ["Overview", "Calendar", "Campaigns", "Audiences", "Automations", "Activity", "Results", "Integrations"]) {
