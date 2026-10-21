@@ -1,4 +1,4 @@
-import { TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
+import { TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES, tokSocialLayout } from "./marketing-brand.ts";
 
 const DAY_MS = 86_400_000;
 const EDITORIAL_EPOCH = Date.parse("2026-10-19T00:00:00.000Z");
@@ -218,8 +218,9 @@ export function buildDailyMarketingBrief(localDate: string, recentTitles: string
   const visualPrompt = [
     `Publication Instagram quotidienne TOK du ${localDate}. Audience : restaurateurs francophones. Format 4:5.`,
     `Sujet : ${subject.label}. Un seul bénéfice, exprimé par le titre exact suivant : ${JSON.stringify(title)}.`,
-    "Textes autorisés : le titre exact, TOK et la bulle Miamz! dans le logo, thetok.ch discret en pied. Ne générer aucun autre texte. La légende reste hors de l'image. L'image doit rendre le sujet reconnaissable immédiatement : montrer l'action ou l'outil annoncé, jamais une simple ambiance générique qui pourrait accompagner n'importe quel post.",
+    "Textes autorisés : le titre exact, TOK et la bulle Miamz! dans le logo, thetok.ch discret en pied. En mode fiche explicative, autoriser au maximum une courte phrase tirée de la description factuelle du sujet, sans chiffres ni promesses. La légende reste hors de l'image. L'image doit rendre le sujet reconnaissable immédiatement : montrer l'action ou l'outil annoncé, jamais une simple ambiance générique qui pourrait accompagner n'importe quel post.",
     `Famille visuelle imposée : ${family.id} — ${family.direction}`,
+    `Composition éditoriale tournante : ${tokSocialLayout(dayIndex)}. Cette consigne varie la densité du texte et la composition, sans imposer de mascotte si la famille ne la demande pas.`,
     family.requiresChef
       ? "Mascotte chef TOK obligatoire, strictement identique aux références maîtresses."
       : "Aucune mascotte ni personnage cartoon dans cette publication, en dehors du pictogramme du logo TOK.",
