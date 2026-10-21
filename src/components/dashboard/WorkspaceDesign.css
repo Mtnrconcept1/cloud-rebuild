@@ -1,25 +1,25 @@
 /* TOK hospitality workspaces. Scoped to client + restaurant; public/admin UI keeps its own theme. */
 .tok-hospitality-workspace {
-  --background: 40 39% 96%;
+  --background: 0 0% 100%;
   --foreground: 28 21% 16%;
-  --card: 40 33% 99%;
+  --card: 0 0% 100%;
   --card-foreground: 28 21% 16%;
-  --border: 33 24% 87%;
-  --input: 33 24% 83%;
-  --muted: 35 29% 93%;
+  --border: 220 14% 90%;
+  --input: 220 13% 82%;
+  --muted: 220 14% 96%;
   --muted-foreground: 28 9% 40%;
   --primary: 23 95% 43%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 34 37% 92%;
+  --secondary: 220 14% 96%;
   --secondary-foreground: 28 21% 16%;
-  --sidebar-background: 35 33% 91%;
+  --sidebar-background: 0 0% 100%;
   --sidebar-foreground: 28 21% 16%;
-  --sidebar-accent: 36 36% 95%;
+  --sidebar-accent: 220 14% 96%;
   --sidebar-accent-foreground: 28 21% 16%;
   --ring: 23 95% 43%;
   --workspace-gutter: 24px;
   --workspace-serif: "Playfair Display", Georgia, serif;
-  background: #f8f5ef;
+  background: #f6f7f9;
   color: #30271f;
   min-width: 0;
 }
@@ -34,12 +34,12 @@
   box-shadow: 0 3px 16px rgb(82 53 28 / 2%);
 }
 .tok-hospitality-workspace .tok-workspace-back { min-height: 32px; height: auto; padding: 6px 10px; margin-left: -10px; margin-bottom: 10px; font-size: 12px; color: hsl(var(--muted-foreground)); }
-/* An independently scrolling, generous cream navigation. */
+/* An independently scrolling white navigation, shared by both workspaces. */
 .tok-hospitality-workspace .tok-workspace-sidebar {
   width: 256px;
   padding: 0 8px;
-  background: linear-gradient(100deg, #f1eadf, #f4ede3);
-  border-color: #e8ded0;
+  background: #fff;
+  border-color: #e2e5e9;
   box-shadow: none;
   scrollbar-width: thin;
   scrollbar-color: #d7c8b5 transparent;
@@ -53,8 +53,8 @@
 .tok-hospitality-workspace [data-collapsed="true"] .tok-workspace-brand { padding: 40px 0 10px; }
 .tok-hospitality-workspace [data-collapsed="true"] .tok-workspace-logo { width: 54px; height: 40px; }
 .tok-hospitality-workspace .tok-workspace-restaurant-selector { padding-inline: 6px; margin-bottom: 12px; }
-.tok-hospitality-workspace .tok-workspace-restaurant-selector > button { min-height: 42px; border-radius: 10px; background: #f9f5ed; box-shadow: none; font-weight: 500; }
-.tok-hospitality-workspace .tok-workspace-nav-section { margin-top: 12px; padding-top: 9px; border-top: 1px solid #e3dacd; }
+.tok-hospitality-workspace .tok-workspace-restaurant-selector > button { min-height: 42px; border-radius: 10px; background: #fff; box-shadow: none; font-weight: 500; }
+.tok-hospitality-workspace .tok-workspace-nav-section { margin-top: 12px; padding-top: 9px; border-top: 1px solid #e2e5e9; }
 .tok-hospitality-workspace .tok-workspace-nav-heading { display: flex; width: 100%; min-height: 44px; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 8px; text-align: left; font-size: 13px; font-weight: 650; }
 .tok-hospitality-workspace .tok-workspace-nav-heading:hover { background: rgb(255 255 255 / 35%); }
 .tok-hospitality-workspace .tok-workspace-nav-heading:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
@@ -73,23 +73,23 @@
   box-shadow: none;
 }
 .tok-hospitality-workspace .tok-workspace-nav-link svg { flex-shrink: 0; width: 19px; height: 19px; color: currentColor; }
-.tok-hospitality-workspace .tok-workspace-nav-link:hover { background: #e9dfd1; }
+.tok-hospitality-workspace .tok-workspace-nav-link:hover { background: #f1f3f5; }
 .tok-hospitality-workspace .tok-workspace-nav-link[aria-current="page"] { background: linear-gradient(110deg, #d76012, #c94d00); color: white; font-weight: 600; box-shadow: 0 3px 8px rgb(181 74 10 / 9%); }
 .tok-hospitality-workspace .tok-workspace-nav-link[aria-current="page"] svg { color: white; }
-.tok-hospitality-workspace .tok-workspace-nav-link[href="/dashboard/photos"]:not([aria-current="page"]) { color: #b54709; background: #fce9d6; font-weight: 650; }
-.tok-hospitality-workspace .tok-workspace-sidebar-footer { border-color: #e3dacd; }
+.tok-hospitality-workspace .tok-workspace-nav-link[href="/dashboard/photos"]:not([aria-current="page"]) { color: #b54709; background: #fff; font-weight: 650; }
+.tok-hospitality-workspace .tok-workspace-sidebar-footer { border-color: #e2e5e9; }
 .tok-hospitality-workspace .tok-workspace-role-switch { padding: 3px 8px 8px; font-size: 12px; }
 .tok-hospitality-workspace .tok-workspace-role-switch > summary { display: flex; justify-content: space-between; align-items: center; gap: 8px; list-style: none; cursor: pointer; padding: 8px 4px; color: #726354; }
 .tok-hospitality-workspace .tok-workspace-role-switch > summary::-webkit-details-marker { display: none; }
 .tok-hospitality-workspace .tok-workspace-role-switch[open] > summary svg { transform: rotate(180deg); }
 /* The search and account controls share a quiet, single-row toolbar. */
-.tok-hospitality-workspace .tok-workspace-toolbar { position: sticky; top: 0; z-index: 40; min-height: 65px; align-items: center; gap: 24px; padding: 10px var(--workspace-gutter); background: rgb(251 248 243 / 96%); border-bottom: 1px solid #ece2d5; backdrop-filter: blur(16px); }
+.tok-hospitality-workspace .tok-workspace-toolbar { position: sticky; top: 0; z-index: 40; min-height: 65px; align-items: center; gap: 24px; padding: 10px var(--workspace-gutter); background: rgb(255 255 255 / 96%); border-bottom: 1px solid #e2e5e9; backdrop-filter: blur(16px); }
 .tok-hospitality-workspace .tok-workspace-toolbar-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-.tok-hospitality-workspace .tok-workspace-search { display: flex; align-items: center; gap: 12px; width: min(100%, 690px); height: 43px; padding: 8px 13px; border: 1px solid #dfd3c4; border-radius: 10px; background: #f8f5ef; color: #74675c; font-size: 13px; text-align: left; }
+.tok-hospitality-workspace .tok-workspace-search { display: flex; align-items: center; gap: 12px; width: min(100%, 690px); height: 43px; padding: 8px 13px; border: 1px solid #d0d5dd; border-radius: 10px; background: #fff; color: #74675c; font-size: 13px; text-align: left; }
 .tok-hospitality-workspace .tok-workspace-search > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .tok-hospitality-workspace .tok-workspace-search input { min-width: 0; width: 100%; height: 100%; border: 0; padding: 0; outline: 0; background: transparent; color: hsl(var(--foreground)); font: inherit; }
 .tok-hospitality-workspace .tok-workspace-search:focus-within, .tok-hospitality-workspace button.tok-workspace-search:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
-.tok-hospitality-workspace .tok-workspace-account { display: flex; align-items: center; gap: 10px; min-height: 43px; padding-left: 16px; border-left: 1px solid #e5dacb; font-size: 13px; }
+.tok-hospitality-workspace .tok-workspace-account { display: flex; align-items: center; gap: 10px; min-height: 43px; padding-left: 16px; border-left: 1px solid #e2e5e9; font-size: 13px; }
 .tok-hospitality-workspace .tok-workspace-avatar { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; color: #fff; background: #8a7260; font: 600 13px/1 sans-serif; }
 .tok-hospitality-workspace .tok-workspace-icon-link { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; }
 .tok-hospitality-workspace .tok-workspace-icon-link:hover { background: hsl(var(--muted)); }
@@ -110,9 +110,9 @@
   overflow: hidden;
   border: 0;
   border-radius: 0;
-  background: #f4eddf;
+  background: #fff;
 }
-.tok-hospitality-workspace .tok-hospitality-hero-copy::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #f8f5ef 0%, rgb(248 245 239 / 97%) 24%, rgb(248 245 239 / 78%) 43%, rgb(248 245 239 / 0%) 69%), url('/images/dashboard/restaurant-ambience.webp') right 54% / cover; }
+.tok-hospitality-workspace .tok-hospitality-hero-copy::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #fff 0%, rgb(255 255 255 / 97%) 24%, rgb(255 255 255 / 78%) 43%, rgb(255 255 255 / 0%) 69%), url('/images/dashboard/restaurant-ambience.webp') right 54% / cover; }
 .tok-hospitality-workspace .tok-hospitality-hero-copy > * { margin-block: 0; }
 .tok-hospitality-workspace .tok-hospitality-hero-copy > :first-child { align-self: flex-start; height: auto; max-width: 100%; padding: 0; border: 0; background: transparent; color: #6c5d4f; font-size: 10px; font-weight: 600; letter-spacing: .16em; box-shadow: none; }
 .tok-hospitality-workspace .tok-hospitality-hero-copy > .flex { display: block; }
@@ -146,14 +146,14 @@
 .tok-hospitality-workspace .tok-client-action-watermark { position: absolute; right: 12px; bottom: -8px; width: 110px; height: 110px; opacity: .07; color: currentColor; stroke-width: 1; pointer-events: none; }
 /* Controls stay native, accessible and connected to their original handlers. */
 .tok-hospitality-workspace .tok-workspace-content :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) { border-color: hsl(var(--input)); }
-.tok-hospitality-workspace .tok-workspace-content [role="tablist"] { max-width: 100%; border-radius: 11px; background: #eee6da; padding: 4px; }
+.tok-hospitality-workspace .tok-workspace-content [role="tablist"] { max-width: 100%; border-radius: 11px; background: #f1f3f5; padding: 4px; }
 .tok-hospitality-workspace .tok-workspace-content [role="tab"] { border-radius: 8px; min-height: 36px; }
 .tok-hospitality-workspace .tok-workspace-content [role="tab"][data-state="active"] { background: hsl(var(--card)); color: #b94b08; box-shadow: 0 2px 6px rgb(75 47 23 / 7%); }
 .tok-hospitality-workspace .tok-workspace-content table { font-variant-numeric: tabular-nums; }
-.tok-hospitality-workspace .tok-workspace-content thead { background: #f2ece2; }
+.tok-hospitality-workspace .tok-workspace-content thead { background: #f6f7f9; }
 .tok-hospitality-workspace .tok-workspace-content th { color: #67594c; font-size: 12px; font-weight: 600; }
 .tok-hospitality-workspace .tok-workspace-content td { border-color: hsl(var(--border)); }
-.tok-hospitality-workspace .tok-workspace-content tbody tr:hover { background: rgb(240 231 218 / 35%); }
+.tok-hospitality-workspace .tok-workspace-content tbody tr:hover { background: rgb(148 163 184 / 8%); }
 .dark .tok-hospitality-workspace {
   --background: 27 16% 10%; --foreground: 35 30% 93%; --card: 27 13% 13%; --card-foreground: 35 30% 93%;
   --border: 28 13% 25%; --input: 28 13% 30%; --muted: 27 12% 19%; --muted-foreground: 32 15% 70%;
