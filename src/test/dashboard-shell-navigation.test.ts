@@ -31,9 +31,9 @@ describe("dashboard shell navigation", () => {
     const layout = read("src/components/DashboardLayout.tsx");
     const marketingStart = layout.indexOf('title: "Marketing"');
     const studioEntry = layout.indexOf('label: "Studio Marketing"');
-    const paymentsStart = layout.indexOf('title: "Paiements"');
-    const pageStart = layout.indexOf('title: "Page du restaurant"');
-    const supportStart = layout.indexOf('title: "Support"');
+    const paymentsStart = layout.indexOf('title: "Finances"');
+    const pageStart = layout.indexOf('title: "Mon restaurant"');
+    const supportStart = layout.indexOf('title: "Assistance"');
     const pageRestaurantSection = layout.slice(pageStart, supportStart);
 
     expect(marketingStart).toBeGreaterThan(-1);
@@ -139,7 +139,7 @@ describe("dashboard shell navigation", () => {
     expect(layout).toContain("constrainToViewport?: boolean");
     expect(layout).toContain('constrainToViewport && "flex h-[100dvh] min-h-0 flex-col overflow-y-hidden"');
     expect(layout).toContain('constrainToViewport && "flex min-h-0 flex-1 flex-col"');
-    expect(advisor).toContain("<DashboardLayout constrainToViewport>");
+    expect(advisor).toMatch(/<DashboardLayout\b[^>]*\bconstrainToViewport\b[^>]*>/);
     expect(advisor).toContain('className="flex min-h-0 flex-1 flex-col"');
     expect(advisor).not.toContain("h-[calc(100dvh-6rem)]");
   });

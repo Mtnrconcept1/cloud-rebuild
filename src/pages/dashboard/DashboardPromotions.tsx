@@ -163,11 +163,11 @@ export default function DashboardPromotions() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-promotions">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Activation client"
-          title="Promotions"
+          title="Vos promotions"
           description="Créez et suivez les remises par audience pour relancer la demande sans perdre le contrôle des campagnes."
           icon={BadgePercent}
           tone="orange"
@@ -222,11 +222,11 @@ export default function DashboardPromotions() {
         ) : !promotions?.length ? (
           <Card><CardContent className="py-12 text-center text-muted-foreground">Aucune promotion active. Créez-en une pour attirer plus de clients !</CardContent></Card>
         ) : (
-          <div className="space-y-3">
+          <div className="tok-offer-catalog space-y-3">
             {promotions.map((promo) => {
               const isExpired = new Date(promo.end_at) < new Date();
               return (
-                <Card key={promo.id}>
+                <Card className="tok-offer-card" key={promo.id}>
                   <CardContent className="flex items-center gap-4 py-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">

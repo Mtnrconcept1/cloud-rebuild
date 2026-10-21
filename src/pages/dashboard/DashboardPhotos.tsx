@@ -1,5 +1,6 @@
 import { type CSSProperties, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import IllustratedActionCard from "@/components/dashboard/IllustratedActionCard";
 import { DASHBOARD_ILLUSTRATIONS, type DashboardIllustration } from "@/lib/dashboardIllustrations";
 import AiCreationsGallery from "@/components/dashboard/AiCreationsGallery";
@@ -694,12 +695,18 @@ export default function DashboardPhotos() {
   const activeHeading = activeTool ? PHOTO_TOOL_HEADINGS[activeTool] : null;
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-photos">
       <div className="space-y-6">
         {!activeTool ? (
           <>
-            <h1 className="sr-only">Photos et créations</h1>
-            <section className="flex min-h-[calc(100dvh-9rem)] items-center justify-center py-8 sm:py-10">
+            <DashboardPageHero
+              badge="Marketing"
+              title="Studio Marketing"
+              description="Donnez vie à vos idées. Créez vos visuels, préparez vos supports et retrouvez toutes les photos de votre restaurant."
+              icon={Camera}
+              stats={[{ label: "Photos dans la galerie", value: items.length, icon: Images }]}
+            />
+            <section className="tok-photo-tools flex items-start justify-center">
             <div
               className="grid w-full max-w-6xl gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3"
               aria-label="Outils photos du dashboard restaurateur"
@@ -723,21 +730,19 @@ export default function DashboardPhotos() {
             </section>
           </>
         ) : (
-          <div className="flex flex-col gap-3 rounded-3xl border border-orange-100 bg-white p-4 shadow-sm dark:bg-background sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setActiveTool(null)}
-                className="mb-3 gap-2 rounded-2xl"
-              >
+          <DashboardPageHero
+            badge="Studio Marketing"
+            title={activeHeading?.title || "Photos et créations"}
+            description={activeHeading?.description || "Retrouvez les outils de création de votre restaurant."}
+            icon={Camera}
+            compact
+            actions={(
+              <Button type="button" variant="outline" onClick={() => setActiveTool(null)} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
-                Photos
+                Tous les outils photos
               </Button>
-              <h1 className="font-serif text-3xl font-bold tracking-tight text-foreground">{activeHeading?.title}</h1>
-              <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">{activeHeading?.description}</p>
-            </div>
-          </div>
+            )}
+          />
         )}
 
         {activeTool === "marketing" ? <TokAiMarketingStudio restaurantId={selectedId} /> : null}

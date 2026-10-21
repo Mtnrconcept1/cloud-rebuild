@@ -310,7 +310,7 @@ export default function DashboardActualites() {
   }, [refreshCampaignLinkedData, searchParams, setSearchParams, toast]);
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-news">
       <div className="min-w-0 space-y-6">
         <DashboardPageHero
           badge="Fil social"

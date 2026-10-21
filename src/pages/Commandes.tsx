@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import CustomerPageHero from "@/components/dashboard/CustomerPageHero";
 import DashboardIllustrationMedia from "@/components/dashboard/DashboardIllustrationMedia";
 import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
@@ -274,9 +275,14 @@ function LiveCommandes() {
 
   return (
     <CustomerDashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <h1 className="font-display text-3xl font-bold">Mes achats</h1>
+      <div className="tok-customer-page tok-customer-orders space-y-6">
+        <CustomerPageHero
+          breadcrumb="Mes achats"
+          title="Mes achats"
+          subtitle="Suivez vos commandes et retrouvez l’historique de vos achats."
+        />
+        <div className="tok-customer-sort-bar flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <h2 className="font-display text-xl font-semibold">Vos commandes</h2>
           <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end lg:w-auto">
             <SortControls
               columns={CUSTOMER_ORDER_SORT_COLUMNS}
@@ -300,7 +306,7 @@ function LiveCommandes() {
             ) : null}
           </div>
         </div>
-        <div className="flex flex-col gap-3 rounded-2xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="tok-customer-view-bar flex flex-col gap-3 rounded-2xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold">Présentation des commandes</p>
             <p className="text-xs text-muted-foreground">Galerie pour parcourir, liste pour comparer, détails pour ouvrir une commande.</p>
@@ -321,7 +327,7 @@ function LiveCommandes() {
           </div>
         ) : orderGroups.length > 0 ? (
           viewMode !== "details" ? (
-            <div className={viewMode === "gallery" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
+            <div className={viewMode === "gallery" ? "tok-customer-order-gallery grid gap-4 md:grid-cols-2" : "space-y-4"}>
               {orderGroups.map((group) => {
                 const mainOrder = group.mainOrder;
                 const createdDate = new Date(mainOrder.created_at);
@@ -336,7 +342,7 @@ function LiveCommandes() {
                       : "À la carte";
 
                 return (
-                  <article key={group.groupKey} className="rounded-2xl border bg-card p-4 shadow-sm transition hover:border-primary/30">
+                  <article key={group.groupKey} className="tok-customer-order-card rounded-2xl border bg-card p-4 shadow-sm transition hover:border-primary/30">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
@@ -406,7 +412,7 @@ function LiveCommandes() {
               const ChevronIcon = isExpanded ? ChevronDown : ChevronRight;
 
               return (
-                <div key={groupKey} className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+                <div key={groupKey} className="tok-customer-order-card overflow-hidden rounded-2xl border bg-card shadow-sm">
                   <button
                     type="button"
                     onClick={() => toggleGroup(groupKey)}
@@ -454,7 +460,7 @@ function LiveCommandes() {
                         && !["pending", "pending_payment", "payment_failed", "cancelled", "delivered"].includes(String(displayStatus));
 
                       return (
-                        <div key={order.id} className="space-y-3 rounded-2xl border bg-background/80 p-4 shadow-sm">
+                        <div key={order.id} className="tok-customer-order-detail space-y-3 rounded-2xl border bg-background/80 p-4 shadow-sm">
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <h3 className="text-sm font-semibold">{order.restaurant?.name || "Restaurant"}</h3>
                             <OrderStatusBadge status={displayStatus} />

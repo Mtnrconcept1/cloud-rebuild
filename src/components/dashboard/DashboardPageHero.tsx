@@ -85,13 +85,13 @@ export default function DashboardPageHero({
   className,
 }: DashboardPageHeroProps) {
   const toneClasses = HERO_TONES[tone];
-  const displayStats = stats.slice(0, 3);
+  const displayStats = stats;
 
   return (
-    <Card className={cn("tok-dashboard-hero rounded-3xl border border-border/70", className)}>
-      <CardContent className={cn("relative p-5 sm:p-7 lg:p-8", compact && "p-4 sm:p-5 lg:p-6")}>
-        <div className={cn("grid items-center gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,24rem)]", compact && "gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,21rem)]")}>
-          <div className={cn("relative z-10 min-w-0 space-y-6", compact && "space-y-3")}>
+    <Card data-compact={compact} data-has-stats={displayStats.length > 0} className={cn("tok-dashboard-hero rounded-3xl border border-border/70", className)}>
+      <CardContent className={cn("tok-hospitality-hero-layout relative p-5 sm:p-7 lg:p-8", compact && "p-4 sm:p-5 lg:p-6")}>
+        <div className={cn("tok-hospitality-hero-grid grid items-center gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,24rem)]", compact && "gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,21rem)]")}>
+          <div className={cn("tok-hospitality-hero-copy relative z-10 min-w-0 space-y-6", compact && "space-y-3")}>
             <Badge
               variant="outline"
               className={cn("rounded-full border-primary/45 bg-primary/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.26em] text-primary dark:border-[#2d69b8]/70 dark:bg-[#071c3c]/75 dark:text-[#8ec7ff] dark:shadow-[0_0_28px_rgba(30,105,216,0.22)]", compact && "px-3 py-1.5")}
@@ -99,7 +99,7 @@ export default function DashboardPageHero({
               {badge}
             </Badge>
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-              <div className={cn("tok-kpi-icon flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl sm:h-20 sm:w-20", toneClasses.toneClass, compact && "h-12 w-12 sm:h-14 sm:w-14")}>
+              <div className={cn("tok-hospitality-title-icon tok-kpi-icon flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl sm:h-20 sm:w-20", toneClasses.toneClass, compact && "h-12 w-12 sm:h-14 sm:w-14")}>
                 <Icon className={cn("h-8 w-8", compact && "h-6 w-6")} />
               </div>
               <div className="min-w-0 space-y-3">
@@ -121,15 +121,15 @@ export default function DashboardPageHero({
             ) : null}
           </div>
 
-          <div className="pointer-events-none relative z-10 hidden lg:block">
+          <div className="tok-hospitality-hero-console relative z-10 hidden lg:block">
             <div className={cn("absolute inset-x-2 top-0 h-1 rounded-full bg-gradient-to-r", toneClasses.line)} />
             <div className={cn(
-              "relative mt-6 w-full rounded-3xl border border-[#6b7da7]/35 bg-white/80 p-5 backdrop-blur dark:bg-[#07142b]/74",
+              "tok-hospitality-console-panel relative mt-6 w-full rounded-3xl border border-[#6b7da7]/35 bg-white/80 p-5 backdrop-blur dark:bg-[#07142b]/74",
               compact && "mt-3 p-3",
               "dark:shadow-[0_26px_74px_rgba(0,0,0,0.44),inset_0_1px_0_rgba(255,255,255,0.08)]",
               toneClasses.glow,
             )}>
-              <div className="flex items-center justify-between gap-3">
+              <div className="tok-hospitality-console-heading flex items-center justify-between gap-3">
                 <div className="space-y-1">
                   <p className={cn("tok-kpi-label text-[11px] font-bold uppercase tracking-[0.24em]", toneClasses.toneClass)}>{visualLabel}</p>
                   <p className="text-sm font-semibold text-foreground dark:text-white">Console active</p>
@@ -140,7 +140,7 @@ export default function DashboardPageHero({
               </div>
 
               <div className={cn(
-                "mt-5",
+                "tok-hospitality-summary-layout mt-5",
                 compact && "mt-3",
                 // La colonne de droite est dimensionnée sur l'illustration : elle
                 // doit la contenir sans rogner les chiffres, qui gardent la
@@ -150,7 +150,7 @@ export default function DashboardPageHero({
                   ? "grid-cols-[minmax(0,1fr)_7.5rem]"
                   : "grid-cols-[minmax(0,1fr)_9.5rem]"),
               )}>
-                <div className={cn("space-y-3", compact && "space-y-2")}>
+                <div className={cn("tok-hospitality-summary-stats space-y-3", compact && "space-y-2")}>
                 {displayStats.length > 0 ? displayStats.map((stat) => {
                   const StatIcon = stat.icon ?? ArrowRight;
 
@@ -178,7 +178,7 @@ export default function DashboardPageHero({
                     className={cn("h-36 w-36", compact && "h-28 w-28")}
                   />
                 ) : (
-                <div className="mt-5 grid grid-cols-5 items-end gap-2">
+                <div aria-hidden="true" className="mt-5 grid grid-cols-5 items-end gap-2">
                   {[42, 64, 52, 76, 58].map((height, index) => (
                     <span
                       key={`${height}-${index}`}

@@ -752,7 +752,7 @@ function CommercialDemoAccountBilling() {
   const activeFeatureSet = new Set(activeFeatures);
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-billing">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Abonnement · Démonstration"
@@ -813,7 +813,7 @@ function CommercialDemoAccountBilling() {
 
 function IosRestaurantBillingCompanion() {
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-billing">
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
         <Card>
           <CardHeader>
@@ -1299,11 +1299,11 @@ function LiveDashboardAccountBilling() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-billing">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Compte restaurateur"
-          title="Mon compte/Facturation"
+          title="Mon compte et facturation"
           description="Pilotez votre abonnement TOK, changez de formule en fin de période payée et suivez votre solde unique de crédits TOK avec le détail complet des dépenses."
           icon={CreditCard}
           tone="sky"

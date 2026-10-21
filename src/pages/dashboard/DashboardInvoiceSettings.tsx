@@ -234,14 +234,14 @@ export default function DashboardInvoiceSettings() {
 
   if (lr || loading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout mainClassName="tok-restaurant-page tok-page-invoice-settings">
         <p className="p-6">Chargement...</p>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-invoice-settings">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Facturation"

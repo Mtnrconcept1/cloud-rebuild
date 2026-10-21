@@ -4,10 +4,13 @@ import { Link, useSearchParams } from "react-router-dom";
 import { CalendarDays, ChevronDown, ChevronRight, Clock, Receipt, RefreshCcw, Users, Utensils } from "lucide-react";
 
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import CustomerPageHero from "@/components/dashboard/CustomerPageHero";
 import OrderStatusBadge from "@/components/OrderStatusBadge";
 import ReservationDetailModal from "@/components/ReservationDetailModal";
 import SortControls from "@/components/list/SortControls";
 import OperationViewToggle, { type OperationViewMode } from "@/components/operations/OperationViewToggle";
+import { Calendar } from "@/components/ui/calendar";
+import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -332,14 +335,20 @@ export default function Reservations() {
 
   return (
     <CustomerDashboardLayout>
-      <div className="space-y-6">
+      <div className="tok-customer-page tok-customer-reservations space-y-6">
+        <CustomerPageHero
+          breadcrumb="Mes réservations"
+          title="Mes réservations"
+          subtitle="Toutes vos tables, en un clin d’œil."
+          actions={<Button asChild className="min-h-11 gap-2"><Link to="/recherche"><CalendarDays className="h-4 w-4" />Trouver une table</Link></Button>}
+        />
         {guaranteeFinalizing && (
           <div role="status" className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm">
             Vérification de votre garantie bancaire Stripe et de la disponibilité de la table…
           </div>
         )}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="font-display text-3xl font-bold">Mes réservations</h1>
+        <div className="tok-customer-sort-bar flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="font-display text-xl font-semibold">Vos réservations</h2>
           <SortControls
             columns={RESERVATION_SORT_COLUMNS}
             sortKey={sortKey}
@@ -349,7 +358,7 @@ export default function Reservations() {
             className="w-full sm:w-[440px]"
           />
         </div>
-        <div className="flex flex-col gap-3 rounded-2xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="tok-customer-view-bar flex flex-col gap-3 rounded-2xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold">Présentation des réservations</p>
             <p className="text-xs text-muted-foreground">Galerie pour parcourir, liste pour comparer, détails pour ouvrir une réservation.</p>
@@ -357,6 +366,8 @@ export default function Reservations() {
           <OperationViewToggle value={viewMode} onChange={setViewMode} ariaLabel="Mode de vue des réservations client" />
         </div>
 
+        <div className="tok-customer-reservations-layout">
+          <div className="min-w-0">
         {isLoading ? (
           <div className="space-y-4">{[1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-muted" />)}</div>
         ) : error ? (
@@ -369,7 +380,7 @@ export default function Reservations() {
           </div>
         ) : sortedReservations.length > 0 ? (
           viewMode !== "details" ? (
-            <div className={viewMode === "gallery" ? "grid gap-3 md:grid-cols-2 xl:grid-cols-3" : "space-y-3"}>
+            <div className={viewMode === "gallery" ? "tok-customer-reservation-gallery grid gap-4 xl:grid-cols-2" : "space-y-4"}>
               {sortedReservations.map((reservation) => {
                 const isZeroAttente = isZeroAttenteReservation(reservation);
                 const timeValue = getDisplayTime(reservation);
@@ -382,7 +393,7 @@ export default function Reservations() {
                   : featureBadge?.label || (isZeroAttente ? "Zéro attente" : "À la carte");
 
                 return (
-                  <article key={reservation.id} className="rounded-2xl border bg-card p-4 shadow-sm transition hover:border-primary/30">
+                  <article key={reservation.id} className="tok-customer-reservation-card rounded-2xl border bg-card p-4 shadow-sm transition hover:border-primary/30">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
@@ -430,7 +441,7 @@ export default function Reservations() {
               const ChevronIcon = isExpanded ? ChevronDown : ChevronRight;
 
               return (
-                <div key={reservation.id} className="overflow-hidden rounded-xl border bg-card shadow-sm transition-all hover:border-primary/30">
+                <div key={reservation.id} className="tok-customer-reservation-card overflow-hidden rounded-xl border bg-card shadow-sm transition-all hover:border-primary/30">
                   <button
                     type="button"
                     onClick={() => toggleReservation(reservation.id)}
@@ -546,6 +557,29 @@ export default function Reservations() {
             <Button asChild variant="outline"><Link to="/recherche">Trouver une table</Link></Button>
           </div>
         )}
+          </div>
+          <aside className="tok-customer-reservations-aside">
+            <section className="tok-customer-calendar-card">
+              <h2>Votre calendrier</h2>
+              <Calendar
+                locale={fr}
+                weekStartsOn={1}
+                modifiers={{
+                  reserved: visibleReservations
+                    .map((reservation) => new Date(`${reservation.date}T12:00:00`))
+                    .filter((date) => Number.isFinite(date.getTime())),
+                }}
+                modifiersClassNames={{ reserved: "tok-customer-calendar-day" }}
+              />
+              <p className="tok-customer-calendar-legend"><span aria-hidden="true" />Dates de vos réservations</p>
+            </section>
+            <section className="tok-customer-note-card">
+              <Clock aria-hidden="true" />
+              <h2>Votre prochain moment à table</h2>
+              <p>Retrouvez les horaires, vos précommandes et les conditions d’annulation dans le détail de chaque réservation.</p>
+            </section>
+          </aside>
+        </div>
       </div>
 
       {!commercialDemoFrame ? (

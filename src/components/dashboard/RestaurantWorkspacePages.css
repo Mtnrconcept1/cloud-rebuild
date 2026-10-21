@@ -1,0 +1,299 @@
+/* Page compositions for the restaurant workspace. Business states keep their own colors. */
+.tok-hospitality-workspace .tok-restaurant-page { min-width: 0; }
+.tok-hospitality-workspace .tok-restaurant-page :is(h2, h3) { text-wrap: pretty; }
+.tok-hospitality-workspace .tok-restaurant-page :is(input, select, textarea) { scroll-margin-top: 6rem; }
+
+/* Operational tools keep every filter, with enough room for real labels and dates. */
+.tok-hospitality-workspace .tok-operation-filters {
+  align-items: end;
+  gap: 14px;
+  border-radius: 18px;
+  padding: 18px;
+  background: hsl(var(--card));
+  box-shadow: 0 4px 20px rgb(73 49 27 / 3%);
+}
+.tok-hospitality-workspace .tok-operation-filters > div { min-width: 0; }
+.tok-hospitality-workspace .tok-operation-filters :is(input, button) { min-height: 42px; }
+.tok-hospitality-workspace .tok-operation-filters p.text-xs { font-size: 11px; letter-spacing: .035em; }
+.tok-hospitality-workspace .tok-operation-viewbar { border-radius: 16px; padding: 12px 16px; }
+.tok-hospitality-workspace .tok-order-card { border-radius: 18px; padding: 20px; }
+.tok-hospitality-workspace .tok-order-card > div > div > div:first-child > span:first-child {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  line-height: 1.25;
+}
+.tok-hospitality-workspace .tok-service-metrics > div { border-radius: 18px; }
+.tok-hospitality-workspace .tok-service-metrics .text-xl { font-family: Georgia, "Times New Roman", serif; font-size: 32px; }
+.tok-hospitality-workspace :is(.tok-page-orders, .tok-page-reservations) table { font-size: 13px; }
+.tok-hospitality-workspace :is(.tok-page-orders, .tok-page-reservations) :is(th, td) { padding: 15px 14px; }
+.tok-hospitality-workspace :is(.tok-page-orders, .tok-page-reservations) thead { background: hsl(var(--muted)); }
+
+/* Orders: a live service board, with every other status still available below. */
+.tok-order-board-workspace { display: grid; gap: 24px; }
+.tok-order-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 18px; align-items: start; }
+.tok-order-board-column { min-width: 0; overflow: hidden; border: 1px solid hsl(var(--border)); border-radius: 18px; background: hsl(var(--muted) / .45); }
+.tok-order-board-column > header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 17px 16px; background: #fff0dd; border-bottom: 1px solid hsl(var(--border)); }
+.tok-order-board-column > header > span { display: flex; align-items: center; gap: 9px; }
+.tok-order-board-column > header svg { width: 19px; height: 19px; color: #b36526; flex-shrink: 0; }
+.tok-order-board-column > header h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.tok-order-board-column > header > strong { display: grid; place-items: center; min-width: 27px; height: 27px; padding: 0 6px; border-radius: 8px; background: rgb(255 255 255 / 70%); font-size: 12px; }
+.tok-order-board-column[data-order-status="preparation"] > header { background: #ffeadb; }
+.tok-order-board-column[data-order-status="ready"] > header { background: #e8eedf; }
+.tok-order-board-column[data-order-status="ready"] > header svg { color: #627b46; }
+.tok-order-board-cards { display: grid; gap: 12px; padding: 12px; }
+.tok-order-board-empty { padding: 28px 12px; text-align: center; font-size: 12px; color: hsl(var(--muted-foreground)); }
+.tok-hospitality-workspace .tok-order-board-workspace .tok-order-card { padding: 17px; border-radius: 14px; }
+.tok-order-board-workspace .tok-order-card > div:first-child { flex-direction: column; }
+.tok-order-board-workspace .tok-order-card > div:first-child > div { width: 100%; }
+.tok-order-board-workspace .tok-order-card > div:first-child > div:last-child { justify-content: flex-start; }
+.tok-order-board-workspace .tok-order-card .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.tok-order-board-card-footer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid hsl(var(--border)); }
+.tok-order-board-card-footer > p { grid-column: 1 / -1; margin: 0; line-height: 1.5; }
+.tok-order-board-history { display: grid; gap: 14px; }
+.tok-order-board-history > h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 24px; }
+.tok-order-board-history > h2 > span { font-family: inherit; color: hsl(var(--muted-foreground)); }
+.tok-order-board-history > p { margin-top: -6px; }
+.dark .tok-order-board-column > header { background: #423423; }
+.dark .tok-order-board-column[data-order-status="preparation"] > header { background: #452e21; }
+.dark .tok-order-board-column[data-order-status="ready"] > header { background: #303a27; }
+.dark .tok-order-board-column > header svg { color: #e8ac79; }
+.dark .tok-order-board-column[data-order-status="ready"] > header svg { color: #b1ca91; }
+.dark .tok-order-board-column > header > strong { background: rgb(255 255 255 / 8%); }
+
+/* Reservations: the live date controls stay beside the work list when it fits. */
+.tok-reservations-workspace { display: grid; gap: 20px; align-items: start; }
+.tok-reservation-results { min-width: 0; }
+.tok-reservation-results .tok-reservation-gallery { grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); }
+.tok-reservation-results .tok-reservation-card-actions { grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); }
+.tok-reservation-card-actions button { min-width: 0; min-height: 40px; height: auto; white-space: normal; text-align: center; }
+.tok-reservation-calendar { min-width: 0; border: 1px solid hsl(var(--border)); border-radius: 18px; background: hsl(var(--card)); padding: 20px; }
+.tok-reservation-calendar > h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 25px; line-height: 1.3; }
+.tok-reservation-calendar > p { color: hsl(var(--muted-foreground)); font-size: 12px; line-height: 1.6; margin-top: 7px; }
+.tok-reservation-calendar .tok-reservation-date-picker { margin: 20px auto 16px; padding: 0; max-width: 288px; }
+.tok-calendar-months, .tok-calendar-month { width: 100%; }
+.tok-calendar-weekdays, .tok-calendar-week-row { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-top: 8px; }
+.tok-hospitality-workspace .tok-reservation-calendar :is(th, td) { width: auto; padding: 0; }
+.tok-hospitality-workspace .tok-reservation-calendar thead { background: transparent; }
+.tok-reservation-calendar tbody button { width: 100%; min-width: 0; border-radius: 9px; font-size: 12px; }
+.tok-reservation-calendar .tok-calendar-active-period:not([aria-selected="true"]) { background: hsl(var(--primary) / .1); color: hsl(var(--foreground)); }
+.tok-reservation-calendar > .tok-calendar-period { padding-top: 14px; margin-bottom: 12px; border-top: 1px solid hsl(var(--border)); text-align: center; }
+.tok-calendar-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.tok-calendar-actions button { min-height: 38px; }
+@media (min-width: 1280px) {
+  .tok-reservations-workspace { grid-template-columns: minmax(0, 1fr) 300px; }
+  .tok-reservation-calendar { grid-column: 2; grid-row: 1; position: sticky; top: 20px; }
+  .tok-reservation-results { grid-column: 1; grid-row: 1; }
+  .tok-reservation-results .tok-operation-viewbar { align-items: flex-start; flex-direction: column; }
+}
+
+/* Menu: category rail and dishes, with the existing editor available alongside the list. */
+.tok-menu-catalog { display: grid; gap: 18px; align-items: start; }
+.tok-menu-categories, .tok-menu-dishes {
+  min-width: 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: 18px;
+  background: hsl(var(--card));
+  padding: 20px;
+  box-shadow: 0 3px 18px rgb(65 42 20 / 2%);
+}
+.tok-menu-catalog h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 23px; line-height: 1.3; }
+.tok-menu-category-list { display: flex; gap: 6px; margin-top: 18px; overflow-x: auto; padding-bottom: 3px; }
+.tok-menu-category {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-align: left;
+  font-size: 13px;
+  transition: background-color .15s, color .15s;
+}
+.tok-menu-category svg { width: 19px; height: 19px; flex-shrink: 0; }
+.tok-menu-category-count { margin-left: auto; padding-left: 12px; font-variant-numeric: tabular-nums; }
+.tok-menu-category:hover { background: hsl(var(--muted)); }
+.tok-menu-category.is-active { color: #c24a10; background: #fff0e5; font-weight: 600; }
+.tok-menu-category:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.tok-menu-dishes-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.tok-menu-dishes-heading > span { color: hsl(var(--muted-foreground)); font-size: 13px; flex-shrink: 0; }
+.tok-menu-dish { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 14px; padding: 18px 0; border-top: 1px solid hsl(var(--border)); }
+.tok-menu-dish-photo { aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; border-radius: 12px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+.tok-menu-dish-photo img { width: 100%; height: 100%; object-fit: cover; }
+.tok-menu-dish-photo svg { width: 28px; height: 28px; stroke-width: 1.25; }
+.tok-menu-dish-copy { align-self: center; min-width: 0; }
+.tok-menu-dish-copy h3 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 20px; line-height: 1.3; }
+.tok-menu-dish-copy > p { margin: 6px 0 0; color: hsl(var(--muted-foreground)); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+.tok-menu-dish-category { display: inline-block; margin-top: 8px; padding: 3px 8px; border-radius: 6px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: 11px; }
+.tok-menu-dish-price { grid-column: 2; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 12px; font-size: 15px; white-space: nowrap; }
+.tok-menu-dish-availability { display: flex; align-items: center; gap: 8px; }
+.tok-menu-dish-availability > span { color: hsl(var(--muted-foreground)); font-size: 11px; }
+.tok-menu-dish-availability [role="switch"][data-state="checked"] { background: #57925a; }
+.tok-menu-dish-actions { grid-column: 2; display: flex; gap: 6px; align-items: center; }
+.tok-menu-dish-actions button { border-radius: 10px; }
+.tok-menu-editor { border-color: #e7ded1; border-radius: 22px; background: #fffdfa; color: #30271f; }
+.tok-menu-editor h2 { font-family: Georgia, "Times New Roman", serif; font-size: 27px; }
+.tok-menu-editor :is(input, textarea, [role="combobox"]) { border-color: #e7ded1; background: #fffcf8; border-radius: 10px; }
+
+/* Offer cards use the full record; cards remain useful when no product photo exists. */
+.tok-hospitality-workspace .tok-offer-catalog { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 18px; }
+.tok-hospitality-workspace .tok-offer-catalog > * { margin-top: 0; }
+.tok-hospitality-workspace .tok-offer-card { overflow: hidden; border-radius: 18px; }
+.tok-hospitality-workspace .tok-offer-card > div { display: flex; flex-direction: column; align-items: stretch; height: 100%; padding: 22px; }
+.tok-hospitality-workspace .tok-offer-card > div > div:first-child { min-height: 130px; }
+.tok-hospitality-workspace .tok-offer-card > div > div:first-child > div:first-child { flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.tok-hospitality-workspace .tok-offer-card > div > div:first-child > div:first-child > p {
+  flex: 1 0 100%;
+  margin-bottom: 6px;
+  white-space: normal;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  line-height: 1.25;
+}
+.tok-hospitality-workspace .tok-offer-card > div > div:first-child > p { margin-top: 12px; line-height: 1.65; }
+.tok-hospitality-workspace .tok-offer-card > div > div:last-child { justify-content: flex-end; border-top: 1px solid hsl(var(--border)); padding-top: 14px; }
+.tok-hospitality-workspace .tok-offer-card [role="switch"][data-state="checked"] { background: #68935c; }
+
+/* Marketing, CRM, and the real response editor share calm paper panels. */
+.tok-hospitality-workspace .tok-campaign-actions { gap: 12px; }
+.tok-hospitality-workspace .tok-campaign-actions > * { min-width: 0; border-radius: 16px; }
+.tok-hospitality-workspace .tok-campaign-metrics > div { border-radius: 18px; }
+.tok-hospitality-workspace .tok-campaign-workbench { align-items: start; }
+.tok-hospitality-workspace .tok-campaign-studio-workbench { align-items: start; gap: 20px; }
+.tok-hospitality-workspace .tok-page-crm article { background: hsl(var(--card)); border-color: hsl(var(--border)); }
+.tok-hospitality-workspace .tok-page-crm article h3 { font-family: Georgia, "Times New Roman", serif; font-size: 20px; }
+.tok-hospitality-workspace .tok-review-workbench { padding: 22px; }
+.tok-hospitality-workspace .tok-review-response { align-items: start; }
+.tok-hospitality-workspace .tok-review-response > div { padding: 18px; border-radius: 14px; }
+.tok-hospitality-workspace .tok-review-response textarea { min-height: 140px; line-height: 1.7; }
+.tok-hospitality-workspace .tok-photo-tools > div { max-width: none; gap: 18px; }
+.tok-hospitality-workspace .tok-photo-tools button { border-radius: 18px; border-color: hsl(var(--border)); box-shadow: 0 4px 16px rgb(70 45 23 / 3%); }
+.tok-hospitality-workspace .tok-photo-tools [role="heading"] { font-family: Georgia, "Times New Roman", serif; font-size: 25px; font-weight: 600; }
+
+/* Restaurant information separates the actual editable identity and photo. */
+.tok-hospitality-workspace .tok-restaurant-profile-form { display: grid; gap: 20px; max-width: none; align-items: start; }
+.tok-hospitality-workspace .tok-restaurant-profile-form > * { margin-top: 0; }
+.tok-hospitality-workspace .tok-profile-general,
+.tok-hospitality-workspace .tok-profile-media,
+.tok-hospitality-workspace .tok-profile-wide { padding: 24px; border: 1px solid hsl(var(--border)); border-radius: 18px; background: hsl(var(--card)); }
+.tok-hospitality-workspace .tok-profile-general > h2,
+.tok-hospitality-workspace .tok-profile-media > h2 { margin-bottom: 22px; }
+.tok-hospitality-workspace .tok-profile-general textarea { min-height: 120px; }
+.tok-hospitality-workspace .tok-restaurant-profile-form > :is(div, button) { grid-column: 1 / -1; }
+.tok-hospitality-workspace .tok-profile-media img { max-height: 360px; object-fit: cover; border-radius: 12px; }
+.tok-hospitality-workspace .tok-profile-wide > h3 { font-family: Georgia, "Times New Roman", serif; font-size: 25px; font-weight: 600; }
+
+/* The constrained assistant and floor-plan editors receive compact photographic headings. */
+.tok-hospitality-workspace .tok-editorial-header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 174px;
+  padding: 24px 28px;
+  border: 1px solid #e9decf;
+  border-radius: 20px;
+  background: #f8f3ea;
+  box-shadow: none;
+}
+.tok-hospitality-workspace .tok-editorial-header::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(90deg, #fbf7ef 0%, rgb(251 247 239 / 98%) 38%, rgb(251 247 239 / 74%) 60%, rgb(251 247 239 / 5%) 100%), url('/images/dashboard/restaurant-ambience.webp') right 54% / cover;
+}
+.tok-hospitality-workspace .tok-editorial-header h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(30px, 3vw, 46px); line-height: 1.14; font-weight: 500; letter-spacing: -.04em; }
+.tok-hospitality-workspace .tok-editorial-header p { white-space: normal; color: #665a4c; max-width: 38rem; line-height: 1.6; }
+.tok-hospitality-workspace .tok-advisor-header { flex-direction: column; align-items: stretch; gap: 18px; }
+.tok-hospitality-workspace .tok-advisor-avatar { color: #d96623; background: #ffeadb; }
+.tok-hospitality-workspace .tok-advisor-avatar svg { color: inherit; }
+.tok-hospitality-workspace .tok-advisor-actions { justify-content: flex-start; }
+.tok-hospitality-workspace .tok-advisor-actions button { background: hsl(var(--card)); color: hsl(var(--foreground)); border: 1px solid hsl(var(--border)); flex: 0 1 auto; }
+.tok-hospitality-workspace .tok-advisor-conversation { border: 1px solid hsl(var(--border)); border-radius: 18px; padding: 22px; background: hsl(var(--card)); }
+.tok-hospitality-workspace .tok-advisor-welcome { padding: 12px; }
+.tok-hospitality-workspace .tok-advisor-welcome button { border-radius: 14px; }
+.tok-hospitality-workspace .tok-floorplan-header > div { align-items: flex-start; flex-direction: column; }
+.tok-hospitality-workspace .tok-floorplan-actions { gap: 8px; padding-top: 6px; }
+.tok-hospitality-workspace .tok-floorplan-actions button { backdrop-filter: blur(10px); }
+.tok-hospitality-workspace .tok-floorplan-workspace [data-floor-plan-canvas="stage"] { box-shadow: 0 8px 24px rgb(67 47 29 / 6%); }
+
+/* Notifications already have a real unread count and action in their heading. */
+.tok-hospitality-workspace .tok-restaurant-notifications > div:first-child {
+  min-height: 216px;
+  align-items: center;
+  padding: 28px;
+  border-radius: 20px;
+  border-color: #e9decf;
+  background: linear-gradient(90deg, #fbf7ef 0%, rgb(251 247 239 / 96%) 50%, rgb(251 247 239 / 70%) 70%, rgb(251 247 239 / 8%) 100%), url('/images/dashboard/restaurant-ambience.webp') right 54% / cover;
+  box-shadow: none;
+}
+.tok-hospitality-workspace .tok-restaurant-notifications h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(34px, 3.6vw, 54px); font-weight: 500; }
+.tok-hospitality-workspace .tok-restaurant-notifications > div:first-child > button { background: hsl(var(--card)); border-color: hsl(var(--border)); }
+.tok-hospitality-workspace .tok-restaurant-notifications article { border-radius: 16px; padding: 18px 22px; }
+
+/* The guide uses the same application shell while retaining its full manual and PDF export. */
+.tok-hospitality-workspace .tok-restaurant-guide { display: grid; gap: 22px; }
+.tok-hospitality-workspace .tok-guide-toolbar > div { padding: 0 0 14px; max-width: none; }
+.tok-hospitality-workspace .tok-guide-grid { align-items: start; }
+.tok-hospitality-workspace .tok-guide-grid main { min-width: 0; }
+.tok-hospitality-workspace .tok-guide-summary > div { position: static; }
+.tok-hospitality-workspace .tok-restaurant-guide :is(section, article) { border-color: hsl(var(--border)); }
+.tok-hospitality-workspace .tok-restaurant-guide :is(h2, h3) { font-family: Georgia, "Times New Roman", serif; }
+
+@media (min-width: 1200px) {
+  .tok-menu-catalog { grid-template-columns: 220px minmax(0, 1fr); }
+  .tok-menu-category-list { flex-direction: column; overflow-x: visible; }
+  .tok-menu-category { flex-shrink: 1; }
+  .tok-menu-dish { grid-template-columns: 90px minmax(0, 1fr) auto; }
+  .tok-menu-dish-price { grid-column: 3; grid-row: 1; }
+  .tok-menu-dish-actions { grid-column: 3; justify-content: flex-end; }
+}
+@media (min-width: 900px) {
+  .tok-hospitality-workspace .tok-restaurant-profile-form { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); }
+  .tok-hospitality-workspace .tok-guide-grid { grid-template-columns: 190px minmax(0, 1fr); }
+  .tok-hospitality-workspace .tok-guide-grid > main { grid-column: 2; grid-row: 1 / span 2; }
+  .tok-hospitality-workspace .tok-guide-summary { grid-column: 1; }
+}
+@media (min-width: 1280px) {
+  .tok-hospitality-workspace .tok-operation-filters { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .tok-hospitality-workspace .tok-campaign-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .tok-hospitality-workspace .tok-support-workspace { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 22px; align-items: start; }
+  .tok-hospitality-workspace .tok-support-workspace > * { margin-top: 0; max-width: none; }
+  .tok-hospitality-workspace .tok-support-workspace > :nth-child(-n+2) { grid-column: 1 / -1; }
+  .tok-menu-editor { width: 34rem; max-width: calc(100vw - 2rem); left: auto; right: 1.5rem; transform: translateY(-50%); }
+}
+@media (max-width: 639px) {
+  .tok-hospitality-workspace .tok-operation-filters { padding: 14px; }
+  .tok-hospitality-workspace .tok-order-card { padding: 15px; }
+  .tok-menu-categories, .tok-menu-dishes { padding: 16px; }
+  .tok-reservation-calendar { padding: 18px; }
+  .tok-menu-dishes-heading { align-items: flex-start; }
+  .tok-menu-dishes-heading h2 { font-size: 21px; }
+  .tok-menu-dish { grid-template-columns: 64px minmax(0, 1fr); gap: 12px; }
+  .tok-menu-dish-copy h3 { font-size: 19px; }
+  .tok-hospitality-workspace .tok-service-metrics .text-xl { font-size: 25px; }
+  .tok-hospitality-workspace :is(.tok-profile-general, .tok-profile-media, .tok-profile-wide) { padding: 17px; }
+  .tok-hospitality-workspace .tok-profile-general > .grid { grid-template-columns: minmax(0, 1fr); }
+  .tok-hospitality-workspace .tok-editorial-header { padding: 18px; min-height: 142px; border-radius: 16px; }
+  .tok-hospitality-workspace .tok-editorial-header::before { opacity: .45; }
+  .tok-hospitality-workspace .tok-advisor-header { gap: 12px; }
+  .tok-hospitality-workspace .tok-advisor-header h1 { font-size: 27px; }
+  .tok-hospitality-workspace .tok-advisor-actions { gap: 6px; }
+  .tok-hospitality-workspace .tok-advisor-conversation { padding: 14px; }
+  .tok-hospitality-workspace .tok-restaurant-notifications > div:first-child { min-height: 190px; padding: 22px 18px; }
+  .tok-hospitality-workspace .tok-restaurant-notifications article { padding: 15px; }
+  .tok-hospitality-workspace .tok-guide-toolbar > div { flex-wrap: wrap; }
+}
+.dark .tok-menu-category.is-active { background: #482d20; color: #ffb380; }
+.dark .tok-menu-editor { border-color: #514337; background: #241f1b; color: #f7ecdf; }
+.dark .tok-menu-editor :is(input, textarea, [role="combobox"]) { background: #2b2520; border-color: #514337; }
+.dark .tok-hospitality-workspace .tok-editorial-header,
+.dark .tok-hospitality-workspace .tok-restaurant-notifications > div:first-child { border-color: #514337; background-color: #28211a; }
+.dark .tok-hospitality-workspace .tok-editorial-header::before,
+.dark .tok-hospitality-workspace .tok-restaurant-notifications > div:first-child { background-image: linear-gradient(90deg, #28211a 0%, rgb(40 33 26 / 95%) 44%, rgb(40 33 26 / 65%) 70%, rgb(40 33 26 / 20%) 100%), url('/images/dashboard/restaurant-ambience.webp'); }
+.dark .tok-hospitality-workspace .tok-editorial-header p { color: #e0cdbc; }
+.dark .tok-hospitality-workspace .tok-advisor-avatar { color: #ffb380; background: #51301c; }
+@media (prefers-reduced-motion: reduce) {
+  .tok-menu-category { transition: none; }
+}

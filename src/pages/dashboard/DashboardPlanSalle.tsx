@@ -3477,8 +3477,8 @@ export default function DashboardPlanSalle() {
 
   return (
     <DashboardLayout contentWidth="full" mainClassName="p-2 pb-24 sm:p-3 md:p-4">
-      <div className="flex min-h-[calc(100vh-2rem)] flex-col gap-3 xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden">
-        <header className="shrink-0 rounded-2xl border border-border bg-card px-3 py-3 shadow-sm sm:px-4">
+      <div className="tok-floorplan-workspace flex min-h-[calc(100vh-2rem)] flex-col gap-3 xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden">
+        <header className="tok-editorial-header tok-floorplan-header shrink-0 rounded-2xl border border-border bg-card px-3 py-3 shadow-sm sm:px-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -3492,7 +3492,7 @@ export default function DashboardPlanSalle() {
               </p>
             </div>
 
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="tok-floorplan-actions flex min-w-0 flex-wrap items-center gap-2">
               {/*
                 Une seule vue : le plan du jour. Modifier la salle est un
                 détour explicite, pas un onglet parallèle qu'il faut d'abord

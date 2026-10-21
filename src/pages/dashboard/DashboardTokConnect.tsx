@@ -251,7 +251,7 @@ export default function DashboardTokConnect() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-connect">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Partenaires & IA"

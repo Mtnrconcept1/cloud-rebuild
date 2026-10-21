@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { User, Trophy, Gift, Camera, Mail, Phone, MapPin, Heart, Settings, Shield, Bell, Trash2, AlertTriangle, Crown, CalendarCheck, Truck, Percent, Headphones, Zap, CreditCard } from "lucide-react";
+import { ArrowRight, User, Trophy, Gift, MapPin, Heart, Settings, Shield, Bell, Trash2, AlertTriangle, Crown, CalendarCheck, Truck, CreditCard } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   AlertDialog,
@@ -22,6 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import CustomerDashboardLayout from "@/components/CustomerDashboardLayout";
+import CustomerPageHero from "@/components/dashboard/CustomerPageHero";
 import LoyaltyStatus from "@/components/LoyaltyStatus";
 import ImageUpload from "@/components/ImageUpload";
 import AddressAutocomplete from "@/components/AddressAutocomplete";
@@ -47,6 +48,15 @@ import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFr
 const supabase = getSupabase();
 const PROFILE_TABS = new Set(["infos", "favoris", "abonnement", "notifications", "fidelite", "parametres"]);
 const COMMERCIAL_DEMO_CLIENT_EMAIL = "client.demo@tok.local";
+
+const PROFILE_PAGE_COPY: Record<string, { title: string; subtitle: string }> = {
+  infos: { title: "Mon profil", subtitle: "Les informations qui vous ressemblent." },
+  favoris: { title: "Mes bonnes adresses", subtitle: "Gardez vos coups de cœur à portée de main." },
+  abonnement: { title: "Mon abonnement TOK One", subtitle: "Retrouvez votre abonnement et vos avantages." },
+  notifications: { title: "Mes préférences de notification", subtitle: "Choisissez les nouvelles que vous souhaitez recevoir." },
+  fidelite: { title: "Mes Miamz", subtitle: "Chaque bon moment compte." },
+  parametres: { title: "Paramètres du compte", subtitle: "Votre sécurité et vos choix, au même endroit." },
+};
 
 const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   channels: { in_app: true, email: true, push: true },
@@ -432,13 +442,12 @@ export default function Profil() {
 
   return (
     <CustomerDashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <User className="h-5 w-5 text-primary" />
-          </div>
-          <h1 className="font-display text-3xl font-bold">Mon profil</h1>
-        </div>
+      <div className="tok-customer-page tok-customer-profile space-y-6">
+        <CustomerPageHero
+          breadcrumb={defaultTab === "favoris" ? "Mes favoris" : PROFILE_PAGE_COPY[defaultTab].title}
+          title={PROFILE_PAGE_COPY[defaultTab].title}
+          subtitle={PROFILE_PAGE_COPY[defaultTab].subtitle}
+        />
 
         <Tabs
           value={defaultTab}
@@ -450,7 +459,7 @@ export default function Profil() {
           }}
         >
           <TabsList
-            className={`!grid h-auto w-full grid-cols-3 gap-1 rounded-2xl bg-muted/60 p-1 ${
+            className={`tok-customer-profile-tabs !grid h-auto w-full grid-cols-3 gap-1 rounded-2xl bg-muted/60 p-1 ${
               tokOneFeatureEnabled ? "sm:grid-cols-6" : "sm:grid-cols-5"
             }`}
           >
@@ -482,7 +491,7 @@ export default function Profil() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="infos" className="space-y-6 pt-4">
+          <TabsContent value="infos" className="tok-customer-profile-information space-y-6 pt-4">
             {isCommercialDemoClient ? (
               <SignupApplicationStatusCard
                 application={null}
@@ -493,7 +502,14 @@ export default function Profil() {
               <ProductionSignupApplicationStatus />
             )}
 
-            <div className="flex flex-col items-center gap-4 mb-6">
+            <div className="tok-customer-profile-columns">
+              <section className="tok-customer-profile-form-card">
+                <header className="mb-6">
+                  <h2>Informations personnelles</h2>
+                  <p>Ces informations sont utilisées pour vos réservations et votre compte.</p>
+                </header>
+                <div className="tok-customer-profile-form">
+            <div className="tok-customer-profile-avatar flex flex-col items-center gap-4">
               <div className="relative group">
                 <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary/10 bg-muted">
                   {avatarUrl ? (
@@ -536,7 +552,7 @@ export default function Profil() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="tok-customer-profile-fields space-y-4">
               <div className="space-y-2">
                 <Label>Nom complet</Label>
                 <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
@@ -605,21 +621,51 @@ export default function Profil() {
                 )}
               </div>
             </div>
-            <Button onClick={handleSave} disabled={loading}>
-              {loading ? "Enregistrement..." : "Sauvegarder"}
-            </Button>
+                </div>
+                <div className="tok-customer-profile-save">
+                  <Button onClick={handleSave} disabled={loading}>
+                    {loading ? "Enregistrement..." : "Sauvegarder"}
+                  </Button>
+                </div>
+              </section>
+              <aside className="tok-customer-profile-aside">
+                <section className="tok-customer-note-card">
+                  <User aria-hidden="true" />
+                  <h2>Votre profil</h2>
+                  <p>Une photo et des coordonnées à jour aident les restaurants à préparer votre accueil et à vous contacter.</p>
+                </section>
+                <Link
+                  className="tok-customer-profile-shortcut"
+                  to={{ search: `?${new URLSearchParams({ ...Object.fromEntries(searchParams), tab: "notifications" }).toString()}` }}
+                >
+                  <Bell aria-hidden="true" />
+                  <div><h3>Mes préférences</h3><p>Vos notifications et vos abonnements aux nouvelles TOK.</p></div>
+                  <ArrowRight aria-hidden="true" />
+                </Link>
+                <Link
+                  className="tok-customer-profile-shortcut"
+                  to={{ search: `?${new URLSearchParams({ ...Object.fromEntries(searchParams), tab: "parametres" }).toString()}` }}
+                >
+                  <Settings aria-hidden="true" />
+                  <div><h3>Paramètres du compte</h3><p>Mot de passe, sécurité et gestion du compte.</p></div>
+                  <ArrowRight aria-hidden="true" />
+                </Link>
+              </aside>
+            </div>
           </TabsContent>
 
-          <TabsContent value="favoris" className="space-y-4 pt-4">
+          <TabsContent value="favoris" className="tok-customer-favorites pt-4">
             {favorites && favorites.length > 0 ? (
               favorites.map((f) => {
                 const r = f.restaurants;
                 return (
-                  <Link key={f.id} to={`/restaurant/${r?.id}`} className="flex items-center gap-4 p-3 border rounded-xl bg-card hover:bg-accent transition-colors">
-                    <img src={r?.image_url || "/images/kebab-box-spread.jpeg"} alt={r?.name} className="w-12 h-12 rounded-lg object-cover" />
-                    <div>
-                      <p className="font-semibold text-sm">{r?.name}</p>
-                      <p className="text-xs text-muted-foreground">{r?.cuisine_type} · {r?.city}</p>
+                  <Link key={f.id} to={`/restaurant/${r?.id}`} className="tok-customer-favorite-card border bg-card transition-colors">
+                    <img src={r?.image_url || "/images/kebab-box-spread.jpeg"} alt={r?.name} className="tok-customer-favorite-card__photo" loading="lazy" />
+                    <div className="tok-customer-favorite-card__body">
+                      <h2>{r?.name}</h2>
+                      <p className="flex items-center gap-1.5 text-sm text-muted-foreground"><MapPin className="h-4 w-4" />{r?.city}</p>
+                      {r?.cuisine_type ? <span className="tok-customer-cuisine-tag">{r.cuisine_type}</span> : null}
+                      <span className="tok-customer-favorite-card__action">Voir le restaurant <ArrowRight className="h-4 w-4" /></span>
                     </div>
                   </Link>
                 );
@@ -633,7 +679,7 @@ export default function Profil() {
           </TabsContent>
 
           {tokOneFeatureEnabled ? (
-            <TabsContent value="abonnement" className="space-y-6 pt-4">
+            <TabsContent value="abonnement" className="tok-customer-subscription space-y-6 pt-4">
               <TokOneTab
                 userId={user?.id}
                 subscription={tokOneSub}
@@ -644,7 +690,7 @@ export default function Profil() {
             </TabsContent>
           ) : null}
 
-          <TabsContent value="notifications" className="space-y-6 pt-4">
+          <TabsContent value="notifications" className="tok-customer-notification-preferences space-y-6 pt-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="rounded-xl border bg-card p-4 space-y-3">
                 <h3 className="font-semibold text-sm">Canaux</h3>
@@ -762,14 +808,14 @@ export default function Profil() {
             ) : null}
           </TabsContent>
 
-          <TabsContent value="fidelite" className="space-y-6 pt-4">
-            <LoyaltyStatus />
+          <TabsContent value="fidelite" className="tok-customer-loyalty space-y-6 pt-4">
+            <div className="tok-customer-loyalty-status"><LoyaltyStatus /></div>
 
             {/* Gift Points CTA */}
             {pointsGiftEnabled ? (
               <Link
                 to="/points-cadeau"
-                className="flex items-center gap-4 p-4 rounded-xl border-2 border-pink-500/20 bg-pink-500/5 hover:border-pink-500/40 transition-all group"
+                className="tok-customer-gift-card flex items-center gap-4 p-4 rounded-xl border-2 border-pink-500/20 bg-pink-500/5 hover:border-pink-500/40 transition-all group"
               >
                 <div className="w-10 h-10 rounded-full bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500/20 transition-colors">
                   <Gift className="h-5 w-5 text-pink-500" />
@@ -782,8 +828,8 @@ export default function Profil() {
               </Link>
             ) : null}
 
-            <div className="space-y-4">
-              <h2 className="font-display text-xl font-bold">Historique</h2>
+            <div className="tok-customer-history-panel space-y-4">
+              <h2 className="font-display text-xl font-bold">Historique de mes Miamz</h2>
               <LoyaltyHistory userId={user?.id} />
             </div>
           </TabsContent>
@@ -989,7 +1035,7 @@ function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionCh
     <div className="space-y-6">
       {/* Subscription status card */}
       {isActive && subscription ? (
-        <div className="rounded-2xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-6 space-y-5">
+        <div className="tok-customer-membership-card rounded-2xl border p-6 space-y-5">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
@@ -1092,7 +1138,7 @@ function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionCh
           )}
         </div>
       ) : (
-        <div className="rounded-2xl border-2 border-dashed border-violet-200 p-8 text-center space-y-4">
+        <div className="tok-customer-membership-card tok-customer-membership-card--empty rounded-2xl border p-8 text-center space-y-4">
           <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto">
             <Crown className="h-8 w-8 text-violet-400" />
           </div>

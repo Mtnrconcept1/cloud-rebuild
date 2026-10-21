@@ -31,7 +31,7 @@ describe("restaurant account and billing dashboard", () => {
     expect(app).toContain('path="/dashboard/mon-compte-facturation"');
 
     expect(layout).toContain('to: "/dashboard/mon-compte-facturation"');
-    expect(layout).toContain('label: "Mon compte/Facturation"');
+    expect(layout).toContain('label: "Mon compte / Facturation"');
     expect(layout).toContain('feature: "dashboard-billing"');
 
     expect(featureCatalog).toContain('name: "dashboard-billing"');

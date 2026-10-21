@@ -126,11 +126,11 @@ export default function DashboardComparaison() {
   }, [commercialDemoFrame, isCommercialDemo, selectedId, period]);
 
   return (
-    <DashboardLayout>
+    <DashboardLayout mainClassName="tok-restaurant-page tok-page-comparison">
       <div className="space-y-6">
         <DashboardPageHero
           badge="Benchmark"
-          title="Comparaison marché"
+          title="Comparaison"
           description="Comparez votre chiffre d'affaires, le volume de commandes et la note moyenne avec la tendance du marché sur la période choisie."
           icon={Scale}
           tone="violet"

@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 
+import DashboardLayout from "@/components/DashboardLayout";
+import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -755,8 +757,8 @@ function GuidePage({ audience }: { audience: Audience }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7f8] text-slate-950 dark:bg-slate-950 dark:text-slate-50">
-      <header className="sticky top-0 z-40 border-b bg-white/95 backdrop-blur dark:bg-slate-950/95">
+    <div className={isRestaurant ? "tok-restaurant-guide text-foreground" : "min-h-screen bg-[#f7f7f8] text-slate-950 dark:bg-slate-950 dark:text-slate-50"}>
+      <header className={isRestaurant ? "tok-guide-toolbar border-b" : "sticky top-0 z-40 border-b bg-white/95 backdrop-blur dark:bg-slate-950/95"}>
         <div className="container flex min-h-16 max-w-[92rem] items-center justify-between gap-4 px-4 py-3 md:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <Link to={isRestaurant ? "/dashboard" : "/admin"} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ff6a1a] text-sm font-black text-white">TOK</Link>
@@ -779,11 +781,27 @@ function GuidePage({ audience }: { audience: Audience }) {
         </div>
       </header>
 
-      <div className="container grid max-w-[92rem] gap-10 px-4 py-10 md:px-6 lg:grid-cols-[15rem_minmax(0,1fr)_14rem]">
+      {isRestaurant ? (
+        <div id="vue-ensemble" className="scroll-mt-24">
+          <DashboardPageHero
+            badge="Assistance"
+            title="Guide d’utilisation"
+            description="Retrouvez les étapes et les conseils pour profiter de tous les outils de votre espace restaurateur."
+            icon={BookOpen}
+            stats={[
+              { label: "Rubriques expliquées", value: chapters.length, icon: BookOpen },
+              { label: "Recherche", value: "Instantanée", icon: Search },
+              { label: "Illustrations", value: "Captures TOK", icon: ImageIcon },
+            ]}
+          />
+        </div>
+      ) : null}
+
+      <div className={isRestaurant ? "tok-guide-grid grid gap-6" : "container grid max-w-[92rem] gap-10 px-4 py-10 md:px-6 lg:grid-cols-[15rem_minmax(0,1fr)_14rem]"}>
         <GuideSidebar audience={audience} chapters={chapters} />
 
         <main className="min-w-0 space-y-10">
-          <section id="vue-ensemble" className="scroll-mt-28 overflow-hidden rounded-[2rem] border bg-white shadow-sm dark:bg-slate-900">
+          {!isRestaurant ? <section id="vue-ensemble" className="scroll-mt-28 overflow-hidden rounded-[2rem] border bg-white shadow-sm dark:bg-slate-900">
             <div className={`p-7 md:p-10 ${isRestaurant ? "bg-gradient-to-br from-orange-50 via-white to-emerald-50 dark:from-orange-500/10 dark:via-slate-900 dark:to-emerald-500/10" : "bg-gradient-to-br from-violet-50 via-white to-orange-50 dark:from-violet-500/10 dark:via-slate-900 dark:to-orange-500/10"}`}>
               <Badge className={isRestaurant ? "bg-orange-100 text-orange-800 hover:bg-orange-100" : "bg-violet-100 text-violet-800 hover:bg-violet-100"}>
                 {isRestaurant ? "Parcours restaurateur uniquement" : "Référence complète & administration"}
@@ -801,7 +819,7 @@ function GuidePage({ audience }: { audience: Audience }) {
                 {!isRestaurant ? <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm dark:bg-slate-950"><ServerCog className="h-4 w-4 text-violet-600" /> {TOK_USER_GUIDE_META.toolCount} outils serveur</span> : null}
               </div>
             </div>
-          </section>
+          </section> : null}
 
           <section className="grid gap-4 sm:grid-cols-3" aria-label="Principes du guide">
             {[
@@ -831,7 +849,7 @@ function GuidePage({ audience }: { audience: Audience }) {
           )}
         </main>
 
-        <aside className="hidden xl:block">
+        <aside className={isRestaurant ? "tok-guide-summary" : "hidden xl:block"}>
           <div className="sticky top-24 space-y-5 text-sm">
             <div className="rounded-2xl border bg-white p-4 dark:bg-slate-900">
               <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">Repères</p>
@@ -859,7 +877,7 @@ function GuidePage({ audience }: { audience: Audience }) {
 
 export default function GuideUtilisateur() {
   const { pathname } = useLocation();
-  if (pathname === "/dashboard/guide") return <GuidePage audience="restaurant" />;
+  if (pathname === "/dashboard/guide") return <DashboardLayout mainClassName="tok-restaurant-page tok-page-guide"><GuidePage audience="restaurant" /></DashboardLayout>;
   if (pathname === "/admin/guide") return <GuidePage audience="buyer" />;
   return null;
 }
