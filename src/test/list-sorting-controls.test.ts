@@ -48,4 +48,20 @@ describe("shared list sorting controls", () => {
       expect(source).toContain("direction={");
     }
   });
+  it("exposes filters, sorting and three presentation modes on restaurant menu items", () => {
+    const source = readProjectFile("src/pages/dashboard/DashboardMenu.tsx");
+    expect(source).toContain("visibleMenuItems.map");
+    expect(source).toContain("menuCategories");
+    expect(source).toContain("menuAvailability");
+    expect(source).toContain("menuSearch.trim()");
+    expect(source).toContain("menuSortKey");
+    expect(source).toContain("menuSortDirection");
+    expect(source).toContain("OperationViewToggle");
+    expect(source).toContain('menuViewMode === "gallery"');
+    expect(source).toContain('menuViewMode === "list"');
+    expect(source).toContain("toggleAvailability(item.id");
+    expect(source).toContain("openEdit(item)");
+    expect(source).toContain("handleDelete(item.id)");
+  });
+
 });
