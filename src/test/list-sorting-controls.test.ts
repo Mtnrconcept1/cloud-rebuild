@@ -48,4 +48,30 @@ describe("shared list sorting controls", () => {
       expect(source).toContain("direction={");
     }
   });
+  it("filters shared notification history before progressive display and preserves read actions", () => {
+    const source = readProjectFile("src/components/notifications/NotificationHistoryList.tsx");
+    for (const token of [
+      "notificationSearch", "notificationReadFilter", "notificationSortKey",
+      "notificationSortDirection", "notificationViewMode", "SortControls",
+      "OperationViewToggle", "filteredNotifications.slice(0, visibleLimit)",
+      "visibleNotifications.length < filteredNotifications.length",
+      "markNotificationRead(notification.id)", "markAllRead()",
+    ]) {
+      expect(source).toContain(token);
+    }
+  });
+
+  it("provides client review search, sorting and three layouts without removing restaurant replies", () => {
+    const source = readProjectFile("src/pages/ClientReviews.tsx");
+    for (const token of [
+      "reviewSearch", "reviewSortKey", "reviewSortDirection", "reviewViewMode",
+      "SortControls", "OperationViewToggle", "firstRestaurant(review.restaurants)",
+      'reviewViewMode === "gallery"', 'reviewViewMode === "list"',
+      'reviewViewMode === "details"', "replies.map((reply)",
+      'to="/recherche"',
+    ]) {
+      expect(source).toContain(token);
+    }
+  });
+
 });
