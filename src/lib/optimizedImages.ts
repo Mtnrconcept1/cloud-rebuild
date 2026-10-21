@@ -12,14 +12,14 @@ type OptimizedImageOptions = {
 const PRESET_OPTIONS: Record<OptimizedImagePreset, OptimizedImageOptions> = {
   thumbnail: { width: 180, height: 180, quality: 72, resize: "cover" },
   card: { width: 720, height: 450, quality: 76, resize: "cover" },
-  hero: { width: 1440, height: 720, quality: 78, resize: "cover" },
+  hero: { width: 1920, height: 960, quality: 90, resize: "cover" },
   gallery: { width: 960, height: 960, quality: 78, resize: "contain" },
 };
 
 const SRC_SET_WIDTHS: Record<OptimizedImagePreset, number[]> = {
   thumbnail: [96, 180, 320],
   card: [360, 540, 720, 960],
-  hero: [720, 1080, 1440, 1920],
+  hero: [720, 1080, 1440, 1920, 2560],
   gallery: [480, 720, 960, 1280],
 };
 
