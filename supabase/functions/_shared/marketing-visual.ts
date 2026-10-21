@@ -1,4 +1,4 @@
-import { buildTokMarketingVisualPrompt, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
+import { buildTokMarketingVisualPrompt, TOK_MARKETING_REFERENCES, tokSocialLayout } from "./marketing-brand.ts";
 import { CAMPAIGN_FORMAT_SIZES, type CampaignFormat } from "./marketing-campaign-options.ts";
 
 const REFERENCE_ORIGIN = "https://www.thetok.ch";
@@ -91,7 +91,8 @@ export async function generateCampaignVisual(
   if (!options.apiKey || !options.prompt.trim()) return null;
   try {
     const deadline = Date.now() + Math.max(1, Math.min(options.timeoutMs ?? 90_000, 90_000));
-    const body = await buildTokMarketingImageForm(options.prompt, options.format);
+    const socialLayout = options.format === "16:9" ? "" : `\nDIRECTION POUR CETTE PUBLICATION (variation ${options.index + 1}) : ${tokSocialLayout(options.index)}. La composition doit differer des posts voisins, tout en restant fidele au sujet et a la charte TOK.`;
+    const body = await buildTokMarketingImageForm(`${options.prompt}${socialLayout}`, options.format);
     const remaining = deadline - Date.now();
     if (remaining <= 0) return null;
     const controller = new AbortController();
