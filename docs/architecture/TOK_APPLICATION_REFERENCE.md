@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `de71af9d97463ff936b734d56610aa9ae9e63ced851e836ecfd9c9137c0b4399`
+- Empreinte SHA-256 des sources indexées : `6c564d49626470dd8b7bd9ff571748b374a0fca644b17e14d4729c9b178636bf`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,14 +45,14 @@
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18778 |
-| repositoryFiles | 3641 |
+| records | 18776 |
+| repositoryFiles | 3640 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 32 |
+| workflows | 31 |
 
 ## État distant observé
 
@@ -6723,7 +6723,6 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Checkout security PostgreSQL replay | replay | [.github/workflows/checkout-security-postgres.yml](../../.github/workflows/checkout-security-postgres.yml) |
 | CI | validate, validation | [.github/workflows/ci.yml](../../.github/workflows/ci.yml) |
 | Dashboard design preview | preview | [.github/workflows/dashboard-design-preview.yml](../../.github/workflows/dashboard-design-preview.yml) |
-| Dashboard Index Pr958 | — | [.github/workflows/dashboard-index-pr958.yml](../../.github/workflows/dashboard-index-pr958.yml) |
 | Deploy Production | attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation | [.github/workflows/deploy-production.yml](../../.github/workflows/deploy-production.yml) |
 | Ensure Supabase Auth SMTP | configure | [.github/workflows/ensure-supabase-auth-smtp.yml](../../.github/workflows/ensure-supabase-auth-smtp.yml) |
 | Golden TOK responsive browser | browser, index-sync | [.github/workflows/golden-tok-browser.yml](../../.github/workflows/golden-tok-browser.yml) |
@@ -7500,7 +7499,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (32)</summary>
+<details><summary>ci-workflow (31)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -7520,7 +7519,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/checkout-security-postgres.yml`
 - `.github/workflows/ci.yml`
 - `.github/workflows/dashboard-design-preview.yml`
-- `.github/workflows/dashboard-index-pr958.yml`
 - `.github/workflows/deploy-production.yml`
 - `.github/workflows/ensure-supabase-auth-smtp.yml`
 - `.github/workflows/golden-tok-browser.yml`
