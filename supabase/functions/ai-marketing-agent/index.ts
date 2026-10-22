@@ -260,7 +260,7 @@ Deno.serve(async (req) => {
         ? [item.visual_prompt, "TEXTE À REPRODUIRE SUR L'AFFICHE (respecter exactement):",
           "TITRE : " + item.content.headline,
           "CORPS : " + item.content.body,
-          "APPEL À L'ACTION : " + item.content.call_to_action].join("\\n")
+          "APPEL À L'ACTION : " + item.content.call_to_action].join("\n")
         : item.visual_prompt,
       visual_format: item.visual_format || formats[item.channel],
     }));
