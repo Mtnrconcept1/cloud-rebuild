@@ -41,7 +41,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   canAccessRestaurantDashboardRoute,
   isRestaurantOnboardingConfigurationRoute,
@@ -56,7 +56,7 @@ import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
-import { useTokLogoSrc } from "@/hooks/useTokLogo";
+import { getWorkspaceHeroImage, TOK_DASHBOARD_LOGO_SRC } from "@/lib/dashboardIllustrations";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
@@ -323,7 +323,8 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
-  const logoSrc = useTokLogoSrc();
+  const logoSrc = TOK_DASHBOARD_LOGO_SRC;
+  const heroPhoto = getWorkspaceHeroImage("restaurant", pathname);
   const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, onboardingConfigurationUnlocked, isDemoMode } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
   const workforceSettings = useWorkforceSettings(isDemoMode ? null : selectedId);
@@ -408,7 +409,10 @@ export default function DashboardLayout({
   });
 
   return (
-    <div className="tok-workspace-shell tok-hospitality-workspace tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row">
+    <div
+      className="tok-workspace-shell tok-hospitality-workspace tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row"
+      style={heroPhoto ? ({ "--workspace-hero-image": `url("${heroPhoto}")` } as CSSProperties) : undefined}
+    >
       {/* SIDEBAR */}
       <aside
         ref={sidebarRef}

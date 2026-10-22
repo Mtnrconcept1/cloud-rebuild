@@ -2,10 +2,10 @@
    remain in their page components. Public/admin pages do not use these hooks. */
 .tok-hospitality-workspace .tok-customer-page {
   min-width: 0;
-  --customer-paper: #fffdfa;
+  --customer-paper: #fff;
   --customer-ink: #30271f;
-  --customer-line: #e9e0d5;
-  --customer-soft: #f2ebe2;
+  --customer-line: #e2e5e9;
+  --customer-soft: #f1f3f5;
   --customer-peach: #fcebd8;
 }
 .tok-hospitality-workspace .tok-customer-page-hero,
@@ -19,7 +19,7 @@
   padding: 30px var(--workspace-gutter, 24px);
   border: 0;
   border-radius: 0;
-  background: #f8f5ef;
+  background: #fff;
   box-shadow: none;
 }
 .tok-hospitality-workspace .tok-customer-page-hero::before,
@@ -28,7 +28,7 @@
   z-index: -1;
   inset: 0;
   content: "";
-  background: linear-gradient(90deg, #f8f5ef 0%, rgb(248 245 239 / 97%) 26%, rgb(248 245 239 / 85%) 46%, rgb(248 245 239 / 8%) 74%), url('/images/dashboard/restaurant-ambience.webp') right 54% / cover;
+  background: linear-gradient(90deg, #fff 0%, rgb(255 255 255 / 97%) 26%, rgb(255 255 255 / 85%) 46%, rgb(255 255 255 / 8%) 74%), var(--workspace-hero-image, url('/images/dashboard/restaurant-ambience.webp')) right 54% / cover;
 }
 .tok-hospitality-workspace .tok-customer-page-hero__copy { width: 100%; min-width: 0; }
 .tok-hospitality-workspace .tok-customer-page-hero__eyebrow {
@@ -86,7 +86,7 @@
   background: var(--customer-paper);
   box-shadow: 0 3px 14px rgb(84 53 24 / 2%);
 }
-.tok-hospitality-workspace :is(.tok-customer-note-card, .tok-customer-miamz-card) { background: linear-gradient(130deg, #fff1e2, var(--customer-peach)); border-color: #f3dec7; }
+.tok-hospitality-workspace :is(.tok-customer-note-card, .tok-customer-miamz-card) { background: var(--customer-paper); border-color: var(--customer-line); }
 .tok-hospitality-workspace :is(.tok-customer-note-card, .tok-customer-miamz-card, .tok-customer-calendar-card, .tok-customer-profile-form-card, .tok-customer-profile-shortcut) :is(h2, h3),
 .tok-hospitality-workspace .tok-customer-memory .tok-customer-memory-controls h3 {
   color: var(--customer-ink);
@@ -159,7 +159,7 @@
 .tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card, .tok-customer-order-detail) { border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); box-shadow: 0 3px 14px rgb(84 53 24 / 2%); }
 .tok-hospitality-workspace :is(article.tok-customer-reservation-card, article.tok-customer-order-card) { padding: 22px; }
 .tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card) > button { min-height: 118px; padding: 22px; background: var(--customer-paper); }
-.tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card) > button:hover { background: #fbf5ec; }
+.tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card) > button:hover { background: #f6f7f9; }
 .tok-hospitality-workspace .tok-customer-reservation-card :is(h3, p.font-bold),
 .tok-hospitality-workspace .tok-customer-order-card :is(p.font-bold, p.text-sm.font-bold) { white-space: normal; overflow: visible; font-family: "Playfair Display", Georgia, serif; font-size: 21px; font-weight: 600; line-height: 1.35; }
 .tok-hospitality-workspace .tok-customer-order-detail > div:first-child h3 { font: 600 23px/1.3 "Playfair Display", Georgia, serif; }
@@ -182,7 +182,7 @@
 .tok-hospitality-workspace .tok-customer-profile-fields { min-width: 0; }
 .tok-hospitality-workspace .tok-customer-profile-fields > .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .tok-hospitality-workspace .tok-customer-profile-fields > .grid > :last-child { grid-column: 1 / -1; }
-.tok-hospitality-workspace .tok-customer-profile-fields :is(input, [role="combobox"]) { min-width: 0; min-height: 44px; border-color: #dfd6cc; border-radius: 9px; background: #fffefc; }
+.tok-hospitality-workspace .tok-customer-profile-fields :is(input, [role="combobox"]) { min-width: 0; min-height: 44px; border-color: #d0d5dd; border-radius: 9px; background: #fff; }
 .tok-hospitality-workspace .tok-customer-profile-save { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--customer-line); }
 .tok-hospitality-workspace .tok-customer-profile-save > button { min-height: 48px; padding-inline: 28px; }
 .tok-hospitality-workspace .tok-customer-profile-aside { display: grid; gap: 16px; }
@@ -200,7 +200,7 @@
 .tok-hospitality-workspace .tok-customer-favorite-card__body h2 { font: 600 23px/1.3 "Playfair Display", Georgia, serif; letter-spacing: -.025em; }
 .tok-hospitality-workspace .tok-customer-cuisine-tag { justify-self: start; max-width: 100%; padding: 5px 11px; border-radius: 999px; background: var(--customer-soft); color: #78685a; font-size: 11px; }
 .tok-hospitality-workspace .tok-customer-favorite-card__action { display: flex; justify-content: center; align-items: center; gap: 12px; min-height: 42px; margin-top: 3px; padding: 8px 12px; border-radius: 10px; background: #ed7424; color: white; font-size: 13px; font-weight: 600; }
-.tok-hospitality-workspace .tok-customer-membership-card { border-color: #edba8d; background: linear-gradient(125deg, #fff5e9, #fce8d1); }
+.tok-hospitality-workspace .tok-customer-membership-card { border-color: var(--customer-line); background: var(--customer-paper); }
 .tok-hospitality-workspace .tok-customer-membership-card h3 { font: 600 32px/1.2 "Playfair Display", Georgia, serif; color: var(--customer-ink); }
 .tok-hospitality-workspace .tok-customer-membership-card [class*="text-violet"] { color: #ad4e12; }
 .tok-hospitality-workspace .tok-customer-membership-card [class*="bg-violet-100"] { background: #ffe1c4; }
@@ -213,14 +213,14 @@
 .tok-hospitality-workspace .tok-customer-loyalty-status [role="progressbar"] { height: 10px; background: rgb(255 255 255 / 25%); }
 .tok-hospitality-workspace .tok-customer-loyalty-status [role="progressbar"] > div { background: white; }
 .tok-hospitality-workspace .tok-customer-loyalty-status .bg-background\/70 { background: rgb(109 45 6 / 20%); }
-.tok-hospitality-workspace .tok-customer-gift-card { border-width: 1px; border-color: #efcfad; background: #fff1e1; }
+.tok-hospitality-workspace .tok-customer-gift-card { border-width: 1px; border-color: var(--customer-line); background: var(--customer-paper); }
 /* Memory keeps explicit confirmation, export, removal and privacy controls. */
 .tok-hospitality-workspace .tok-customer-memory-layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 22px; align-items: start; }
 .tok-hospitality-workspace .tok-customer-memory-summary > div { border-color: var(--customer-line); border-radius: 16px; box-shadow: none; }
 .tok-hospitality-workspace .tok-customer-memory-summary p.text-3xl { font-family: "Playfair Display", Georgia, serif; font-size: 34px; }
 .tok-hospitality-workspace .tok-customer-memory-main > div,
 .tok-hospitality-workspace .tok-customer-memory-item { border-color: var(--customer-line); border-radius: 18px; box-shadow: none; }
-.tok-hospitality-workspace .tok-customer-memory-controls { padding: 4px; border-color: #f3dec7; border-radius: 18px; background: linear-gradient(125deg, #fff1e2, #fbe8d2); box-shadow: none; }
+.tok-hospitality-workspace .tok-customer-memory-controls { padding: 4px; border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); box-shadow: none; }
 .tok-hospitality-workspace .tok-customer-memory-controls button { width: 100%; min-height: 44px; white-space: normal; }
 .tok-hospitality-workspace .tok-customer-memory-controls .flex-col { flex-direction: column; }
 .tok-hospitality-workspace .tok-customer-memory-controls .text-xs { font-size: 12px; line-height: 1.7; }
@@ -241,7 +241,7 @@
 .tok-hospitality-workspace .tok-customer-confirmation-summary { grid-column: 2; grid-row: 1; padding: 24px; border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); }
 .tok-hospitality-workspace .tok-customer-confirmation-summary + div { grid-column: 1; grid-row: 1; margin-top: 0; }
 .tok-hospitality-workspace .tok-customer-confirmation-summary .grid { grid-template-columns: 1fr; }
-.tok-hospitality-workspace .tok-customer-confirmation-summary .grid > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px; text-align: left; border: 0; border-radius: 10px; background: #f6eee4; }
+.tok-hospitality-workspace .tok-customer-confirmation-summary .grid > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px; text-align: left; border: 0; border-radius: 10px; background: var(--customer-paper); }
 .tok-hospitality-workspace .tok-customer-confirmation-summary .flex > a { width: 100%; min-height: 46px; }
 .tok-hospitality-workspace .tok-customer-confirmation-order { padding: 26px; border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); }
 .tok-hospitality-workspace .tok-customer-confirmation-order h2 { font: 600 26px/1.3 "Playfair Display", Georgia, serif; }
@@ -250,7 +250,7 @@
 .dark .tok-hospitality-workspace .tok-customer-page { --customer-paper: #28231d; --customer-ink: #fff6ec; --customer-line: #514335; --customer-soft: #352d24; --customer-peach: #432f1e; }
 .dark .tok-hospitality-workspace :is(.tok-customer-page-hero, .tok-customer-notifications > div:first-child) { background: #211b16; }
 .dark .tok-hospitality-workspace .tok-customer-page-hero::before,
-.dark .tok-hospitality-workspace .tok-customer-notifications > div:first-child::before { background: linear-gradient(90deg, #211b16 0%, rgb(33 27 22 / 95%) 35%, rgb(33 27 22 / 70%) 65%, rgb(33 27 22 / 30%)), url('/images/dashboard/restaurant-ambience.webp') right center / cover; }
+.dark .tok-hospitality-workspace .tok-customer-notifications > div:first-child::before { background: linear-gradient(90deg, #211b16 0%, rgb(33 27 22 / 95%) 35%, rgb(33 27 22 / 70%) 65%, rgb(33 27 22 / 30%)), var(--workspace-hero-image, url('/images/dashboard/restaurant-ambience.webp')) right center / cover; }
 .dark .tok-hospitality-workspace :is(.tok-customer-page-hero__eyebrow, .tok-customer-page-hero__description, .tok-customer-note-card > p, .tok-customer-miamz-card > p, .tok-customer-profile-shortcut p, .tok-customer-profile-form-card > header > p, .tok-customer-miamz-card__balance p span) { color: #d5c5b4; }
 .dark .tok-hospitality-workspace :is(.tok-customer-note-card, .tok-customer-miamz-card, .tok-customer-memory-controls, .tok-customer-membership-card, .tok-customer-gift-card) { border-color: #64472d; background: linear-gradient(120deg, #33271c, #45301e); }
 .dark .tok-hospitality-workspace .tok-customer-profile-fields :is(input, [role="combobox"]) { border-color: #5a4b3e; background: #28231d; }

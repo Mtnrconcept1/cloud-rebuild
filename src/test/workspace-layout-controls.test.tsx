@@ -45,12 +45,12 @@ function CustomerShell() {
   );
 }
 
-function renderRestaurantShell(overrides: Partial<DashboardContextValue> = {}) {
+function renderRestaurantShell(overrides: Partial<DashboardContextValue> = {}, route = "/dashboard") {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   queryClients.push(client);
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={["/dashboard"]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MemoryRouter initialEntries={[route]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <DashboardContext.Provider value={{ ...dashboard, ...overrides }}>
           <DashboardLayout><h1>Restaurant</h1></DashboardLayout>
         </DashboardContext.Provider>
@@ -132,5 +132,29 @@ describe("restaurant workspace tool access integration", () => {
     ]);
     expect(within(dialog).queryByRole("option", { name: "TOK Équipe" })).not.toBeInTheDocument();
     expect(within(dialog).queryByRole("option", { name: "Menu" })).not.toBeInTheDocument();
+  });
+});
+
+describe("page-specific workspace photography", () => {
+  it("uses the favorite artwork for the actual profile tab, then updates on navigation", () => {
+    const { container } = render(<CustomerShell />);
+    const shell = container.querySelector<HTMLElement>(".tok-hospitality-workspace")!;
+    expect(shell.style.getPropertyValue("--workspace-hero-image")).toBe('url("/images/dashboard-scenes/client-favoris.webp")');
+    expect(container.querySelector(".tok-workspace-logo")).toHaveAttribute("src", "/images/brand/tok-round-official.webp");
+    fireEvent.click(screen.getByRole("link", { name: "Mon profil" }));
+    expect(shell.style.getPropertyValue("--workspace-hero-image")).toBe('url("/images/dashboard-scenes/client-profil.webp")');
+  });
+
+  it("uses a verified restaurant menu scene and the official TOK badge", () => {
+    const { container } = renderRestaurantShell({}, "/dashboard/menu");
+    const shell = container.querySelector<HTMLElement>(".tok-hospitality-workspace")!;
+    expect(shell.style.getPropertyValue("--workspace-hero-image")).toBe('url("/images/dashboard-scenes/restaurant-menu.webp")');
+    expect(container.querySelector(".tok-workspace-logo")).toHaveAttribute("src", "/images/brand/tok-round-official.webp");
+    expect(screen.getByRole("link", { name: "TOK — Tableau de bord" })).toHaveAttribute("href", "/dashboard");
+  });
+
+  it("does not serve an unapproved branded scene on the restaurant overview", () => {
+    const { container } = renderRestaurantShell();
+    expect(container.querySelector<HTMLElement>(".tok-hospitality-workspace")!.style.getPropertyValue("--workspace-hero-image")).toBe("");
   });
 });

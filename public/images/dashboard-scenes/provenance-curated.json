@@ -1,0 +1,188 @@
+{
+  "generator": "Adobe Firefly via Adobe image_generate",
+  "referenceAsset": "urn:aaid:sc:EU:902c68ee-9b00-4f41-9dbb-80802152cd76",
+  "direction": "Photographie de restaurant chaleureuse, accents orange TOK, une scène par fichier ; aucune capture UI.",
+  "transformations": [
+    "proportional downsize to at most 1600px wide",
+    "WebP compression, quality 88"
+  ],
+  "importedAt": "2026-10-22T00:56:43.813384+00:00",
+  "images": [
+    {
+      "id": "client-accueil",
+      "file": "client-accueil.webp",
+      "sha256": "d5641215235290cc850b9c44471008d1db50d00071e3d61ca0e88c1ab826934a",
+      "bytes": 73870,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:7b2dac21-1b60-47e2-ba49-d78a13265984",
+      "requestId": "verified-reference-generation",
+      "scene": "Accueil client / dîner au restaurant"
+    },
+    {
+      "id": "client-reservations",
+      "file": "client-reservations.webp",
+      "sha256": "d4ac4509357825efd242eefbea62b68020bac5607a1c30bf53e8ca54d602d264",
+      "bytes": 78578,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:2ad07f4d-dc37-4ae9-8e84-93ab2a7157ff",
+      "requestId": "verified-reference-generation",
+      "scene": "Réservations client / table dressée"
+    },
+    {
+      "id": "client-avis",
+      "file": "client-avis.webp",
+      "sha256": "269592f56136147863c45785cc0f281d9e51efcf940a610bc9e9168ae308ad87",
+      "bytes": 88960,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:932b7555-eae8-42b4-84ab-e8701bc1593d",
+      "requestId": "verified-reference-generation",
+      "scene": "Avis client / repas et smartphone"
+    },
+    {
+      "id": "client-profil",
+      "file": "client-profil.webp",
+      "sha256": "02f85bff1b7de444f1f076f585b1420736e83d8ee88ef6de70c6b06e491552db",
+      "bytes": 80232,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:6aba016b-7346-4d44-a463-2cb6e74349a9",
+      "requestId": "verified-reference-generation",
+      "scene": "Profil client / cliente au restaurant"
+    },
+    {
+      "id": "client-favoris",
+      "file": "client-favoris.webp",
+      "sha256": "93b35218d053bfc6a8d607d97550c5e4956a78ea39161c8fa8a0a3b8746724ae",
+      "bytes": 90888,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:795cae62-5bca-41b3-9545-9a40e403bd06",
+      "requestId": "verified-reference-generation",
+      "scene": "Favoris client / clients à leur table"
+    },
+    {
+      "id": "client-abonnement",
+      "file": "client-abonnement.webp",
+      "sha256": "e2c9b6559eed17a891efffa60080de29c3c7ddcab258f2136c4308444662b5de",
+      "bytes": 77992,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:fa0da3ba-5a14-4255-bea4-888408cab33f",
+      "requestId": "verified-reference-generation",
+      "scene": "Abonnement client / dîner"
+    },
+    {
+      "id": "client-preferences",
+      "file": "client-preferences.webp",
+      "sha256": "36c32f6c6acd7282d9380854e5286f4536a5695b6df5f83e2cca821967fd7272",
+      "bytes": 65748,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:7a2177d3-2b8b-4970-9642-f8d15102a434",
+      "requestId": "verified-reference-generation",
+      "scene": "Préférences client / tablette"
+    },
+    {
+      "id": "client-parametres",
+      "file": "client-parametres.webp",
+      "sha256": "201c671b778070875234a582132f13af80d5102930ba4aa13eb7d04271c542dd",
+      "bytes": 61738,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:2674a318-cf0c-4f0a-97fc-a3d20a6c50d2",
+      "requestId": "verified-reference-generation",
+      "scene": "Paramètres client / carnet et téléphone"
+    },
+    {
+      "id": "client-notifications",
+      "file": "client-notifications.webp",
+      "sha256": "915e3be8e68ff68018dfce3c0bfe0a38e8462e64f28b1973e21da99588dee83f",
+      "bytes": 80624,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:3fa5f911-4619-4ebf-969d-1f0d3bb1bfde",
+      "requestId": "verified-reference-generation",
+      "scene": "Notifications client / téléphone"
+    },
+    {
+      "id": "client-memoire",
+      "file": "client-memoire.webp",
+      "sha256": "a2be83f33cdb2796d93ae6976151d041df6013c3dba9f83693a56035cfd4c1c4",
+      "bytes": 72794,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:3b8b1bc3-4d3b-4c5d-b2a4-2694dbba71a3",
+      "requestId": "verified-reference-generation",
+      "scene": "Mémoire client / carnet de souvenirs"
+    },
+    {
+      "id": "restaurant-menu",
+      "file": "restaurant-menu.webp",
+      "sha256": "64b0c8327875e4ac509121604141163c163abdcd365f4f8ece74588d523a1997",
+      "bytes": 81162,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:ff6a8b27-498b-4dea-9940-7ab3be5a6824",
+      "requestId": "verified-reference-generation",
+      "scene": "Menu restaurateur / cheffe préparant une assiette"
+    },
+    {
+      "id": "restaurant-performances",
+      "file": "restaurant-performances.webp",
+      "sha256": "19834ea70a1634a07b88a0173317d3822c1b4a9fdf1a73d7a6239d708ccc1b59",
+      "bytes": 82296,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:28cafcf7-d7f4-4413-adc2-416f7d879954",
+      "requestId": "verified-reference-generation",
+      "scene": "Performances / restaurateur et ordinateur"
+    },
+    {
+      "id": "restaurant-facturation",
+      "file": "restaurant-facturation.webp",
+      "sha256": "b38c1be059e5bad03230d1857e062b6afd06e946aa9b6fe975ff98032ad93ddc",
+      "bytes": 58798,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:c25d8fe9-7ae5-4de0-ac0e-c2efb0740020",
+      "requestId": "verified-reference-generation",
+      "scene": "Paramètres facturation / bureau"
+    },
+    {
+      "id": "restaurant-photos",
+      "file": "restaurant-photos.webp",
+      "sha256": "b01dc187b0080ca6d8ece87e6f91adde00d8a04bfcea989ac8b68e96a8ea2c00",
+      "bytes": 87852,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:9ac34db7-492c-4ebc-80ba-0487d445bb7e",
+      "requestId": "verified-reference-generation",
+      "scene": "Studio photo / photographie de plat"
+    },
+    {
+      "id": "restaurant-plan",
+      "file": "restaurant-plan.webp",
+      "sha256": "1f1438c7b4da72375926f8b01575f4d450b29d85400ee7ffcf71e17a0bcd4278",
+      "bytes": 92672,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:92187d54-5b43-466f-a203-0013bc06bb58",
+      "requestId": "verified-reference-generation",
+      "scene": "Plan de salle / salle du restaurant"
+    },
+    {
+      "id": "restaurant-crm",
+      "file": "restaurant-crm.webp",
+      "sha256": "895afafdae7be0a337e0c4d9d2ef0ad84c0b0c15130f7ec7c598d7c570d94bf5",
+      "bytes": 90642,
+      "sourceWidth": 2048,
+      "sourceHeight": 1152,
+      "generationId": "urn:aaid:ps:US:a4903449-f22e-402d-b1f9-d9fff54831b9",
+      "requestId": "verified-reference-generation",
+      "scene": "CRM / accueil des clients"
+    }
+  ]
+}
