@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `06ce9fd8603cf64501ace1187def3c145ec0123fa8ac4e49af67c2017e9d54d7`
+- Empreinte SHA-256 des sources indexées : `6e16b9cf37714c3ea47a5565886d6d0f24c47841552d786e5365365d0600f882`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,7 +37,7 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 573 |
+| migrations | 574 |
 | modules | 1803 |
 | pages | 133 |
 | pathLiterals | 880 |
@@ -45,8 +45,8 @@
 | publicEntries | 615 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18512 |
-| repositoryFiles | 3513 |
+| records | 18514 |
+| repositoryFiles | 3514 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6491,6 +6491,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261021093000 Tok Inbound Forward Receipts | 18 | 1 | [supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql:1](../../supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql#L1) |
 | 20261021100000 Marketing Campaign Approval Schedules Items | 140 | 1 | [supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql:1](../../supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql#L1) |
 | 20261022000000 Marketing Analytics Evidence | 391 | 9 | [supabase/migrations/20261022000000_marketing_analytics_evidence.sql:1](../../supabase/migrations/20261022000000_marketing_analytics_evidence.sql#L1) |
+| 20261022104000 Marketing Resend Integration Readiness | 38 | 0 | [supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql:1](../../supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7402,7 +7403,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (573)</summary>
+<details><summary>database-migration (574)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -7977,6 +7978,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql`
 - `supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql`
 - `supabase/migrations/20261022000000_marketing_analytics_evidence.sql`
+- `supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql`
 
 </details>
 
