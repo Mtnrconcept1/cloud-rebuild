@@ -51,7 +51,7 @@ BEGIN
   END IF;
   v_source := NULLIF(btrim(p_attestation ->> 'source'), '');
   IF v_source IS NULL OR char_length(v_source) NOT BETWEEN 3 AND 200
-     OR COALESCE(p_attestation ->> 'consentDate', '') !~ '^\\d{4}-\\d{2}-\\d{2}$' THEN
+     OR COALESCE(p_attestation ->> 'consentDate', '') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN
     RAISE EXCEPTION 'Original consent date and source are required' USING ERRCODE = '22023';
   END IF;
   BEGIN
