@@ -59,7 +59,7 @@ describe("TOK image-first mailing email", () => {
     const { html } = renderMarketingEmail({ ...content, visualUrl: unsafe, callToActionUrl: unsafe }, brand);
     expect(doc(html).images).toHaveLength(0);
     expect(html).not.toContain(unsafe);
-    expect(Array.from(doc(html).links).map(a=>a.getAttribute("href"))).toContain("https://www.thetok.ch");
+    expect(Array.from(doc(html).links).map(a=>a.getAttribute("href"))).toContain("https://www.thetok.ch/");
   });
   it("escapes unsafe authored strings and keeps a working unsubscribe", () => {
     const { html } = renderMarketingEmail({ ...content, headline: '<script>alert("x")</script> & TOK' },
