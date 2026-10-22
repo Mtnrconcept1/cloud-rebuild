@@ -15,7 +15,7 @@ import {
 const checkOnly = process.argv.includes("--check");
 const exportGenerated = checkOnly
   && process.env.GITHUB_ACTIONS === "true"
-  && process.env.GITHUB_HEAD_REF === "codex/tmp-marketing-da-b-generate-20261022";
+  && process.env.GITHUB_HEAD_REF === "codex/tmp-marketing-da-b-export-final-20261022";
 
 if (exportGenerated) {
   const relativePath = "scripts/generate-application-index.mjs";
