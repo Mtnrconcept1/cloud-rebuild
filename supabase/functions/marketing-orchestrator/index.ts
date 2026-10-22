@@ -48,6 +48,9 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")?.trim() || "";
 const EMAIL_FROM = Deno.env.get("EMAIL_FROM")?.trim() || "Tok <noreply@thetok.ch>";
+// Optional audit copy. Only the approved TOK mailbox can be configured server-side.
+const MARKETING_AUDIT_BCC = (Deno.env.get("MARKETING_AUDIT_BCC") || "").trim().toLowerCase();
+const VALID_MARKETING_AUDIT_BCC = MARKETING_AUDIT_BCC === "rbarman@hotmail.ch" ? MARKETING_AUDIT_BCC : "";
 const RESEND_TIMEOUT_MS = 20_000;
 const DELIVERY_LEASE_SECONDS = 180;
 const MAX_DELIVERIES_PER_RUN = 5;
@@ -127,6 +130,8 @@ async function sendViaResend(
       body: JSON.stringify({
         from: EMAIL_FROM,
         to: [prepared.recipient],
+        ...(VALID_MARKETING_AUDIT_BCC && VALID_MARKETING_AUDIT_BCC !== prepared.recipient?.toLowerCase()
+          ? { bcc: [VALID_MARKETING_AUDIT_BCC] } : {}),
         subject: prepared.subject,
         html: prepared.html,
         text: prepared.text,
