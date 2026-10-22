@@ -24,7 +24,7 @@ export function applyMailingOptions(plan: MarketingPlan, options: MailingOptions
   return {
     campaign: { ...plan.campaign, channels: ["email"], starts_at: startsAt, ends_at: endsAt, audience_definition: target, audience_name: audienceName },
     items: plan.items.map((item, index) => ({ ...item, channel: "email", scheduled_at: slots[index].scheduledAt,
-      targeting: target, audience_name: audienceName, visual_format: "16:9", visual_prompt: imageMode === "manual" ? null : item.visual_prompt?.trim() || null,
+      targeting: target, audience_name: audienceName, visual_format: "9:16", visual_prompt: imageMode === "manual" ? null : item.visual_prompt?.trim() || null,
       content: { ...item.content, hashtags: [] }, mailing_version: "tok-mailing-v1", mailing_image_mode: imageMode })),
   };
 }
