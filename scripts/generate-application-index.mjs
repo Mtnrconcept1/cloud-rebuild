@@ -18,14 +18,13 @@ const exportGenerated = checkOnly
   && process.env.GITHUB_HEAD_REF === "codex/tmp-marketing-da-b-generate-20261022";
 
 if (exportGenerated) {
-  for (const relativePath of [".github/workflows/ci.yml", "scripts/generate-application-index.mjs"]) {
-    const canonical = execFileSync(
-      "git",
-      ["show", "1127873837220029fd587a0b9efd5feb16a4d81b:" + relativePath],
-      { cwd: REPOSITORY_ROOT, encoding: "utf8" },
-    );
-    writeFileSync(path.join(REPOSITORY_ROOT, relativePath), canonical, "utf8");
-  }
+  const relativePath = "scripts/generate-application-index.mjs";
+  const canonical = execFileSync(
+    "git",
+    ["show", "73478ff95b0cd6b96e105c55c05458b503c6deaf:" + relativePath],
+    { cwd: REPOSITORY_ROOT, encoding: "utf8" },
+  );
+  writeFileSync(path.join(REPOSITORY_ROOT, relativePath), canonical, "utf8");
 }
 
 const index = buildApplicationIndex(REPOSITORY_ROOT);
