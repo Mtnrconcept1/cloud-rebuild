@@ -1,6 +1,5 @@
 import type { CSSProperties } from "react";
 
-// Keep page-specific visual assets confined to the TOK dashboard media directory.
 const assetRoot = "/images/dashboard-generated/";
 
 const image = (surface: "restaurant" | "client", slug: string) => ({
