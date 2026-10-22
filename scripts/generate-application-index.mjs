@@ -32,6 +32,12 @@ const outputs = new Map([
 
 if (exportGenerated) {
   for (const [relativePath, expected] of outputs) {
+    const absolutePath = path.join(REPOSITORY_ROOT, relativePath);
+    mkdirSync(path.dirname(absolutePath), { recursive: true });
+    writeFileSync(absolutePath, expected, "utf8");
+  }
+  for (const relativePath of [REFERENCE_MARKDOWN_PATH, USER_GUIDE_CATALOG_PATH]) {
+    const expected = outputs.get(relativePath);
     const encoded = Buffer.from(expected, "utf8").toString("base64");
     console.error("[TOK_GENERATED_BEGIN]" + relativePath + "|" + encoded.length);
     for (let offset = 0, part = 0; offset < encoded.length; offset += 48000, part += 1) {
