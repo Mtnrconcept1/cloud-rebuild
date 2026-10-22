@@ -9,6 +9,8 @@ import {
   type GatableFeatureKey,
 } from "@/lib/packFeatureGating";
 
+const paidUntil = "2099-01-01T00:00:00Z";
+
 describe("packFeatureGating", () => {
   it("unlocks social news when a pack includes social media setup", () => {
     const enabled = computeEnabledFeatures(["social_media_setup"]);
@@ -77,7 +79,7 @@ describe("packFeatureGating", () => {
     const enabled = computeEnabledFeatures([], {
       subscription: {
         plan: "premium",
-        status: "active",
+        status: "active", current_period_end: paidUntil,
         features: ["Insights compta et performance", "Assistant IA avance"],
       },
     });
@@ -86,6 +88,22 @@ describe("packFeatureGating", () => {
     expect(enabled).toContain("dashboard-performances");
     expect(enabled).toContain("dashboard-comparaison");
     expect(enabled).toContain("dashboard-factures");
+  });
+
+  it("never grants paid features after a paid period has elapsed, even if Stripe status is stale", () => {
+    for (const expired of [
+      { plan: "premium", status: "active", current_period_end: "2020-01-01T00:00:00Z" },
+      { plan: "elite", status: "trialing", current_period_end: null },
+      { plan: "premium", status: "past_due", current_period_end: paidUntil },
+    ]) {
+      expect(isPremiumOrEliteRestaurantSubscription(expired)).toBe(false);
+      expect(computeDisabledFeatures([], { subscription: expired })).toContain("dashboard-crm");
+    }
+    expect(isPremiumOrEliteRestaurantSubscription({
+      plan: "elite",
+      status: "active",
+      isDemo: true,
+    })).toBe(true);
   });
 
   it("does not unlock subscription features when the restaurant subscription is inactive", () => {
@@ -106,31 +124,31 @@ describe("packFeatureGating", () => {
     const starterEnabled = computeEnabledFeatures([], {
       subscription: {
         plan: "starter",
-        status: "active",
+        status: "active", current_period_end: paidUntil,
       },
     });
     const proEnabled = computeEnabledFeatures([], {
       subscription: {
         plan: "pro",
-        status: "active",
+        status: "active", current_period_end: paidUntil,
       },
     });
     const premiumEnabled = computeEnabledFeatures([], {
       subscription: {
         plan: "premium",
-        status: "active",
+        status: "active", current_period_end: paidUntil,
       },
     });
     const eliteEnabled = computeEnabledFeatures([], {
       subscription: {
         plan: "elite",
-        status: "active",
+        status: "active", current_period_end: paidUntil,
       },
     });
     const customEnabled = computeEnabledFeatures([], {
       subscription: {
         plan: "custom",
-        status: "active",
+        status: "active", current_period_end: paidUntil,
       },
     });
 
@@ -149,11 +167,11 @@ describe("packFeatureGating", () => {
     expect(eliteEnabled).toContain("dashboard-actualites");
     expect(customEnabled).toContain("dashboard-crm");
     expect(customEnabled).toContain("dashboard-actualites");
-    expect(isEliteRestaurantSubscription({ plan: "premium", status: "active" })).toBe(false);
-    expect(isEliteRestaurantSubscription({ plan: "elite", status: "active" })).toBe(true);
+    expect(isEliteRestaurantSubscription({ plan: "premium", status: "active", current_period_end: paidUntil })).toBe(false);
+    expect(isEliteRestaurantSubscription({ plan: "elite", status: "active", current_period_end: paidUntil })).toBe(true);
     expect(isEliteRestaurantSubscription({ plan: "elite", status: "cancelled" })).toBe(false);
-    expect(isPremiumOrEliteRestaurantSubscription({ plan: "premium", status: "active" })).toBe(true);
-    expect(isPremiumOrEliteRestaurantSubscription({ plan: "elite", status: "active" })).toBe(true);
-    expect(isPremiumOrEliteRestaurantSubscription({ plan: "pro", status: "active" })).toBe(false);
+    expect(isPremiumOrEliteRestaurantSubscription({ plan: "premium", status: "active", current_period_end: paidUntil })).toBe(true);
+    expect(isPremiumOrEliteRestaurantSubscription({ plan: "elite", status: "active", current_period_end: paidUntil })).toBe(true);
+    expect(isPremiumOrEliteRestaurantSubscription({ plan: "pro", status: "active", current_period_end: paidUntil })).toBe(false);
   });
 });

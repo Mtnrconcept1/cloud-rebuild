@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 465 error codes mapped from supabase/functions/**.
+// 467 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -2651,6 +2651,18 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
       "line": 680
+    }
+  ],
+  "restaurant_subscription_inactive": [
+    {
+      "file": "supabase/functions/_shared/restaurant-credits.ts",
+      "line": 46
+    }
+  ],
+  "restaurant_subscription_status_unavailable": [
+    {
+      "file": "supabase/functions/_shared/restaurant-credits.ts",
+      "line": 45
     }
   ],
   "review_seeding_disabled_in_production": [

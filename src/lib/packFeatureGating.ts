@@ -35,6 +35,8 @@ export type RestaurantSubscriptionFeatureAccess = {
   features?: unknown;
   current_period_end?: string | null;
   currentPeriodEnd?: string | null;
+  /** Presentation-only, server-isolated commercial demonstration. Never a billing override. */
+  isDemo?: boolean;
 };
 
 export type DashboardFeatureAccessOptions = {
@@ -181,7 +183,13 @@ function normalizeSubscriptionFeatureLabels(value: unknown): string[] {
 
 export function isActiveRestaurantSubscription(subscription: RestaurantSubscriptionFeatureAccess | null | undefined) {
   const status = normalizePlanSlug(subscription?.status);
-  return ACTIVE_SUBSCRIPTION_STATUSES.has(status);
+  if (!ACTIVE_SUBSCRIPTION_STATUSES.has(status)) return false;
+  // Demonstration sessions are already isolated and authorized by their server snapshot.
+  if (subscription?.isDemo === true) return true;
+  // A stale "active" row must never extend paid permissions beyond its paid period.
+  const periodEnd = subscription?.current_period_end ?? subscription?.currentPeriodEnd;
+  const periodEndMs = Date.parse(periodEnd || "");
+  return Number.isFinite(periodEndMs) && periodEndMs > Date.now();
 }
 
 export function isEliteRestaurantSubscription(subscription: RestaurantSubscriptionFeatureAccess | null | undefined) {

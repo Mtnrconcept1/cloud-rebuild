@@ -35,6 +35,16 @@ export async function getRestaurantTokCreditBalance(
   adminClient: EdgeSupabaseClient,
   restaurantId: string,
 ) {
+  // Enforce recurring billing on the server as well as in the dashboard.
+  // Restaurants without any subscription history retain the preactivation
+  // weekly trial; cancelled/expired subscriptions cannot spend premium AI.
+  const { data: paidAccess, error: accessError } = await adminClient.rpc(
+    "restaurant_subscription_has_paid_access",
+    { p_restaurant_id: restaurantId },
+  );
+  if (accessError) throw new HttpError(503, "restaurant_subscription_status_unavailable");
+  if (paidAccess !== true) throw new HttpError(402, "restaurant_subscription_inactive");
+
   const { data, error } = await adminClient.rpc("get_restaurant_credit_usage", {
     p_restaurant_id: restaurantId,
   });
