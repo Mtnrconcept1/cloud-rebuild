@@ -45,5 +45,5 @@ export function buildTokMailingVisualPrompt(brief: string): string {
     "Sur mobile, la même image est réduite proportionnellement sans recadrage. Favoriser un titre très lisible, un corps bref, des marges internes confortables et des contrastes élevés. Conserver une zone de sécurité de 7% pour le logo et les textes.",
     "Un SEUL fichier image final. Ne jamais produire une planche multi-affiches. Aucun élément de navigateur, aucune barre d'interface, aucun encadrement factice.",
     "BRIEF ACTUEL : ", brief.slice(0, 6000),
-  ].join("\\n");
+  ].join("\n");
 }
