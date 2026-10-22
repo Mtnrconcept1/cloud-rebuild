@@ -35,20 +35,15 @@ export function buildTokMarketingVisualPrompt(brief: string, format: string = "4
   ].join("\n");
 }
 
-/**
- * Email campaign artwork differs from social posts: generate a theme-matched
- * chef/food illustration ONLY. Live, selectable copy is rendered by the email
- * shell so it stays readable and responsive in Outlook, Gmail and on phones.
- */
+/** Create one complete, vertically oriented, clickable TOK poster per mailing. */
 export function buildTokMailingVisualPrompt(brief: string): string {
   return [
-    "Créer UNE illustration horizontale 16:9 indépendante pour un email de campagne TOK.",
-    "Utiliser les références jointes pour reproduire l'identité du vrai chef TOK : toque blanche ornée du logo TOK, moustache noire, lunettes noires, veste blanche, foulard rouge, tablier noir/orange, pantalon à carreaux.",
-    "Le brief utilisateur détermine le sujet, les accessoires du chef, son geste, l'objet tenu et la scénographie. Pour une campagne de réservations, il tient une tablette de réservation ; pour un menu, il présente un plat ; pour une promotion, un coffret/une offre ; pour les actualités, un téléphone avec une publication.",
-    "Composer sur fond ivoire lumineux, arche orange vermillon TOK et noir profond, décor épuré, chef occupant principalement la moitié droite. Préserver la moitié gauche aussi claire et calme que possible.",
-    "ZÉRO TEXTE et zéro fausse interface avec lettres, prix, slogans, CTA ou coordonnées. Ne pas intégrer de message car le texte est produit séparément en HTML accessible et responsive.",
-    "Un seul chef, une seule scène, pas de planche, pas de grille. N'inventer aucune offre, réduction, statistique ou fonctionnalité.",
-    "BRIEF DE CAMPAGNE :",
-    brief.slice(0, 4000),
-  ].join("\n");
+    "Produire UNE affiche email TOK autonome, verticale 9:16, avec toute la direction artistique et les textes DANS L'IMAGE. La sortie est une image unique et non une page HTML, grille ou maquette de téléphone.",
+    "Respecter l'image de référence : fond ivoire clair, orange vif #FF4B11, titres noirs énormes condensés, sous-titre orange, filets orange, bloc bas orange avec deux accroches et bouton noir Découvrir TOK, logo TOK Miamz! en haut et thetok.ch en pied.",
+    "Le personnage est le chef TOK 3D fidèle aux références : moustache noire, lunettes noires, toque blanche logo TOK, foulard rouge, veste blanche, tablier noir à bord orange, pantalon à carreaux et chaussures noires. Il adapte UNIQUEMENT sa pose, les objets tenus et son geste au thème précis de l'email, sans changer son identité.",
+    "Le brief de l'email indique explicitement le titre, l'argument, le corps, l'appel à action et les informations autorisées. Reproduire avec exactitude les mots, accents, montants et la ponctuation du brief. Ne pas inventer de chiffres, de promesses ni de promotions.",
+    "Sur mobile, la même image est réduite proportionnellement sans recadrage. Favoriser un titre très lisible, un corps bref, des marges internes confortables et des contrastes élevés. Conserver une zone de sécurité de 7% pour le logo et les textes.",
+    "Un SEUL fichier image final. Ne jamais produire une planche multi-affiches. Aucun élément de navigateur, aucune barre d'interface, aucun encadrement factice.",
+    "BRIEF ACTUEL : ", brief.slice(0, 6000),
+  ].join("\\n");
 }
