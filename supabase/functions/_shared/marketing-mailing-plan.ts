@@ -9,8 +9,7 @@ export function applyMailingOptions(plan: MarketingPlan, options: MailingOptions
   const target = mailingAudience(options.selections, options.recipientEmails);
   const audienceName = mailingAudienceLabel(options.selections, options.recipientEmails).slice(0, 160);
   const imageMode = options.imageMode === "manual" ? "manual" : "generated";
-  const banner = imageMode === "manual" ? null : plan.items[0].visual_prompt?.trim();
-  if (imageMode === "generated" && !banner) throw new MarketingPlanError("missing_mailing_banner");
+  if (imageMode === "generated" && plan.items.some((item) => !item.visual_prompt?.trim())) throw new MarketingPlanError("missing_mailing_banner");
   const subjects = new Set<string>();
   const bodies = new Set<string>();
   for (const item of plan.items) {
@@ -25,7 +24,7 @@ export function applyMailingOptions(plan: MarketingPlan, options: MailingOptions
   return {
     campaign: { ...plan.campaign, channels: ["email"], starts_at: startsAt, ends_at: endsAt, audience_definition: target, audience_name: audienceName },
     items: plan.items.map((item, index) => ({ ...item, channel: "email", scheduled_at: slots[index].scheduledAt,
-      targeting: target, audience_name: audienceName, visual_format: "16:9", visual_prompt: banner || null,
+      targeting: target, audience_name: audienceName, visual_format: "9:16", visual_prompt: imageMode === "manual" ? null : item.visual_prompt?.trim() || null,
       content: { ...item.content, hashtags: [] }, mailing_version: "tok-mailing-v1", mailing_image_mode: imageMode })),
   };
 }

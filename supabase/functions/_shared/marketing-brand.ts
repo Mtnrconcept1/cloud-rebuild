@@ -34,3 +34,16 @@ export function buildTokMarketingVisualPrompt(brief: string, format: string = "4
     "CONTRÔLE FINAL : un seul visuel, une seule scène, bon ratio, logo intact, titre français exact et lisible, famille demandée respectée, chef seulement si demandé, identité de la référence maîtresse et aucun élément de sa grille ou de son interface.",
   ].join("\n");
 }
+
+/** Create one complete, vertically oriented, clickable TOK poster per mailing. */
+export function buildTokMailingVisualPrompt(brief: string): string {
+  return [
+    "Produire UNE affiche email TOK autonome, verticale 9:16, avec toute la direction artistique et les textes DANS L'IMAGE. La sortie est une image unique et non une page HTML, grille ou maquette de téléphone.",
+    "Respecter l'image de référence : fond ivoire clair, orange vif #FF4B11, titres noirs énormes condensés, sous-titre orange, filets orange, bloc bas orange avec deux accroches et bouton noir Découvrir TOK, logo TOK Miamz! en haut et thetok.ch en pied.",
+    "Le personnage est le chef TOK 3D fidèle aux références : moustache noire, lunettes noires, toque blanche logo TOK, foulard rouge, veste blanche, tablier noir à bord orange, pantalon à carreaux et chaussures noires. Il adapte UNIQUEMENT sa pose, les objets tenus et son geste au thème précis de l'email, sans changer son identité.",
+    "Le brief de l'email indique explicitement le titre, l'argument, le corps, l'appel à action et les informations autorisées. Reproduire avec exactitude les mots, accents, montants et la ponctuation du brief. Ne pas inventer de chiffres, de promesses ni de promotions.",
+    "Sur mobile, la même image est réduite proportionnellement sans recadrage. Favoriser un titre très lisible, un corps bref, des marges internes confortables et des contrastes élevés. Conserver une zone de sécurité de 7% pour le logo et les textes.",
+    "Un SEUL fichier image final. Ne jamais produire une planche multi-affiches. Aucun élément de navigateur, aucune barre d'interface, aucun encadrement factice.",
+    "BRIEF ACTUEL : ", brief.slice(0, 6000),
+  ].join("\n");
+}

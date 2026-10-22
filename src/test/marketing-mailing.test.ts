@@ -82,8 +82,8 @@ describe("targeted mailing contracts", () => {
     for (const item of plan.items) expect(item.targeting).toEqual({ audience_kind: "restaurant", selections: options.selections });
     expect(plan.campaign.audience_definition).toEqual({ audience_kind: "restaurant", selections: options.selections });
     const generate = vi.fn().mockResolvedValue("https://assets.example/banner.jpg");
-    const visuals = await allocateMarketingVisuals(plan.items, generate, 1);
-    expect(generate).toHaveBeenCalledTimes(1);
+    const visuals = await allocateMarketingVisuals(plan.items, generate, 4);
+    expect(generate).toHaveBeenCalledTimes(4);
     expect(visuals.size).toBe(4);
     const bundle = toBundlePayload(plan, visuals) as { campaign: Record<string, unknown>; items: Array<Record<string, unknown>> };
     expect(bundle.campaign.audience_definition).toEqual(plan.campaign.audience_definition);
@@ -117,7 +117,7 @@ describe("targeted mailing contracts", () => {
     expect(() => assertMailingReady({ ...content, visual_status: "pending_generation" })).toThrow();
     expect(() => assertMailingReady({ ...content, visual_url: "https://user:pass@example.com/x" })).toThrow();
     const result = prepareTargetedMailingContent(content, "https://example.com/unsubscribe?token=signed");
-    expect(result.html).toContain("&lt;script&gt;");
+    expect(result.text).toContain(content.body);
     expect(result.html).not.toContain("<script>");
     expect(result.html).toContain("token=signed");
     expect(result.html).toContain("https://assets.example/banner.jpg");

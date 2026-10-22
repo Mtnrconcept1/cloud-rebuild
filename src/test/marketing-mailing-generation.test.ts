@@ -64,13 +64,18 @@ describe("mailing Edge generation boundary", () => {
       expect(item).not.toHaveProperty("approval_status");
     }
   });
-  it("generates one common image with the texts for generated mode", async () => {
+  it("generates a distinct 9:16 themed poster for each email in generated mode", async () => {
+    spies.image.mockImplementation(async (_client: unknown, opts: { index: number }) => `https://assets.example/campaign-${opts.index}.jpg`);
     const response = await generate(4, "generated");
     expect(response.status).toBe(200);
     const result = await response.json();
-    expect(spies.allocate).toHaveBeenCalledTimes(1); expect(spies.image).toHaveBeenCalledTimes(1);
-    expect(result).toMatchObject({ assetCount: 1, pendingUploadCount: 0, missingVisualCount: 0 });
-    expect(result.bundle.items.every((item: { content: { visual_url: string } }) => item.content.visual_url === "https://assets.example/campaign.jpg")).toBe(true);
+    expect(spies.allocate).toHaveBeenCalledTimes(1);
+    expect(spies.image).toHaveBeenCalledTimes(4);
+    expect(result).toMatchObject({ assetCount: 4, pendingUploadCount: 0, missingVisualCount: 0 });
+    expect(result.bundle.items.map((item: { content: { visual_url: string } }) => item.content.visual_url)).toEqual([
+      "https://assets.example/campaign-0.jpg", "https://assets.example/campaign-1.jpg",
+      "https://assets.example/campaign-2.jpg", "https://assets.example/campaign-3.jpg",
+    ]);
   });
   it("keeps generated-image failures visible without discarding the copy", async () => {
     spies.image.mockRejectedValue(new Error("provider failure"));

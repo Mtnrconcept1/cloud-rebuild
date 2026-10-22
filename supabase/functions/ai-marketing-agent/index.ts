@@ -256,7 +256,12 @@ Deno.serve(async (req) => {
     // leaves the item without one instead of discarding a usable campaign.
     const slug = slugifyCampaignName(plan.campaign.name);
     const visualRequests = plan.items.map((item) => ({
-      visual_prompt: item.visual_prompt,
+      visual_prompt: item.channel === "email" && item.visual_prompt
+        ? [item.visual_prompt, "TEXTE À REPRODUIRE SUR L'AFFICHE (respecter exactement):",
+          "TITRE : " + item.content.headline,
+          "CORPS : " + item.content.body,
+          "APPEL À L'ACTION : " + item.content.call_to_action].join("\n")
+        : item.visual_prompt,
       visual_format: item.visual_format || formats[item.channel],
     }));
     // Manual mailings spend no image credits and wait for one upload per item.
@@ -264,6 +269,7 @@ Deno.serve(async (req) => {
     const visuals = manualMailing ? new Map<number, string>() : await allocateMarketingVisuals(visualRequests, (prompt, index) => generateCampaignVisual(client, {
       prompt, campaignSlug: slug, index, apiKey: OPENAI_API_KEY,
       format: visualRequests[index].visual_format,
+      forEmail: plan.items[index].channel === "email",
       timeoutMs: Math.max(1, generationDeadline - Date.now()),
     }), MAX_VISUALS);
     const assetCount = new Set(visuals.values()).size;
