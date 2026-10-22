@@ -34,3 +34,21 @@ export function buildTokMarketingVisualPrompt(brief: string, format: string = "4
     "CONTRÔLE FINAL : un seul visuel, une seule scène, bon ratio, logo intact, titre français exact et lisible, famille demandée respectée, chef seulement si demandé, identité de la référence maîtresse et aucun élément de sa grille ou de son interface.",
   ].join("\n");
 }
+
+/**
+ * Email campaign artwork differs from social posts: generate a theme-matched
+ * chef/food illustration ONLY. Live, selectable copy is rendered by the email
+ * shell so it stays readable and responsive in Outlook, Gmail and on phones.
+ */
+export function buildTokMailingVisualPrompt(brief: string): string {
+  return [
+    "Créer UNE illustration horizontale 16:9 indépendante pour un email de campagne TOK.",
+    "Utiliser les références jointes pour reproduire l'identité du vrai chef TOK : toque blanche ornée du logo TOK, moustache noire, lunettes noires, veste blanche, foulard rouge, tablier noir/orange, pantalon à carreaux.",
+    "Le brief utilisateur détermine le sujet, les accessoires du chef, son geste, l'objet tenu et la scénographie. Pour une campagne de réservations, il tient une tablette de réservation ; pour un menu, il présente un plat ; pour une promotion, un coffret/une offre ; pour les actualités, un téléphone avec une publication.",
+    "Composer sur fond ivoire lumineux, arche orange vermillon TOK et noir profond, décor épuré, chef occupant principalement la moitié droite. Préserver la moitié gauche aussi claire et calme que possible.",
+    "ZÉRO TEXTE et zéro fausse interface avec lettres, prix, slogans, CTA ou coordonnées. Ne pas intégrer de message car le texte est produit séparément en HTML accessible et responsive.",
+    "Un seul chef, une seule scène, pas de planche, pas de grille. N'inventer aucune offre, réduction, statistique ou fonctionnalité.",
+    "BRIEF DE CAMPAGNE :",
+    brief.slice(0, 4000),
+  ].join("\n");
+}
