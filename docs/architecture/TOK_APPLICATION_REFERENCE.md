@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `12db91138bbc99ccd7ce36005387a5b0ce7ab58af5f5c977cadb8b9789355766`
+- Empreinte SHA-256 des sources indexées : `de71af9d97463ff936b734d56610aa9ae9e63ced851e836ecfd9c9137c0b4399`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,7 +37,7 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 573 |
+| migrations | 574 |
 | modules | 1805 |
 | pages | 133 |
 | pathLiterals | 887 |
@@ -45,8 +45,8 @@
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18776 |
-| repositoryFiles | 3640 |
+| records | 18778 |
+| repositoryFiles | 3641 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6622,6 +6622,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261021093000 Tok Inbound Forward Receipts | 18 | 1 | [supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql:1](../../supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql#L1) |
 | 20261021100000 Marketing Campaign Approval Schedules Items | 140 | 1 | [supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql:1](../../supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql#L1) |
 | 20261022000000 Marketing Analytics Evidence | 391 | 9 | [supabase/migrations/20261022000000_marketing_analytics_evidence.sql:1](../../supabase/migrations/20261022000000_marketing_analytics_evidence.sql#L1) |
+| 20261022104000 Marketing Resend Integration Readiness | 38 | 0 | [supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql:1](../../supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6722,6 +6723,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Checkout security PostgreSQL replay | replay | [.github/workflows/checkout-security-postgres.yml](../../.github/workflows/checkout-security-postgres.yml) |
 | CI | validate, validation | [.github/workflows/ci.yml](../../.github/workflows/ci.yml) |
 | Dashboard design preview | preview | [.github/workflows/dashboard-design-preview.yml](../../.github/workflows/dashboard-design-preview.yml) |
+| Dashboard Index Pr958 | — | [.github/workflows/dashboard-index-pr958.yml](../../.github/workflows/dashboard-index-pr958.yml) |
 | Deploy Production | attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation | [.github/workflows/deploy-production.yml](../../.github/workflows/deploy-production.yml) |
 | Ensure Supabase Auth SMTP | configure | [.github/workflows/ensure-supabase-auth-smtp.yml](../../.github/workflows/ensure-supabase-auth-smtp.yml) |
 | Golden TOK responsive browser | browser, index-sync | [.github/workflows/golden-tok-browser.yml](../../.github/workflows/golden-tok-browser.yml) |
@@ -6734,7 +6736,6 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
 | TOK Connect security regression | deno-edge-check, deno-transport, postgres-security | [.github/workflows/tok-connect-security.yml](../../.github/workflows/tok-connect-security.yml) |
-| Tok Dashboard Index Refresh 958 | — | [.github/workflows/tok-dashboard-index-refresh-958.yml](../../.github/workflows/tok-dashboard-index-refresh-958.yml) |
 | TOK Workforce PostgreSQL Integration | migration-and-tenant-isolation | [.github/workflows/tok-workforce-postgres.yml](../../.github/workflows/tok-workforce-postgres.yml) |
 
 ### Dépendances
@@ -7519,6 +7520,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/checkout-security-postgres.yml`
 - `.github/workflows/ci.yml`
 - `.github/workflows/dashboard-design-preview.yml`
+- `.github/workflows/dashboard-index-pr958.yml`
 - `.github/workflows/deploy-production.yml`
 - `.github/workflows/ensure-supabase-auth-smtp.yml`
 - `.github/workflows/golden-tok-browser.yml`
@@ -7531,12 +7533,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
 - `.github/workflows/tok-connect-security.yml`
-- `.github/workflows/tok-dashboard-index-refresh-958.yml`
 - `.github/workflows/tok-workforce-postgres.yml`
 
 </details>
 
-<details><summary>database-migration (573)</summary>
+<details><summary>database-migration (574)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8111,6 +8112,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql`
 - `supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql`
 - `supabase/migrations/20261022000000_marketing_analytics_evidence.sql`
+- `supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql`
 
 </details>
 
