@@ -28,7 +28,7 @@
   z-index: -1;
   inset: 0;
   content: "";
-  background: linear-gradient(90deg, #fff 0%, rgb(255 255 255 / 97%) 26%, rgb(255 255 255 / 85%) 46%, rgb(255 255 255 / 8%) 74%), url('/images/dashboard/restaurant-ambience.webp') right 54% / cover;
+  background: linear-gradient(90deg, #fff 0%, rgb(255 255 255 / 97%) 26%, rgb(255 255 255 / 85%) 46%, rgb(255 255 255 / 8%) 74%), var(--workspace-hero-image, url('/images/dashboard/restaurant-ambience.webp')) right 54% / cover;
 }
 .tok-hospitality-workspace .tok-customer-page-hero__copy { width: 100%; min-width: 0; }
 .tok-hospitality-workspace .tok-customer-page-hero__eyebrow {
@@ -250,7 +250,7 @@
 .dark .tok-hospitality-workspace .tok-customer-page { --customer-paper: #28231d; --customer-ink: #fff6ec; --customer-line: #514335; --customer-soft: #352d24; --customer-peach: #432f1e; }
 .dark .tok-hospitality-workspace :is(.tok-customer-page-hero, .tok-customer-notifications > div:first-child) { background: #211b16; }
 .dark .tok-hospitality-workspace .tok-customer-page-hero::before,
-.dark .tok-hospitality-workspace .tok-customer-notifications > div:first-child::before { background: linear-gradient(90deg, #211b16 0%, rgb(33 27 22 / 95%) 35%, rgb(33 27 22 / 70%) 65%, rgb(33 27 22 / 30%)), url('/images/dashboard/restaurant-ambience.webp') right center / cover; }
+.dark .tok-hospitality-workspace .tok-customer-notifications > div:first-child::before { background: linear-gradient(90deg, #211b16 0%, rgb(33 27 22 / 95%) 35%, rgb(33 27 22 / 70%) 65%, rgb(33 27 22 / 30%)), var(--workspace-hero-image, url('/images/dashboard/restaurant-ambience.webp')) right center / cover; }
 .dark .tok-hospitality-workspace :is(.tok-customer-page-hero__eyebrow, .tok-customer-page-hero__description, .tok-customer-note-card > p, .tok-customer-miamz-card > p, .tok-customer-profile-shortcut p, .tok-customer-profile-form-card > header > p, .tok-customer-miamz-card__balance p span) { color: #d5c5b4; }
 .dark .tok-hospitality-workspace :is(.tok-customer-note-card, .tok-customer-miamz-card, .tok-customer-memory-controls, .tok-customer-membership-card, .tok-customer-gift-card) { border-color: #64472d; background: linear-gradient(120deg, #33271c, #45301e); }
 .dark .tok-hospitality-workspace .tok-customer-profile-fields :is(input, [role="combobox"]) { border-color: #5a4b3e; background: #28231d; }

@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
+import { DASHBOARD_ILLUSTRATIONS, WORKSPACE_HERO_IMAGES, TOK_DASHBOARD_LOGO_SRC, getWorkspaceHeroImage } from "@/lib/dashboardIllustrations";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
@@ -188,5 +188,36 @@ describe("dashboard 3D illustrations", () => {
     const crm = read("src/components/crm/CustomerCrmDashboard.tsx");
     expect(crm).toContain('illustration={surface === "restaurant"');
     expect(crm).toContain("DASHBOARD_ILLUSTRATIONS.restaurantCrm");
+  });
+});
+
+describe("native TOK workspace photographs", () => {
+  it("uses 16 independent valid and lightweight published WebP files", () => {
+    const scenes = Object.values(WORKSPACE_HERO_IMAGES).flatMap((surface) => Object.values(surface));
+    expect(scenes).toHaveLength(16);
+    expect(new Set(scenes).size).toBe(16);
+
+    for (const image of [...scenes, TOK_DASHBOARD_LOGO_SRC]) {
+      const filePath = resolve(process.cwd(), "public" + image);
+      expect(existsSync(filePath), `missing native image ${image}`).toBe(true);
+      const bytes = readFileSync(filePath);
+      expect(bytes.subarray(0, 4).toString()).toBe("RIFF");
+      expect(bytes.subarray(8, 12).toString()).toBe("WEBP");
+      expect(bytes.length, image).toBeLessThan(1_500_000);
+    }
+  });
+
+  it("maps profile tabs, nested paths, and upper-case URLs without stale images", () => {
+    expect(getWorkspaceHeroImage("client", "/PROFIL/", "?tab=favoris")).toBe(WORKSPACE_HERO_IMAGES.client["/profil?tab=favoris"]);
+    expect(getWorkspaceHeroImage("client", "/profil", "?tab=infos")).toBe(WORKSPACE_HERO_IMAGES.client["/profil?tab=infos"]);
+    expect(getWorkspaceHeroImage("client", "/profil")).toBe(WORKSPACE_HERO_IMAGES.client["/profil?tab=infos"]);
+    expect(getWorkspaceHeroImage("restaurant", "/dashboard/MENU/")).toBe(WORKSPACE_HERO_IMAGES.restaurant["/dashboard/menu"]);
+  });
+
+  it("keeps the previous image for unapproved scenes instead of inventing assets", () => {
+    expect(getWorkspaceHeroImage("restaurant", "/dashboard")).toBeUndefined();
+    expect(getWorkspaceHeroImage("restaurant", "/dashboard/commandes")).toBeUndefined();
+    expect(getWorkspaceHeroImage("client", "/commandes")).toBeUndefined();
+    expect(getWorkspaceHeroImage("client", "/profil", "?tab=fidelite")).toBeUndefined();
   });
 });

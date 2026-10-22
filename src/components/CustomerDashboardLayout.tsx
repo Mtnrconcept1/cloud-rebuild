@@ -1,4 +1,6 @@
 import "@/components/dashboard/WorkspaceDesign.css";
+import type { CSSProperties } from "react";
+import { getWorkspaceHeroImage, TOK_DASHBOARD_LOGO_SRC } from "@/lib/dashboardIllustrations";
 import { Link, useLocation } from "react-router-dom";
 import {
   BadgePercent,
@@ -34,7 +36,7 @@ import WorkspaceNavigationSection from "@/components/dashboard/WorkspaceNavigati
 import NotificationBell from "@/components/notifications/NotificationBell";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
-import { useTokLogoSrc } from "@/hooks/useTokLogo";
+
 import SignOutButton from "@/components/auth/SignOutButton";
 import { BackNavigationButton } from "@/components/navigation/BackNavigationButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
@@ -147,7 +149,8 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   const pathname = currentPathname.replace(/\/+$/, "").toLowerCase();
   const { role } = useAuth();
   const { itemCount } = useCart();
-  const logoSrc = useTokLogoSrc();
+  const logoSrc = TOK_DASHBOARD_LOGO_SRC;
+  const heroPhoto = getWorkspaceHeroImage("client", pathname, search);
   const commercialDemoFrame = useCommercialDemoFrame();
   const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
   const activeFeatures = commercialDemoFrame
@@ -201,7 +204,10 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   };
 
   return (
-    <div className="tok-workspace-shell tok-hospitality-workspace tok-client-shell min-h-screen bg-background">
+    <div
+      className="tok-workspace-shell tok-hospitality-workspace tok-client-shell min-h-screen bg-background"
+      style={heroPhoto ? ({ "--workspace-hero-image": `url("${heroPhoto}")` } as CSSProperties) : undefined}
+    >
       <aside className="tok-workspace-sidebar tok-client-sidebar hidden shrink-0 md:flex">
         <div className="tok-workspace-brand">
           <Link to="/" aria-label="TOK — Accueil du site" className="tok-workspace-logo-link">

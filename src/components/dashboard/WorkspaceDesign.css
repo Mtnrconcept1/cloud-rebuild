@@ -112,7 +112,7 @@
   border-radius: 0;
   background: #fff;
 }
-.tok-hospitality-workspace .tok-hospitality-hero-copy::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #fff 0%, rgb(255 255 255 / 97%) 24%, rgb(255 255 255 / 78%) 43%, rgb(255 255 255 / 0%) 69%), url('/images/dashboard/restaurant-ambience.webp') right 54% / cover; }
+.tok-hospitality-workspace .tok-hospitality-hero-copy::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #fff 0%, rgb(255 255 255 / 97%) 24%, rgb(255 255 255 / 78%) 43%, rgb(255 255 255 / 0%) 69%), var(--workspace-hero-image, url('/images/dashboard/restaurant-ambience.webp')) right 54% / cover; }
 .tok-hospitality-workspace .tok-hospitality-hero-copy > * { margin-block: 0; }
 .tok-hospitality-workspace .tok-hospitality-hero-copy > :first-child { align-self: flex-start; height: auto; max-width: 100%; padding: 0; border: 0; background: transparent; color: #6c5d4f; font-size: 10px; font-weight: 600; letter-spacing: .16em; box-shadow: none; }
 .tok-hospitality-workspace .tok-hospitality-hero-copy > .flex { display: block; }
@@ -171,7 +171,7 @@
 .dark .tok-hospitality-workspace :is(.tok-workspace-nav-section, .tok-workspace-sidebar-footer, .tok-workspace-account) { border-color: #44382d; }
 .dark .tok-hospitality-workspace .tok-workspace-role-switch > summary { color: #c8b4a0; }
 .dark .tok-hospitality-workspace .tok-hospitality-hero-copy { background: #2c241c; }
-.dark .tok-hospitality-workspace .tok-hospitality-hero-copy::before { background: linear-gradient(90deg, #2c241c 0%, rgb(44 36 28 / 97%) 28%, rgb(44 36 28 / 80%) 50%, rgb(44 36 28 / 22%) 100%), url('/images/dashboard/restaurant-ambience.webp') right 54% / cover; }
+.dark .tok-hospitality-workspace .tok-hospitality-hero-copy::before { background: linear-gradient(90deg, #2c241c 0%, rgb(44 36 28 / 97%) 28%, rgb(44 36 28 / 80%) 50%, rgb(44 36 28 / 22%) 100%), var(--workspace-hero-image, url('/images/dashboard/restaurant-ambience.webp')) right 54% / cover; }
 .dark .tok-hospitality-workspace .tok-hospitality-hero-copy h1 { color: #fff3e6; }
 .dark .tok-hospitality-workspace .tok-hospitality-hero-copy p, .dark .tok-hospitality-workspace .tok-hospitality-hero-copy > :first-child { color: #ddcbb9; }
 .dark .tok-hospitality-workspace .tok-hospitality-hero-console, .dark .tok-hospitality-workspace .tok-hospitality-console-panel { background: transparent; }

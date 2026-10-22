@@ -61,3 +61,43 @@ export const DASHBOARD_ILLUSTRATIONS = {
   clientReservation: { src: "/images/section-headers/calendar-3d.png", width: 320, height: 320, alt: "" },
   clientDiscovery: { src: "/images/section-headers/plate-3d.png", width: 320, height: 320, alt: "" },
 } as const satisfies Record<string, DashboardIllustration>;
+
+/** Photographies natives sélectionnées sans logo ni texte TOK approximatif. */
+export const TOK_DASHBOARD_LOGO_SRC = "/images/brand/tok-round-official.webp";
+
+export const WORKSPACE_HERO_IMAGES = {
+  client: {
+    "/mon-espace": "/images/dashboard-scenes/client-accueil.webp",
+    "/reservations": "/images/dashboard-scenes/client-reservations.webp",
+    "/mes-avis": "/images/dashboard-scenes/client-avis.webp",
+    "/notifications": "/images/dashboard-scenes/client-notifications.webp",
+    "/memoire-tok": "/images/dashboard-scenes/client-memoire.webp",
+    "/profil?tab=infos": "/images/dashboard-scenes/client-profil.webp",
+    "/profil?tab=favoris": "/images/dashboard-scenes/client-favoris.webp",
+    "/profil?tab=abonnement": "/images/dashboard-scenes/client-abonnement.webp",
+    "/profil?tab=notifications": "/images/dashboard-scenes/client-preferences.webp",
+    "/profil?tab=parametres": "/images/dashboard-scenes/client-parametres.webp",
+  },
+  restaurant: {
+    "/dashboard/menu": "/images/dashboard-scenes/restaurant-menu.webp",
+    "/dashboard/performances": "/images/dashboard-scenes/restaurant-performances.webp",
+    "/dashboard/crm": "/images/dashboard-scenes/restaurant-crm.webp",
+    "/dashboard/photos": "/images/dashboard-scenes/restaurant-photos.webp",
+    "/dashboard/plan-salle": "/images/dashboard-scenes/restaurant-plan.webp",
+    "/dashboard/factures/parametres": "/images/dashboard-scenes/restaurant-facturation.webp",
+  },
+} as const satisfies Record<"client" | "restaurant", Record<string, string>>;
+
+/** Sans nouvelle image conforme, le bandeau photographique actuel est conservé. */
+export function getWorkspaceHeroImage(
+  surface: "client" | "restaurant",
+  pathname: string,
+  search = "",
+): string | undefined {
+  const path = pathname.split("?")[0].replace(/\/+$/, "").toLowerCase() || "/";
+  const key = surface === "client" && path === "/profil"
+    ? `/profil?tab=${new URLSearchParams(search).get("tab") || "infos"}`
+    : path;
+  const images: Readonly<Record<string, string>> = WORKSPACE_HERO_IMAGES[surface];
+  return images[key];
+}
