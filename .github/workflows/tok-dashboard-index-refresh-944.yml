@@ -40,6 +40,8 @@ jobs:
           set -euo pipefail
           git status --short
           test -z "$(git status --porcelain)"
+          # The canonical index must reflect the branch AFTER this one-shot helper disappears.
+          rm -- .github/workflows/tok-dashboard-index-refresh-944.yml
           pnpm install --frozen-lockfile
           pnpm run docs:application-index
           git diff --check
@@ -51,8 +53,9 @@ jobs:
             'src/data/tok-user-guide-catalog.generated.ts',
           }
           changed = set(subprocess.check_output(['git','diff','--name-only'], text=True).splitlines())
-          if changed != allowed:
-            raise RuntimeError(f'Unexpected changed files: {changed}; expected {allowed}')
+          expected_changes = allowed | {'.github/workflows/tok-dashboard-index-refresh-944.yml'}
+          if changed != expected_changes:
+            raise RuntimeError(f'Unexpected changed files: {changed}; expected {expected_changes}')
           archive_path = pathlib.Path('/tmp/tok-dashboard-index.tar.gz')
           with tarfile.open(archive_path, mode='w:gz') as archive:
             for name in sorted(allowed):
@@ -132,6 +135,8 @@ jobs:
             data.decode('utf-8')
             blob=api('git/blobs','POST',{'content':base64.b64encode(data).decode(),'encoding':'base64'})
             files.append({'path':item.name,'mode':'100644','type':'blob','sha':blob['sha']})
+          # Remove this temporary CI helper as part of the same verified tree.
+          files.append({'path':'.github/workflows/tok-dashboard-index-refresh-944.yml','mode':'100644','type':'blob','sha':None})
           parent=api('git/commits/'+expected)
           new_tree=api('git/trees','POST',{'base_tree':parent['tree']['sha'],'tree':files})
           commit=api('git/commits','POST',{'message':'docs(dashboards): refresh canonical application index for page scenes','tree':new_tree['sha'],'parents':[expected]})
