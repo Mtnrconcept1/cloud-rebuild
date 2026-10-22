@@ -14,7 +14,7 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { authenticateMarketingRequest } from "../_shared/marketing-service-auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { asRecord, safeMarketingError } from "../_shared/marketing.ts";
-import { OPENAI_API_KEY } from "../_shared/openai.ts";
+import { OPENAI_API_KEY, selectTokAiModel } from "../_shared/openai.ts";
 import { discoverBacklinkSources } from "../_shared/marketing-backlink-discovery.ts";
 import {
   MARKETING_CHANNELS,
@@ -24,7 +24,9 @@ import {
   toBundlePayload,
   type MarketingChannel,
   type MarketingPostFormat,
+  type MarketingRecentSocialPost,
 } from "../_shared/marketing-ai.ts";
+import { inferTokCreativeDirectionId } from "../_shared/marketing-creative-direction.ts";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_VISUALS = 6;
@@ -134,6 +136,44 @@ async function readConnectedChannels(
   return [...new Set((data || []).map((row: { channel: string }) => row.channel))];
 }
 
+function boundedHistoryText(value: unknown, maximum: number): string {
+  if (typeof value !== "string") return "";
+  return value.normalize("NFKC").replace(/[\u0000-\u001F\u007F]/gu, " ").replace(/\s+/gu, " ").trim().slice(0, maximum);
+}
+
+async function readRecentSocialPosts(
+  adminClient: ReturnType<typeof createAdminClient>,
+): Promise<MarketingRecentSocialPost[]> {
+  const { data, error } = await adminClient
+    .from("marketing_calendar_items")
+    .select("channel, status, content, scheduled_at")
+    .in("channel", ["instagram", "facebook"])
+    .neq("status", "cancelled")
+    .order("scheduled_at", { ascending: false, nullsFirst: false })
+    .limit(18);
+  if (error) throw new HttpError(503, "marketing_history_unavailable");
+
+  return (data || []).flatMap((row: { channel?: unknown; content?: unknown }) => {
+    const content = row.content && typeof row.content === "object" && !Array.isArray(row.content)
+      ? row.content as Record<string, unknown>
+      : {};
+    const editorial = content.editorial && typeof content.editorial === "object" && !Array.isArray(content.editorial)
+      ? content.editorial as Record<string, unknown>
+      : {};
+    const post: MarketingRecentSocialPost = {
+      channel: boundedHistoryText(row.channel, 30),
+      headline: boundedHistoryText(content.headline, 120),
+      body: boundedHistoryText(content.body, 420),
+      visualPrompt: boundedHistoryText(content.visual_prompt, 700),
+      creativeDirectionId: boundedHistoryText(editorial.creative_direction_id, 80) || undefined,
+      primaryTemplateId: boundedHistoryText(editorial.primary_template_id, 80) || undefined,
+    };
+    if (!post.headline && !post.body && !post.visualPrompt) return [];
+    post.creativeDirectionId ||= inferTokCreativeDirectionId(post);
+    return [post];
+  });
+}
+
 Deno.serve(async (req) => {
   const generationDeadline = Date.now() + 110_000;
   const corsHeaders = buildCorsHeaders(req);
@@ -226,6 +266,7 @@ Deno.serve(async (req) => {
     }
 
     const connectedChannels = await readConnectedChannels(client);
+    const recentSocialPosts = campaignOptions ? await readRecentSocialPosts(client) : [];
 
     const { data: startedRunId, error: startError } = await client.rpc(
       "service_start_marketing_ai_run",
@@ -250,21 +291,31 @@ Deno.serve(async (req) => {
       campaignOptions,
       mailingOptions,
       formats,
+      recentSocialPosts,
     });
 
     // Visuals are generated after the plan and never block it: a failed image
     // leaves the item without one instead of discarding a usable campaign.
     const slug = slugifyCampaignName(plan.campaign.name);
-    const visualRequests = plan.items.map((item) => ({
+    const visualRequests = plan.items.map((item, index) => ({
       visual_prompt: item.visual_prompt,
       visual_format: item.visual_format || formats[item.channel],
+      visual_key: item.post_index === undefined ? "item:" + index : "post:" + item.post_index,
     }));
     // Manual mailings spend no image credits and wait for one upload per item.
     const manualMailing = mailingOptions?.imageMode === "manual";
+    const visualReviewModel = selectTokAiModel("image_premium");
+    const recentCreativeDirectionIds = recentSocialPosts
+      .map((post) => post.creativeDirectionId)
+      .filter((value): value is string => Boolean(value));
     const visuals = manualMailing ? new Map<number, string>() : await allocateMarketingVisuals(visualRequests, (prompt, index) => generateCampaignVisual(client, {
       prompt, campaignSlug: slug, index, apiKey: OPENAI_API_KEY,
       format: visualRequests[index].visual_format,
       timeoutMs: Math.max(1, generationDeadline - Date.now()),
+      reviewModel: campaignOptions ? visualReviewModel : undefined,
+      expectedHeadline: campaignOptions ? plan.items[index].content.headline : undefined,
+      creativeDirectionId: campaignOptions ? plan.items[index].editorial?.creative_direction_id : undefined,
+      recentCreativeDirectionIds,
     }), MAX_VISUALS);
     const assetCount = new Set(visuals.values()).size;
     const pendingUploadCount = manualMailing ? plan.items.length : 0;
