@@ -47,6 +47,10 @@ type ClaimedDelivery = {
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")?.trim() || "";
+// Optional monitoring copy; configured in production secrets, never from imported contact data.
+const MARKETING_AUDIT_BCC = Deno.env.get("MARKETING_AUDIT_BCC")?.trim().toLowerCase() || "";
+const VALID_AUDIT_BCC = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(MARKETING_AUDIT_BCC)
+  && !/[\r\n,;]/.test(MARKETING_AUDIT_BCC) ? MARKETING_AUDIT_BCC : "";
 const EMAIL_FROM = Deno.env.get("EMAIL_FROM")?.trim() || "Tok <noreply@thetok.ch>";
 // Optional audit copy. Only the approved TOK mailbox can be configured server-side.
 const MARKETING_AUDIT_BCC = (Deno.env.get("MARKETING_AUDIT_BCC") || "").trim().toLowerCase();
@@ -130,6 +134,7 @@ async function sendViaResend(
       body: JSON.stringify({
         from: EMAIL_FROM,
         to: [prepared.recipient],
+        ...(VALID_AUDIT_BCC && VALID_AUDIT_BCC !== prepared.recipient?.toLowerCase() ? { bcc: [VALID_AUDIT_BCC] } : {}),
         ...(VALID_MARKETING_AUDIT_BCC && VALID_MARKETING_AUDIT_BCC !== prepared.recipient?.toLowerCase()
           ? { bcc: [VALID_MARKETING_AUDIT_BCC] } : {}),
         subject: prepared.subject,
