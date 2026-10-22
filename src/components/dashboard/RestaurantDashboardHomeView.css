@@ -1,4 +1,4 @@
-﻿@media (max-width: 767px) {
+@media (max-width: 767px) {
   .tok-dashboard-shell:has([data-mobile-restaurant-overview]) {
     background: #f6f7f9;
   }
