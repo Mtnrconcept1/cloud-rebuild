@@ -150,11 +150,11 @@ export function renderMarketingEmail(
     <tr><td style="padding:10px 20px 18px;">
       <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" bgcolor="${BRAND.orange}" style="width:100%;background:${BRAND.orange};border-radius:25px;">
         <tr><td style="padding:20px 15px 6px;" align="center">
-          <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:1.3;font-weight:900;color:#FFFFFF;">Votre restaurant a des choses à dire.</p>
+          <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:1.3;font-weight:900;color:#FFFFFF;">${escapeHtml(content.headline)}</p>
         </td></tr>
         <tr><td style="padding:10px 15px 22px;" align="center">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" bgcolor="#FFFFFF" style="padding:14px 8px;background:#FFFFFF;border-radius:13px;">
-            <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;font-weight:700;color:#111111;">Des nouveautés à partager <span style="color:#FF4B11;">●</span> Une communauté à retrouver</p>
+            <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;font-weight:700;color:#111111;">${escapeHtml(cta)} <span style="color:#FF4B11;">●</span> TOK</p>
           </td></tr></table>
         </td></tr>
       </table>
