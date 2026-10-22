@@ -93,7 +93,7 @@ export function mailingAudience(selections: MailingSelections, recipientEmails?:
 }
 
 export function mailingScheduleOptions(options: MailingOptions) {
-  return { templateIds: [], postCount: options.emailCount, cadence: options.cadence, formatsByChannel: { email: ["16:9" as const] } };
+  return { templateIds: [], postCount: options.emailCount, cadence: options.cadence, formatsByChannel: { email: ["9:16" as const] } };
 }
 
 export function mailingAudienceLabel(selections: MailingSelections, recipientEmails?: string[]): string {
