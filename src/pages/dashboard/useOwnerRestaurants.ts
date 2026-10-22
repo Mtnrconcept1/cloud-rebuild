@@ -74,7 +74,8 @@ async function fetchActiveRestaurantSubscriptions(restaurantIds: string[]) {
 
   if (subscriptionsError || plansError) {
     console.warn("[dashboard] abonnement restaurateur indisponible pour le gating", subscriptionsError || plansError);
-    return new Map<string, OwnedRestaurantSubscription>();
+    // Returning an empty map made paid features accessible on RPC failures.
+    throw new Error("restaurant_subscription_entitlements_unavailable");
   }
 
   const plansById = new Map<string, RestaurantSubscriptionPlanRow>();
@@ -264,7 +265,9 @@ export function useOwnerRestaurants(options?: { enabled?: boolean }) {
     enabled: enabled && !!user?.id && !demoAccountLoading,
   });
 
-  const restaurants = data || [];
+  // React Query may retain cached data after a failed entitlement refresh.
+  // Never display potentially stale paid permissions when the server check fails.
+  const restaurants = error ? [] : data || [];
 
   return {
     restaurants,

@@ -15,6 +15,7 @@ import {
 } from "../_shared/campaign-pricing.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { requireRestaurantSubscriptionPaidAccess } from "../_shared/restaurant-credits.ts";
 
 const VALID_CAMPAIGN_TYPES = new Set(["boost", "banner", "push"]);
 const VALID_TARGET_PAGES = new Set(["home", "search", "flash_sales", "anti_waste"]);
@@ -440,6 +441,9 @@ Deno.serve(async (req) => {
     }
 
     if (action === "save") {
+      // Never accept paid campaign mutations on an expired subscription,
+      // even when the caller bypasses the dashboard route guard.
+      await requireRestaurantSubscriptionPaidAccess(adminClient, restaurant.id);
       let existingCampaign: Record<string, unknown> | null = null;
 
       if (campaignId) {
@@ -533,6 +537,11 @@ Deno.serve(async (req) => {
       const nextStatus = normalizeLower(body?.status);
       if (!VALID_EDITABLE_STATUSES.has(nextStatus)) {
         throw new HttpError(400, "Statut de campagne invalide");
+      }
+      // Keep pause/stop possible for expired subscriptions, but block
+      // reactivation until the renewed period has been paid.
+      if (nextStatus === "active") {
+        await requireRestaurantSubscriptionPaidAccess(adminClient, restaurant.id);
       }
 
       const { data: existingCampaign, error: campaignError } = await adminClient

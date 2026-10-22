@@ -10,6 +10,8 @@ const migration = read("supabase/migrations/20261022080000_restaurant_subscripti
 const owner = read("src/pages/dashboard/useOwnerRestaurants.ts");
 const context = read("src/pages/dashboard/DashboardContext.tsx");
 const credits = read("supabase/functions/_shared/restaurant-credits.ts");
+const campaignPortal = read("supabase/functions/campaign-portal/index.ts");
+const sponsoredPost = read("supabase/functions/create-social-post-boost/index.ts");
 
 describe("restaurant subscription expiry and renewal", () => {
   it("requires real paid/live current subscription once any history exists", () => {
@@ -51,5 +53,21 @@ describe("restaurant subscription expiry and renewal", () => {
     expect(migration).toContain("'in_app', true, 'email', true");
     expect(migration).toContain("'/dashboard/mon-compte-facturation'");
     expect(migration).toContain("tok-restaurant-subscription-reminders");
+  });
+
+  it("fails closed when restaurant subscription entitlements cannot be refreshed", () => {
+    expect(owner).toContain('throw new Error("restaurant_subscription_entitlements_unavailable")');
+    expect(owner).toContain("const restaurants = error ? [] : data || []");
+  });
+
+  it("blocks premium API mutations, not merely their dashboard buttons", () => {
+    expect(credits).toContain("export async function requireRestaurantSubscriptionPaidAccess");
+    expect(credits).toContain("await requireRestaurantSubscriptionPaidAccess(adminClient, restaurantId)");
+    expect(campaignPortal).toMatch(/if \(action === "save"\) \{[\s\S]{0,220}await requireRestaurantSubscriptionPaidAccess\(adminClient, restaurant\.id\)/);
+    expect(campaignPortal).toMatch(/if \(nextStatus === "active"\) \{\s*await requireRestaurantSubscriptionPaidAccess\(adminClient, restaurant\.id\)/);
+    expect(sponsoredPost).toMatch(/const adminClient = actor\.adminClient;[\s\S]{0,220}await requireRestaurantSubscriptionPaidAccess\(adminClient, restaurant\.id\)/);
+    // Read-only history and campaign cancellation remain possible.
+    expect(campaignPortal.indexOf('if (action === "list")')).toBeLessThan(campaignPortal.indexOf('if (action === "save")'));
+    expect(campaignPortal).toContain('if (action === "delete")');
   });
 });
