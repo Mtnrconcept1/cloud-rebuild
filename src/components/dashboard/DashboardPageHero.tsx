@@ -1,4 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
+import { useLocation } from "react-router-dom";
+import { getRestaurantDashboardVisual, getTokHeroStyle } from "@/lib/dashboardVisuals";
 import type { DashboardIllustration } from "@/lib/dashboardIllustrations";
 import DashboardIllustrationMedia from "@/components/dashboard/DashboardIllustrationMedia";
 import { ArrowRight, BarChart3 } from "lucide-react";
@@ -84,11 +86,14 @@ export default function DashboardPageHero({
   compact = false,
   className,
 }: DashboardPageHeroProps) {
+  const { pathname } = useLocation();
+  const pageVisual = getRestaurantDashboardVisual(pathname);
+  const currentIllustration = pageVisual ? { src: pageVisual.illustration, width: 512, height: 512, alt: "" as const } : illustration;
   const toneClasses = HERO_TONES[tone];
   const displayStats = stats;
 
   return (
-    <Card data-compact={compact} data-has-stats={displayStats.length > 0} className={cn("tok-dashboard-hero rounded-3xl border border-border/70", className)}>
+    <Card data-compact={compact} data-has-stats={displayStats.length > 0} className={cn("tok-dashboard-hero rounded-3xl border border-border/70", className)} style={getTokHeroStyle(pageVisual?.hero)}>
       <CardContent className={cn("tok-hospitality-hero-layout relative p-5 sm:p-7 lg:p-8", compact && "p-4 sm:p-5 lg:p-6")}>
         <div className={cn("tok-hospitality-hero-grid grid items-center gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,24rem)]", compact && "gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,21rem)]")}>
           <div className={cn("tok-hospitality-hero-copy relative z-10 min-w-0 space-y-6", compact && "space-y-3")}>
@@ -112,10 +117,10 @@ export default function DashboardPageHero({
               </div>
             </div>
             {actions ? <div className="tok-action-row flex flex-wrap gap-3">{actions}</div> : null}
-            {illustration ? (
+            {currentIllustration ? (
               <DashboardIllustrationMedia
                 eager
-                illustration={illustration}
+                illustration={currentIllustration}
                 className={cn("mx-auto h-32 w-32 lg:hidden", compact && "h-28 w-28")}
               />
             ) : null}
@@ -145,8 +150,8 @@ export default function DashboardPageHero({
                 // La colonne de droite est dimensionnée sur l'illustration : elle
                 // doit la contenir sans rogner les chiffres, qui gardent la
                 // priorité dans une carte de 19 à 24 rem.
-                illustration && "grid items-center gap-3",
-                illustration && (compact
+                currentIllustration && "grid items-center gap-3",
+                currentIllustration && (compact
                   ? "grid-cols-[minmax(0,1fr)_7.5rem]"
                   : "grid-cols-[minmax(0,1fr)_9.5rem]"),
               )}>
@@ -171,10 +176,10 @@ export default function DashboardPageHero({
                 )}
                 </div>
 
-                {illustration ? (
+                {currentIllustration ? (
                   <DashboardIllustrationMedia
                     eager
-                    illustration={illustration}
+                    illustration={currentIllustration}
                     className={cn("h-36 w-36", compact && "h-28 w-28")}
                   />
                 ) : (

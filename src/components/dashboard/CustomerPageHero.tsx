@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { useLocation } from "react-router-dom";
+import { getCustomerDashboardVisual, getTokHeroStyle } from "@/lib/dashboardVisuals";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import "./CustomerWorkspacePages.css";
@@ -21,8 +23,11 @@ export default function CustomerPageHero({
   actions,
   className,
 }: CustomerPageHeroProps) {
+  const { pathname, search } = useLocation();
+  const visual = getCustomerDashboardVisual(pathname, search);
   return (
-    <header className={cn("tok-customer-page-hero", className)}>
+    <div className="tok-customer-hero-row">
+    <header className={cn("tok-customer-page-hero", className)} style={getTokHeroStyle(visual?.hero)}>
       <div className="tok-customer-page-hero__copy">
         <p className="tok-customer-page-hero__eyebrow">
           <span>Accueil</span>
@@ -34,5 +39,7 @@ export default function CustomerPageHero({
         {actions ? <div className="tok-customer-page-hero__actions">{actions}</div> : null}
       </div>
     </header>
+    {visual ? <aside className="tok-customer-hero-sidecar" aria-label="Illustration de votre espace TOK"><img src={visual.illustration} loading="lazy" alt="" /></aside> : null}
+    </div>
   );
 }

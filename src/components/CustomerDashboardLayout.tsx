@@ -45,6 +45,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { isCommercialDemoClientPathAllowed } from "@/lib/commercialDemoClientRoutes";
 import { useActiveFeatures } from "@/lib/featureFlags";
+import { getCustomerDashboardVisual, getTokHeroStyle } from "@/lib/dashboardVisuals";
 import { cn } from "@/lib/utils";
 
 type CustomerNavItem = {
@@ -201,7 +202,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   };
 
   return (
-    <div className="tok-workspace-shell tok-hospitality-workspace tok-client-shell min-h-screen bg-background">
+    <div className="tok-workspace-shell tok-hospitality-workspace tok-client-shell min-h-screen bg-background" style={getTokHeroStyle(getCustomerDashboardVisual(pathname, search)?.hero)}>
       <aside className="tok-workspace-sidebar tok-client-sidebar hidden shrink-0 md:flex">
         <div className="tok-workspace-brand">
           <Link to="/" aria-label="TOK — Accueil du site" className="tok-workspace-logo-link">
