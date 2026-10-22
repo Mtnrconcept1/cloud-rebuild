@@ -1,3 +1,5 @@
+import type { MarketingResultPoint } from "@/marketing/types";
+
 export const MARKETING_AUTOPILOT_OPERATION_NAMES = [
   "admin_get_marketing_autopilot_dashboard",
   "admin_simulate_marketing_automation",
@@ -129,6 +131,7 @@ export type MarketingAutopilotAssets = {
 export type MarketingAutopilotMetric = {
   key: string;
   label: string;
+  group?: "activity" | "delivery" | "attribution";
   value: number | null;
   unit: string | null;
   source: string | null;
@@ -142,6 +145,9 @@ export type MarketingAutopilotAnalytics = {
   completeness: number;
   unavailableReasons: string[];
   generatedAt: string | null;
+  periodFrom?: string | null;
+  periodTo?: string | null;
+  dailyResults?: MarketingResultPoint[];
 };
 
 export type MarketingAutopilotDashboard = {

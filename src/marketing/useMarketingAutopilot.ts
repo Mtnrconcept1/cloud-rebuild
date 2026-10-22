@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { resolveMarketingAnalyticsPeriod, type MarketingAnalyticsDateRange } from "@/marketing/analyticsPeriod";
 
 import {
   createMarketingAutopilotClientRequestId,
@@ -36,22 +37,23 @@ function safeMessage(error: unknown) {
   return message.replace(/[\r\n]+/g, " ").slice(0, 200);
 }
 
-export function useMarketingAutopilot({ enabled = true }: { enabled?: boolean } = {}) {
+export function useMarketingAutopilot({ enabled = true, from, to }: { enabled?: boolean } & MarketingAnalyticsDateRange = {}) {
   const fallback = useRef(createFallbackMarketingAutopilotDashboard());
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [notice, setNotice] = useState<MarketingAutopilotNotice>(null);
   const [simulation, setSimulation] = useState<MarketingAutomationSimulation | null>(null);
   const draftAttempts = useRef(new Map<string, MarketingDraftAttempt>());
+  const period = resolveMarketingAnalyticsPeriod({ from, to });
 
   const dashboardQuery = useQuery({
-    queryKey: ["admin-marketing-autopilot-dashboard"],
-    queryFn: loadMarketingAutopilotDashboard,
-    enabled,
+    queryKey: ["admin-marketing-autopilot-dashboard", period.fromIso, period.toIso],
+    queryFn: () => loadMarketingAutopilotDashboard({ from: period.from, to: period.to }),
+    enabled: enabled && !period.error,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
     retry: false,
   });
-  const dashboard = dashboardQuery.data || fallback.current;
+  const dashboard = period.error ? fallback.current : dashboardQuery.data || fallback.current;
 
   const runAction = useCallback(async <T,>(key: string, action: () => Promise<T>) => {
     if (dashboard.source !== "backend") {
@@ -180,9 +182,9 @@ export function useMarketingAutopilot({ enabled = true }: { enabled?: boolean } 
 
   return {
     dashboard,
-    loading: enabled && dashboardQuery.isPending,
-    refreshing: dashboardQuery.isFetching,
-    error: dashboardQuery.error ? safeMessage(dashboardQuery.error) : null,
+    loading: enabled && !period.error && dashboardQuery.isPending,
+    refreshing: !period.error && dashboardQuery.isFetching,
+    error: period.error || (dashboardQuery.error ? safeMessage(dashboardQuery.error) : null),
     pendingAction,
     notice,
     simulation,

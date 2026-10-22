@@ -19,10 +19,20 @@ import {
   MarketingBffError,
   marketingBffRequest,
 } from "@/marketing/marketingBffClient";
+import { resolveMarketingAnalyticsPeriod, type MarketingAnalyticsDateRange } from "@/marketing/analyticsPeriod";
+import type { MarketingResultPoint } from "@/marketing/types";
 
 type JsonRecord = Record<string, unknown>;
 
 const METRIC_LABELS: Record<string, string> = {
+  campaigns_created: "Campagnes créées",
+  items_created: "Contenus préparés",
+  items_scheduled: "En attente de diffusion",
+  social_publications: "Publications confirmées",
+  sent: "Envois",
+  delivered: "Distribués",
+  delivery_conversions: "Conversions de diffusion",
+  business_conversions: "Conversions métier",
   spend: "Dépenses",
   revenue: "Revenu attribué",
   leads: "Leads",
@@ -66,9 +76,16 @@ function nullableString(value: unknown) {
 }
 
 function nullableNumber(value: unknown) {
-  if (value === null || value === undefined || value === "") return null;
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && !value.trim()) return null;
   const normalized = typeof value === "number" ? value : Number(value);
   return Number.isFinite(normalized) ? normalized : null;
+}
+
+function nullableTimestamp(value: unknown) {
+  const text = nullableString(value);
+  return text && /^\d{4}-\d{2}-\d{2}T/i.test(text)
+    && /(Z|[+-]\d{2}:\d{2})$/i.test(text) && Number.isFinite(Date.parse(text)) ? text : null;
 }
 
 function nonNegativeInteger(value: unknown) {
@@ -152,45 +169,75 @@ function normalizeAsset(value: unknown, index: number): MarketingAutopilotAsset 
 
 function normalizeMetric(key: string, value: unknown): MarketingAutopilotMetric {
   const item = record(value);
-  const metricValue = item ? nullableNumber(item.value) : nullableNumber(value);
+  const numeric = item ? nullableNumber(item.value) : nullableNumber(value);
+  const monetary = ["spend", "revenue", "cac", "cpl", "cpa"].includes(key);
+  const rawUnit = nullableString(item?.unit);
+  const unit = monetary ? rawUnit?.toUpperCase() || null : rawUnit === "count" ? null : rawUnit === "ratio" ? "x" : rawUnit;
+  const currencyMissing = monetary && numeric !== null && !/^[A-Z]{3}$/.test(unit || "");
+  const metricValue = currencyMissing ? null : numeric;
+  const observedAt = nullableTimestamp(item?.observed_at ?? item?.observedAt);
   const freshness = stringValue(item?.freshness).toLowerCase();
+  const rawGroup = stringValue(item?.group);
+  const group = rawGroup === "activity" || rawGroup === "delivery" || rawGroup === "attribution" ? rawGroup : undefined;
   return {
     key,
     label: stringValue(item?.label, METRIC_LABELS[key] || key.replace(/_/g, " ")),
+    group,
     value: metricValue,
-    unit: nullableString(item?.unit),
+    unit,
     source: nullableString(item?.source ?? item?.provenance),
-    observedAt: nullableString(item?.observed_at ?? item?.observedAt),
-    freshness: freshness === "fresh" || freshness === "stale" ? freshness : "unknown",
-    unavailableReason: nullableString(item?.unavailable_reason ?? item?.reason),
+    observedAt,
+    freshness: metricValue !== null && observedAt && (freshness === "fresh" || freshness === "stale") ? freshness : "unknown",
+    unavailableReason: nullableString(item?.unavailable_reason ?? item?.unavailableReason ?? item?.reason) || (currencyMissing ? "currency_data_unavailable" : null),
   };
+}
+
+function normalizeDailyResults(value: unknown): MarketingResultPoint[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > 367) throw new Error("La série quotidienne Analytics retournée par le serveur est invalide.");
+  const seen = new Set<string>();
+  return value.map((raw) => {
+    const item = record(raw);
+    const date = stringValue(item?.date);
+    const timestamp = Date.parse(date + "T00:00:00Z");
+    const counts = [item?.sent, item?.delivered, item?.clicks, item?.conversions].map(nullableNumber);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(timestamp)
+      || new Date(timestamp).toISOString().slice(0, 10) !== date || seen.has(date)
+      || counts.some((count) => count === null || !Number.isSafeInteger(count) || count < 0)) {
+      throw new Error("La série quotidienne Analytics retournée par le serveur est invalide.");
+    }
+    seen.add(date);
+    return { date, sent: counts[0]!, delivered: counts[1]!, clicks: counts[2]!, conversions: counts[3]! };
+  }).sort((left, right) => left.date.localeCompare(right.date));
 }
 
 function normalizeAnalytics(
   value: unknown,
   dashboardGeneratedAt: string | null,
-  dashboardCompleteness: unknown,
   dashboardReasons: unknown,
 ): MarketingAutopilotAnalytics {
   const item = record(value);
   const unavailableReasons = stringList(item?.unavailable_reasons ?? item?.unavailableReasons ?? dashboardReasons, 50);
-  const completenessLabel = stringValue(item?.completeness ?? dashboardCompleteness).toLowerCase();
   if (!item) {
     return {
       metrics: [],
-      completeness: completenessLabel === "complete" ? 1 : 0,
+      completeness: 0,
       unavailableReasons: unavailableReasons.length ? unavailableReasons : ["Les analytics n'ont pas été fournis par le backend."],
       generatedAt: dashboardGeneratedAt,
     };
   }
   const rawMetrics = item.metrics;
+  const hasCanonicalMetrics = rawMetrics !== undefined;
+  if (hasCanonicalMetrics && !Array.isArray(rawMetrics) && !record(rawMetrics)) {
+    throw new Error("Les indicateurs Analytics retournés par le serveur sont invalides.");
+  }
   let metrics: MarketingAutopilotMetric[] = [];
   if (Array.isArray(rawMetrics)) {
-    metrics = rawMetrics.flatMap((raw, index) => {
+    metrics = rawMetrics.slice(0, 50).flatMap((raw) => {
       const metric = record(raw);
       if (!metric) return [];
-      const key = stringValue(metric.key ?? metric.metric, `metric_${index + 1}`);
-      return [normalizeMetric(key, metric)];
+      const key = stringValue(metric.key ?? metric.metric);
+      return key ? [normalizeMetric(key, metric)] : [];
     });
   } else {
     const metricRecord = record(rawMetrics) || item;
@@ -198,20 +245,19 @@ function normalizeAnalytics(
       .filter((key) => Object.prototype.hasOwnProperty.call(metricRecord, key))
       .map((key) => normalizeMetric(key, metricRecord[key]));
   }
-  if (["delivery_conversions", "business_conversions", "spend_minor", "revenue_minor", "cac_minor", "cpl_minor", "cpa_minor"].some((key) => key in item)) {
-    const currency = stringValue(item.currency, "CHF");
+  if (!hasCanonicalMetrics && ["delivery_conversions", "business_conversions", "spend_minor", "revenue_minor", "cac_minor", "cpl_minor", "cpa_minor"].some((key) => key in item)) {
+    const currency = nullableString(item.currency)?.toUpperCase() || null;
     const factMetric = (key: string, label: string, rawValue: unknown, source: string, unit: string | null = null, divisor = 1): MarketingAutopilotMetric => {
       const numeric = nullableNumber(rawValue);
-      return {
-        key,
+      return normalizeMetric(key, {
         label,
         value: numeric === null ? null : numeric / divisor,
         unit,
         source,
-        observedAt: dashboardGeneratedAt,
+        observedAt: null,
         freshness: "unknown",
         unavailableReason: numeric === null ? "Donnée non disponible pour la période." : null,
-      };
+      });
     };
     metrics = [
       factMetric("sent", "Envois", item.sent, "marketing_event_facts"),
@@ -228,19 +274,21 @@ function normalizeAnalytics(
       factMetric("roas", "ROAS", item.roas, "marketing_attribution_facts", "x"),
     ];
   }
-  const rawCompleteness = nullableNumber(item.completeness ?? dashboardCompleteness);
-  const completeness = rawCompleteness === null
-    ? completenessLabel === "complete"
-      ? 1
-      : completenessLabel === "partial"
-        ? 0.5
-        : 0
-    : Math.min(1, Math.max(0, rawCompleteness > 1 ? rawCompleteness / 100 : rawCompleteness));
+  const seen = new Set<string>();
+  metrics = metrics.filter((metric) => {
+    if (seen.has(metric.key)) return false;
+    seen.add(metric.key);
+    return true;
+  }).slice(0, 50);
+  const completeness = metrics.length ? metrics.filter((metric) => metric.value !== null).length / metrics.length : 0;
   return {
-    metrics: metrics.slice(0, 50),
+    metrics,
     completeness,
     unavailableReasons,
-    generatedAt: nullableString(item.generated_at ?? item.generatedAt) || dashboardGeneratedAt,
+    generatedAt: nullableTimestamp(item.generated_at ?? item.generatedAt) || dashboardGeneratedAt,
+    periodFrom: nullableTimestamp(item.from ?? item.periodFrom),
+    periodTo: nullableTimestamp(item.to ?? item.periodTo),
+    dailyResults: normalizeDailyResults(item.daily_results !== undefined ? item.daily_results : item.dailyResults),
   };
 }
 
@@ -249,7 +297,7 @@ export function normalizeMarketingAutopilotDashboard(response: unknown): Marketi
   if (!item || !["generated_at", "generatedAt", "governance", "providers", "automations", "assets", "analytics"].some((key) => key in item)) {
     throw new Error("Le tableau de bord Autopilot retourné par le serveur est invalide.");
   }
-  const generatedAt = nullableString(item.generated_at ?? item.generatedAt);
+  const generatedAt = nullableTimestamp(item.generated_at ?? item.generatedAt);
   const governance = record(item.governance) || {};
   const missingDecisionsSource = governance.missing_decisions ?? governance.missingDecisions;
   const missingDecisions = Array.isArray(missingDecisionsSource)
@@ -302,7 +350,7 @@ export function normalizeMarketingAutopilotDashboard(response: unknown): Marketi
       required: nonNegativeInteger(assetRecord?.required ?? 30) || 30,
       items: assetItems,
     },
-    analytics: normalizeAnalytics(item.analytics, generatedAt, item.completeness, item.unavailable_reasons),
+    analytics: normalizeAnalytics(item.analytics, generatedAt, item.unavailable_reasons),
     warnings: stringList(item.warnings, 50),
   };
 }
@@ -363,8 +411,13 @@ async function invoke(operation: string, args: JsonRecord) {
   });
 }
 
-export async function loadMarketingAutopilotDashboard() {
-  return normalizeMarketingAutopilotDashboard(await invoke("admin_get_marketing_autopilot_dashboard", {}));
+export async function loadMarketingAutopilotDashboard(range: MarketingAnalyticsDateRange = {}) {
+  const period = resolveMarketingAnalyticsPeriod(range);
+  if (period.error) throw new Error(period.error);
+  return normalizeMarketingAutopilotDashboard(await invoke("admin_get_marketing_autopilot_dashboard", {
+    p_from: period.fromIso,
+    p_to: period.toIso,
+  }));
 }
 
 export async function simulateMarketingAutomation(templateKey: MarketingAutomationTemplateKey, input: Record<string, unknown> = {}) {
