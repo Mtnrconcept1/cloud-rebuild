@@ -93,7 +93,7 @@ export async function runDailyMarketingGeneration(client: MarketingDailyClient, 
   let content: Record<string, unknown>;
   try {
     const brief = buildDailyMarketingBrief(claim.local_date, claim.recent_posts.map((post) => post.title));
-    const visual = await generateDailyMarketingVisual(client, { runId: claim.id, brief, ...options });
+    const visual = await generateDailyMarketingVisual(client, { runId: claim.id, brief, attemptCount: claim.attempt_count, ...options });
     content = {
       title: brief.title, caption: brief.caption, image_url: visual.imageUrl, image_quality: visual.quality,
       visual_brand_profile: brief.brandVersion, profile_version: brief.brandVersion,
