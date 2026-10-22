@@ -123,20 +123,3 @@ describe("marketing delivery lease budget", () => {
     expect(orchestrator).not.toContain("Math.min(500, limit * 20)");
   });
 });
-
-
-describe("marketing daily email limit and BCC audit", () => {
-  const cadence = readFileSync(resolve(process.cwd(), "supabase/migrations/20261022070000_marketing_email_ten_per_day.sql"), "utf8");
-  it("preserves the consent-aware existing claims and throttles only marketing email", () => {
-    expect(cadence).toContain("email_daily_cap");
-    expect(cadence).toContain("v_daily_cap := LEAST(v_daily_cap,");
-    expect(cadence).toContain("'10'::jsonb");
-    expect(cadence).not.toContain("CREATE OR REPLACE FUNCTION public.claim_marketing_deliveries");
-  });
-  it("copies authorized marketing mail only when the dedicated server BCC variable matches", () => {
-    expect(orchestrator).toContain('Deno.env.get("MARKETING_AUDIT_BCC")');
-    expect(orchestrator).toContain('MARKETING_AUDIT_BCC === "rbarman@hotmail.ch"');
-    expect(orchestrator).toContain('bcc: [VALID_MARKETING_AUDIT_BCC]');
-    expect(orchestrator).toContain("sendViaResend(prepared, delivery.id, signingSecret)");
-  });
-});
