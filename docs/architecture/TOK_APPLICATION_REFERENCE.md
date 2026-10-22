@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `beff275d3db90a22e9a23e273c0ac7270f29d9ba799edc25e9452d629e0897d4`
+- Empreinte SHA-256 des sources indexées : `37e08433ed5ae2ff7bfbd28c98449478126312dc96a7ca8da7f8c3b0dfb40302`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,7 +32,7 @@
 | documents | 220 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3967 |
+| exportedSymbols | 3970 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
@@ -40,19 +40,19 @@
 | migrations | 572 |
 | modules | 1794 |
 | pages | 133 |
-| pathLiterals | 878 |
-| publicAssets | 589 |
-| publicEntries | 615 |
+| pathLiterals | 898 |
+| publicAssets | 606 |
+| publicEntries | 633 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18444 |
-| repositoryFiles | 3500 |
+| records | 18505 |
+| repositoryFiles | 3519 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 31 |
+| workflows | 32 |
 
 ## État distant observé
 
@@ -776,6 +776,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/assiette mixte libanaise.jpeg | media | [public/images/assiette mixte libanaise.jpeg](../../public/images/assiette%20mixte%20libanaise.jpeg) |
 | /images/baklava.jpg | media | [public/images/baklava.jpg](../../public/images/baklava.jpg) |
 | /images/bd805b36-a248-4869-8337-95f0af9cbdb2.webp | media | [public/images/bd805b36-a248-4869-8337-95f0af9cbdb2.webp](../../public/images/bd805b36-a248-4869-8337-95f0af9cbdb2.webp) |
+| /images/brand/tok-round-official.webp | media | [public/images/brand/tok-round-official.webp](../../public/images/brand/tok-round-official.webp) |
 | /images/bruschetta.jpg | media | [public/images/bruschetta.jpg](../../public/images/bruschetta.jpg) |
 | /images/burger truffe.webp | media | [public/images/burger truffe.webp](../../public/images/burger%20truffe.webp) |
 | /images/burgers-wings.jpeg | media | [public/images/burgers-wings.jpeg](../../public/images/burgers-wings.jpeg) |
@@ -825,6 +826,23 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-social.webp | media | [public/images/dashboard-3d/restaurant-social.webp](../../public/images/dashboard-3d/restaurant-social.webp) |
 | /images/dashboard-3d/restaurant-support.webp | media | [public/images/dashboard-3d/restaurant-support.webp](../../public/images/dashboard-3d/restaurant-support.webp) |
 | /images/dashboard-3d/restaurant-tok-connect.webp | media | [public/images/dashboard-3d/restaurant-tok-connect.webp](../../public/images/dashboard-3d/restaurant-tok-connect.webp) |
+| /images/dashboard-scenes/client-abonnement.webp | media | [public/images/dashboard-scenes/client-abonnement.webp](../../public/images/dashboard-scenes/client-abonnement.webp) |
+| /images/dashboard-scenes/client-accueil.webp | media | [public/images/dashboard-scenes/client-accueil.webp](../../public/images/dashboard-scenes/client-accueil.webp) |
+| /images/dashboard-scenes/client-avis.webp | media | [public/images/dashboard-scenes/client-avis.webp](../../public/images/dashboard-scenes/client-avis.webp) |
+| /images/dashboard-scenes/client-favoris.webp | media | [public/images/dashboard-scenes/client-favoris.webp](../../public/images/dashboard-scenes/client-favoris.webp) |
+| /images/dashboard-scenes/client-memoire.webp | media | [public/images/dashboard-scenes/client-memoire.webp](../../public/images/dashboard-scenes/client-memoire.webp) |
+| /images/dashboard-scenes/client-notifications.webp | media | [public/images/dashboard-scenes/client-notifications.webp](../../public/images/dashboard-scenes/client-notifications.webp) |
+| /images/dashboard-scenes/client-parametres.webp | media | [public/images/dashboard-scenes/client-parametres.webp](../../public/images/dashboard-scenes/client-parametres.webp) |
+| /images/dashboard-scenes/client-preferences.webp | media | [public/images/dashboard-scenes/client-preferences.webp](../../public/images/dashboard-scenes/client-preferences.webp) |
+| /images/dashboard-scenes/client-profil.webp | media | [public/images/dashboard-scenes/client-profil.webp](../../public/images/dashboard-scenes/client-profil.webp) |
+| /images/dashboard-scenes/client-reservations.webp | media | [public/images/dashboard-scenes/client-reservations.webp](../../public/images/dashboard-scenes/client-reservations.webp) |
+| /images/dashboard-scenes/provenance-curated.json | data | [public/images/dashboard-scenes/provenance-curated.json](../../public/images/dashboard-scenes/provenance-curated.json) |
+| /images/dashboard-scenes/restaurant-crm.webp | media | [public/images/dashboard-scenes/restaurant-crm.webp](../../public/images/dashboard-scenes/restaurant-crm.webp) |
+| /images/dashboard-scenes/restaurant-facturation.webp | media | [public/images/dashboard-scenes/restaurant-facturation.webp](../../public/images/dashboard-scenes/restaurant-facturation.webp) |
+| /images/dashboard-scenes/restaurant-menu.webp | media | [public/images/dashboard-scenes/restaurant-menu.webp](../../public/images/dashboard-scenes/restaurant-menu.webp) |
+| /images/dashboard-scenes/restaurant-performances.webp | media | [public/images/dashboard-scenes/restaurant-performances.webp](../../public/images/dashboard-scenes/restaurant-performances.webp) |
+| /images/dashboard-scenes/restaurant-photos.webp | media | [public/images/dashboard-scenes/restaurant-photos.webp](../../public/images/dashboard-scenes/restaurant-photos.webp) |
+| /images/dashboard-scenes/restaurant-plan.webp | media | [public/images/dashboard-scenes/restaurant-plan.webp](../../public/images/dashboard-scenes/restaurant-plan.webp) |
 | /images/dashboard/restaurant-ambience.webp | media | [public/images/dashboard/restaurant-ambience.webp](../../public/images/dashboard/restaurant-ambience.webp) |
 | /images/doner-kebab-plate.jpeg | media | [public/images/doner-kebab-plate.jpeg](../../public/images/doner-kebab-plate.jpeg) |
 | /images/edamame.webp | media | [public/images/edamame.webp](../../public/images/edamame.webp) |
@@ -1260,7 +1278,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 270 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 271 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:97](../../src/test/application-search-index.test.ts#L97) |
@@ -1287,6 +1305,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /Miamz2.webp | 4 | [src/components/home/SolidaritySection.tsx:49](../../src/components/home/SolidaritySection.tsx#L49) |
 | /Miamz3.webp | 3 | [src/components/home/SolidaritySection.tsx:43](../../src/components/home/SolidaritySection.tsx#L43) |
 | /Outlines | 2 | [src/test/guide-pdf.test.ts:19](../../src/test/guide-pdf.test.ts#L19) |
+| /PROFIL/ | 1 | [src/test/dashboard-illustrations.test.ts:211](../../src/test/dashboard-illustrations.test.ts#L211) |
 | /PROFIL/?tab=favoris | 1 | [src/test/workspace-layout-controls.test.tsx:42](../../src/test/workspace-layout-controls.test.tsx#L42) |
 | /[^/]+ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /^[0-9a-f-]{36}$/i.test(deliveryId) | 1 | [src/test/marketing-one-click-unsubscribe.test.ts:69](../../src/test/marketing-one-click-unsubscribe.test.ts#L69) |
@@ -1428,7 +1447,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commande/id | 1 | [src/test/coming-soon-gate.test.tsx:42](../../src/test/coming-soon-gate.test.tsx#L42) |
 | /commande/order-1 | 3 | [src/test/notifications-sinistres-governance.test.ts:23](../../src/test/notifications-sinistres-governance.test.ts#L23) |
 | /commande/order-123 | 1 | [src/test/customer-workspace-routes.test.ts:27](../../src/test/customer-workspace-routes.test.ts#L27) |
-| /commandes | 43 | [scripts/prerender-seo.mjs:1271](../../scripts/prerender-seo.mjs#L1271) |
+| /commandes | 44 | [scripts/prerender-seo.mjs:1271](../../scripts/prerender-seo.mjs#L1271) |
 | /commandes/facture | 1 | [src/test/customer-workspace-routes.test.ts:29](../../src/test/customer-workspace-routes.test.ts#L29) |
 | /comments | 1 | [src/test/marketing-instagram-graph.test.ts:84](../../src/test/marketing-instagram-graph.test.ts#L84) |
 | /commercial | 52 | [scripts/application-index-core.mjs:171](../../scripts/application-index-core.mjs#L171) |
@@ -1466,9 +1485,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /create-reservation | 1 | [src/test/tok-connect-oauth-delegation.test.ts:117](../../src/test/tok-connect-oauth-delegation.test.ts#L117) |
 | /creneaux-garantis | 11 | [scripts/prerender-seo.mjs:1065](../../scripts/prerender-seo.mjs#L1065) |
 | /crm | 1 | [src/test/dashboard-design-preview-export.test.tsx:71](../../src/test/dashboard-design-preview-export.test.tsx#L71) |
-| /dashboard | 89 | [scripts/application-index-core.mjs:169](../../scripts/application-index-core.mjs#L169) |
+| /dashboard | 91 | [scripts/application-index-core.mjs:169](../../scripts/application-index-core.mjs#L169) |
 | /dashboard-design-preview/ | 1 | [src/test/dashboard-design-preview-export.test.tsx:87](../../src/test/dashboard-design-preview-export.test.tsx#L87) |
 | /dashboard/ | 4 | [src/App.tsx:316](../../src/App.tsx#L316) |
+| /dashboard/MENU/ | 1 | [src/test/dashboard-illustrations.test.ts:214](../../src/test/dashboard-illustrations.test.ts#L214) |
 | /dashboard/abonnement | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:224](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L224) |
 | /dashboard/actualites | 9 | [src/App.tsx:644](../../src/App.tsx#L644) |
 | /dashboard/advisor | 7 | [src/App.tsx:623](../../src/App.tsx#L623) |
@@ -1477,32 +1497,32 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/campagne-overview | 2 | [src/App.tsx:642](../../src/App.tsx#L642) |
 | /dashboard/campagnes | 20 | [scripts/stoppin-venue-seo.test.mjs:140](../../scripts/stoppin-venue-seo.test.mjs#L140) |
 | /dashboard/campaign-studio | 7 | [src/App.tsx:646](../../src/App.tsx#L646) |
-| /dashboard/commandes | 25 | [src/App.tsx:626](../../src/App.tsx#L626) |
+| /dashboard/commandes | 26 | [src/App.tsx:626](../../src/App.tsx#L626) |
 | /dashboard/comparaison | 5 | [src/App.tsx:629](../../src/App.tsx#L629) |
 | /dashboard/compta | 3 | [src/App.tsx:631](../../src/App.tsx#L631) |
 | /dashboard/credits | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:215](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L215) |
-| /dashboard/crm | 6 | [src/App.tsx:647](../../src/App.tsx#L647) |
+| /dashboard/crm | 7 | [src/App.tsx:647](../../src/App.tsx#L647) |
 | /dashboard/crm-clients | 2 | [supabase/functions/tok-connect-full-app-mcp/index.ts:221](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L221) |
 | /dashboard/equipe | 5 | [src/App.tsx:651](../../src/App.tsx#L651) |
 | /dashboard/facturation | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:223](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L223) |
 | /dashboard/factures | 18 | [src/App.tsx:631](../../src/App.tsx#L631) |
 | /dashboard/factures/ | 1 | [src/components/navigation/BackNavigationButton.tsx:19](../../src/components/navigation/BackNavigationButton.tsx#L19) |
 | /dashboard/factures/entrees | 7 | [src/App.tsx:633](../../src/App.tsx#L633) |
-| /dashboard/factures/parametres | 5 | [src/App.tsx:635](../../src/App.tsx#L635) |
+| /dashboard/factures/parametres | 6 | [src/App.tsx:635](../../src/App.tsx#L635) |
 | /dashboard/factures/sorties | 7 | [src/App.tsx:634](../../src/App.tsx#L634) |
 | /dashboard/formules | 6 | [src/App.tsx:639](../../src/App.tsx#L639) |
 | /dashboard/guide | 9 | [src/App.tsx:655](../../src/App.tsx#L655) |
 | /dashboard/guide?tab=commandes | 2 | [src/test/workspace-toolbar.test.tsx:17](../../src/test/workspace-toolbar.test.tsx#L17) |
-| /dashboard/menu | 21 | [src/App.tsx:624](../../src/App.tsx#L624) |
+| /dashboard/menu | 24 | [src/App.tsx:624](../../src/App.tsx#L624) |
 | /dashboard/mon-compte-facturation | 17 | [src/App.tsx:636](../../src/App.tsx#L636) |
 | /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1255](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1255) |
 | /dashboard/notifications | 15 | [src/App.tsx:621](../../src/App.tsx#L621) |
 | /dashboard/offres | 6 | [src/App.tsx:637](../../src/App.tsx#L637) |
 | /dashboard/pack | 2 | [src/test/feature-flags.test.ts:120](../../src/test/feature-flags.test.ts#L120) |
-| /dashboard/performances | 8 | [src/App.tsx:628](../../src/App.tsx#L628) |
-| /dashboard/photos | 17 | [src/App.tsx:640](../../src/App.tsx#L640) |
+| /dashboard/performances | 9 | [src/App.tsx:628](../../src/App.tsx#L628) |
+| /dashboard/photos | 18 | [src/App.tsx:640](../../src/App.tsx#L640) |
 | /dashboard/plan-de-salle | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:211](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L211) |
-| /dashboard/plan-salle | 8 | [src/App.tsx:652](../../src/App.tsx#L652) |
+| /dashboard/plan-salle | 9 | [src/App.tsx:652](../../src/App.tsx#L652) |
 | /dashboard/plan-salle-v2 | 2 | [src/App.tsx:654](../../src/App.tsx#L654) |
 | /dashboard/promotions | 5 | [src/App.tsx:641](../../src/App.tsx#L641) |
 | /dashboard/recommandations | 2 | [src/App.tsx:627](../../src/App.tsx#L627) |
@@ -1594,6 +1614,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/ | 2 | [src/components/RestaurantCard.tsx:70](../../src/components/RestaurantCard.tsx#L70) |
 | /images/1.webp | 9 | [src/lib/menu-item-images.ts:15](../../src/lib/menu-item-images.ts#L15) |
 | /images/baklava.jpg | 2 | [src/lib/menu-item-images.ts:97](../../src/lib/menu-item-images.ts#L97) |
+| /images/brand/tok-round-official.webp | 3 | [src/lib/dashboardIllustrations.ts:66](../../src/lib/dashboardIllustrations.ts#L66) |
 | /images/bruschetta.jpg | 3 | [src/lib/menu-item-images.ts:54](../../src/lib/menu-item-images.ts#L54) |
 | /images/byriani.jpg | 2 | [src/lib/menu-item-images.ts:47](../../src/lib/menu-item-images.ts#L47) |
 | /images/calzone.webp | 3 | [scripts/dashboard-design-preview.fixtures.ts:24](../../scripts/dashboard-design-preview.fixtures.ts#L24) |
@@ -1637,6 +1658,22 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-social.webp | 1 | [src/lib/dashboardIllustrations.ts:35](../../src/lib/dashboardIllustrations.ts#L35) |
 | /images/dashboard-3d/restaurant-support.webp | 1 | [src/lib/dashboardIllustrations.ts:31](../../src/lib/dashboardIllustrations.ts#L31) |
 | /images/dashboard-3d/restaurant-tok-connect.webp | 1 | [src/lib/dashboardIllustrations.ts:38](../../src/lib/dashboardIllustrations.ts#L38) |
+| /images/dashboard-scenes/client-abonnement.webp | 1 | [src/lib/dashboardIllustrations.ts:77](../../src/lib/dashboardIllustrations.ts#L77) |
+| /images/dashboard-scenes/client-accueil.webp | 1 | [src/lib/dashboardIllustrations.ts:70](../../src/lib/dashboardIllustrations.ts#L70) |
+| /images/dashboard-scenes/client-avis.webp | 1 | [src/lib/dashboardIllustrations.ts:72](../../src/lib/dashboardIllustrations.ts#L72) |
+| /images/dashboard-scenes/client-favoris.webp | 1 | [src/lib/dashboardIllustrations.ts:76](../../src/lib/dashboardIllustrations.ts#L76) |
+| /images/dashboard-scenes/client-memoire.webp | 1 | [src/lib/dashboardIllustrations.ts:74](../../src/lib/dashboardIllustrations.ts#L74) |
+| /images/dashboard-scenes/client-notifications.webp | 1 | [src/lib/dashboardIllustrations.ts:73](../../src/lib/dashboardIllustrations.ts#L73) |
+| /images/dashboard-scenes/client-parametres.webp | 1 | [src/lib/dashboardIllustrations.ts:79](../../src/lib/dashboardIllustrations.ts#L79) |
+| /images/dashboard-scenes/client-preferences.webp | 1 | [src/lib/dashboardIllustrations.ts:78](../../src/lib/dashboardIllustrations.ts#L78) |
+| /images/dashboard-scenes/client-profil.webp | 1 | [src/lib/dashboardIllustrations.ts:75](../../src/lib/dashboardIllustrations.ts#L75) |
+| /images/dashboard-scenes/client-reservations.webp | 1 | [src/lib/dashboardIllustrations.ts:71](../../src/lib/dashboardIllustrations.ts#L71) |
+| /images/dashboard-scenes/restaurant-crm.webp | 1 | [src/lib/dashboardIllustrations.ts:84](../../src/lib/dashboardIllustrations.ts#L84) |
+| /images/dashboard-scenes/restaurant-facturation.webp | 1 | [src/lib/dashboardIllustrations.ts:87](../../src/lib/dashboardIllustrations.ts#L87) |
+| /images/dashboard-scenes/restaurant-menu.webp | 1 | [src/lib/dashboardIllustrations.ts:82](../../src/lib/dashboardIllustrations.ts#L82) |
+| /images/dashboard-scenes/restaurant-performances.webp | 1 | [src/lib/dashboardIllustrations.ts:83](../../src/lib/dashboardIllustrations.ts#L83) |
+| /images/dashboard-scenes/restaurant-photos.webp | 1 | [src/lib/dashboardIllustrations.ts:85](../../src/lib/dashboardIllustrations.ts#L85) |
+| /images/dashboard-scenes/restaurant-plan.webp | 1 | [src/lib/dashboardIllustrations.ts:86](../../src/lib/dashboardIllustrations.ts#L86) |
 | /images/dashboard/restaurant-ambience.webp | 3 | [scripts/dashboard-design-preview.fixtures.ts:10](../../scripts/dashboard-design-preview.fixtures.ts#L10) |
 | /images/doner-kebab-plate.jpeg | 2 | [src/lib/menu-item-images.ts:48](../../src/lib/menu-item-images.ts#L48) |
 | /images/edamame.webp | 1 | [src/lib/menu-item-images.ts:49](../../src/lib/menu-item-images.ts#L49) |
@@ -1860,19 +1897,19 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing_campaigns? | 2 | [src/test/marketing-mailing-image-bff.test.ts:83](../../src/test/marketing-mailing-image-bff.test.ts#L83) |
 | /match-groupes | 13 | [scripts/prerender-seo.mjs:1105](../../scripts/prerender-seo.mjs#L1105) |
 | /me/accounts? | 1 | [src/test/marketing-meta-publishing.test.ts:106](../../src/test/marketing-meta-publishing.test.ts#L106) |
-| /memoire-tok | 11 | [scripts/prerender-seo.mjs:1269](../../scripts/prerender-seo.mjs#L1269) |
+| /memoire-tok | 12 | [scripts/prerender-seo.mjs:1269](../../scripts/prerender-seo.mjs#L1269) |
 | /menu | 4 | [src/test/dashboard-design-preview-export.test.tsx:59](../../src/test/dashboard-design-preview-export.test.tsx#L59) |
-| /mes-avis | 12 | [scripts/prerender-seo.mjs:1277](../../scripts/prerender-seo.mjs#L1277) |
+| /mes-avis | 13 | [scripts/prerender-seo.mjs:1277](../../scripts/prerender-seo.mjs#L1277) |
 | /miamz | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:206](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L206) |
 | /miamz-solidaires | 13 | [scripts/prerender-seo.mjs:575](../../scripts/prerender-seo.mjs#L575) |
 | /mon-compte-facturation | 1 | [src/test/dashboard-design-preview-export.test.tsx:68](../../src/test/dashboard-design-preview-export.test.tsx#L68) |
-| /mon-espace | 38 | [scripts/prerender-seo.mjs:1274](../../scripts/prerender-seo.mjs#L1274) |
+| /mon-espace | 39 | [scripts/prerender-seo.mjs:1274](../../scripts/prerender-seo.mjs#L1274) |
 | /mon-espace-public | 1 | [src/test/customer-workspace-routes.test.ts:29](../../src/test/customer-workspace-routes.test.ts#L29) |
 | /mon-espace?source=pwa-shortcut | 1 | [src/test/application-search-index.test.ts:124](../../src/test/application-search-index.test.ts#L124) |
 | /multi-restaurant | 15 | [scripts/prerender-seo.mjs:1089](../../scripts/prerender-seo.mjs#L1089) |
 | /multi-stop | 12 | [scripts/prerender-seo.mjs:1097](../../scripts/prerender-seo.mjs#L1097) |
 | /notification/partners/{partnerId}/bookings:notify | 1 | [supabase/functions/google-actions-center-sync/index.ts:60](../../supabase/functions/google-actions-center-sync/index.ts#L60) |
-| /notifications | 35 | [scripts/prerender-seo.mjs:1270](../../scripts/prerender-seo.mjs#L1270) |
+| /notifications | 36 | [scripts/prerender-seo.mjs:1270](../../scripts/prerender-seo.mjs#L1270) |
 | /notifications/preferences | 1 | [src/test/customer-workspace-routes.test.ts:28](../../src/test/customer-workspace-routes.test.ts#L28) |
 | /notifications?tab=orders | 2 | [src/test/navigation.test.ts:10](../../src/test/navigation.test.ts#L10) |
 | /oauth | 2 | [scripts/prerender-seo.mjs:1281](../../scripts/prerender-seo.mjs#L1281) |
@@ -1899,14 +1936,15 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /prices/lookup | 1 | [supabase/functions/_shared/print/cloudprinter.ts:283](../../supabase/functions/_shared/print/cloudprinter.ts#L283) |
 | /products | 3 | [src/test/cloudprinter-edge-runtime.test.ts:64](../../src/test/cloudprinter-edge-runtime.test.ts#L64) |
 | /products/info | 1 | [supabase/functions/_shared/print/cloudprinter.ts:273](../../supabase/functions/_shared/print/cloudprinter.ts#L273) |
-| /profil | 16 | [scripts/prerender-seo.mjs:1268](../../scripts/prerender-seo.mjs#L1268) |
+| /profil | 20 | [scripts/prerender-seo.mjs:1268](../../scripts/prerender-seo.mjs#L1268) |
 | /profil/edit | 1 | [src/test/customer-workspace-routes.test.ts:28](../../src/test/customer-workspace-routes.test.ts#L28) |
 | /profil?mode=edit | 1 | [src/test/navigation.test.ts:28](../../src/test/navigation.test.ts#L28) |
-| /profil?tab=abonnement | 6 | [src/components/CustomerDashboardLayout.tsx:117](../../src/components/CustomerDashboardLayout.tsx#L117) |
-| /profil?tab=favoris | 5 | [src/components/CustomerDashboardLayout.tsx:115](../../src/components/CustomerDashboardLayout.tsx#L115) |
-| /profil?tab=fidelite | 5 | [src/components/CustomerDashboardLayout.tsx:116](../../src/components/CustomerDashboardLayout.tsx#L116) |
-| /profil?tab=infos | 5 | [src/components/CustomerDashboardLayout.tsx:129](../../src/components/CustomerDashboardLayout.tsx#L129) |
-| /profil?tab=notifications | 1 | [src/pages/Notifications.tsx:23](../../src/pages/Notifications.tsx#L23) |
+| /profil?tab=abonnement | 7 | [src/components/CustomerDashboardLayout.tsx:119](../../src/components/CustomerDashboardLayout.tsx#L119) |
+| /profil?tab=favoris | 7 | [src/components/CustomerDashboardLayout.tsx:117](../../src/components/CustomerDashboardLayout.tsx#L117) |
+| /profil?tab=fidelite | 5 | [src/components/CustomerDashboardLayout.tsx:118](../../src/components/CustomerDashboardLayout.tsx#L118) |
+| /profil?tab=infos | 8 | [src/components/CustomerDashboardLayout.tsx:131](../../src/components/CustomerDashboardLayout.tsx#L131) |
+| /profil?tab=notifications | 2 | [src/lib/dashboardIllustrations.ts:78](../../src/lib/dashboardIllustrations.ts#L78) |
+| /profil?tab=parametres | 1 | [src/lib/dashboardIllustrations.ts:79](../../src/lib/dashboardIllustrations.ts#L79) |
 | /profilage | 1 | [src/test/customer-workspace-routes.test.ts:28](../../src/test/customer-workspace-routes.test.ts#L28) |
 | /profiles | 1 | [src/test/tok-connect-oauth-delegation.test.ts:104](../../src/test/tok-connect-oauth-delegation.test.ts#L104) |
 | /promotions | 1 | [src/test/dashboard-design-preview-export.test.tsx:64](../../src/test/dashboard-design-preview-export.test.tsx#L64) |
@@ -1927,7 +1965,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
 | /register | 1 | [supabase/functions/_shared/tok-connect-broker.ts:230](../../supabase/functions/_shared/tok-connect-broker.ts#L230) |
 | /reseaux-sociaux | 2 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
-| /reservations | 33 | [scripts/prerender-seo.mjs:1273](../../scripts/prerender-seo.mjs#L1273) |
+| /reservations | 34 | [scripts/prerender-seo.mjs:1273](../../scripts/prerender-seo.mjs#L1273) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
 | /responses | 4 | [src/test/marketing-daily-visual.test.ts:91](../../src/test/marketing-daily-visual.test.ts#L91) |
 | /rest/v1/ | 4 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
@@ -6592,6 +6630,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
 | TOK Connect security regression | deno-edge-check, deno-transport, postgres-security | [.github/workflows/tok-connect-security.yml](../../.github/workflows/tok-connect-security.yml) |
+| TOK dashboard index refresh — temporary PR 944 | build-index, commit-index | [.github/workflows/tok-dashboard-index-refresh-944.yml](../../.github/workflows/tok-dashboard-index-refresh-944.yml) |
 | TOK Workforce PostgreSQL Integration | migration-and-tenant-isolation | [.github/workflows/tok-workforce-postgres.yml](../../.github/workflows/tok-workforce-postgres.yml) |
 
 ### Dépendances
@@ -7351,7 +7390,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (31)</summary>
+<details><summary>ci-workflow (32)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -7383,6 +7422,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
 - `.github/workflows/tok-connect-security.yml`
+- `.github/workflows/tok-dashboard-index-refresh-944.yml`
 - `.github/workflows/tok-workforce-postgres.yml`
 
 </details>
@@ -8962,7 +9002,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (615)</summary>
+<details><summary>public-asset (633)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -9100,6 +9140,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/assiette mixte libanaise.jpeg`
 - `public/images/baklava.jpg`
 - `public/images/bd805b36-a248-4869-8337-95f0af9cbdb2.webp`
+- `public/images/brand/tok-round-official.webp`
 - `public/images/bruschetta.jpg`
 - `public/images/burger truffe.webp`
 - `public/images/burgers-wings.jpeg`
@@ -9149,6 +9190,23 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/dashboard-3d/restaurant-social.webp`
 - `public/images/dashboard-3d/restaurant-support.webp`
 - `public/images/dashboard-3d/restaurant-tok-connect.webp`
+- `public/images/dashboard-scenes/client-abonnement.webp`
+- `public/images/dashboard-scenes/client-accueil.webp`
+- `public/images/dashboard-scenes/client-avis.webp`
+- `public/images/dashboard-scenes/client-favoris.webp`
+- `public/images/dashboard-scenes/client-memoire.webp`
+- `public/images/dashboard-scenes/client-notifications.webp`
+- `public/images/dashboard-scenes/client-parametres.webp`
+- `public/images/dashboard-scenes/client-preferences.webp`
+- `public/images/dashboard-scenes/client-profil.webp`
+- `public/images/dashboard-scenes/client-reservations.webp`
+- `public/images/dashboard-scenes/provenance-curated.json`
+- `public/images/dashboard-scenes/restaurant-crm.webp`
+- `public/images/dashboard-scenes/restaurant-facturation.webp`
+- `public/images/dashboard-scenes/restaurant-menu.webp`
+- `public/images/dashboard-scenes/restaurant-performances.webp`
+- `public/images/dashboard-scenes/restaurant-photos.webp`
+- `public/images/dashboard-scenes/restaurant-plan.webp`
 - `public/images/dashboard/restaurant-ambience.webp`
 - `public/images/doner-kebab-plate.jpeg`
 - `public/images/edamame.webp`
