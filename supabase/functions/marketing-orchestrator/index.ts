@@ -20,6 +20,7 @@ import {
   safeMarketingError,
 } from "../_shared/marketing.ts";
 import { processMetaMarketingItem } from "../_shared/meta-marketing-orchestrator.ts";
+import { checkResendMarketingConnection } from "../_shared/resend-marketing-health.ts";
 import { prepareTargetedMailingContent } from "../_shared/marketing-mailing-email.ts";
 import { MailingInputError } from "../_shared/marketing-mailing.ts";
 import { runDailyMarketingGeneration } from "../_shared/marketing-daily-generation.ts";
@@ -470,6 +471,15 @@ Deno.serve(async (req) => {
         metadata: { status: result.status, run_id: "id" in result ? result.id : null,
           error_code: "error" in result ? result.error : null } });
       return jsonResponse({ ok: result.status === "succeeded" || result.status === "idle", action: auditAction, result }, 200, corsHeaders);
+    }
+    if (payload.action === "check_resend") {
+      if (actor.authMode !== "service_role" || !actor.userId) throw new HttpError(403, "Delegated administrator required");
+      if (Object.keys(payload).some((key) => key !== "action")) throw new HttpError(400, "Invalid health request");
+      const result = await checkResendMarketingConnection(actor.adminClient);
+      await writeAuditLog({ adminClient: actor.adminClient, actor, request: req,
+        functionName: "marketing-orchestrator", action: "check_resend", status: "success",
+        targetEntityType: "marketing_integrations" });
+      return jsonResponse(result, 200, corsHeaders);
     }
     if (payload.action === "check_meta") {
       if (actor.authMode !== "service_role" || !actor.userId) throw new HttpError(403, "Delegated administrator required");
