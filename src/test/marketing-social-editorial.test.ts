@@ -12,8 +12,11 @@ function rawPlan() {
       starts_at: "2027-02-01T08:00:00Z", ends_at: "2027-02-03T08:00:00Z", audience_name: "Clients", audience_definition: { audience_kind: "client" } },
     items: Array.from({ length: 2 }, (_, index) => ({ title: `Un repas préparé ${index}`, primary_template_id: index === 0 ? "zero_attente" : "studio_marketing",
       scheduled_at: "2027-02-01T08:00:00Z", audience_name: "Clients", targeting: { audience_kind: "client" }, visual_prompt: `Chef TOK, scène ${index}`,
-      channel_variants: channels.map((channel) => ({ channel, content: { subject: null, headline: `${channel} accroche ${index}`,
-        body: channel === "instagram" ? `Envie de préparer votre sortie ${index} ? Retrouvez TOK @tok_suisse.` : `Préparez votre prochaine visite ${index} avec TOK.`,
+      channel_variants: channels.map((channel) => ({ channel, content: { subject: null,
+        headline: index === 0 ? `${channel} arrivée fluide` : `${channel} visuels restaurant`,
+        body: index === 0
+          ? (channel === "instagram" ? "Préparez votre arrivée avant de rejoindre votre table. Retrouvez TOK @tok_suisse." : "Anticipez votre arrivée et profitez du service.")
+          : (channel === "instagram" ? "Transformez vos plats et actualités en contenus cohérents pour votre restaurant." : "Préparez des visuels adaptés à votre communication."),
         call_to_action: "Cliquez https://evil.example/auth", hashtags: ["#ZeroAttente", "#Restaurant", "#viral", "#Geneve"] } })),
     })),
   };
@@ -39,7 +42,13 @@ describe("network-specific generated editorial", () => {
     expect(plan.items[0].content.call_to_action).toBe("À consulter : https://www.thetok.ch/zero-attente");
     expect(plan.items[3].content.call_to_action).toBe(`À consulter : ${TOK_PUBLIC_HOME}`);
     const bundle = toBundlePayload(plan, new Map()) as { items: Array<{ content: Record<string, unknown> }> };
-    expect(bundle.items[0].content.editorial).toMatchObject({ primary_template_id: "zero_attente", destination_url: "https://www.thetok.ch/zero-attente" });
+    expect(bundle.items[0].content.editorial).toMatchObject({
+      primary_template_id: "zero_attente",
+      destination_url: "https://www.thetok.ch/zero-attente",
+      creative_direction_version: "tok-da-b-dynamic-impact-20261022",
+    });
+    expect(bundle.items[0].content.visual_prompt).toContain("DIRECTION :");
+    expect(bundle.items[0].content.visual_prompt).toContain(bundle.items[0].content.headline);
     expect(bundle.items.every((item) => !("approval_status" in item))).toBe(true);
     expect(composeMetaCaption(plan.items[0].content).match(/https:\/\//g)).toHaveLength(1);
   });
@@ -61,6 +70,24 @@ describe("network-specific generated editorial", () => {
     acrossPosts.items[1].channel_variants![0].content.body = acrossPosts.items[0].channel_variants![0].content.body;
     expect(() => applyCampaignOptions(acrossPosts, options, channels, "2027-02-01T08:00:00Z", "2027-02-03T08:00:00Z")).toThrow("duplicate_editorial_copy");
   });
+  it("rejects a new post that is too close to recent feed copy and accepts a different angle", () => {
+    const recent = [{
+      channel: "instagram",
+      headline: "instagram arrivée fluide",
+      body: "Préparez votre arrivée avant de rejoindre votre table. Retrouvez TOK.",
+      visualPrompt: "Ancien visuel zéro attente",
+      creativeDirectionId: "app-device",
+    }];
+    expect(() => applyCampaignOptions(validated(), options, channels, "2027-02-01T08:00:00Z", "2027-02-03T08:00:00Z", "Genève", recent))
+      .toThrow("duplicate_editorial_semantic");
+
+    const different = validated();
+    different.items[0].channel_variants![0].content.headline = "Une soirée au bord du lac";
+    different.items[0].channel_variants![0].content.body = "Une table genevoise, une cuisine de saison et le plaisir de se retrouver.";
+    expect(applyCampaignOptions(different, options, channels, "2027-02-01T08:00:00Z", "2027-02-03T08:00:00Z", "Genève", recent).items.length)
+      .toBeGreaterThan(0);
+  });
+
   it("requires coverage of all selected topics when there are enough posts", () => {
     const raw = rawPlan(); raw.items[1].primary_template_id = "zero_attente";
     expect(() => validateGuidedPlan(raw, channels, options.templateIds, 2)).toThrow("missing_selected_template");
@@ -129,5 +156,7 @@ describe("bounded, curated hashtag and mention controls", () => {
     expect(prompt).not.toContain("channel_variants");
     expect(prompt).toContain("https://www.thetok.ch/zero-attente");
     expect(prompt).toContain("@tok_suisse");
+    expect(prompt).toContain("accroches ultra-courtes de 2 à 6 mots");
+    expect(prompt).toContain("visual_prompt décrit seulement le sujet métier");
   });
 });

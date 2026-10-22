@@ -315,6 +315,14 @@ describe("marketing AI agent boundary", () => {
     expect(bff).toContain('p_status: "failed"');
     expect(bff).toContain("Campaign bundle persistence failed");
   });
+  it("uses recent feed history and strict visual review for guided social campaigns", () => {
+    expect(agent).toContain("readRecentSocialPosts");
+    expect(agent).toContain("recentSocialPosts");
+    expect(agent).toContain('visual_key: mailingOptions?.imageMode === "generated" ? "mailing:common"');
+    expect(agent).toContain('item.post_index === undefined ? "item:" + index : "post:" + item.post_index');
+    expect(agent).toContain('reviewModel: campaignOptions ? visualReviewModel : undefined');
+    expect(agent).toContain("expectedHeadline: campaignOptions ? plan.items[index].content.headline : undefined");
+  });
 });
 
 
