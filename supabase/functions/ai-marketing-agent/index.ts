@@ -264,6 +264,7 @@ Deno.serve(async (req) => {
     const visuals = manualMailing ? new Map<number, string>() : await allocateMarketingVisuals(visualRequests, (prompt, index) => generateCampaignVisual(client, {
       prompt, campaignSlug: slug, index, apiKey: OPENAI_API_KEY,
       format: visualRequests[index].visual_format,
+      forEmail: plan.items[index].channel === "email",
       timeoutMs: Math.max(1, generationDeadline - Date.now()),
     }), MAX_VISUALS);
     const assetCount = new Set(visuals.values()).size;
