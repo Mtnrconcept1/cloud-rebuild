@@ -76,7 +76,7 @@ function buildSystemPrompt(context: MarketingBriefContext) {
       "Les fonctionnalités dépendent de leur activation et de la formule ; n’invente pas de prix, statistiques ou garanties. Le plan de salle automatisé aide à placer les réservations ; ne promets pas une autonomie sans contrôle.",
       context.mailingOptions.imageMode === "manual"
         ? "IMPORT MANUEL : génère uniquement les textes. Renseigne visual_prompt à null pour chaque e-mail. L’opérateur ajoutera ensuite une image différente à chaque e-mail ; ne présume pas le contenu de ces images."
-        : "Renseigne visual_prompt pour UNE bannière commune à toute la campagne : une seule scène TOK au format paysage 16:9, un seul bénéfice principal, chef et logo des références. Tous les autres e-mails réutiliseront cette même bannière. Aucun montage de plusieurs mails.",
+        : "Pour CHAQUE email, renseigne un visual_prompt DISTINCT pour une affiche verticale 9:16 complète, unique et indépendante : logo TOK, titre EXACT, sous-titre, texte central, bénéfices, CTA illustré et chef TOK adapté au sujet. Réutilise les textes du champ content exactement dans le brief visuel, ne crée pas de nouveaux prix ou promesses. Une seule affiche par email, aucun montage ni planche.",
     ] : []),
     ...(context.campaignOptions ? [
       "Thèmes sélectionnés et contraintes éditoriales (couvre ces thèmes sans inventer d'offre) :",
