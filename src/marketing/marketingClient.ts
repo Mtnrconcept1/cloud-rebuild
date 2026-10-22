@@ -1097,11 +1097,11 @@ function normalizeMarketingAudienceEstimate(result: unknown): MarketingAudienceE
   } satisfies MarketingAudienceEstimate;
 }
 
-export async function prepareMarketingMailingRecipients(recipientEmails: string[], signal?: AbortSignal) {
+export async function prepareMarketingMailingRecipients(recipientEmails: string[], attestation?: { confirmed: true; source: string; consentDate: string }, signal?: AbortSignal) {
   const emails = parseMailingRecipientEmails(recipientEmails);
   const response = asRecord(await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.agent, {
     method: "POST", timeoutMs: 60_000, signal,
-    body: { action: "prepare_mailing_recipients", recipientEmails: emails },
+    body: { action: "prepare_mailing_recipients", recipientEmails: emails, ...(attestation ? { attestation } : {}) },
   }));
   const estimate = asRecord(response.estimate);
   const count = response.recipient_count;
