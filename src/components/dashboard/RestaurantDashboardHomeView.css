@@ -21,7 +21,7 @@
   .tok-dashboard-shell:has([data-mobile-restaurant-overview])
     main
     > div
-    > button[aria-label="Retour ├á l'├®cran pr├®c├®dent"] {
+    > button[aria-label="Retour à l'écran précédent"] {
     display: none !important;
   }
 
