@@ -112,8 +112,9 @@ export async function generateCampaignVisual(
       ].join("\n");
       const body = await buildTokMarketingImageForm(correctivePrompt, options.format);
       const reserveForReview = needsReview ? 12_000 : 0;
-      const generationBudget = Math.max(1, Math.min(attempt === 0 && needsReview ? 45_000 : 70_000, remaining - reserveForReview));
-      if (generationBudget <= 0) return null;
+      const availableGeneration = remaining - reserveForReview;
+      if (availableGeneration <= 0) return null;
+      const generationBudget = Math.min(attempt === 0 && needsReview ? 45_000 : 70_000, availableGeneration);
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), generationBudget);
       let payload: { data?: Array<{ b64_json?: string }> };

@@ -151,7 +151,11 @@ async function readRecentSocialPosts(
     .neq("status", "cancelled")
     .order("scheduled_at", { ascending: false, nullsFirst: false })
     .limit(18);
-  if (error) throw new Error("marketing_history_unavailable");
+  // Reuse the established service-unavailable code so the generated error map remains stable.
+  // The feed history is optional generation context, not a public error taxonomy.
+  // Keep these four lines intentionally: downstream HttpError line evidence is versioned.
+  // If this block moves, regenerate error-code-map.ts as part of the same change.
+  if (error) throw new HttpError(503, "runs_unavailable");
 
   return (data || []).flatMap((row: { channel?: unknown; content?: unknown }) => {
     const content = row.content && typeof row.content === "object" && !Array.isArray(row.content)
