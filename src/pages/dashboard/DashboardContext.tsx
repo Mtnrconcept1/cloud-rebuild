@@ -108,10 +108,21 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       lockedFeatures.delete(feature);
     }
 
-    if (selectedRestaurant?.restaurant_subscription && subscriptionEnabledFeatures.length > 0) {
+    if (selectedRestaurant?.restaurant_subscription) {
       const enabledBySubscription = new Set(subscriptionEnabledFeatures);
+      // An expired or cancelled paid plan unlocks only the essential owner
+      // dashboard, historical invoices, restaurant identity and support.
+      // In particular, do not drop the paywall because the enabled list is empty.
+      const recoveryFeatures = new Set([
+        "dashboard-overview",
+        "dashboard-restaurant",
+        "dashboard-factures",
+        "dashboard-support",
+      ]);
+      const subscriptionExpired = subscriptionEnabledFeatures.length === 0;
       for (const feature of ALL_GATABLE_FEATURES) {
-        if (!enabledBySubscription.has(feature.key)) {
+        if (!enabledBySubscription.has(feature.key)
+          && !(subscriptionExpired && recoveryFeatures.has(feature.key))) {
           lockedFeatures.add(feature.key);
         }
       }

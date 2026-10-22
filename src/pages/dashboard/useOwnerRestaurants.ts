@@ -74,7 +74,8 @@ async function fetchActiveRestaurantSubscriptions(restaurantIds: string[]) {
 
   if (subscriptionsError || plansError) {
     console.warn("[dashboard] abonnement restaurateur indisponible pour le gating", subscriptionsError || plansError);
-    return new Map<string, OwnedRestaurantSubscription>();
+    // Returning an empty map made paid features accessible on RPC failures.
+    throw new Error("restaurant_subscription_entitlements_unavailable");
   }
 
   const plansById = new Map<string, RestaurantSubscriptionPlanRow>();
@@ -87,7 +88,8 @@ async function fetchActiveRestaurantSubscriptions(restaurantIds: string[]) {
 
   const subscriptionsByRestaurant = new Map<string, OwnedRestaurantSubscription>();
   const sortedSubscriptions = [...((subscriptionsData || []) as RestaurantSubscriptionRow[])]
-    .filter((subscription) => ["trialing", "active"].includes(String(subscription.status || "")))
+    // Keep ended subscriptions in the owner workspace so the paywall can lock
+    // premium tools while billing remains available for reactivation.
     .sort((a, b) => getSubscriptionSortTime(b) - getSubscriptionSortTime(a));
 
   for (const subscription of sortedSubscriptions) {
@@ -171,6 +173,7 @@ export function useOwnerRestaurants(options?: { enabled?: boolean }) {
             slug: demoSubscription.plan_record?.slug || demoSubscription.plan,
             status: demoSubscription.status,
             current_period_end: demoSubscription.current_period_end,
+            isDemo: true,
             features: demoSubscription.plan_record?.features || [],
           }),
           restaurant_subscription: demoSubscription,
@@ -241,6 +244,7 @@ export function useOwnerRestaurants(options?: { enabled?: boolean }) {
               slug: subscription.plan_record?.slug || subscription.plan,
               status: subscription.status,
               current_period_end: subscription.current_period_end,
+              isDemo: r.is_demo === true,
               features: subscription.plan_record?.features || [],
             }
             : null,
@@ -261,7 +265,9 @@ export function useOwnerRestaurants(options?: { enabled?: boolean }) {
     enabled: enabled && !!user?.id && !demoAccountLoading,
   });
 
-  const restaurants = data || [];
+  // React Query may retain cached data after a failed entitlement refresh.
+  // Never display potentially stale paid permissions when the server check fails.
+  const restaurants = error ? [] : data || [];
 
   return {
     restaurants,

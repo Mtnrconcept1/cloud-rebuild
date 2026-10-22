@@ -13,6 +13,7 @@ import {
 } from "../_shared/campaign-pricing.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import { requireRestaurantSubscriptionPaidAccess } from "../_shared/restaurant-credits.ts";
 
 const TOK_CREDITS_PER_CAMPAIGN_CHF = 15;
 const VALID_CTA_TYPES = new Set(["reserve", "order", "menu", "offer"]);
@@ -333,6 +334,8 @@ Deno.serve(async (req) => {
 
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
     const adminClient = actor.adminClient;
+    // A direct API request must not spend legacy credits after expiry.
+    await requireRestaurantSubscriptionPaidAccess(adminClient, restaurant.id);
 
     const [{ data: post, error: postError }, { data: mediaRows, error: mediaError }] = await Promise.all([
       adminClient
