@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -46,52 +46,3 @@ jobs:
             echo "::error::Reusable validation finished with ${VALIDATION_RESULT}."
             exit 1
           fi
-
-  regenerate_generated_contracts:
-    name: regenerate generated contracts
-    if: ${{ github.ref == 'refs/heads/hotfix/tmp-marketing-da-b-finalize-20261022' }}
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout generator branch
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 2
-
-      - name: Restore canonical CI workflow before indexing
-        shell: bash
-        run: |
-          set -euo pipefail
-          git show HEAD^:.github/workflows/ci.yml > .github/workflows/ci.yml
-
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Regenerate contracts
-        run: |
-          pnpm run generate:error-code-map
-          pnpm run docs:application-index
-
-      - name: Commit generated outputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/workflows/ci.yml             supabase/functions/_shared/error-code-map.ts             docs/architecture/TOK_APPLICATION_REFERENCE.md             docs/architecture/tok-application-search-index.json             src/data/tok-user-guide-catalog.generated.ts
-          if git diff --cached --quiet; then
-            echo "No generated changes."
-            exit 0
-          fi
-          git commit -m "chore: regenerate generated contracts"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
