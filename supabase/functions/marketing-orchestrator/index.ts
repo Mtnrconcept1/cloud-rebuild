@@ -52,9 +52,6 @@ const MARKETING_AUDIT_BCC = (Deno.env.get("MARKETING_AUDIT_BCC") ?? "rbarman@hot
 const VALID_AUDIT_BCC = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(MARKETING_AUDIT_BCC)
   && !/[\r\n,;]/.test(MARKETING_AUDIT_BCC) ? MARKETING_AUDIT_BCC : "";
 const EMAIL_FROM = Deno.env.get("EMAIL_FROM")?.trim() || "Tok <noreply@thetok.ch>";
-// Optional audit copy. Only the approved TOK mailbox can be configured server-side.
-const MARKETING_AUDIT_BCC = (Deno.env.get("MARKETING_AUDIT_BCC") || "").trim().toLowerCase();
-const VALID_MARKETING_AUDIT_BCC = MARKETING_AUDIT_BCC === "rbarman@hotmail.ch" ? MARKETING_AUDIT_BCC : "";
 const RESEND_TIMEOUT_MS = 20_000;
 const DELIVERY_LEASE_SECONDS = 180;
 const MAX_DELIVERIES_PER_RUN = 5;
@@ -135,8 +132,6 @@ async function sendViaResend(
         from: EMAIL_FROM,
         to: [prepared.recipient],
         ...(VALID_AUDIT_BCC && VALID_AUDIT_BCC !== prepared.recipient?.toLowerCase() ? { bcc: [VALID_AUDIT_BCC] } : {}),
-        ...(VALID_MARKETING_AUDIT_BCC && VALID_MARKETING_AUDIT_BCC !== prepared.recipient?.toLowerCase()
-          ? { bcc: [VALID_MARKETING_AUDIT_BCC] } : {}),
         subject: prepared.subject,
         html: prepared.html,
         text: prepared.text,
