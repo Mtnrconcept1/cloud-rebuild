@@ -19,11 +19,7 @@ const exportGenerated = checkOnly
 
 if (exportGenerated) {
   const relativePath = "scripts/generate-application-index.mjs";
-  const canonical = execFileSync(
-    "git",
-    ["show", "73478ff95b0cd6b96e105c55c05458b503c6deaf:" + relativePath],
-    { cwd: REPOSITORY_ROOT, encoding: "utf8" },
-  );
+  const canonical = "import { mkdirSync, readFileSync, writeFileSync } from \"node:fs\";\nimport path from \"node:path\";\nimport {\n  buildApplicationIndex,\n  INDEX_JSON_PATH,\n  REFERENCE_MARKDOWN_PATH,\n  USER_GUIDE_CATALOG_PATH,\n  renderApplicationReference,\n  renderUserGuideCatalog,\n  REPOSITORY_ROOT,\n  serializeIndex,\n} from \"./application-index-core.mjs\";\n\nconst checkOnly = process.argv.includes(\"--check\");\nconst index = buildApplicationIndex(REPOSITORY_ROOT);\nconst outputs = new Map([\n  [INDEX_JSON_PATH, serializeIndex(index)],\n  [REFERENCE_MARKDOWN_PATH, renderApplicationReference(index)],\n  [USER_GUIDE_CATALOG_PATH, renderUserGuideCatalog(index)],\n]);\n\nlet stale = false;\nfor (const [relativePath, expected] of outputs) {\n  const absolutePath = path.join(REPOSITORY_ROOT, relativePath);\n  if (checkOnly) {\n    let actual = \"\";\n    try {\n      actual = readFileSync(absolutePath, \"utf8\").replaceAll(\"\\r\\n\", \"\\n\");\n    } catch {\n      // A missing generated file is stale by definition.\n    }\n    if (actual !== expected) {\n      console.error(`[application-index] stale: ${relativePath}`);\n      stale = true;\n    }\n    continue;\n  }\n  mkdirSync(path.dirname(absolutePath), { recursive: true });\n  writeFileSync(absolutePath, expected, \"utf8\");\n  console.log(`[application-index] wrote ${relativePath}`);\n}\n\nif (checkOnly) {\n  if (stale) {\n    console.error(\"[application-index] regenerate with: pnpm docs:application-index\");\n    process.exitCode = 1;\n  } else {\n    console.log(`[application-index] current (${index.records.length} searchable records, ${index.sourceDigest})`);\n  }\n}\n";
   writeFileSync(path.join(REPOSITORY_ROOT, relativePath), canonical, "utf8");
 }
 
