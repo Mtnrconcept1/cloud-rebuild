@@ -208,3 +208,97 @@
 @media (min-width: 640px) and (max-width: 767px) { .tok-hospitality-workspace { --workspace-gutter: 24px; } }
 @media (max-width: 420px) { .tok-hospitality-workspace .tok-hospitality-summary-stats .tok-dashboard-kpi { align-items: flex-start; flex-direction: column-reverse; } }
 @media (prefers-reduced-motion: reduce) { .tok-hospitality-workspace *, .tok-hospitality-workspace *::before, .tok-hospitality-workspace *::after { scroll-behavior: auto; transition-duration: .01ms; animation-duration: .01ms; } }
+
+
+/* TOK 2026 bright dashboard visual system — scoped to restaurant and client workspaces. */
+:root:not(.dark) .tok-hospitality-workspace {
+  --background: 0 0% 100%; --card: 0 0% 100%; --muted: 0 0% 97%;
+  --sidebar-background: 0 0% 100%; --sidebar-accent: 0 0% 97%;
+  --border: 26 22% 91%; --input: 25 22% 89%; background: #fff;
+}
+:root:not(.dark) .tok-hospitality-workspace .tok-workspace-sidebar { background: #fff; border-color: #f0eae3; }
+:root:not(.dark) .tok-hospitality-workspace .tok-workspace-toolbar { background: #fff; }
+.tok-hospitality-workspace:not(.dark) :is(.tok-workspace-restaurant-selector > button,.tok-workspace-search) { background: #fff; }
+:root:not(.dark) .tok-hospitality-workspace .tok-workspace-content :is(.tok-card,.tok-dashboard-section,.tok-dashboard-panel) { background: #fff; }
+.tok-dashboard-shell .tok-hospitality-hero-grid { display: grid; grid-template-columns: minmax(0,1.9fr) minmax(320px,.95fr); gap: 14px; align-items: stretch; }
+.tok-dashboard-shell .tok-hospitality-hero-copy {
+  min-height: 360px; margin: 0; padding: 35px clamp(22px,4vw,56px);
+  border: 1px solid #eee8e2; border-radius: 20px; background: #fff;
+}
+.tok-dashboard-shell .tok-hospitality-hero-copy::before {
+  background: var(--tok-hero-image, url('/images/dashboard/restaurant-ambience.webp')) center / cover no-repeat;
+}
+.tok-dashboard-shell .tok-hospitality-hero-copy h1 { max-width: 68%; color: #211e1a; }
+.tok-dashboard-shell .tok-hospitality-hero-copy p { max-width: 65%; color: #66615d; }
+.tok-dashboard-shell .tok-hospitality-hero-console {
+  display: flex; margin: 0; padding: 0; border: 1px solid #eee8e2;
+  border-radius: 20px; background: #fff;
+}
+.tok-dashboard-shell .tok-hospitality-console-panel {
+  display: flex; flex-direction: column; flex: 1; width: 100%;
+  min-width: 0; margin: 0; padding: 22px; border: 0; border-radius: 20px;
+  background: #fff; box-shadow: none; backdrop-filter: none;
+}
+.tok-hospitality-workspace.tok-dashboard-shell .tok-hospitality-hero-console > :first-child { display: block; top: 18px; left: 20px; right: 20px; }
+.tok-hospitality-workspace.tok-dashboard-shell .tok-hospitality-console-heading { display: flex; margin-top: 10px; }
+.tok-dashboard-shell .tok-hospitality-summary-layout {
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(95px,35%);
+  gap: 10px; align-items: center; flex: 1; margin-top: 16px;
+}
+.tok-dashboard-shell .tok-hospitality-summary-stats { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.tok-dashboard-shell .tok-hospitality-summary-stats .tok-dashboard-kpi {
+  min-height: 70px; padding: 12px; border-radius: 14px; gap: 9px;
+}
+.tok-dashboard-shell .tok-hospitality-summary-stats .tok-dashboard-kpi > svg { width: 16px; height: 16px; padding: 7px; }
+.tok-dashboard-shell .tok-hospitality-summary-stats .tok-kpi-value { font-family: inherit; font-size: 20px; }
+.tok-hospitality-workspace.tok-dashboard-shell .tok-hospitality-summary-layout > [data-dashboard-illustration] { display: block; max-width: 100%; height: auto; width: 100%; }
+.tok-hospitality-workspace.tok-dashboard-shell .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-hero-console { display: flex; }
+.tok-dashboard-shell .tok-dashboard-hero[data-compact="true"] .tok-hospitality-hero-copy { min-height: 270px; }
+.tok-client-shell .tok-customer-hero-row {
+  display: grid; grid-template-columns: minmax(0,1.9fr) minmax(240px,.9fr);
+  align-items: stretch; gap: 14px; margin-bottom: 18px;
+}
+.tok-client-shell .tok-customer-hero-row .tok-customer-page-hero {
+  min-height: 300px; margin: 0; border: 1px solid #eee8e2; border-radius: 20px; background: #fff;
+}
+.tok-client-shell .tok-customer-hero-row .tok-customer-page-hero::before {
+  background: var(--tok-hero-image, url('/images/dashboard/restaurant-ambience.webp')) center / cover no-repeat;
+}
+.tok-client-shell .tok-customer-hero-sidecar {
+  display: grid; place-items: center; min-width: 0; padding: 18px;
+  border: 1px solid #eee8e2; border-radius: 20px; background: #fff;
+}
+.tok-client-shell .tok-customer-hero-sidecar img {
+  width: min(100%,230px); height: auto; aspect-ratio: 1; object-fit: contain;
+}
+.tok-client-shell .tok-customer-hero-row .tok-customer-page-hero :is(h1,p) { max-width: 66%; }
+@media (max-width: 1199px) {
+  .tok-dashboard-shell .tok-hospitality-hero-grid { grid-template-columns: minmax(0,1fr); }
+  .tok-dashboard-shell .tok-hospitality-hero-console { min-height: 180px; }
+  .tok-dashboard-shell .tok-hospitality-summary-layout { grid-template-columns: minmax(0,1fr) 155px; }
+}
+@media (max-width: 767px) {
+  .tok-dashboard-shell .tok-hospitality-hero-copy { min-height: 245px; padding: 25px 20px; }
+  .tok-dashboard-shell .tok-hospitality-hero-copy h1,
+  .tok-dashboard-shell .tok-hospitality-hero-copy p { max-width: 84%; }
+  .tok-dashboard-shell .tok-hospitality-hero-console { display: flex; }
+  .tok-client-shell .tok-customer-hero-row { grid-template-columns: 1fr; }
+  .tok-client-shell .tok-customer-hero-sidecar { display: none; }
+  .tok-client-shell .tok-customer-hero-row .tok-customer-page-hero :is(h1,p) { max-width: 84%; }
+}
+.dark .tok-dashboard-shell .tok-hospitality-hero-copy::before {
+  background: linear-gradient(90deg,rgba(31,26,22,.96),rgba(31,26,22,.64),rgba(31,26,22,.2)),
+    var(--tok-hero-image, url('/images/dashboard/restaurant-ambience.webp')) center / cover no-repeat;
+}
+.dark .tok-client-shell .tok-customer-hero-row .tok-customer-page-hero::before {
+  background: linear-gradient(90deg,rgba(31,26,22,.96),rgba(31,26,22,.64),rgba(31,26,22,.2)),
+    var(--tok-hero-image, url('/images/dashboard/restaurant-ambience.webp')) center / cover no-repeat;
+}
+
+/* Other customer dashboard headers inherit the route image from the customer shell. */
+:root:not(.dark) .tok-hospitality-workspace .tok-customer-page { --customer-paper: #fff; --customer-soft: #fafafa; }
+:root:not(.dark) .tok-hospitality-workspace :is(.tok-customer-note-card,.tok-customer-miamz-card) { background: #fff; border-color: #eee8e2; }
+.tok-client-shell .tok-customer-notifications > div:first-child::before { background: var(--tok-hero-image, url('/images/dashboard/restaurant-ambience.webp')) center / cover no-repeat; }
+.dark .tok-hospitality-workspace.tok-dashboard-shell :is(.tok-hospitality-hero-copy,.tok-hospitality-hero-console,.tok-hospitality-console-panel) { background: #241e19; border-color: #4d3c32; }
+.dark .tok-client-shell .tok-customer-hero-row :is(.tok-customer-page-hero,.tok-customer-hero-sidecar) { background: #241e19; border-color: #4d3c32; }
+.dark .tok-client-shell .tok-customer-notifications > div:first-child::before { background: linear-gradient(90deg,rgba(31,26,22,.96),rgba(31,26,22,.4)),var(--tok-hero-image, url('/images/dashboard/restaurant-ambience.webp')) center / cover no-repeat; }
