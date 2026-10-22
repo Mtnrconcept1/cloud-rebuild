@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `59c0977c593092606444820eed4a02a893be748cd442e29b486a778ecd598bb6`
+- Empreinte SHA-256 des sources indexées : `8f96cd899fe218ced00699ecbf260dc5874129caf282fe5d111149cd8dbff7ad`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 573 |
 | modules | 1805 |
 | pages | 133 |
-| pathLiterals | 886 |
+| pathLiterals | 887 |
 | publicAssets | 713 |
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18772 |
+| records | 18773 |
 | repositoryFiles | 3639 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1762,6 +1762,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-social.webp | 1 | [src/lib/dashboardIllustrations.ts:35](../../src/lib/dashboardIllustrations.ts#L35) |
 | /images/dashboard-3d/restaurant-support.webp | 1 | [src/lib/dashboardIllustrations.ts:31](../../src/lib/dashboardIllustrations.ts#L31) |
 | /images/dashboard-3d/restaurant-tok-connect.webp | 1 | [src/lib/dashboardIllustrations.ts:38](../../src/lib/dashboardIllustrations.ts#L38) |
+| /images/dashboard-generated/ | 1 | [src/lib/dashboardVisuals.ts:3](../../src/lib/dashboardVisuals.ts#L3) |
 | /images/dashboard-generated/client_confirmation_commande_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:42](../../src/test/dashboard-visuals-assets.test.ts#L42) |
 | /images/dashboard-generated/client_favoris_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:33](../../src/test/dashboard-visuals-assets.test.ts#L33) |
 | /images/dashboard-generated/client_miamz_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:35](../../src/test/dashboard-visuals-assets.test.ts#L35) |

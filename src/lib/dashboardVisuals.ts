@@ -1,8 +1,10 @@
 import type { CSSProperties } from "react";
 
+const assetRoot = "/images/dashboard-generated/";
+
 const image = (surface: "restaurant" | "client", slug: string) => ({
-  hero: `/images/dashboard-generated/${surface}_${slug}_hero.webp`,
-  illustration: `/images/dashboard-generated/${surface}_${slug}_3d.webp`,
+  hero: `${assetRoot}${surface}_${slug}_hero.webp`,
+  illustration: `${assetRoot}${surface}_${slug}_3d.webp`,
 });
 
 const restaurantRoutes: Record<string, string> = {
