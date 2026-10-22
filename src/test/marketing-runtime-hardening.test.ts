@@ -86,6 +86,28 @@ describe("marketing unsubscribe secret isolation", () => {
   });
 });
 
+describe("marketing email daily cap and audit copy", () => {
+  it("uses a conservative ten-email daily cap without disabling existing contact gates", () => {
+    const migration = readFileSync(resolve(process.cwd(), "supabase/migrations/20261022070000_marketing_email_ten_per_day.sql"), "utf8");
+    expect(migration).toContain("'email_daily_cap'");
+    expect(migration).toContain("'10'::jsonb");
+    expect(migration).toContain("v_daily_cap := LEAST(v_daily_cap,");
+    expect(migration).toContain("v_recent_complained");
+    expect(migration).toContain("v_recent_bounced");
+    expect(migration).not.toContain("UPDATE public.marketing_contacts");
+    expect(migration).not.toContain("lawful_basis =");
+  });
+  it("adds a single validated BCC only within the approved Resend delivery and retains unsubscribe", () => {
+    expect(orchestrator).toContain('MARKETING_AUDIT_BCC');
+    expect(orchestrator).toContain('rbarman@hotmail.ch');
+    expect(orchestrator).toContain("bcc: [VALID_AUDIT_BCC]");
+    expect(orchestrator).toContain("VALID_AUDIT_BCC !== prepared.recipient?.toLowerCase()");
+    expect(orchestrator).toContain("headers: await unsubscribeHeaders(deliveryId, unsubscribeSigningSecret)");
+    expect(orchestrator).toContain("service_prepare_marketing_email_delivery");
+    expect(orchestrator).toContain('"Idempotency-Key": deliveryId');
+  });
+});
+
 describe("marketing delivery lease budget", () => {
   it("bounds sequential provider work below the lease with a material safety margin", () => {
     const timeout = Number(orchestrator.match(/const RESEND_TIMEOUT_MS = ([\d_]+);/)?.[1].replaceAll("_", ""));
