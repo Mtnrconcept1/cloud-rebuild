@@ -1,4 +1,4 @@
-﻿/* Client workspace layouts. Account data, feature gates and transaction controls
+/* Client workspace layouts. Account data, feature gates and transaction controls
    remain in their page components. Public/admin pages do not use these hooks. */
 .tok-hospitality-workspace .tok-customer-page {
   min-width: 0;
