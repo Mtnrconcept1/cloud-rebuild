@@ -14,12 +14,12 @@
  */
 
 const BRAND = {
-  orange: "#F4551E",
-  ink: "#1A1A1A",
+  orange: "#FF4B00",
+  ink: "#11100F",
   muted: "#6B7280",
   surface: "#FFFFFF",
-  page: "#FDF6F2",
-  border: "#F0DDD4",
+  page: "#FFFDF8",
+  border: "#EEE7DF",
 } as const;
 
 export type MarketingEmailContent = {
@@ -86,6 +86,7 @@ export function renderMarketingEmail(
   const promotion = `${assetOrigin}/marketing/email/restaurant-promotion.png`;
   const promotionUrl = "https://www.thetok.ch/dashboard/campagnes";
   const promotionCta = "Mettre mon restaurant en avant";
+  const editorialKicker = "Pensé pour les restaurateurs.";
   const visual = safeUrl(content.visualUrl);
   const ctaUrl = safeUrl(content.callToActionUrl) || site;
   const cta = (content.callToAction || "").trim();
@@ -114,10 +115,12 @@ export function renderMarketingEmail(
         <img src="${escapeHtml(logo)}" width="128" height="128" alt="TOK"
              style="display:block;width:128px;max-width:100%;height:auto;border:0;" />
       </a>
+      <p style="margin:12px 0 0;font-family:Arial,Helvetica,sans-serif;color:${BRAND.ink};font-size:16px;font-weight:800;line-height:1.25;">${editorialKicker}</p>
+      <div style="height:2px;background:${BRAND.orange};margin:20px 0 0;"></div>
     </td></tr>
 
-    <tr><td style="padding:8px 24px 0;">
-      <h1 style="margin:0 0 18px;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.25;color:${BRAND.ink};text-align:center;overflow-wrap:anywhere;word-break:break-word;">
+    <tr><td style="padding:18px 24px 0;">
+      <h1 style="margin:0 0 18px;font-family:Arial,Helvetica,sans-serif;font-size:40px;line-height:1.06;font-weight:900;letter-spacing:-1.5px;color:${BRAND.ink};text-align:left;overflow-wrap:anywhere;word-break:break-word;">
         ${escapeHtml(content.headline)}
       </h1>
     </td></tr>
@@ -126,7 +129,7 @@ export function renderMarketingEmail(
     visual
       ? `<tr><td style="padding:0 24px 20px;">
       <img src="${escapeHtml(visual)}" alt="" width="552"
-           style="display:block;width:100%;max-width:552px;height:auto;border:0;border-radius:12px;" />
+           style="display:block;width:100%;max-width:552px;height:auto;border:0;border-radius:18px;" />
     </td></tr>`
       : ""
   }
@@ -139,7 +142,7 @@ export function renderMarketingEmail(
     cta
       ? `<tr><td align="center" style="padding:12px 24px 4px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:440px;table-layout:fixed;"><tr>
-        <td align="center" bgcolor="${BRAND.orange}" style="border-radius:999px;">
+        <td align="center" bgcolor="${BRAND.ink}" style="border-radius:999px;background:${BRAND.ink};">
           <a href="${escapeHtml(ctaUrl)}"
              style="display:block;padding:14px 20px;font-family:Helvetica,Arial,sans-serif;font-size:16px;line-height:1.4;font-weight:bold;color:#FFFFFF;text-decoration:none;border-radius:999px;overflow-wrap:anywhere;word-break:break-word;">
             ${escapeHtml(cta)}
