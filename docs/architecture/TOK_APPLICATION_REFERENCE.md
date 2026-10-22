@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `43fbbfb9074323f9e0f845f934c5197d2b21b817d3d4a30eb8f74ef4b879f607`
+- Empreinte SHA-256 des sources indexées : `49a9639a2e12ff41a16005287eb0ea0737e9e3ac569bb4c64982f3aa7ce87431`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,14 +45,14 @@
 | publicEntries | 615 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18513 |
-| repositoryFiles | 3514 |
+| records | 18511 |
+| repositoryFiles | 3513 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 32 |
+| workflows | 31 |
 
 ## État distant observé
 
@@ -6592,7 +6592,6 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | CI | validate, validation | [.github/workflows/ci.yml](../../.github/workflows/ci.yml) |
 | Dashboard design preview | preview | [.github/workflows/dashboard-design-preview.yml](../../.github/workflows/dashboard-design-preview.yml) |
 | Deploy Production | attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation | [.github/workflows/deploy-production.yml](../../.github/workflows/deploy-production.yml) |
-| Temporary TOK email reference refresh | sync | [.github/workflows/email-reference-sync-temp.yml](../../.github/workflows/email-reference-sync-temp.yml) |
 | Ensure Supabase Auth SMTP | configure | [.github/workflows/ensure-supabase-auth-smtp.yml](../../.github/workflows/ensure-supabase-auth-smtp.yml) |
 | Golden TOK responsive browser | browser, index-sync | [.github/workflows/golden-tok-browser.yml](../../.github/workflows/golden-tok-browser.yml) |
 | TOK Codex Incident Repair | prepare, publish, report, validate | [.github/workflows/incident-codex-repair.yml](../../.github/workflows/incident-codex-repair.yml) |
@@ -7367,7 +7366,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (32)</summary>
+<details><summary>ci-workflow (31)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -7388,7 +7387,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/ci.yml`
 - `.github/workflows/dashboard-design-preview.yml`
 - `.github/workflows/deploy-production.yml`
-- `.github/workflows/email-reference-sync-temp.yml`
 - `.github/workflows/ensure-supabase-auth-smtp.yml`
 - `.github/workflows/golden-tok-browser.yml`
 - `.github/workflows/incident-codex-repair.yml`
