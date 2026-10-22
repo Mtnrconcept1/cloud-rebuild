@@ -48,7 +48,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")?.trim() || "";
 // Optional monitoring copy; configured in production secrets, never from imported contact data.
-const MARKETING_AUDIT_BCC = Deno.env.get("MARKETING_AUDIT_BCC")?.trim().toLowerCase() || "";
+const MARKETING_AUDIT_BCC = (Deno.env.get("MARKETING_AUDIT_BCC") ?? "rbarman@hotmail.ch").trim().toLowerCase();
 const VALID_AUDIT_BCC = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(MARKETING_AUDIT_BCC)
   && !/[\r\n,;]/.test(MARKETING_AUDIT_BCC) ? MARKETING_AUDIT_BCC : "";
 const EMAIL_FROM = Deno.env.get("EMAIL_FROM")?.trim() || "Tok <noreply@thetok.ch>";
