@@ -36,11 +36,11 @@ describe("marketing provider editorial integration", () => {
   });
   it("requests a distinct full poster per campaign item in generated mode", async () => {
     const source = plan(); source.campaign.channels = ["email"];
-    source.items = source.items.map((item, index) => ({ ...item, channel: "email", content: { ...item.content, subject: `Objet ${index}`, body: `Texte ${index}` } }));
+    source.items = source.items.map((item, index) => ({ ...item, channel: "email", visual_prompt: `Affiche TOK unique ${index}`, content: { ...item.content, subject: `Objet ${index}`, body: `Texte ${index}` } }));
     provider.mockResolvedValue(source);
     const result = await generateMarketingPlan({ ...context, allowedChannels: ["email"], mailingOptions: {
       selections: {}, emailCount: 2, cadence: "daily", imageMode: "generated" } });
-    expect(provider.mock.calls[0][0].input[0].content).toContain("UNE bannière commune");
+    expect(provider.mock.calls[0][0].input[0].content).toContain("CHAQUE email");
     expect(result.plan.items[1].visual_prompt).not.toBe(result.plan.items[0].visual_prompt);
   });
   it("normalizes newly generated advanced social posts while preserving non-social content and the legacy schema", async () => {
