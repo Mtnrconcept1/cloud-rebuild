@@ -138,11 +138,7 @@ async function readConnectedChannels(
 
 function boundedHistoryText(value: unknown, maximum: number): string {
   if (typeof value !== "string") return "";
-  const printable = Array.from(value.normalize("NFKC"), (character) => {
-    const code = character.charCodeAt(0);
-    return code <= 31 || code === 127 ? " " : character;
-  }).join("");
-  return printable.replace(/\s+/gu, " ").trim().slice(0, maximum);
+  return Array.from(value.normalize("NFKC"), (character) => { const code = character.charCodeAt(0); return code <= 31 || code === 127 ? " " : character; }).join("").replace(/\s+/gu, " ").trim().slice(0, maximum);
 }
 
 async function readRecentSocialPosts(
@@ -155,7 +151,7 @@ async function readRecentSocialPosts(
     .neq("status", "cancelled")
     .order("scheduled_at", { ascending: false, nullsFirst: false })
     .limit(18);
-  if (error) throw new HttpError(503, "runs_unavailable");
+  if (error) throw new Error("marketing_history_unavailable");
 
   return (data || []).flatMap((row: { channel?: unknown; content?: unknown }) => {
     const content = row.content && typeof row.content === "object" && !Array.isArray(row.content)
@@ -304,8 +300,7 @@ Deno.serve(async (req) => {
     const visualRequests = plan.items.map((item, index) => ({
       visual_prompt: item.visual_prompt,
       visual_format: item.visual_format || formats[item.channel],
-      visual_key: mailingOptions?.imageMode === "generated"
-        ? "mailing:common"
+      visual_key: mailingOptions?.imageMode === "generated" ? "mailing:common"
         : item.post_index === undefined ? "item:" + index : "post:" + item.post_index,
     }));
     // Manual mailings spend no image credits and wait for one upload per item.
