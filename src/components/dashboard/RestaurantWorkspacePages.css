@@ -1,4 +1,4 @@
-﻿/* Page compositions for the restaurant workspace. Business states keep their own colors. */
+/* Page compositions for the restaurant workspace. Business states keep their own colors. */
 .tok-hospitality-workspace .tok-restaurant-page { min-width: 0; }
 .tok-hospitality-workspace .tok-restaurant-page :is(h2, h3) { text-wrap: pretty; }
 .tok-hospitality-workspace .tok-restaurant-page :is(input, select, textarea) { scroll-margin-top: 6rem; }
