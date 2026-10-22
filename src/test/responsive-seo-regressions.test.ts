@@ -86,6 +86,7 @@ describe("responsive and SEO regression guards", () => {
     const app = read("src/App.tsx");
     const localRestaurants = read("src/pages/LocalRestaurants.tsx");
     const restaurantCard = read("src/components/RestaurantCard.tsx");
+    const restaurantCardImage = read("src/components/RestaurantCardImage.tsx");
     const demoCatalog = read("src/lib/commercialDemoClientCatalog.ts");
     const restaurantDetail = read("src/pages/RestaurantDetail.tsx");
     const restaurantSlugs = read("src/lib/restaurantSlugs.ts");
@@ -110,8 +111,8 @@ describe("responsive and SEO regression guards", () => {
     expect(localRestaurants).toContain('"noindex,follow,noarchive"');
     expect(localRestaurants).toContain("legacySlugMiss");
     expect(restaurantCard).toContain("to={restaurantPath}");
-    expect(restaurantCard).toContain("width={640}");
-    expect(restaurantCard).toContain("height={400}");
+    expect(restaurantCardImage).toContain("width={640}");
+    expect(restaurantCardImage).toContain("height={400}");
     expect(restaurantDetail).toContain("buildRestaurantSeoPath(restaurant)");
     expect(restaurantDetail).toContain("path: restaurantCanonicalPath");
   });

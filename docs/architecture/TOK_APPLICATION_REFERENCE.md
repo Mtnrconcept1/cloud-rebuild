@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `cfe031f1990f51ee11b3f0815183eabd50e3586dbcfd1c3b2ef3db681d6ad682`
+- Empreinte SHA-256 des sources indexées : `3a3f5970ab6fa2434093a12ed575500d7b23dc68f281dc7f98bf8058c286643d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,24 +29,24 @@
 | cronJobs | 36 |
 | databaseContract | 228 |
 | databaseObjects | 3026 |
-| documents | 221 |
+| documents | 222 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3977 |
+| exportedSymbols | 3984 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 573 |
-| modules | 1799 |
+| modules | 1803 |
 | pages | 133 |
-| pathLiterals | 878 |
+| pathLiterals | 880 |
 | publicAssets | 589 |
 | publicEntries | 615 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18484 |
-| repositoryFiles | 3508 |
+| records | 18511 |
+| repositoryFiles | 3513 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1260,7 +1260,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 270 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 269 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:97](../../src/test/application-search-index.test.ts#L97) |
@@ -1591,7 +1591,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /icon-192.png | 2 | [public/firebase-messaging-sw.js:46](../../public/firebase-messaging-sw.js#L46) |
 | /icon-72.png | 2 | [public/firebase-messaging-sw.js:47](../../public/firebase-messaging-sw.js#L47) |
 | /ig_hashtag_search | 1 | [src/test/marketing-instagram-graph.test.ts:18](../../src/test/marketing-instagram-graph.test.ts#L18) |
-| /images/ | 2 | [src/components/RestaurantCard.tsx:70](../../src/components/RestaurantCard.tsx#L70) |
+| /images/ | 2 | [src/components/RestaurantCard.tsx:71](../../src/components/RestaurantCard.tsx#L71) |
 | /images/1.webp | 9 | [src/lib/menu-item-images.ts:15](../../src/lib/menu-item-images.ts#L15) |
 | /images/baklava.jpg | 2 | [src/lib/menu-item-images.ts:97](../../src/lib/menu-item-images.ts#L97) |
 | /images/bruschetta.jpg | 3 | [src/lib/menu-item-images.ts:54](../../src/lib/menu-item-images.ts#L54) |
@@ -1794,7 +1794,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/thai-spread.jpeg | 3 | [src/lib/menu-item-images.ts:51](../../src/lib/menu-item-images.ts#L51) |
 | /images/tok-connect/tok-connect-widget-details.svg | 1 | [src/pages/TokConnect.tsx:103](../../src/pages/TokConnect.tsx#L103) |
 | /images/tok-connect/tok-connect-widget-restaurants.svg | 1 | [src/pages/TokConnect.tsx:97](../../src/pages/TokConnect.tsx#L97) |
-| /images/tok-restaurant-placeholder.svg | 2 | [src/components/RestaurantCard.tsx:51](../../src/components/RestaurantCard.tsx#L51) |
+| /images/tok-restaurant-placeholder.svg | 4 | [src/components/RestaurantCard.tsx:52](../../src/components/RestaurantCard.tsx#L52) |
 | /images/user-guide/abonnement-mobile.png | 2 | [src/data/userGuideContent.ts:371](../../src/data/userGuideContent.ts#L371) |
 | /images/user-guide/accueil-mobile.png | 3 | [src/data/userGuideContent.ts:207](../../src/data/userGuideContent.ts#L207) |
 | /images/user-guide/dashboard-restaurateur.png | 4 | [src/data/userGuideContent.ts:35](../../src/data/userGuideContent.ts#L35) |
@@ -1860,6 +1860,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing_campaigns? | 2 | [src/test/marketing-mailing-image-bff.test.ts:83](../../src/test/marketing-mailing-image-bff.test.ts#L83) |
 | /match-groupes | 13 | [scripts/prerender-seo.mjs:1105](../../scripts/prerender-seo.mjs#L1105) |
 | /me/accounts? | 1 | [src/test/marketing-meta-publishing.test.ts:106](../../src/test/marketing-meta-publishing.test.ts#L106) |
+| /media/autre.png | 1 | [src/test/restaurant-cover-evidence.test.ts:94](../../src/test/restaurant-cover-evidence.test.ts#L94) |
+| /media/chez-test.png | 1 | [src/test/restaurant-cover-evidence.test.ts:98](../../src/test/restaurant-cover-evidence.test.ts#L98) |
 | /memoire-tok | 11 | [scripts/prerender-seo.mjs:1269](../../scripts/prerender-seo.mjs#L1269) |
 | /menu | 4 | [src/test/dashboard-design-preview-export.test.tsx:59](../../src/test/dashboard-design-preview-export.test.tsx#L59) |
 | /mes-avis | 12 | [scripts/prerender-seo.mjs:1277](../../scripts/prerender-seo.mjs#L1277) |
@@ -1966,7 +1968,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants-pres/theatre-de-beaulieu-lausanne | 1 | [src/test/stoppin-thetok-routes.test.ts:85](../../src/test/stoppin-thetok-routes.test.ts#L85) |
 | /restaurants-pres/victoria-hall-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:81](../../src/test/stoppin-thetok-routes.test.ts#L81) |
 | /restaurants/ | 4 | [scripts/harden-seo-trust-signals.mjs:188](../../scripts/harden-seo-trust-signals.mjs#L188) |
-| /restaurants/${citySlug}/r/${restaurantSlug} | 2 | [src/test/responsive-seo-regressions.test.ts:100](../../src/test/responsive-seo-regressions.test.ts#L100) |
+| /restaurants/${citySlug}/r/${restaurantSlug} | 2 | [src/test/responsive-seo-regressions.test.ts:101](../../src/test/responsive-seo-regressions.test.ts#L101) |
 | /restaurants/:city | 5 | [src/App.tsx:575](../../src/App.tsx#L575) |
 | /restaurants/:city/:category | 5 | [src/App.tsx:578](../../src/App.tsx#L578) |
 | /restaurants/:city/r/:restaurantSlug | 3 | [src/App.tsx:577](../../src/App.tsx#L577) |
@@ -2066,11 +2068,11 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /storage/v1/object/ | 1 | [supabase/functions/_shared/print/pdf.ts:84](../../supabase/functions/_shared/print/pdf.ts#L84) |
 | /storage/v1/object/private/key | 1 | [src/test/tok-connect-oauth-delegation.test.ts:109](../../src/test/tok-connect-oauth-delegation.test.ts#L109) |
 | /storage/v1/object/public/ | 2 | [src/lib/optimizedImages.ts:27](../../src/lib/optimizedImages.ts#L27) |
-| /storage/v1/object/public/restaurant-images/ | 1 | [supabase/functions/_shared/tok-connect-marketing-visual.ts:45](../../supabase/functions/_shared/tok-connect-marketing-visual.ts#L45) |
+| /storage/v1/object/public/restaurant-images/ | 2 | [supabase/functions/_shared/restaurant-cover-evidence.ts:52](../../supabase/functions/_shared/restaurant-cover-evidence.ts#L52) |
 | /storage/v1/object/public/social-post-media/ | 1 | [supabase/functions/_shared/marketing-content-review.ts:130](../../supabase/functions/_shared/marketing-content-review.ts#L130) |
 | /storage/v1/object/sign/commercial-demo-ai/ | 1 | [src/pages/dashboard/DashboardPhotos.tsx:88](../../src/pages/dashboard/DashboardPhotos.tsx#L88) |
 | /storage/v1/object/social-post-media | 1 | [src/test/marketing-mailing-image-bff.test.ts:86](../../src/test/marketing-mailing-image-bff.test.ts#L86) |
-| /storage/v1/render/image/public/ | 1 | [src/lib/optimizedImages.ts:35](../../src/lib/optimizedImages.ts#L35) |
+| /storage/v1/render/image/public/ | 2 | [src/lib/optimizedImages.ts:35](../../src/lib/optimizedImages.ts#L35) |
 | /stripe-subscription-reconcile | 1 | [src/test/audit-remediation.test.ts:46](../../src/test/audit-remediation.test.ts#L46) |
 | /supabase/functions/_shared/resend-inbound-forward.ts | 1 | [scripts/verification/test-inbound-forward-receipts.mjs:40](../../scripts/verification/test-inbound-forward-receipts.mjs#L40) |
 | /supabase/migrations/20261021093000_tok_inbound_forward_receipts.sql | 1 | [scripts/verification/test-inbound-forward-receipts.mjs:10](../../scripts/verification/test-inbound-forward-receipts.mjs#L10) |
@@ -6719,7 +6721,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 42 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 271 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 819 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 822 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6732,15 +6734,15 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 218 |
 | automation-script | 87 |
 | documentation | 6 |
-| edge-function-source | 240 |
-| frontend-component | 289 |
+| edge-function-source | 241 |
+| frontend-component | 290 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
 | frontend-source | 35 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 737 |
+| test | 739 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -6813,6 +6815,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | TOK / TheTok | 10 | [README.md:1](../../README.md#L1) |
 | Déploiement TOK | 5 | [README_DEPLOY.md:1](../../README_DEPLOY.md#L1) |
 | Security Policy | 7 | [SECURITY.md:1](../../SECURITY.md#L1) |
+| Audit des couvertures de restaurants TOK — 21 octobre 2026 | 8 | [TOK_RESTAURANT_PHOTO_AUDIT_2026-10-21.md:1](../../TOK_RESTAURANT_PHOTO_AUDIT_2026-10-21.md#L1) |
 | SKILL | 0 | [codex-skills/mobile-fullstack-architect/SKILL.md:1](../../codex-skills/mobile-fullstack-architect/SKILL.md#L1) |
 | React + Capacitor Review | 4 | [codex-skills/mobile-fullstack-architect/references/react-capacitor.md:1](../../codex-skills/mobile-fullstack-architect/references/react-capacitor.md#L1) |
 | Repo Mapping | 5 | [codex-skills/mobile-fullstack-architect/references/repo-mapping.md:1](../../codex-skills/mobile-fullstack-architect/references/repo-mapping.md#L1) |
@@ -8156,7 +8159,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (240)</summary>
+<details><summary>edge-function-source (241)</summary>
 
 - `supabase/functions/_shared/ai-image-operation.ts`
 - `supabase/functions/_shared/ai-image-response.ts`
@@ -8239,6 +8242,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/refund-allocations.ts`
 - `supabase/functions/_shared/resend-inbound-forward.ts`
 - `supabase/functions/_shared/reservation-card-guarantee.ts`
+- `supabase/functions/_shared/restaurant-cover-evidence.ts`
 - `supabase/functions/_shared/restaurant-credits.ts`
 - `supabase/functions/_shared/restaurant-stripe-price-catalog.ts`
 - `supabase/functions/_shared/restaurant-subscription-billing.ts`
@@ -8401,7 +8405,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (298)</summary>
+<details><summary>frontend-component (299)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8443,6 +8447,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/ReservationWidget.tsx`
 - `src/components/RestaurantCancellationDialog.tsx`
 - `src/components/RestaurantCard.tsx`
+- `src/components/RestaurantCardImage.tsx`
 - `src/components/ReviewForm.tsx`
 - `src/components/ScrollToTop.tsx`
 - `src/components/SponsoredRestaurantCard.tsx`
@@ -9598,7 +9603,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>repository-file (155)</summary>
+<details><summary>repository-file (156)</summary>
 
 - `.agents/skills/stripe-best-practices/SKILL.md`
 - `.agents/skills/stripe-best-practices/references/billing.md`
@@ -9698,6 +9703,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `README.md`
 - `README_DEPLOY.md`
 - `SECURITY.md`
+- `TOK_RESTAURANT_PHOTO_AUDIT_2026-10-21.md`
 - `capacitor.config.ts`
 - `checkout_content.txt`
 - `codex-skills/mobile-fullstack-architect/SKILL.md`
@@ -9805,7 +9811,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (737)</summary>
+<details><summary>test (739)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10319,10 +10325,12 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/responsive-seo-regressions.test.ts`
 - `src/test/restaurant-ai-controlled-edits.test.ts`
 - `src/test/restaurant-billing-account.test.ts`
+- `src/test/restaurant-card-image.test.tsx`
 - `src/test/restaurant-card-preview.test.tsx`
 - `src/test/restaurant-categories.test.ts`
 - `src/test/restaurant-commission-mandate-selfservice.test.ts`
 - `src/test/restaurant-contracts-governance.test.ts`
+- `src/test/restaurant-cover-evidence.test.ts`
 - `src/test/restaurant-dashboard-mobile-overview.test.ts`
 - `src/test/restaurant-dashboard-overview-navigation.test.ts`
 - `src/test/restaurant-detail-availability-preview.test.tsx`
