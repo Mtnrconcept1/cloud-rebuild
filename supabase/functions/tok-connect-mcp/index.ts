@@ -106,8 +106,8 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:wght@400;500;600;700&display=swap");
       :root {
         color-scheme: light dark;
-        --tok-primary: hsl(19 68% 51%);
-        --tok-primary-soft: hsl(19 68% 51% / 0.14);
+        --tok-primary: hsl(17.101449 88.085106% 53.921569%);
+        --tok-primary-soft: hsl(17.101449 88.085106% 53.921569% / 0.14);
         --tok-primary-foreground: hsl(0 0% 100%);
         --tok-accent: hsl(152 48% 30%);
         --tok-gold: hsl(35 100% 62%);
@@ -123,8 +123,8 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       }
       @media (prefers-color-scheme: dark) {
         :root {
-          --tok-primary: hsl(19 68% 51%);
-          --tok-primary-soft: hsl(19 68% 51% / 0.14);
+          --tok-primary: hsl(17.101449 88.085106% 53.921569%);
+          --tok-primary-soft: hsl(17.101449 88.085106% 53.921569% / 0.14);
           --tok-primary-foreground: hsl(0 0% 100%);
           --tok-accent: hsl(156 58% 47%);
           --tok-background: hsl(24 14% 8%);
@@ -142,7 +142,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         font-family: var(--tok-font-sans);
         color: var(--tok-text);
         background:
-          radial-gradient(circle at 18% 12%, hsl(19 68% 51% / 0.16), transparent 34%),
+          radial-gradient(circle at 18% 12%, hsl(17.101449 88.085106% 53.921569% / 0.16), transparent 34%),
           radial-gradient(circle at 92% 0%, hsl(152 48% 30% / 0.12), transparent 28%),
           var(--tok-background);
       }
@@ -419,7 +419,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       body {
         color: var(--tok-text);
         background:
-          radial-gradient(circle at 8% 0%, rgba(255, 106, 26, 0.13), transparent 22rem),
+          radial-gradient(circle at 8% 0%, rgba(241, 93, 34, 0.13), transparent 22rem),
           radial-gradient(circle at 94% 6%, rgba(255, 176, 0, 0.12), transparent 24rem),
           linear-gradient(180deg, #fffaf4 0%, #f8fafc 42%, #fff 100%);
       }
@@ -452,7 +452,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         width: 58px;
         height: 58px;
         object-fit: contain;
-        filter: drop-shadow(0 10px 18px rgba(255, 106, 26, 0.25));
+        filter: drop-shadow(0 10px 18px rgba(241, 93, 34, 0.25));
       }
       .tok-brand-fallback {
         display: none;
@@ -503,7 +503,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         padding: 0 20px;
         color: white;
         background: linear-gradient(135deg, #ff5a14, #ff8f00);
-        box-shadow: 0 18px 38px rgba(255, 106, 26, 0.34);
+        box-shadow: 0 18px 38px rgba(241, 93, 34, 0.34);
         font-size: 14px;
         font-weight: 900;
       }
@@ -522,7 +522,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         padding: 0 18px 0 10px;
         color: white;
         background: #0b0b0e;
-        box-shadow: 0 18px 38px rgba(255, 106, 26, 0.32), 0 10px 28px rgba(15, 23, 42, 0.24);
+        box-shadow: 0 18px 38px rgba(241, 93, 34, 0.32), 0 10px 28px rgba(15, 23, 42, 0.24);
       }
       .floating-menu-icon {
         display: grid;
@@ -531,7 +531,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         height: 46px;
         border-radius: 16px;
         background: linear-gradient(135deg, #ff5a14, #ffb000);
-        box-shadow: 0 0 24px rgba(255, 106, 26, 0.55);
+        box-shadow: 0 0 24px rgba(241, 93, 34, 0.55);
         font-size: 22px;
         line-height: 1;
       }
@@ -567,7 +567,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         gap: 20px;
         align-items: stretch;
         margin-bottom: 18px;
-        border: 1px solid rgba(255, 106, 26, 0.26);
+        border: 1px solid rgba(241, 93, 34, 0.26);
         border-radius: 32px;
         padding: 26px;
         background:
@@ -579,7 +579,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         display: inline-flex;
         gap: 8px;
         align-items: center;
-        border-color: rgba(255, 106, 26, 0.28);
+        border-color: rgba(241, 93, 34, 0.28);
         color: #ff6a1a;
         background: #fff7ed;
       }
@@ -617,7 +617,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         min-height: 116px;
         border-radius: 22px;
         background:
-          radial-gradient(circle at 72% 42%, rgba(255, 106, 26, 0.28), transparent 8rem),
+          radial-gradient(circle at 72% 42%, rgba(241, 93, 34, 0.28), transparent 8rem),
           linear-gradient(135deg, #111827, #1f2937);
       }
       .tok-mascot img {
@@ -696,12 +696,12 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       }
       .module-chip {
         color: #c2410c;
-        border-color: rgba(255, 106, 26, 0.25);
+        border-color: rgba(241, 93, 34, 0.25);
         background: #fff7ed;
       }
       .guardrail {
         color: #7c2d12;
-        border-color: rgba(255, 106, 26, 0.18);
+        border-color: rgba(241, 93, 34, 0.18);
         background: #fff7ed;
       }
       .tok-widget-stack {
@@ -719,7 +719,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
       .tok-summary-card {
         position: relative;
         overflow: hidden;
-        border: 1px solid rgba(255, 106, 26, 0.14);
+        border: 1px solid rgba(241, 93, 34, 0.14);
         border-radius: 24px;
         background: var(--tok-surface);
         box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
@@ -766,7 +766,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         padding: 8px 12px;
         color: #fff;
         background: linear-gradient(135deg, #ff5a14, #ff8f00);
-        box-shadow: 0 12px 24px rgba(255, 106, 26, 0.28);
+        box-shadow: 0 12px 24px rgba(241, 93, 34, 0.28);
       }
       .tok-restaurant-body {
         display: grid;
@@ -799,7 +799,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         padding: 9px 11px;
         color: white;
         background: linear-gradient(135deg, #ff5a14, #ff8f00);
-        box-shadow: 0 12px 24px rgba(255, 106, 26, 0.24);
+        box-shadow: 0 12px 24px rgba(241, 93, 34, 0.24);
       }
       .tok-miamz-pill {
         width: fit-content;
@@ -841,7 +841,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         gap: 10px;
         padding: 16px;
         background:
-          radial-gradient(circle at 100% 0%, rgba(255, 106, 26, 0.13), transparent 12rem),
+          radial-gradient(circle at 100% 0%, rgba(241, 93, 34, 0.13), transparent 12rem),
           #fff;
       }
       .tok-tool-icon {
@@ -852,7 +852,7 @@ const ACTION_WINDOW_HTML = `<!doctype html>
         border-radius: 16px;
         color: #fff;
         background: linear-gradient(135deg, #ff5a14, #ffb000);
-        box-shadow: 0 18px 30px rgba(255, 106, 26, 0.24);
+        box-shadow: 0 18px 30px rgba(241, 93, 34, 0.24);
         font-weight: 950;
       }
       .tok-tool-card strong {

@@ -178,7 +178,7 @@ describe("TOK Connect Edge Functions", () => {
     expect(appLight).toBeDefined();
     expect(appDark).toBeDefined();
     const tokens = [
-      ["primary", "primary", "19 68% 51%", "19 68% 51%"],
+      ["primary", "primary", "17.101449 88.085106% 53.921569%", "17.101449 88.085106% 53.921569%"],
       ["primary-foreground", "primary-foreground", "0 0% 100%", "0 0% 100%"],
       ["accent", "accent", "152 48% 30%", "156 58% 47%"],
       ["background", "background", "40 43% 97%", "24 14% 8%"],
@@ -193,8 +193,8 @@ describe("TOK Connect Edge Functions", () => {
       expect(appDark).toContain(`--${appToken}: ${dark};`);
       expect(widgetThemes[1]).toContain(`--tok-${widgetToken}: hsl(${dark});`);
     }
-    expect(widgetThemes[0]).toContain("--tok-primary-soft: hsl(19 68% 51% / 0.14);");
-    expect(widgetThemes[1]).toContain("--tok-primary-soft: hsl(19 68% 51% / 0.14);");
+    expect(widgetThemes[0]).toContain("--tok-primary-soft: hsl(17.101449 88.085106% 53.921569% / 0.14);");
+    expect(widgetThemes[1]).toContain("--tok-primary-soft: hsl(17.101449 88.085106% 53.921569% / 0.14);");
 
     expect(source).toContain('"DM Sans"');
     expect(source).toContain('"Playfair Display"');
