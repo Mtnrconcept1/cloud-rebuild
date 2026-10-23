@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `81a66a3dde9d304ac4d290ebeb4fa00c34558e5b679766958c5626d21e94f769`
+- Empreinte SHA-256 des sources indexées : `f7be25860aca681054fb54d78701c1beb1071302dbea54851ed324f3d560cc68`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 576 |
-| modules | 1809 |
+| modules | 1810 |
 | pages | 133 |
 | pathLiterals | 894 |
 | publicAssets | 713 |
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18802 |
-| repositoryFiles | 3646 |
+| records | 18804 |
+| repositoryFiles | 3647 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6883,7 +6883,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 742 |
+| test | 743 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -10082,7 +10082,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (742)</summary>
+<details><summary>test (743)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10645,6 +10645,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/rls-policy-hardening.test.ts`
 - `src/test/role-access.test.ts`
 - `src/test/role-route-wiring.test.ts`
+- `src/test/role-space-menu-readability.test.ts`
 - `src/test/route-serving-regression.test.ts`
 - `src/test/route-wiring.test.ts`
 - `src/test/scale-readiness-guards.test.ts`
