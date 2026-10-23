@@ -111,7 +111,7 @@ export default function DashboardPageHero({
                 <h1 className={cn("font-dashboard text-3xl font-bold leading-tight tracking-normal text-foreground dark:text-white sm:text-5xl", compact && "text-2xl sm:text-3xl")}>
                   {title}
                 </h1>
-                <p className={cn("max-w-3xl text-sm leading-7 text-muted-foreground dark:text-slate-100/80 sm:text-base", compact && "leading-6")}>
+                <p className={cn("tok-dashboard-hero-description max-w-3xl text-base font-medium leading-relaxed text-muted-foreground dark:text-slate-100/90 sm:text-lg", compact && "leading-relaxed")}>
                   {description}
                 </p>
               </div>
