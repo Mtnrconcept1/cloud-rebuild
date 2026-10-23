@@ -320,6 +320,8 @@ export type OpsIncidentSummary = {
   github_branch: string | null;
   github_pr_number: number | null;
   github_pr_url: string | null;
+  github_run_id?: number | null;
+  resolution_summary?: string | null;
   failure_reason: string | null;
   repair_plan?: Record<string, unknown> | null;
   approval_expires_at?: string | null;
@@ -329,6 +331,15 @@ export type OpsIncidentSummary = {
   analysis_source?: string | null;
   analysis_cached?: boolean | null;
   analysis_generated_at?: string | null;
+};
+
+export type GuardianIncidentEvent = {
+  id: number | string;
+  incident_id: string;
+  event_type: string;
+  actor: string;
+  payload: Record<string, unknown>;
+  created_at: string;
 };
 
 export type GuardianAssessmentRecord = {
@@ -359,6 +370,7 @@ export function getGuardianOverview() {
     recovered_failures: Array<Record<string, unknown>>;
     assessments: GuardianAssessmentRecord[];
     verifications: GuardianVerificationRecord[];
+    events: GuardianIncidentEvent[];
     latest_advisor_snapshot: Record<string, unknown> | null;
     generated_at: string;
     lookback_hours: number;
@@ -395,6 +407,8 @@ export function approveGuardianRepair(input: {
   expectedEvidenceHash: string;
   expectedPlan: Record<string, unknown>;
   confirmation: "APPROUVER";
+  executionMode: "complete";
+  journalReport: true;
 }) {
   return invokeTokIntelligence<{
     ok: boolean;

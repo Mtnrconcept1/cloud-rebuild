@@ -43,6 +43,8 @@ export default function GuardianApprovalPanel({
         expectedEvidenceHash: incident.evidence_hash,
         expectedPlan: plan,
         confirmation: "APPROUVER",
+        executionMode: "complete",
+        journalReport: true,
       });
     },
     onSuccess: async (result) => {
@@ -51,8 +53,8 @@ export default function GuardianApprovalPanel({
       setConfirmation("");
       await onRefresh();
       toast({
-        title: result.codexDispatched ? "Réparation en préparation" : "Décision enregistrée",
-        description: "Le correctif sera préparé dans une branche isolée et soumis en PR, sans merge ni déploiement automatique.",
+        title: result.codexDispatched ? "Réparation complète demandée" : "Décision enregistrée",
+        description: "Codex va réparer, tester et réanalyser les échecs sur une branche isolée. Chaque cycle sera journalisé avant la PR.",
       });
     },
     onError: (error) => {
@@ -83,7 +85,7 @@ export default function GuardianApprovalPanel({
         ) : <p className="text-muted-foreground">Aucun plan canonique exécutable pour l'instant.</p>}
         {eligible ? (
           <Button type="button" onClick={() => setOpen(true)}>
-            <ShieldCheck className="mr-2 h-4 w-4" />Examiner et approuver le plan
+            <ShieldCheck className="mr-2 h-4 w-4" />Demander la réparation complète
           </Button>
         ) : (
           <p className="text-amber-700 dark:text-amber-300">
@@ -101,10 +103,12 @@ export default function GuardianApprovalPanel({
       }}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Approuver la réparation de code</DialogTitle>
+            <DialogTitle>Demander la réparation complète</DialogTitle>
             <DialogDescription>
               Cette action exige un compte administrateur avec MFA AAL2.
-              Elle lance un travail Codex sur une branche isolée ; les tests et la revue de PR restent obligatoires.
+              Elle lance un travail Codex sur une branche isolée. Codex corrige, exécute lint,
+              typecheck, tests et build, puis analyse les échecs et recommence jusqu'à validation
+              complète, dans la limite de trois cycles de sécurité. Un rapport journalisé est conservé.
               Aucune fusion, migration ou mise en production automatique n'est autorisée.
             </DialogDescription>
           </DialogHeader>
@@ -126,7 +130,9 @@ export default function GuardianApprovalPanel({
                 onChange={(event) => setAcknowledged(event.target.checked)}
                 className="mt-1"
               />
-              J'ai lu ce plan exact et je comprends qu'une revue humaine reste obligatoire avant tout merge ou déploiement.
+              J'ai lu ce plan exact et je demande la réparation, les tests, l'analyse des échecs
+              persistants et la production du rapport. Je comprends qu'une revue humaine reste
+              obligatoire avant tout merge ou déploiement.
             </label>
             <div className="space-y-1">
               <Label htmlFor="guardian-confirm-approval">Saisir APPROUVER</Label>
@@ -144,7 +150,7 @@ export default function GuardianApprovalPanel({
               disabled={!confirmed || mutation.isPending}
               onClick={() => mutation.mutate()}
             >
-              {mutation.isPending ? "Contrôle de la session et du plan…" : "Autoriser la préparation du correctif"}
+              {mutation.isPending ? "Contrôle de la session et du plan…" : "Lancer la réparation complète"}
             </Button>
           </div>
         </DialogContent>
