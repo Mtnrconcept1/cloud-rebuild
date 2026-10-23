@@ -12,6 +12,8 @@ Cette automatisation transforme les erreurs techniques confirmées en incidents 
 6. Codex travaille dans le dépôt réel, exécute les contrôles et ouvre une pull request ;
 7. Aucune fusion, migration ou mise en production n'est automatique.
 
+Elle accepte aussi les demandes de développement envoyées directement par l'administrateur dans Telegram. Un texte libre ou `/codex <demande>` vaut approbation explicite : la demande est enregistrée, dédupliquée par mise à jour Telegram, confiée à Codex sur une branche isolée, testée puis proposée en pull request. `/help` affiche ce mode d'emploi.
+
 Le canal initial est Telegram. La file d'incidents, les décisions et le workflow GitHub sont indépendants du canal ; un adaptateur WhatsApp Business pourra donc être ajouté sans modifier le modèle de sécurité ni la chaîne Codex.
 
 ## Composants
@@ -41,7 +43,8 @@ Les logs, traces et messages d'erreur restent des preuves non fiables : ils ne s
 - Les boutons Telegram utilisent un jeton aléatoire haché, à usage décisionnel, expirant après 24 heures.
 - Le contexte Codex utilise un second jeton haché, expirant après 6 heures.
 - Au moment de l'approbation, le contrôle vérifie et fige le SHA du dépôt à réparer. Le workflow récupère ce SHA dans le contexte authentifié puis checkout exactement cette révision.
-- Les callbacks Telegram exigent le `secret_token` officiel du webhook, l'identifiant du chat et l'identifiant de l'administrateur.
+- Les callbacks et messages Telegram exigent le `secret_token` officiel du webhook, l'identifiant du chat et l'identifiant de l'administrateur. Les messages provenant d'un bot sont refusés.
+- Chaque message direct est lié à son `update_id` et son `message_id` afin qu'un rejeu du webhook ne relance pas Codex.
 - Les collecteurs génériques exigent un secret distinct.
 - Les erreurs métier sans message technique ne sont pas transformées automatiquement en bugs.
 - Un échec Edge instrumenté est actif uniquement si aucun succès plus récent n'existe pour la même fonction et la même action ; seule la signature de l'erreur non résolue la plus récente est regroupée.
@@ -69,7 +72,7 @@ Configurer les secrets suivants dans le projet TOK `wwcrtyoueexyxkkikaos` :
 | --- | --- |
 | `TELEGRAM_BOT_TOKEN` | Jeton remis par BotFather. |
 | `TELEGRAM_ADMIN_CHAT_ID` | Chat privé ou groupe autorisé à recevoir les incidents. |
-| `TELEGRAM_ADMIN_USER_ID` | Utilisateur autorisé à appuyer sur les boutons. Pour un chat privé, il correspond généralement au chat ID. Obligatoire pour un groupe. |
+| `TELEGRAM_ADMIN_USER_ID` | Utilisateur autorisé à appuyer sur les boutons et à envoyer des demandes Codex. Pour un chat privé, il correspond généralement au chat ID. Obligatoire pour un groupe. |
 | `TELEGRAM_WEBHOOK_SECRET` | Secret aléatoire fourni à `setWebhook` et contrôlé dans l'en-tête Telegram. |
 | `GITHUB_INCIDENT_TOKEN` | Jeton finement limité qui peut appeler `POST /repos/Mtnrconcept1/cloud-rebuild/dispatches`. Permission minimale : `Contents: write`. |
 | `GITHUB_INCIDENT_REPOSITORY` | `Mtnrconcept1/cloud-rebuild`. |
@@ -156,7 +159,7 @@ curl --fail --silent --show-error \
   --data "$(jq -n \
     --arg url "${TOK_INCIDENT_CONTROL_URL}" \
     --arg secret "${TELEGRAM_WEBHOOK_SECRET}" \
-    '{url: $url, secret_token: $secret, allowed_updates: ["callback_query"], drop_pending_updates: true}')"
+    '{url: $url, secret_token: $secret, allowed_updates: ["message", "callback_query"], drop_pending_updates: true}')"
 ```
 
 Le webhook doit viser :
@@ -164,6 +167,14 @@ Le webhook doit viser :
 ```text
 https://wwcrtyoueexyxkkikaos.supabase.co/functions/v1/ops-incident-control
 ```
+
+## Utilisation directe dans Telegram
+
+- Envoyer un texte libre, par exemple `Corrige le formulaire de contact et ajoute un test de régression`.
+- Ou envoyer `/codex Corrige le formulaire de contact et ajoute un test de régression`.
+- Envoyer `/help` ou `/start` pour afficher l'aide.
+
+Seuls le chat `TELEGRAM_ADMIN_CHAT_ID` et l'utilisateur `TELEGRAM_ADMIN_USER_ID` sont acceptés. La réponse confirme l'identifiant de la demande et le lancement. Le workflow ouvre une PR après ses contrôles ; il ne fusionne pas et ne déploie pas automatiquement.
 
 ## Déploiement
 
