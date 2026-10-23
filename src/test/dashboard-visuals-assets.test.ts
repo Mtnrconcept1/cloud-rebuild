@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { getRestaurantDashboardVisual, getCustomerDashboardVisual, getTokHeroStyle } from "@/lib/dashboardVisuals";
 
@@ -8,10 +9,22 @@ const assetDir = path.resolve(process.cwd(), "public/images/dashboard-generated"
 describe("TOK dashboard image collection", () => {
   it("ships all 124 independently named WebP images", () => {
     const files = readdirSync(assetDir).filter(name => name.endsWith(".webp"));
+    const heroFiles = files.filter(name => name.endsWith("_hero.webp"));
     expect(files).toHaveLength(124);
-    expect(files.filter(name => name.endsWith("_hero.webp"))).toHaveLength(62);
+    expect(heroFiles).toHaveLength(62);
     expect(files.filter(name => name.endsWith("_3d.webp"))).toHaveLength(62);
     expect(new Set(files).size).toBe(124);
+
+    const heroHashes = heroFiles.map(name => createHash("sha256")
+      .update(readFileSync(path.join(assetDir, name)))
+      .digest("hex"));
+    expect(new Set(heroHashes).size).toBe(62);
+  });
+
+  it("renders client photographs in the shared hero instead of leaving them unused", () => {
+    const source = readFileSync(path.resolve(process.cwd(), "src/components/dashboard/WorkspaceDesign.css"), "utf8");
+    expect(source).toMatch(/\.tok-customer-page-hero::before[^}]*--workspace-hero-image/);
+    expect(source).toMatch(/\.tok-customer-page-hero::after/);
   });
 
   it.each([
@@ -48,5 +61,7 @@ describe("TOK dashboard image collection", () => {
     expect(getRestaurantDashboardVisual("/admin")).toBeUndefined();
     expect(getCustomerDashboardVisual("/auth")).toBeUndefined();
     expect(getTokHeroStyle(undefined)).toBeUndefined();
+    expect(getTokHeroStyle("/images/dashboard-generated/restaurant_performances_hero.webp"))
+      .toEqual({ "--workspace-hero-image": "url(\"/images/dashboard-generated/restaurant_performances_hero.webp\")" });
   });
 });

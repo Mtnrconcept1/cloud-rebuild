@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `798e30f6fba50afd0a30a9ce5372c91fa6045272e630a058ccf0e56536970153`
+- Empreinte SHA-256 des sources indexées : `c4e39b4de5749174c9d4cc24134b546142a0c0e89f3446cf63a88ccc867f87d8`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 575 |
 | modules | 1807 |
 | pages | 133 |
-| pathLiterals | 893 |
+| pathLiterals | 894 |
 | publicAssets | 713 |
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18793 |
+| records | 18794 |
 | repositoryFiles | 3643 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1547,7 +1547,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commande/123?tab=details | 1 | [src/test/navigation.test.ts:24](../../src/test/navigation.test.ts#L24) |
 | /commande/:id | 4 | [src/App.tsx:586](../../src/App.tsx#L586) |
 | /commande/abc-123 | 1 | [src/test/feature-flags.test.ts:91](../../src/test/feature-flags.test.ts#L91) |
-| /commande/abc123 | 1 | [src/test/dashboard-visuals-assets.test.ts:43](../../src/test/dashboard-visuals-assets.test.ts#L43) |
+| /commande/abc123 | 1 | [src/test/dashboard-visuals-assets.test.ts:56](../../src/test/dashboard-visuals-assets.test.ts#L56) |
 | /commande/confirmation | 15 | [src/App.tsx:585](../../src/App.tsx#L585) |
 | /commande/confirmation?checkout_kind=order | 1 | [src/test/payment-attempt-state.test.ts:114](../../src/test/payment-attempt-state.test.ts#L114) |
 | /commande/confirmation?status=success&session_id=cs_test_visual_preview | 1 | [src/test/dashboard-design-preview-export.test.tsx:81](../../src/test/dashboard-design-preview-export.test.tsx#L81) |
@@ -1765,11 +1765,12 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-support.webp | 1 | [src/lib/dashboardIllustrations.ts:31](../../src/lib/dashboardIllustrations.ts#L31) |
 | /images/dashboard-3d/restaurant-tok-connect.webp | 1 | [src/lib/dashboardIllustrations.ts:38](../../src/lib/dashboardIllustrations.ts#L38) |
 | /images/dashboard-generated/ | 1 | [src/lib/dashboardVisuals.ts:3](../../src/lib/dashboardVisuals.ts#L3) |
-| /images/dashboard-generated/client_confirmation_commande_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:42](../../src/test/dashboard-visuals-assets.test.ts#L42) |
-| /images/dashboard-generated/client_favoris_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:33](../../src/test/dashboard-visuals-assets.test.ts#L33) |
-| /images/dashboard-generated/client_miamz_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:35](../../src/test/dashboard-visuals-assets.test.ts#L35) |
-| /images/dashboard-generated/client_mon_abonnement_3d.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:37](../../src/test/dashboard-visuals-assets.test.ts#L37) |
-| /images/dashboard-generated/client_suivi_commande_3d.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:44](../../src/test/dashboard-visuals-assets.test.ts#L44) |
+| /images/dashboard-generated/client_confirmation_commande_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:55](../../src/test/dashboard-visuals-assets.test.ts#L55) |
+| /images/dashboard-generated/client_favoris_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:46](../../src/test/dashboard-visuals-assets.test.ts#L46) |
+| /images/dashboard-generated/client_miamz_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:48](../../src/test/dashboard-visuals-assets.test.ts#L48) |
+| /images/dashboard-generated/client_mon_abonnement_3d.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:50](../../src/test/dashboard-visuals-assets.test.ts#L50) |
+| /images/dashboard-generated/client_suivi_commande_3d.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:57](../../src/test/dashboard-visuals-assets.test.ts#L57) |
+| /images/dashboard-generated/restaurant_performances_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:64](../../src/test/dashboard-visuals-assets.test.ts#L64) |
 | /images/dashboard/restaurant-ambience.webp | 3 | [scripts/dashboard-design-preview.fixtures.ts:10](../../scripts/dashboard-design-preview.fixtures.ts#L10) |
 | /images/doner-kebab-plate.jpeg | 2 | [src/lib/menu-item-images.ts:48](../../src/lib/menu-item-images.ts#L48) |
 | /images/edamame.webp | 1 | [src/lib/menu-item-images.ts:49](../../src/lib/menu-item-images.ts#L49) |

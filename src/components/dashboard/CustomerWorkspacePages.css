@@ -285,8 +285,7 @@
   .tok-hospitality-workspace .tok-customer-confirmation-summary + div { grid-column: 1; grid-row: auto; }
 }
 @media (max-width: 639px) {
-  .tok-hospitality-workspace :is(.tok-customer-page-hero, .tok-customer-notifications > div:first-child) { min-height: 240px; padding: 25px 18px; }
-  .tok-hospitality-workspace .tok-customer-page-hero::before,
+  .tok-hospitality-workspace .tok-customer-notifications > div:first-child { min-height: 240px; padding: 25px 18px; }
   .tok-hospitality-workspace .tok-customer-notifications > div:first-child::before { opacity: .45; }
   .tok-hospitality-workspace .tok-customer-page-hero h1,
   .tok-hospitality-workspace .tok-customer-notifications h1 { font-size: 36px; line-height: 1.12; }
