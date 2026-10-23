@@ -33,6 +33,9 @@ describe("espace client central", () => {
 
   it("rend toute la navigation accessible sur mobile sans tableau horizontal", () => {
     const layout = readSource("src/components/CustomerDashboardLayout.tsx");
+    const dashboard = readSource("src/pages/ClientDashboardHome.tsx");
+    const workspaceStyles = readSource("src/components/dashboard/WorkspaceDesign.css");
+    const customerStyles = readSource("src/components/dashboard/CustomerWorkspacePages.css");
 
     expect(layout).toContain('aria-label="Navigation de l’espace client"');
     expect(layout).toContain("overflow-x-auto");
@@ -42,6 +45,10 @@ describe("espace client central", () => {
     expect(layout).toContain('to: "/profil?tab=fidelite"');
     expect(layout).toContain('to: "/mes-avis"');
     expect(layout).toContain('fallback="/mon-espace"');
+    expect(layout).toContain("tok-client-toolbar-help");
+    expect(workspaceStyles).toContain(".tok-client-shell .tok-client-toolbar-help { display: none; }");
+    expect(dashboard).toContain("tok-customer-home-metrics grid grid-cols-2 gap-3 xl:grid-cols-4");
+    expect(customerStyles).toContain("text-overflow: ellipsis");
   });
 
   it("affiche les avis du seul utilisateur connecté et les réponses des restaurants", () => {

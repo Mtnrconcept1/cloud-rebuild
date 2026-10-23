@@ -331,10 +331,11 @@
   .tok-hospitality-workspace .tok-workspace-sidebar { display: none; }
   .tok-dashboard-shell .tok-workspace-toolbar { display: none; }
   .tok-client-shell { display: block; }
-  .tok-client-shell .tok-workspace-toolbar { position: relative; gap: 10px; padding: 11px 16px; flex-wrap: wrap; }
+  .tok-client-shell .tok-workspace-toolbar { position: relative; min-height: 0; gap: 9px; padding: 10px 14px; flex-wrap: wrap; }
   .tok-client-shell .tok-workspace-toolbar > div:first-child { flex-basis: 100%; order: 2; }
-  .tok-client-shell .tok-workspace-toolbar-actions { margin-left: auto; gap: 7px; }
-  .tok-client-shell .tok-workspace-toolbar::before { content: "Mon espace TOK"; font: 650 18px var(--workspace-serif); }
+  .tok-client-shell .tok-workspace-toolbar-actions { margin-left: auto; gap: 6px; flex-wrap: nowrap; }
+  .tok-client-shell .tok-workspace-toolbar::before { content: "Mon espace TOK"; min-width: 0; font: 650 17px var(--workspace-serif); white-space: nowrap; }
+  .tok-client-shell .tok-client-toolbar-help { display: none; }
   .tok-hospitality-workspace .tok-workspace-search { width: 100%; }
   .tok-hospitality-workspace .tok-workspace-account { max-width: 170px; padding-left: 0; border: 0; }
   .tok-hospitality-workspace .tok-hospitality-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
@@ -357,6 +358,13 @@
   .tok-hospitality-workspace .tok-customer-page-hero__copy { padding: 30px 22px; }
   .tok-hospitality-workspace .tok-customer-page-hero h1 { font-size: clamp(36px, 10vw, 48px); }
   .tok-hospitality-workspace .tok-customer-hero-sidecar { display: none; }
+
+  .tok-dashboard-shell .tok-dashboard-access-notice { margin-bottom: 1rem; padding: 0.875rem; border-radius: 1.25rem; }
+  .tok-dashboard-shell .tok-dashboard-access-notice__layout { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 0.75rem; }
+  .tok-dashboard-shell .tok-dashboard-access-notice__icon { width: 2.5rem; height: 2.5rem; border-radius: 0.875rem; }
+  .tok-dashboard-shell .tok-dashboard-access-notice__icon svg { width: 1.25rem; height: 1.25rem; }
+  .tok-dashboard-shell .tok-dashboard-access-notice__summary { cursor: pointer; color: #9a4a12; font-size: 0.75rem; font-weight: 700; }
+  .tok-dashboard-shell .tok-dashboard-access-notice__summary::marker { color: #d97706; }
 }
 
 @media (min-width: 640px) and (max-width: 767px) { .tok-hospitality-workspace { --workspace-gutter: 24px; } }

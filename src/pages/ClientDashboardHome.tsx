@@ -442,13 +442,13 @@ function LiveClientDashboardHome() {
         {isLoading ? (
           <div aria-label="Chargement de votre espace" className="space-y-4">
             <div className="h-36 animate-pulse rounded-3xl bg-muted" />
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
               {[1, 2, 3, 4].map((item) => <div key={item} className="h-32 animate-pulse rounded-2xl bg-muted" />)}
             </div>
           </div>
         ) : (
           <>
-            <section aria-label="Résumé de votre activité" className="tok-customer-home-metrics grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <section aria-label="Résumé de votre activité" className="tok-customer-home-metrics grid grid-cols-2 gap-3 xl:grid-cols-4">
               {reservationEnabled ? (
                 <MetricCard icon={CalendarDays} label="Réservations à venir" value={upcomingReservations.length} to={clientTarget("/reservations")} accent="bg-orange-500/10 text-orange-600" />
               ) : null}

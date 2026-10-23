@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AdminRouteFrame } from "@/App";
+import { shouldShowFloatingBackButton } from "@/lib/backNavigation";
 
 const root = process.cwd();
 
@@ -26,6 +27,13 @@ afterEach(() => {
 });
 
 describe("route back navigation", () => {
+  it("lets each authenticated workspace own its back navigation", () => {
+    expect(shouldShowFloatingBackButton("/mon-espace")).toBe(false);
+    expect(shouldShowFloatingBackButton("/mes-avis")).toBe(false);
+    expect(shouldShowFloatingBackButton("/memoire-tok/")).toBe(false);
+    expect(shouldShowFloatingBackButton("/restaurant/example")).toBe(true);
+  });
+
   it("provides one shared back button with history fallback handling", () => {
     const source = read("src/components/navigation/BackNavigationButton.tsx");
     const helper = read("src/lib/backNavigation.ts");

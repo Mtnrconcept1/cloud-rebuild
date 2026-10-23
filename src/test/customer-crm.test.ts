@@ -115,6 +115,7 @@ describe("customer CRM", () => {
     expect(dashboardCrm).toContain("isPremiumOrEliteRestaurantSubscription");
     expect(dashboardCrm).toContain("requiresPremiumCrm");
     expect(guard).toContain("Premium ou Élite");
+    expect(guard).toContain('<h1 className="font-display text-2xl font-bold">');
     expect(adminCrm).toContain("CrmAccessGuard");
     expect(guard).toContain("getAuthenticatorAssuranceLevel");
     expect(guard).toContain("listFactors");

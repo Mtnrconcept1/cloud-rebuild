@@ -444,7 +444,7 @@ export default function CrmAccessGuard({
               Abonnement Premium ou Élite requis
             </Badge>
             <div>
-              <h2 className="font-display text-2xl font-bold">CRM clients réservé aux abonnements Premium et Élite</h2>
+              <h1 className="font-display text-2xl font-bold">CRM clients réservé aux abonnements Premium et Élite</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {restaurantName ? `${restaurantName} n'a pas encore accès au CRM Premium.` : "Ce restaurant n'a pas encore accès au CRM Premium."}
                 {" "}Passez à Premium ou Élite pour exploiter les profils clients, habitudes de commande et réservations.
@@ -518,7 +518,7 @@ export default function CrmAccessGuard({
             Données sensibles
           </Badge>
           <div>
-            <h2 className="font-display text-2xl font-bold">{gateTitle}</h2>
+            <h1 className="font-display text-2xl font-bold">{gateTitle}</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">{gateDescription}</p>
           </div>
           <div className="rounded-2xl border bg-background/80 p-4 text-sm text-muted-foreground">
