@@ -178,7 +178,7 @@ function ActualitesBoostBanner({ onSponsorClick }: { onSponsorClick: () => void 
   return (
     <section
       aria-label="Mettre votre restaurant en avant"
-      className="relative isolate overflow-hidden rounded-[1.35rem] bg-[#ff4b00] bg-[image:url('/fondbanniere.png')] bg-cover bg-center shadow-xl shadow-orange-500/20 max-sm:h-[33rem] max-sm:rounded-[1.15rem] max-sm:bg-[image:url('/fondbanniere2.png')] max-[379px]:h-[42rem]"
+      className="relative isolate overflow-hidden rounded-[1.35rem] bg-[#F15D22] bg-[image:url('/fondbanniere.png')] bg-cover bg-center shadow-xl shadow-orange-500/20 max-sm:h-[33rem] max-sm:rounded-[1.15rem] max-sm:bg-[image:url('/fondbanniere2.png')] max-[379px]:h-[42rem]"
     >
       <div className="relative z-10 grid min-h-[22rem] grid-cols-[minmax(0,1.1fr)_minmax(15rem,0.86fr)] gap-4 px-5 pb-5 pt-4 sm:min-h-[20rem] sm:px-6 sm:py-6 md:grid-cols-[minmax(18rem,1.1fr)_minmax(16rem,0.82fr)] md:items-center lg:min-h-[21rem] max-sm:block max-sm:h-full max-sm:min-h-0 max-sm:p-0">
         <div className="relative min-h-[19rem] sm:min-h-[20rem] max-sm:absolute max-sm:inset-0 max-sm:min-h-0">

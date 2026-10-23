@@ -3,12 +3,18 @@ import { describe, expect, it } from "vitest";
 import { getOAuthConsentTargetFromSearch, getPostAuthTargetForRole } from "@/lib/authPostLogin";
 
 describe("post-auth workspace routing", () => {
-  it("sends every production account to the canonical workspace chooser", () => {
-    for (const role of ["client", "admin", "restaurateur", "courier", "commercial"] as const) {
+  it("sends professional accounts to the canonical workspace chooser", () => {
+    for (const role of ["admin", "restaurateur", "courier", "commercial"] as const) {
       expect(getPostAuthTargetForRole(role, null)).toBe("/espaces");
       expect(getPostAuthTargetForRole(role, "/admin/restaurants")).toBe("/espaces");
       expect(getPostAuthTargetForRole(role, "/commercial/demo-live")).toBe("/espaces");
     }
+  });
+
+  it("sends clients to the public homepage instead of their dashboard after launch", () => {
+    expect(getPostAuthTargetForRole("client", null, { launchEnabled: false })).toBe("/");
+    expect(getPostAuthTargetForRole("client", "/mon-espace", { launchEnabled: false })).toBe("/");
+    expect(getPostAuthTargetForRole("client", "/commercial/demo-live", { launchEnabled: false })).toBe("/");
   });
 
   it("resumes a valid OAuth consent flow immediately", () => {

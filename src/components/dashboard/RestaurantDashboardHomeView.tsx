@@ -701,7 +701,7 @@ function ActualitesBoostBanner({ enabled }: { enabled: boolean }) {
 
       <section
         aria-label="Mettre votre restaurant en avant"
-        className="relative isolate hidden overflow-hidden rounded-[1.35rem] bg-[#ff4b00] bg-[image:url('/fondbanniere.png')] bg-cover bg-center shadow-xl shadow-orange-500/20 md:block"
+        className="relative isolate hidden overflow-hidden rounded-[1.35rem] bg-[#F15D22] bg-[image:url('/fondbanniere.png')] bg-cover bg-center shadow-xl shadow-orange-500/20 md:block"
       >
         <div className="relative z-10 grid min-h-[20rem] grid-cols-[minmax(0,1.1fr)_minmax(15rem,0.86fr)] items-center gap-4 px-6 py-6 md:grid-cols-[minmax(18rem,1.1fr)_minmax(16rem,0.82fr)] lg:min-h-[21rem]">
           <div className="relative min-h-[20rem]">

@@ -13,7 +13,7 @@
   --input: 31 17% 81%;
   --muted: 33 26% 94%;
   --muted-foreground: 27 9% 43%;
-  --primary: 17 88% 54%;
+  --primary: 17.101449 88.085106% 53.921569%;
   --primary-foreground: 0 0% 100%;
   --secondary: 31 29% 92%;
   --secondary-foreground: 27 19% 15%;
@@ -21,15 +21,15 @@
   --sidebar-foreground: 27 19% 15%;
   --sidebar-accent: 30 40% 96%;
   --sidebar-accent-foreground: 27 19% 15%;
-  --ring: 17 88% 54%;
+  --ring: 17.101449 88.085106% 53.921569%;
   --workspace-canvas: #f6f2ec;
   --workspace-paper: #fffdfb;
   --workspace-ink: #211a15;
   --workspace-subtle: #75695f;
   --workspace-line: #e7dfd6;
   --workspace-soft: #f7f3ee;
-  --workspace-orange: #f15a24;
-  --workspace-orange-strong: #d84a13;
+  --workspace-orange: var(--tok-brand-orange, #F15D22);
+  --workspace-orange-strong: var(--tok-brand-orange, #F15D22);
   --workspace-apricot: #fff0e4;
   --workspace-sage: #2f6f57;
   --workspace-gutter: clamp(20px, 2.2vw, 34px);
@@ -118,7 +118,7 @@
 .tok-hospitality-workspace .tok-workspace-nav-link:hover { border-color: rgb(216 203 190 / 72%); background: rgb(255 253 250 / 62%); }
 .tok-hospitality-workspace .tok-workspace-nav-link[aria-current="page"] { border-color: transparent; background: linear-gradient(120deg, var(--workspace-orange), var(--workspace-orange-strong)); color: #fff; font-weight: 720; box-shadow: 0 7px 18px rgb(216 74 19 / 17%); }
 .tok-hospitality-workspace .tok-workspace-nav-link[aria-current="page"] svg { color: #fff; }
-.tok-hospitality-workspace .tok-workspace-nav-link[href="/dashboard/photos"]:not([aria-current="page"]) { background: rgb(255 240 228 / 72%); color: #a94318; font-weight: 680; }
+.tok-hospitality-workspace .tok-workspace-nav-link[href="/dashboard/photos"]:not([aria-current="page"]) { background: rgb(255 240 228 / 72%); color: var(--workspace-orange); font-weight: 680; }
 .tok-hospitality-workspace .tok-workspace-sidebar-footer { border-color: #dfd5c9; }
 .tok-hospitality-workspace .tok-workspace-role-switch { padding: 3px 8px 8px; color: #6f6257; font-size: 12px; }
 .tok-hospitality-workspace .tok-workspace-role-switch > summary { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 3px; list-style: none; cursor: pointer; }
@@ -144,7 +144,7 @@
 .tok-hospitality-workspace .tok-workspace-search > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .tok-hospitality-workspace .tok-workspace-search input { min-width: 0; width: 100%; height: 100%; padding: 0; border: 0; outline: 0; background: transparent; color: var(--workspace-ink); font: inherit; }
 .tok-hospitality-workspace .tok-workspace-search:focus-within,
-.tok-hospitality-workspace button.tok-workspace-search:focus-visible { outline: 2px solid rgb(241 90 36 / 45%); outline-offset: 2px; }
+.tok-hospitality-workspace button.tok-workspace-search:focus-visible { outline: 2px solid rgb(241 93 34 / 45%); outline-offset: 2px; }
 .tok-hospitality-workspace .tok-workspace-account { display: flex; align-items: center; gap: 10px; min-height: 42px; max-width: 220px; padding-left: 14px; border-left: 1px solid var(--workspace-line); font-size: 12px; }
 .tok-hospitality-workspace .tok-workspace-account > div { min-width: 0; }
 .tok-hospitality-workspace .tok-workspace-account p { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -238,7 +238,7 @@
 .tok-hospitality-workspace .tok-customer-page-hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgb(255 253 249 / 100%) 0%, rgb(255 253 249 / 99%) 42%, rgb(255 253 249 / 92%) 58%, rgb(255 253 249 / 52%) 72%, rgb(255 253 249 / 8%) 88%); }
 .tok-hospitality-workspace .tok-customer-hero-row { display: grid; min-height: 352px; grid-template-columns: minmax(0, 1.88fr) minmax(300px, .92fr); gap: 18px; align-items: stretch; }
 .tok-hospitality-workspace .tok-customer-page-hero__copy { position: relative; display: flex; min-width: 0; min-height: 350px; flex-direction: column; justify-content: center; padding: clamp(30px, 4vw, 54px); }
-.tok-hospitality-workspace .tok-customer-page-hero__eyebrow { align-self: flex-start; margin-bottom: 16px; padding: 8px 12px; border: 1px solid #e9c9b3; border-radius: 999px; background: rgb(255 255 255 / 94%); color: #8f3817; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; box-shadow: 0 5px 16px rgb(68 43 21 / 5%); backdrop-filter: blur(8px); }
+.tok-hospitality-workspace .tok-customer-page-hero__eyebrow { align-self: flex-start; margin-bottom: 16px; padding: 8px 12px; border: 1px solid #e9c9b3; border-radius: 999px; background: rgb(255 255 255 / 94%); color: var(--workspace-orange); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; box-shadow: 0 5px 16px rgb(68 43 21 / 5%); backdrop-filter: blur(8px); }
 .tok-hospitality-workspace .tok-customer-page-hero h1 { max-width: 760px; margin: 0; color: var(--workspace-ink); font-size: clamp(38px, 4vw, 64px); font-weight: 560; line-height: 1; text-wrap: balance; }
 .tok-hospitality-workspace .tok-customer-page-hero__subtitle { margin-top: 12px; color: #4a4038; font-size: clamp(15px, 1.5vw, 19px); font-weight: 680; }
 .tok-hospitality-workspace .tok-customer-page-hero__description { max-width: min(64%, 620px); margin-top: 14px; color: #443a32; font-size: clamp(16px, .28vw + 15px, 18px); font-weight: 540; line-height: 1.58; text-wrap: pretty; }
@@ -302,7 +302,7 @@
 .dark .tok-hospitality-workspace .tok-workspace-nav-link { color: #d6c8ba; }
 .dark .tok-hospitality-workspace .tok-workspace-nav-link:hover { border-color: #55473a; background: #392f27; }
 .dark .tok-hospitality-workspace .tok-workspace-nav-link[aria-current="page"] { color: #fff; }
-.dark .tok-hospitality-workspace .tok-workspace-nav-link[href="/dashboard/photos"]:not([aria-current="page"]) { background: #452919; color: #ffb989; }
+.dark .tok-hospitality-workspace .tok-workspace-nav-link[href="/dashboard/photos"]:not([aria-current="page"]) { background: #452919; color: var(--workspace-orange); }
 .dark .tok-hospitality-workspace :is(.tok-workspace-nav-section, .tok-workspace-sidebar-footer, .tok-workspace-account) { border-color: var(--workspace-line); }
 .dark .tok-hospitality-workspace .tok-hospitality-hero-copy,
 .dark .tok-hospitality-workspace .tok-hospitality-hero-console,
@@ -362,8 +362,19 @@
   .tok-client-shell { display: block; }
   .tok-client-shell .tok-workspace-toolbar { position: relative; min-height: 0; gap: 9px; padding: 10px 14px; flex-wrap: wrap; }
   .tok-client-shell .tok-workspace-toolbar > div:first-child { flex-basis: 100%; order: 2; }
-  .tok-client-shell .tok-workspace-toolbar-actions { margin-left: auto; gap: 6px; flex-wrap: nowrap; }
-  .tok-client-shell .tok-workspace-toolbar::before { content: "Mon espace TOK"; min-width: 0; font: 650 17px var(--workspace-serif); white-space: nowrap; }
+  .tok-client-shell .tok-workspace-toolbar-actions { width: 100%; margin-left: auto; gap: 6px; flex-wrap: nowrap; }
+  .tok-client-shell .tok-client-toolbar-logo {
+    display: inline-flex;
+    width: 76px;
+    height: 44px;
+    flex: 0 0 76px;
+    align-items: center;
+    justify-content: center;
+    margin-right: auto;
+    border-radius: 10px;
+    outline-offset: 3px;
+  }
+  .tok-client-shell .tok-client-toolbar-logo:focus-visible { outline: 2px solid var(--workspace-orange); }
   .tok-client-shell .tok-client-toolbar-help { display: none; }
   .tok-hospitality-workspace .tok-workspace-search { width: 100%; }
   .tok-hospitality-workspace .tok-workspace-account { max-width: 170px; padding-left: 0; border: 0; }
@@ -400,7 +411,7 @@
   .tok-dashboard-shell .tok-dashboard-access-notice__layout { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 0.75rem; }
   .tok-dashboard-shell .tok-dashboard-access-notice__icon { width: 2.5rem; height: 2.5rem; border-radius: 0.875rem; }
   .tok-dashboard-shell .tok-dashboard-access-notice__icon svg { width: 1.25rem; height: 1.25rem; }
-  .tok-dashboard-shell .tok-dashboard-access-notice__summary { cursor: pointer; color: #9a4a12; font-size: 0.75rem; font-weight: 700; }
+  .tok-dashboard-shell .tok-dashboard-access-notice__summary { cursor: pointer; color: var(--workspace-orange); font-size: 0.75rem; font-weight: 700; }
   .tok-dashboard-shell .tok-dashboard-access-notice__summary::marker { color: #d97706; }
 }
 

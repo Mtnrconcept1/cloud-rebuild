@@ -12,5 +12,5 @@ describe('server launch clock',()=>{
    expect(getPostAuthTargetForRole('client',null,{launchEnabled:true})).toBe('/coming-soon');
    expect(getPostAuthTargetForRole('restaurateur',null,{launchEnabled:true})).toBe('/espaces');
  });
- it('keeps admin and open launch routing intact',()=>{expect(getPostAuthTargetForRole('admin',null,{launchEnabled:true})).toBe('/espaces');expect(getPostAuthTargetForRole('client',null,{launchEnabled:false})).toBe('/espaces');});
+ it('keeps admin and open launch routing intact',()=>{expect(getPostAuthTargetForRole('admin',null,{launchEnabled:true})).toBe('/espaces');expect(getPostAuthTargetForRole('client',null,{launchEnabled:false})).toBe('/');});
 });

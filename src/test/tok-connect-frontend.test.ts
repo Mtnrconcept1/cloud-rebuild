@@ -68,7 +68,7 @@ describe("TOK Connect frontend integration", () => {
 
     expect(css).toContain("::selection");
     expect(css).toContain("::-moz-selection");
-    expect(css).toContain("rgba(255, 106, 26, 0.82)");
+    expect(css).toContain("rgba(241, 93, 34, 0.82)");
     expect(css).toContain(".dark ::selection");
     expect(css).toContain("rgba(255, 170, 64, 0.92)");
   });

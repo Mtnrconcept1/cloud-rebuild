@@ -209,6 +209,7 @@ async function renderAuth(route: string) {
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route path="/espaces" element={<div>Workspace available</div>} />
+        <Route path="/" element={<div>Homepage available</div>} />
         <Route path="/coming-soon" element={<div>Launch countdown</div>} />
       </Routes>
     </MemoryRouter>,
@@ -517,7 +518,7 @@ describe("Auth signup form", () => {
   });
 
   it.each([
-    { enabled: false, expected: "Workspace available" },
+    { enabled: false, expected: "Homepage available" },
     { enabled: true, expected: "Launch countdown" },
   ])("routes an authenticated client signup according to launch status ($enabled)", async ({ enabled, expected }) => {
     launchGateMock.enabled = enabled;
@@ -930,6 +931,7 @@ describe("Auth signup form", () => {
         <Routes>
           <Route path="/auth" element={<Auth />} />
         <Route path="/espaces" element={<div>Workspace available</div>} />
+        <Route path="/" element={<div>Homepage available</div>} />
         <Route path="/coming-soon" element={<div>Launch countdown</div>} />
         </Routes>
       </MemoryRouter>,
