@@ -22,6 +22,7 @@ export default {
       fontFamily: {
         sans: ["DM Sans", "system-ui", "sans-serif"],
         display: ["Playfair Display", "serif"],
+        dashboard: ["Playball", "Playfair Display", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",

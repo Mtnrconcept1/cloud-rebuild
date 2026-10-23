@@ -127,7 +127,7 @@ function CourierHomePresentation({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <h1 className="font-display text-3xl font-bold">Vue d'ensemble</h1>
+              <h1 className="font-dashboard text-3xl font-bold">Vue d'ensemble</h1>
               <Badge className={viewModel.approvalTone}>{viewModel.approvalLabel}</Badge>
             </div>
             <p className="text-sm text-muted-foreground">

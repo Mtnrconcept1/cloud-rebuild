@@ -83,7 +83,7 @@ function LiveCourierEarnings() {
       <div className="space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
-            <h1 className="font-display text-3xl font-bold">Mes gains</h1>
+            <h1 className="font-dashboard text-3xl font-bold">Mes gains</h1>
             <p className="text-sm text-muted-foreground">
               Historique des courses, pourboires, bonus et ajustements.
             </p>

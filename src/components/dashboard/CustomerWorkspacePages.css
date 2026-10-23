@@ -46,7 +46,7 @@
 .tok-hospitality-workspace .tok-customer-notifications h1 {
   max-width: 780px;
   color: var(--customer-ink);
-  font-family: var(--workspace-serif);
+  font-family: var(--workspace-dashboard-title);
   font-size: clamp(38px, 4vw, 64px);
   font-weight: 560;
   line-height: 1;

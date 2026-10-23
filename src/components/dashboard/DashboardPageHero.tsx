@@ -108,7 +108,7 @@ export default function DashboardPageHero({
                 <Icon className={cn("h-8 w-8", compact && "h-6 w-6")} />
               </div>
               <div className="min-w-0 space-y-3">
-                <h1 className={cn("font-display text-3xl font-bold leading-tight tracking-tight text-foreground dark:text-white sm:text-5xl", compact && "text-2xl sm:text-3xl")}>
+                <h1 className={cn("font-dashboard text-3xl font-bold leading-tight tracking-normal text-foreground dark:text-white sm:text-5xl", compact && "text-2xl sm:text-3xl")}>
                   {title}
                 </h1>
                 <p className={cn("max-w-3xl text-sm leading-7 text-muted-foreground dark:text-slate-100/80 sm:text-base", compact && "leading-6")}>

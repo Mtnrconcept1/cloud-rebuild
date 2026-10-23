@@ -82,7 +82,7 @@ export default function AdminSecurityCenter() {
           <ShieldAlert className="h-5 w-5" />
           <span className="text-sm font-semibold">Administration TOK</span>
         </div>
-        <h1 className="mt-2 text-2xl font-bold">Centre de sécurité</h1>
+        <h1 className="mt-2 font-dashboard text-2xl font-bold">Centre de sécurité</h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
           Surveillance, preuves et assistance à la résolution. Les correctifs sont préparés
           sur une branche isolée après votre approbation renforcée, jamais appliqués directement en production.

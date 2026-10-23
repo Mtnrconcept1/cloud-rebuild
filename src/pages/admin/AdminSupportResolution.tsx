@@ -239,7 +239,7 @@ const linkedOpsIncidents = useMemo<OpsIncidentSummary[]>(() => {
           <Bot className="h-4 w-4" />
           TOK Support & Resolution
         </div>
-        <h1 className="mt-3 font-display text-3xl font-bold">
+        <h1 className="mt-3 font-dashboard text-3xl font-bold">
           Diagnostiquer puis résoudre avec validation
         </h1>
         <p className="mt-3 max-w-4xl text-muted-foreground">

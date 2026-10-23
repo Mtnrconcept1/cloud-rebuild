@@ -234,7 +234,7 @@ export default function AdminGuardian({ embedded = false }: { embedded?: boolean
           <Shield className="h-4 w-4" />
           TOK Guardian
         </div>
-        <h1 className="mt-3 font-display text-3xl font-bold">
+        <h1 className="mt-3 font-dashboard text-3xl font-bold">
           Observer, comprendre, vérifier
         </h1>
         <p className="mt-3 max-w-4xl text-muted-foreground">
