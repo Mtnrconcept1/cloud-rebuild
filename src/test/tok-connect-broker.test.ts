@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { webcrypto } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { handleTokConnectBroker, resolveTokConnectBrokerAccess, tokBrokerChallenge, tokBrokerHash, TOK_BROKER_ISSUER, TOK_BROKER_RESOURCE, type TokBrokerDependencies } from "../../supabase/functions/_shared/tok-connect-broker";
@@ -139,11 +140,17 @@ describe("TOK OAuth broker boundary", () => {
   it("exposes only opaque credentials, encrypts native tokens and resolves them only server-side", async () => {
     const h = harness(), pair = await h.issue();
     expect(Object.keys(pair).sort()).toEqual(["access_token", "expires_in", "refresh_token", "scope", "token_type"]);
-    expect(pair.access_token).toMatch(/^tok_oa_[0-9a-f]{64}$/); expect(pair.refresh_token).toMatch(/^tok_or_[0-9a-f]{64}$/); expect(pair.expires_in).toBeLessThanOrEqual(300);
+    expect(pair.access_token).toMatch(/^tok_oa_[0-9a-f]{64}$/); expect(pair.refresh_token).toMatch(/^tok_or_[0-9a-f]{64}$/);
+    expect(pair.expires_in).toBeGreaterThan(300); expect(pair.expires_in).toBeLessThanOrEqual(3600);
     expect(JSON.stringify(pair)).not.toContain(h.native()); expect(JSON.stringify(pair)).not.toContain(NATIVE_REFRESH);
     const row = [...h.sessions.values()][0]; expect(row.p_supabase_access_ciphertext).not.toContain(h.native());
     expect(await resolveTokConnectBrokerAccess(h.deps.admin, pair.access_token)).toEqual({ accessToken: h.native(), userId: USER, clientId: CLIENT });
     await expect(resolveTokConnectBrokerAccess(h.deps.admin, h.native())).rejects.toMatchObject({ status: 401 });
+  });
+  it("keeps ChatGPT outside the eager refresh window without extending the native JWT", async () => {
+    const h = harness(), pair = await h.issue();
+    expect(pair.expires_in).toBeGreaterThanOrEqual(3500);
+    expect(pair.expires_in).toBeLessThanOrEqual(3600);
   });
   it("rejects native plain PKCE even if the client bypassed broker authorize", async () => {
     const h = harness(); await h.register(); h.plain(); h.transport.mockClear();

@@ -57,6 +57,7 @@ CREATE FUNCTION public.fixture_sensitive_rpc() RETURNS bigint LANGUAGE sql SECUR
 GRANT EXECUTE ON FUNCTION public.fixture_sensitive_rpc(), public.fixture_assert(boolean,text), public.fixture_expect_error(text,text) TO authenticated, service_role;
 
 \ir ../../supabase/migrations/20261018142000_tok_connect_oauth_delegation.sql
+\ir ../../supabase/migrations/20261023043000_tok_connect_broker_access_lifetime.sql
 
 SELECT public.fixture_assert(EXISTS (SELECT 1 FROM pg_db_role_setting s JOIN pg_roles r ON r.oid=s.setrole,
   LATERAL unnest(s.setconfig) AS config(value) WHERE r.rolname='authenticator'
@@ -97,13 +98,13 @@ SELECT public.fixture_expect_error($q$SELECT public.service_get_tok_connect_brok
 SELECT public.fixture_expect_error($q$SELECT public.service_resolve_tok_connect_broker_access(repeat('1',64))$q$,'42501');
 
 SET ROLE service_role;
-SELECT public.service_create_tok_connect_broker_session('50000000-0000-4000-8000-000000000001','client-a','00000000-0000-4000-8000-000000000001',repeat('1',64),repeat('2',64),repeat('x',64),repeat('y',64),now()+interval '5 minutes');
+SELECT public.service_create_tok_connect_broker_session('50000000-0000-4000-8000-000000000001','client-a','00000000-0000-4000-8000-000000000001',repeat('1',64),repeat('2',64),repeat('x',64),repeat('y',64),now()+interval '59 minutes');
 SELECT public.fixture_assert(public.service_resolve_tok_connect_broker_access(repeat('1',64))->>'user_id' = '00000000-0000-4000-8000-000000000001', 'opaque binding');
 SELECT public.fixture_assert(public.service_claim_tok_connect_broker_refresh(repeat('2',64),'client-b','60000000-0000-4000-8000-000000000001') IS NULL, 'refresh cross-client denied');
 SELECT public.fixture_assert(public.service_claim_tok_connect_broker_refresh(repeat('2',64),'client-a','60000000-0000-4000-8000-000000000001') IS NOT NULL, 'refresh claim succeeds once');
 SELECT public.fixture_assert(public.service_resolve_tok_connect_broker_access(repeat('1',64)) IS NULL, 'access closed during uncertain refresh');
 SELECT public.fixture_assert(NOT public.service_rotate_tok_connect_broker_refresh('50000000-0000-4000-8000-000000000001','60000000-0000-4000-8000-000000000002',repeat('3',64),repeat('4',64),repeat('x',64),repeat('y',64),now()+interval '5 minutes'), 'wrong CAS claim cannot rotate');
-SELECT public.fixture_assert(public.service_rotate_tok_connect_broker_refresh('50000000-0000-4000-8000-000000000001','60000000-0000-4000-8000-000000000001',repeat('3',64),repeat('4',64),repeat('x',64),repeat('y',64),now()+interval '5 minutes'), 'claimed refresh rotates');
+SELECT public.fixture_assert(public.service_rotate_tok_connect_broker_refresh('50000000-0000-4000-8000-000000000001','60000000-0000-4000-8000-000000000001',repeat('3',64),repeat('4',64),repeat('x',64),repeat('y',64),now()+interval '59 minutes'), 'claimed refresh rotates with ChatGPT-compatible lifetime');
 SELECT public.fixture_assert(public.service_resolve_tok_connect_broker_access(repeat('1',64)) IS NULL AND public.service_resolve_tok_connect_broker_access(repeat('3',64)) IS NOT NULL, 'rotation invalidates previous access');
 SELECT public.fixture_assert(public.service_claim_tok_connect_broker_refresh(repeat('2',64),'client-a','60000000-0000-4000-8000-000000000003') IS NULL, 'old refresh replay denied');
 SELECT public.fixture_assert(public.service_resolve_tok_connect_broker_access(repeat('3',64)) IS NULL AND public.service_claim_tok_connect_broker_refresh(repeat('4',64),'client-a','60000000-0000-4000-8000-000000000003') IS NULL, 'replay revokes descendants');

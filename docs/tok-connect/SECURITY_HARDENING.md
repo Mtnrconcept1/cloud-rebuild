@@ -36,8 +36,10 @@ dans Git ne prouve ni leur déploiement ni la révocation des anciennes connexio
 
 Le broker crée chez Supabase un client confidentiel et conserve son secret côté
 serveur. Le client externe ne reçoit ni ce secret ni les jetons natifs Supabase.
-Les access tokens opaques TOK expirent en cinq minutes au maximum. Les secrets
-natifs sont chiffrés en AES-256-GCM avec un IV aléatoire, une version d’enveloppe et
+Les access tokens opaques TOK expirent en une heure au maximum, et jamais après
+l'expiration absolue du JWT Supabase sous-jacent. Cette durée évite que ChatGPT
+considère immédiatement chaque jeton comme déjà à renouveler. Les secrets natifs
+sont chiffrés en AES-256-GCM avec un IV aléatoire, une version d’enveloppe et
 une donnée associée propre au client ou à la session. Les jetons opaques sont
 stockés sous forme de hash.
 
