@@ -200,7 +200,7 @@ function LiveCourierProfile() {
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-3xl font-bold">Mon profil coursier</h1>
+                <h1 className="font-dashboard text-3xl font-bold">Mon profil coursier</h1>
                 <Badge className={approvalMeta?.tone}>{approvalMeta?.label || profile?.status}</Badge>
               </div>
               <p className="text-sm text-muted-foreground">{user?.email}</p>

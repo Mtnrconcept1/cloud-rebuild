@@ -176,7 +176,7 @@ function LiveCourierJobs() {
     <CourierDashboardLayout>
       <div className="space-y-6">
         <div className="space-y-2">
-          <h1 className="font-display text-3xl font-bold">Missions</h1>
+          <h1 className="font-dashboard text-3xl font-bold">Missions</h1>
           <p className="text-sm text-muted-foreground">
             Offres en attente, livraisons actives et historique récent.
           </p>

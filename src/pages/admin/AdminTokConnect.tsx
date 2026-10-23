@@ -223,7 +223,7 @@ export default function AdminTokConnect() {
           <div className="flex items-center gap-2 text-sm font-bold text-primary">
             <ShieldCheck className="h-4 w-4" />Administration
           </div>
-          <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">Supervision TOK Connect</h1>
+          <h1 className="mt-1 font-dashboard text-3xl font-black tracking-normal sm:text-4xl">Supervision TOK Connect</h1>
           <p className="mt-2 max-w-3xl text-sm text-muted-foreground sm:text-base">
             Gérez les restaurants accessibles depuis ChatGPT avec des noms compréhensibles. Les identifiants techniques restent cachés sauf dans le diagnostic avancé.
           </p>
