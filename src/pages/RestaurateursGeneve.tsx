@@ -338,14 +338,14 @@ export default function RestaurateursGeneve() {
             </div>
           </div>
 
-          <div className="min-w-0 overflow-hidden rounded-3xl border-2 border-[#ff4b00] bg-white text-slate-950 shadow-2xl">
-            <p className="bg-[#ff4b00] px-6 py-4 text-xl font-black text-white">Une table servie. Un prix fixe.</p>
+          <div className="min-w-0 overflow-hidden rounded-3xl border-2 border-[#F15D22] bg-white text-slate-950 shadow-2xl">
+            <p className="bg-[#F15D22] px-6 py-4 text-xl font-black text-white">Une table servie. Un prix fixe.</p>
             <div className="space-y-5 p-6">
-              <p className="text-5xl font-black tracking-tight text-[#c93600]">5 CHF <span className="text-xl text-slate-950">/ table</span></p>
+              <p className="text-5xl font-black tracking-tight text-[#F15D22]">5 CHF <span className="text-xl text-slate-950">/ table</span></p>
               <p className="text-base leading-7">2, 4 ou 8 personnes à la même table ? Les frais de réservation restent de <strong>5 CHF pour ce groupe</strong>, en plus de l'abonnement.</p>
               <div className="rounded-2xl bg-orange-50 p-4">
                 <p className="text-sm font-bold">Exemple : 10 tables servies avec le pack Starter</p>
-                <p className="mt-2 break-words text-2xl font-black">69 + (10 × 5) = <span className="text-[#c93600]">119 CHF / mois</span></p>
+                <p className="mt-2 break-words text-2xl font-black">69 + (10 × 5) = <span className="text-[#F15D22]">119 CHF / mois</span></p>
                 <p className="mt-2 text-sm text-slate-600">Abonnement + réservations. Hors commandes et autres frais éventuels.</p>
               </div>
               <a href="#simulation" className="inline-flex items-center gap-2 font-bold text-[#b53000] underline underline-offset-4">Calculer avec mes chiffres <ArrowRight className="h-4 w-4" /></a>
@@ -438,14 +438,14 @@ export default function RestaurateursGeneve() {
         <div className="mx-auto max-w-7xl space-y-8">
           <div className="space-y-4">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-600">Plan d'activation Genève</p>
-            <h2 className="max-w-4xl text-3xl font-black tracking-tight md:text-5xl">Vos ventes d'un côté.<br /><span className="text-[#c93600]">Votre coût TOK de l'autre.</span></h2>
+            <h2 className="max-w-4xl text-3xl font-black tracking-tight md:text-5xl">Vos ventes d'un côté.<br /><span className="text-[#F15D22]">Votre coût TOK de l'autre.</span></h2>
             <p className="max-w-3xl leading-7 text-slate-700">
               Entrez votre activité mensuelle pour voir chaque multiplication et chaque total. Cette simulation décrit vos hypothèses : elle ne prédit pas les clients que TOK vous apportera.
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-3xl border-2 border-[#ff4b00] bg-white shadow-xl shadow-orange-950/5">
-            <div className="bg-[#ff4b00] px-5 py-5 text-white sm:px-8">
+          <div className="overflow-hidden rounded-3xl border-2 border-[#F15D22] bg-white shadow-xl shadow-orange-950/5">
+            <div className="bg-[#F15D22] px-5 py-5 text-white sm:px-8">
               <h3 className="text-2xl font-black">1. Vos chiffres pour un mois</h3>
               <p className="mt-1 text-sm font-semibold text-slate-950">Modifiez les cases : les résultats s'actualisent juste en dessous.</p>
             </div>
@@ -485,10 +485,10 @@ export default function RestaurateursGeneve() {
               <h3 className="text-2xl font-black">2. Vos ventes simulées, calculées étape par étape</h3>
               <div className="grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
                 <RevenueStep title="Repas à table" calculation={`${tablesPerMonth.toLocaleString("fr-CH")} tables × ${formatChf(averageTicket)}`} result={formatChf(tablesPerMonth * averageTicket)} />
-                <span aria-hidden="true" className="self-center text-center text-4xl font-black text-[#c93600]">+</span>
+                <span aria-hidden="true" className="self-center text-center text-4xl font-black text-[#F15D22]">+</span>
                 <RevenueStep title="Commandes" calculation={`${ordersPerMonth.toLocaleString("fr-CH")} commandes × ${formatChf(averageOrder)}`} result={formatChf(ordersPerMonth * averageOrder)} />
               </div>
-              <div className="min-w-0 rounded-2xl bg-[#ff4b00] p-5 text-white sm:p-7">
+              <div className="min-w-0 rounded-2xl bg-[#F15D22] p-5 text-white sm:p-7">
                 <p className="text-lg font-bold">= Total des ventes simulées / mois</p>
                 <p className="mt-2 break-words text-4xl font-black tracking-tight [overflow-wrap:anywhere] sm:text-5xl">{formatChf(activation.monthlyRevenue)}</p>
                 <p className="mt-3 text-sm font-semibold leading-6 text-slate-950">Ventes brutes avant vos charges et les frais. Ce montant n'est ni un bénéfice, ni une économie, ni une facture TOK.</p>
@@ -496,7 +496,7 @@ export default function RestaurateursGeneve() {
               <div className="rounded-2xl border-2 border-orange-200 p-5 sm:p-6">
                 <h3 className="text-xl font-black">3. Le coût TOK pour ces réservations</h3>
                 <p className="mt-3 break-words text-lg font-bold leading-8">{formatChf(activation.packConfig.monthlyFee)} d'abonnement + ({tablesPerMonth.toLocaleString("fr-CH")} tables × {formatChf(RESERVATION_FLAT_FEE_CHF)})</p>
-                <p className="mt-2 break-words text-3xl font-black text-[#c93600] [overflow-wrap:anywhere] sm:text-4xl">= {formatChf(activation.packConfig.monthlyFee + tablesPerMonth * RESERVATION_FLAT_FEE_CHF)} / mois</p>
+                <p className="mt-2 break-words text-3xl font-black text-[#F15D22] [overflow-wrap:anywhere] sm:text-4xl">= {formatChf(activation.packConfig.monthlyFee + tablesPerMonth * RESERVATION_FLAT_FEE_CHF)} / mois</p>
                 <p className="mt-3 text-sm leading-6 text-slate-600">Pack {activation.packConfig.label} + frais des tables réellement servies. Hors frais des commandes, de livraison, de paiement et prestations supplémentaires. Une annulation ou une absence ne déclenche pas les 5 CHF ; l'abonnement reste dû.</p>
               </div>
             </div>

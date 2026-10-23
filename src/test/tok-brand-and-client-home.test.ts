@@ -16,6 +16,13 @@ describe("TOK brand orange and client navigation", () => {
     expect(dashboardTheme).toContain("--workspace-orange-strong: var(--tok-brand-orange, #F15D22);");
     expect(tailwind).toContain('const TOK_BRAND_ORANGE = "#F15D22";');
     expect(tailwind).toContain("500: TOK_BRAND_ORANGE,");
+    for (const path of [
+      "src/pages/RestaurateursGeneve.tsx",
+      "src/pages/Actualites.tsx",
+      "src/components/dashboard/RestaurantDashboardHomeView.tsx",
+    ]) {
+      expect(source(path).toLowerCase()).not.toContain("#ff4b00");
+    }
   });
 
   it("makes the real TOK logo a homepage link in the client toolbar, including mobile", () => {
