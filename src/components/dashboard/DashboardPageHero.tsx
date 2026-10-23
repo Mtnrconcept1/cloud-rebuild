@@ -93,7 +93,13 @@ export default function DashboardPageHero({
   const displayStats = stats;
 
   return (
-    <Card data-compact={compact} data-has-stats={displayStats.length > 0} className={cn("tok-dashboard-hero rounded-3xl border border-border/70", className)} style={getTokHeroStyle(pageVisual?.hero)}>
+    <Card
+      data-compact={compact}
+      data-has-illustration={Boolean(currentIllustration)}
+      data-has-stats={displayStats.length > 0}
+      className={cn("tok-dashboard-hero rounded-3xl border border-border/70", className)}
+      style={getTokHeroStyle(pageVisual?.hero)}
+    >
       <CardContent className={cn("tok-hospitality-hero-layout relative p-5 sm:p-7 lg:p-8", compact && "p-4 sm:p-5 lg:p-6")}>
         <div className={cn("tok-hospitality-hero-grid grid items-center gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,24rem)]", compact && "gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(17rem,21rem)]")}>
           <div className={cn("tok-hospitality-hero-copy relative z-10 min-w-0 space-y-6", compact && "space-y-3")}>
@@ -117,16 +123,9 @@ export default function DashboardPageHero({
               </div>
             </div>
             {actions ? <div className="tok-action-row flex flex-wrap gap-3">{actions}</div> : null}
-            {currentIllustration ? (
-              <DashboardIllustrationMedia
-                eager
-                illustration={currentIllustration}
-                className={cn("mx-auto h-32 w-32 lg:hidden", compact && "h-28 w-28")}
-              />
-            ) : null}
           </div>
 
-          <div className="tok-hospitality-hero-console relative z-10 hidden lg:block">
+          <div className="tok-hospitality-hero-console relative z-10">
             <div className={cn("absolute inset-x-2 top-0 h-1 rounded-full bg-gradient-to-r", toneClasses.line)} />
             <div className={cn(
               "tok-hospitality-console-panel relative mt-6 w-full rounded-3xl border border-[#6b7da7]/35 bg-white/80 p-5 backdrop-blur dark:bg-[#07142b]/74",
@@ -180,7 +179,8 @@ export default function DashboardPageHero({
                   <DashboardIllustrationMedia
                     eager
                     illustration={currentIllustration}
-                    className={cn("h-36 w-36", compact && "h-28 w-28")}
+                    className={cn("tok-hospitality-illustration-stage h-40 w-40", compact && "h-32 w-32")}
+                    imageClassName="tok-hospitality-illustration-image"
                   />
                 ) : (
                 <div aria-hidden="true" className="mt-5 grid grid-cols-5 items-end gap-2">

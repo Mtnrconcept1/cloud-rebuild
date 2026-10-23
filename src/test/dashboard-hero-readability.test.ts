@@ -28,4 +28,27 @@ describe("dashboard hero readability", () => {
     expect(styles).toMatch(/\.tok-hospitality-hero-copy::after[^}]*99%\) 42%[^}]*92%\) 58%/);
     expect(styles).toMatch(/\.tok-customer-page-hero::after[^}]*99%\) 42%[^}]*92%\) 58%/);
   });
+
+  it("keeps the restaurant illustration prominent from desktop to narrow mobile", () => {
+    const component = readSource("src/components/dashboard/DashboardPageHero.tsx");
+    const styles = readSource("src/components/dashboard/WorkspaceDesign.css");
+
+    expect(component).toContain("data-has-illustration={Boolean(currentIllustration)}");
+    expect(component).toContain("tok-hospitality-illustration-stage");
+    expect(styles).toMatch(/\.tok-hospitality-summary-layout[^}]*minmax\(142px, \.9fr\)/);
+    expect(styles).toMatch(/\.tok-hospitality-illustration-stage[^}]*overflow:\s*visible/);
+    expect(styles).toMatch(/@media \(max-width: 920px\) and \(min-width: 768px\)[\s\S]*grid-template-columns:\s*repeat\(auto-fit, minmax\(100px, 1fr\)\)/);
+    expect(styles).toMatch(/@media \(max-width: 420px\)[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\) 104px/);
+    expect(styles).toMatch(/@media \(max-width: 420px\)[\s\S]*width:\s*104px[^}]*max-height:\s*126px/);
+  });
+
+  it("uses a crisp dedicated mobile photo band on both dashboard surfaces", () => {
+    const styles = readSource("src/components/dashboard/WorkspaceDesign.css");
+    const mobileStyles = styles.split("@media (max-width: 767px)")[1]?.split("@media (min-width: 640px)")[0] ?? "";
+
+    expect(mobileStyles).toMatch(/\.tok-hospitality-hero-copy::before[^}]*height:\s*218px[^}]*saturate\(1\.12\) contrast\(1\.04\)/);
+    expect(mobileStyles).toMatch(/\.tok-customer-page-hero::before[^}]*height:\s*218px[^}]*saturate\(1\.12\) contrast\(1\.04\)/);
+    expect(mobileStyles).toMatch(/\.tok-hospitality-hero-copy::after[^}]*0%\) 38%[^}]*96%\) 56%[^}]*100%\) 64%/);
+    expect(mobileStyles).toMatch(/\.tok-customer-page-hero::after[^}]*0%\) 38%[^}]*96%\) 56%[^}]*100%\) 64%/);
+  });
 });
