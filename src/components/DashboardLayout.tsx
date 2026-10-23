@@ -601,21 +601,35 @@ export default function DashboardLayout({
             </div>
           ) : null}
           {dashboardAccessLocked ? (
-            <div className="mb-6 rounded-3xl border border-amber-200 bg-amber-50/90 p-5 text-amber-950 shadow-sm dark:border-amber-400/25 dark:bg-amber-500/10 dark:text-amber-50">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-100">
+            <div className="tok-dashboard-access-notice mb-6 rounded-3xl border border-amber-200 bg-amber-50/90 p-5 text-amber-950 shadow-sm dark:border-amber-400/25 dark:bg-amber-500/10 dark:text-amber-50">
+              <div className="tok-dashboard-access-notice__layout flex flex-col gap-3 sm:flex-row sm:items-start">
+                <span className="tok-dashboard-access-notice__icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-400/15 dark:text-amber-100">
                   <ShieldCheck className="h-6 w-6" />
                 </span>
-                <div className="space-y-1">
+                <div className="min-w-0 space-y-1">
                   <p className="font-semibold">Dossier restaurateur en cours de validation</p>
-                  <p className="text-sm text-amber-800 dark:text-amber-100/80">
-                    {dashboardAccessLockReason}
-                  </p>
-                  <p className="text-xs text-amber-700 dark:text-amber-100/70">
-                    {onboardingConfigurationUnlocked
-                      ? "Les onglets de configuration du restaurant sont ouverts. Les outils liés à l'abonnement seront disponibles après l'approbation de l'admin TOK."
-                      : "Enregistrez d'abord votre carte bancaire depuis la vue d'ensemble pour débloquer Menu, Mon restaurant et les autres onglets de configuration."}
-                  </p>
+                  <p className="text-xs text-amber-800 sm:hidden dark:text-amber-100/80">Votre fiche reste privée pendant la validation humaine.</p>
+                  <div className="hidden space-y-1 sm:block">
+                    <p className="text-sm text-amber-800 dark:text-amber-100/80">
+                      {dashboardAccessLockReason}
+                    </p>
+                    <p className="text-xs text-amber-700 dark:text-amber-100/70">
+                      {onboardingConfigurationUnlocked
+                        ? "Les onglets de configuration du restaurant sont ouverts. Les outils liés à l'abonnement seront disponibles après l'approbation de l'admin TOK."
+                        : "Enregistrez d'abord votre carte bancaire depuis la vue d'ensemble pour débloquer Menu, Mon restaurant et les autres onglets de configuration."}
+                    </p>
+                  </div>
+                  <details className="pt-1 sm:hidden">
+                    <summary className="tok-dashboard-access-notice__summary">Voir les détails</summary>
+                    <div className="mt-2 space-y-1 border-t border-amber-200/80 pt-2 dark:border-amber-300/20">
+                      <p className="text-xs leading-relaxed text-amber-800 dark:text-amber-100/80">{dashboardAccessLockReason}</p>
+                      <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-100/70">
+                        {onboardingConfigurationUnlocked
+                          ? "Les onglets de configuration du restaurant sont ouverts. Les outils liés à l'abonnement seront disponibles après l'approbation de l'admin TOK."
+                          : "Enregistrez d'abord votre carte bancaire depuis la vue d'ensemble pour débloquer Menu, Mon restaurant et les autres onglets de configuration."}
+                      </p>
+                    </div>
+                  </details>
                 </div>
               </div>
             </div>

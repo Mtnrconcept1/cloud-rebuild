@@ -229,13 +229,15 @@ describe("pending restaurateur workspace and human-only publication", () => {
     const context = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardContext.tsx"), "utf8");
     const route = readFileSync(resolve(process.cwd(), "src/components/DashboardRoute.tsx"), "utf8");
     const restaurant = readFileSync(resolve(process.cwd(), "src/pages/dashboard/DashboardRestaurant.tsx"), "utf8");
+    const layout = readFileSync(resolve(process.cwd(), "src/components/DashboardLayout.tsx"), "utf8");
 
     expect(context).not.toMatch(/dashboardAccessLocked[\s\S]*lockedFeatures\.add\("dashboard-restaurant"\)/);
     expect(route).toContain("canAccessRestaurantDashboardRoute");
     expect(route).not.toContain('location.pathname === "/dashboard/restaurant"');
     expect(restaurant).toContain('status: "pending"');
     expect(restaurant).toContain("is_active: false");
-    expect(restaurant).toContain("Fiche privée — validation en attente");
+    expect(layout).toContain("Dossier restaurateur en cours de validation");
+    expect(restaurant).not.toContain("Fiche privée — validation en attente");
     expect(restaurant).toContain("createdRestaurantIdRef.current = data.id");
     expect(restaurant).toContain("setSelectedId(data.id)");
   });

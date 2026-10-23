@@ -1,16 +1,12 @@
-const CUSTOMER_SHELL_PATHS = new Set([
-  "/profil",
-  "/commandes",
-  "/reservations",
-  "/notifications",
-  "/commande/confirmation",
-]);
+import { isCustomerWorkspacePath } from "@/lib/customerWorkspaceRoutes";
 
 export function shouldShowFloatingBackButton(pathname: string) {
-  if (pathname === "/" || pathname === "/auth") return false;
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) return false;
-  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) return false;
-  if (pathname === "/courier" || pathname.startsWith("/courier/")) return false;
-  if (CUSTOMER_SHELL_PATHS.has(pathname)) return false;
+  const normalizedPathname = pathname.replace(/\/+$/, "").toLowerCase() || "/";
+
+  if (normalizedPathname === "/" || normalizedPathname === "/auth") return false;
+  if (normalizedPathname === "/admin" || normalizedPathname.startsWith("/admin/")) return false;
+  if (normalizedPathname === "/dashboard" || normalizedPathname.startsWith("/dashboard/")) return false;
+  if (normalizedPathname === "/courier" || normalizedPathname.startsWith("/courier/")) return false;
+  if (isCustomerWorkspacePath(normalizedPathname)) return false;
   return true;
 }

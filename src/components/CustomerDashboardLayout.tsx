@@ -244,7 +244,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
               {itemCount > 0 ? <span aria-hidden="true" className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">{itemCount}</span> : null}
             </Link>
           ) : null}
-          {!commercialDemoFrame ? <ChefHelpButton surface="client" compact className="h-11 w-11" /> : null}
+          {!commercialDemoFrame ? <ChefHelpButton surface="client" compact className="tok-client-toolbar-help h-11 w-11" /> : null}
           {!commercialDemoFrame ? <WorkspaceAccountLink to="/profil?tab=infos" /> : null}
         </WorkspaceToolbar>
         <nav aria-label="Navigation de l’espace client" className="tok-client-mobile-nav px-3 pt-3 md:hidden">

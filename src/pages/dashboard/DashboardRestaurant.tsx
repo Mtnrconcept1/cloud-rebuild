@@ -102,7 +102,7 @@ function formatDashboardPromotionEndDate(endAt: string) {
 
 export default function DashboardRestaurant() {
   const { user } = useAuth();
-  const { selectedId, setSelectedId, dashboardAccessLocked, dashboardAccessLockReason } = useDashboardRestaurant();
+  const { selectedId, setSelectedId } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -468,14 +468,6 @@ export default function DashboardRestaurant() {
   return (
     <DashboardLayout mainClassName="tok-restaurant-page tok-page-restaurant">
       <div className="space-y-6">
-        {dashboardAccessLocked ? (
-          <div className="max-w-3xl rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
-            <p className="font-semibold">Fiche privée — validation en attente</p>
-            <p className="mt-1">
-              {dashboardAccessLockReason || "Cette fiche n'est pas encore publiée dans les recherches clients."}
-            </p>
-          </div>
-        ) : null}
         <DashboardPageHero
           badge="Identite restaurant"
           title={restaurant ? "Mon restaurant" : "Créer mon restaurant"}
