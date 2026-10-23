@@ -54,7 +54,32 @@ describe("homepage semantic search", () => {
   });
   it("uses the known profile city without requesting geolocation", () => {
     render(<MemoryRouter><HeroSection profileCity="Lugano" /></MemoryRouter>);
+    expect(screen.getByRole("textbox", { name: /Où/ })).toHaveValue("Lugano");
     expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "TI");
+  });
+  it("fills the location from a profile loaded after the hero and submits it", () => {
+    const view = render(
+      <MemoryRouter>
+        <HeroSection profileCityPending />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+    view.rerender(
+      <MemoryRouter>
+        <HeroSection profileCity="Neuchâtel" />
+        <LocationProbe />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole("textbox", { name: /Où/ })).toHaveValue("Neuchâtel");
+    fireEvent.submit(screen.getByRole("search"));
+    const result = new URL(screen.getByTestId("location").textContent!, "https://www.thetok.ch");
+    expect(result.searchParams.get("city")).toBe("Neuchâtel");
+  });
+  it("does not replace a location entered before the profile finishes loading", () => {
+    const view = render(<MemoryRouter><HeroSection profileCityPending /></MemoryRouter>);
+    fireEvent.change(screen.getByRole("textbox", { name: /Où/ }), { target: { value: "Lausanne" } });
+    view.rerender(<MemoryRouter><HeroSection profileCity="Lugano" /></MemoryRouter>);
+    expect(screen.getByRole("textbox", { name: /Où/ })).toHaveValue("Lausanne");
   });
   it("only exposes feature-flagged quick links when the corresponding feature is enabled", () => {
     setup(new Set(["ventes-flash", "chefs-table"]));

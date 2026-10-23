@@ -18,6 +18,7 @@ import {
   restaurantMatchesCategoryFilter,
 } from "@/lib/restaurantCategories";
 import { useActiveFeatures } from "@/lib/featureFlags";
+import { useAuth } from "@/lib/auth-context";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
@@ -222,6 +223,7 @@ function toCardProps(r: any) {
 }
 
 export default function Recherche() {
+  const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   const demoSessionKey = isCommercialDemoClient ? commercialDemoFrame.config.sessionId : "production";
@@ -237,6 +239,7 @@ export default function Recherche() {
   const [query, setQuery] = useState(activeQuery);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const cityChangedByVisitor = useRef(searchParams.has("city"));
   const cuisine = searchParams.get("cuisine") || "";
   const city = searchParams.get("city") || "";
   const promo = searchParams.get("promo") || "";
@@ -259,6 +262,27 @@ export default function Recherche() {
   useEffect(() => {
     setQuery(activeQuery);
   }, [activeQuery]);
+
+  const { data: profileCity = null } = useQuery({
+    queryKey: ["search-profile-city", user?.id],
+    enabled: Boolean(user?.id) && !isCommercialDemoClient,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("city")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return String(data?.city || "").trim() || null;
+    },
+  });
+
+  useEffect(() => {
+    if (!profileCity || cityChangedByVisitor.current || searchParams.has("city")) return;
+    const params = new URLSearchParams(searchParams);
+    params.set("city", profileCity);
+    setSearchParams(params, { replace: true });
+  }, [profileCity, searchParams, setSearchParams]);
 
   const {
     data: organicSearchPages,
@@ -390,7 +414,13 @@ export default function Recherche() {
     setSearchParams(params);
   };
 
+  const updateCityFilter = (value: string) => {
+    cityChangedByVisitor.current = true;
+    updateFilter("city", value);
+  };
+
   const clearFilters = () => {
+    cityChangedByVisitor.current = true;
     setSearchParams(new URLSearchParams());
     setQuery("");
   };
@@ -573,8 +603,8 @@ export default function Recherche() {
                 <CityAutocomplete
                   id="search-city"
                   value={city}
-                  onValueChange={(value) => updateFilter("city", value)}
-                  onCitySelect={(selectedCity) => updateFilter("city", selectedCity)}
+                  onValueChange={updateCityFilter}
+                  onCitySelect={updateCityFilter}
                   placeholder="Ville..."
                   className="w-full sm:w-44"
                   inputClassName="h-[44px] text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white dark:placeholder:text-slate-400"

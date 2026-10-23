@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronRight, Heart, Mail, MapPin, Navigation, Percent, Search, ShoppingBag, Users } from "lucide-react";
 
@@ -30,11 +30,18 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [city, setCity] = useState("");
+  const [city, setCity] = useState(() => profileCity?.trim() || "");
+  const cityEditedByVisitor = useRef(false);
   const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
-  // The user's explicit choice outranks saved city; GPS is only a fallback.
-  const selectedCity = city.trim() || profileCity?.trim() || null;
-  const pending = !city.trim() && profileCityPending;
+
+  useEffect(() => {
+    const savedCity = profileCity?.trim();
+    if (savedCity && !cityEditedByVisitor.current) setCity(savedCity);
+  }, [profileCity]);
+
+  // The visitor's explicit choice outranks the saved city; GPS is only a fallback.
+  const selectedCity = city.trim() || (!cityEditedByVisitor.current ? profileCity?.trim() : "") || null;
+  const pending = !city.trim() && !cityEditedByVisitor.current && profileCityPending;
   const canton = selectedCity ? cantonFromPlaceName(selectedCity) : locationCanton;
   const worldArt = !pending ? resolveWorldArt(selectedCity || gpsCity, selectedCity ? null : gpsCountry) : null;
   const cantonImage = !pending && canton ? cantonHeroSrc(canton) : null;
@@ -81,7 +88,18 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
               <label htmlFor="home-city-search">Où ? <span>(facultatif)</span></label>
               <div className="tok-home-hero__input-row">
                 <MapPin aria-hidden="true" />
-                <input id="home-city-search" name="city" type="text" autoComplete="address-level2" value={city} onChange={(event) => setCity(event.target.value)} placeholder="Genève" />
+                <input
+                  id="home-city-search"
+                  name="city"
+                  type="text"
+                  autoComplete="address-level2"
+                  value={city}
+                  onChange={(event) => {
+                    cityEditedByVisitor.current = true;
+                    setCity(event.target.value);
+                  }}
+                  placeholder="Genève"
+                />
               </div>
             </div>
             <button type="submit" className="tok-home-hero__cta">
