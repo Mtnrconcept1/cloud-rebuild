@@ -431,6 +431,41 @@ describe("human-approved Telegram and Codex incident automation", () => {
     expect(edgeFunction).toContain('const CODEX_REPAIR_EFFORT = "high"');
   });
 
+  it("accepts only authenticated, idempotent Telegram text requests for Codex", () => {
+    const edgeFunction = readProjectFile(
+      "supabase/functions/ops-incident-control/index.ts",
+    );
+    const workflow = readProjectFile(
+      ".github/workflows/incident-codex-repair.yml",
+    );
+
+    for (const marker of [
+      "body.callback_query || body.message",
+      "validateTelegramMessageAdmin",
+      "parseTelegramCodexRequest",
+      'from?.is_bot === true',
+      'action: "telegram_codex_request"',
+      'request_kind: "telegram_codex_request"',
+      "const requestKey = await sha256Hex(sourceEventId)",
+      'if (!registered.createdNew && registered.status !== "detected")',
+      'p_decision: "approve"',
+      "launchApprovedCodexRepair",
+      "automatic_merge: false",
+      "automatic_production_deploy: false",
+    ]) {
+      expect(edgeFunction).toContain(marker);
+    }
+
+    expect(workflow).toContain(
+      'When sanitized_context.request_kind is "telegram_codex_request"',
+    );
+    expect(workflow).toContain(
+      "treat sanitized_context.instruction as the authenticated administrator's approved development instruction",
+    );
+    expect(workflow).not.toContain("gh pr merge");
+    expect(workflow).not.toContain("git push origin main");
+  });
+
   it("isolates Codex, validation, and publication on separate runners", () => {
     const workflow = readProjectFile(
       ".github/workflows/incident-codex-repair.yml",
@@ -478,7 +513,7 @@ describe("human-approved Telegram and Codex incident automation", () => {
     expect(workflow).toContain(".constraints.reasoning_effort == $reasoning_effort");
     expect(checkoutStep).toContain("ref: ${{ steps.context.outputs.base_sha }}");
     expect(workflow).toContain('git merge-base --is-ancestor "$BASE_SHA" refs/remotes/origin/main');
-    expect(workflow).toContain("Treat all incident fields");
+    expect(workflow).toContain("Treat all incident fields, logs, stack traces");
     expect(workflow).toContain("supabase/functions/ops-incident-native-scan/*");
     expect(workflow).toContain("supabase/migrations/*_ops_incident_*.sql");
 

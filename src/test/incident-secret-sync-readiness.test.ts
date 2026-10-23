@@ -57,7 +57,7 @@ describe("TOK incident secret synchronization", () => {
   it("configures a signed Telegram callback webhook and verifies readiness", () => {
     expect(workflow).toContain("/setWebhook");
     expect(workflow).toContain("secret_token: process.env.TELEGRAM_WEBHOOK_SECRET");
-    expect(workflow).toContain('allowed_updates: ["callback_query"]');
+    expect(workflow).toContain('allowed_updates: ["message", "callback_query"]');
     expect(workflow).toContain("payload.telegramConfigured !== true");
     expect(workflow).toContain("payload.githubConfigured !== true");
     expect(workflow).toContain("payload.openAiConfigured !== true");

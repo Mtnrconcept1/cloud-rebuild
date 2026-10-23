@@ -33,6 +33,10 @@ import {
   selectTokAiModel,
   type OpenAIResponseUsage,
 } from "../_shared/openai.ts";
+import {
+  parseTelegramCodexRequest,
+  telegramCodexRequestTitle,
+} from "../_shared/telegram-codex-request.ts";
 
 const FUNCTION_NAME = "ops-incident-control";
 const SCAN_LOOKBACK_MINUTES = 20;
@@ -186,15 +190,36 @@ type AuditLogRow = {
   created_at?: string | null;
 };
 
+type TelegramUser = {
+  id?: number;
+  is_bot?: boolean;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+};
+
+type TelegramChat = {
+  id?: number;
+  type?: string;
+};
+
+type TelegramMessage = {
+  message_id?: number;
+  from?: TelegramUser;
+  chat?: TelegramChat;
+  text?: string;
+};
+
 type TelegramCallbackQuery = {
   id: string;
-  from?: { id?: number; username?: string; first_name?: string; last_name?: string };
+  from?: TelegramUser;
   data?: string;
-  message?: { message_id?: number; chat?: { id?: number } };
+  message?: TelegramMessage;
 };
 
 type TelegramUpdate = {
   update_id?: number;
+  message?: TelegramMessage;
   callback_query?: TelegramCallbackQuery;
 };
 
@@ -1559,25 +1584,33 @@ async function assertIngestAuthorized(req: Request) {
   throw new HttpError(401, "unauthorized");
 }
 
-function validateTelegramAdmin(callback: TelegramCallbackQuery) {
+function validateTelegramIdentity(chat: TelegramChat | undefined, from: TelegramUser | undefined) {
   const configuredChatId = configuredTelegramChatId();
-  const messageChatId = callback.message?.chat?.id === undefined ? "" : String(callback.message.chat.id);
+  const messageChatId = chat?.id === undefined ? "" : String(chat.id);
   if (!configuredChatId || !safeEqual(messageChatId, configuredChatId)) {
     throw new HttpError(403, "telegram_chat_forbidden");
   }
 
   const fallbackPrivateUserId = configuredChatId.startsWith("-") ? "" : configuredChatId;
   const configuredUserId = getEnv("TELEGRAM_ADMIN_USER_ID") || fallbackPrivateUserId;
-  const callbackUserId = callback.from?.id === undefined ? "" : String(callback.from.id);
-  if (!configuredUserId || !safeEqual(callbackUserId, configuredUserId)) {
+  const userId = from?.id === undefined ? "" : String(from.id);
+  if (from?.is_bot === true || !configuredUserId || !safeEqual(userId, configuredUserId)) {
     throw new HttpError(403, "telegram_user_forbidden");
   }
 
   return {
     chatId: configuredChatId,
-    userId: callbackUserId,
-    actor: `telegram:${callbackUserId}:${asText(callback.from?.username, 80, "admin")}`,
+    userId,
+    actor: `telegram:${userId}:${asText(from?.username, 80, "admin")}`,
   };
+}
+
+function validateTelegramAdmin(callback: TelegramCallbackQuery) {
+  return validateTelegramIdentity(callback.message?.chat, callback.from);
+}
+
+function validateTelegramMessageAdmin(message: TelegramMessage) {
+  return validateTelegramIdentity(message.chat, message.from);
 }
 
 function githubIncidentRepository() {
@@ -1672,6 +1705,63 @@ async function dispatchCodexRepair(incidentId: string, contextToken: string) {
   }
 }
 
+async function launchApprovedCodexRepair(incident: IncidentRow, actor: string) {
+  const incidentId = incident.id;
+  const contextToken = randomToken(24);
+  const contextTokenHash = await sha256Hex(contextToken);
+  const contextExpiresAt = new Date(Date.now() + REPAIR_CONTEXT_TTL_HOURS * 60 * 60 * 1000).toISOString();
+  const client = createAdminClient();
+  let approvedBaseSha = "";
+
+  try {
+    approvedBaseSha = await resolveApprovedBaseSha(incident);
+    const approvedContext = sanitizeObject(incident.sanitized_context);
+    approvedContext.approved_base_sha = approvedBaseSha;
+    const { data: contextUpdated, error: contextError } = await client.from("ops_incidents").update({
+      sanitized_context: approvedContext,
+      repair_context_token_hash: contextTokenHash,
+      repair_context_expires_at: contextExpiresAt,
+      failure_reason: null,
+    }).eq("id", incidentId)
+      .eq("status", "approved")
+      .select("id")
+      .maybeSingle();
+    if (contextError) throw new HttpError(500, contextError.message);
+    if (!contextUpdated) throw new HttpError(409, "incident_state_changed");
+
+    await dispatchCodexRepair(incidentId, contextToken);
+  } catch (error) {
+    const message = sanitizeString(
+      error instanceof Error ? error.message : "github_dispatch_failed",
+      800,
+    );
+    await client.from("ops_incidents").update({
+      status: "failed",
+      failure_reason: message,
+      repair_context_token_hash: null,
+      repair_context_expires_at: null,
+    }).eq("id", incidentId);
+    await appendIncidentEvent(incidentId, "codex_dispatch_failed", FUNCTION_NAME, { error: message })
+      .catch(() => {});
+    await sendTelegramStatus(
+      incident,
+      `⚠️ <b>Le lancement Codex a échoué</b>\n${escapeHtml(message)}\nDemande <code>${escapeHtml(incidentId)}</code>. Aucune modification de production n'a eu lieu.`,
+    );
+    throw error;
+  }
+
+  await appendIncidentEvent(incidentId, "codex_dispatch_requested", actor, {
+    context_expires_at: contextExpiresAt,
+    approved_base_sha: approvedBaseSha,
+  }).catch(() => {});
+  await sendTelegramStatus(
+    incident,
+    `✅ <b>Demande confiée à Codex</b>\nCodex va travailler sur une branche isolée, exécuter les contrôles et ouvrir une PR pour la demande <code>${escapeHtml(incidentId)}</code>.`,
+  );
+
+  return { codexDispatched: true, approvedBaseSha };
+}
+
 async function decideIncidentFromTelegram(callback: TelegramCallbackQuery) {
   const callbackData = asText(callback.data, 90);
   const match = /^([ar]):([0-9a-f-]{36}):([A-Za-z0-9_-]{16,32})$/i.exec(callbackData);
@@ -1744,62 +1834,210 @@ async function decideIncidentFromTelegram(callback: TelegramCallbackQuery) {
     return { decision, incidentId, result: data, codexDispatched: false };
   }
 
-  const contextToken = randomToken(24);
-  const contextTokenHash = await sha256Hex(contextToken);
-  const contextExpiresAt = new Date(Date.now() + REPAIR_CONTEXT_TTL_HOURS * 60 * 60 * 1000).toISOString();
-  let approvedBaseSha = "";
+  const launch = await launchApprovedCodexRepair(incident, admin.actor);
+  return { decision, incidentId, result: data, ...launch };
+}
 
-  try {
-    approvedBaseSha = await resolveApprovedBaseSha(incident);
-    const approvedContext = sanitizeObject(incident.sanitized_context);
-    approvedContext.approved_base_sha = approvedBaseSha;
-    const { data: contextUpdated, error: contextError } = await client.from("ops_incidents").update({
-      sanitized_context: approvedContext,
-      repair_context_token_hash: contextTokenHash,
-      repair_context_expires_at: contextExpiresAt,
-      failure_reason: null,
-    }).eq("id", incidentId)
-      .eq("status", "approved")
-      .select("id")
-      .maybeSingle();
-    if (contextError) throw new HttpError(500, contextError.message);
-    if (!contextUpdated) throw new HttpError(409, "incident_state_changed");
+async function sendTelegramText(chatId: string, text: string) {
+  await telegramApi("sendMessage", {
+    chat_id: chatId,
+    text: text.slice(0, 3900),
+    parse_mode: "HTML",
+    disable_web_page_preview: true,
+  });
+}
 
-    await dispatchCodexRepair(incidentId, contextToken);
-  } catch (error) {
-    const message = sanitizeString(
-      error instanceof Error ? error.message : "github_dispatch_failed",
-      800,
-    );
-    await client.from("ops_incidents").update({
-      status: "failed",
-      failure_reason: message,
-      repair_context_token_hash: null,
-      repair_context_expires_at: null,
-    }).eq("id", incidentId);
-    await appendIncidentEvent(incidentId, "codex_dispatch_failed", FUNCTION_NAME, { error: message })
-      .catch(() => {});
-    await sendTelegramStatus(
-      incident,
-      `⚠️ <b>Le lancement Codex a échoué</b>\n${escapeHtml(message)}\nIncident <code>${escapeHtml(incidentId)}</code>. Aucune modification de production n'a eu lieu.`,
-    );
-    throw error;
+function telegramCodexHelpText() {
+  return [
+    "🤖 <b>Assistant Codex TOK</b>",
+    "",
+    "Écrivez directement la modification à réaliser, ou utilisez <code>/codex votre demande</code>.",
+    "",
+    "La demande autorisée est exécutée sur une branche isolée. Les tests sont lancés puis une pull request est ouverte. Aucun merge ni déploiement en production n'est automatique.",
+  ].join("\n");
+}
+
+async function createTelegramCodexRequest(
+  updateId: number,
+  message: TelegramMessage,
+  admin: ReturnType<typeof validateTelegramMessageAdmin>,
+  rawInstruction: string,
+) {
+  if (!getEnv("GITHUB_INCIDENT_TOKEN") || !getEnv("OPS_GITHUB_CALLBACK_SECRET")) {
+    throw new HttpError(503, "codex_dispatch_not_configured");
+  }
+  if (!Number.isSafeInteger(updateId) || updateId <= 0) {
+    throw new HttpError(400, "telegram_update_id_invalid");
+  }
+  const messageId = Number(message.message_id || 0);
+  if (!Number.isSafeInteger(messageId) || messageId <= 0) {
+    throw new HttpError(400, "telegram_message_id_invalid");
   }
 
-  await appendIncidentEvent(incidentId, "codex_dispatch_requested", admin.actor, {
-    context_expires_at: contextExpiresAt,
-    approved_base_sha: approvedBaseSha,
-  }).catch(() => {});
-  await sendTelegramStatus(
-    incident,
-    `✅ <b>Réparation autorisée</b>\nCodex va travailler sur une branche isolée, exécuter les contrôles et ouvrir une PR pour l'incident <code>${escapeHtml(incidentId)}</code>.`,
-  );
+  const instruction = sanitizeString(asText(rawInstruction, 3_500), 3_500);
+  if (instruction.length < 3) throw new HttpError(400, "telegram_instruction_too_short");
 
-  return { decision, incidentId, result: data, codexDispatched: true };
+  const sourceEventId = `telegram:${updateId}:${messageId}`;
+  const requestKey = await sha256Hex(sourceEventId);
+  const title = telegramCodexRequestTitle(instruction);
+  const input: IncidentInput = {
+    source: "manual",
+    sourceEventId,
+    severity: "medium",
+    title,
+    summary: instruction,
+    technicalDetails: {
+      action: "telegram_codex_request",
+      telegram_update_id: updateId,
+      telegram_message_id: messageId,
+    },
+    context: {
+      request_kind: "telegram_codex_request",
+      instruction,
+      telegram_update_id: updateId,
+      telegram_message_id: messageId,
+    },
+    fingerprintHint: requestKey,
+  };
+  const registered = await registerIncident(input);
+  if (!registered.createdNew && registered.status !== "detected") {
+    return {
+      incidentId: registered.incidentId,
+      status: registered.status,
+      deduplicated: true,
+      codexDispatched: false,
+    };
+  }
+
+  const evidenceHash = await buildIncidentEvidenceHash({
+    source: input.source,
+    severity: input.severity,
+    title: input.title,
+    summary: input.summary,
+    technicalDetails: input.technicalDetails,
+    context: input.context,
+  });
+  const plan: RepairPlan = {
+    title,
+    executive_summary: instruction,
+    probable_cause: "Demande de développement explicitement envoyée par l'administrateur Telegram autorisé.",
+    user_impact: "Le changement demandé sera proposé dans une pull request et ne sera ni fusionné ni déployé automatiquement.",
+    repair_steps: [
+      "Lire les instructions du dépôt et inspecter l'implémentation concernée.",
+      "Réaliser uniquement la modification demandée dans une branche isolée.",
+      "Ajouter ou adapter les tests pertinents.",
+      "Exécuter lint, typecheck, tests et build avant de proposer la pull request.",
+    ],
+    files_to_inspect: [],
+    validation_steps: [
+      "Exécuter pnpm run lint.",
+      "Exécuter pnpm run typecheck.",
+      "Exécuter pnpm run test.",
+      "Exécuter pnpm run build:prod.",
+    ],
+    rollback_steps: [
+      "Fermer la pull request sans fusion si les contrôles échouent.",
+      "Revenir au commit fusionné via le workflow validé uniquement si une régression apparaît après merge.",
+    ],
+    risk_level: "medium",
+    severity: "medium",
+    confidence: 1,
+    requires_manual_input: false,
+    generated_by: "deterministic",
+    repairability: "code",
+    repairability_reason: "Demande de code explicite et authentifiée reçue depuis Telegram.",
+    codex_eligible: true,
+    evidence_hash: evidenceHash,
+    analysis_cached: false,
+    analysis_usage: {},
+  };
+  const approvalToken = randomToken(15);
+  const approvalTokenHash = await sha256Hex(approvalToken);
+  const approvalExpiresAt = new Date(Date.now() + APPROVAL_TTL_HOURS * 60 * 60 * 1000).toISOString();
+  const client = createAdminClient();
+  const { data: queued, error: queueError } = await client.from("ops_incidents").update({
+    status: "awaiting_approval",
+    probable_cause: plan.probable_cause,
+    impact: plan.user_impact,
+    repair_plan: plan,
+    confidence: plan.confidence,
+    risk_level: plan.risk_level,
+    evidence_hash: evidenceHash,
+    repairability: "code",
+    analysis_version: INCIDENT_ANALYSIS_VERSION,
+    analysis_source: "deterministic",
+    analysis_usage: {},
+    analysis_cached: false,
+    analysis_generated_at: new Date().toISOString(),
+    last_evidence_changed_at: new Date().toISOString(),
+    approval_token_hash: approvalTokenHash,
+    approval_expires_at: approvalExpiresAt,
+    decision_chat_id: admin.chatId,
+    decision_message_id: messageId,
+    failure_reason: null,
+  }).eq("id", registered.incidentId)
+    .eq("status", "detected")
+    .select("id")
+    .maybeSingle();
+  if (queueError) throw new HttpError(500, queueError.message);
+  if (!queued) {
+    return {
+      incidentId: registered.incidentId,
+      status: registered.status,
+      deduplicated: true,
+      codexDispatched: false,
+    };
+  }
+
+  await appendIncidentEvent(registered.incidentId, "telegram_request_received", admin.actor, {
+    source_event_id: sourceEventId,
+  });
+  const { error: approvalError } = await client.rpc("ops_decide_incident", {
+    p_incident_id: registered.incidentId,
+    p_token_hash: approvalTokenHash,
+    p_decision: "approve",
+    p_actor: admin.actor,
+  });
+  if (approvalError) {
+    throw new HttpError(approvalError.code === "42501" ? 403 : 409, approvalError.message);
+  }
+
+  const incident = await getIncident(registered.incidentId);
+  const launch = await launchApprovedCodexRepair(incident, admin.actor);
+  return {
+    incidentId: registered.incidentId,
+    status: "approved",
+    deduplicated: false,
+    ...launch,
+  };
 }
 
 async function handleTelegramUpdate(req: Request, body: TelegramUpdate) {
   assertSharedSecret(req, "x-telegram-bot-api-secret-token", "TELEGRAM_WEBHOOK_SECRET");
+  if (body.message) {
+    const admin = validateTelegramMessageAdmin(body.message);
+    const request = parseTelegramCodexRequest(body.message.text);
+    if (!request) return { ok: true, ignored: true };
+    if (request.kind === "help" || request.kind === "unsupported_command") {
+      await sendTelegramText(admin.chatId, telegramCodexHelpText());
+      return { ok: true, help: true };
+    }
+
+    try {
+      return await createTelegramCodexRequest(
+        Number(body.update_id || 0),
+        body.message,
+        admin,
+        request.instruction,
+      );
+    } catch (error) {
+      await sendTelegramText(
+        admin.chatId,
+        "⚠️ Impossible de lancer Codex pour cette demande. Aucune modification n'a été appliquée. Consultez les journaux du bot.",
+      ).catch(() => {});
+      throw error;
+    }
+  }
   if (!body.callback_query) return { ok: true, ignored: true };
 
   try {
@@ -2103,8 +2341,8 @@ Deno.serve(async (req) => {
     if (req.method !== "POST") throw new HttpError(405, "method_not_allowed");
     const body = await readJsonBody(req);
 
-    if (body.callback_query) {
-      action = "telegram_callback";
+    if (body.callback_query || body.message) {
+      action = body.callback_query ? "telegram_callback" : "telegram_message";
       const result = await handleTelegramUpdate(req, body);
       await writeAuditLog({
         adminClient: createAdminClient(),

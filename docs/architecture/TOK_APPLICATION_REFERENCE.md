@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `0459bc3bea6364d56a1d7662cf2306b395dc1444854dc43fdadef42620004471`
+- Empreinte SHA-256 des sources indexées : `c4e39b4de5749174c9d4cc24134b546142a0c0e89f3446cf63a88ccc867f87d8`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 222 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3988 |
+| exportedSymbols | 3992 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 575 |
-| modules | 1805 |
+| modules | 1807 |
 | pages | 133 |
-| pathLiterals | 891 |
+| pathLiterals | 894 |
 | publicAssets | 713 |
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18782 |
-| repositoryFiles | 3641 |
+| records | 18794 |
+| repositoryFiles | 3643 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1384,7 +1384,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 270 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 271 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:97](../../src/test/application-search-index.test.ts#L97) |
@@ -1423,7 +1423,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /a | 1 | [src/test/seo-restaurant-context-hardening.test.ts:40](../../src/test/seo-restaurant-context-hardening.test.ts#L40) |
 | /a-propos | 14 | [scripts/prerender-seo.mjs:1121](../../scripts/prerender-seo.mjs#L1121) |
 | /abonnement | 15 | [scripts/prerender-seo.mjs:1057](../../scripts/prerender-seo.mjs#L1057) |
-| /actions/runs/$FAILED_WORKFLOW_ID/jobs | 1 | [src/test/incident-automation-readiness.test.ts:547](../../src/test/incident-automation-readiness.test.ts#L547) |
+| /actions/runs/$FAILED_WORKFLOW_ID/jobs | 1 | [src/test/incident-automation-readiness.test.ts:582](../../src/test/incident-automation-readiness.test.ts#L582) |
 | /actualites | 34 | [scripts/harden-seo-crawl.mjs:380](../../scripts/harden-seo-crawl.mjs#L380) |
 | /actualites/ | 2 | [scripts/prerender-seo.mjs:58](../../scripts/prerender-seo.mjs#L58) |
 | /actualites/:postId | 2 | [src/App.tsx:620](../../src/App.tsx#L620) |
@@ -1538,6 +1538,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /chefs-table | 27 | [scripts/prerender-seo.mjs:1049](../../scripts/prerender-seo.mjs#L1049) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:31](../../src/test/tok-logo-calendar.test.ts#L31) |
+| /codex | 1 | [src/test/telegram-codex-request.test.ts:24](../../src/test/telegram-codex-request.test.ts#L24) |
 | /coming-soon | 21 | [src/App.tsx:538](../../src/App.tsx#L538) |
 | /coming-soon?welcome=1 | 3 | [src/test/coming-soon-signup-page.test.tsx:53](../../src/test/coming-soon-signup-page.test.tsx#L53) |
 | /coming-soon?welcome=1&email=1 | 2 | [src/test/coming-soon-signup-page.test.tsx:53](../../src/test/coming-soon-signup-page.test.tsx#L53) |
@@ -1710,6 +1711,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /guide/restaurateur | 3 | [src/App.tsx:703](../../src/App.tsx#L703) |
 | /healthz | 2 | [src/test/application-search-index.test.ts:100](../../src/test/application-search-index.test.ts#L100) |
 | /help.png | 1 | [src/components/help/ChefHelpButton.tsx:36](../../src/components/help/ChefHelpButton.tsx#L36) |
+| /help@tok_bot | 1 | [src/test/telegram-codex-request.test.ts:23](../../src/test/telegram-codex-request.test.ts#L23) |
 | /higgsfield/tok-intro-desktop.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:55](../../src/test/mobile-logo-intro.test.tsx#L55) |
 | /higgsfield/tok-intro-mobile.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:24](../../src/test/mobile-logo-intro.test.tsx#L24) |
 | /hook?fixture=1 | 1 | [scripts/security/test-webhook-deno-runtime.ts:42](../../scripts/security/test-webhook-deno-runtime.ts#L42) |
@@ -2198,6 +2200,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /src/main.tsx | 1 | [src/test/pwa-manifest.test.ts:53](../../src/test/pwa-manifest.test.ts#L53) |
 | /src/pages/CommercialProspection.tsx | 1 | [scripts/check-commercial-map.mjs:37](../../scripts/check-commercial-map.mjs#L37) |
 | /src/pages/dashboard/DashboardCampagnes.tsx | 1 | [scripts/check-campaign-layout.mjs:54](../../scripts/check-campaign-layout.mjs#L54) |
+| /start | 1 | [src/test/telegram-codex-request.test.ts:22](../../src/test/telegram-codex-request.test.ts#L22) |
 | /storage/ | 5 | [src/test/marketing-mailing-image-bff.test.ts:185](../../src/test/marketing-mailing-image-bff.test.ts#L185) |
 | /storage/v1/object | 2 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:104](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L104) |
 | /storage/v1/object/ | 1 | [supabase/functions/_shared/print/pdf.ts:84](../../supabase/functions/_shared/print/pdf.ts#L84) |
@@ -6858,7 +6861,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 42 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 271 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 822 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 823 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6871,7 +6874,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 219 |
 | automation-script | 87 |
 | documentation | 6 |
-| edge-function-source | 241 |
+| edge-function-source | 242 |
 | frontend-component | 290 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
@@ -6879,7 +6882,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 740 |
+| test | 741 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7014,7 +7017,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | TOK Intelligence Suite — Campaign Studio, Customer Memory, Support & Resolution, Guardian | 11 | [docs/operations/TOK_INTELLIGENCE_SUITE.md:1](../../docs/operations/TOK_INTELLIGENCE_SUITE.md#L1) |
 | TOK — intelligence d’incident unifiée | 11 | [docs/operations/incident-intelligence-unification.md:1](../../docs/operations/incident-intelligence-unification.md#L1) |
 | Préparation des PR — IA, catalogue fournisseur et incidents | 8 | [docs/operations/pr-readiness-2026-07-28.md:1](../../docs/operations/pr-readiness-2026-07-28.md#L1) |
-| TOK — incidents Telegram avec réparation Codex approuvée | 17 | [docs/operations/telegram-codex-incidents.md:1](../../docs/operations/telegram-codex-incidents.md#L1) |
+| TOK — incidents Telegram avec réparation Codex approuvée | 18 | [docs/operations/telegram-codex-incidents.md:1](../../docs/operations/telegram-codex-incidents.md#L1) |
 | Projet — Finalisation de TOK Marketing Autopilot | 29 | [docs/projects/TOK_MARKETING_AUTOPILOT_COMPLETION.md:1](../../docs/projects/TOK_MARKETING_AUTOPILOT_COMPLETION.md#L1) |
 | OpenAI dans la démonstration commerciale | 6 | [docs/runbooks/commercial-demo-ai.md:1](../../docs/runbooks/commercial-demo-ai.md#L1) |
 | Simulateur de paiement — démonstration commerciale TOK | 4 | [docs/runbooks/commercial-demo-payment-simulator.md:1](../../docs/runbooks/commercial-demo-payment-simulator.md#L1) |
@@ -8299,7 +8302,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (241)</summary>
+<details><summary>edge-function-source (242)</summary>
 
 - `supabase/functions/_shared/ai-image-operation.ts`
 - `supabase/functions/_shared/ai-image-response.ts`
@@ -8391,6 +8394,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/stripe-client.ts`
 - `supabase/functions/_shared/stripe-connect-platform-profile.ts`
 - `supabase/functions/_shared/stripe-paid-invoice-payment.ts`
+- `supabase/functions/_shared/telegram-codex-request.ts`
 - `supabase/functions/_shared/tok-connect-auth.ts`
 - `supabase/functions/_shared/tok-connect-broker-crypto.ts`
 - `supabase/functions/_shared/tok-connect-broker.ts`
@@ -10075,7 +10079,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (740)</summary>
+<details><summary>test (741)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10723,6 +10727,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/support-notification-governance.test.ts`
 - `src/test/table-context-drawer.test.tsx`
 - `src/test/table-only-reservations.test.ts`
+- `src/test/telegram-codex-request.test.ts`
 - `src/test/thefork-directory-completion.test.ts`
 - `src/test/thefork-image-enrichment-completion.test.ts`
 - `src/test/tok-ai-platform-plan.test.ts`
