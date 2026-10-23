@@ -44,8 +44,8 @@ function hasNoindex(html) {
 
 function visibleTextLength(html) {
   return String(html)
-    .replace(/<script\b[\s\S]*?<\/script\s*>/gi, " ")
-    .replace(/<style\b[\s\S]*?<\/style\s*>/gi, " ")
+    .replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, " ")
+    .replace(/<style\b[\s\S]*?<\/style\b[^>]*>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&(?:nbsp|amp|quot|#39);/gi, " ")
     .replace(/\s+/g, " ")
