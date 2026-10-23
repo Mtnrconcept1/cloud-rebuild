@@ -2,13 +2,12 @@
    remain in their page components. Public/admin pages do not use these hooks. */
 .tok-hospitality-workspace .tok-customer-page {
   min-width: 0;
-  --customer-paper: #fff;
-  --customer-ink: #30271f;
-  --customer-line: #e2e5e9;
-  --customer-soft: #f1f3f5;
-  --customer-peach: #fcebd8;
+  --customer-paper: var(--workspace-paper);
+  --customer-ink: var(--workspace-ink);
+  --customer-line: var(--workspace-line);
+  --customer-soft: var(--workspace-soft);
+  --customer-peach: var(--workspace-apricot);
 }
-.tok-hospitality-workspace .tok-customer-page-hero,
 .tok-hospitality-workspace .tok-customer-notifications > div:first-child {
   position: relative;
   isolation: isolate;
@@ -19,10 +18,9 @@
   padding: 30px var(--workspace-gutter, 24px);
   border: 0;
   border-radius: 0;
-  background: #fff;
+  background: var(--customer-paper);
   box-shadow: none;
 }
-.tok-hospitality-workspace .tok-customer-page-hero::before,
 .tok-hospitality-workspace .tok-customer-notifications > div:first-child::before {
   position: absolute;
   z-index: -1;
@@ -37,10 +35,10 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 18px;
-  color: #675c50;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: .14em;
+  color: #795f4e;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .13em;
   text-transform: uppercase;
 }
 .tok-hospitality-workspace .tok-customer-page-hero__eyebrow svg { width: 12px; height: 12px; }
@@ -48,31 +46,31 @@
 .tok-hospitality-workspace .tok-customer-notifications h1 {
   max-width: 780px;
   color: var(--customer-ink);
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(36px, 4.1vw, 62px);
-  font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -.035em;
+  font-family: var(--workspace-serif);
+  font-size: clamp(38px, 4vw, 64px);
+  font-weight: 560;
+  line-height: 1;
+  letter-spacing: -.045em;
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
 .tok-hospitality-workspace .tok-customer-page-hero__subtitle {
   max-width: 700px;
-  margin-top: 9px;
+  margin-top: 12px;
   color: var(--customer-ink);
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: clamp(20px, 2vw, 29px);
-  font-weight: 500;
-  line-height: 1.32;
-  letter-spacing: -.025em;
+  font-family: var(--workspace-sans);
+  font-size: clamp(15px, 1.5vw, 19px);
+  font-weight: 680;
+  line-height: 1.4;
+  letter-spacing: -.012em;
   text-wrap: pretty;
 }
 .tok-hospitality-workspace .tok-customer-page-hero__description {
   max-width: 620px;
   margin-top: 12px;
-  color: #665c53;
+  color: var(--workspace-subtle);
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.7;
   text-wrap: pretty;
 }
 .tok-hospitality-workspace .tok-customer-page-hero__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
@@ -82,18 +80,18 @@
   min-width: 0;
   padding: 24px;
   border: 1px solid var(--customer-line);
-  border-radius: 18px;
+  border-radius: var(--workspace-radius);
   background: var(--customer-paper);
-  box-shadow: 0 3px 14px rgb(84 53 24 / 2%);
+  box-shadow: 0 1px 1px rgb(57 38 22 / 2%), 0 10px 30px rgb(57 38 22 / 3%);
 }
 .tok-hospitality-workspace :is(.tok-customer-note-card, .tok-customer-miamz-card) { background: var(--customer-paper); border-color: var(--customer-line); }
 .tok-hospitality-workspace :is(.tok-customer-note-card, .tok-customer-miamz-card, .tok-customer-calendar-card, .tok-customer-profile-form-card, .tok-customer-profile-shortcut) :is(h2, h3),
 .tok-hospitality-workspace .tok-customer-memory .tok-customer-memory-controls h3 {
   color: var(--customer-ink);
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: 25px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-family: var(--workspace-sans);
+  font-size: 22px;
+  font-weight: 720;
+  line-height: 1.25;
   letter-spacing: -.025em;
 }
 .tok-hospitality-workspace .tok-customer-note-card > svg { width: 32px; height: 32px; margin-bottom: 16px; color: #d45913; }
@@ -126,13 +124,13 @@
 }
 .tok-hospitality-workspace .tok-customer-metric > div { grid-row: 1 / 3; align-self: center; width: 44px; height: 44px; margin: 0; border-radius: 50%; }
 .tok-hospitality-workspace .tok-customer-metric > p { grid-column: 2; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
-.tok-hospitality-workspace .tok-customer-metric > p:first-of-type { font-size: 27px; line-height: 1.15; }
+.tok-hospitality-workspace .tok-customer-metric > p:first-of-type { font-family: var(--workspace-sans); font-size: 27px; font-weight: 760; line-height: 1.15; letter-spacing: -.035em; }
 .tok-hospitality-workspace .tok-customer-metric .tok-client-card-arrow { right: 10px; padding: 0; border: 0; background: transparent; transform: translateY(-50%); }
 .tok-hospitality-workspace .tok-customer-miamz-card__balance { display: flex; align-items: center; gap: 18px; margin-block: 24px 12px; }
 .tok-hospitality-workspace .tok-customer-miamz-card__icon { display: grid; place-items: center; flex: 0 0 64px; height: 64px; border-radius: 50%; background: rgb(255 253 250 / 80%); color: #e96c1c; }
 .tok-hospitality-workspace .tok-customer-miamz-card__icon svg { width: 32px; height: 32px; }
 .tok-hospitality-workspace .tok-customer-miamz-card__balance p { min-width: 0; }
-.tok-hospitality-workspace .tok-customer-miamz-card__balance strong { display: block; color: var(--customer-ink); font: 600 clamp(36px, 3.8vw, 52px)/1.1 "Playfair Display", Georgia, serif; overflow-wrap: anywhere; }
+.tok-hospitality-workspace .tok-customer-miamz-card__balance strong { display: block; color: var(--customer-ink); font: 760 clamp(34px, 3.4vw, 48px)/1.05 var(--workspace-sans); letter-spacing: -.045em; overflow-wrap: anywhere; }
 .tok-hospitality-workspace .tok-customer-miamz-card__balance p span { color: #6e6256; font-size: 13px; }
 .tok-hospitality-workspace .tok-customer-quick-actions .tok-client-quick-action { min-height: 135px; border-radius: 16px; }
 /* Existing sorting and the three operational views stay visible under the band. */
@@ -159,17 +157,17 @@
 .tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card, .tok-customer-order-detail) { border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); box-shadow: 0 3px 14px rgb(84 53 24 / 2%); }
 .tok-hospitality-workspace :is(article.tok-customer-reservation-card, article.tok-customer-order-card) { padding: 22px; }
 .tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card) > button { min-height: 118px; padding: 22px; background: var(--customer-paper); }
-.tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card) > button:hover { background: #f6f7f9; }
+.tok-hospitality-workspace :is(.tok-customer-reservation-card, .tok-customer-order-card) > button:hover { background: var(--customer-soft); }
 .tok-hospitality-workspace .tok-customer-reservation-card :is(h3, p.font-bold),
-.tok-hospitality-workspace .tok-customer-order-card :is(p.font-bold, p.text-sm.font-bold) { white-space: normal; overflow: visible; font-family: "Playfair Display", Georgia, serif; font-size: 21px; font-weight: 600; line-height: 1.35; }
-.tok-hospitality-workspace .tok-customer-order-detail > div:first-child h3 { font: 600 23px/1.3 "Playfair Display", Georgia, serif; }
+.tok-hospitality-workspace .tok-customer-order-card :is(p.font-bold, p.text-sm.font-bold) { white-space: normal; overflow: visible; font-family: var(--workspace-sans); font-size: 17px; font-weight: 720; line-height: 1.4; }
+.tok-hospitality-workspace .tok-customer-order-detail > div:first-child h3 { font: 720 20px/1.3 var(--workspace-sans); }
 /* Reviews use the restaurant's actual photograph and keep publication/reply status. */
 .tok-hospitality-workspace .tok-customer-reviews-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; align-items: start; }
 .tok-hospitality-workspace .tok-customer-review-card { border-color: var(--customer-line); border-radius: 18px; }
 .tok-hospitality-workspace .tok-customer-review-card__content { padding: 22px; }
 .tok-hospitality-workspace .tok-customer-review-card__heading { gap: 20px; }
 .tok-hospitality-workspace .tok-customer-review-card__photo { width: 128px; height: 128px; border-radius: 12px; }
-.tok-hospitality-workspace .tok-customer-review-card__heading a { font: 600 23px/1.3 "Playfair Display", Georgia, serif; }
+.tok-hospitality-workspace .tok-customer-review-card__heading a { font: 720 19px/1.3 var(--workspace-sans); }
 .tok-hospitality-workspace .tok-customer-review-card__replies { margin: 0 16px 16px; border: 0; border-radius: 12px; background: var(--customer-soft); }
 .tok-hospitality-workspace .tok-customer-reviews-aside > img { width: 100%; height: 230px; margin-block: 20px; border-radius: 12px; object-fit: cover; }
 /* Each profile destination gets its own title, all six tabs stay accessible. */
@@ -197,11 +195,11 @@
 .tok-hospitality-workspace .tok-customer-favorite-card:hover { border-color: #eaa56d; }
 .tok-hospitality-workspace .tok-customer-favorite-card__photo { width: 100%; aspect-ratio: 1.8; object-fit: cover; }
 .tok-hospitality-workspace .tok-customer-favorite-card__body { display: grid; gap: 9px; padding: 17px; }
-.tok-hospitality-workspace .tok-customer-favorite-card__body h2 { font: 600 23px/1.3 "Playfair Display", Georgia, serif; letter-spacing: -.025em; }
+.tok-hospitality-workspace .tok-customer-favorite-card__body h2 { font: 720 20px/1.3 var(--workspace-sans); letter-spacing: -.025em; }
 .tok-hospitality-workspace .tok-customer-cuisine-tag { justify-self: start; max-width: 100%; padding: 5px 11px; border-radius: 999px; background: var(--customer-soft); color: #78685a; font-size: 11px; }
 .tok-hospitality-workspace .tok-customer-favorite-card__action { display: flex; justify-content: center; align-items: center; gap: 12px; min-height: 42px; margin-top: 3px; padding: 8px 12px; border-radius: 10px; background: #ed7424; color: white; font-size: 13px; font-weight: 600; }
 .tok-hospitality-workspace .tok-customer-membership-card { border-color: var(--customer-line); background: var(--customer-paper); }
-.tok-hospitality-workspace .tok-customer-membership-card h3 { font: 600 32px/1.2 "Playfair Display", Georgia, serif; color: var(--customer-ink); }
+.tok-hospitality-workspace .tok-customer-membership-card h3 { font: 600 32px/1.2 var(--workspace-serif); color: var(--customer-ink); }
 .tok-hospitality-workspace .tok-customer-membership-card [class*="text-violet"] { color: #ad4e12; }
 .tok-hospitality-workspace .tok-customer-membership-card [class*="bg-violet-100"] { background: #ffe1c4; }
 .tok-hospitality-workspace .tok-customer-membership-card a.bg-violet-600 { background: #ed7424; }
@@ -217,14 +215,14 @@
 /* Memory keeps explicit confirmation, export, removal and privacy controls. */
 .tok-hospitality-workspace .tok-customer-memory-layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 22px; align-items: start; }
 .tok-hospitality-workspace .tok-customer-memory-summary > div { border-color: var(--customer-line); border-radius: 16px; box-shadow: none; }
-.tok-hospitality-workspace .tok-customer-memory-summary p.text-3xl { font-family: "Playfair Display", Georgia, serif; font-size: 34px; }
+.tok-hospitality-workspace .tok-customer-memory-summary p.text-3xl { font-family: var(--workspace-sans); font-size: 32px; font-weight: 760; letter-spacing: -.04em; }
 .tok-hospitality-workspace .tok-customer-memory-main > div,
 .tok-hospitality-workspace .tok-customer-memory-item { border-color: var(--customer-line); border-radius: 18px; box-shadow: none; }
 .tok-hospitality-workspace .tok-customer-memory-controls { padding: 4px; border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); box-shadow: none; }
 .tok-hospitality-workspace .tok-customer-memory-controls button { width: 100%; min-height: 44px; white-space: normal; }
 .tok-hospitality-workspace .tok-customer-memory-controls .flex-col { flex-direction: column; }
 .tok-hospitality-workspace .tok-customer-memory-controls .text-xs { font-size: 12px; line-height: 1.7; }
-.tok-hospitality-workspace .tok-customer-memory-item p.font-semibold { font-family: "Playfair Display", Georgia, serif; font-size: 21px; line-height: 1.3; }
+.tok-hospitality-workspace .tok-customer-memory-item p.font-semibold { font-family: var(--workspace-sans); font-size: 18px; font-weight: 720; line-height: 1.35; }
 /* Notification list uses its existing accessible actions and unread indicators. */
 .tok-hospitality-workspace .tok-customer-notifications-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
 .tok-hospitality-workspace .tok-customer-notifications { display: contents; }
@@ -235,7 +233,7 @@
 .tok-hospitality-workspace .tok-customer-notifications > div:not(:first-child) { grid-column: 1; margin-top: 0; }
 .tok-hospitality-workspace .tok-customer-notifications-aside { grid-column: 2; grid-row: 2; }
 .tok-hospitality-workspace .tok-customer-notifications article { min-height: 126px; padding: 18px; border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); box-shadow: none; }
-.tok-hospitality-workspace .tok-customer-notifications article > button > span:first-child > span:first-child { font: 600 22px/1.35 "Playfair Display", Georgia, serif; }
+.tok-hospitality-workspace .tok-customer-notifications article > button > span:first-child > span:first-child { font: 720 19px/1.35 var(--workspace-sans); }
 /* Payment outcomes stay honest: the page only restyles each existing state. */
 .tok-hospitality-workspace .tok-customer-confirmation-content:has(.tok-customer-confirmation-summary) { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: 22px; align-items: start; }
 .tok-hospitality-workspace .tok-customer-confirmation-summary { grid-column: 2; grid-row: 1; padding: 24px; border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); }
@@ -244,7 +242,7 @@
 .tok-hospitality-workspace .tok-customer-confirmation-summary .grid > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px; text-align: left; border: 0; border-radius: 10px; background: var(--customer-paper); }
 .tok-hospitality-workspace .tok-customer-confirmation-summary .flex > a { width: 100%; min-height: 46px; }
 .tok-hospitality-workspace .tok-customer-confirmation-order { padding: 26px; border-color: var(--customer-line); border-radius: 18px; background: var(--customer-paper); }
-.tok-hospitality-workspace .tok-customer-confirmation-order h2 { font: 600 26px/1.3 "Playfair Display", Georgia, serif; }
+.tok-hospitality-workspace .tok-customer-confirmation-order h2 { font: 720 22px/1.3 var(--workspace-sans); }
 .tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 { padding: 18px 0; border-left: 0; border-top: 1px solid var(--customer-line); border-bottom: 1px solid var(--customer-line); }
 /* Keep the existing dark preference usable without leaking light surfaces. */
 .dark .tok-hospitality-workspace .tok-customer-page { --customer-paper: #28231d; --customer-ink: #fff6ec; --customer-line: #514335; --customer-soft: #352d24; --customer-peach: #432f1e; }
