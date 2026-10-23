@@ -50,19 +50,19 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "admin_identity_required": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 97
+      "line": 118
     }
   ],
   "admin_mfa_aal2_required": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 100
+      "line": 121
     }
   ],
   "admin_origin_required": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 88
+      "line": 109
     }
   ],
   "admin_required": [
@@ -294,29 +294,29 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "approval_body_required": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 111
+      "line": 132
     }
   ],
   "approval_expired_or_plan_changed": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 172
+      "line": 193
     }
   ],
   "approval_payload_too_large": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 109
+      "line": 130
     },
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 120
+      "line": 141
     }
   ],
   "approval_validation_failed": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 147
+      "line": 168
     }
   ],
   "approved_base_sha_missing": [
@@ -1074,13 +1074,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "github_main_unavailable": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 42
+      "line": 63
     }
   ],
   "github_not_configured": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 33
+      "line": 54
     }
   ],
   "github_pr_number_mismatch": [
@@ -1092,7 +1092,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "github_revision_invalid": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 44
+      "line": 65
     }
   ],
   "github_run_id_invalid": [
@@ -1382,7 +1382,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "incident_not_eligible": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 158
+      "line": 179
     }
   ],
   "incident_not_found": [
@@ -1438,7 +1438,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "incident_unavailable": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 154
+      "line": 175
     }
   ],
   "instruction_invalid": [
@@ -1482,7 +1482,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_approval_payload": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 135
+      "line": 156
     }
   ],
   "invalid_authentication": [
@@ -1568,7 +1568,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 132
+      "line": 153
     }
   ],
   "invalid_json_body": [
@@ -2424,23 +2424,23 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "repair_dispatch_failed_no_production_change": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 207
+      "line": 228
     }
   ],
   "repair_dispatch_not_configured": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 55
+      "line": 76
     },
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 161
+      "line": 182
     }
   ],
   "repair_dispatch_unavailable": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 76
+      "line": 97
     }
   ],
   "request_body_too_large": [
@@ -3650,7 +3650,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "user_authentication_required": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 92
+      "line": 113
     }
   ],
   "user_message_required": [

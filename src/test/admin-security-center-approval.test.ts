@@ -7,6 +7,7 @@ const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8"
 describe("admin security centre contract", () => {
   const approval = read("supabase/functions/ops-admin-approval/index.ts");
   const sql = read("supabase/migrations/20261015090000_admin_security_guardian_approval_guardrails.sql");
+  const boundedSql = read("supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql");
   const control = read("src/components/admin/GuardianApprovalPanel.tsx");
   const guardian = read("src/pages/admin/AdminGuardian.tsx");
   const center = read("src/pages/admin/AdminSecurityCenter.tsx");
@@ -23,10 +24,11 @@ describe("admin security centre contract", () => {
     expect(read("src/pages/admin/AdminHome.tsx")).toContain("Centre de sécurité");
   });
 
-  it("keeps the confirmation user-controlled, scoped to code fixes and exact plan", () => {
+  it("keeps the confirmation user-controlled and scoped to an exact bounded plan", () => {
     expect(control).toContain('incident.status === "awaiting_approval"');
-    expect(control).toContain('incident.repairability === "code"');
-    expect(control).toContain("plan.codex_eligible === true");
+    expect(control).toContain("canonicalCodeRepair");
+    expect(control).toContain("boundedInvestigation");
+    expect(control).toContain("hasBoundedCodeTarget");
     expect(control).toContain('confirmation.trim() === "APPROUVER"');
     expect(control).toContain("Demander la réparation complète");
     expect(control).toContain('executionMode: "complete"');
@@ -51,6 +53,8 @@ describe("admin security centre contract", () => {
     expect(approval).toContain("UUID.test(incidentId)");
     expect(approval).toContain("HASH.test(expectedHash)");
     expect(approval).toContain("ops_approve_incident_admin");
+    expect(approval).toContain("completeRepairEligible");
+    expect(approval).toContain("BOUNDED_CODE_PATH");
     expect(approval).toContain('payload.executionMode !== "complete"');
     expect(approval).toContain("payload.journalReport !== true");
     expect(approval).toContain('execution_mode: "complete"');
@@ -70,6 +74,13 @@ describe("admin security centre contract", () => {
     expect(sql).toMatch(/REVOKE ALL ON FUNCTION public\.ops_approve_incident_admin\(/);
     expect(sql).toContain("TO service_role");
     expect(sql).not.toMatch(/DELETE\s+FROM public\.ops_incidents/i);
+    expect(boundedSql).toContain("v_complete_repair_eligible");
+    expect(boundedSql).toContain("v_has_bounded_code_target");
+    expect(boundedSql).toContain("repairability IN ('external', 'unknown')");
+    expect(boundedSql).toContain("jsonb_array_elements_text");
+    expect(boundedSql).toMatch(/REVOKE ALL ON FUNCTION public\.ops_approve_incident_admin\(/);
+    expect(boundedSql).toContain("TO service_role");
+    expect(boundedSql).not.toMatch(/DELETE\s+FROM public\.ops_incidents/i);
   });
 
   it("uses the existing isolated PR dispatch without touching the production branch", () => {

@@ -29,9 +29,18 @@ export default function GuardianApprovalPanel({
   const steps = list(plan.repair_steps);
   const tests = list(plan.validation_steps);
   const rollback = list(plan.rollback_steps);
+  const filesToInspect = list(plan.files_to_inspect);
+  const hasBoundedCodeTarget = filesToInspect.some((path) =>
+    /^(src|scripts|supabase\/functions)\/[A-Za-z0-9._/-]+$/.test(path)
+    && !/(^|\/)\.\.($|\/)/.test(path)
+  );
+  const canonicalCodeRepair = incident.repairability === "code" && plan.codex_eligible === true;
+  const boundedInvestigation = ["external", "unknown"].includes(incident.repairability || "")
+    && hasBoundedCodeTarget
+    && steps.length > 0
+    && tests.length > 0;
   const eligible = incident.status === "awaiting_approval"
-    && incident.repairability === "code"
-    && plan.codex_eligible === true
+    && (canonicalCodeRepair || boundedInvestigation)
     && /^[0-9a-f]{64}$/.test(incident.evidence_hash || "");
   const confirmed = eligible && acknowledged && confirmation.trim() === "APPROUVER";
 
@@ -90,7 +99,8 @@ export default function GuardianApprovalPanel({
         ) : (
           <p className="text-amber-700 dark:text-amber-300">
             La réparation automatisée n'est pas autorisée pour ce dossier. Elle exige
-            un incident en attente, un diagnostic de code éligible et des preuves à jour.
+            un incident en attente, des preuves à jour et soit un diagnostic de code éligible,
+            soit un périmètre source canonique borné à analyser.
             Les corrections de paiement, configuration et données nécessitent le circuit humain approprié.
           </p>
         )}
@@ -114,6 +124,12 @@ export default function GuardianApprovalPanel({
           </DialogHeader>
           <div className="space-y-3 text-sm">
             <p className="font-semibold">{incident.title}</p>
+            {boundedInvestigation && (
+              <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100">
+                Guardian commencera par vérifier si la cause vient réellement du code TOK. Si aucune
+                correction sûre n'est démontrée, le cycle produira un rapport sans publier de patch.
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">Empreinte des preuves : {incident.evidence_hash}</p>
             <div className="max-h-64 space-y-2 overflow-y-auto rounded-lg border p-3">
               <strong>Étapes</strong>

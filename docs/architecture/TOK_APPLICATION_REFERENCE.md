@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7d63e5de2f6c7b431937c4b6b6fbb570527f678b5511cf32b9f0bea54ff356d4`
+- Empreinte SHA-256 des sources indexées : `81a66a3dde9d304ac4d290ebeb4fa00c34558e5b679766958c5626d21e94f769`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,7 +37,7 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 575 |
+| migrations | 576 |
 | modules | 1809 |
 | pages | 133 |
 | pathLiterals | 894 |
@@ -45,8 +45,8 @@
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18800 |
-| repositoryFiles | 3645 |
+| records | 18802 |
+| repositoryFiles | 3646 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -545,7 +545,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | marketing-unsubscribe | [supabase/functions/marketing-unsubscribe/index.ts:1](../../supabase/functions/marketing-unsubscribe/index.ts#L1) | oui ([supabase/config.toml:297](../../supabase/config.toml#L297)) | false | GET, POST | — | — |
 | menu-image-import | [supabase/functions/menu-image-import/index.ts:1](../../supabase/functions/menu-image-import/index.ts#L1) | oui ([supabase/config.toml:224](../../supabase/config.toml#L224)) | false | POST | — | openai |
 | notification-dispatch | [supabase/functions/notification-dispatch/index.ts:1](../../supabase/functions/notification-dispatch/index.ts#L1) | oui ([supabase/config.toml:182](../../supabase/config.toml#L182)) | false | ANY | — | — |
-| ops-admin-approval | [supabase/functions/ops-admin-approval/index.ts:1](../../supabase/functions/ops-admin-approval/index.ts#L1) | oui ([supabase/config.toml:185](../../supabase/config.toml#L185)) | false | POST | — | — |
+| ops-admin-approval | [supabase/functions/ops-admin-approval/index.ts:1](../../supabase/functions/ops-admin-approval/index.ts#L1) | oui ([supabase/config.toml:185](../../supabase/config.toml#L185)) | false | POST | — | supabase |
 | ops-incident-control | [supabase/functions/ops-incident-control/index.ts:1](../../supabase/functions/ops-incident-control/index.ts#L1) | oui ([supabase/config.toml:188](../../supabase/config.toml#L188)) | false | GET, POST | content_review_process, ingest, instagram_review_list, instagram_review_submit, repair-context, scan, workflow-update | openai, sentry, stripe, supabase |
 | ops-incident-native-scan | [supabase/functions/ops-incident-native-scan/index.ts:1](../../supabase/functions/ops-incident-native-scan/index.ts#L1) | oui ([supabase/config.toml:191](../../supabase/config.toml#L191)) | false | POST | — | supabase |
 | payment-attempt-status | [supabase/functions/payment-attempt-status/index.ts:1](../../supabase/functions/payment-attempt-status/index.ts#L1) | oui ([supabase/config.toml:194](../../supabase/config.toml#L194)) | false | ANY | — | stripe |
@@ -3271,7 +3271,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.notify_social_comment` (2 définition(s))
 - `public.notify_social_repost` (1 définition(s))
 - `public.notify_tok_one_members_new_offer` (1 définition(s))
-- `public.ops_approve_incident_admin` (1 définition(s))
+- `public.ops_approve_incident_admin` (2 définition(s))
 - `public.ops_decide_incident` (1 définition(s))
 - `public.ops_register_incident` (3 définition(s))
 - `public.ops_touch_incident_updated_at` (1 définition(s))
@@ -6631,6 +6631,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261022000000 Marketing Analytics Evidence | 391 | 9 | [supabase/migrations/20261022000000_marketing_analytics_evidence.sql:1](../../supabase/migrations/20261022000000_marketing_analytics_evidence.sql#L1) |
 | 20261022104000 Marketing Resend Integration Readiness | 38 | 0 | [supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql:1](../../supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql#L1) |
 | 20261023043000 Tok Connect Broker Access Lifetime | 52 | 2 | [supabase/migrations/20261023043000_tok_connect_broker_access_lifetime.sql:1](../../supabase/migrations/20261023043000_tok_connect_broker_access_lifetime.sql#L1) |
+| 20261023074600 Guardian Complete Repair Bounded Investigation | 145 | 1 | [supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql:1](../../supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6861,7 +6862,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 42 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 271 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 824 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 826 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7544,7 +7545,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (575)</summary>
+<details><summary>database-migration (576)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8121,6 +8122,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261022000000_marketing_analytics_evidence.sql`
 - `supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql`
 - `supabase/migrations/20261023043000_tok_connect_broker_access_lifetime.sql`
+- `supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql`
 
 </details>
 
