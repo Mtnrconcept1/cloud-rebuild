@@ -13,6 +13,7 @@ const FUNCTION_NAME = "ops-admin-approval";
 const REPOSITORY = "Mtnrconcept1/cloud-rebuild";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const HASH = /^[0-9a-f]{64}$/;
+const BOUNDED_CODE_PATH = /^(src|scripts|supabase\/functions)\/[A-Za-z0-9._/-]+$/;
 
 async function hashSha256(value: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
@@ -22,6 +23,26 @@ async function hashSha256(value: string): Promise<string> {
 function randomToken() {
   const bytes = crypto.getRandomValues(new Uint8Array(24));
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function stringList(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function completeRepairEligible(
+  repairability: unknown,
+  plan: Record<string, unknown> | null,
+): boolean {
+  if (!plan) return false;
+  if (repairability === "code" && plan.codex_eligible === true) return true;
+  if (repairability !== "external" && repairability !== "unknown") return false;
+
+  const hasBoundedCodeTarget = stringList(plan.files_to_inspect).some((path) =>
+    BOUNDED_CODE_PATH.test(path) && !/(^|\/)\.\.($|\/)/.test(path)
+  );
+  return hasBoundedCodeTarget
+    && stringList(plan.repair_steps).length > 0
+    && stringList(plan.validation_steps).length > 0;
 }
 
 function safeError(error: unknown) {
@@ -153,8 +174,8 @@ Deno.serve(async (req) => {
       .eq("id", incidentId).maybeSingle();
     if (lookupError || !existing) throw new HttpError(404, "incident_unavailable");
     const storedPlan = existing.repair_plan as Record<string, unknown> | null;
-    if (existing.status !== "awaiting_approval" || existing.repairability !== "code"
-      || storedPlan?.codex_eligible !== true) {
+    if (existing.status !== "awaiting_approval"
+      || !completeRepairEligible(existing.repairability, storedPlan)) {
       throw new HttpError(409, "incident_not_eligible");
     }
     if (!getEnv("GITHUB_INCIDENT_TOKEN") || !getEnv("OPS_GITHUB_CALLBACK_SECRET")) {

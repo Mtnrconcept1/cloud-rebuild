@@ -13,9 +13,12 @@ Les responsabilités restent séparées :
 
 ## Réparation complète depuis Guardian
 
-Pour un incident classé `code`, en attente d'approbation et muni de preuves à jour,
-un administrateur AAL2 peut demander une réparation complète depuis Guardian. La
-demande fige toujours le plan canonique et son `evidence_hash` avant le dispatch.
+Pour un incident en attente d'approbation et muni de preuves à jour, un administrateur
+AAL2 peut demander une réparation complète depuis Guardian. L'incident doit soit être
+classé `code` et éligible Codex, soit être classé `external`/`unknown` avec un plan
+canonique borné qui désigne au moins un fichier TOK sous `src/`, `scripts/` ou
+`supabase/functions/`, ainsi que des étapes de réparation et de validation. La demande
+fige toujours ce plan et son `evidence_hash` avant le dispatch.
 
 Le workflow exécute alors jusqu'à trois cycles bornés :
 
@@ -24,7 +27,10 @@ Le workflow exécute alors jusqu'à trois cycles bornés :
 3. les échecs deviennent des preuves diagnostiques non fiables que Codex doit analyser ;
 4. un nouveau cycle est lancé uniquement si le précédent n'a pas convergé.
 
-Aucune PR n'est publiée tant que tous les contrôles ne sont pas verts. Après trois
+Aucune PR n'est publiée tant que tous les contrôles ne sont pas verts. Pour une
+investigation bornée, Codex vérifie d'abord si le code TOK est réellement en cause ;
+si aucune correction sûre n'est démontrée, il produit un rapport journalisé sans patch.
+Après trois
 cycles en échec, l'incident reste ouvert et aucune publication n'a lieu. Chaque cycle
 est inscrit dans `ops_incident_events`. Un rapport Markdown et JSON est conservé
 30 jours comme artefact GitHub Actions et le run correspondant est accessible depuis
@@ -46,7 +52,10 @@ Chaque incident est classé sans appel IA :
 - `expected_business_rule`
 - `unknown`
 
-Codex n’est autorisé que pour `code`. Une configuration manquante, une panne fournisseur, un rejet métier attendu ou une incohérence de données ne déclenche donc pas automatiquement un modèle de réparation de code.
+Codex n’est autorisé à modifier du code que lorsque le diagnostic et les tests le
+justifient. Une configuration manquante, une panne fournisseur, un rejet métier attendu
+ou une incohérence de données ne produit donc aucun patch automatique ; l'investigation
+bornée peut seulement conclure par un rapport journalisé.
 
 ## Cache par preuve
 
