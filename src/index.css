@@ -48,13 +48,14 @@
 
 @layer base {
   :root {
+    --tok-brand-orange: #F15D22;
     --background: 40 43% 97%;
     --foreground: 24 16% 13%;
     --card: 0 0% 100%;
     --card-foreground: 24 16% 13%;
     --popover: 0 0% 100%;
     --popover-foreground: 24 16% 13%;
-    --primary: 19 68% 51%;
+    --primary: 17.101449 88.085106% 53.921569%;
     --primary-foreground: 0 0% 100%;
     --secondary: 35 30% 93%;
     --secondary-foreground: 24 16% 13%;
@@ -66,19 +67,19 @@
     --destructive-foreground: 0 0% 100%;
     --border: 32 22% 86%;
     --input: 32 22% 86%;
-    --ring: 19 68% 51%;
+    --ring: 17.101449 88.085106% 53.921569%;
     --radius: 1rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 19 68% 51%;
+    --sidebar-primary: 17.101449 88.085106% 53.921569%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 35 30% 93%;
     --sidebar-accent-foreground: 24 16% 13%;
     --sidebar-border: 32 22% 86%;
-    --sidebar-ring: 19 68% 51%;
+    --sidebar-ring: 17.101449 88.085106% 53.921569%;
     --miamz-green: 152 48% 30%;
     --miamz-green-foreground: 0 0% 100%;
-    --miamz-orange: 19 68% 51%;
+    --miamz-orange: 17.101449 88.085106% 53.921569%;
     --miamz-orange-light: 30 100% 96%;
     --miamz-warm: 35 100% 97%;
   }
@@ -90,7 +91,7 @@
     --card-foreground: 210 30% 98%;
     --popover: 24 12% 12%;
     --popover-foreground: 210 30% 98%;
-    --primary: 19 68% 51%;
+    --primary: 17.101449 88.085106% 53.921569%;
     --primary-foreground: 0 0% 100%;
     --secondary: 24 10% 18%;
     --secondary-foreground: 210 28% 96%;
@@ -102,18 +103,18 @@
     --destructive-foreground: 0 0% 98%;
     --border: 24 8% 28%;
     --input: 24 8% 28%;
-    --ring: 19 68% 51%;
+    --ring: 17.101449 88.085106% 53.921569%;
     --sidebar-background: 24 12% 11%;
     --sidebar-foreground: 210 25% 96%;
-    --sidebar-primary: 19 68% 51%;
+    --sidebar-primary: 17.101449 88.085106% 53.921569%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 24 10% 18%;
     --sidebar-accent-foreground: 210 25% 96%;
     --sidebar-border: 24 8% 28%;
-    --sidebar-ring: 19 68% 51%;
+    --sidebar-ring: 17.101449 88.085106% 53.921569%;
     --miamz-green: 152 60% 48%;
     --miamz-green-foreground: 0 0% 100%;
-    --miamz-orange: 19 68% 51%;
+    --miamz-orange: 17.101449 88.085106% 53.921569%;
     --miamz-orange-light: 24 12% 15%;
     --miamz-warm: 24 14% 8%;
   }
@@ -231,12 +232,12 @@
     background-attachment: fixed;
   }
   ::selection {
-    background: rgba(255, 106, 26, 0.82);
+    background: rgba(241, 93, 34, 0.82);
     color: #ffffff;
     text-shadow: none;
   }
   ::-moz-selection {
-    background: rgba(255, 106, 26, 0.82);
+    background: rgba(241, 93, 34, 0.82);
     color: #ffffff;
     text-shadow: none;
   }
@@ -453,7 +454,7 @@
   .tok-tone-emerald { --tok-accent-rgb: 76 246 211; --tok-accent-soft-rgb: 12 118 99; }
   .tok-tone-amber { --tok-accent-rgb: 255 176 42; --tok-accent-soft-rgb: 142 78 10; }
   .tok-tone-orange,
-  .tok-tone-primary { --tok-accent-rgb: 216 98 44; --tok-accent-soft-rgb: 138 57 17; }
+  .tok-tone-primary { --tok-accent-rgb: 241 93 34; --tok-accent-soft-rgb: 138 57 17; }
   .tok-tone-violet { --tok-accent-rgb: 168 100 255; --tok-accent-soft-rgb: 80 44 164; }
   .tok-tone-rose { --tok-accent-rgb: 255 76 121; --tok-accent-soft-rgb: 146 25 64; }
   .tok-dashboard-kpi {

@@ -397,15 +397,15 @@ describe("commercial.thetok.ch canonical isolation", () => {
       .toBe("/commercial/demo-live");
   });
 
-  it("sends every production role to the workspace chooser after login", () => {
+  it("sends professional roles to the chooser and clients to the public homepage", () => {
     expect(getPostAuthTargetForRole("commercial", null))
       .toBe("/espaces");
     expect(getPostAuthTargetForRole("commercial", "/commercial/demo-live?panel=client"))
       .toBe("/espaces");
     expect(getPostAuthTargetForRole("admin", "/commercial/demo-live"))
       .toBe("/espaces");
-    expect(getPostAuthTargetForRole("client", "/commercial/demo-live"))
-      .toBe("/espaces");
+    expect(getPostAuthTargetForRole("client", "/commercial/demo-live", { launchEnabled: false }))
+      .toBe("/");
   });
 
   it("mounts the role-aware redirect boundary above every application route", () => {

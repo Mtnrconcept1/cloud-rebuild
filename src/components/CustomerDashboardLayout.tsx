@@ -236,6 +236,9 @@ export default function CustomerDashboardLayout({ children }: { children: React.
 
       <div className="tok-workspace-body min-w-0 flex-1">
         <WorkspaceToolbar search={<WorkspaceRestaurantSearch />}>
+          <Link to="/" aria-label="TOK — Accueil du site" className="tok-client-toolbar-logo md:hidden">
+            <img src={logoSrc} alt="TOK" width={74} height={44} className="h-10 w-[74px] object-contain" />
+          </Link>
           <ThemeToggleButton className="h-10 w-10 rounded-full" />
           <NotificationBell buttonClassName="h-10 w-10 shadow-none" />
           {!commercialDemoFrame || visibleItems.some((item) => item.to === "/panier") ? (

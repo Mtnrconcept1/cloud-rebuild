@@ -1,6 +1,9 @@
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
+// Le même orange TOK est utilisé par tous les sous-domaines et boutons orange.
+const TOK_BRAND_ORANGE = "#F15D22";
+
 export default {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
@@ -25,6 +28,17 @@ export default {
         dashboard: ["Playball", "Playfair Display", "serif"],
       },
       colors: {
+        // Les aplats et textes orange portent le même orange de marque.
+        // Les nuances claires (50–300) restent réservées aux fonds discrets.
+        orange: {
+          400: TOK_BRAND_ORANGE,
+          500: TOK_BRAND_ORANGE,
+          600: TOK_BRAND_ORANGE,
+          700: TOK_BRAND_ORANGE,
+          800: TOK_BRAND_ORANGE,
+          900: TOK_BRAND_ORANGE,
+          950: TOK_BRAND_ORANGE,
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

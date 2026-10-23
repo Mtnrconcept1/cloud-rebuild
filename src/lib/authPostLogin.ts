@@ -24,10 +24,10 @@ function isOAuthConsentTarget(target: string) {
 }
 
 /**
- * Every production login finishes on the canonical workspace chooser. The
- * selected dashboard may then move to its dedicated subdomain while reusing
- * the shared TOK session. OAuth consent and strictly validated employee
- * invitations resume immediately. The internal demo keeps its isolated role home.
+ * Après connexion, un client arrive sur l'accueil public TOK et les rôles
+ * professionnels choisissent leur espace. Les parcours OAuth, les invitations
+ * collaborateurs et l'écran de lancement conservent leur priorité.
+ * La démo interne garde son accueil propre à chaque rôle.
  */
 export function getPostAuthTargetForRole(
   selectedRole: UserRole,
@@ -45,8 +45,8 @@ export function getPostAuthTargetForRole(
   const workforceTarget = getWorkforceContinuationTarget(postAuthRedirectTarget);
   if (workforceTarget) return workforceTarget;
 
-  if (context.launchEnabled && selectedRole === "client") {
-    return "/coming-soon";
+  if (selectedRole === "client") {
+    return context.launchEnabled ? "/coming-soon" : "/";
   }
 
   return TOK_WORKSPACE_CHOOSER_PATH;
