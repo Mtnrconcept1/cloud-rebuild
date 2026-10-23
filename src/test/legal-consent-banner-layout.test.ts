@@ -30,4 +30,8 @@ describe("legal consent banner layout", () => {
     expect(source).toContain("left-[calc(env(safe-area-inset-left,0px)+0.75rem)]");
     expect(source).toContain("md:bottom-4");
   });
+
+  it("keeps the desktop cookie control away from sidebar account actions", () => {
+    expect(source).toContain("md:left-auto md:right-4");
+  });
 });

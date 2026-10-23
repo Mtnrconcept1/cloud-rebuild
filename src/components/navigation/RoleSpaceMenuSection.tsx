@@ -166,10 +166,10 @@ export default function RoleSpaceMenuSection({
           <Icon className="h-4 w-4" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-extrabold leading-5">{item.label}</span>
+          <span className="block whitespace-normal break-words text-sm font-extrabold leading-5">{item.label}</span>
           <span
             className={cn(
-              "block truncate text-xs leading-snug",
+              "block whitespace-normal break-words text-xs leading-snug",
               selected ? "text-primary-foreground/78" : "text-muted-foreground",
             )}
           >
@@ -208,8 +208,8 @@ export default function RoleSpaceMenuSection({
           <Icon className="h-4 w-4" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-extrabold leading-5">{workspace.label}</span>
-          <span className={cn("block truncate text-xs leading-snug", selected ? "text-white/80" : "text-muted-foreground")}>
+          <span className="block whitespace-normal break-words text-sm font-extrabold leading-5">{workspace.label}</span>
+          <span className={cn("block whitespace-normal break-words text-xs leading-snug", selected ? "text-white/80" : "text-muted-foreground")}>
             {workspace.description}
           </span>
         </span>
@@ -243,8 +243,8 @@ export default function RoleSpaceMenuSection({
           <LayoutDashboard className="h-4 w-4" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-extrabold leading-5">Démo multi-dashboard</span>
-          <span className={cn("block truncate text-xs leading-snug", selected ? "text-white/80" : "text-muted-foreground")}>
+          <span className="block whitespace-normal break-words text-sm font-extrabold leading-5">Démo multi-dashboard</span>
+          <span className={cn("block whitespace-normal break-words text-xs leading-snug", selected ? "text-white/80" : "text-muted-foreground")}>
             Client, restaurateur et livreur simultanément
           </span>
         </span>
