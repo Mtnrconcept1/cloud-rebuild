@@ -91,5 +91,5 @@ export function getCustomerDashboardVisual(pathname: string, search = "") {
 }
 
 export function getTokHeroStyle(src: string | undefined): CSSProperties | undefined {
-  return src ? ({ "--tok-hero-image": `url("${src}")` } as CSSProperties) : undefined;
+  return src ? ({ "--workspace-hero-image": `url("${src}")` } as CSSProperties) : undefined;
 }

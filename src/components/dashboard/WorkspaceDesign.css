@@ -166,8 +166,8 @@
   background: #f4ecdf;
   box-shadow: 0 18px 42px rgb(67 43 23 / 5%);
 }
-.tok-hospitality-workspace .tok-hospitality-hero-copy::before { content: ""; position: absolute; inset: 0; z-index: -2; background: var(--workspace-hero-image, url('/images/dashboard/restaurant-ambience.webp')) 64% 52% / cover; transform: scale(1.015); }
-.tok-hospitality-workspace .tok-hospitality-hero-copy::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgb(255 253 249 / 98%) 0%, rgb(255 253 249 / 93%) 37%, rgb(255 253 249 / 63%) 60%, rgb(255 253 249 / 12%) 100%); }
+.tok-hospitality-workspace .tok-hospitality-hero-copy::before { content: ""; position: absolute; inset: 0; z-index: -2; background: var(--workspace-hero-image, url('/images/dashboard/restaurant-ambience.webp')) 66% 52% / cover; transform: scale(1.015); }
+.tok-hospitality-workspace .tok-hospitality-hero-copy::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgb(255 253 249 / 99%) 0%, rgb(255 253 249 / 96%) 34%, rgb(255 253 249 / 72%) 53%, rgb(255 253 249 / 10%) 78%); }
 .tok-hospitality-workspace .tok-hospitality-hero-copy > * { margin-block: 0; }
 .tok-hospitality-workspace .tok-hospitality-hero-copy > :first-child { align-self: flex-start; height: auto; max-width: 100%; padding: 7px 10px; border: 1px solid rgb(231 215 199 / 82%); border-radius: 999px; background: rgb(255 253 250 / 80%); color: #796659; font-size: 10px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; box-shadow: 0 4px 12px rgb(68 43 21 / 3%); }
 .tok-hospitality-workspace .tok-hospitality-hero-copy > .flex { display: block; }
@@ -196,7 +196,7 @@
 .tok-hospitality-workspace .tok-hospitality-console-heading .tok-kpi-label { color: var(--workspace-orange-strong) !important; }
 .tok-hospitality-workspace .tok-hospitality-console-heading .tok-kpi-icon { background: var(--workspace-apricot) !important; color: var(--workspace-orange-strong) !important; }
 .tok-hospitality-workspace .tok-hospitality-console-panel { display: flex; min-width: 0; min-height: 0; flex: 1; flex-direction: column; align-items: stretch; padding: 14px 0 0; border: 0; background: transparent; box-shadow: none; }
-.tok-hospitality-workspace .tok-hospitality-summary-layout { display: grid; width: 100%; min-width: 0; flex: 1; align-self: stretch; grid-template-columns: minmax(0, 1fr) 122px; gap: 10px; align-items: center; }
+.tok-hospitality-workspace .tok-hospitality-summary-layout { display: grid; width: 100%; min-width: 0; flex: 1; align-self: stretch; grid-template-columns: minmax(0, 1fr) 96px; gap: 10px; align-items: center; }
 .tok-hospitality-workspace .tok-hospitality-summary-stats { display: grid; min-width: 0; gap: 1px; overflow: hidden; border: 1px solid var(--workspace-line); border-radius: 15px; background: var(--workspace-line); }
 .tok-hospitality-workspace .tok-hospitality-summary-stats > * { margin: 0; }
 .tok-hospitality-workspace .tok-hospitality-summary-stats .tok-dashboard-kpi { display: grid; min-width: 0; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 11px; min-height: 69px; padding: 12px; border: 0; border-radius: 0; background: var(--workspace-paper); box-shadow: none; }
@@ -204,14 +204,14 @@
 .tok-hospitality-workspace .tok-hospitality-summary-stats p { min-width: 0; overflow: hidden; color: var(--workspace-subtle); font-size: 10px; font-weight: 650; line-height: 1.25; letter-spacing: .035em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .tok-hospitality-workspace .tok-hospitality-summary-stats .tok-kpi-value { min-width: 0; margin-top: 3px; overflow: hidden; color: var(--workspace-ink); font: 740 clamp(18px, 1.7vw, 25px)/1.15 var(--workspace-sans); font-variant-numeric: tabular-nums; letter-spacing: -.035em; text-overflow: ellipsis; white-space: nowrap; }
 .tok-hospitality-workspace .tok-hospitality-summary-layout > [data-dashboard-illustration],
-.tok-hospitality-workspace .tok-hospitality-summary-layout > [aria-hidden="true"] { align-self: end; width: 122px; max-height: 180px; object-fit: contain; filter: drop-shadow(0 16px 18px rgb(79 48 23 / 10%)); }
-.tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-layout { grid-template-columns: minmax(0, 1fr) 108px; }
+.tok-hospitality-workspace .tok-hospitality-summary-layout > [aria-hidden="true"] { align-self: end; width: 96px; max-height: 180px; object-fit: contain; filter: drop-shadow(0 16px 18px rgb(79 48 23 / 10%)); }
+.tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-layout { grid-template-columns: minmax(0, 1fr) 96px; }
 .tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-stats .tok-dashboard-kpi { grid-template-columns: minmax(0, 1fr); min-height: 110px; align-content: center; }
 .tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-stats .tok-dashboard-kpi > svg { display: none; }
 .tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-stats p { overflow: visible; text-overflow: clip; white-space: normal; text-transform: none; letter-spacing: 0; line-height: 1.5; }
 .tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-stats .tok-kpi-value { overflow: visible; text-overflow: clip; white-space: nowrap; }
 .tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-layout > [data-dashboard-illustration],
-.tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-layout > [aria-hidden="true"] { width: 108px; }
+.tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-layout > [aria-hidden="true"] { width: 96px; }
 .tok-hospitality-workspace .tok-dashboard-hero[data-compact="true"] .tok-hospitality-hero-copy { min-height: 246px; padding: 28px 34px; gap: 12px; }
 .tok-hospitality-workspace .tok-dashboard-hero[data-compact="true"] .tok-hospitality-hero-copy h1 { font-size: clamp(34px, 3vw, 48px); }
 .tok-hospitality-workspace .tok-dashboard-hero[data-compact="true"] .tok-hospitality-hero-console { min-height: 246px; }
@@ -224,19 +224,28 @@
 .tok-client-shell .tok-workspace-toolbar { display: flex; }
 .tok-client-shell .tok-workspace-content > div { min-width: 0; }
 .tok-client-shell .tok-customer-page-hero { margin: 0; }
-.tok-hospitality-workspace .tok-customer-page-hero { overflow: hidden; border: 1px solid #eadfd3; border-radius: 22px; background: var(--workspace-paper); box-shadow: 0 18px 42px rgb(67 43 23 / 5%); }
-.tok-hospitality-workspace .tok-customer-hero-row { display: grid; min-height: 322px; grid-template-columns: minmax(0, 1.92fr) minmax(230px, .82fr); }
-.tok-hospitality-workspace .tok-customer-page-hero__copy { position: relative; isolation: isolate; display: flex; min-width: 0; flex-direction: column; justify-content: center; padding: clamp(30px, 4vw, 54px); }
-.tok-hospitality-workspace .tok-customer-page-hero__copy::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(118deg, #fffdfb 0%, #fff9f4 68%, #fff1e6 100%); }
+.tok-hospitality-workspace .tok-customer-page-hero { position: relative; isolation: isolate; overflow: hidden; border: 1px solid #eadfd3; border-radius: 22px; background: #f4ecdf; box-shadow: 0 18px 42px rgb(67 43 23 / 5%); }
+.tok-hospitality-workspace .tok-customer-page-hero::before { content: ""; position: absolute; inset: 0; z-index: -2; background: var(--workspace-hero-image, url('/images/dashboard/restaurant-ambience.webp')) 66% 52% / cover; transform: scale(1.015); }
+.tok-hospitality-workspace .tok-customer-page-hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgb(255 253 249 / 99%) 0%, rgb(255 253 249 / 96%) 34%, rgb(255 253 249 / 72%) 53%, rgb(255 253 249 / 10%) 78%); }
+.tok-hospitality-workspace .tok-customer-hero-row { display: grid; min-height: 352px; grid-template-columns: minmax(0, 1.88fr) minmax(300px, .92fr); gap: 18px; align-items: stretch; }
+.tok-hospitality-workspace .tok-customer-page-hero__copy { position: relative; display: flex; min-width: 0; min-height: 350px; flex-direction: column; justify-content: center; padding: clamp(30px, 4vw, 54px); }
 .tok-hospitality-workspace .tok-customer-page-hero__eyebrow { align-self: flex-start; margin-bottom: 16px; padding: 7px 10px; border: 1px solid #f1d7c5; border-radius: 999px; background: rgb(255 255 255 / 70%); color: #a54119; font-size: 10px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
 .tok-hospitality-workspace .tok-customer-page-hero h1 { max-width: 760px; margin: 0; color: var(--workspace-ink); font-size: clamp(38px, 4vw, 64px); font-weight: 560; line-height: 1; text-wrap: balance; }
 .tok-hospitality-workspace .tok-customer-page-hero__subtitle { margin-top: 12px; color: #4a4038; font-size: clamp(15px, 1.5vw, 19px); font-weight: 680; }
 .tok-hospitality-workspace .tok-customer-page-hero__description { max-width: 610px; margin-top: 12px; color: var(--workspace-subtle); font-size: 14px; line-height: 1.7; text-wrap: pretty; }
 .tok-hospitality-workspace .tok-customer-page-hero__actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
-.tok-hospitality-workspace .tok-customer-hero-sidecar { position: relative; display: grid; min-width: 0; place-items: end center; overflow: hidden; background: radial-gradient(circle at 50% 36%, #fff8f1 0 22%, #f7e9db 50%, #edddce 100%); }
-.tok-hospitality-workspace .tok-customer-hero-sidecar::before { content: ""; position: absolute; top: 12%; width: 76%; aspect-ratio: 1; border: 1px solid rgb(141 105 77 / 12%); border-radius: 50%; box-shadow: 0 0 0 24px rgb(255 255 255 / 16%), 0 0 0 48px rgb(255 255 255 / 10%); }
+.tok-hospitality-workspace .tok-customer-hero-sidecar { position: relative; display: grid; min-width: 0; grid-template-rows: auto auto 1fr; gap: 14px; overflow: hidden; padding: 22px; border: 1px solid #eadfd4; border-radius: 22px; background: linear-gradient(155deg, #fffdfb 0%, #fbf6f0 100%); box-shadow: 0 18px 42px rgb(67 43 23 / 5%); }
+.tok-hospitality-workspace .tok-customer-hero-sidecar::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, var(--workspace-orange), #ff9f1c, #4fcfb0); }
+.tok-hospitality-workspace .tok-customer-hero-sidecar__heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 5px 0 14px; border-bottom: 1px solid var(--workspace-line); }
+.tok-hospitality-workspace .tok-customer-hero-sidecar__heading p { margin: 0 0 4px; color: var(--workspace-orange-strong); font-size: 10px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+.tok-hospitality-workspace .tok-customer-hero-sidecar__heading strong { color: var(--workspace-ink); font-size: 14px; }
+.tok-hospitality-workspace .tok-customer-hero-sidecar__heading > span { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 13px; background: var(--workspace-apricot); color: var(--workspace-orange-strong); }
+.tok-hospitality-workspace .tok-customer-hero-sidecar__heading svg { width: 20px; height: 20px; }
+.tok-hospitality-workspace .tok-customer-hero-sidecar__context { position: relative; z-index: 1; display: grid; gap: 4px; align-self: start; padding: 13px 14px; border: 1px solid var(--workspace-line); border-radius: 14px; background: rgb(255 253 251 / 82%); }
+.tok-hospitality-workspace .tok-customer-hero-sidecar__context span { color: var(--workspace-subtle); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.tok-hospitality-workspace .tok-customer-hero-sidecar__context strong { overflow: hidden; color: var(--workspace-ink); font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
 .tok-hospitality-workspace .tok-customer-hero-sidecar img,
-.tok-hospitality-workspace .tok-customer-hero-sidecar [data-dashboard-illustration] { position: relative; z-index: 1; width: min(100%, 248px); max-height: 294px; object-fit: contain; filter: drop-shadow(0 22px 24px rgb(69 43 22 / 13%)); }
+.tok-hospitality-workspace .tok-customer-hero-sidecar [data-dashboard-illustration] { position: relative; z-index: 1; align-self: end; justify-self: center; width: min(100%, 180px); max-height: 170px; object-fit: contain; filter: drop-shadow(0 18px 20px rgb(69 43 22 / 12%)); }
 .tok-hospitality-workspace .tok-client-metric { border-color: var(--workspace-line); background: var(--workspace-paper); box-shadow: 0 8px 24px rgb(65 42 20 / 3%); }
 .tok-hospitality-workspace .tok-client-card-arrow { position: absolute; top: 50%; right: 16px; box-sizing: content-box; padding: 8px; border: 1px solid var(--workspace-line); border-radius: 50%; background: var(--workspace-paper); color: #8f7c68; transform: translateY(-50%); }
 .tok-hospitality-workspace .tok-client-action-watermark { position: absolute; right: 12px; bottom: -8px; width: 110px; height: 110px; opacity: .055; color: currentColor; stroke-width: 1; pointer-events: none; }
@@ -294,8 +303,11 @@
 .dark .tok-hospitality-workspace .tok-hospitality-hero-copy h1 { color: #fff3e6; }
 .dark .tok-hospitality-workspace .tok-hospitality-hero-copy p { color: #ddcbb9; }
 .dark .tok-hospitality-workspace .tok-hospitality-summary-stats { background: var(--workspace-line); }
-.dark .tok-hospitality-workspace .tok-customer-page-hero__copy::before { background: linear-gradient(118deg, #28211b, #30251d); }
+.dark .tok-hospitality-workspace .tok-customer-page-hero::after { background: linear-gradient(90deg, rgb(39 32 26 / 99%) 0%, rgb(39 32 26 / 95%) 38%, rgb(39 32 26 / 70%) 61%, rgb(39 32 26 / 16%) 100%); }
 .dark .tok-hospitality-workspace .tok-customer-hero-sidecar { background: radial-gradient(circle at 50% 36%, #3c2f25, #2a221c 65%); }
+.dark .tok-hospitality-workspace .tok-customer-hero-sidecar__context { border-color: var(--workspace-line); background: rgb(44 35 28 / 80%); }
+.dark .tok-hospitality-workspace .tok-customer-hero-sidecar__heading strong,
+.dark .tok-hospitality-workspace .tok-customer-hero-sidecar__context strong { color: #fff3e6; }
 .dark .tok-hospitality-workspace .tok-customer-page-hero__subtitle { color: #f1e1d1; }
 .dark .tok-hospitality-workspace .tok-workspace-content :is([role="tablist"], thead) { background: #30271f; }
 .dark .tok-hospitality-workspace .tok-workspace-content [role="tab"][data-state="active"] { color: #ffc18f; }
@@ -312,6 +324,8 @@
   .tok-hospitality-workspace .tok-hospitality-summary-layout > [data-dashboard-illustration],
   .tok-hospitality-workspace .tok-hospitality-summary-layout > [aria-hidden="true"] { display: none; }
   .tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-layout { grid-template-columns: minmax(0, 1fr); }
+  .tok-hospitality-workspace .tok-customer-hero-row { grid-template-columns: minmax(0, 1.55fr) minmax(270px, .85fr); }
+  .tok-hospitality-workspace .tok-customer-hero-sidecar img { max-width: 138px; max-height: 132px; }
 }
 
 @media (max-width: 920px) and (min-width: 768px) {
@@ -323,7 +337,9 @@
   .tok-hospitality-workspace .tok-hospitality-summary-stats .tok-dashboard-kpi { grid-template-columns: minmax(0, 1fr); }
   .tok-hospitality-workspace .tok-hospitality-summary-stats .tok-dashboard-kpi > svg { display: none; }
   .tok-hospitality-workspace .tok-customer-hero-row { grid-template-columns: minmax(0, 1fr); }
-  .tok-hospitality-workspace .tok-customer-hero-sidecar { display: none; }
+  .tok-hospitality-workspace .tok-customer-hero-sidecar { grid-template-columns: minmax(0, 1fr) minmax(150px, 220px) 112px; grid-template-rows: auto; align-items: center; min-height: 132px; }
+  .tok-hospitality-workspace .tok-customer-hero-sidecar__heading { border-bottom: 0; border-right: 1px solid var(--workspace-line); padding: 0 18px 0 0; }
+  .tok-hospitality-workspace .tok-customer-hero-sidecar img { width: 104px; max-height: 104px; }
 }
 
 @media (max-width: 767px) {
@@ -339,8 +355,9 @@
   .tok-hospitality-workspace .tok-workspace-search { width: 100%; }
   .tok-hospitality-workspace .tok-workspace-account { max-width: 170px; padding-left: 0; border: 0; }
   .tok-hospitality-workspace .tok-hospitality-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .tok-hospitality-workspace .tok-hospitality-hero-copy { min-height: 250px; padding: 26px 22px; border-radius: 18px; }
-  .tok-hospitality-workspace .tok-hospitality-hero-copy::after { background: linear-gradient(90deg, rgb(255 253 249 / 97%), rgb(255 253 249 / 82%) 64%, rgb(255 253 249 / 30%)); }
+  .tok-hospitality-workspace .tok-hospitality-hero-copy { min-height: 380px; justify-content: flex-end; padding: 168px 22px 26px; border-radius: 18px; }
+  .tok-hospitality-workspace .tok-hospitality-hero-copy::before { background-position: 64% 34%; }
+  .tok-hospitality-workspace .tok-hospitality-hero-copy::after { background: linear-gradient(180deg, rgb(255 253 249 / 2%) 0%, rgb(255 253 249 / 22%) 30%, rgb(255 253 249 / 96%) 51%, rgb(255 253 249 / 100%) 100%); }
   .tok-hospitality-workspace .tok-hospitality-hero-copy h1 { max-width: 100%; font-size: clamp(34px, 10vw, 46px); }
   .tok-hospitality-workspace .tok-hospitality-hero-copy p { max-width: 100%; font-size: 13px; }
   .tok-hospitality-workspace .tok-hospitality-hero-console { padding: 16px; border-radius: 18px; }
@@ -353,11 +370,16 @@
   .tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-layout { grid-template-columns: minmax(0, 1fr) 88px; }
   .tok-hospitality-workspace .tok-dashboard-hero[data-compact="true"] .tok-hospitality-hero-copy { min-height: 190px; padding: 22px; }
   .tok-hospitality-workspace .tok-dashboard-hero[data-compact="true"] .tok-hospitality-hero-console { min-height: auto; }
-  .tok-hospitality-workspace .tok-customer-page-hero { border-radius: 18px; }
+  .tok-hospitality-workspace .tok-customer-page-hero { min-height: 380px; border-radius: 18px; }
   .tok-hospitality-workspace .tok-customer-hero-row { min-height: 0; grid-template-columns: minmax(0, 1fr); }
-  .tok-hospitality-workspace .tok-customer-page-hero__copy { padding: 30px 22px; }
+  .tok-hospitality-workspace .tok-customer-page-hero::before { background-position: 64% 34%; }
+  .tok-hospitality-workspace .tok-customer-page-hero::after { background: linear-gradient(180deg, rgb(255 253 249 / 2%) 0%, rgb(255 253 249 / 22%) 30%, rgb(255 253 249 / 96%) 51%, rgb(255 253 249 / 100%) 100%); }
+  .tok-hospitality-workspace .tok-customer-page-hero__copy { min-height: 380px; justify-content: flex-end; padding: 168px 22px 26px; }
   .tok-hospitality-workspace .tok-customer-page-hero h1 { font-size: clamp(36px, 10vw, 48px); }
   .tok-hospitality-workspace .tok-customer-hero-sidecar { display: none; }
+
+  .dark .tok-hospitality-workspace .tok-hospitality-hero-copy::after,
+  .dark .tok-hospitality-workspace .tok-customer-page-hero::after { background: linear-gradient(180deg, rgb(39 32 26 / 4%) 0%, rgb(39 32 26 / 25%) 30%, rgb(39 32 26 / 96%) 51%, rgb(39 32 26 / 100%) 100%); }
 
   .tok-dashboard-shell .tok-dashboard-access-notice { margin-bottom: 1rem; padding: 0.875rem; border-radius: 1.25rem; }
   .tok-dashboard-shell .tok-dashboard-access-notice__layout { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 0.75rem; }
