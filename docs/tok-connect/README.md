@@ -122,7 +122,7 @@ Le contrat interactif utilise désormais le **broker OAuth TOK**. Le MCP public 
 
 Le scope `tok` ne donne pas tous les droits TOK. L’écran de consentement enregistre les permissions métier et les restaurants choisis dans un grant lié à l’utilisateur et au client. Le serveur calcule l’intersection avec les rôles, la propriété et les autorisations restaurant existantes. Les modes génériques du bridge ne sont pas délégués.
 
-Le broker crée un client **confidentiel** chez Supabase et conserve son secret chiffré. Le client externe reçoit uniquement des jetons opaques TOK : aucun JWT Supabase, refresh token Supabase ou `id_token`. Les access tokens durent au plus cinq minutes. Le renouvellement est atomique ; le rejeu d’un refresh token consommé révoque sa famille. Le client doit sérialiser ses renouvellements.
+Le broker crée un client **confidentiel** chez Supabase et conserve son secret chiffré. Le client externe reçoit uniquement des jetons opaques TOK : aucun JWT Supabase, refresh token Supabase ou `id_token`. Les access tokens durent au plus une heure, sans jamais dépasser l'expiration absolue du JWT Supabase sous-jacent. Cette durée reste compatible avec la fenêtre de renouvellement anticipé de ChatGPT. Le renouvellement est atomique ; le rejeu d’un refresh token consommé révoque sa famille. Le client doit sérialiser ses renouvellements.
 
 La page `/oauth/consent` présente les permissions effectives. Si Supabase renvoie un consentement automatique sans identité de client exploitable, elle bloque le retour et demande de révoquer puis reconnecter. Les autorisations sont consultables et révocables depuis `/account/security` et `/dashboard/tok-connect`.
 

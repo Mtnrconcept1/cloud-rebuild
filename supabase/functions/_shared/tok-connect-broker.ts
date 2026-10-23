@@ -5,7 +5,12 @@ import { readVerifiedTokOAuthClaims } from "./tok-connect-oauth-policy.ts";
 export const TOK_BROKER_ISSUER = "https://www.thetok.ch/oauth";
 export const TOK_BROKER_RESOURCE = "https://www.thetok.ch/mcp";
 export const TOK_BROKER_SCOPE = "tok";
-const ACCESS_LIFETIME_SECONDS = 300;
+// ChatGPT refreshes tokens that are already inside its renewal window. A
+// five-minute opaque token therefore causes an immediate refresh loop and can
+// eventually trip the broker's refresh-token replay protection. One hour keeps
+// the client outside that window while remaining bounded by the native JWT's
+// absolute expiration and by server-side session/grant revocation.
+const ACCESS_LIFETIME_SECONDS = 3600;
 const MAX_BODY_BYTES = 16_384;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ACCESS = /^tok_oa_[0-9a-f]{64}$/;

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { webcrypto } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { decryptTokBrokerSecret, encryptTokBrokerSecret } from "../../supabase/functions/_shared/tok-connect-broker-crypto";

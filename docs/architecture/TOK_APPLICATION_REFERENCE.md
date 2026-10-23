@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `c9d27d70cd534b68b87f4704d33c82c73efe2e325fc88f9ffb9e18465b533285`
+- Empreinte SHA-256 des sources indexées : `cc58c1e36698b6a0926ffe716cceaa7330ce93a0c2a6ec905ba04b4260323863`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,7 +37,7 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 574 |
+| migrations | 575 |
 | modules | 1805 |
 | pages | 133 |
 | pathLiterals | 888 |
@@ -45,8 +45,8 @@
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18777 |
-| repositoryFiles | 3640 |
+| records | 18779 |
+| repositoryFiles | 3641 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1457,7 +1457,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/guide | 5 | [src/App.tsx:688](../../src/App.tsx#L688) |
 | /admin/loyalty | 4 | [src/App.tsx:670](../../src/App.tsx#L670) |
 | /admin/notifications | 9 | [src/App.tsx:672](../../src/App.tsx#L672) |
-| /admin/oauth/clients | 1 | [src/test/tok-connect-broker.test.ts:50](../../src/test/tok-connect-broker.test.ts#L50) |
+| /admin/oauth/clients | 1 | [src/test/tok-connect-broker.test.ts:51](../../src/test/tok-connect-broker.test.ts#L51) |
 | /admin/packs | 4 | [src/App.tsx:676](../../src/App.tsx#L676) |
 | /admin/platform | 7 | [src/App.tsx:663](../../src/App.tsx#L663) |
 | /admin/restaurants | 13 | [src/App.tsx:664](../../src/App.tsx#L664) |
@@ -1509,13 +1509,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/callback?code=pkce-code | 1 | [src/test/native-oauth.test.ts:114](../../src/test/native-oauth.test.ts#L114) |
 | /auth/demo | 7 | [src/App.tsx:568](../../src/App.tsx#L568) |
 | /auth/v1/ | 1 | [src/lib/commercialDemoEffects.ts:74](../../src/lib/commercialDemoEffects.ts#L74) |
-| /auth/v1/admin/oauth/clients | 1 | [supabase/functions/_shared/tok-connect-broker.ts:127](../../supabase/functions/_shared/tok-connect-broker.ts#L127) |
-| /auth/v1/admin/oauth/clients/ | 1 | [supabase/functions/_shared/tok-connect-broker.ts:134](../../supabase/functions/_shared/tok-connect-broker.ts#L134) |
+| /auth/v1/admin/oauth/clients | 1 | [supabase/functions/_shared/tok-connect-broker.ts:132](../../supabase/functions/_shared/tok-connect-broker.ts#L132) |
+| /auth/v1/admin/oauth/clients/ | 1 | [supabase/functions/_shared/tok-connect-broker.ts:139](../../supabase/functions/_shared/tok-connect-broker.ts#L139) |
 | /auth/v1/admin/users/ | 1 | [src/test/tok-connect-marketing-bff.test.ts:48](../../src/test/tok-connect-marketing-bff.test.ts#L48) |
 | /auth/v1/factors | 4 | [src/test/marketing-bff-security.test.ts:315](../../src/test/marketing-bff-security.test.ts#L315) |
 | /auth/v1/logout?scope=local | 5 | [src/test/marketing-bff-security.test.ts:465](../../src/test/marketing-bff-security.test.ts#L465) |
-| /auth/v1/oauth/authorize | 2 | [src/test/tok-connect-broker.test.ts:231](../../src/test/tok-connect-broker.test.ts#L231) |
-| /auth/v1/oauth/token | 2 | [src/test/tok-connect-broker.test.ts:55](../../src/test/tok-connect-broker.test.ts#L55) |
+| /auth/v1/oauth/authorize | 2 | [src/test/tok-connect-broker.test.ts:238](../../src/test/tok-connect-broker.test.ts#L238) |
+| /auth/v1/oauth/token | 2 | [src/test/tok-connect-broker.test.ts:56](../../src/test/tok-connect-broker.test.ts#L56) |
 | /auth/v1/token?grant_type=password | 5 | [src/test/marketing-bff-security.test.ts:240](../../src/test/marketing-bff-security.test.ts#L240) |
 | /auth/v1/user | 10 | [src/test/marketing-bff-security.test.ts:251](../../src/test/marketing-bff-security.test.ts#L251) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
@@ -1525,7 +1525,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth?role=restaurateur | 1 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
 | /auth?type=client | 16 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
 | /auth?type=restaurateur | 4 | [src/test/auth-signup-form.test.tsx:651](../../src/test/auth-signup-form.test.tsx#L651) |
-| /authorize | 1 | [supabase/functions/_shared/tok-connect-broker.ts:230](../../supabase/functions/_shared/tok-connect-broker.ts#L230) |
+| /authorize | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
 | /availability | 1 | [supabase/functions/tok-connect-api/index.ts:1039](../../supabase/functions/tok-connect-api/index.ts#L1039) |
 | /avis | 1 | [src/test/dashboard-design-preview-export.test.tsx:64](../../src/test/dashboard-design-preview-export.test.tsx#L64) |
 | /budget-auto | 12 | [scripts/prerender-seo.mjs:1081](../../scripts/prerender-seo.mjs#L1081) |
@@ -1588,7 +1588,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /courier/jobs?job=job-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:31](../../src/test/notifications-sinistres-governance.test.ts#L31) |
 | /courier/notifications | 11 | [src/App.tsx:430](../../src/App.tsx#L430) |
 | /courier/profile | 9 | [src/App.tsx:430](../../src/App.tsx#L430) |
-| /create-reservation | 1 | [src/test/tok-connect-oauth-delegation.test.ts:117](../../src/test/tok-connect-oauth-delegation.test.ts#L117) |
+| /create-reservation | 1 | [src/test/tok-connect-oauth-delegation.test.ts:118](../../src/test/tok-connect-oauth-delegation.test.ts#L118) |
 | /creneaux-garantis | 12 | [scripts/prerender-seo.mjs:1065](../../scripts/prerender-seo.mjs#L1065) |
 | /crm | 1 | [src/test/dashboard-design-preview-export.test.tsx:71](../../src/test/dashboard-design-preview-export.test.tsx#L71) |
 | /dashboard | 91 | [scripts/application-index-core.mjs:169](../../scripts/application-index-core.mjs#L169) |
@@ -1689,10 +1689,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /functions/v1/:path* | 1 | [src/test/vercel-rewrites.test.ts:128](../../src/test/vercel-rewrites.test.ts#L128) |
 | /functions/v1/ai-marketing-agent | 6 | [src/test/marketing-agent-bff.test.ts:30](../../src/test/marketing-agent-bff.test.ts#L30) |
 | /functions/v1/create-checkout | 1 | [src/lib/iosCommerceFetch.ts:291](../../src/lib/iosCommerceFetch.ts#L291) |
-| /functions/v1/create-reservation | 1 | [src/test/tok-connect-oauth-delegation.test.ts:115](../../src/test/tok-connect-oauth-delegation.test.ts#L115) |
+| /functions/v1/create-reservation | 1 | [src/test/tok-connect-oauth-delegation.test.ts:116](../../src/test/tok-connect-oauth-delegation.test.ts#L116) |
 | /functions/v1/daily-dish-ai?user=2f4c98d0-03f7-4e72-910a-0c34a892ca21 | 1 | [src/test/incident-intelligence-routing.test.ts:74](../../src/test/incident-intelligence-routing.test.ts#L74) |
 | /functions/v1/daily-dish-ai?user=891a6eef-5be3-4d4a-9887-2e4f27bf39ee | 1 | [src/test/incident-intelligence-routing.test.ts:95](../../src/test/incident-intelligence-routing.test.ts#L95) |
-| /functions/v1/delete-account | 1 | [src/test/tok-connect-oauth-delegation.test.ts:111](../../src/test/tok-connect-oauth-delegation.test.ts#L111) |
+| /functions/v1/delete-account | 1 | [src/test/tok-connect-oauth-delegation.test.ts:112](../../src/test/tok-connect-oauth-delegation.test.ts#L112) |
 | /functions/v1/dispatch-order | 1 | [src/test/dispatch-client-fallback.test.ts:18](../../src/test/dispatch-client-fallback.test.ts#L18) |
 | /functions/v1/marketing-orchestrator | 3 | [src/test/marketing-instagram-bff.test.ts:25](../../src/test/marketing-instagram-bff.test.ts#L25) |
 | /functions/v1/ops-incident-control | 2 | [src/test/marketing-instagram-bff.test.ts:26](../../src/test/marketing-instagram-bff.test.ts#L26) |
@@ -2018,7 +2018,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /orders/cancel | 1 | [supabase/functions/_shared/print/cloudprinter.ts:342](../../supabase/functions/_shared/print/cloudprinter.ts#L342) |
 | /orders/info | 2 | [src/test/marketing-print-contract.test.ts:192](../../src/test/marketing-print-contract.test.ts#L192) |
 | /orders/quote | 1 | [supabase/functions/_shared/print/cloudprinter.ts:294](../../supabase/functions/_shared/print/cloudprinter.ts#L294) |
-| /other | 3 | [src/test/tok-connect-broker.test.ts:105](../../src/test/tok-connect-broker.test.ts#L105) |
+| /other | 3 | [src/test/tok-connect-broker.test.ts:106](../../src/test/tok-connect-broker.test.ts#L106) |
 | /other/../equipe/mon-espace | 1 | [src/test/workforce-auth-continuation.test.ts:32](../../src/test/workforce-auth-continuation.test.ts#L32) |
 | /packs-restaurateur | 17 | [scripts/prerender-seo.mjs:606](../../scripts/prerender-seo.mjs#L606) |
 | /panier | 52 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
@@ -2041,7 +2041,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /profil?tab=infos | 5 | [src/components/CustomerDashboardLayout.tsx:130](../../src/components/CustomerDashboardLayout.tsx#L130) |
 | /profil?tab=notifications | 1 | [src/pages/Notifications.tsx:23](../../src/pages/Notifications.tsx#L23) |
 | /profilage | 1 | [src/test/customer-workspace-routes.test.ts:28](../../src/test/customer-workspace-routes.test.ts#L28) |
-| /profiles | 1 | [src/test/tok-connect-oauth-delegation.test.ts:104](../../src/test/tok-connect-oauth-delegation.test.ts#L104) |
+| /profiles | 1 | [src/test/tok-connect-oauth-delegation.test.ts:105](../../src/test/tok-connect-oauth-delegation.test.ts#L105) |
 | /promotions | 1 | [src/test/dashboard-design-preview-export.test.tsx:64](../../src/test/dashboard-design-preview-export.test.tsx#L64) |
 | /pub.jpg | 1 | [src/lib/campaignCreative.ts:171](../../src/lib/campaignCreative.ts#L171) |
 | /public/ | 1 | [src/test/marketing-content-telegram.test.ts:96](../../src/test/marketing-content-telegram.test.ts#L96) |
@@ -2059,14 +2059,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /recherche?q=pizza&ville=geneve | 1 | [scripts/launch-10k-load-check.mjs:19](../../scripts/launch-10k-load-check.mjs#L19) |
 | /recherche?q=sushi&city=Genève | 2 | [src/test/restaurant-search-preview.test.tsx:69](../../src/test/restaurant-search-preview.test.tsx#L69) |
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
-| /register | 1 | [supabase/functions/_shared/tok-connect-broker.ts:230](../../supabase/functions/_shared/tok-connect-broker.ts#L230) |
+| /register | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
 | /reseaux-sociaux | 2 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
 | /reservations | 34 | [scripts/prerender-seo.mjs:1273](../../scripts/prerender-seo.mjs#L1273) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
 | /responses | 4 | [src/test/marketing-daily-visual.test.ts:91](../../src/test/marketing-daily-visual.test.ts#L91) |
 | /rest/v1/ | 4 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
-| /rest/v1/profiles | 2 | [src/test/tok-connect-oauth-delegation.test.ts:100](../../src/test/tok-connect-oauth-delegation.test.ts#L100) |
-| /rest/v1/profiles?select=first_name | 1 | [src/test/tok-connect-oauth-delegation.test.ts:102](../../src/test/tok-connect-oauth-delegation.test.ts#L102) |
+| /rest/v1/profiles | 2 | [src/test/tok-connect-oauth-delegation.test.ts:101](../../src/test/tok-connect-oauth-delegation.test.ts#L101) |
+| /rest/v1/profiles?select=first_name | 1 | [src/test/tok-connect-oauth-delegation.test.ts:103](../../src/test/tok-connect-oauth-delegation.test.ts#L103) |
 | /rest/v1/rpc/ | 2 | [src/lib/commercialDemoEffects.ts:20](../../src/lib/commercialDemoEffects.ts#L20) |
 | /rest/v1/rpc/service_get_marketing_web_session | 1 | [supabase/functions/_shared/marketing-service-auth.ts:53](../../supabase/functions/_shared/marketing-service-auth.ts#L53) |
 | /rest/v1/user_roles? | 7 | [src/test/marketing-bff-security.test.ts:250](../../src/test/marketing-bff-security.test.ts#L250) |
@@ -2198,7 +2198,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /storage/ | 5 | [src/test/marketing-mailing-image-bff.test.ts:185](../../src/test/marketing-mailing-image-bff.test.ts#L185) |
 | /storage/v1/object | 2 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:104](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L104) |
 | /storage/v1/object/ | 1 | [supabase/functions/_shared/print/pdf.ts:84](../../supabase/functions/_shared/print/pdf.ts#L84) |
-| /storage/v1/object/private/key | 1 | [src/test/tok-connect-oauth-delegation.test.ts:109](../../src/test/tok-connect-oauth-delegation.test.ts#L109) |
+| /storage/v1/object/private/key | 1 | [src/test/tok-connect-oauth-delegation.test.ts:110](../../src/test/tok-connect-oauth-delegation.test.ts#L110) |
 | /storage/v1/object/public/ | 2 | [src/lib/optimizedImages.ts:27](../../src/lib/optimizedImages.ts#L27) |
 | /storage/v1/object/public/restaurant-images/ | 2 | [supabase/functions/_shared/restaurant-cover-evidence.ts:52](../../supabase/functions/_shared/restaurant-cover-evidence.ts#L52) |
 | /storage/v1/object/public/social-post-media/ | 1 | [supabase/functions/_shared/marketing-content-review.ts:130](../../supabase/functions/_shared/marketing-content-review.ts#L130) |
@@ -2224,7 +2224,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:89](../../supabase/functions/ai-image-enhance/index.ts#L89) |
 | /tok-slot-machine/index.html?v=20260719 | 1 | [src/components/DailyMiamzSlotMachine.tsx:15](../../src/components/DailyMiamzSlotMachine.tsx#L15) |
 | /tok_connect_mcp_action_idempotency | 2 | [server/marketingBff.ts:2522](../../server/marketingBff.ts#L2522) |
-| /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:230](../../supabase/functions/_shared/tok-connect-broker.ts#L230) |
+| /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
 | /token?grant_type=password | 1 | [server/marketingBff.ts:815](../../server/marketingBff.ts#L815) |
 | /user | 1 | [server/marketingBff.ts:804](../../server/marketingBff.ts#L804) |
 | /user_roles? | 11 | [src/test/marketing-agent-bff.test.ts:28](../../src/test/marketing-agent-bff.test.ts#L28) |
@@ -2294,7 +2294,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | claimPhone | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:81](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L81) |
 | claimRestaurant | — | 2 | [src/components/DirectoryClaimPersistenceBridge.tsx:37](../../src/components/DirectoryClaimPersistenceBridge.tsx#L37) |
 | code | — | 4 | [server/marketingBff.ts:2588](../../server/marketingBff.ts#L2588) |
-| code_challenge_method | — | 1 | [src/test/tok-connect-broker.test.ts:234](../../src/test/tok-connect-broker.test.ts#L234) |
+| code_challenge_method | — | 1 | [src/test/tok-connect-broker.test.ts:241](../../src/test/tok-connect-broker.test.ts#L241) |
 | commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:916](../../src/pages/Auth.tsx#L916) |
 | commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:280](../../src/pages/CommercialComptabilite.tsx#L280) |
 | confirmed | /auth, /auth/callback, /auth/demo | 3 | [src/lib/workforceContinuation.ts:37](../../src/lib/workforceContinuation.ts#L37) |
@@ -2321,7 +2321,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | geometry | — | 1 | [src/test/home-canton-hero.test.ts:55](../../src/test/home-canton-hero.test.ts#L55) |
 | guarantee_session_id | /reservations | 2 | [src/pages/Reservations.tsx:166](../../src/pages/Reservations.tsx#L166) |
 | height | — | 1 | [src/lib/optimizedImages.ts:38](../../src/lib/optimizedImages.ts#L38) |
-| host | — | 2 | [src/test/tok-connect-broker.test.ts:114](../../src/test/tok-connect-broker.test.ts#L114) |
+| host | — | 2 | [src/test/tok-connect-broker.test.ts:115](../../src/test/tok-connect-broker.test.ts#L115) |
 | id | — | 1 | [src/test/marketing-mailing-image-bff.test.ts:80](../../src/test/marketing-mailing-image-bff.test.ts#L80) |
 | incident | /admin/guardian, /admin/sinistres, /admin/support-resolution | 4 | [src/pages/admin/AdminGuardian.tsx:106](../../src/pages/admin/AdminGuardian.tsx#L106) |
 | itemId | — | 1 | [src/marketing/useMarketingUrlState.ts:122](../../src/marketing/useMarketingUrlState.ts#L122) |
@@ -2362,7 +2362,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | quality | — | 1 | [src/lib/optimizedImages.ts:39](../../src/lib/optimizedImages.ts#L39) |
 | rating | /recherche | 1 | [src/pages/Recherche.tsx:248](../../src/pages/Recherche.tsx#L248) |
 | redirect | /auth, /auth/callback, /auth/demo | 11 | [src/lib/workforceContinuation.ts:40](../../src/lib/workforceContinuation.ts#L40) |
-| redirect_uri | — | 1 | [src/test/tok-connect-broker.test.ts:232](../../src/test/tok-connect-broker.test.ts#L232) |
+| redirect_uri | — | 1 | [src/test/tok-connect-broker.test.ts:239](../../src/test/tok-connect-broker.test.ts#L239) |
 | removeRestaurant | — | 1 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:171](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L171) |
 | reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:291](../../src/pages/Reservations.tsx#L291) |
 | reservationStep | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:153](../../src/pages/RestaurantDetail.tsx#L153) |
@@ -2378,7 +2378,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | sort | /recherche | 1 | [src/pages/Recherche.tsx:252](../../src/pages/Recherche.tsx#L252) |
 | source | /mon-espace | 1 | [public/manifest.json:50](../../public/manifest.json#L50) |
 | sr | — | 1 | [src/test/home-canton-hero.test.ts:56](../../src/test/home-canton-hero.test.ts#L56) |
-| state | — | 2 | [src/test/tok-connect-broker.test.ts:103](../../src/test/tok-connect-broker.test.ts#L103) |
+| state | — | 2 | [src/test/tok-connect-broker.test.ts:104](../../src/test/tok-connect-broker.test.ts#L104) |
 | status | /chefs-table, /dashboard, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 12 | [src/lib/iosCommerceFetch.ts:137](../../src/lib/iosCommerceFetch.ts#L137) |
 | stripe_session_id | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:81](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L81) |
 | subscriptionPlan | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:927](../../src/pages/Auth.tsx#L927) |
@@ -2390,7 +2390,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | token | — | 1 | [supabase/functions/marketing-unsubscribe/index.ts:66](../../supabase/functions/marketing-unsubscribe/index.ts#L66) |
 | tolerance | — | 1 | [src/test/home-canton-hero.test.ts:57](../../src/test/home-canton-hero.test.ts#L57) |
 | type | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:288](../../src/pages/Auth.tsx#L288) |
-| ui_locales | — | 1 | [src/test/tok-connect-broker.test.ts:236](../../src/test/tok-connect-broker.test.ts#L236) |
+| ui_locales | — | 1 | [src/test/tok-connect-broker.test.ts:243](../../src/test/tok-connect-broker.test.ts#L243) |
 | utm_medium | /restaurant/:id | 2 | [src/components/ReservationDialog.tsx:664](../../src/components/ReservationDialog.tsx#L664) |
 | utm_source | /restaurant/:id | 3 | [src/components/ReservationDialog.tsx:660](../../src/components/ReservationDialog.tsx#L660) |
 | view | /admin/commandes-reservations, /admin/security-center | 4 | [src/marketing/useMarketingUrlState.ts:109](../../src/marketing/useMarketingUrlState.ts#L109) |
@@ -3431,7 +3431,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_clear_marketing_auth_attempt` (1 définition(s))
 - `public.service_complete_marketing_ai_run` (1 définition(s))
 - `public.service_consume_marketing_auth_attempt` (1 définition(s))
-- `public.service_create_tok_connect_broker_session` (1 définition(s))
+- `public.service_create_tok_connect_broker_session` (2 définition(s))
 - `public.service_create_tok_connect_oauth_permit` (1 définition(s))
 - `public.service_create_tok_marketing_link` (1 définition(s))
 - `public.service_describe_tok_marketing_link` (1 définition(s))
@@ -3456,7 +3456,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_revoke_marketing_web_session` (1 définition(s))
 - `public.service_revoke_tok_connect_broker_session` (1 définition(s))
 - `public.service_revoke_tok_marketing_link` (1 définition(s))
-- `public.service_rotate_tok_connect_broker_refresh` (1 définition(s))
+- `public.service_rotate_tok_connect_broker_refresh` (2 définition(s))
 - `public.service_send_marketing_in_app_delivery` (1 définition(s))
 - `public.service_start_marketing_ai_run` (1 définition(s))
 - `public.service_store_marketing_auth_challenge` (1 définition(s))
@@ -6624,6 +6624,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261021100000 Marketing Campaign Approval Schedules Items | 140 | 1 | [supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql:1](../../supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql#L1) |
 | 20261022000000 Marketing Analytics Evidence | 391 | 9 | [supabase/migrations/20261022000000_marketing_analytics_evidence.sql:1](../../supabase/migrations/20261022000000_marketing_analytics_evidence.sql#L1) |
 | 20261022104000 Marketing Resend Integration Readiness | 38 | 0 | [supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql:1](../../supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql#L1) |
+| 20261023043000 Tok Connect Broker Access Lifetime | 52 | 2 | [supabase/migrations/20261023043000_tok_connect_broker_access_lifetime.sql:1](../../supabase/migrations/20261023043000_tok_connect_broker_access_lifetime.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7536,7 +7537,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (574)</summary>
+<details><summary>database-migration (575)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8112,6 +8113,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261021100000_marketing_campaign_approval_schedules_items.sql`
 - `supabase/migrations/20261022000000_marketing_analytics_evidence.sql`
 - `supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql`
+- `supabase/migrations/20261023043000_tok_connect_broker_access_lifetime.sql`
 
 </details>
 
