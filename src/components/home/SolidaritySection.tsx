@@ -1,3 +1,5 @@
+import { Heart } from "lucide-react";
+
 interface SolidaritySectionProps {
   donatedPoints: number;
 }
@@ -26,16 +28,23 @@ export default function SolidaritySection({ donatedPoints }: SolidaritySectionPr
   const progressPercent = Math.min(100, Math.round((progressValue / nextGoalPoints) * 100));
 
   return (
-    <section className="border-y border-pink-500/10 bg-[radial-gradient(circle_at_top,rgba(244,114,182,0.16),rgba(255,255,255,0.86)_48%,rgba(255,255,255,0.98))] py-5 dark:bg-pink-500/10 md:py-6">
+    <section className="py-10 md:py-16">
       <div className="container">
-        <div
-          data-testid="solidarity-card"
-          className="neon-card relative mx-auto w-full max-w-[520px] overflow-hidden rounded-[1.35rem] border border-white/80 bg-pink-50/70 shadow-[0_24px_70px_-42px_rgba(219,39,119,0.55)] backdrop-blur-xl dark:border-pink-300/20 dark:bg-white/5"
-        >
-          <h2 className="sr-only">Impact Solidaire Tok</h2>
-          <p className="sr-only">
+        <div className="grid items-center gap-8 overflow-hidden rounded-[32px] border border-pink-500/10 bg-[radial-gradient(circle_at_0%_0%,rgba(244,114,182,0.16),transparent_55%),linear-gradient(180deg,#fff7fa,#fffaf7)] p-5 shadow-soft dark:border-pink-300/10 dark:bg-[radial-gradient(circle_at_0%_0%,rgba(244,114,182,0.14),transparent_55%),linear-gradient(180deg,#1f1719,#181413)] sm:p-8 md:grid-cols-[minmax(0,1fr)_minmax(0,520px)] md:gap-12 md:p-12">
+        <div className="space-y-4 text-center md:text-left">
+          <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-600 dark:text-pink-300">
+            <Heart className="h-4 w-4 fill-current" aria-hidden="true" />
+            Miamz solidaires
+          </p>
+          <h2 className="font-display text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.02] tracking-[-0.035em] dark:text-white">Impact solidaire TOK</h2>
+          <p className="mx-auto max-w-md text-[0.9375rem] leading-7 text-muted-foreground md:mx-0">
             Gr&acirc;ce &agrave; vos dons de Miamz, nous offrons ensemble des repas nutritifs &agrave; ceux qui en ont le plus besoin.
           </p>
+        </div>
+        <div
+          data-testid="solidarity-card"
+          className="neon-card relative mx-auto w-full max-w-[520px] overflow-hidden rounded-[1.5rem] border border-white/80 bg-pink-50/70 shadow-lift dark:border-pink-300/20 dark:bg-white/5"
+        >
 
           <picture>
             <source
@@ -112,6 +121,7 @@ export default function SolidaritySection({ donatedPoints }: SolidaritySectionPr
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </section>

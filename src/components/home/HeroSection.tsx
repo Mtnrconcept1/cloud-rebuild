@@ -68,7 +68,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
       >
         <div className="tok-home-hero__content">
           <div className="tok-home-hero__brand">
-            <p className="tok-home-hero__eyebrow">Le goût de se retrouver</p>
+            <p className="tok-home-hero__eyebrow"><span className="tok-home-hero__eyebrow-dot" aria-hidden="true" />Le goût de se retrouver</p>
           </div>
           <h1 id="home-hero-title" className="tok-home-hero__title">
             Votre prochaine<br /><span>bonne adresse.</span>

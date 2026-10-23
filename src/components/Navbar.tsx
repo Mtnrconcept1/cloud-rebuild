@@ -201,9 +201,9 @@ export default function Navbar() {
     <>
       {/* ─── Top utility bar ─── */}
       {showClientSurface ? (
-        <div ref={utilityBarRef} className={`w-full border-b border-border/60 bg-muted dark:border-white/10 dark:bg-slate-950 ${isGoldenTokRoute ? "tok-golden-utility" : ""} ${isDesktopHomeReference ? "block lg:hidden" : "hidden lg:block"}`}>
+        <div ref={utilityBarRef} className={`tok-utility-bar w-full border-b border-border/60 bg-muted dark:border-white/10 dark:bg-slate-950 ${isGoldenTokRoute ? "tok-golden-utility" : ""} ${isDesktopHomeReference ? "block lg:hidden" : "hidden lg:block"}`}>
           <div className={isDesktopHomeReference
-            ? "container flex h-9 items-center justify-end gap-1.5 px-2 text-[10px] text-muted-foreground min-[380px]:gap-2 min-[380px]:text-xs sm:gap-3"
+            ? "container flex h-9 items-center justify-start gap-2 overflow-x-auto px-3 text-[11px] text-muted-foreground [scrollbar-width:none] min-[380px]:text-xs sm:justify-end sm:gap-3 [&::-webkit-scrollbar]:hidden"
             : "container flex h-9 items-center justify-end gap-4 text-xs text-muted-foreground"}>
             <Link to="/restaurateurs/geneve" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap transition-colors hover:text-foreground">
               <Store className={isDesktopHomeReference ? "hidden h-3.5 w-3.5 min-[440px]:block" : "h-3.5 w-3.5"} />
@@ -212,7 +212,7 @@ export default function Navbar() {
             {tokConnectEnabled ? (
               <>
                 <span className="text-border">|</span>
-                <Link to="/tok-connect" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
+                <Link to="/tok-connect" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap transition-colors hover:text-foreground">
                   <Network className="h-3.5 w-3.5" />
                   TOK Connect
                 </Link>
@@ -246,29 +246,29 @@ export default function Navbar() {
       {/* ─── Main header ─── */}
       <header
         ref={headerRef}
-        className={`tok-site-header ${isGoldenTokRoute ? "tok-golden-nav" : ""} sticky top-0 z-[70] w-full border-b bg-background shadow-sm safe-top transition-[opacity,transform] duration-300 ease-out dark:bg-slate-950 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border dark:border-border" : "border-border/80 dark:border-white/20 dark:shadow-[0_14px_44px_rgba(0,0,0,0.48),0_0_34px_rgba(249,115,22,0.10)]"}`}
+        className={`tok-site-header ${isGoldenTokRoute ? "tok-golden-nav" : ""} sticky top-0 z-[70] w-full border-b bg-background safe-top transition-[opacity,transform] duration-300 ease-out dark:bg-slate-950 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border dark:border-border" : "border-border/70 dark:border-white/10"}`}
         style={{
           opacity: isHeaderVisible ? 1 : 0,
           transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
         }}
       >
-        <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-2 px-3 min-[380px]:px-4 md:h-20 md:px-8 xl:px-4 2xl:px-8 ${isMobileHomeHeader ? "h-[66px]" : "h-16"}`}>
+        <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-3 px-3 min-[380px]:px-4 md:h-[76px] md:px-8 xl:px-5 2xl:px-8 ${isMobileHomeHeader ? "h-[66px]" : "h-16"}`}>
           <Link to={homeTarget} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
-            <img src={logoSrc} alt="Tok" width={98} height={64} decoding="async" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain dark:drop-shadow-[0_0_20px_rgba(249,115,22,0.28)] md:h-16`} />
+            <img src={logoSrc} alt="Tok" width={98} height={64} decoding="async" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain md:h-[58px]`} />
           </Link>
 
           {showClientSurface ? (
             <NavigationMenu className="hidden xl:flex">
               <NavigationMenuList className="min-w-max flex-nowrap whitespace-nowrap">
                 <NavigationMenuItem>
-                  <Link to="/recherche" className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  <Link to="/recherche" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-foreground/75 transition-colors hover:bg-muted hover:text-foreground aria-[current=page]:bg-muted aria-[current=page]:text-foreground" aria-current={location.pathname === "/recherche" ? "page" : undefined}>
                     <Search className="h-4 w-4" />
                     Explorer
                 </Link>
               </NavigationMenuItem>
               {actualitesEnabled ? (
                 <NavigationMenuItem>
-                  <Link to="/actualites" className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  <Link to="/actualites" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-foreground/75 transition-colors hover:bg-muted hover:text-foreground aria-[current=page]:bg-muted aria-[current=page]:text-foreground" aria-current={location.pathname === "/actualites" ? "page" : undefined}>
                     <Newspaper className="h-4 w-4" />
                     Actualités
                   </Link>
@@ -276,7 +276,7 @@ export default function Navbar() {
               ) : null}
               {antiWasteEnabled ? (
                 <NavigationMenuItem>
-                  <Link to="/anti-gaspi" className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-2 text-sm font-medium text-accent transition-colors hover:text-accent/80">
+                  <Link to="/anti-gaspi" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-accent transition-colors hover:bg-accent/10 aria-[current=page]:bg-accent/10" aria-current={location.pathname === "/anti-gaspi" ? "page" : undefined}>
                     <Leaf className="h-4 w-4" />
                     Anti-gaspi
                     </Link>
@@ -284,7 +284,7 @@ export default function Navbar() {
                 ) : null}
                 {flashSalesEnabled ? (
                   <NavigationMenuItem>
-                    <Link to="/ventes-flash" className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-2 text-sm font-semibold text-amber-600 transition-colors hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300">
+                    <Link to="/ventes-flash" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-semibold text-amber-600 transition-colors hover:text-orange-600 hover:bg-amber-500/10 dark:text-amber-300 dark:hover:text-orange-300 aria-[current=page]:bg-amber-500/10" aria-current={location.pathname === "/ventes-flash" ? "page" : undefined}>
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                   </Link>
@@ -292,7 +292,7 @@ export default function Navbar() {
               ) : null}
               {tokOneEnabled ? (
                 <NavigationMenuItem>
-                    <Link to="/tok-one" className="flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-2 text-sm font-medium text-primary transition-colors hover:text-foreground">
+                    <Link to="/tok-one" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-primary transition-colors hover:bg-primary/10 aria-[current=page]:bg-primary/10" aria-current={location.pathname === "/tok-one" ? "page" : undefined}>
                       <Crown className="h-4 w-4" />
                       Tok One
                     </Link>
@@ -300,15 +300,15 @@ export default function Navbar() {
                 ) : null}
                 {discoveryFeatures.length > 0 ? (
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger className="shrink-0 whitespace-nowrap bg-transparent px-2 text-sm font-medium">
+                    <NavigationMenuTrigger className="shrink-0 whitespace-nowrap rounded-full bg-transparent px-3.5 text-[0.9rem] font-medium text-foreground/75 hover:text-foreground">
                       <Sparkles className="mr-1 h-4 w-4 text-primary" />
                       Plus
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <div className="w-[min(680px,calc(100vw-3rem))] p-4 md:p-6">
-                        <div className="mb-4 flex items-center gap-2 border-b pb-3">
-                          <Sparkles className="h-5 w-5 text-primary" />
-                          <h3 className="font-display text-lg font-semibold">Parcours à découvrir</h3>
+                      <div className="w-[min(680px,calc(100vw-3rem))] p-3 md:p-4">
+                        <div className="mb-2 flex items-center gap-2 px-2 pb-2 pt-1">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                          <h3 className="font-display text-lg font-semibold tracking-[-0.02em]">Parcours à découvrir</h3>
                           <Badge variant="secondary" className="border-none bg-primary/10 text-[10px] text-primary">
                             {visibleFeatures.length} active{visibleFeatures.length > 1 ? "s" : ""}
                           </Badge>
@@ -318,9 +318,9 @@ export default function Navbar() {
                             <Link
                               key={feature.to}
                               to={feature.to}
-                              className="group flex items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:bg-accent/50"
+                              className="group flex items-center gap-3 rounded-2xl p-3 transition-colors duration-200 hover:bg-muted/80"
                             >
-                              <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${feature.bg} ${feature.hoverBg} transition-colors duration-200`}>
+                              <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${feature.bg} ${feature.hoverBg} transition-colors duration-200`}>
                                 <feature.icon className={`h-5 w-5 ${feature.color}`} />
                               </div>
                               <div className="min-w-0">
@@ -485,20 +485,20 @@ export default function Navbar() {
                   <span className="sr-only">Ouvrir le menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[min(320px,85vw)] overflow-y-auto">
+              <SheetContent side="right" className="w-[min(340px,88vw)] overflow-y-auto">
                 <SheetHeader>
-                  <SheetTitle>Menu</SheetTitle>
+                  <SheetTitle className="text-2xl">Menu</SheetTitle>
                   <SheetDescription className="sr-only">
                     Navigation principale et accès aux espaces Tok.
                   </SheetDescription>
                 </SheetHeader>
 
-                <div className="mt-4 flex min-h-11 items-center justify-between gap-3 rounded-xl border border-border/70 bg-muted/30 px-3 min-[380px]:hidden">
+                <div className="mt-4 flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/40 px-3.5 min-[380px]:hidden">
                   <span className="text-sm font-medium">Thème d’affichage</span>
                   <ThemeToggleButton aria-label="Changer le thème d’affichage" />
                 </div>
 
-                <nav className="mt-6 flex min-w-0 flex-col gap-1 [&>a]:flex [&>a]:min-h-11 [&>a]:min-w-0 [&>a]:items-center [&>a]:rounded-xl [&>a]:px-3 [&>a]:py-2.5">
+                <nav className="tok-sheet-nav mt-5 flex min-w-0 flex-col gap-0.5 [&>a]:flex [&>a]:min-h-12 [&>a]:min-w-0 [&>a]:items-center [&>a]:rounded-2xl [&>a]:px-3.5 [&>a]:py-2.5 [&>a]:text-[0.95rem] [&>a]:transition-colors hover:[&>a]:bg-muted/70">
                   <Link to={homeTarget} className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
                     Accueil
                   </Link>
@@ -566,9 +566,9 @@ export default function Navbar() {
                             key={feature.to}
                             to={feature.to}
                             onClick={() => setMenuOpen(false)}
-                            className="flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-accent/50"
+                            className="flex items-center gap-3 rounded-2xl p-2.5 transition-colors hover:bg-muted/70"
                           >
-                            <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md ${feature.bg}`}>
+                            <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${feature.bg}`}>
                               <feature.icon className={`h-4 w-4 ${feature.color}`} />
                             </div>
                             <div>

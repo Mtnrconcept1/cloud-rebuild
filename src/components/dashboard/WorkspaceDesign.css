@@ -35,7 +35,7 @@
   --workspace-gutter: clamp(20px, 2.2vw, 34px);
   --workspace-radius: 20px;
   --workspace-sans: "Inter", "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --workspace-serif: "Playfair Display", Georgia, serif;
+  --workspace-serif: "Fraunces", "Playfair Display", Georgia, serif;
   --workspace-dashboard-title: "Playball", "Playfair Display", Georgia, serif;
   min-width: 0;
   background:

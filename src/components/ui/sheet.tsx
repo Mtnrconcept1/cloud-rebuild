@@ -19,7 +19,7 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-[1800] bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-[1800] bg-[rgb(24_16_10/0.52)] backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -29,7 +29,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
-  "fixed z-[1810] min-w-0 max-w-full gap-4 overflow-y-auto overscroll-contain bg-background p-[clamp(1rem,2vw,1.5rem)] shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+  "fixed z-[1810] min-w-0 max-w-full gap-4 overflow-y-auto overscroll-contain bg-card p-[clamp(1rem,2vw,1.5rem)] shadow-float transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
   {
     variants: {
       side: {
@@ -103,7 +103,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Con
           {...props}
         >
           {children}
-          <SheetPrimitive.Close className="absolute right-[calc(env(safe-area-inset-right,0px)+0.5rem)] top-[calc(env(safe-area-inset-top,0px)+0.5rem)] flex h-11 w-11 items-center justify-center rounded-md opacity-70 ring-offset-background transition-opacity data-[state=open]:bg-secondary hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+          <SheetPrimitive.Close className="absolute right-[calc(env(safe-area-inset-right,0px)+0.5rem)] top-[calc(env(safe-area-inset-top,0px)+0.5rem)] flex h-11 w-11 items-center justify-center rounded-full opacity-70 ring-offset-background transition-[opacity,background-color] hover:bg-muted hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
             <X className="h-4 w-4" />
             <span className="sr-only">Fermer</span>
           </SheetPrimitive.Close>
@@ -128,7 +128,7 @@ const SheetTitle = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Title>
 >(({ className, ...props }, ref) => (
-  <SheetPrimitive.Title ref={ref} className={cn("min-w-0 break-words pr-8 text-lg font-semibold leading-snug text-foreground", className)} {...props} />
+  <SheetPrimitive.Title ref={ref} className={cn("min-w-0 break-words pr-8 font-display text-xl font-semibold leading-snug tracking-[-0.02em] text-foreground", className)} {...props} />
 ));
 SheetTitle.displayName = SheetPrimitive.Title.displayName;
 

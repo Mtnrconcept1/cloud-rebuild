@@ -70,8 +70,8 @@ function CuisinePhoto({ src, label, isActive, hasIntegratedLabel }: { src: strin
   return (
     <span
       className={[
-        "flex h-28 w-28 items-center justify-center rounded-[20px] border bg-background shadow-[0_6px_20px_rgba(15,23,42,0.06)] transition-[border-color,box-shadow] sm:h-32 sm:w-32 md:h-36 md:w-36 md:rounded-[26px]",
-        isActive ? "border-primary ring-2 ring-primary/20" : "border-border/80 group-hover:border-primary/60 group-hover:shadow-md",
+        "flex h-28 w-28 items-center justify-center rounded-[20px] border bg-background shadow-soft transition-[border-color,box-shadow,transform] duration-300 ease-tok sm:h-32 sm:w-32 md:h-36 md:w-36 md:rounded-[28px]",
+        isActive ? "border-primary ring-4 ring-primary/15" : "border-border/60 group-hover:-translate-y-1 group-hover:border-primary/40 group-hover:shadow-lift",
       ].join(" ")}
     >
       {hasIntegratedLabel ? (
@@ -82,7 +82,7 @@ function CuisinePhoto({ src, label, isActive, hasIntegratedLabel }: { src: strin
           height={144}
           loading="lazy"
           decoding="async"
-          className="h-full w-full rounded-[19px] object-contain sm:rounded-[23px] md:rounded-[25px]"
+          className="h-full w-full rounded-[19px] object-contain sm:rounded-[23px] md:rounded-[27px]"
         />
       ) : (
         <span className="h-[88px] w-[88px] overflow-hidden rounded-full border border-border/50 sm:h-24 sm:w-24">
@@ -127,7 +127,7 @@ export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }
               <button
                 type="button"
                 onClick={() => scroll("left")}
-                className="grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
+                className="grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-card shadow-soft transition hover:-translate-y-px hover:shadow-lift"
                 aria-label="Défiler à gauche"
               >
                 <ChevronLeft className="h-4.5 w-4.5" />
@@ -135,7 +135,7 @@ export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }
               <button
                 type="button"
                 onClick={() => scroll("right")}
-                className="grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-background shadow-sm transition hover:bg-muted"
+                className="grid h-[44px] w-[44px] place-items-center rounded-full border border-border bg-card shadow-soft transition hover:-translate-y-px hover:shadow-lift"
                 aria-label="Défiler à droite"
               >
                 <ChevronRight className="h-4.5 w-4.5" />
@@ -146,7 +146,7 @@ export default function CuisineCategoryStrip({ activeSlug, homeVariant = false }
 
         <div
           ref={scrollRef}
-          className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 pt-3 md:gap-4 md:pb-3 md:pt-4"
+          className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-3 pt-3 [scrollbar-width:thin] md:gap-4 md:pb-4 md:pt-5"
         >
           {CUISINE_CATEGORIES.map((cat) => {
             const isActive = cat.slug === activeSlug;
