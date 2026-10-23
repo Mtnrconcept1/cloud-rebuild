@@ -130,6 +130,8 @@ describe("TOK Intelligence Suite", () => {
     expect(guardian).toContain("branche dédiée, patch minimal, tests, PR");
     expect(guardian).toContain("GUARDIAN_ANALYSIS_TIMEOUT_MS = 100_000");
     expect(guardian).toContain("timeoutMs: GUARDIAN_ANALYSIS_TIMEOUT_MS");
+    expect(guardian).toContain('.from("ops_incident_events")');
+    expect(guardian).toContain("events: eventResult.data || []");
     expect(guardian).not.toContain('.update({ status: "resolved"');
     expect(guardian).not.toContain("merge_pull_request");
     expect(guardian).not.toContain("supabase db push");

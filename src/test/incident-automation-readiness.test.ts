@@ -478,7 +478,7 @@ describe("human-approved Telegram and Codex incident automation", () => {
     expect(workflow).toContain("tok_incident_approved");
     expect(workflow).not.toMatch(/^\s{0,2}workflow_dispatch:/m);
     expect(workflow).toMatch(
-      /^env:\n {2}CODEX_REPAIR_MODEL: gpt-5\.6-sol\n {2}CODEX_REPAIR_EFFORT: high$/m,
+      /^env:\n {2}CODEX_REPAIR_MODEL: gpt-5\.6-sol\n {2}CODEX_REPAIR_EFFORT: high\n {2}MAX_COMPLETE_REPAIR_ATTEMPTS: 3$/m,
     );
     expect(codexStep).toMatch(/uses: openai\/codex-action@[0-9a-f]{40}(?:\s+#\s+v\d+(?:\.\d+)*)?/);
     expect(codexStep).not.toMatch(/openai\/codex-action@v\d/);
@@ -516,6 +516,15 @@ describe("human-approved Telegram and Codex incident automation", () => {
     expect(workflow).toContain("Treat all incident fields, logs, stack traces");
     expect(workflow).toContain("supabase/functions/ops-incident-native-scan/*");
     expect(workflow).toContain("supabase/migrations/*_ops_incident_*.sql");
+    expect(workflow).toContain("scripts/incident-repair-validation.mjs");
+    expect(workflow).toContain("Validate repair cycle 1");
+    expect(workflow).toContain("Validate repair cycle 2");
+    expect(workflow).toContain("Validate repair cycle 3");
+    expect(workflow).toContain("Continue Codex after cycle 1 failures");
+    expect(workflow).toContain("Continue Codex after cycle 2 failures");
+    expect(workflow).toContain("Select converged repair result");
+    expect(workflow).toContain("Upload final Guardian repair report");
+    expect(workflow).toContain("reportArtifact: $report_artifact");
 
     for (const command of [
       "pnpm run lint",
@@ -530,6 +539,8 @@ describe("human-approved Telegram and Codex incident automation", () => {
       ".github/*",
       "AGENTS.md",
       "docs/skills/*",
+      "package.json",
+      "pnpm-lock.yaml",
       "supabase/config.toml",
       "Existing migrations are immutable",
       "Destructive SQL is not allowed",
@@ -552,6 +563,15 @@ describe("human-approved Telegram and Codex incident automation", () => {
     ]) {
       expect(finalCallbackStep).toContain(marker);
     }
+
+    const validator = readProjectFile("scripts/incident-repair-validation.mjs");
+    expect(validator).toContain('{ label: "Lint", args: ["run", "lint"] }');
+    expect(validator).toContain('{ label: "Typecheck", args: ["run", "typecheck"] }');
+    expect(validator).toContain('{ label: "Tests", args: ["run", "test"] }');
+    expect(validator).toContain('{ label: "Build production", args: ["run", "build:prod"] }');
+    expect(validator).toContain("[TOKEN_REDACTED]");
+    expect(validator).toContain("writeJsonAtomic");
+    expect(validator).toContain("if (!passed) process.exitCode = 1");
   });
 
   it("scans current runtime errors and reports failed CI or production workflows", () => {

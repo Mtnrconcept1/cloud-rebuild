@@ -2163,6 +2163,13 @@ async function provideRepairContext(body: Record<string, unknown>) {
       ],
       repair_model: CODEX_REPAIR_MODEL,
       reasoning_effort: CODEX_REPAIR_EFFORT,
+      execution_mode: incident.sanitized_context?.requested_repair_mode === "complete"
+        ? "complete"
+        : "standard",
+      journal_report: incident.sanitized_context?.repair_journal_requested === true,
+      max_repair_attempts: incident.sanitized_context?.requested_repair_mode === "complete"
+        ? 3
+        : 1,
       required_commands: [
         "pnpm run lint",
         "pnpm run typecheck",
@@ -2241,6 +2248,26 @@ async function updateIncidentFromWorkflow(body: Record<string, unknown>) {
   }
 
   const message = asText(body.message, 1600) || null;
+  const attempt = Number(body.attempt || 0) || null;
+  const maxAttempts = Number(body.maxAttempts || body.max_attempts || 0) || null;
+  const phase = asText(body.phase, 80) || null;
+  const workflowUrl = asText(body.workflowUrl || body.workflow_url, 600) || null;
+  const reportArtifact = asText(body.reportArtifact || body.report_artifact, 240) || null;
+  const checks = body.checks && typeof body.checks === "object" && !Array.isArray(body.checks)
+    ? sanitizeObject(body.checks as Record<string, unknown>)
+    : null;
+  if (attempt !== null && (!Number.isSafeInteger(attempt) || attempt < 1 || attempt > 3)) {
+    throw new HttpError(400, "repair_attempt_invalid");
+  }
+  if (maxAttempts !== null && maxAttempts !== 1 && maxAttempts !== 3) {
+    throw new HttpError(400, "repair_attempt_limit_invalid");
+  }
+  if (attempt !== null && maxAttempts !== null && attempt > maxAttempts) {
+    throw new HttpError(400, "repair_attempt_exceeds_limit");
+  }
+  if (workflowUrl && !/^https:\/\/github\.com\/Mtnrconcept1\/cloud-rebuild\/actions\/runs\/\d+$/i.test(workflowUrl)) {
+    throw new HttpError(400, "invalid_workflow_url");
+  }
   const repairModel = asText(body.repairModel || body.repair_model, 120) || null;
   const reasoningEffort = asText(body.reasoningEffort || body.reasoning_effort, 40) || null;
   if (repairModel !== CODEX_REPAIR_MODEL) {
@@ -2274,6 +2301,12 @@ async function updateIncidentFromWorkflow(body: Record<string, unknown>) {
     pr_number: prNumber,
     pr_url: prUrl,
     message,
+    attempt,
+    max_attempts: maxAttempts,
+    phase,
+    checks,
+    workflow_url: workflowUrl,
+    report_artifact: reportArtifact,
     repair_model: repairModel,
     reasoning_effort: reasoningEffort,
   });

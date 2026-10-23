@@ -45,7 +45,11 @@ async function mainSha(): Promise<string> {
   return String(data.sha);
 }
 
-async function dispatchIncident(incidentId: string, token: string): Promise<void> {
+async function dispatchIncident(
+  incidentId: string,
+  token: string,
+  executionMode: "complete",
+): Promise<void> {
   const githubToken = getEnv("GITHUB_INCIDENT_TOKEN");
   if (!githubToken || !getEnv("OPS_GITHUB_CALLBACK_SECRET")) {
     throw new HttpError(503, "repair_dispatch_not_configured");
@@ -60,7 +64,12 @@ async function dispatchIncident(incidentId: string, token: string): Promise<void
     },
     body: JSON.stringify({
       event_type: "tok_incident_approved",
-      client_payload: { incident_id: incidentId, context_token: token },
+      client_payload: {
+        incident_id: incidentId,
+        context_token: token,
+        execution_mode: executionMode,
+        journal_report: true,
+      },
     }),
     signal: AbortSignal.timeout(15000),
   });
@@ -132,7 +141,9 @@ Deno.serve(async (req) => {
     const proposedPlan = payload.expectedPlan;
     if (!UUID.test(incidentId) || !HASH.test(expectedHash)
       || !proposedPlan || typeof proposedPlan !== "object" || Array.isArray(proposedPlan)
-      || payload.confirmation !== "APPROUVER") {
+      || payload.confirmation !== "APPROUVER"
+      || payload.executionMode !== "complete"
+      || payload.journalReport !== true) {
       throw new HttpError(400, "approval_validation_failed");
     }
 
@@ -167,14 +178,19 @@ Deno.serve(async (req) => {
       const { data: updated, error: contextError } = await actor.adminClient
         .from("ops_incidents")
         .update({
-          sanitized_context: { ...sanitized, approved_base_sha: baseSha },
+          sanitized_context: {
+            ...sanitized,
+            approved_base_sha: baseSha,
+            requested_repair_mode: "complete",
+            repair_journal_requested: true,
+          },
           repair_context_token_hash: tokenHash,
           repair_context_expires_at: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(),
           failure_reason: null,
         })
         .eq("id", incidentId).eq("status", "approved").select("id").maybeSingle();
       if (contextError || !updated) throw new Error("context_update_failed");
-      await dispatchIncident(incidentId, token);
+      await dispatchIncident(incidentId, token, "complete");
     } catch {
       await actor.adminClient.from("ops_incidents").update({
         status: "failed",
@@ -195,7 +211,13 @@ Deno.serve(async (req) => {
       incident_id: incidentId,
       event_type: "codex_dispatch_requested",
       actor: `admin-ui:${actor.userId}`,
-      payload: { approved_base_sha: baseSha, channel: "admin_ui" },
+      payload: {
+        approved_base_sha: baseSha,
+        channel: "admin_ui",
+        execution_mode: "complete",
+        journal_report: true,
+        max_repair_attempts: 3,
+      },
     });
     await writeAuditLog({
       adminClient: actor.adminClient,
@@ -203,7 +225,12 @@ Deno.serve(async (req) => {
       action: "approve",
       actor, request: req, status: "success",
       targetEntityType: "ops_incidents", targetEntityId: incidentId,
-      metadata: { evidence_hash: expectedHash, codex_dispatched: true },
+      metadata: {
+        evidence_hash: expectedHash,
+        codex_dispatched: true,
+        execution_mode: "complete",
+        journal_report: true,
+      },
     });
     return jsonResponse({
       ok: true, decision: "approve", incidentId, codexDispatched: true,

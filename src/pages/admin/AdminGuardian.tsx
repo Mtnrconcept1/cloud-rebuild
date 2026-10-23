@@ -6,6 +6,7 @@ import {
   Bot,
   CheckCircle2,
   ExternalLink,
+  FileText,
   Loader2,
   RefreshCcw,
   SearchCheck,
@@ -128,6 +129,17 @@ export default function AdminGuardian({ embedded = false }: { embedded?: boolean
     overviewQuery.data?.verifications || [],
     selectedIncident?.id,
   );
+  const repairEvents = (overviewQuery.data?.events || [])
+    .filter((event) => event.incident_id === selectedIncident?.id)
+    .filter((event) =>
+      event.event_type.startsWith("workflow_") ||
+      [
+        "repair_approved",
+        "codex_dispatch_requested",
+        "repair_context_delivered",
+      ].includes(event.event_type),
+    )
+    .slice(0, 20);
 
   const activeFailures = overviewQuery.data?.active_failures || [];
   const recoveredFailures = overviewQuery.data?.recovered_failures || [];
@@ -465,6 +477,54 @@ export default function AdminGuardian({ embedded = false }: { embedded?: boolean
               </Card>
 
               <GuardianApprovalPanel key={selectedIncident.id} incident={selectedIncident} onRefresh={refresh} />
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Journal de réparation
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {repairEvents.length ? repairEvents.map((event) => {
+                    const payload = record(event.payload);
+                    const attempt = Number(payload.attempt || 0);
+                    const workflowUrl = typeof payload.workflow_url === "string"
+                      ? payload.workflow_url
+                      : selectedIncident.github_run_id
+                        ? `https://github.com/Mtnrconcept1/cloud-rebuild/actions/runs/${selectedIncident.github_run_id}`
+                        : null;
+                    return (
+                      <div key={String(event.id)} className="rounded-2xl border p-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline">{event.event_type.replace(/^workflow_/, "")}</Badge>
+                          {attempt > 0 ? <Badge variant="secondary">Cycle {attempt}/3</Badge> : null}
+                          <span className="text-xs text-muted-foreground">{formatDate(event.created_at)}</span>
+                        </div>
+                        {payload.message ? (
+                          <p className="mt-2 text-sm text-muted-foreground">{String(payload.message)}</p>
+                        ) : null}
+                        {payload.phase ? (
+                          <p className="mt-1 text-xs text-muted-foreground">Phase : {String(payload.phase)}</p>
+                        ) : null}
+                        {workflowUrl ? (
+                          <Button asChild variant="link" size="sm" className="mt-1 h-auto p-0">
+                            <a href={workflowUrl} target="_blank" rel="noreferrer">
+                              <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                              Ouvrir le run et son rapport journalisé
+                            </a>
+                          </Button>
+                        ) : null}
+                      </div>
+                    );
+                  }) : (
+                    <p className="text-sm text-muted-foreground">
+                      Aucun cycle de réparation n'a encore été lancé pour cet incident.
+                      Les diagnostics Guardian restent disponibles ci-dessous.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
               <Card>
                 <CardHeader>
                   <CardTitle>Analyse fondée sur les preuves</CardTitle>

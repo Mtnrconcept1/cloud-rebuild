@@ -377,21 +377,31 @@ async function getOverview(
   actor: Awaited<ReturnType<typeof authenticateRequest>>,
 ) {
   const lookback = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+  const incidentResult = await actor.adminClient
+    .from("ops_incidents")
+    .select(
+      "id, fingerprint, source, source_event_id, severity, status, title, summary, probable_cause, impact, repair_plan, technical_details, sanitized_context, confidence, risk_level, occurrence_count, first_seen_at, last_seen_at, github_run_id, github_branch, github_pr_number, github_pr_url, resolution_summary, failure_reason, evidence_hash, repairability, analysis_source, analysis_model_requested, analysis_model_returned, analysis_cached, analysis_generated_at, created_at, updated_at",
+    )
+    .not("status", "in", '("resolved","rejected","no_changes")')
+    .order("last_seen_at", { ascending: false })
+    .limit(120);
+  if (incidentResult.error) throw new HttpError(500, incidentResult.error.message);
+  const incidentIds = (incidentResult.data || []).map((incident) => incident.id);
+  const eventQuery = incidentIds.length
+    ? actor.adminClient
+      .from("ops_incident_events")
+      .select("id, incident_id, event_type, actor, payload, created_at")
+      .in("incident_id", incidentIds)
+      .order("created_at", { ascending: false })
+      .limit(240)
+    : Promise.resolve({ data: [], error: null });
   const [
-    incidentResult,
     auditResult,
     assessmentResult,
     verificationResult,
     advisorResult,
+    eventResult,
   ] = await Promise.all([
-    actor.adminClient
-      .from("ops_incidents")
-      .select(
-        "id, fingerprint, source, source_event_id, severity, status, title, summary, probable_cause, impact, repair_plan, technical_details, sanitized_context, confidence, risk_level, occurrence_count, first_seen_at, last_seen_at, github_run_id, github_branch, github_pr_number, github_pr_url, resolution_summary, failure_reason, evidence_hash, repairability, analysis_source, analysis_model_requested, analysis_model_returned, analysis_cached, analysis_generated_at, created_at, updated_at",
-      )
-      .not("status", "in", '("resolved","rejected","no_changes")')
-      .order("last_seen_at", { ascending: false })
-      .limit(120),
     actor.adminClient
       .from("edge_function_audit_logs")
       .select(
@@ -416,13 +426,14 @@ async function getOverview(
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    eventQuery,
   ]);
 
   const error =
-    incidentResult.error ||
     auditResult.error ||
     assessmentResult.error ||
-    verificationResult.error;
+    verificationResult.error ||
+    eventResult.error;
   if (error) throw new HttpError(500, error.message);
 
   const failureGroups = getActiveFailureGroups(
@@ -435,6 +446,7 @@ async function getOverview(
     recovered_failures: failureGroups.recovered,
     assessments: assessmentResult.data || [],
     verifications: verificationResult.data || [],
+    events: eventResult.data || [],
     latest_advisor_snapshot: advisorResult.error
       ? null
       : advisorResult.data || null,

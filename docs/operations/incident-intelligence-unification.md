@@ -11,6 +11,29 @@ Les responsabilités restent séparées :
 - **Guardian** réutilise le diagnostic canonique et n’effectue une analyse approfondie que lorsque les preuves ont changé, que la confiance est insuffisante ou qu’un risque sensible le justifie.
 - **Codex** reste le seul composant autorisé à préparer un patch de code, sur branche isolée, après approbation humaine.
 
+## Réparation complète depuis Guardian
+
+Pour un incident classé `code`, en attente d'approbation et muni de preuves à jour,
+un administrateur AAL2 peut demander une réparation complète depuis Guardian. La
+demande fige toujours le plan canonique et son `evidence_hash` avant le dispatch.
+
+Le workflow exécute alors jusqu'à trois cycles bornés :
+
+1. Codex prépare ou affine le correctif sur une branche isolée ;
+2. lint, typecheck, tests et build de production sont exécutés ;
+3. les échecs deviennent des preuves diagnostiques non fiables que Codex doit analyser ;
+4. un nouveau cycle est lancé uniquement si le précédent n'a pas convergé.
+
+Aucune PR n'est publiée tant que tous les contrôles ne sont pas verts. Après trois
+cycles en échec, l'incident reste ouvert et aucune publication n'a lieu. Chaque cycle
+est inscrit dans `ops_incident_events`. Un rapport Markdown et JSON est conservé
+30 jours comme artefact GitHub Actions et le run correspondant est accessible depuis
+le journal Guardian.
+
+La réparation complète ne change pas la frontière de publication : fusion, migration
+distante, déploiement et résolution post-production restent soumis aux protections et
+validations humaines existantes.
+
 ## Routage déterministe avant OpenAI
 
 Chaque incident est classé sans appel IA :

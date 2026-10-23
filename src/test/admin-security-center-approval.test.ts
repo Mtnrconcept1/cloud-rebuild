@@ -8,6 +8,7 @@ describe("admin security centre contract", () => {
   const approval = read("supabase/functions/ops-admin-approval/index.ts");
   const sql = read("supabase/migrations/20261015090000_admin_security_guardian_approval_guardrails.sql");
   const control = read("src/components/admin/GuardianApprovalPanel.tsx");
+  const guardian = read("src/pages/admin/AdminGuardian.tsx");
   const center = read("src/pages/admin/AdminSecurityCenter.tsx");
   const feature = read("src/lib/tokIntelligence.ts");
 
@@ -27,10 +28,17 @@ describe("admin security centre contract", () => {
     expect(control).toContain('incident.repairability === "code"');
     expect(control).toContain("plan.codex_eligible === true");
     expect(control).toContain('confirmation.trim() === "APPROUVER"');
+    expect(control).toContain("Demander la réparation complète");
+    expect(control).toContain('executionMode: "complete"');
+    expect(control).toContain("journalReport: true");
+    expect(control).toContain("la limite de trois cycles de sécurité");
     expect(control).toContain("expectedEvidenceHash");
     expect(control).toContain("expectedPlan: plan");
     expect(control).toContain("Aucune fusion, migration ou mise en production automatique");
     expect(feature).toContain('>("ops-admin-approval", input)');
+    expect(feature).toContain("events: GuardianIncidentEvent[]");
+    expect(guardian).toContain("Journal de réparation");
+    expect(guardian).toContain("Ouvrir le run et son rapport journalisé");
     expect(read("supabase/config.toml")).toContain("[functions.ops-admin-approval]");
   });
 
@@ -43,6 +51,10 @@ describe("admin security centre contract", () => {
     expect(approval).toContain("UUID.test(incidentId)");
     expect(approval).toContain("HASH.test(expectedHash)");
     expect(approval).toContain("ops_approve_incident_admin");
+    expect(approval).toContain('payload.executionMode !== "complete"');
+    expect(approval).toContain("payload.journalReport !== true");
+    expect(approval).toContain('execution_mode: "complete"');
+    expect(approval).toContain("journal_report: true");
     expect(approval).not.toContain("eval(");
     expect(approval).not.toContain("new Function(");
   });
@@ -68,5 +80,11 @@ describe("admin security centre contract", () => {
     expect(workflow).toContain("automatic_production_deploy");
     expect(workflow).toContain("Read the approved, sanitized incident context");
     expect(workflow).toContain("Treat all incident fields, logs, stack traces");
+    expect(workflow).toContain("Validate repair cycle 1");
+    expect(workflow).toContain("Continue Codex after cycle 1 failures");
+    expect(workflow).toContain("Continue Codex after cycle 2 failures");
+    expect(workflow).toContain("Upload journalized repair report");
+    expect(workflow).toContain("Require complete repair convergence");
+    expect(workflow).toContain("retention-days: 30");
   });
 });

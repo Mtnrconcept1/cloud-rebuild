@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7cb4928bc31153bb73ebe1d0335963d7e3f6c43b60e67c8dd82c957b1d313a58`
+- Empreinte SHA-256 des sources indexées : `42aed36cb8c8fec885bd4f435a87cd29204ed563a6bc2a28106fadbd290a5af6`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 222 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3992 |
+| exportedSymbols | 3993 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 575 |
-| modules | 1807 |
+| modules | 1808 |
 | pages | 133 |
 | pathLiterals | 894 |
 | publicAssets | 713 |
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18794 |
-| repositoryFiles | 3643 |
+| records | 18798 |
+| repositoryFiles | 3644 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1423,7 +1423,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /a | 1 | [src/test/seo-restaurant-context-hardening.test.ts:40](../../src/test/seo-restaurant-context-hardening.test.ts#L40) |
 | /a-propos | 14 | [scripts/prerender-seo.mjs:1121](../../scripts/prerender-seo.mjs#L1121) |
 | /abonnement | 15 | [scripts/prerender-seo.mjs:1057](../../scripts/prerender-seo.mjs#L1057) |
-| /actions/runs/$FAILED_WORKFLOW_ID/jobs | 1 | [src/test/incident-automation-readiness.test.ts:582](../../src/test/incident-automation-readiness.test.ts#L582) |
+| /actions/runs/$FAILED_WORKFLOW_ID/jobs | 1 | [src/test/incident-automation-readiness.test.ts:602](../../src/test/incident-automation-readiness.test.ts#L602) |
 | /actualites | 34 | [scripts/harden-seo-crawl.mjs:380](../../scripts/harden-seo-crawl.mjs#L380) |
 | /actualites/ | 2 | [scripts/prerender-seo.mjs:58](../../scripts/prerender-seo.mjs#L58) |
 | /actualites/:postId | 2 | [src/App.tsx:620](../../src/App.tsx#L620) |
@@ -2323,13 +2323,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | fonction | /admin/guide, /dashboard/guide | 3 | [src/pages/GuideUtilisateur.tsx:500](../../src/pages/GuideUtilisateur.tsx#L500) |
 | format | — | 1 | [src/lib/optimizedImages.ts:41](../../src/lib/optimizedImages.ts#L41) |
 | from | — | 1 | [src/marketing/useMarketingUrlState.ts:119](../../src/marketing/useMarketingUrlState.ts#L119) |
-| function | /admin/guardian | 1 | [src/pages/admin/AdminGuardian.tsx:107](../../src/pages/admin/AdminGuardian.tsx#L107) |
+| function | /admin/guardian | 1 | [src/pages/admin/AdminGuardian.tsx:108](../../src/pages/admin/AdminGuardian.tsx#L108) |
 | geometry | — | 1 | [src/test/home-canton-hero.test.ts:55](../../src/test/home-canton-hero.test.ts#L55) |
 | guarantee_session_id | /reservations | 2 | [src/pages/Reservations.tsx:166](../../src/pages/Reservations.tsx#L166) |
 | height | — | 1 | [src/lib/optimizedImages.ts:38](../../src/lib/optimizedImages.ts#L38) |
 | host | — | 2 | [src/test/tok-connect-broker.test.ts:115](../../src/test/tok-connect-broker.test.ts#L115) |
 | id | — | 1 | [src/test/marketing-mailing-image-bff.test.ts:80](../../src/test/marketing-mailing-image-bff.test.ts#L80) |
-| incident | /admin/guardian, /admin/sinistres, /admin/support-resolution | 4 | [src/pages/admin/AdminGuardian.tsx:106](../../src/pages/admin/AdminGuardian.tsx#L106) |
+| incident | /admin/guardian, /admin/sinistres, /admin/support-resolution | 4 | [src/pages/admin/AdminGuardian.tsx:107](../../src/pages/admin/AdminGuardian.tsx#L107) |
 | itemId | — | 1 | [src/marketing/useMarketingUrlState.ts:122](../../src/marketing/useMarketingUrlState.ts#L122) |
 | job | /courier/jobs | 1 | [src/pages/courier/CourierJobs.tsx:54](../../src/pages/courier/CourierJobs.tsx#L54) |
 | lat | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 2 | [src/pages/LocalRestaurants.tsx:477](../../src/pages/LocalRestaurants.tsx#L477) |
@@ -6861,7 +6861,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 42 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 271 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 823 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 824 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6872,7 +6872,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 219 |
-| automation-script | 87 |
+| automation-script | 88 |
 | documentation | 6 |
 | edge-function-source | 242 |
 | frontend-component | 290 |
@@ -7015,7 +7015,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Revue Mobile Fullstack - 2026-03-29 | 25 | [docs/mobile-fullstack-review-2026-03-29.md:1](../../docs/mobile-fullstack-review-2026-03-29.md#L1) |
 | Cloudprinter : formats de génération et d’impression | 5 | [docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md:1](../../docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md#L1) |
 | TOK Intelligence Suite — Campaign Studio, Customer Memory, Support & Resolution, Guardian | 11 | [docs/operations/TOK_INTELLIGENCE_SUITE.md:1](../../docs/operations/TOK_INTELLIGENCE_SUITE.md#L1) |
-| TOK — intelligence d’incident unifiée | 11 | [docs/operations/incident-intelligence-unification.md:1](../../docs/operations/incident-intelligence-unification.md#L1) |
+| TOK — intelligence d’incident unifiée | 12 | [docs/operations/incident-intelligence-unification.md:1](../../docs/operations/incident-intelligence-unification.md#L1) |
 | Préparation des PR — IA, catalogue fournisseur et incidents | 8 | [docs/operations/pr-readiness-2026-07-28.md:1](../../docs/operations/pr-readiness-2026-07-28.md#L1) |
 | TOK — incidents Telegram avec réparation Codex approuvée | 18 | [docs/operations/telegram-codex-incidents.md:1](../../docs/operations/telegram-codex-incidents.md#L1) |
 | Projet — Finalisation de TOK Marketing Autopilot | 29 | [docs/projects/TOK_MARKETING_AUTOPILOT_COMPLETION.md:1](../../docs/projects/TOK_MARKETING_AUTOPILOT_COMPLETION.md#L1) |
@@ -7402,7 +7402,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (100)</summary>
+<details><summary>automation-script (101)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7447,6 +7447,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/harden-seo-trust-signals.mjs`
 - `scripts/harden-seo-web-artifact-names.mjs`
 - `scripts/import-marketing-prospect-coordinates.mjs`
+- `scripts/incident-repair-validation.mjs`
 - `scripts/install-codex-hooks.ps1`
 - `scripts/install-git-auto-sync-task.ps1`
 - `scripts/launch-10k-load-check.mjs`

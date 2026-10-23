@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 468 error codes mapped from supabase/functions/**.
+// 472 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -50,19 +50,19 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "admin_identity_required": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 88
+      "line": 97
     }
   ],
   "admin_mfa_aal2_required": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 91
+      "line": 100
     }
   ],
   "admin_origin_required": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 79
+      "line": 88
     }
   ],
   "admin_required": [
@@ -246,7 +246,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 737
+      "line": 749
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
@@ -294,29 +294,29 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "approval_body_required": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 102
+      "line": 111
     }
   ],
   "approval_expired_or_plan_changed": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 161
+      "line": 172
     }
   ],
   "approval_payload_too_large": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 100
+      "line": 109
     },
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 111
+      "line": 120
     }
   ],
   "approval_validation_failed": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 136
+      "line": 147
     }
   ],
   "approved_base_sha_missing": [
@@ -1086,7 +1086,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "github_pr_number_mismatch": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2236
+      "line": 2243
     }
   ],
   "github_revision_invalid": [
@@ -1102,7 +1102,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2189
+      "line": 2196
     }
   ],
   "google_actions_center_route_not_found": [
@@ -1330,7 +1330,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2218
+      "line": 2225
     }
   ],
   "incident_context_parameters_missing": [
@@ -1360,13 +1360,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "incident_id_missing": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2188
+      "line": 2195
     }
   ],
   "incident_id_required": [
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 1056
+      "line": 1068
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
@@ -1382,7 +1382,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "incident_not_eligible": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 147
+      "line": 158
     }
   ],
   "incident_not_found": [
@@ -1432,13 +1432,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2269
+      "line": 2296
     }
   ],
   "incident_unavailable": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 143
+      "line": 154
     }
   ],
   "instruction_invalid": [
@@ -1482,7 +1482,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_approval_payload": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 126
+      "line": 135
     }
   ],
   "invalid_authentication": [
@@ -1534,7 +1534,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_content_review_worker_request": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2362
+      "line": 2395
     }
   ],
   "invalid_github_incident_repository": [
@@ -1546,7 +1546,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_github_pr_url": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2234
+      "line": 2241
     }
   ],
   "invalid_image": [
@@ -1558,7 +1558,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_incident_workflow_transition": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2215
+      "line": 2222
     }
   ],
   "invalid_json": [
@@ -1568,7 +1568,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 123
+      "line": 132
     }
   ],
   "invalid_json_body": [
@@ -1590,7 +1590,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_repair_branch": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2223
+      "line": 2230
     }
   ],
   "invalid_request": [
@@ -1625,6 +1625,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/_shared/stripe-client.ts",
       "line": 228
+    }
+  ],
+  "invalid_workflow_url": [
+    {
+      "file": "supabase/functions/ops-incident-control/index.ts",
+      "line": 2269
     }
   ],
   "is_enabled_invalid": [
@@ -1858,7 +1864,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2341
+      "line": 2374
     },
     {
       "file": "supabase/functions/ops-incident-native-scan/index.ts",
@@ -1928,15 +1934,15 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ops_incident_not_found": [
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 456
+      "line": 468
     },
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 583
+      "line": 595
     },
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 877
+      "line": 889
     }
   ],
   "order_not_found": [
@@ -2318,7 +2324,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "pull_request_metadata_missing": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2240
+      "line": 2247
     }
   ],
   "rate_limiter_unavailable": [
@@ -2397,26 +2403,44 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 445
     }
   ],
+  "repair_attempt_exceeds_limit": [
+    {
+      "file": "supabase/functions/ops-incident-control/index.ts",
+      "line": 2266
+    }
+  ],
+  "repair_attempt_invalid": [
+    {
+      "file": "supabase/functions/ops-incident-control/index.ts",
+      "line": 2260
+    }
+  ],
+  "repair_attempt_limit_invalid": [
+    {
+      "file": "supabase/functions/ops-incident-control/index.ts",
+      "line": 2263
+    }
+  ],
   "repair_dispatch_failed_no_production_change": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 191
+      "line": 207
     }
   ],
   "repair_dispatch_not_configured": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 51
+      "line": 55
     },
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 150
+      "line": 161
     }
   ],
   "repair_dispatch_unavailable": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 67
+      "line": 76
     }
   ],
   "request_body_too_large": [
@@ -2832,11 +2856,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "telegram_admin_not_configured": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2371
+      "line": 2404
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2395
+      "line": 2428
     }
   ],
   "telegram_chat_forbidden": [
@@ -2876,11 +2900,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2369
+      "line": 2402
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2393
+      "line": 2426
     }
   ],
   "telegram_update_id_invalid": [
@@ -3566,19 +3590,19 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "unexpected_reasoning_effort": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2250
+      "line": 2277
     }
   ],
   "unexpected_repair_model": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2247
+      "line": 2274
     }
   ],
   "unsupported_action": [
     {
       "file": "supabase/functions/ai-guardian/index.ts",
-      "line": 1084
+      "line": 1096
     },
     {
       "file": "supabase/functions/ai-support-resolution/index.ts",
@@ -3586,7 +3610,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2414
+      "line": 2447
     },
     {
       "file": "supabase/functions/restaurant-media-governance/index.ts",
@@ -3620,13 +3644,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "unsupported_workflow_status": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
-      "line": 2211
+      "line": 2218
     }
   ],
   "user_authentication_required": [
     {
       "file": "supabase/functions/ops-admin-approval/index.ts",
-      "line": 83
+      "line": 92
     }
   ],
   "user_message_required": [
