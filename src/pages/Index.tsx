@@ -683,7 +683,7 @@ export default function Index() {
 
       {visibleProgressiveOffers.length > 0 ? (
         <section className="container py-4" aria-labelledby="progressive-offers-title">
-          <div className="overflow-hidden rounded-[28px] border border-orange-200 bg-orange-50/90 shadow-[0_18px_44px_rgba(249,115,22,0.12)] dark:bg-orange-950/20">
+          <div className="overflow-hidden rounded-[28px] border border-primary/15 bg-[radial-gradient(circle_at_100%_0%,rgba(241,93,34,0.12),transparent_45%),linear-gradient(180deg,#fff6f0,#fffaf6)] shadow-soft dark:border-primary/20 dark:bg-[linear-gradient(180deg,#221915,#1a1513)]">
             <div className="flex flex-col gap-4 p-5 md:p-6">
               <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div className="space-y-1">
@@ -719,7 +719,7 @@ export default function Index() {
                     <Link
                       key={offer.id}
                       to={reservationLink}
-                      className="group overflow-hidden rounded-2xl border bg-background shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+                      className="group overflow-hidden rounded-[22px] border border-border/60 bg-card shadow-soft transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lift"
                     >
                       <div className="aspect-[2.2/1] overflow-hidden bg-muted">
                         <img
@@ -783,10 +783,10 @@ export default function Index() {
                   return (
                     <div
                       key={card.key}
-                      className="rounded-[28px] border bg-card/85 p-5 shadow-[0_14px_32px_rgba(15,23,42,0.05)] backdrop-blur-sm"
+                      className="rounded-[24px] border border-border/60 bg-card p-5 shadow-soft"
                     >
                       <div className="flex items-start gap-3">
-                        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${card.tint}`}>
+                        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${card.tint}`}>
                           <Icon className="h-5 w-5" />
                         </div>
                         <div className="space-y-1">
@@ -822,7 +822,7 @@ export default function Index() {
 
         {user && !isCommercialDemoClient ? (
           <motion.div variants={sectionBounce}>
-            <section className="bg-gradient-to-b from-background to-secondary/10 py-8">
+            <section className="py-8">
               <div className="container">
                 <LoyaltyStatus />
               </div>
@@ -883,8 +883,7 @@ export default function Index() {
         </motion.div>
 
         <motion.div variants={sectionBounce}>
-          <section className="relative border-y border-border bg-secondary/30 py-7 md:py-10">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" aria-hidden="true" />
+          <section className="relative py-8 md:py-12">
             <div className="container relative space-y-6">
               <SectionShowcaseHeader
                 title={"Promotions\u00a0et activations\u00a0du moment"}
@@ -896,7 +895,7 @@ export default function Index() {
               />
               <div className="space-y-4">
                 {isCommercialDemoClient ? (
-                  <div className="rounded-2xl border border-dashed bg-background/80 p-5 text-sm text-muted-foreground">
+                  <div className="rounded-[24px] border border-dashed bg-card p-5 text-sm text-muted-foreground">
                     Les promotions de démonstration restent limitées au restaurant simulé.
                   </div>
                 ) : <PromoCarousel />}
@@ -966,8 +965,7 @@ export default function Index() {
         ) : null}
 
         <motion.div variants={sectionBounce}>
-          <section ref={mapSectionRef} className="relative border-y border-border bg-secondary/20 py-7 md:py-10">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" aria-hidden="true" />
+          <section ref={mapSectionRef} className="relative py-8 md:py-12">
             <div className="container relative space-y-6">
               <SectionShowcaseHeader
                 title={userCoordinates ? "Restaurants dans un rayon de 5 km" : "La carte des restaurants"}
@@ -983,7 +981,7 @@ export default function Index() {
               {shouldLoadMap ? (
                 <Suspense
                   fallback={
-                    <div className="flex h-[380px] items-center justify-center rounded-2xl border bg-muted/30 text-sm font-medium text-muted-foreground">
+                    <div className="flex h-[380px] items-center justify-center rounded-[28px] border border-border/60 bg-muted/40 text-sm font-medium text-muted-foreground">
                       Chargement de la carte...
                     </div>
                   }
@@ -991,7 +989,7 @@ export default function Index() {
                   <NearbyRestaurantsMap restaurants={allRestaurants || []} centerLat={userCoordinates?.latitude} centerLng={userCoordinates?.longitude} />
                 </Suspense>
               ) : (
-                <div className="h-[380px] rounded-2xl border bg-muted/30" aria-hidden="true" />
+                <div className="h-[380px] rounded-[28px] border border-border/60 bg-muted/40" aria-hidden="true" />
               )}
             </div>
           </section>

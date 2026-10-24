@@ -49,7 +49,7 @@ export default function RestaurantSection({
   return (
     <section
       data-home-restaurant-rail
-      className="relative py-6 md:py-10"
+      className="relative py-7 md:py-12"
       aria-busy={loading && restaurants.length === 0}
     >
       <div className="container relative space-y-4 md:space-y-6">
@@ -83,9 +83,9 @@ export default function RestaurantSection({
                   <div
                     data-testid="home-restaurant-skeleton"
                     aria-hidden="true"
-                    className="h-[380px] overflow-hidden rounded-[26px] border border-border bg-card sm:h-[410px]"
+                    className="h-[380px] animate-pulse overflow-hidden rounded-[24px] border border-border/60 bg-card p-2 shadow-soft sm:h-[410px]"
                   >
-                    <div className="aspect-[16/10] bg-muted/60" />
+                    <div className="aspect-[16/10] rounded-[18px] bg-muted/70" />
                     <div className="space-y-4 p-4 sm:p-5">
                       <div className="h-5 w-3/4 rounded-md bg-muted/70" />
                       <div className="h-4 w-1/2 rounded-md bg-muted/70" />
@@ -129,11 +129,11 @@ export default function RestaurantSection({
             <>
               <CarouselPrevious
                 aria-label={`Restaurants précédents : ${title}`}
-                className="left-2 z-10 hidden h-11 w-11 border-border bg-background/95 shadow-lg sm:inline-flex"
+                className="left-2 z-10 hidden h-11 w-11 border-border/70 bg-card/95 shadow-lift backdrop-blur sm:inline-flex"
               />
               <CarouselNext
                 aria-label={`Restaurants suivants : ${title}`}
-                className="right-2 z-10 hidden h-11 w-11 border-border bg-background/95 shadow-lg sm:inline-flex"
+                className="right-2 z-10 hidden h-11 w-11 border-border/70 bg-card/95 shadow-lift backdrop-blur sm:inline-flex"
               />
             </>
           ) : null}

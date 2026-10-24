@@ -24,7 +24,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ["DM Sans", "system-ui", "sans-serif"],
-        display: ["Playfair Display", "serif"],
+        // Fraunces porte les titres éditoriaux ; Playfair Display reste en repli.
+        display: ["Fraunces", "Playfair Display", "Georgia", "serif"],
         dashboard: ["Playball", "Playfair Display", "serif"],
       },
       colors: {
@@ -94,6 +95,15 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        // Ombres chaudes et superposées : relief discret, jamais de halo néon.
+        soft: "var(--shadow-soft)",
+        lift: "var(--shadow-lift)",
+        float: "var(--shadow-float)",
+      },
+      transitionTimingFunction: {
+        tok: "cubic-bezier(.2,.7,.2,1)",
       },
       keyframes: {
         "accordion-down": {

@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `3549f6316f22c1966fae6a164d3894ea21faf288acaa229fdefba1f80cd128b0`
+- Empreinte SHA-256 des sources indexées : `db1a0c2d265b46c035340755d0a3c7b99f4056ffc0dc96a9292ae977d9eb35cc`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1408,8 +1408,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:147](../../src/test/plan-phase1-readiness.test.ts#L147) |
 | /CN=webhook-runtime.test | 2 | [scripts/security/run-webhook-deno-runtime.mjs:17](../../scripts/security/run-webhook-deno-runtime.mjs#L17) |
 | /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 4 | [src/components/FeatureWizard.tsx:19](../../src/components/FeatureWizard.tsx#L19) |
-| /Miamz2.webp | 4 | [src/components/home/SolidaritySection.tsx:49](../../src/components/home/SolidaritySection.tsx#L49) |
-| /Miamz3.webp | 3 | [src/components/home/SolidaritySection.tsx:43](../../src/components/home/SolidaritySection.tsx#L43) |
+| /Miamz2.webp | 4 | [src/components/home/SolidaritySection.tsx:58](../../src/components/home/SolidaritySection.tsx#L58) |
+| /Miamz3.webp | 3 | [src/components/home/SolidaritySection.tsx:52](../../src/components/home/SolidaritySection.tsx#L52) |
 | /Outlines | 2 | [src/test/guide-pdf.test.ts:19](../../src/test/guide-pdf.test.ts#L19) |
 | /PROFIL/?tab=favoris | 1 | [src/test/workspace-layout-controls.test.tsx:42](../../src/test/workspace-layout-controls.test.tsx#L42) |
 | /[^/]+ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
@@ -1424,7 +1424,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /a-propos | 14 | [scripts/prerender-seo.mjs:1121](../../scripts/prerender-seo.mjs#L1121) |
 | /abonnement | 15 | [scripts/prerender-seo.mjs:1057](../../scripts/prerender-seo.mjs#L1057) |
 | /actions/runs/$FAILED_WORKFLOW_ID/jobs | 1 | [src/test/incident-automation-readiness.test.ts:602](../../src/test/incident-automation-readiness.test.ts#L602) |
-| /actualites | 34 | [scripts/harden-seo-crawl.mjs:380](../../scripts/harden-seo-crawl.mjs#L380) |
+| /actualites | 35 | [scripts/harden-seo-crawl.mjs:380](../../scripts/harden-seo-crawl.mjs#L380) |
 | /actualites/ | 2 | [scripts/prerender-seo.mjs:58](../../scripts/prerender-seo.mjs#L58) |
 | /actualites/:postId | 2 | [src/App.tsx:620](../../src/App.tsx#L620) |
 | /actualites/post-1 | 4 | [src/test/seo-crawl-hardening.test.ts:114](../../src/test/seo-crawl-hardening.test.ts#L114) |
@@ -1479,7 +1479,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /advisor | 2 | [src/lib/commercialDemoAi.ts:293](../../src/lib/commercialDemoAi.ts#L293) |
 | /aide | 15 | [scripts/prerender-seo.mjs:1137](../../scripts/prerender-seo.mjs#L1137) |
 | /aligro-catalog-sync | 1 | [src/test/supplier-catalog-sync.test.ts:82](../../src/test/supplier-catalog-sync.test.ts#L82) |
-| /anti-gaspi | 23 | [scripts/prerender-seo.mjs:350](../../scripts/prerender-seo.mjs#L350) |
+| /anti-gaspi | 24 | [scripts/prerender-seo.mjs:350](../../scripts/prerender-seo.mjs#L350) |
 | /api | 2 | [src/test/tok-connect-delivery-address.test.ts:14](../../src/test/tok-connect-delivery-address.test.ts#L14) |
 | /api-keys?reveal=true | 1 | [src/test/restaurant-image-backfill-auth.test.ts:15](../../src/test/restaurant-image-backfill-auth.test.ts#L15) |
 | /api/ | 1 | [src/lib/commercialDemoEffects.ts:80](../../src/lib/commercialDemoEffects.ts#L80) |
@@ -2054,7 +2054,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/:slug | 3 | [src/App.tsx:580](../../src/App.tsx#L580) |
 | /r/:slug/reserver | 2 | [src/App.tsx:579](../../src/App.tsx#L579) |
 | /readyz | 3 | [src/test/application-search-index.test.ts:100](../../src/test/application-search-index.test.ts#L100) |
-| /recherche | 77 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
+| /recherche | 78 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
 | /recherche?city=Lausanne | 1 | [src/test/restaurant-search-preview.test.tsx:62](../../src/test/restaurant-search-preview.test.tsx#L62) |
 | /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:46](../../src/test/restaurant-search-preview.test.tsx#L46) |
 | /recherche?mode=reservation | 2 | [src/pages/TokPulse.tsx:30](../../src/pages/TokPulse.tsx#L30) |
@@ -2224,7 +2224,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-connect/developer/:path* | 2 | [src/test/vercel-rewrites.test.ts:117](../../src/test/vercel-rewrites.test.ts#L117) |
 | /tok-connect/mcp-widget | 6 | [src/App.tsx:610](../../src/App.tsx#L610) |
 | /tok-connect/mcp-widget?mode=sandbox | 1 | [src/test/tok-connect-preview-sandbox.test.tsx:15](../../src/test/tok-connect-preview-sandbox.test.tsx#L15) |
-| /tok-one | 26 | [scripts/prerender-seo.mjs:559](../../scripts/prerender-seo.mjs#L559) |
+| /tok-one | 27 | [scripts/prerender-seo.mjs:559](../../scripts/prerender-seo.mjs#L559) |
 | /tok-one?status=success | 1 | [src/test/security-url-helpers.test.ts:62](../../src/test/security-url-helpers.test.ts#L62) |
 | /tok-pulse | 11 | [scripts/prerender-seo.mjs:1247](../../scripts/prerender-seo.mjs#L1247) |
 | /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:89](../../supabase/functions/ai-image-enhance/index.ts#L89) |
@@ -2273,7 +2273,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /v3/feeds/services | 2 | [src/test/google-actions-center-readiness.test.ts:98](../../src/test/google-actions-center-readiness.test.ts#L98) |
 | /v3/feeds/services/ | 3 | [scripts/google-actions-center-export-feeds.mjs:16](../../scripts/google-actions-center-export-feeds.mjs#L16) |
 | /v3/feeds/services/?limit=25 | 1 | [src/test/google-actions-center-feed-exporter.test.ts:114](../../src/test/google-actions-center-feed-exporter.test.ts#L114) |
-| /ventes-flash | 24 | [scripts/prerender-seo.mjs:351](../../scripts/prerender-seo.mjs#L351) |
+| /ventes-flash | 25 | [scripts/prerender-seo.mjs:351](../../scripts/prerender-seo.mjs#L351) |
 | /webhooks/tok | 4 | [src/lib/tokConnect.ts:169](../../src/lib/tokConnect.ts#L169) |
 | /workers/image-ai-worker | 1 | [scripts/dependabot-policy.test.mjs:40](../../scripts/dependabot-policy.test.mjs#L40) |
 | /zero-attente | 21 | [scripts/prerender-seo.mjs:690](../../scripts/prerender-seo.mjs#L690) |

@@ -65,33 +65,41 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
   if (visiblePrimaryPillars.length === 0 && visibleFeatures.length === 0) return null;
 
   return (
-    <section className="border-y border-border/70 bg-gradient-to-b from-background to-secondary/20 py-10 dark:border-white/10 dark:from-background dark:via-slate-950/40 dark:to-orange-950/10 md:py-14">
-      <div className="container space-y-6">
-        <div className="space-y-2 rounded-xl border border-primary/15 bg-primary/10 px-4 py-4 text-center shadow-[0_12px_34px_rgba(15,23,42,0.045)] dark:border-orange-300/20 dark:bg-orange-500/15">
-          <div className="flex items-center justify-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary dark:drop-shadow-[0_0_16px_rgba(249,115,22,0.55)]" />
-            <h2 className="font-display text-2xl font-bold dark:text-white md:text-3xl">Trois raisons de choisir TOK</h2>
+    <section className="py-12 md:py-20">
+      <div className="container space-y-8 md:space-y-10">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl space-y-3">
+            <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-primary">
+              <Sparkles className="h-4 w-4" />
+              Pourquoi TOK
+            </p>
+            <h2 className="font-display text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.02] tracking-[-0.035em] dark:text-white">Trois raisons de choisir TOK</h2>
           </div>
-          <p className="mx-auto max-w-lg text-sm text-muted-foreground dark:text-slate-300">
+          <p className="max-w-md text-[0.9375rem] leading-7 text-muted-foreground dark:text-slate-300 md:text-right">
             Une lecture simple : moins d&apos;attente, plus d&apos;offres locales, plus d&apos;impact solidaire.
           </p>
         </div>
 
         {visiblePrimaryPillars.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-3">
-            {visiblePrimaryPillars.map((feature) => {
+            {visiblePrimaryPillars.map((feature, index) => {
             const Icon = feature.icon;
             return (
               <Link
                 key={feature.to}
                 to={feature.to}
-                className="neon-card group flex min-h-[180px] flex-col justify-between rounded-2xl border bg-card p-5 transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/20 dark:bg-card/90"
+                className="neon-card group relative flex min-h-[220px] flex-col justify-between overflow-hidden rounded-[24px] border border-border/60 bg-card p-6 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift md:p-7"
               >
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${feature.bg}`}>
-                  <Icon className={`h-6 w-6 ${feature.fg}`} />
+                <div className="flex items-start justify-between">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-full ${feature.bg}`}>
+                    <Icon className={`h-6 w-6 ${feature.fg}`} />
+                  </div>
+                  <span aria-hidden="true" className="font-display text-4xl font-medium tabular-nums text-foreground/10 transition-colors group-hover:text-primary/25 dark:text-white/10">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-base font-extrabold leading-tight dark:text-white">{feature.label}</h3>
+                  <h3 className="font-display text-xl font-semibold leading-tight tracking-[-0.02em] dark:text-white">{feature.label}</h3>
                   <p className="text-sm leading-6 text-muted-foreground dark:text-slate-300">{feature.desc}</p>
                 </div>
               </Link>
@@ -101,25 +109,25 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
         ) : null}
 
         {visibleFeatures.length > 0 ? (
-          <div className="space-y-3">
-            <p className="text-center text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+          <div className="space-y-4">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
               Modules complémentaires activés
             </p>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-4">
               {visibleFeatures.map((feature) => {
                 const Icon = feature.icon;
                 return (
                   <Link
                     key={feature.to}
                     to={feature.to}
-                    className="group flex items-center gap-3 rounded-xl border bg-card p-3 transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/20 dark:bg-card/90"
+                    className="group flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3.5 shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-lift dark:border-white/10"
                   >
-                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${feature.bg}`}>
-                      <Icon className={`h-4 w-4 ${feature.fg}`} />
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${feature.bg}`}>
+                      <Icon className={`h-[18px] w-[18px] ${feature.fg}`} />
                     </div>
                     <div className="min-w-0">
                       <h3 className="truncate text-sm font-semibold leading-tight dark:text-white">{feature.label}</h3>
-                      <p className="truncate text-[11px] leading-snug text-muted-foreground dark:text-slate-300">{feature.desc}</p>
+                      <p className="truncate text-xs leading-snug text-muted-foreground dark:text-slate-300">{feature.desc}</p>
                     </div>
                   </Link>
                 );
