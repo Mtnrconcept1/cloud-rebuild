@@ -9,6 +9,23 @@ export const TOK_MARKETING_BRAND_VERSION = "tok-v3-creme-orange-20261020";
 export const TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT = 6;
 export const TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT = 12;
 
+/**
+ * Independent Instagram compositions distilled from the approved TOK profile.
+ * The family is chosen server-side so two consecutive guided posts cannot drift
+ * back to the same generic orange card just because the model used a similar brief.
+ */
+export const TOK_MARKETING_VISUAL_FAMILIES = [
+  { id: "orange-white", label: "Orange et titre blanc", requiresChef: false, direction: "Aplat orange vermillon vif, titre blanc cassé, court soulignement au pinceau crème et détail d'arche ivoire. Composition typographique épurée, sans photo, sans mascotte." },
+  { id: "food-photo", label: "Photographie culinaire", requiresChef: false, direction: "Une seule photographie réaliste de plat, restaurant chaleureux flou. Zone ivoire supérieure courbe, titre noir très gras, court soulignement au pinceau orange et arche orange latérale ; ne pas masquer le plat." },
+  { id: "cream-detail", label: "Crème et détail de table", requiresChef: false, direction: "Fond crème ivoire chaud, titre noir et filet orange fin. Une table en trois quarts avec un détail du service : carte orange vierge, assiette ou couverts. Une seule nature morte, sans interface inventée." },
+  { id: "human-service", label: "Le service en situation", requiresChef: false, direction: "Une seule photographie réaliste d'une personne de l'équipe accueillant ou servant des clients. Geste naturel, lumière ambrée, titre blanc dans une zone calme. Aucune mascotte." },
+  { id: "chef-dark", label: "Chef TOK sur fond noir", requiresChef: true, direction: "Chef TOK 3D fidèle à la référence Studio, sur fond noir profond devant une arche orange arrondie, geste accueillant lié au thème. Titre blanc, court soulignement au pinceau orange. Une seule mascotte, une seule composition." },
+  { id: "cream-menu", label: "Crème et carte gourmande", requiresChef: false, direction: "Fond crème ivoire, titre noir et court soulignement orange dans une zone supérieure courbe. Un plat réaliste près d'un téléphone affichant uniquement sa photo, sans texte, chiffre ou interface inventés ; arche orange latérale. Une seule scène de table cohérente." },
+  { id: "orange-black", label: "Orange et titre noir", requiresChef: false, direction: "Aplat orange vermillon vif, titre noir très gras, court soulignement au pinceau crème et détail d'arche ivoire. Sans photo, sans mascotte, sans autre décoration." },
+  { id: "chef-cream", label: "Chef TOK sur fond crème", requiresChef: true, direction: "Chef TOK 3D fidèle à la référence Studio sur fond crème ivoire, devant une arche orange arrondie, présentant un plat ou une tablette montrant seulement une photo culinaire. Titre noir, court soulignement orange, geste expressif. Une seule mascotte, aucun collage." },
+  { id: "restaurant-photo", label: "Ambiance du restaurant", requiresChef: false, direction: "Une seule photographie réaliste de salle ou terrasse accueillante : tables dressées, bois, verre, lumière chaude. Titre blanc sur une zone sombre. Aucun autre logo ni enseigne." },
+] as const;
+
 // Validated TOK artwork. Versioned paths and digests prevent silent asset drift.
 export const TOK_MARKETING_REFERENCES = [
   { id: "instagram-profile", label: "Profil Instagram TOK · référence maîtresse crème et orange", path: "/marketing/brand/tok-v3/instagram-profile.jpeg", sha256: "c1f8d594e560a4f5e2924cb13956771db6a5a8d086983c42632f6cad51ddc012" },
