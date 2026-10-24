@@ -2113,6 +2113,7 @@ async function prepareMailingRecipients(
   req: MarketingApiRequest,
   session: ActiveMarketingSession,
   value: unknown,
+  attestation?: unknown,
 ): Promise<JsonObject> {
   let recipientEmails: string[];
   try { recipientEmails = parseMailingRecipientEmails(value); }
@@ -2120,13 +2121,14 @@ async function prepareMailingRecipients(
     if (error instanceof MailingInputError) throw new PublicBffError(400, "mailing_recipients_invalid", error.message);
     throw error;
   }
+  if (attestation !== undefined && (!isPlainObject(attestation) || attestation.confirmed !== true || typeof attestation.source !== "string" || typeof attestation.consentDate !== "string")) throw new PublicBffError(400, "mailing_recipients_invalid", "Attestation, source et date de consentement requises.");
   await consumeRateLimit(config, req, "mailing-recipients", session.userId, false);
   try {
     const prepared = normalizeRpcObject(await serviceRpc(config, "service_execute_marketing_admin_operation", {
       p_sid_hash: session.sessionHash,
       p_csrf_hash: session.csrfHash,
-      p_operation: "admin_prepare_marketing_mailing_recipients",
-      p_args: { p_emails: recipientEmails },
+      p_operation: attestation === undefined ? "admin_prepare_marketing_mailing_recipients" : "admin_prepare_marketing_mailing_recipients_attested",
+      p_args: attestation === undefined ? { p_emails: recipientEmails } : { p_emails: recipientEmails, p_attestation: attestation },
     }));
     const counts = [prepared.recipient_count, prepared.created_count, prepared.existing_count];
     if (counts.some((count) => typeof count !== "number" || !Number.isInteger(count) || count < 0 || count > 500)
@@ -2214,10 +2216,10 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     return;
   }
   if (action === "prepare_mailing_recipients") {
-    if (Object.keys(body).some((key) => !["action", "recipientEmails"].includes(key))) {
+    if (Object.keys(body).some((key) => !["action", "recipientEmails", "attestation"].includes(key))) {
       throw new PublicBffError(400, "mailing_recipients_invalid", "La liste des destinataires est invalide.");
     }
-    sendJson(res, 200, await prepareMailingRecipients(config, req, session, body.recipientEmails));
+    sendJson(res, 200, await prepareMailingRecipients(config, req, session, body.recipientEmails, body.attestation));
     return;
   }
 
