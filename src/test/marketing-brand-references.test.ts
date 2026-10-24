@@ -2,7 +2,13 @@ import { createHash, webcrypto } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildTokMarketingVisualPrompt, TOK_MARKETING_REFERENCES } from "../../supabase/functions/_shared/marketing-brand";
+import {
+  buildTokMarketingVisualPrompt,
+  TOK_MARKETING_CREATIVE_VERSION,
+  TOK_MARKETING_NOVELTY_SCORE_MIN,
+  TOK_MARKETING_REFERENCES,
+  TOK_MARKETING_STYLE_SCORE_MIN,
+} from "../../supabase/functions/_shared/marketing-brand";
 
 const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0xff, 0xd9]);
 function setup(mode: "ok" | "missing" | "changed" | "provider" | "invalid-output" | "oversize" = "ok") {
@@ -125,12 +131,18 @@ describe("TOK brand reference conditioning", () => {
   it("prioritizes the supplied Instagram style without copying its grid or imposing a mascot", () => {
     const prompt = buildTokMarketingVisualPrompt("Titre exact : Vos réservations. Bien organisées.");
     expect(prompt).toContain("la première image jointe, Profil Instagram TOK, est la référence maîtresse");
+    expect(prompt).toContain("Reproduce the visual language, not the layout");
+    expect(prompt).toContain("Never copy the composition of a reference image");
+    expect(prompt).toContain("VARIABLES OBLIGATOIRES D'UN POST À L'AUTRE");
     expect(prompt).toContain("Ne jamais reproduire la grille");
     expect(prompt).toContain("titres en casse phrase");
     expect(prompt).toContain("CHEF CONDITIONNEL");
     expect(prompt).toContain("PRODUCTION NATIVE");
     expect(prompt).not.toContain("titres en capitales");
     expect(prompt).not.toContain("CTA et thetok.ch en bas");
+    expect(TOK_MARKETING_CREATIVE_VERSION).toContain("dynamic-impact");
+    expect(TOK_MARKETING_STYLE_SCORE_MIN).toBe(0.85);
+    expect(TOK_MARKETING_NOVELTY_SCORE_MIN).toBe(0.70);
   });
   it.each([["1:1", "1024x1024"], ["9:16", "720x1280"], ["16:9", "1280x720"], ["4:5", "1024x1280"]] as const)("sends the selected %s ratio to the image provider", async (format, size) => {
     setup();

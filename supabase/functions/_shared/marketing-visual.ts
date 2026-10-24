@@ -1,5 +1,6 @@
-import { buildTokMarketingVisualPrompt, buildTokMailingVisualPrompt, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
+import { buildTokMailingVisualPrompt, buildTokMarketingVisualPrompt, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
 import { CAMPAIGN_FORMAT_SIZES, type CampaignFormat } from "./marketing-campaign-options.ts";
+import { inspectTokCampaignImage } from "./marketing-campaign-visual-quality.ts";
 
 const REFERENCE_ORIGIN = "https://www.thetok.ch";
 const MAX_REFERENCE_BYTES = 2_000_000;
@@ -39,8 +40,7 @@ async function loadReferences(): Promise<Blob[]> {
   const timeout = setTimeout(() => controller.abort(), 10_000);
   try {
     return await Promise.all(TOK_MARKETING_REFERENCES.map(async (reference) => {
-      // No user-controlled URL, redirects, credentials or Authorization header.
-      const response = await fetch(`${REFERENCE_ORIGIN}${reference.path}`, {
+      const response = await fetch(REFERENCE_ORIGIN + reference.path, {
         redirect: "error", signal: controller.signal,
       });
       const bytes = await readBounded(response, MAX_REFERENCE_BYTES);
@@ -55,7 +55,6 @@ async function loadReferences(): Promise<Blob[]> {
   }
 }
 
-/** Both generation and the daily visual reviewer use the same pinned masters. */
 export function loadTokMarketingReferences(): Promise<Blob[]> {
   referenceCache ??= loadReferences().catch((error) => { referenceCache = undefined; throw error; });
   return referenceCache;
@@ -71,8 +70,7 @@ export async function buildTokMarketingImageForm(prompt: string, format: Campaig
   form.set("output_format", "jpeg");
   form.set("output_compression", "90");
   form.set("n", "1");
-  // gpt-image-2 processes references at high fidelity; input_fidelity is not needed.
-  references.forEach((blob, index) => form.append("image[]", blob, `${TOK_MARKETING_REFERENCES[index].id}.jpg`));
+  references.forEach((blob, index) => form.append("image[]", blob, TOK_MARKETING_REFERENCES[index].id + ".jpg"));
   return form;
 }
 
@@ -83,39 +81,88 @@ type VisualStorageClient = {
   } };
 };
 
-/** A failed reference/edit leaves a draft without an image; never fall back to unbranded generation. */
 export async function generateCampaignVisual(
   adminClient: VisualStorageClient,
-  options: { prompt: string; campaignSlug: string; index: number; apiKey: string; timeoutMs?: number; format?: CampaignFormat; forEmail?: boolean },
+  options: {
+    prompt: string;
+    campaignSlug: string;
+    index: number;
+    apiKey: string;
+    timeoutMs?: number;
+    format?: CampaignFormat;
+    forEmail?: boolean;
+    reviewModel?: string;
+    expectedHeadline?: string;
+    creativeDirectionId?: string;
+    recentCreativeDirectionIds?: readonly string[];
+  },
 ): Promise<string | null> {
   if (!options.apiKey || !options.prompt.trim()) return null;
   try {
     const deadline = Date.now() + Math.max(1, Math.min(options.timeoutMs ?? 90_000, 90_000));
-    const body = await buildTokMarketingImageForm(options.prompt, options.format, options.forEmail ?? false);
-    const remaining = deadline - Date.now();
-    if (remaining <= 0) return null;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), remaining);
-    let payload: { data?: Array<{ b64_json?: string }> };
-    try {
-      const response = await fetch("https://api.openai.com/v1/images/edits", {
-        method: "POST", signal: controller.signal,
-        headers: { Authorization: `Bearer ${options.apiKey}` }, body,
-      });
-      payload = JSON.parse(new TextDecoder().decode(await readBounded(response, 12_000_000)));
-    } finally {
-      clearTimeout(timeout);
+    const references = await loadTokMarketingReferences();
+    const needsReview = Boolean(options.reviewModel?.trim() && options.expectedHeadline?.trim());
+    const attempts = needsReview ? 2 : 1;
+
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) return null;
+      const correctivePrompt = attempt === 0 ? options.prompt : [
+        options.prompt,
+        "RÉGÉNÉRATION CORRECTRICE : le précédent essai a été rejeté par le contrôle qualité. Produire une composition nettement différente tout en conservant exactement l'accroche, la DA TOK et la direction créative. Ne pas ajouter de texte.",
+      ].join("\n");
+      const body = await buildTokMarketingImageForm(correctivePrompt, options.format, options.forEmail ?? false);
+      const reserveForReview = needsReview ? 12_000 : 0;
+      const generationBudget = Math.max(1, Math.min(attempt === 0 && needsReview ? 45_000 : 70_000, remaining - reserveForReview));
+      if (generationBudget <= 0) return null;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), generationBudget);
+      let payload: { data?: Array<{ b64_json?: string }> };
+      try {
+        const response = await fetch("https://api.openai.com/v1/images/edits", {
+          method: "POST",
+          signal: controller.signal,
+          headers: { Authorization: "Bearer " + options.apiKey },
+          body,
+        });
+        payload = JSON.parse(new TextDecoder().decode(await readBounded(response, 12_000_000)));
+      } finally {
+        clearTimeout(timeout);
+      }
+      const encoded = payload?.data?.[0]?.b64_json;
+      if (typeof encoded !== "string" || encoded.length > 11_000_000) return null;
+      const binary = atob(encoded);
+      const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+      if (bytes.length < 4 || bytes.length > MAX_OUTPUT_BYTES || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) return null;
+
+      if (needsReview) {
+        try {
+          const reviewRemaining = deadline - Date.now();
+          if (reviewRemaining <= 0) return null;
+          await inspectTokCampaignImage({
+            bytes,
+            references,
+            prompt: correctivePrompt,
+            expectedHeadline: options.expectedHeadline!.trim(),
+            creativeDirectionId: options.creativeDirectionId,
+            recentCreativeDirectionIds: options.recentCreativeDirectionIds,
+            apiKey: options.apiKey,
+            model: options.reviewModel!.trim(),
+            timeoutMs: Math.min(reviewRemaining, 18_000),
+          });
+        } catch {
+          if (attempt + 1 < attempts) continue;
+          return null;
+        }
+      }
+
+      const slug = options.campaignSlug.replace(/[^a-z0-9-]/gi, "").slice(0, 48) || "campagne";
+      const path = "marketing-ai/" + slug + "/" + Date.now() + "-" + options.index + ".jpg";
+      const bucket = adminClient.storage.from("social-post-media");
+      const { error } = await bucket.upload(path, bytes, { contentType: "image/jpeg", upsert: false });
+      return error ? null : bucket.getPublicUrl(path).data.publicUrl;
     }
-    const encoded = payload?.data?.[0]?.b64_json;
-    if (typeof encoded !== "string" || encoded.length > 11_000_000) return null;
-    const binary = atob(encoded);
-    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-    if (bytes.length < 4 || bytes.length > MAX_OUTPUT_BYTES || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) return null;
-    const slug = options.campaignSlug.replace(/[^a-z0-9-]/gi, "").slice(0, 48) || "campagne";
-    const path = `marketing-ai/${slug}/${Date.now()}-${options.index}.jpg`;
-    const bucket = adminClient.storage.from("social-post-media");
-    const { error } = await bucket.upload(path, bytes, { contentType: "image/jpeg", upsert: false });
-    return error ? null : bucket.getPublicUrl(path).data.publicUrl;
+    return null;
   } catch {
     return null;
   }

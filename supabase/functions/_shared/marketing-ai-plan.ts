@@ -80,7 +80,14 @@ export type MarketingPlanItem = {
   template_ids?: CampaignTemplateId[];
   primary_template_id?: CampaignTemplateId;
   channel_variants?: Array<{ channel: MarketingChannel; content: MarketingPlanItem["content"] }>;
-  editorial?: { version: string; primary_template_id: CampaignTemplateId; destination_url: string };
+  editorial?: {
+    version: string;
+    primary_template_id: CampaignTemplateId;
+    destination_url: string;
+    creative_direction_id?: string;
+    creative_direction_version?: string;
+    text_novelty_score?: number;
+  };
 };
 
 export type MarketingPlan = {

@@ -1,7 +1,9 @@
 import { readBoundedImageBody } from "./ai-image-response.ts";
 import {
+  TOK_MARKETING_NOVELTY_SCORE_MIN,
   TOK_MARKETING_REFERENCES,
   TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT,
+  TOK_MARKETING_STYLE_SCORE_MIN,
 } from "./marketing-brand.ts";
 import type { DailyMarketingBrief } from "./marketing-daily-editorial.ts";
 
@@ -17,6 +19,8 @@ export type DailyImageQuality = {
   dimensions: { width: number; height: number };
   reviewer_model: string;
   reason: string;
+  tok_style_score: number;
+  novelty_score: number;
 };
 
 /** Read the JPEG frame header without allocating a decoded multi-megapixel bitmap. */
@@ -69,9 +73,11 @@ function parseReview(payload: unknown, expectedTitle: string) {
   let review: Record<string, unknown>;
   try { review = JSON.parse(text); } catch { throw new Error("marketing_daily_review_invalid"); }
   if (!review || typeof review !== "object" || Array.isArray(review)
-    || Object.keys(review).some((key) => !["checks", "observed_title", "reason"].includes(key))
+    || Object.keys(review).some((key) => !["checks", "observed_title", "reason", "tok_style_score", "novelty_score"].includes(key))
     || typeof review.observed_title !== "string" || review.observed_title.length > 300
     || typeof review.reason !== "string" || !review.reason.trim() || review.reason.length > 1000
+    || typeof review.tok_style_score !== "number" || !Number.isFinite(review.tok_style_score)
+    || typeof review.novelty_score !== "number" || !Number.isFinite(review.novelty_score)
     || !review.checks || typeof review.checks !== "object" || Array.isArray(review.checks)) {
     throw new Error("marketing_daily_review_invalid");
   }
@@ -83,7 +89,14 @@ function parseReview(payload: unknown, expectedTitle: string) {
   for (const check of DAILY_VISUAL_CHECKS) {
     if (checks[check] !== true) throw new Error(`marketing_daily_quality_${check}`);
   }
-  return { checks: checks as DailyImageQuality["checks"], reason: review.reason.trim() };
+  if (review.tok_style_score < TOK_MARKETING_STYLE_SCORE_MIN) throw new Error("marketing_daily_quality_style_score");
+  if (review.novelty_score < TOK_MARKETING_NOVELTY_SCORE_MIN) throw new Error("marketing_daily_quality_novelty_score");
+  return {
+    checks: checks as DailyImageQuality["checks"],
+    reason: review.reason.trim(),
+    tok_style_score: review.tok_style_score,
+    novelty_score: review.novelty_score,
+  };
 }
 
 /** Inspect actual generated pixels and the masters. The prompt alone is never a pass. */
@@ -104,11 +117,13 @@ export async function inspectTokDailyImage(options: {
     { type: "input_image", image_url: `data:image/jpeg;base64,${imageBytesBase64(new Uint8Array(await blob.arrayBuffer()))}`, detail: "high" },
   ]));
   const schema = {
-    type: "object", additionalProperties: false, required: ["checks", "observed_title", "reason"],
+    type: "object", additionalProperties: false, required: ["checks", "observed_title", "reason", "tok_style_score", "novelty_score"],
     properties: {
       checks: { type: "object", additionalProperties: false, required: [...DAILY_VISUAL_CHECKS],
         properties: Object.fromEntries(DAILY_VISUAL_CHECKS.map((key) => [key, { type: "boolean" }])) },
       observed_title: { type: "string" }, reason: { type: "string" },
+      tok_style_score: { type: "number", minimum: 0, maximum: 1 },
+      novelty_score: { type: "number", minimum: 0, maximum: 1 },
     },
   };
   const controller = new AbortController();
@@ -134,6 +149,7 @@ export async function inspectTokDailyImage(options: {
           `safe_margins = le titre et le pied thetok.ch, ainsi que le logo principal complet avec son liseré et sa bulle Miamz!, restent entièrement dans l'image, avec une marge d'au moins ${TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT} % sur chacun des quatre bords : ${Math.ceil(dimensions.width * TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT / 100)} px à gauche et à droite, ${Math.ceil(dimensions.height * TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT / 100)} px en haut et en bas. Mesurer depuis les contours réellement visibles, accents et ponctuation compris. Ce minimum est le seul seuil de marge à valider. Les fonds, photographies, arches et filets décoratifs peuvent atteindre les bords sans faire échouer safe_margins. Refuser si une marge est inférieure au minimum ou incertaine ;`,
           "family_match = composition et palette de la famille demandée ; chef_correct = présence ou absence conforme et identité fidèle si présent ;",
           "no_extra_claims = pas de prix, chiffre, remise, promesse, logo tiers, QR code ni texte inventé. Textes de marque autorisés hors titre : TOK et sa bulle Miamz! dans le logo, thetok.ch discret en pied. Pas de corps d'email ni bouton de l'affiche Studio.",
+          `tok_style_score : conformité à la DA TOK sur 0..1, minimum ${TOK_MARKETING_STYLE_SCORE_MIN}. novelty_score : originalité réelle de la composition dans la DA, sans copie de la grille ou du layout des références, minimum ${TOK_MARKETING_NOVELTY_SCORE_MIN}.`,
           "Transcrire littéralement le titre effectivement visible dans observed_title. reason : une phrase courte en français, 1000 caractères maximum.",
         ].join("\n") }, ...referenceImages.flat(),
         { type: "input_text", text: "DERNIÈRE IMAGE : publication à inspecter et à valider. Toutes les décisions portent sur celle-ci." },
