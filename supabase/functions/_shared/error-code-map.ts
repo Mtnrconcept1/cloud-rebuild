@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 472 error codes mapped from supabase/functions/**.
+// 473 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -114,7 +114,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_invalid_plan": [
     {
       "file": "supabase/functions/_shared/marketing-ai.ts",
-      "line": 138
+      "line": 159
     }
   ],
   "ai_invalid_response": [
@@ -254,7 +254,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 175
+      "line": 215
     },
     {
       "file": "supabase/functions/ai-restaurant-agent/index.ts",
@@ -352,7 +352,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "campaign_post_count_mismatch": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 221
+      "line": 261
     }
   ],
   "campaign_preview_fields_required": [
@@ -370,7 +370,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "campaign_start_must_be_future": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 220
+      "line": 260
     }
   ],
   "campaign_studio_run_not_found": [
@@ -386,7 +386,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "campaign_window_too_short": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 224
+      "line": 264
     }
   ],
   "captcha_invalid": [
@@ -404,7 +404,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "channels_required": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 99
+      "line": 101
     }
   ],
   "chat_tool_invalid": [
@@ -1042,11 +1042,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "formats_invalid": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 112
+      "line": 114
     },
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 119
+      "line": 121
     }
   ],
   "github_base_revision_invalid": [
@@ -1450,7 +1450,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "integrations_unavailable": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 133
+      "line": 135
     }
   ],
   "invalid_action": [
@@ -1464,7 +1464,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 74
+      "line": 76
     },
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
@@ -1642,7 +1642,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "item_count_invalid": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 211
+      "line": 251
     }
   ],
   "item_required": [
@@ -1666,7 +1666,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "mailing_facets_unavailable": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 181
+      "line": 221
+    }
+  ],
+  "marketing_history_unavailable": [
+    {
+      "file": "supabase/functions/ai-marketing-agent/index.ts",
+      "line": 154
     }
   ],
   "marketing_reference_ids_required": [
@@ -2700,13 +2706,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "run_start_unavailable": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 238
+      "line": 279
     }
   ],
   "runs_unavailable": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 171
+      "line": 211
     }
   ],
   "scheduler_identity_required": [
@@ -3534,7 +3540,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "too_many_channels": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 101
+      "line": 103
     }
   ],
   "unauthorized": [
@@ -3620,7 +3626,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "unsupported_channel": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 105
+      "line": 107
     }
   ],
   "unsupported_grant_type": [
@@ -3722,7 +3728,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "window_invalid": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 207
+      "line": 247
     }
   ]
 };

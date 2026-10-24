@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `db1a0c2d265b46c035340755d0a3c7b99f4056ffc0dc96a9292ae977d9eb35cc`
+- Empreinte SHA-256 des sources indexées : `486c38f4cd36468cb8d9d41a27a5643037ba2b91a69c81b06fa8244428cc5372`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 222 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3993 |
+| exportedSymbols | 4014 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 576 |
-| modules | 1811 |
+| modules | 1814 |
 | pages | 133 |
 | pathLiterals | 894 |
 | publicAssets | 713 |
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18806 |
-| repositoryFiles | 3648 |
+| records | 18833 |
+| repositoryFiles | 3651 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1384,7 +1384,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 280 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 281 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:97](../../src/test/application-search-index.test.ts#L97) |
@@ -1704,7 +1704,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /galerie | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
 | /gallery | 1 | [supabase/functions/enrich-directory-images/index.ts:126](../../supabase/functions/enrich-directory-images/index.ts#L126) |
 | /garantie-qualite | 12 | [scripts/prerender-seo.mjs:1073](../../scripts/prerender-seo.mjs#L1073) |
-| /generations | 1 | [src/test/marketing-brand-references.test.ts:92](../../src/test/marketing-brand-references.test.ts#L92) |
+| /generations | 1 | [src/test/marketing-brand-references.test.ts:98](../../src/test/marketing-brand-references.test.ts#L98) |
 | /google-actions-center-sync | 1 | [src/test/google-actions-center-outbox.test.ts:147](../../src/test/google-actions-center-outbox.test.ts#L147) |
 | /guide | 6 | [src/App.tsx:702](../../src/App.tsx#L702) |
 | /guide/plateforme | 2 | [src/App.tsx:704](../../src/App.tsx#L704) |
@@ -1774,7 +1774,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard/restaurant-ambience.webp | 3 | [scripts/dashboard-design-preview.fixtures.ts:10](../../scripts/dashboard-design-preview.fixtures.ts#L10) |
 | /images/doner-kebab-plate.jpeg | 2 | [src/lib/menu-item-images.ts:48](../../src/lib/menu-item-images.ts#L48) |
 | /images/edamame.webp | 1 | [src/lib/menu-item-images.ts:49](../../src/lib/menu-item-images.ts#L49) |
-| /images/edits | 3 | [src/test/marketing-daily-visual.test.ts:124](../../src/test/marketing-daily-visual.test.ts#L124) |
+| /images/edits | 3 | [src/test/marketing-daily-visual.test.ts:129](../../src/test/marketing-daily-visual.test.ts#L129) |
 | /images/emails/tok-reservation-hero.jpg | 2 | [src/test/transactional-email-templates.test.ts:105](../../src/test/transactional-email-templates.test.ts#L105) |
 | /images/emails/tok-reservation-hero.webp | 1 | [src/test/transactional-email-templates.test.ts:106](../../src/test/transactional-email-templates.test.ts#L106) |
 | /images/fattouche.webp | 5 | [src/lib/menu-item-images.ts:21](../../src/lib/menu-item-images.ts#L21) |
@@ -2067,7 +2067,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /reseaux-sociaux | 2 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
 | /reservations | 33 | [scripts/prerender-seo.mjs:1273](../../scripts/prerender-seo.mjs#L1273) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
-| /responses | 4 | [src/test/marketing-daily-visual.test.ts:91](../../src/test/marketing-daily-visual.test.ts#L91) |
+| /responses | 4 | [src/test/marketing-daily-visual.test.ts:96](../../src/test/marketing-daily-visual.test.ts#L96) |
 | /rest/v1/ | 4 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
 | /rest/v1/profiles | 2 | [src/test/tok-connect-oauth-delegation.test.ts:101](../../src/test/tok-connect-oauth-delegation.test.ts#L101) |
 | /rest/v1/profiles?select=first_name | 1 | [src/test/tok-connect-oauth-delegation.test.ts:103](../../src/test/tok-connect-oauth-delegation.test.ts#L103) |
@@ -6857,12 +6857,12 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 119 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 144 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 145 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 42 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 271 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 826 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 827 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6875,7 +6875,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 219 |
 | automation-script | 88 |
 | documentation | 6 |
-| edge-function-source | 242 |
+| edge-function-source | 244 |
 | frontend-component | 290 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
@@ -6883,7 +6883,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 744 |
+| test | 745 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -8305,7 +8305,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (242)</summary>
+<details><summary>edge-function-source (244)</summary>
 
 - `supabase/functions/_shared/ai-image-operation.ts`
 - `supabase/functions/_shared/ai-image-response.ts`
@@ -8334,9 +8334,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/marketing-campaign-options.ts`
 - `supabase/functions/_shared/marketing-campaign-request.ts`
 - `supabase/functions/_shared/marketing-campaign-templates.ts`
+- `supabase/functions/_shared/marketing-campaign-visual-quality.ts`
 - `supabase/functions/_shared/marketing-content-review-request.ts`
 - `supabase/functions/_shared/marketing-content-review.ts`
 - `supabase/functions/_shared/marketing-content-telegram.ts`
+- `supabase/functions/_shared/marketing-creative-direction.ts`
 - `supabase/functions/_shared/marketing-daily-editorial.ts`
 - `supabase/functions/_shared/marketing-daily-generation.ts`
 - `supabase/functions/_shared/marketing-daily-visual.ts`
@@ -10082,7 +10084,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (744)</summary>
+<details><summary>test (745)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10433,6 +10435,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-content-review-webhook.test.ts`
 - `src/test/marketing-content-review.test.tsx`
 - `src/test/marketing-content-telegram.test.ts`
+- `src/test/marketing-creative-direction.test.ts`
 - `src/test/marketing-daily-editorial.test.ts`
 - `src/test/marketing-daily-generation.test.ts`
 - `src/test/marketing-daily-series-bff.test.ts`

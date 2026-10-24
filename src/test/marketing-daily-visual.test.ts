@@ -21,7 +21,7 @@ beforeAll(() => {
 });
 
 type Mode = "created" | "recovered" | "missing400" | "storage500" | "multiple" | "grid" | "typo" | "square" | "review500" | "incomplete" | "malformed" | "missing-master" | "changed-master"
-  | "margins" | "recovered-margins" | "contrast" | "missing-margins" | "nonboolean-margins";
+  | "margins" | "recovered-margins" | "contrast" | "missing-margins" | "nonboolean-margins" | "style-score" | "novelty-score";
 function mockNetwork(mode: Mode = "created") {
   Object.defineProperty(Blob.prototype, "arrayBuffer", { configurable: true, writable: true, value: function (this: Blob) {
     return new Promise<ArrayBuffer>((resolve, reject) => {
@@ -69,7 +69,9 @@ function mockNetwork(mode: Mode = "created") {
     if (mode === "nonboolean-margins") checks.safe_margins = "true";
     const text = mode === "malformed" ? "not JSON" : JSON.stringify({ checks,
       observed_title: mode === "typo" ? "Vos reservation. Bien organisées." : brief.expectedTitle.replace(". ", ".\n"),
-      reason: "Composition unique et titre conforme aux références TOK." });
+      reason: "Composition unique et titre conforme aux références TOK.",
+      tok_style_score: mode === "style-score" ? 0.84 : 0.96,
+      novelty_score: mode === "novelty-score" ? 0.69 : 0.88 });
     return Response.json({ status: mode === "incomplete" ? "incomplete" : "completed",
       output: [{ type: "message", content: [{ type: "output_text", text }] }] });
   });
@@ -86,7 +88,10 @@ describe("daily native image and pixel review", () => {
     const client = { storage: { from: () => ({ upload, getPublicUrl: () => ({ data: { publicUrl: imageUrl } }) }) } };
     const { generateDailyMarketingVisual } = await import("../../supabase/functions/_shared/marketing-daily-visual");
     const result = await generateDailyMarketingVisual(client, options);
-    expect(result).toMatchObject({ imageUrl, source: "created", quality: { status: "validated", dimensions: { width: 1024, height: 1280 }, reviewer_model: options.reviewModel } });
+    expect(result).toMatchObject({ imageUrl, source: "created", quality: {
+      status: "validated", dimensions: { width: 1024, height: 1280 }, reviewer_model: options.reviewModel,
+      tok_style_score: 0.96, novelty_score: 0.88,
+    } });
     expect(upload).toHaveBeenCalledExactlyOnceWith(imagePath, imageBytes, { contentType: "image/jpeg", upsert: false });
     const reviewCall = fetcher.mock.calls.find(([url]) => url.endsWith("/responses"));
     const review = JSON.parse(reviewCall![1]!.body as string);
@@ -134,6 +139,7 @@ describe("daily native image and pixel review", () => {
     ["margins", "marketing_daily_quality_safe_margins"], ["recovered-margins", "marketing_daily_quality_safe_margins"],
     ["contrast", "marketing_daily_quality_text_legible"], ["missing-margins", "marketing_daily_review_invalid"],
     ["nonboolean-margins", "marketing_daily_quality_safe_margins"],
+    ["style-score", "marketing_daily_quality_style_score"], ["novelty-score", "marketing_daily_quality_novelty_score"],
   ] as const)("rejects %s without uploading or silently accepting a fallback", async (mode, error) => {
     const fetcher = mockNetwork(mode);
     const upload = vi.fn();
