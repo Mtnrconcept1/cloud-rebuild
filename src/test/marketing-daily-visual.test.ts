@@ -114,6 +114,21 @@ describe("daily native image and pixel review", () => {
     expect(instructions).toContain("aucun accent jaune");
   });
 
+  it.each([2, 3])("increases generation safe area on rejected attempt %i without relaxing pixel review", async (attemptCount) => {
+    const fetcher = mockNetwork("margins");
+    const upload = vi.fn();
+    const client = { storage: { from: () => ({ upload, getPublicUrl: () => ({ data: { publicUrl: imageUrl } }) }) } };
+    const { generateDailyMarketingVisual } = await import("../../supabase/functions/_shared/marketing-daily-visual");
+    await expect(generateDailyMarketingVisual(client, { ...options, attemptCount })).rejects.toThrow("marketing_daily_quality_safe_margins");
+    const imageCall = fetcher.mock.calls.find(([url]) => url.endsWith("/images/edits"));
+    const imagePrompt = (imageCall?.[1]?.body as FormData).get("prompt") as string;
+    expect(imagePrompt).toContain(`REPRISE ${attemptCount}/3 APRÈS REJET DU VISUEL`);
+    expect(imagePrompt).toContain(`au moins ${attemptCount === 2 ? 18 : 22} % de marge`);
+    expect(imagePrompt).toContain(brief.expectedTitle);
+    expect(fetcher.mock.calls.filter(([url]) => url.endsWith("/responses"))).toHaveLength(1);
+    expect(upload).not.toHaveBeenCalled();
+  });
+
   it("recovers an uploaded image after a lost completion acknowledgement without another image generation", async () => {
     const fetcher = mockNetwork("recovered");
     const upload = vi.fn();
