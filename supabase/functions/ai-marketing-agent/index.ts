@@ -1,7 +1,7 @@
 import { allocateMarketingVisuals } from "../_shared/marketing-visual-allocation.ts";
 import { MAILING_FIELDS, MailingInputError, mailingScheduleOptions, parseMailingOptions, type MailingField, type MailingFacetPage } from "../_shared/marketing-mailing.ts";
 import { interpretMailingBrief } from "../_shared/marketing-mailing-plan.ts";
-import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../_shared/marketing-campaign-options.ts";
+import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions, type RecentSocialEditorial } from "../_shared/marketing-campaign-options.ts";
 import {
   HttpError,
   authenticateRequest,
@@ -134,6 +134,30 @@ async function readConnectedChannels(
   return [...new Set((data || []).map((row: { channel: string }) => row.channel))];
 }
 
+async function readRecentSocialEditorial(
+  adminClient: ReturnType<typeof createAdminClient>,
+): Promise<RecentSocialEditorial[]> {
+  const { data, error } = await adminClient
+    .from("marketing_calendar_items")
+    .select("channel, title, content, created_at")
+    .in("channel", ["instagram", "facebook"])
+    .order("created_at", { ascending: false })
+    .limit(120);
+  if (error) throw new HttpError(503, "social_history_unavailable");
+  return (data || []).flatMap((row: { channel?: unknown; title?: unknown; content?: unknown }) => {
+    if (row.channel !== "instagram" && row.channel !== "facebook") return [];
+    const content = asRecord(row.content);
+    const body = typeof content.body === "string" ? content.body.trim() : "";
+    if (!body) return [];
+    return [{
+      channel: row.channel,
+      title: typeof row.title === "string" ? row.title.trim().slice(0, 200) : undefined,
+      headline: typeof content.headline === "string" ? content.headline.trim().slice(0, 200) : undefined,
+      body: body.slice(0, 1600),
+    }];
+  });
+}
+
 Deno.serve(async (req) => {
   const generationDeadline = Date.now() + 110_000;
   const corsHeaders = buildCorsHeaders(req);
@@ -226,6 +250,9 @@ Deno.serve(async (req) => {
     }
 
     const connectedChannels = await readConnectedChannels(client);
+    const recentSocialEditorial = campaignOptions && channels.some((channel) => channel === "instagram" || channel === "facebook")
+      ? await readRecentSocialEditorial(client)
+      : [];
 
     const { data: startedRunId, error: startError } = await client.rpc(
       "service_start_marketing_ai_run",
@@ -250,6 +277,7 @@ Deno.serve(async (req) => {
       campaignOptions,
       mailingOptions,
       formats,
+      recentSocialEditorial,
     });
 
     // Visuals are generated after the plan and never block it: a failed image

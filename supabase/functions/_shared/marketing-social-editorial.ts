@@ -28,6 +28,41 @@ export const SOCIAL_EDITORIAL_CATALOG: Record<CampaignTemplateId, { url: string;
   actualites_restaurant: { url: TOK_PUBLIC_HOME, hashtags: ["ActualitesRestaurant", "CommunicationRestaurant", "Restaurateurs"] },
 };
 
+export const SOCIAL_EDITORIAL_VARIETY_PATTERNS = [
+  "punchline très courte en une phrase",
+  "bénéfice concret puis explication en deux phrases",
+  "micro-scène vécue au restaurant",
+  "fonctionnalité TOK expliquée sans slogan",
+  "question courte suivie d'une réponse utile",
+  "contraste avant/après sans chiffre ni promesse",
+] as const;
+
+export function normalizeEditorialSimilarityText(value: string): string {
+  return cleanGeneratedPublicText(value, 5000).normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("fr-CH")
+    .replace(/[^\p{L}\p{N}]+/gu, " ").replace(/\s+/gu, " ").trim();
+}
+
+function editorialBigrams(value: string): Set<string> {
+  const tokens = normalizeEditorialSimilarityText(value).split(" ").filter((token) => token.length > 1);
+  if (tokens.length < 6) return new Set();
+  return new Set(tokens.slice(0, -1).map((token, index) => `${token} ${tokens[index + 1]}`));
+}
+
+/**
+ * Exact duplicates are rejected separately. This catches the common failure
+ * mode where only one or two words change while the whole caption remains the
+ * same. The denominator is the shorter text so a copied caption with one added
+ * sentence is still considered near-duplicate.
+ */
+export function isNearDuplicateEditorialCopy(left: string, right: string, threshold = 0.72): boolean {
+  const leftPairs = editorialBigrams(left);
+  const rightPairs = editorialBigrams(right);
+  if (leftPairs.size < 5 || rightPairs.size < 5) return false;
+  let shared = 0;
+  for (const pair of leftPairs) if (rightPairs.has(pair)) shared += 1;
+  return shared / Math.min(leftPairs.size, rightPairs.size) >= threshold;
+}
+
 export function editorialHashtagPool(templateId: CampaignTemplateId, audienceHint = ""): string[] {
   const local: string[] = [];
   if (/\bgen[eè]ve\b/iu.test(audienceHint)) local.push("Geneve");
@@ -130,9 +165,11 @@ export function socialEditorialPrompt(templateIds: readonly CampaignTemplateId[]
   return [
     guided ? "Pour chaque post, choisis UN primary_template_id parmi les thèmes sélectionnés et fournis channel_variants avec exactement une version originale par réseau demandé. Les formats d'un même réseau partageront cette version."
       : "Adapte chaque publication à son réseau et varie réellement les accroches et les textes entre les posts. Conserve le schéma de calendrier demandé.",
-    "Rédige en français suisse clair : accroche concrète, bénéfice utile lié à la fonctionnalité, termes métier recherchables naturellement intégrés, un seul appel à l'action. Varie angles et formulations entre les posts ; ne copie pas la même légende sur Instagram et Facebook.",
+    "Rédige en français suisse clair : accroche concrète, bénéfice utile lié à la fonctionnalité, termes métier recherchables naturellement intégrés, un seul appel à l'action.",
+    `VARIATION OBLIGATOIRE : fais tourner les structures suivantes dans l'ordre sans reprendre deux fois la même avant d'avoir parcouru la liste : ${SOCIAL_EDITORIAL_VARIETY_PATTERNS.join(" ; ")}. Pour une campagne de 4 posts ou plus, utilise au moins 4 structures différentes.`,
+    "Deux posts ne doivent jamais avoir le même headline, la même légende, la même première formulation ou une légende seulement paraphrasée. Change réellement le rythme, la longueur, le vocabulaire d'ouverture et l'angle. Instagram et Facebook d'un même post doivent aussi avoir des textes nettement différents.",
     ...(guided ? ["Si le nombre de posts permet de couvrir tous les thèmes sélectionnés, utilise chacun au moins une fois comme primary_template_id. Sinon, privilégie des thèmes principaux différents et une diversité d'angles."] : []),
-    "Instagram : accroche visuelle, texte chaleureux aéré de 2 à 4 phrases, body maximum 1400 caractères, headline maximum 120 caractères, 3 à 5 hashtags pertinents maximum. Une adresse en légende est textuelle : ne dis jamais lien cliquable ou lien en bio.",
+    "Instagram : alterne volontairement les formats, d'une punchline autonome en 1 phrase à un texte développé de 2 à 4 phrases ; body maximum 1400 caractères, headline maximum 120 caractères, 3 à 5 hashtags pertinents maximum. Une adresse en légende est textuelle : ne dis jamais lien cliquable ou lien en bio.",
     "Facebook : bénéfice immédiatement lisible, texte plus direct et court (1 à 3 phrases), body maximum 700 caractères, headline maximum 120 caractères, 0 à 2 hashtags utiles. Autres réseaux : body maximum 1400 caractères. LinkedIn : angle professionnel ; Actualités TOK : information claire sans hashtags.",
     guided ? "N'insère aucune URL dans headline, body ou visual_prompt. Le serveur ajoutera l'unique URL vérifiée en call_to_action. N'ajoute aucun autre appel à cliquer, réserver, partager ou commenter dans le corps."
       : "Choisis uniquement la destination vérifiée du thème concerné dans le catalogue ci-dessous et insère-la une seule fois dans call_to_action. Si le sujet n'est pas identifié ou implique une connexion, utilise https://www.thetok.ch/. Jamais de lien /auth, de dashboard ou de partenaire inventé. Aucun autre lien ou appel à l'action dans le corps.",

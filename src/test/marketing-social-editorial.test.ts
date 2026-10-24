@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildGuidedPlanSchema, buildPlanSchema, MarketingPlanError, toBundlePayload, validateGuidedPlan } from "../../supabase/functions/_shared/marketing-ai-plan";
 import { applyCampaignOptions, parseCampaignOptions } from "../../supabase/functions/_shared/marketing-campaign-options";
-import { cleanGeneratedPublicText, editorialHashtagPool, normalizeEditorialHashtags, normalizeGeneratedEditorial, SOCIAL_EDITORIAL_CATALOG, socialEditorialPrompt, TOK_PUBLIC_HOME } from "../../supabase/functions/_shared/marketing-social-editorial";
+import { cleanGeneratedPublicText, editorialHashtagPool, isNearDuplicateEditorialCopy, normalizeEditorialHashtags, normalizeGeneratedEditorial, SOCIAL_EDITORIAL_CATALOG, socialEditorialPrompt, TOK_PUBLIC_HOME } from "../../supabase/functions/_shared/marketing-social-editorial";
 import { composeMetaCaption } from "../../supabase/functions/_shared/meta-publishing";
 
 const channels = ["instagram", "facebook"];
@@ -13,7 +13,9 @@ function rawPlan() {
     items: Array.from({ length: 2 }, (_, index) => ({ title: `Un repas préparé ${index}`, primary_template_id: index === 0 ? "zero_attente" : "studio_marketing",
       scheduled_at: "2027-02-01T08:00:00Z", audience_name: "Clients", targeting: { audience_kind: "client" }, visual_prompt: `Chef TOK, scène ${index}`,
       channel_variants: channels.map((channel) => ({ channel, content: { subject: null, headline: `${channel} accroche ${index}`,
-        body: channel === "instagram" ? `Envie de préparer votre sortie ${index} ? Retrouvez TOK @tok_suisse.` : `Préparez votre prochaine visite ${index} avec TOK.`,
+        body: channel === "instagram"
+          ? index === 0 ? "Envie de préparer votre sortie ? Retrouvez TOK @tok_suisse." : "Une communication claire donne une autre voix au restaurant. Le Studio TOK aide à préparer ses prochains contenus @tok_suisse."
+          : index === 0 ? "Préparez votre prochaine visite avec TOK." : "Présentez le savoir-faire du restaurant avec un contenu adapté à Facebook.",
         call_to_action: "Cliquez https://evil.example/auth", hashtags: ["#ZeroAttente", "#Restaurant", "#viral", "#Geneve"] } })),
     })),
   };
@@ -61,6 +63,44 @@ describe("network-specific generated editorial", () => {
     acrossPosts.items[1].channel_variants![0].content.body = acrossPosts.items[0].channel_variants![0].content.body;
     expect(() => applyCampaignOptions(acrossPosts, options, channels, "2027-02-01T08:00:00Z", "2027-02-03T08:00:00Z")).toThrow("duplicate_editorial_copy");
   });
+  it("rejects near-duplicate captions and repeated headlines before any visual generation", () => {
+    expect(isNearDuplicateEditorialCopy(
+      "Envie de préparer votre sortie ? Retrouvez TOK pour organiser votre prochaine visite au restaurant.",
+      "Envie de préparer votre sortie ? Retrouvez TOK pour organiser autrement votre prochaine visite au restaurant.",
+    )).toBe(true);
+    const near = validated();
+    near.items[1].channel_variants![0].content.body = "Envie de préparer votre sortie ? Retrouvez TOK @tok_suisse, avec une idée de plus pour votre prochaine visite.";
+    expect(() => applyCampaignOptions(near, options, channels, "2027-02-01T08:00:00Z", "2027-02-03T08:00:00Z")).toThrow("near_duplicate_editorial_copy");
+
+    const repeatedHeadline = validated();
+    repeatedHeadline.items[1].channel_variants![0].content.headline = repeatedHeadline.items[0].channel_variants![0].content.headline;
+    expect(() => applyCampaignOptions(repeatedHeadline, options, channels, "2027-02-01T08:00:00Z", "2027-02-03T08:00:00Z")).toThrow("duplicate_editorial_headline");
+  });
+  it("also rejects copy already present in recent Instagram history", () => {
+    const current = validated();
+    const recent = [{ channel: "instagram", headline: "Ancienne accroche", body: "Envie de préparer votre sortie ? Retrouvez TOK." }];
+    expect(() => applyCampaignOptions(current, options, channels, "2027-02-01T08:00:00Z", "2027-02-03T08:00:00Z", "Genève", recent)).toThrow("duplicate_editorial_copy");
+  });
+  it("assigns a different server-owned visual family to consecutive posts and records it in the bundle", () => {
+    const plan = expanded();
+    expect(plan.items[0].editorial?.visual_family).toBeTruthy();
+    expect(plan.items[3].editorial?.visual_family).toBeTruthy();
+    expect(plan.items[0].editorial?.visual_family).not.toBe(plan.items[3].editorial?.visual_family);
+    expect(plan.items[0].visual_prompt).toContain("FAMILLE VISUELLE SERVEUR 1");
+    expect(plan.items[3].visual_prompt).toContain("FAMILLE VISUELLE SERVEUR 2");
+    expect(plan.items[0].visual_prompt).toContain(JSON.stringify("Un repas préparé 0"));
+    const bundle = toBundlePayload(plan, new Map()) as { items: Array<{ content: { editorial?: Record<string, string> } }> };
+    expect(bundle.items[0].content.editorial?.variation_id).toContain("guided:1:zero_attente:");
+    expect(bundle.items[3].content.editorial?.variation_id).toContain("guided:2:studio_marketing:");
+  });
+  it("explicitly asks the provider to rotate copy structures instead of paraphrasing one template", () => {
+    const prompt = socialEditorialPrompt(options.templateIds, "Genève").join("\n");
+    expect(prompt).toContain("VARIATION OBLIGATOIRE");
+    expect(prompt).toContain("punchline très courte en une phrase");
+    expect(prompt).toContain("même headline");
+    expect(prompt).toContain("seulement paraphrasée");
+  });
+
   it("requires coverage of all selected topics when there are enough posts", () => {
     const raw = rawPlan(); raw.items[1].primary_template_id = "zero_attente";
     expect(() => validateGuidedPlan(raw, channels, options.templateIds, 2)).toThrow("missing_selected_template");

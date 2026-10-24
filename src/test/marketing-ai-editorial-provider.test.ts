@@ -65,6 +65,19 @@ describe("marketing provider editorial integration", () => {
     source.items[0].content.call_to_action = "Découvrir https://www.thetok.ch/anti-gaspi?redirect=https://evil.test";
     expect((await generateMarketingPlan({ ...context, objective: "Inviter à découvrir", allowedChannels: ["instagram"], itemCount: 1 })).plan.items[0].content.call_to_action).toBe("À consulter : https://www.thetok.ch/");
   });
+  it("includes bounded recent social copy in the provider brief so old captions are not paraphrased", async () => {
+    const source = plan();
+    const base = source.items[0];
+    provider.mockResolvedValue({ campaign: source.campaign, items: [{ ...base, primary_template_id: "studio_marketing", channel_variants: [
+      { channel: "instagram", content: { ...base.content, body: "Une création différente pour le prochain post." } },
+    ] }] });
+    await generateMarketingPlan({ ...context, itemCount: 1, allowedChannels: ["instagram"], campaignOptions: {
+      templateIds: ["studio_marketing"], postCount: 1, cadence: "daily", formatsByChannel: { instagram: ["1:1"] },
+    }, recentSocialEditorial: [{ channel: "instagram", headline: "Ancien titre", body: "Ancienne légende déjà publiée." }] });
+    const system = provider.mock.calls[0][0].input[0].content;
+    expect(system).toContain("HISTORIQUE RÉCENT À NE PAS RÉUTILISER NI PARAPHRASER");
+    expect(system).toContain("Ancienne légende déjà publiée");
+  });
   it("requests one guided structured response with all channel variants and expands only formats", async () => {
     const source = plan();
     const base = source.items[0];

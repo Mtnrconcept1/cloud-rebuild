@@ -1,8 +1,8 @@
 import { HttpError } from "./auth.ts";
 import { applyMailingOptions } from "./marketing-mailing-plan.ts";
 import { mailingAudienceLabel, type MailingOptions } from "./marketing-mailing.ts";
-import { applyCampaignOptions, CAMPAIGN_TEMPLATES, type CampaignOptions } from "./marketing-campaign-options.ts";
-import { normalizeLegacySocialPlan, socialEditorialPrompt } from "./marketing-social-editorial.ts";
+import { applyCampaignOptions, CAMPAIGN_TEMPLATES, type CampaignOptions, type RecentSocialEditorial } from "./marketing-campaign-options.ts";
+import { cleanGeneratedPublicText, normalizeLegacySocialPlan, socialEditorialPrompt } from "./marketing-social-editorial.ts";
 import {
   createOpenAIResponse,
   estimateOpenAITextCostChf,
@@ -45,6 +45,7 @@ export type MarketingBriefContext = {
   campaignOptions?: CampaignOptions;
   mailingOptions?: MailingOptions;
   formats?: Partial<Record<string, MarketingPostFormat>>;
+  recentSocialEditorial?: readonly RecentSocialEditorial[];
 };
 
 function buildSystemPrompt(context: MarketingBriefContext) {
@@ -85,6 +86,10 @@ function buildSystemPrompt(context: MarketingBriefContext) {
       "Chaque élément correspond à un post éditorial avec ses variantes par réseau. Ne duplique pas les éléments pour les formats : le serveur les décline.",
       "Renseigne obligatoirement visual_prompt pour chaque post, partagé par les réseaux ; n'y inscris ni URL ni mention. La cadence et les formats seront fixés par le serveur.",
       ...socialEditorialPrompt(context.campaignOptions.templateIds, context.audienceHint),
+      ...(context.recentSocialEditorial?.length ? [
+        "HISTORIQUE RÉCENT À NE PAS RÉUTILISER NI PARAPHRASER : les lignes suivantes sont des copies déjà générées. Change l'angle, l'ouverture et le vocabulaire.",
+        ...context.recentSocialEditorial.slice(0, 24).map((entry, index) => `${index + 1}. [${entry.channel}] ${cleanGeneratedPublicText(entry.headline || "", 140)} — ${cleanGeneratedPublicText(entry.body || "", 260)}`),
+      ] : []),
     ] : context.mailingOptions ? CAMPAIGN_TEMPLATES.map((template) => `${template.label} : ${template.guidance}`)
       : socialEditorialPrompt(CAMPAIGN_TEMPLATES.map((template) => template.id), context.audienceHint, false)),
     `Formats visuels demandés par canal : ${JSON.stringify(context.campaignOptions?.formatsByChannel || context.formats || {})}. Compose chaque visuel pour son format sans placer de texte important près des bords.`,
@@ -125,7 +130,7 @@ export async function generateMarketingPlan(context: MarketingBriefContext) {
       : validatePlan(output, context.allowedChannels);
     if (plan.items.length !== context.itemCount) throw new MarketingPlanError("item_count_mismatch");
     if (context.campaignOptions) {
-      plan = applyCampaignOptions(plan, context.campaignOptions, context.allowedChannels, context.startsAt, context.endsAt, context.audienceHint);
+      plan = applyCampaignOptions(plan, context.campaignOptions, context.allowedChannels, context.startsAt, context.endsAt, context.audienceHint, context.recentSocialEditorial);
     } else if (context.mailingOptions) {
       plan = applyMailingOptions(plan, context.mailingOptions, context.startsAt, context.endsAt);
     } else {
