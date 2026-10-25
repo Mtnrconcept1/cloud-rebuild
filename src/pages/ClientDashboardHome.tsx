@@ -413,7 +413,7 @@ function LiveClientDashboardHome() {
     <CustomerDashboardLayout>
       <div className="tok-customer-page tok-customer-home space-y-6">
         <CustomerPageHero
-          title={<>Bonjour{firstName ? ` ${firstName}` : ""},</>}
+          title={<>Bonjour{firstName ? <> <em className="tok-title-accent">{firstName}</em></> : ""},</>}
           subtitle="Votre prochaine belle table vous attend."
           description="Vos prochaines actions, vos avantages et toute votre activité en un seul endroit."
           actions={

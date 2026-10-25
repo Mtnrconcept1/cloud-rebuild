@@ -207,7 +207,7 @@ export default function WorkspaceChooser() {
             <Badge className="mb-3 rounded-full bg-orange-500 text-white hover:bg-orange-500">
               <Sparkles className="mr-1.5 h-3.5 w-3.5" />Session TOK sécurisée
             </Badge>
-            <h1 className="font-serif text-3xl font-black tracking-tight sm:text-4xl">Choisissez votre espace</h1>
+            <h1 className="font-display text-3xl font-black tracking-tight sm:text-4xl">Choisissez votre espace</h1>
             <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
               {canAccessDemo
                 ? `Connecté en tant que ${user?.email || "utilisateur TOK"}. Les environnements de travail et de présentation restent clairement séparés.`

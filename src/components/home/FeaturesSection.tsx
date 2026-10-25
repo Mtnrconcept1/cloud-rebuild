@@ -73,7 +73,7 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
               <Sparkles className="h-4 w-4" />
               Pourquoi TOK
             </p>
-            <h2 className="font-display text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.02] tracking-[-0.035em] dark:text-white">Trois raisons de choisir TOK</h2>
+            <h2 className="font-display text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.02] tracking-[-0.035em] dark:text-white">Trois raisons de choisir <em className="tok-title-accent">TOK</em></h2>
           </div>
           <p className="max-w-md text-[0.9375rem] leading-7 text-muted-foreground dark:text-slate-300 md:text-right">
             Une lecture simple : moins d&apos;attente, plus d&apos;offres locales, plus d&apos;impact solidaire.

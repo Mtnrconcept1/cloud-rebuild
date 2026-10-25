@@ -141,7 +141,7 @@ html body:has([data-golden-tok-chefs-table]) [data-golden-tok-chefs-table] .gold
   padding-right: .16em !important;
   overflow: visible !important;
   color: #160f09 !important;
-  font: 600 clamp(5.2rem, 7.25vw, 7.65rem)/.86 Georgia, 'Times New Roman', serif !important;
+  font: 600 clamp(5.2rem, 7.25vw, 7.65rem)/.86 "Fraunces", "Playfair Display", Georgia, serif !important;
   letter-spacing: -.06em !important;
   text-wrap: nowrap !important;
   text-shadow: 0 1px 0 rgba(255,255,255,.37) !important;
@@ -232,7 +232,7 @@ html body:has([data-golden-tok-chefs-table]) [data-golden-tok-chefs-table] .gold
 html body:has([data-golden-tok-chefs-table]) [data-golden-tok-chefs-table] .golden-tok-hero-quote p {
   margin: 0 0 10px !important;
   color: #48321e !important;
-  font: italic clamp(1.1rem, 1.42vw, 1.45rem)/1.28 Georgia, 'Times New Roman', serif !important;
+  font: italic clamp(1.1rem, 1.42vw, 1.45rem)/1.28 "Fraunces", "Playfair Display", Georgia, serif !important;
   letter-spacing: normal !important;
   text-transform: none !important;
   text-shadow: 0 1px 0 rgba(255,250,237,.92), 0 0 10px rgba(255,251,241,.6);
@@ -279,7 +279,7 @@ html body:has([data-golden-tok-chefs-table]) [data-golden-tok-chefs-table] .gold
   max-width: 245px !important;
   margin: 0 !important;
   color: #d0a159 !important;
-  font: italic clamp(1.1rem, 1.8vw, 1.7rem)/1.35 Georgia, 'Times New Roman', serif !important;
+  font: italic clamp(1.1rem, 1.8vw, 1.7rem)/1.35 "Fraunces", "Playfair Display", Georgia, serif !important;
   transform: rotate(-7deg);
   text-align: center;
   text-shadow: 0 2px 12px rgba(0,0,0,.7);
@@ -339,7 +339,7 @@ html body:has([data-golden-tok-chefs-table]) [data-golden-tok-chefs-table] .gold
 }
 html body:has([data-golden-tok-chefs-table]) [data-golden-tok-chefs-table] .golden-tok-benefit-title {
   color: #24170d !important;
-  font: 600 clamp(.86rem, 1.12vw, 1.13rem)/1.18 Georgia, 'Times New Roman', serif !important;
+  font: 600 clamp(.86rem, 1.12vw, 1.13rem)/1.18 "Fraunces", "Playfair Display", Georgia, serif !important;
   letter-spacing: -.02em !important;
 }
 html body:has([data-golden-tok-chefs-table]) [data-golden-tok-chefs-table] .golden-tok-benefit-description {

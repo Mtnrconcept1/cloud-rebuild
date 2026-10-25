@@ -26,7 +26,8 @@ export default {
         sans: ["DM Sans", "system-ui", "sans-serif"],
         // Fraunces porte les titres éditoriaux ; Playfair Display reste en repli.
         display: ["Fraunces", "Playfair Display", "Georgia", "serif"],
-        dashboard: ["Playball", "Playfair Display", "serif"],
+        // Titres de pages des espaces : même face éditoriale que le site public.
+        dashboard: ["Fraunces", "Playfair Display", "Georgia", "serif"],
       },
       colors: {
         // Les aplats et textes orange portent le même orange de marque.

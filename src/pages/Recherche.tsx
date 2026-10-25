@@ -544,7 +544,7 @@ export default function Recherche() {
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-2">
-                <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">À chaque envie, une adresse.</h1>
+                <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">À chaque envie, <em className="tok-title-accent">une adresse.</em></h1>
 
               </div>
 

@@ -1836,7 +1836,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                 ) : null}
               </div>
               <div>
-                <h2 className="font-serif text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
+                <h2 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
                   Studio Photo & Marketing IA
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">

@@ -1,9 +1,3 @@
-@font-face {
-  font-family: "Playball";
-  src: url("/playball-font/Playball-q6o1.ttf") format("truetype");
-  font-display: swap;
-}
-
 .commercial-contract-print-page {
   width: 210mm;
   height: 297mm;
@@ -192,10 +186,22 @@
     overflow-wrap: break-word;
     text-wrap: balance;
   }
-  /* Editorial display face: optical sizing on, slightly tightened tracking. */
+  /* Titres : même coupe que le titre de l'accueil (Fraunces demi-gras, contraste « affiche »),
+     quelle que soit la graisse demandée localement. */
   .font-display {
-    font-optical-sizing: auto;
+    font-variation-settings: "opsz" 48, "wght" 600;
     letter-spacing: -0.022em;
+  }
+  /* Accent des titres, comme « bonne adresse. » : écriture pinceau orange de marque.
+     Kaushan Script n'existe qu'en 400 : on bloque le faux gras et le faux italique. */
+  .tok-title-accent {
+    color: hsl(var(--primary));
+    font-family: "Kaushan Script", "Fraunces", Georgia, cursive;
+    font-style: normal;
+    font-weight: 400;
+    font-variation-settings: normal;
+    font-synthesis: none;
+    letter-spacing: 0;
   }
   /* Keep ordinary labels, words and amounts intact across dashboard layouts.
      Explicit break-all utilities remain available for technical identifiers/URLs. */

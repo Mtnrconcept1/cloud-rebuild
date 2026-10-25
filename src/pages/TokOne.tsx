@@ -361,7 +361,7 @@ function SectionHeader({
           {eyebrow}
         </p>
       ) : null}
-      <h2 className="font-serif text-3xl font-semibold tracking-normal text-foreground md:text-4xl dark:text-white">
+      <h2 className="font-display text-3xl font-semibold tracking-normal text-foreground md:text-4xl dark:text-white">
         {title}
       </h2>
       {children ? (
@@ -1014,7 +1014,7 @@ export default function TokOne() {
               <Sparkles className="h-4 w-4" aria-hidden="true" />
               Le statut premium des habitués TOK
             </p>
-            <h1 className="font-serif text-5xl font-semibold leading-[0.96] tracking-normal text-slate-950 sm:text-6xl lg:text-7xl dark:text-white">
+            <h1 className="font-display text-5xl font-semibold leading-[0.96] tracking-normal text-slate-950 sm:text-6xl lg:text-7xl dark:text-white">
               Tok One
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-700 dark:text-white/70">
@@ -1373,7 +1373,7 @@ export default function TokOne() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 dark:text-orange-300">
                 Questions fréquentes
               </p>
-              <h2 className="mt-3 font-serif text-3xl font-semibold tracking-normal text-foreground dark:text-white">
+              <h2 className="mt-3 font-display text-3xl font-semibold tracking-normal text-foreground dark:text-white">
                 Les points importants avant d'activer Tok One
               </h2>
               <p className="mt-4 text-base leading-7 text-muted-foreground dark:text-white/70">
