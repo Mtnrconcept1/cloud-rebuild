@@ -117,7 +117,7 @@
   margin: 0;
   color: var(--tok-header-ink);
   font-family: "Fraunces", "Playfair Display", Georgia, serif;
-  font-optical-sizing: auto;
+  font-variation-settings: "opsz" 48, "wght" 600;
   font-size: clamp(1.5rem, 2.9vw, 2.6rem);
   font-weight: 600;
   line-height: 1.04;

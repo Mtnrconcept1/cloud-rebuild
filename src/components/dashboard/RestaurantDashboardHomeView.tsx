@@ -856,7 +856,7 @@ export default function RestaurantDashboardHomeView({
         <div className="order-1 hidden md:block">
           <DashboardPageHero
             badge={restaurantName}
-            title={<>Bonjour {userPresentation.firstName},</>}
+            title={<>Bonjour <em className="tok-title-accent">{userPresentation.firstName}</em>,</>}
             description="Votre restaurant, en un coup d’œil."
             className="tok-overview-hero"
             actions={<span className="tok-overview-date"><CalendarDays className="h-4 w-4" aria-hidden="true" />{new Intl.DateTimeFormat("fr-CH", { day: "numeric", month: "long", year: "numeric" }).format(new Date())}</span>}

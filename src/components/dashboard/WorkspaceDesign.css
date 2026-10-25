@@ -50,13 +50,13 @@
   letter-spacing: -.045em;
 }
 
-.tok-hospitality-workspace h1 {
+.tok-hospitality-workspace :is(h1, h2) {
   font-family: var(--workspace-dashboard-title);
-  font-optical-sizing: auto;
+  font-variation-settings: "opsz" 48, "wght" 600;
   letter-spacing: -.035em;
 }
 
-.tok-hospitality-workspace :is(h2, h3) {
+.tok-hospitality-workspace h3 {
   font-family: var(--workspace-sans);
   font-weight: 720;
   letter-spacing: -.025em;

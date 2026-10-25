@@ -186,10 +186,18 @@
     overflow-wrap: break-word;
     text-wrap: balance;
   }
-  /* Editorial display face: optical sizing on, slightly tightened tracking. */
+  /* Titres : même coupe que le titre de l'accueil (Fraunces demi-gras, contraste « affiche »),
+     quelle que soit la graisse demandée localement. */
   .font-display {
-    font-optical-sizing: auto;
+    font-variation-settings: "opsz" 48, "wght" 600;
     letter-spacing: -0.022em;
+  }
+  /* Accent des titres, comme « bonne adresse. » : italique orange de marque. */
+  .tok-title-accent {
+    color: hsl(var(--primary));
+    font-family: "Fraunces", "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 48, "wght" 500;
   }
   /* Keep ordinary labels, words and amounts intact across dashboard layouts.
      Explicit break-all utilities remain available for technical identifiers/URLs. */
