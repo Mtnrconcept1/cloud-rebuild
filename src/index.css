@@ -649,3 +649,9 @@
 .dark div.tok-utility-bar {
   background-color: hsl(24 12% 6%);
 }
+
+@media (max-width: 559px) {
+  .tok-page-service [class~="min-[420px]:grid-cols-2"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
