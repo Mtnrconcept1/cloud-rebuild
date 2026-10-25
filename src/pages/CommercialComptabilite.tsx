@@ -367,7 +367,7 @@ export default function CommercialComptabilite() {
                 <Badge className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-100">
                   Lecture seule
                 </Badge>
-                <h1 className="mt-4 font-serif text-4xl font-black tracking-tight md:text-5xl">
+                <h1 className="mt-4 font-display text-4xl font-black tracking-tight md:text-5xl">
                   Comptabilité commerciale
                 </h1>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground md:text-base">

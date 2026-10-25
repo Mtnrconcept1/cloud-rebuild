@@ -92,7 +92,7 @@ html body [data-golden-tok-chefs-table] .golden-tok-heading > div:first-child > 
 html body [data-golden-tok-chefs-table] .golden-tok-heading h1 {
   max-width: 8.5ch !important;
   margin: 0 !important;
-  font-family: Georgia, 'Times New Roman', serif !important;
+  font-family: "Fraunces", "Playfair Display", Georgia, serif !important;
   font-size: clamp(3.35rem, 5.4vw, 5.55rem) !important;
   font-weight: 600 !important;
   line-height: .91 !important;

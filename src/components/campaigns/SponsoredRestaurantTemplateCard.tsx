@@ -244,7 +244,7 @@ export function SponsoredRestaurantTemplateCard({
                 style={{
                   ...getTextInlineStyle(normalized.text.restaurant),
                   ...(normalized.text.restaurant.font === "display"
-                    ? { fontFamily: "Georgia, 'Times New Roman', serif" }
+                    ? { fontFamily: "Fraunces, 'Playfair Display', Georgia, serif" }
                     : {}),
                 }}
               >

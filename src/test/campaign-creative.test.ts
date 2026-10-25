@@ -186,7 +186,7 @@ describe("campaign creative studio", () => {
 
     expect(templateCard).toContain("[overflow-wrap:anywhere] [text-wrap:balance]");
     expect(templateCard).toContain("text-[clamp(1.65rem,4.9cqw,3.2rem)]");
-    expect(templateCard).toContain("fontFamily: \"Georgia, 'Times New Roman', serif\"");
+    expect(templateCard).toContain("fontFamily: \"Fraunces, 'Playfair Display', Georgia, serif\"");
     expect(templateCard).not.toContain("[@container_sponsored-banner_(min-width:96rem)]:text-[4.8rem]");
     expect(templateCard).not.toContain("mt-1 line-clamp-2 overflow-visible pb-2 leading-[1.04]");
     expect(templateCard).toContain("data-sponsored-banner-cta");

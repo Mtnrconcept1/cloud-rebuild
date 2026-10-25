@@ -129,7 +129,7 @@ body:has([data-golden-tok-chefs-table]) footer {
 
 [data-golden-tok-chefs-table] .golden-tok-heading h1 {
   color: #fff5dc !important;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Fraunces", "Playfair Display", Georgia, serif;
   font-weight: 600;
   letter-spacing: -0.045em;
   text-wrap: balance;
@@ -243,7 +243,7 @@ body:has([data-golden-tok-chefs-table]) footer {
 }
 
 [data-golden-tok-chefs-table] .golden-tok-content article h3 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Fraunces", "Playfair Display", Georgia, serif;
   font-size: 1.36rem !important;
   font-weight: 600 !important;
   color: #fff3d7 !important;
@@ -330,7 +330,7 @@ body:has([data-golden-tok-chefs-table]) footer {
 
 [data-golden-tok-chefs-table] .golden-tok-content [class~="border-dashed"] h2 {
   color: #fff3d7 !important;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Fraunces", "Playfair Display", Georgia, serif;
 }
 
 [data-golden-tok-chefs-table] .golden-tok-content [class~="border-dashed"] p {

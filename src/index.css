@@ -1,9 +1,3 @@
-@font-face {
-  font-family: "Playball";
-  src: url("/playball-font/Playball-q6o1.ttf") format("truetype");
-  font-display: swap;
-}
-
 .commercial-contract-print-page {
   width: 210mm;
   height: 297mm;

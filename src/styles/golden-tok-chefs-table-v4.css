@@ -99,7 +99,7 @@ html body [data-golden-tok-chefs-table] .golden-tok-heading h1::after {
   content: "La Tok\A d’Or";
   white-space: pre;
   display: block;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Fraunces", "Playfair Display", Georgia, serif;
   font-size: clamp(3.4rem, 6vw, 6.3rem);
   font-weight: 600;
   line-height: 0.88;

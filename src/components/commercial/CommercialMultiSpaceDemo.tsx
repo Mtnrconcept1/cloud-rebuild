@@ -311,7 +311,7 @@ export default function CommercialMultiSpaceDemo() {
               <RealtimeConnectionBadge status={realtimeStatus} />
               <Badge variant="outline" className="rounded-full border-violet-300 text-violet-700"><TestTube2 className="mr-1.5 h-3.5 w-3.5" />Stripe Test uniquement</Badge>
             </div>
-            <h1 className="mt-2 break-words font-serif text-2xl font-black tracking-tight sm:text-3xl">Contrôle à distance des quatre espaces</h1>
+            <h1 className="mt-2 break-words font-display text-2xl font-black tracking-tight sm:text-3xl">Contrôle à distance des quatre espaces</h1>
             <p className="mt-1 max-w-3xl text-sm text-muted-foreground">La console pilote simultanément les véritables interfaces Client, Restaurateur, Commercial et Livreur. Tous les outils actifs dans l’Admin restent disponibles ; seul le paiement utilise Stripe Test.</p>
           </div>
           <Button type="button" variant="outline" className="h-10 shrink-0 rounded-xl" onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
