@@ -192,12 +192,16 @@
     font-variation-settings: "opsz" 48, "wght" 600;
     letter-spacing: -0.022em;
   }
-  /* Accent des titres, comme « bonne adresse. » : italique orange de marque. */
+  /* Accent des titres, comme « bonne adresse. » : écriture pinceau orange de marque.
+     Kaushan Script n'existe qu'en 400 : on bloque le faux gras et le faux italique. */
   .tok-title-accent {
     color: hsl(var(--primary));
-    font-family: "Fraunces", "Playfair Display", Georgia, serif;
-    font-style: italic;
-    font-variation-settings: "opsz" 48, "wght" 500;
+    font-family: "Kaushan Script", "Fraunces", Georgia, cursive;
+    font-style: normal;
+    font-weight: 400;
+    font-variation-settings: normal;
+    font-synthesis: none;
+    letter-spacing: 0;
   }
   /* Keep ordinary labels, words and amounts intact across dashboard layouts.
      Explicit break-all utilities remain available for technical identifiers/URLs. */
