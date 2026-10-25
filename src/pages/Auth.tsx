@@ -2853,15 +2853,11 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                                     ).toLocaleString("fr-CH")}
                                     %
                                   </strong>{" "}
-                                  / commande marketplace
+                                  / module de commande
                                 </span>
                                 <span>
                                   Canaux propres, annulation, no-show et
                                   remboursement : <strong>CHF 0</strong>
-                                </span>
-                                <span>
-                                  Plafond réservation :{" "}
-                                  <strong>7% du CA table</strong>
                                 </span>
                                 <span>
                                   Au minimum 90% au restaurant + 100% des
