@@ -3,6 +3,7 @@ import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { createClient } from "@supabase/supabase-js";
+import { isPublishableVenueName } from "./lib/stoppin-venue-dedupe.mjs";
 
 const ROOT = process.cwd();
 const DIST_DIR = path.resolve(ROOT, "dist");
@@ -118,7 +119,8 @@ async function collectStoppinVenues() {
       const tokSlug = slugify(venue?.tok_slug);
       const name = String(venue?.name || "").trim();
       const cityName = String(venue?.city_name || "").trim();
-      if (!venue?.id || !tokSlug || !name || !cityName || latitude === null || longitude === null) continue;
+      if (!venue?.id || !tokSlug || !isPublishableVenueName(name) || !cityName
+        || latitude === null || longitude === null) continue;
       venues.push({ ...venue, tok_slug: tokSlug, name, city_name: cityName, latitude, longitude });
     }
     if (batch.length < limit || payload?.next_offset == null) break;

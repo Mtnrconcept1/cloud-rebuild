@@ -24,6 +24,17 @@ export function normalizedVenueName(venue) {
   return slugify(venue?.name).replace(/(?:-(?:geneva|geneve|ch|fr))+$/, "");
 }
 
+const PLACEHOLDER_VENUE_NAMES = new Set([
+  "inconnu", "unknown", "unnamed", "sans-nom", "nom-inconnu",
+  "lieu-inconnu", "non-renseigne", "non-identifie", "n-a", "tbd",
+]);
+
+export function isPublishableVenueName(name) {
+  if (typeof name !== "string") return false;
+  const normalized = slugify(name.trim());
+  return Boolean(normalized) && !PLACEHOLDER_VENUE_NAMES.has(normalized);
+}
+
 function distanceMetres(a, b) {
   const radians = Math.PI / 180;
   const dLat = (b.latitude - a.latitude) * radians;
