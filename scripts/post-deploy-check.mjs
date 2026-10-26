@@ -134,6 +134,11 @@ const DEFAULT_TARGETS = [
     expectedStatus: 404,
     expect: ["Page introuvable", "noindex,nofollow,noarchive"],
   },
+  {
+    url: "https://www.thetok.ch/restaurants-pres/inconnu-vernier-fr",
+    expectedStatus: 404,
+    expect: ["Page introuvable", "noindex,nofollow,noarchive"],
+  },
 ];
 
 async function fetchText(target) {

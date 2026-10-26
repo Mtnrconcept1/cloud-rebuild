@@ -5,7 +5,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { test } from "node:test";
 
-import { coordinate, dedupeVenuesByPlace, normalizedVenueName } from "./lib/stoppin-venue-dedupe.mjs";
+import { coordinate, dedupeVenuesByPlace, isPublishableVenueName, normalizedVenueName } from "./lib/stoppin-venue-dedupe.mjs";
 import { applyVenueRedirects, flattenAliases, writeAliasReport } from "./apply-stoppin-venue-redirects.mjs";
 
 const venue = (tok_slug, latitude = 46.2, longitude = 6.14, extra = {}) => ({
@@ -66,6 +66,12 @@ test("keeps distant same-name places and colocated differently named places", ()
 test("normalizes accents and trailing geographic suffixes, not internal words", () => {
   assert.equal(normalizedVenueName({ name: "Café Genève CH" }), "cafe");
   assert.equal(normalizedVenueName({ name: "Café Genève Nord" }), "cafe-geneve-nord");
+});
+test("rejects anonymous place labels without excluding a real venue name", () => {
+  for (const name of ["Inconnu", "  inconnu  ", "Unknown", "Sans nom", "Non renseigné", "N/A", "???", ""])
+    assert.equal(isPublishableVenueName(name), false, name);
+  for (const name of ["L'Inconnu", "Café Inconnu", "Unknown Bar", "Le Sans Nom"])
+    assert.equal(isPublishableVenueName(name), true, name);
 });
 test("chooses the shortest usable slug deterministically without mutating input", () => {
   const input = [venue("alhambra-geneva-ch"), venue("alhambra-geneve"), venue("alhambra")];

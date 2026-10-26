@@ -16,6 +16,7 @@ describe("programmatic restaurant SEO with Stoppin", () => {
     path.resolve(root, "scripts/prerender-stoppin-restaurants-bounded.mjs"),
     "utf8",
   );
+  const postDeploy = readFileSync(path.resolve(root, "scripts/post-deploy-check.mjs"), "utf8");
   const directoryHardening = readFileSync(
     path.resolve(root, "scripts/harden-directory-restaurant-seo.mjs"),
     "utf8",
@@ -53,6 +54,9 @@ describe("programmatic restaurant SEO with Stoppin", () => {
   });
 
   it("still requires real nearby inventory instead of generating doorway keyword combinations", () => {
+    expect(stoppinPrerender).toContain("!isPublishableVenueName(name)");
+    expect(postDeploy).toContain('url: "https://www.thetok.ch/restaurants-pres/inconnu-vernier-fr"');
+    expect(postDeploy).toContain("expectedStatus: 404");
     expect(stoppinPrerender).toContain("MIN_NEARBY_RESTAURANTS");
     expect(stoppinPrerender).toContain("SEO_STOPPIN_MIN_NEARBY_RESTAURANTS || 3");
     expect(stoppinPrerender).toContain("distanceKm(");
