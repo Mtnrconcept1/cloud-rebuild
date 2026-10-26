@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7844f51e6876bd11e584c8d3f3dbb25d465b81a27defa8ac3ebc7a016bd53156`
+- Empreinte SHA-256 des sources indexées : `35f677a6b5b3da26172793f0aa549c9a260f200e4a09d4266ca87d337266d0a2`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1534,7 +1534,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /carte | 2 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
 | /cgu | 22 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
 | /chef2.png | 3 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
-| /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:672](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L672) |
+| /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:689](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L689) |
 | /chefs-table | 27 | [scripts/prerender-seo.mjs:1049](../../scripts/prerender-seo.mjs#L1049) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:31](../../src/test/tok-logo-calendar.test.ts#L31) |
@@ -2325,7 +2325,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | from | — | 1 | [src/marketing/useMarketingUrlState.ts:119](../../src/marketing/useMarketingUrlState.ts#L119) |
 | function | /admin/guardian | 1 | [src/pages/admin/AdminGuardian.tsx:108](../../src/pages/admin/AdminGuardian.tsx#L108) |
 | geometry | — | 1 | [src/test/home-canton-hero.test.ts:55](../../src/test/home-canton-hero.test.ts#L55) |
-| guarantee_session_id | /reservations | 2 | [src/pages/Reservations.tsx:166](../../src/pages/Reservations.tsx#L166) |
+| guarantee_session_id | /reservations | 2 | [src/pages/Reservations.tsx:169](../../src/pages/Reservations.tsx#L169) |
 | height | — | 1 | [src/lib/optimizedImages.ts:38](../../src/lib/optimizedImages.ts#L38) |
 | host | — | 2 | [src/test/tok-connect-broker.test.ts:115](../../src/test/tok-connect-broker.test.ts#L115) |
 | id | — | 1 | [src/test/marketing-mailing-image-bff.test.ts:80](../../src/test/marketing-mailing-image-bff.test.ts#L80) |
@@ -2370,7 +2370,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | redirect | /auth, /auth/callback, /auth/demo | 11 | [src/lib/workforceContinuation.ts:40](../../src/lib/workforceContinuation.ts#L40) |
 | redirect_uri | — | 1 | [src/test/tok-connect-broker.test.ts:239](../../src/test/tok-connect-broker.test.ts#L239) |
 | removeRestaurant | — | 1 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:171](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L171) |
-| reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:291](../../src/pages/Reservations.tsx#L291) |
+| reservation | /dashboard/reservations, /reservations | 2 | [src/pages/Reservations.tsx:294](../../src/pages/Reservations.tsx#L294) |
 | reservationStep | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:153](../../src/pages/RestaurantDetail.tsx#L153) |
 | reserve | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:149](../../src/pages/RestaurantDetail.tsx#L149) |
 | resize | — | 1 | [src/lib/optimizedImages.ts:40](../../src/lib/optimizedImages.ts#L40) |

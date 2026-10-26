@@ -817,6 +817,8 @@ function LiveDashboard() {
       todayServiceCounts={todayServiceCounts}
       upcomingOrders={(upcomingOrders || []).map((order) => ({
         id: String(order.id),
+        orderNumber:
+          typeof order.order_number === "string" ? order.order_number : null,
         createdAt:
           typeof order.created_at === "string" ? order.created_at : null,
         totalAmount: Number(order.total_amount || 0),
@@ -844,18 +846,21 @@ function LiveDashboard() {
       mobileReadyOrdersCount={mobileReadyOrdersCount}
       leadingContent={
         <>
-          <SignupApplicationStatusCard
-            application={signupApplication}
-            onStartRestaurantOnboardingPayment={
-              startRestaurantOnboardingPayment
-            }
-            onboardingPaymentLoading={onboardingCheckoutLoading}
-            onboardingAttempt={onboardingAttempt}
-            onResubmitApplication={resubmitSignupApplication.mutateAsync}
-            resubmittingApplication={resubmitSignupApplication.isPending}
-            title="Dossier de vérification restaurateur"
-            emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
-          />
+          {/* An already active restaurant without a dossier has nothing to act on. */}
+          {signupApplication || dashboardAccessLocked ? (
+            <SignupApplicationStatusCard
+              application={signupApplication}
+              onStartRestaurantOnboardingPayment={
+                startRestaurantOnboardingPayment
+              }
+              onboardingPaymentLoading={onboardingCheckoutLoading}
+              onboardingAttempt={onboardingAttempt}
+              onResubmitApplication={resubmitSignupApplication.mutateAsync}
+              resubmittingApplication={resubmitSignupApplication.isPending}
+              title="Dossier de vérification restaurateur"
+              emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
+            />
+          ) : null}
 
           {adminCorrectionRequests.length > 0 ? (
             <Card className="tok-dashboard-section rounded-3xl border border-amber-200 bg-amber-50/80 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-50">

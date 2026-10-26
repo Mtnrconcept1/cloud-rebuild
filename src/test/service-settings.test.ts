@@ -24,6 +24,11 @@ describe("service settings helpers", () => {
     expect(getServicePeriodFromMetadata(null, "21:00")).toBe("dinner");
   });
 
+  it("classifies database times that include seconds", () => {
+    expect(getServicePeriodFromMetadata({}, "12:30:00")).toBe("lunch");
+    expect(getServicePeriodFromMetadata(null, "19:30:00")).toBe("dinner");
+  });
+
   it("returns french-friendly labels", () => {
     expect(getServicePeriodLabel("lunch")).toBe("Midi");
     expect(getServicePeriodLabel("dinner")).toBe("Soir");

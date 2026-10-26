@@ -295,7 +295,8 @@ export const getServicePeriodFromMetadata = (
     }
   }
 
-  return detectServiceFromTime(time || "");
+  // Postgres `time` columns come back as HH:MM:SS; detection expects HH:MM.
+  return detectServiceFromTime((time || "").slice(0, 5));
 };
 
 export const getServicePeriodLabel = (period: ServicePeriod): string => SERVICE_PERIOD_LABELS[period];

@@ -75,6 +75,9 @@ const getDisplayTime = (reservation: ReservationWithRestaurant) => {
   return metadata.arrival_time || metadata.arrivalTime || reservation.time;
 };
 
+// Database times carry seconds ("19:30:00"); guests only need the hour.
+const formatClockTime = (value: string) => value.replace(/^(\d{2}:\d{2}):\d{2}$/, "$1");
+
 const getReservedDateTimeMs = (reservation: ReservationWithRestaurant) => {
   const timeValue = getDisplayTime(reservation);
   const reservationDateTime = new Date(`${reservation.date}T${timeValue || "00:00:00"}`).getTime();
@@ -403,8 +406,8 @@ export default function Reservations() {
                         <div className="flex flex-wrap gap-1.5">
                           <Badge variant="outline" className={featureBadge?.className}>{typeLabel}</Badge>
                           <Badge variant="secondary">{formatShortDate(reservation.date)}</Badge>
-                          {timeValue ? <Badge variant="outline">{timeValue}</Badge> : null}
-                          {reservation.party_size ? <Badge variant="outline">{reservation.party_size} personne(s)</Badge> : null}
+                          {timeValue ? <Badge variant="outline">{formatClockTime(timeValue)}</Badge> : null}
+                          {reservation.party_size ? <Badge variant="outline">{reservation.party_size} personne{reservation.party_size > 1 ? "s" : ""}</Badge> : null}
                         </div>
                       </div>
                       <div className="shrink-0 text-right">
@@ -455,14 +458,14 @@ export default function Reservations() {
                       </div>
                       <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                         <span>{formatShortDate(reservation.date)}</span>
-                        {timeValue ? <span>{timeValue}</span> : null}
-                        {reservation.party_size ? <span>{reservation.party_size} personne(s)</span> : null}
+                        {timeValue ? <span>{formatClockTime(timeValue)}</span> : null}
+                        {reservation.party_size ? <span>{reservation.party_size} personne{reservation.party_size > 1 ? "s" : ""}</span> : null}
                       </div>
                     </div>
                     <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:shrink-0 sm:justify-end sm:text-right">
                       <div>
                         <p className="text-sm font-bold text-primary">
-                          {Number(reservation.total_amount || 0) > 0 ? `${Number(reservation.total_amount).toFixed(2)} CHF` : "A regler sur place"}
+                          {Number(reservation.total_amount || 0) > 0 ? `${Number(reservation.total_amount).toFixed(2)} CHF` : "À régler sur place"}
                         </p>
                         {featureBadge ? (
                           <Badge variant="outline" className={`mt-1 text-[10px] uppercase tracking-widest ${featureBadge.className}`}>

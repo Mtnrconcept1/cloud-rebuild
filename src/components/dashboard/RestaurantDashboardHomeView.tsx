@@ -12,7 +12,8 @@ import {
   Megaphone,
   Menu,
   MoonStar,
-  Plus,
+  PackageCheck,
+  Pencil,
   Rocket,
   ShoppingCart,
   Store,
@@ -31,6 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth-context";
+import { getBusinessDateKey, parseBusinessDateTime } from "@/lib/businessTime";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
 import {
@@ -45,6 +47,7 @@ const EMPTY_TODAY_RESERVATIONS: RestaurantDashboardMobileReservation[] = [];
 
 export type RestaurantDashboardHomeOrder = {
   id: string;
+  orderNumber?: string | null;
   createdAt: string | null;
   totalAmount: number;
   status: string;
@@ -133,10 +136,32 @@ function formatRestaurantDashboardChf(value: number) {
   }).format(Math.max(0, value));
 }
 
-function formatOrderDate(value: string | null) {
-  if (!value) return "Aujourd'hui";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "Aujourd'hui" : date.toLocaleDateString("fr-FR");
+const BUSINESS_DAY_FORMAT = new Intl.DateTimeFormat("fr-CH", {
+  timeZone: "Europe/Zurich",
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+});
+const BUSINESS_CLOCK_FORMAT = new Intl.DateTimeFormat("fr-CH", {
+  timeZone: "Europe/Zurich",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+// "Aujourd’hui", "Demain" or "jeu. 29 oct." for a Europe/Zurich date key.
+function formatBusinessDayLabel(dateKey: string) {
+  const todayKey = getBusinessDateKey();
+  if (dateKey === todayKey) return "Aujourd’hui";
+  const todayNoon = parseBusinessDateTime(todayKey, "12:00");
+  if (todayNoon && dateKey === getBusinessDateKey(new Date(todayNoon.getTime() + 86_400_000))) return "Demain";
+  const date = parseBusinessDateTime(dateKey, "12:00");
+  return date ? BUSINESS_DAY_FORMAT.format(date) : dateKey;
+}
+
+function formatOrderMoment(value: string | null) {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return "Aujourd’hui";
+  return `${formatBusinessDayLabel(getBusinessDateKey(date))} · ${BUSINESS_CLOCK_FORMAT.format(date).replace(":", "h")}`;
 }
 
 function normalizeSearchText(value: string | null | undefined) {
@@ -477,7 +502,6 @@ function MobileOverviewCards({
   const readinessPercent = totalUpcomingOrders > 0
     ? Math.min(100, Math.round((readyOrdersCount / totalUpcomingOrders) * 100))
     : 100;
-  const readinessBars = [42, 58, 46, 70, 60, 82, 72, 94];
 
   return (
     <section className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:hidden" aria-label="Résumé de l'activité du restaurant">
@@ -544,20 +568,13 @@ function MobileOverviewCards({
 
       <MobileOverviewCard to={ordersTarget}>
         <h3 className="text-[0.98rem] font-black text-stone-950 dark:text-white">Service</h3>
-        <div className="mt-2 flex h-10 items-end gap-1" aria-hidden="true">
-          {readinessBars.map((height, index) => (
-            <span
-              key={`${height}-${index}`}
-              className={cn(
-                "flex-1 rounded-t-[0.2rem]",
-                index === readinessBars.length - 1
-                  ? "bg-[#db632d]"
-                  : "bg-[#efcfb4] dark:bg-orange-300/35",
-              )}
-              style={{ height: `${height}%` }}
-            />
-          ))}
-        </div>
+        <p className="mt-2 text-[1.6rem] font-black leading-none text-stone-950 dark:text-white">
+          {readyOrdersCount}
+          <span className="text-sm font-semibold text-stone-500 dark:text-slate-400">/{totalUpcomingOrders}</span>
+        </p>
+        <p className="mt-1 text-[11px] text-stone-600 dark:text-slate-400">
+          prête{readyOrdersCount > 1 ? "s" : ""} à remettre
+        </p>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-200 dark:bg-slate-700">
           <span
             className="block h-full rounded-full bg-emerald-600 transition-[width]"
@@ -631,7 +648,7 @@ function MobileDailyMenu({
                     className="absolute bottom-2 right-2 h-8 w-8 rounded-full bg-[#df632b] text-white shadow-md hover:bg-[#c9521f]"
                   >
                     <Link to="/dashboard/menu" aria-label={`Modifier ${item.name}`}>
-                      <Plus className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" />
                     </Link>
                   </Button>
                 </div>
@@ -948,7 +965,7 @@ export default function RestaurantDashboardHomeView({
         <div className="tok-overview-service-stats order-8 hidden md:order-6 md:grid">
           <DashboardStatCard label="Midi aujourd'hui" value={String(todayServiceCounts.lunch)} icon={SunMedium} tone="sky" to={reservationsTarget} />
           <DashboardStatCard label="Soir aujourd'hui" value={String(todayServiceCounts.dinner)} icon={MoonStar} tone="violet" to={reservationsTarget} />
-          <DashboardStatCard label="Revenus du mois" value={formatRestaurantDashboardChf(monthlyRevenue)} icon={TrendingUp} tone="emerald" to={performancesTarget} />
+          <DashboardStatCard label="Prêtes à remettre" value={String(readyOrdersCount)} icon={PackageCheck} tone="emerald" to={ordersTarget} />
         </div>
 
         <div className="tok-overview-upcoming order-9 hidden grid-cols-1 gap-5 md:order-5 md:grid md:grid-cols-2">
@@ -967,8 +984,11 @@ export default function RestaurantDashboardHomeView({
                   key={order.id}
                   to={ordersTarget ? `${ordersTarget}?order=${encodeURIComponent(order.id)}` : null}
                 >
-                  <span className="min-w-0 break-words">{formatOrderDate(order.createdAt)}</span>
-                  <span className="font-bold">{order.totalAmount.toFixed(2)} CHF</span>
+                  <span className="min-w-0">
+                    <span className="block break-words font-semibold">{order.orderNumber ? `#${order.orderNumber}` : "Commande"}</span>
+                    <span className="block text-xs text-muted-foreground">{formatOrderMoment(order.createdAt)}</span>
+                  </span>
+                  <span className="font-bold">{formatRestaurantDashboardChf(order.totalAmount)}</span>
                   <OrderStatusBadge status={order.status} />
                 </OverviewListRow>
               ))}
@@ -992,7 +1012,7 @@ export default function RestaurantDashboardHomeView({
                   to={reservationsTarget ? `${reservationsTarget}?reservation=${encodeURIComponent(reservation.id)}` : null}
                 >
                   <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <span className="break-words">{new Date(reservation.date).toLocaleDateString("fr-FR")} à {reservation.time}</span>
+                    <span className="break-words font-semibold">{formatBusinessDayLabel(reservation.date)} · {formatTime(reservation.time)}</span>
                     <Badge variant="outline" className="text-[10px]">{reservation.servicePeriodLabel}</Badge>
                   </div>
                   <span>{reservation.partySize} pers.</span>

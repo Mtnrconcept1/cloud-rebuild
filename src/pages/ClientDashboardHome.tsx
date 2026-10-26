@@ -397,6 +397,8 @@ function LiveClientDashboardHome() {
   const profile = overviewData?.profile;
   const firstName = String(profile?.full_name || user?.email?.split("@")[0] || "").trim().split(/\s+/)[0];
   const points = Number(profile?.loyalty_points || 0);
+  const favoritesCount = overviewData?.favoritesCount || 0;
+  const reviewsCount = overviewData?.reviewsCount || 0;
   const priorityOrder = activeOrders.find((order) => ["preparing", "ready", "assigned", "picked_up", "out_for_delivery"].includes(String(order.status || "").toLowerCase())) || activeOrders[0];
   const nextReservation = upcomingReservations[0];
   const heroIllustration = priorityOrder
@@ -448,17 +450,7 @@ function LiveClientDashboardHome() {
           </div>
         ) : (
           <>
-            <section aria-label="Résumé de votre activité" className="tok-customer-home-metrics grid grid-cols-2 gap-3 xl:grid-cols-4">
-              {reservationEnabled ? (
-                <MetricCard icon={CalendarDays} label="Réservations à venir" value={upcomingReservations.length} to={clientTarget("/reservations")} accent="bg-orange-500/10 text-orange-600" />
-              ) : null}
-              {ordersEnabled ? (
-                <MetricCard icon={ShoppingBag} label="Achats en cours" value={activeOrders.length} to={clientTarget("/commandes")} accent="bg-indigo-500/10 text-indigo-600" />
-              ) : null}
-              <MetricCard icon={Trophy} label="Miamz disponibles" value={points.toLocaleString("fr-CH")} to={clientTarget("/profil?tab=fidelite")} accent="bg-pink-500/10 text-pink-600" />
-              <MetricCard icon={Bell} label="Notifications non lues" value={unreadCount} to={clientTarget("/notifications")} accent="bg-sky-500/10 text-sky-600" />
-            </section>
-
+            {/* What matters right now comes first, before the summary strip. */}
             <div className="tok-customer-home-focus">
             <section className="tok-customer-activity-card relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/15 via-background to-pink-500/10 p-5 shadow-sm sm:p-7">
               <div className="tok-customer-activity-card__body relative z-10 grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
@@ -478,6 +470,21 @@ function LiveClientDashboardHome() {
                           Suivre ma commande <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
+                      {nextReservation ? (
+                        <Link
+                          to={clientTarget(`/reservations?reservation=${nextReservation.id}`)}
+                          className="mt-4 flex min-h-11 max-w-xl min-w-0 items-center gap-3 rounded-2xl border border-border/70 bg-background/80 px-4 py-3 text-sm transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        >
+                          <CalendarDays className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-xs text-muted-foreground">Prochaine réservation</span>
+                            <span className="block truncate font-semibold">
+                              {firstRestaurantName(nextReservation.restaurants)} · {formatReservationDate(nextReservation)}
+                            </span>
+                          </span>
+                          <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        </Link>
+                      ) : null}
                     </>
                   ) : nextReservation ? (
                     <>
@@ -523,19 +530,32 @@ function LiveClientDashboardHome() {
                   <span className="tok-customer-miamz-card__icon"><Trophy aria-hidden="true" /></span>
                   <p><strong>{points.toLocaleString("fr-CH")}</strong><span>Miamz disponibles</span></p>
                 </div>
-                <p>Retrouvez votre progression et tous les avantages de votre fidélité.</p>
+                <p>
+                  {points > 0
+                    ? "Retrouvez votre progression et tous les avantages de votre fidélité."
+                    : "Cumulez vos premiers Miamz dès votre première commande ou table honorée."}
+                </p>
                 <Button asChild variant="outline" className="mt-4 gap-2">
                   <Link to={clientTarget("/profil?tab=fidelite")}>Voir mes avantages <ArrowRight className="h-4 w-4" /></Link>
                 </Button>
               </aside>
             </div>
 
-
+            <section aria-label="Résumé de votre activité" className="tok-customer-home-metrics grid grid-cols-2 gap-3 xl:grid-cols-4">
+              {reservationEnabled ? (
+                <MetricCard icon={CalendarDays} label="Réservations à venir" value={upcomingReservations.length} to={clientTarget("/reservations")} accent="bg-orange-500/10 text-orange-600" />
+              ) : null}
+              {ordersEnabled ? (
+                <MetricCard icon={ShoppingBag} label="Achats en cours" value={activeOrders.length} to={clientTarget("/commandes")} accent="bg-indigo-500/10 text-indigo-600" />
+              ) : null}
+              <MetricCard icon={Trophy} label="Miamz disponibles" value={points.toLocaleString("fr-CH")} to={clientTarget("/profil?tab=fidelite")} accent="bg-pink-500/10 text-pink-600" />
+              <MetricCard icon={Bell} label="Notifications non lues" value={unreadCount} to={clientTarget("/notifications")} accent="bg-sky-500/10 text-sky-600" />
+            </section>
 
             <section className="space-y-3">
               <div>
                 <h2 className="font-display text-2xl font-bold">Accès rapides</h2>
-                <p className="text-sm text-muted-foreground">Seuls les services actuellement actifs sont affichés.</p>
+                <p className="text-sm text-muted-foreground">Réservez, commandez ou profitez d’une offre en un geste.</p>
               </div>
               <div className="tok-customer-quick-actions grid grid-cols-2 gap-3 lg:grid-cols-3">
                 {visibleActions.map((action) => (
@@ -561,14 +581,18 @@ function LiveClientDashboardHome() {
                 <Heart className="h-5 w-5 shrink-0 text-rose-500" />
                 <div className="min-w-0">
                   <p className="font-semibold">Mes favoris</p>
-                  <p className="text-xs text-muted-foreground">{overviewData?.favoritesCount || 0} restaurant(s)</p>
+                  <p className="text-xs text-muted-foreground">
+                    {favoritesCount > 0 ? `${favoritesCount} restaurant${favoritesCount > 1 ? "s" : ""}` : "Aucun restaurant enregistré"}
+                  </p>
                 </div>
               </Link>
               <Link to={clientTarget("/mes-avis")} className="flex min-w-0 items-center gap-3 rounded-2xl border bg-card p-4 transition hover:border-primary/35">
                 <Star className="h-5 w-5 shrink-0 text-amber-500" />
                 <div className="min-w-0">
                   <p className="font-semibold">Mes avis</p>
-                  <p className="text-xs text-muted-foreground">{overviewData?.reviewsCount || 0} avis publié(s)</p>
+                  <p className="text-xs text-muted-foreground">
+                    {reviewsCount > 0 ? `${reviewsCount} avis publié${reviewsCount > 1 ? "s" : ""}` : "Partagez votre première expérience"}
+                  </p>
                 </div>
               </Link>
               <Link to={clientTarget("/contact")} className="flex min-w-0 items-center gap-3 rounded-2xl border bg-card p-4 transition hover:border-primary/35">
