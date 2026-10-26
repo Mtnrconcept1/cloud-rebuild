@@ -21,6 +21,8 @@ import {
 } from "@/components/marketing/MarketingShared";
 import { MarketingPostImage, MarketingPostPreview } from "@/components/marketing/MarketingPostPreview";
 import { MarketingContentReview } from "@/components/marketing/MarketingContentReview";
+import { MarketingSocialImageUpload } from "@/components/marketing/MarketingSocialImageUpload";
+import { MarketingSocialSeriesImport } from "@/components/marketing/MarketingSocialSeriesImport";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -129,6 +131,8 @@ export default function MarketingCalendarView({
   onCancel,
   onApprove,
   onCompleteManual,
+  onItemsUpdated,
+  onUploadPendingChange,
 }: {
   snapshot: MarketingSnapshot;
   filters: MarketingUrlState;
@@ -141,6 +145,8 @@ export default function MarketingCalendarView({
   onCancel: (itemId: string, reason: string) => Promise<unknown>;
   onApprove: (itemId: string, scheduledAt: string) => Promise<unknown>;
   onCompleteManual: (itemId: string, outcome: "published" | "failed", note: string) => Promise<unknown>;
+  onItemsUpdated?: () => Promise<unknown> | void;
+  onUploadPendingChange?: (pending: boolean) => void;
 }) {
   const initialRange = filters.from ? marketingMonthRange(filters.from) : currentMarketingMonthRange();
   const initialMonth = new Date(`${initialRange?.from || currentMarketingMonthRange().from}T12:00:00`);
@@ -294,6 +300,8 @@ export default function MarketingCalendarView({
         <p className="mt-1 text-xs opacity-80">L'approbation calendrier ne lance jamais un envoi immédiat.</p>
       </div>
 
+      <MarketingSocialSeriesImport disabled={!canMutateBackend || Boolean(pendingAction)} onImported={onItemsUpdated || (() => undefined)} onPendingChange={onUploadPendingChange} />
+
       <Card>
         <CardContent className="grid gap-3 p-4 md:grid-cols-[minmax(12rem,1fr)_11rem_12rem]">
           <label className="relative block">
@@ -432,6 +440,8 @@ export default function MarketingCalendarView({
                 scheduledAt={selectedItem.scheduledAt}
                 preview={selectedItem.postPreview || { caption: selectedItem.content, visualUrl: selectedItem.visualUrl, visualFormat: selectedItem.format || undefined }}
               />
+              <MarketingSocialImageUpload item={selectedItem} disabled={!canMutateBackend || Boolean(pendingAction) || Boolean(selectedCampaign?.approvedAt)}
+                onPendingChange={onUploadPendingChange} onUploaded={(updated) => { setSelectedItem(updated); void onItemsUpdated?.(); }} />
               <div className="space-y-2">
                 {selectedItem.campaignId ? <p className="text-xs text-muted-foreground">La validation de cette publication est incluse dans le dossier Telegram de sa campagne.</p> : null}
                 <MarketingContentReview targetType={selectedItem.campaignId ? "campaign" : "item"} targetId={selectedItem.campaignId || selectedItem.id}

@@ -160,7 +160,7 @@ export default function MarketingWorkspace() {
       case "agent":
         return <MarketingAgentView snapshot={snapshot} canMutateBackend={operations.canMutateBackend} onNavigate={setView} onGenerated={operations.refresh} onUploadPendingChange={onUploadPendingChange} />;
       case "calendar":
-        return <MarketingCalendarView snapshot={snapshot} filters={filters} canMutateBackend={canMutateReview} reviewPending={reviewLoading} reviewError={reviewError} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onNavigate={setView} onCancel={operations.cancelItem} onApprove={operations.approveItem} onCompleteManual={operations.completeManualItem} />;
+        return <MarketingCalendarView snapshot={snapshot} filters={filters} canMutateBackend={canMutateReview} reviewPending={reviewLoading} reviewError={reviewError} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onNavigate={setView} onCancel={operations.cancelItem} onApprove={operations.approveItem} onCompleteManual={operations.completeManualItem} onItemsUpdated={operations.refresh} onUploadPendingChange={onUploadPendingChange} />;
       case "campaigns":
         return <MarketingCampaignsView snapshot={snapshot} filters={filters} canMutateBackend={canMutateReview} reviewPending={reviewLoading} reviewError={reviewError} savePending={operations.pendingAction === "save-campaign"} pendingAction={operations.pendingAction} onFiltersChange={updateFilters} onSave={operations.saveCampaign} onApprove={operations.approveCampaign} onRecommendChannels={operations.recommendChannels} onItemsUpdated={operations.refresh} onNavigate={setView} onUploadPendingChange={onUploadPendingChange} />;
       case "audiences":
