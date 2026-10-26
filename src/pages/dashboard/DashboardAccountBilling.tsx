@@ -594,9 +594,8 @@ function PlanCard({
       <CardContent className="flex flex-1 flex-col gap-4">
         <div className="grid gap-1.5 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
           <span><strong>{formatChf(RESERVATION_FLAT_FEE_CHF)}</strong> / réservation honorée</span>
-          <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> / commande marketplace</span>
+          <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> / module de commande</span>
           <span>Canaux propres, annulation, no-show et remboursement : <strong>CHF 0</strong></span>
-          <span>Plafond réservation : <strong>7% du CA table</strong></span>
           <span>Restaurant : <strong>au moins 90%</strong> + 100% des pourboires</span>
           {fairGrowthPlan.slug === "elite" ? (
             <span><strong>3 établissements inclus</strong> · CHF 149/site supplémentaire</span>

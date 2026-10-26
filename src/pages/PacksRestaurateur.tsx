@@ -122,7 +122,7 @@ function PlanCard({ plan }: { plan: RestaurantSubscriptionPlan }) {
         </div>
         <div className="grid gap-2 rounded-xl border border-primary/15 bg-primary/5 p-3 text-sm">
           <span><strong>{formatChf(RESERVATION_FLAT_FEE_CHF)}</strong> par réservation honorée, quelle qu'en soit l'origine</span>
-          <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> sur les commandes marketplace</span>
+          <span><strong>{(fairGrowthPlan.marketplaceCommissionBps / 100).toLocaleString("fr-CH")}%</strong> dans le module de commande</span>
           <span>Annulation, no-show, remboursement et démonstration : <strong>CHF 0</strong></span>
           <span>Commande à emporter : <strong>90% au restaurant / 10% à TOK</strong> · pourboires 100% restaurant</span>
           {fairGrowthPlan.slug === "elite" ? (
