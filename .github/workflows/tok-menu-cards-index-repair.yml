@@ -1,0 +1,53 @@
+name: TOK menu cards - one-time application index repair
+
+on:
+  pull_request:
+    types: [synchronize]
+    paths:
+      - ".github/workflows/tok-menu-cards-index-repair.yml"
+      - "src/test/restaurant-menu-cards.test.tsx"
+      - "supabase/migrations/20261027180000_restaurant_menu_cards.sql"
+
+permissions:
+  contents: read
+
+jobs:
+  repair-index:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/restaurant-menu-cards-20261027'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout PR branch, not main
+        uses: actions/checkout@v6
+        with:
+          ref: feat/restaurant-menu-cards-20261027
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Set up pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+      - name: Install exact dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Remove this one-time workflow from the PR branch
+        run: git rm -- .github/workflows/tok-menu-cards-index-repair.yml
+      - name: Generate the canonical application index against the final tracked file list
+        run: pnpm run docs:application-index
+      - name: Commit generated artifacts and this workflow's removal to the PR branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          if git diff --cached --quiet; then
+            echo "No index changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(index): regenerate TOK catalog for menu-card PR"
+          git push origin "HEAD:refs/heads/feat/restaurant-menu-cards-20261027"
