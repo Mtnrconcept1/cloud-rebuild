@@ -1,0 +1,77 @@
+name: Commercial consent regression
+on:
+  pull_request:
+    paths:
+      - src/components/commercial/CommercialEmailConsentDialog.tsx
+      - src/lib/commercialEmailConsent.ts
+      - src/test/commercial-email-consent*.test.*
+      - supabase/migrations/*commercial_signed_email_consent.sql
+      - supabase/migrations/*native_tok_contact_permissions.sql
+      - scripts/test-native-consent-history.test.mjs
+      - supabase/tests/commercial_email_consent.sql
+      - scripts/test-commercial-consent-postgres.mjs
+      - .github/workflows/commercial-consent.yml
+permissions:
+  contents: read
+concurrency:
+  group: commercial-consent-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 54322:5432
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '54322'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+      TOK_CONSENT_DISPOSABLE: 'true'
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+      VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22'
+      - name: Verify exact historical migration and prevent duplicate replay
+        run: node --test scripts/test-native-consent-history.test.mjs
+      - name: PostgreSQL permissions, actual evidence trigger and concurrent replay
+        run: node scripts/test-commercial-consent-postgres.mjs
+      - name: Install frozen dependencies
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate && pnpm install --frozen-lockfile
+      - name: Restaurateur approval and UI regressions
+        run: pnpm exec vitest run src/test/commercial-email-consent.test.tsx src/test/commercial-email-consent-contract.test.ts
+      - name: Generate canonical references with repository scripts
+        run: node scripts/generate-application-index.mjs && node scripts/generate-error-code-map.mjs
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
+      - name: Build
+        run: pnpm build
+      - name: Collect generated references
+        run: |
+          mkdir -p /tmp/consent-canonical
+          cp --parents docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts supabase/functions/_shared/error-code-map.ts /tmp/consent-canonical/
+          cp --parents src/pages/CommercialProspection.tsx src/components/commercial/CommercialEmailConsentDialog.tsx src/lib/commercialEmailConsent.ts src/test/commercial-email-consent.test.tsx src/test/commercial-email-consent-contract.test.ts scripts/test-commercial-consent-postgres.mjs scripts/test-commercial-consent-local.mjs supabase/tests/commercial_email_consent.sql supabase/migrations/20261027161000_commercial_signed_email_consent.sql docs/superpowers/plans/2026-10-27-commercial-consent.md .github/workflows/commercial-consent.yml /tmp/consent-canonical/
+          cp --parents scripts/test-native-consent-history.test.mjs supabase/migrations/20261027161330_native_tok_contact_permissions.sql /tmp/consent-canonical/
+          git rev-parse HEAD > /tmp/consent-canonical/source-sha.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: commercial-consent-canonical
+          path: /tmp/consent-canonical
+          retention-days: 3
+          include-hidden-files: true

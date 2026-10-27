@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { validateConsentFields, consentErrorMessage, parseConsentContext, parseConsentReceipt } from '../.build/commercialEmailConsent.js';
+const base={email:' gérant@example.com ',emailAgain:'gérant@example.com',signerName:'Personne Test',signerRole:'Gérant',signature:'data:image/png;base64,iVBORw0KGgo'+'A'.repeat(220),consented:true};
+assert.match(validateConsentFields(base),/valide/);
+base.email=' GERANT@EXAMPLE.COM ';base.emailAgain='gerant@example.com';
+assert.equal(validateConsentFields(base),null);
+for(const changed of [{consented:false},{signature:null},{signerName:' '},{signerRole:' '},{emailAgain:'autre@example.com'},{email:'bad'}])assert.notEqual(validateConsentFields({...base,...changed}),null);
+assert.match(consentErrorMessage({message:'consent_document_changed'}),/texte/);
+assert.match(consentErrorMessage({message:'contact_suppressed_reconsent_requires_independent_verification'}),/opposition/);
+assert.ok(!consentErrorMessage({message:'SQL secret',details:'secret'}).includes('secret'));
+assert.throws(()=>parseConsentContext({}));assert.throws(()=>parseConsentReceipt({}));
+assert.equal(parseConsentContext({document:null,document_hash:null,is_admin:false,latest:null}).document,null);
+console.log('PASS: 14 assertions locales de validation et de confidentialité');
