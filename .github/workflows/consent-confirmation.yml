@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
+          fetch-depth: 3
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
@@ -39,7 +39,7 @@ jobs:
           if test -f .git/shallow; then cp .git/shallow "$out/repo.git/shallow"; fi
           mkdir -p "$out/repo.git/refs/heads/feat"
           git rev-parse HEAD > "$out/repo.git/refs/heads/feat/commercial-consent-email-confirmation-20261027"
-          git rev-parse HEAD^ > "$out/repo.git/refs/heads/reference-base"
+          printf '%s\n' c8b99a99c7601329fa70e97a8ad94fc25efe2bd6 > "$out/repo.git/refs/heads/reference-base"
           git --git-dir="$out/repo.git" symbolic-ref HEAD refs/heads/feat/commercial-consent-email-confirmation-20261027
           git rev-parse HEAD > "$out/source-sha.txt"
           tar -czf "$out/repository.tgz" -C "$out" repo.git
@@ -48,9 +48,25 @@ jobs:
           cp supabase/migrations/*_commercial_email_confirmation.sql "$out/"
           cd "$out"
           sha256sum repository.tgz dependencies.tgz > SHA256SUMS
+          tar -cf "$RUNNER_TEMP/workspace.tar" repository.tgz dependencies.tgz source-sha.txt SHA256SUMS *_commercial_email_confirmation.sql
+          split -b 200M -d -a 1 "$RUNNER_TEMP/workspace.tar" "$out/part-"
+          sha256sum part-*
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: consent-offline-workspace
-          path: ${{ runner.temp }}/consent-workspace
+          name: consent-workspace-part-0
+          path: ${{ runner.temp }}/consent-workspace/part-0
           retention-days: 1
           compression-level: 0
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: consent-workspace-part-1
+          path: ${{ runner.temp }}/consent-workspace/part-1
+          retention-days: 1
+          compression-level: 0
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: consent-workspace-part-2
+          path: ${{ runner.temp }}/consent-workspace/part-2
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: ignore
