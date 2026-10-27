@@ -2,7 +2,7 @@
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import React from "react";
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -213,6 +213,7 @@ describe.skipIf(!enabled)("isolated dashboard visual export", () => {
     });
     const matchMedia = window.matchMedia.bind(window);
     vi.stubGlobal("matchMedia", (query: string) => ({ ...matchMedia(query), matches: query === "(prefers-reduced-motion: reduce)" || matchMedia(query).matches }));
+    vi.spyOn(window, "scrollTo").mockImplementation(() => {});
     Object.defineProperty(Element.prototype, "scrollIntoView", { configurable: true, value: vi.fn() });
     Object.defineProperty(Element.prototype, "scrollTo", { configurable: true, value: vi.fn() });
   });
@@ -262,6 +263,16 @@ describe.skipIf(!enabled)("isolated dashboard visual export", () => {
       const banner = `<aside class="preview-notice" data-preview-surface="${page.surface}"><a href="${baseUrl}">← Toutes les pages</a><strong>Aperçu visuel — données de démonstration</strong><small>${escape(page.label)} · navigation de revue uniquement, actions métier inactives</small></aside>`;
       writeFileSync(path.join(outputRoot, `${page.id}.html`), html(page.label, `${banner}<div class="preview-content" data-preview-surface="${page.surface}">${markup}</div>`, cssFiles));
       results.push({ id: page.id, route: page.route, source: `src/pages/${page.module}.tsx`, title: page.label, status: "rendered", characters: markup.length, charts });
+      if (page.id === "restaurant-photos") {
+        fireEvent.click(screen.getByRole("button", { name: /^Marketing Studio/ }));
+        await waitFor(() => expect(screen.getByRole("button", { name: "Continuer vers les références marketing" })).toBeEnabled());
+        for (let step = 1; step <= 3; step += 1) {
+          const snapshot = sanitizeMarkup(mounted.container);
+          writeFileSync(path.join(outputRoot, `restaurant-marketing-etape-${step}.html`), html(`Marketing — étape ${step}`, `${banner}<div class="preview-content" data-preview-surface="restaurant">${snapshot.markup}</div>`, cssFiles));
+          if (step < 3) fireEvent.click(screen.getByRole("button", { name: step === 1 ? "Continuer vers les références marketing" : "Continuer vers le brief" }));
+        }
+        expect(previewMutationLog).toEqual([]);
+      }
       cleanup(); client.clear();
     }
     expect(errors, "Every page must finish its mocked data loading successfully").toEqual([]);

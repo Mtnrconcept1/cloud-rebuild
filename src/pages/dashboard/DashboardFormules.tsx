@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { useJourneyFocus } from "@/hooks/useJourneyFocus";
+import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -486,6 +487,8 @@ function ProgressiveOfferManager({
   const [calendarTouched, setCalendarTouched] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorStep, setEditorStep] = useState<ProgressiveEditorStepId>("base");
+  const editorScrollRef = useRef<HTMLDivElement>(null);
+  useJourneyFocus(editorScrollRef, `${editorOpen}:${editorStep}`, "container", true);
 
   const offersByDate = useMemo(() => {
     const grouped = new Map<string, ProgressiveReservationOffer[]>();
@@ -1177,7 +1180,7 @@ function ProgressiveOfferManager({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
+            <div ref={editorScrollRef} tabIndex={-1} aria-label={currentEditorStep.title} className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
               <ol className="grid gap-2 sm:grid-cols-3" data-testid="progressive-offer-stepper">
                 {PROGRESSIVE_EDITOR_STEPS.map((step, index) => {
                   const isCurrent = step.id === editorStep;
