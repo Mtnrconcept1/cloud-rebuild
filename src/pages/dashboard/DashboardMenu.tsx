@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, CheckCircle2, Image as ImageIcon, Images, Layers, Loader2, Pencil, Plus, ScanLine, Sparkles, Trash2, Upload } from "lucide-react";
+import { BookOpen, CheckCircle2, Image as ImageIcon, Images, Layers, Loader2, Plus, ScanLine, Sparkles, Upload } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import { optimizeImageUpload } from "@/lib/optimizedImages";
 import type { TokImageGenerationResult } from "@/lib/ai/tokAiClient";
