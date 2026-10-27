@@ -13,6 +13,12 @@ export type ConsentSummary = {
   email: string;
   email_eligible: boolean;
   withdrawn: boolean;
+  confirmation_required?: boolean;
+  confirmation_state?: "legacy" | "pending" | "confirmed" | "withdrawn" | "superseded" | "expired";
+  confirmed_at?: string | null;
+  confirmation_expires_at?: string | null;
+  email_delivery_state?: "queued" | "processing" | "retry" | "sent" | "failed" | "cancelled" | null;
+  email_delivery_error?: string | null;
 };
 export type ConsentContext = {
   document: ConsentDocument | null;
@@ -30,7 +36,7 @@ export type ConsentReceipt = ConsentSummary & {
   proof_hash: string;
   signature_data: string;
   approval_method: "restaurateur_signature_in_person";
-  email_verified: false;
+  email_verified: boolean;
   evidence_quality: "system_event";
 };
 export type ConsentFields = {
@@ -95,6 +101,10 @@ function parseDocument(value: unknown): ConsentDocument {
 function parseSummary(value: unknown): ConsentSummary {
   const v = record(value);
   if (typeof v.receipt_id !== "string" || !UUID.test(v.receipt_id) || typeof v.signed_at !== "string" || !Number.isFinite(Date.parse(v.signed_at)) || typeof v.email !== "string" || typeof v.email_eligible !== "boolean" || typeof v.withdrawn !== "boolean") throw new Error("consent_response_invalid");
+  if (v.confirmation_required !== undefined && typeof v.confirmation_required !== "boolean") throw new Error("consent_response_invalid");
+  if (v.confirmation_state !== undefined && !["legacy", "pending", "confirmed", "withdrawn", "superseded", "expired"].includes(String(v.confirmation_state))) throw new Error("consent_response_invalid");
+  if (v.confirmed_at !== undefined && v.confirmed_at !== null && (typeof v.confirmed_at !== "string" || !Number.isFinite(Date.parse(v.confirmed_at)))) throw new Error("consent_response_invalid");
+  if (v.confirmation_required === true && (v.confirmation_state === undefined || (v.email_eligible && v.confirmation_state !== "confirmed"))) throw new Error("consent_response_invalid");
   return v as ConsentSummary;
 }
 export function parseConsentContext(value: unknown): ConsentContext {
@@ -105,8 +115,22 @@ export function parseConsentContext(value: unknown): ConsentContext {
 export function parseConsentReceipt(value: unknown): ConsentReceipt {
   const v = record(value);
   const summary = parseSummary(value);
-  if (!Number.isSafeInteger(v.source_objectid) || Number(v.source_objectid) <= 0 || v.email_verified !== false || v.approval_method !== "restaurateur_signature_in_person" || v.evidence_quality !== "system_event" || typeof v.document_hash !== "string" || !HASH.test(v.document_hash) || typeof v.proof_hash !== "string" || !HASH.test(v.proof_hash)) throw new Error("consent_response_invalid");
+  if (!Number.isSafeInteger(v.source_objectid) || Number(v.source_objectid) <= 0 || (typeof v.email_verified !== "boolean" || (v.email_verified && !v.confirmed_at)) || v.approval_method !== "restaurateur_signature_in_person" || v.evidence_quality !== "system_event" || typeof v.document_hash !== "string" || !HASH.test(v.document_hash) || typeof v.proof_hash !== "string" || !HASH.test(v.proof_hash)) throw new Error("consent_response_invalid");
   for (const key of ["restaurant_name", "signer_name", "signer_role", "signature_data"]) if (typeof v[key] !== "string" || !(v[key] as string).length) throw new Error("consent_response_invalid");
   if (!/^data:image\/png;base64,iVBORw0KGgo[A-Za-z0-9+/=]+$/.test(v.signature_data as string)) throw new Error("consent_response_invalid");
   return { ...v, ...summary, document: parseDocument(v.document) } as ConsentReceipt;
+}
+
+/** A recorded signature is not a campaign authorization while mailbox approval is pending. */
+export function consentStatusLabel(receipt: ConsentSummary): string {
+  if (receipt.withdrawn || receipt.confirmation_state === "withdrawn") return "Autorisation retirée";
+  if (receipt.confirmation_state === "superseded") return "Remplacée par une nouvelle demande";
+  if (receipt.confirmation_state === "expired") return "Lien de confirmation expiré";
+  if (receipt.confirmation_required && receipt.confirmation_state !== "confirmed") return "En attente de confirmation par e-mail";
+  return receipt.email_eligible ? "Consentement e-mail actif" : "Envoi bloqué par les règles marketing";
+}
+export function consentDeliveryLabel(state: ConsentSummary["email_delivery_state"]): string | null {
+  return state ? ({ queued: "E-mail de confirmation en file d’envoi.", processing: "Envoi de l’e-mail en cours.",
+    retry: "L’envoi a échoué ; une nouvelle tentative automatique est prévue.", sent: "E-mail accepté par le service d’envoi. Vérifiez aussi les courriers indésirables.",
+    failed: "Échec de l’envoi : contactez TOK avant de refaire signer une demande.", cancelled: "Envoi annulé : aucun nouveau droit de campagne n’est accordé." })[state] : null;
 }
