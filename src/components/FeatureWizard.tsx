@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+import { useJourneyFocus } from "@/hooks/useJourneyFocus";
+import { useRef, ReactNode } from "react";
 import {
   CheckCircle2,
   ChefHat,
@@ -521,6 +522,8 @@ function GoldenTokFeatureWizard({
   headerAction,
   children,
 }: Omit<FeatureWizardProps, "icon" | "colorClass">) {
+  const stepRef = useRef<HTMLElement>(null);
+  useJourneyFocus(stepRef, currentStepId, "section", true);
   const currentIdx = steps.findIndex((step) => step.id === currentStepId);
   const normalizedCurrentIdx = Math.max(0, currentIdx);
 
@@ -553,7 +556,7 @@ function GoldenTokFeatureWizard({
           </div>
         </aside>
 
-        <section className="golden-tok-stage min-w-0 px-4 py-7 sm:px-6 sm:py-9 lg:px-8 xl:px-9 xl:py-10">
+        <section ref={stepRef} tabIndex={-1} aria-label={title} className="tok-journey-step scroll-mt-28 golden-tok-stage min-w-0 px-4 py-7 sm:px-6 sm:py-9 lg:px-8 xl:px-9 xl:py-10">
           <div className="golden-tok-heading">
             <div className="golden-tok-hero-copy">
               <p className="golden-tok-eyebrow">GOLDEN TOK</p>
@@ -666,6 +669,8 @@ function GoldenTokFeatureWizard({
 }
 
 export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, currentStepId, onStepChange, headerAction, children }: FeatureWizardProps) {
+  const stepRef = useRef<HTMLElement>(null);
+  useJourneyFocus(stepRef, currentStepId, "section", true);
   if (title === "La Tok d’Or") {
     return (
       <GoldenTokFeatureWizard
@@ -685,7 +690,7 @@ export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, 
   const currentStep = steps[Math.max(0, currentIdx)] ?? steps[0];
   const progress = steps.length > 0 ? Math.round(((Math.max(0, currentIdx) + 1) / steps.length) * 100) : 0;
   return (
-    <main className="min-h-screen bg-background">
+    <main ref={stepRef} tabIndex={-1} aria-label={`${title} : ${currentStep?.label || ""}`} className="tok-journey-step scroll-mt-28 min-h-screen bg-background">
       <div className="container py-8 max-w-2xl space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -738,7 +743,7 @@ export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, 
             const isPast = i < currentIdx;
             return (
               <div key={s.id} className="flex items-center gap-1 flex-1 min-w-fit">
-                <button onClick={() => isPast && onStepChange && onStepChange(s.id)} disabled={!isPast && !isCurrent} className={`flex min-h-[44px] items-center gap-2 rounded-full px-1 transition-colors ${isPast ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}>
+                <button type="button" aria-label={`Étape ${i + 1} : ${s.label}`} aria-current={isCurrent ? "step" : undefined} onClick={() => isPast && onStepChange && onStepChange(s.id)} disabled={!isPast && !isCurrent} className={`flex min-h-[44px] items-center gap-2 rounded-full px-1 transition-colors ${isPast ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}>
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isCurrent ? `bg-${colorClass} text-white` : isPast ? `bg-${colorClass}/20 text-${colorClass}` : "bg-secondary text-muted-foreground"}`}>{isPast ? <CheckCircle2 className="h-4 w-4" /> : i + 1}</div>
                   <span className={`text-[11px] whitespace-nowrap ${isCurrent ? "font-semibold text-foreground" : "text-muted-foreground"} ${!isCurrent && !isPast ? "hidden sm:inline" : ""}`}>{s.label}</span>
                 </button>

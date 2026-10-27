@@ -1,3 +1,5 @@
+import { useJourneyFocus } from "@/hooks/useJourneyFocus";
+import WorkflowActions from "@/components/dashboard/WorkflowActions";
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -152,14 +154,6 @@ const MAX_COMMERCIAL_DEMO_REFERENCE_BYTES = 4 * 1024 * 1024;
 const MARKETING_PROMPT_MAX_LENGTH = 900;
 const MARKETING_MENU_CONTEXT_LIMIT = 120;
 const MARKETING_MENU_PROMPT_ITEM_LIMIT = 80;
-const MARKETING_RENDER_SCROLL_DURATION_MS = 620;
-const MARKETING_RENDER_SCROLL_OFFSET_PX = 24;
-
-function easeInOutCubic(progress: number) {
-  return progress < 0.5
-    ? 4 * progress * progress * progress
-    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-}
 
 const MARKETING_ASSET_KIND_LABELS: Record<MarketingAssetKind, string> = {
   logo: "Logo",
@@ -542,8 +536,8 @@ const MARKETING_STUDIO_STEPS: Array<{
     icon: FileImage,
   },
   {
-    title: "Éléments de références marketing",
-    description: "Logo, carte, menu et visuels de marque dédiés au studio.",
+    title: "Votre marque",
+    description: "Logo et références enregistrés. Étape facultative.",
     icon: Upload,
   },
   {
@@ -1202,13 +1196,14 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
   const [demoGenerationHistory, setDemoGenerationHistory] = useState<CommercialDemoVisualHistoryItem[]>([]);
   const [demoHistoryLoading, setDemoHistoryLoading] = useState(false);
   const [activeStep, setActiveStep] = useState<MarketingWorkflowStep>(1);
+  const stepHeadingRef = useRef<HTMLDivElement>(null);
+  useJourneyFocus(stepHeadingRef, activeStep, "section", true);
   const [creditError, setCreditError] = useState<string | null>(null);
   const [visiblePromptIdeaCount, setVisiblePromptIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
   const [visibleNegativeIdeaCount, setVisibleNegativeIdeaCount] = useState(MARKETING_SUGGESTION_BATCH_SIZE);
   const generationRequestRef = useRef(0);
   const mountedRef = useRef(true);
   const renderSettingsRef = useRef<HTMLDivElement | null>(null);
-  const renderSettingsScrollFrameRef = useRef<number | null>(null);
   const demoObjectUrlsRef = useRef(new Set<string>());
   const initializedDemoResourcesRef = useRef<string | null>(null);
 
@@ -1264,9 +1259,6 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
     const demoObjectUrls = demoObjectUrlsRef.current;
     return () => {
       mountedRef.current = false;
-      if (renderSettingsScrollFrameRef.current !== null) {
-        window.cancelAnimationFrame(renderSettingsScrollFrameRef.current);
-      }
       for (const objectUrl of demoObjectUrls) URL.revokeObjectURL(objectUrl);
       demoObjectUrls.clear();
     };
@@ -1340,41 +1332,9 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
 
   const scrollToMarketingRenderSettings = () => {
     const target = renderSettingsRef.current;
-    if (!target || typeof window === "undefined") return;
-
-    if (renderSettingsScrollFrameRef.current !== null) {
-      window.cancelAnimationFrame(renderSettingsScrollFrameRef.current);
-      renderSettingsScrollFrameRef.current = null;
-    }
-
-    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    const startY = window.scrollY;
-    const targetY = Math.max(
-      0,
-      startY + target.getBoundingClientRect().top - MARKETING_RENDER_SCROLL_OFFSET_PX,
-    );
-    const distance = targetY - startY;
-
-    if (prefersReducedMotion || Math.abs(distance) < 2) {
-      window.scrollTo({ top: targetY, left: window.scrollX, behavior: "auto" });
-      return;
-    }
-
-    const startTime = window.performance.now();
-    const animateScroll = (currentTime: number) => {
-      const progress = Math.min((currentTime - startTime) / MARKETING_RENDER_SCROLL_DURATION_MS, 1);
-      const easedProgress = easeInOutCubic(progress);
-      window.scrollTo(0, startY + distance * easedProgress);
-
-      if (progress < 1) {
-        renderSettingsScrollFrameRef.current = window.requestAnimationFrame(animateScroll);
-        return;
-      }
-
-      renderSettingsScrollFrameRef.current = null;
-    };
-
-    renderSettingsScrollFrameRef.current = window.requestAnimationFrame(animateScroll);
+    if (!target) return;
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    target.scrollIntoView?.({ block: "start", behavior: reducedMotion ? "instant" : "smooth" });
   };
 
   const handleMarketingToolSelect = (tool: MarketingToolConfig) => {
@@ -1661,6 +1621,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
   };
 
   const requestGeneration = async () => {
+    if (loading) return;
     const safePrompt = sanitizeMarketingPrompt(prompt);
     const warnings = getMarketingPromptWarnings(prompt);
     const safeGenerationSeed = sanitizeTokGenerationSeed(generationSeed);
@@ -1821,31 +1782,13 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
   }
 
   return (
-    <section className="max-w-full overflow-hidden rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-background to-background shadow-sm dark:border-orange-900/50 dark:from-orange-950/20">
+    <section className="tok-marketing-workflow max-w-full overflow-clip rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-background to-background shadow-sm dark:border-orange-900/50 dark:from-orange-950/20">
       <div className="grid min-w-0 gap-4 p-3 sm:gap-6 sm:p-5 lg:p-6">
         <div className="min-w-0 space-y-4 sm:space-y-6">
-          <div className="relative min-w-0 overflow-hidden rounded-3xl border border-orange-200 bg-[radial-gradient(circle_at_top_right,rgba(255,115,0,0.20),transparent_38%),linear-gradient(135deg,#fff7ed,#ffffff_52%,#fff1e6)] p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
-            <div className="absolute -right-16 -top-24 h-56 w-56 rounded-full bg-orange-200/50 blur-3xl" aria-hidden="true" />
-            <div className="space-y-2">
-              <div className="flex flex-wrap gap-2">
-                <Badge className="bg-orange-600 text-white hover:bg-orange-600">Marketing automatique</Badge>
-                {isCommercialDemo ? (
-                  <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800">
-                    OpenAI réel · crédits Démo illimités · coût suivi en interne
-                  </Badge>
-                ) : null}
-              </div>
-              <div>
-                <h2 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
-                  Studio Photo & Marketing IA
-                </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                  {isCommercialDemo
-                    ? "Utilisez les références préchargées ou ajoutez temporairement vos fichiers. OpenAI génère réellement le visuel ; la clé reste côté serveur et aucune donnée de production n'est modifiée."
-                    : "Ajoutez une fois votre logo, vos captures et vos visuels de marque. L'outil les enregistre et génère ensuite une image marketing finale à partir de votre prompt."}
-                </p>
-              </div>
-            </div>
+          <div className="min-w-0 rounded-2xl border bg-background p-4">
+            <h2 className="text-lg font-bold text-foreground">Un visuel en trois étapes</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Choisissez un support, retrouvez votre marque, puis décrivez votre idée. Vos choix restent conservés lorsque vous revenez à l’étape précédente.</p>
+            {isCommercialDemo ? <Badge variant="outline" className="mt-3 whitespace-normal border-emerald-300 bg-emerald-50 text-emerald-800">OpenAI réel · crédits Démo illimités · coût suivi en interne</Badge> : null}
           </div>
 
           {isCommercialDemo && (demoHistoryLoading || demoGenerationHistory.length > 0) ? (
@@ -1874,7 +1817,6 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                         onClick={() => {
                           setMarketingImageResult(item);
                           setActiveStep(3);
-                          window.requestAnimationFrame(scrollToMarketingRenderSettings);
                         }}
                         className="min-w-0 overflow-hidden rounded-2xl border bg-background text-left shadow-sm transition hover:border-emerald-400 hover:shadow-md"
                       >
@@ -1895,7 +1837,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
             </Card>
           ) : null}
 
-          <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div ref={stepHeadingRef} tabIndex={-1} className="tok-journey-step grid min-w-0 grid-cols-3 gap-2" aria-label={`Étape ${activeStep} sur 3 : ${MARKETING_STUDIO_STEPS[activeStep - 1].title}`}>
             {MARKETING_STUDIO_STEPS.map((step, index) => {
               const Icon = step.icon;
               const currentStep = (index + 1) as MarketingWorkflowStep;
@@ -1904,18 +1846,20 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                   key={step.title}
                   type="button"
                   onClick={() => setActiveStep(currentStep)}
+                  aria-current={activeStep === currentStep ? "step" : undefined}
+                  disabled={loading || uploadingKind !== null || deletingResourceId !== null}
                   className={`rounded-2xl border border-orange-100 bg-white/85 p-3 text-left shadow-sm ring-1 ring-black/[0.02] transition hover:border-orange-300 dark:bg-background/80 ${activeStep === currentStep ? "border-orange-400" : ""}`}
                 >
-                  <div className="flex min-w-0 items-start gap-3">
+                  <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-orange-600 text-sm font-bold text-white shadow-sm">
                       {index + 1}
                     </span>
                     <div className="min-w-0">
                       <div className="flex min-w-0 items-center gap-2">
-                        <Icon className="h-4 w-4 text-orange-600" />
+                        <Icon className="hidden h-4 w-4 shrink-0 text-orange-600 sm:block" aria-hidden="true" />
                         <p className="min-w-0 break-words text-sm font-semibold text-foreground">{step.title}</p>
                       </div>
-                      <p className="mt-1 break-words text-xs leading-5 text-muted-foreground">{step.description}</p>
+                      <p className="mt-1 hidden break-words text-xs leading-5 text-muted-foreground sm:block">{step.description}</p>
                     </div>
                   </div>
                 </button>
@@ -1948,7 +1892,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">1</span>
                   Choisir le support
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
                 {MARKETING_TOOLS.map((tool) => {
                   const Icon = tool.icon;
                   const selected = tool.id === activeTool;
@@ -1957,25 +1901,27 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                       key={tool.id}
                       type="button"
                       onClick={() => handleMarketingToolSelect(tool)}
-                      className={`min-w-0 rounded-2xl border p-4 text-center transition ${
+                      aria-pressed={selected}
+                      className={`min-w-0 rounded-2xl border p-3 text-center transition ${
                         selected
                           ? "border-orange-400 bg-orange-50 shadow-sm dark:bg-orange-950/20"
                           : "border-border bg-background hover:border-orange-200"
                       }`}
                     >
-                      <div className="flex min-h-28 flex-col items-center justify-center gap-3">
-                        <span className={`rounded-3xl p-4 ${selected ? "bg-orange-600 text-white" : "bg-orange-50 text-orange-700"}`}>
-                          <Icon className="h-7 w-7" />
+                      <div className="flex min-h-24 flex-col items-center justify-center gap-2">
+                        <span className={`rounded-2xl p-2.5 ${selected ? "bg-orange-600 text-white" : "bg-orange-50 text-orange-700"}`}>
+                          <Icon className="h-5 w-5" aria-hidden="true" />
                         </span>
                         <span>
-                          <span className="block text-base font-bold text-foreground">{tool.title}</span>
-                          <span className="mt-1 block text-xs leading-5 text-muted-foreground">{tool.description}</span>
+                          <span className="block text-sm font-bold text-foreground">{tool.title}</span>
+                          <span className="mt-1 hidden text-xs leading-5 text-muted-foreground sm:block">{tool.description}</span>
                         </span>
                       </div>
                     </button>
                   );
                 })}
                 </div>
+                <p className="mt-3 text-sm text-muted-foreground sm:hidden">{activeToolConfig.description}</p>
               </div>
 
               <div className={`${activeStep === 3 ? "" : "hidden"} min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background sm:rounded-3xl`}>
@@ -2012,7 +1958,8 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
               </div>
               </div>
 
-              <div className={`${activeStep === 3 ? "space-y-3" : "hidden"} min-w-0 rounded-2xl border border-dashed border-orange-200 bg-orange-50/40 p-3 sm:rounded-3xl`}>
+              <details className={`${activeStep === 3 ? "space-y-3" : "hidden"} min-w-0 rounded-2xl border border-dashed border-orange-200 bg-orange-50/40 p-3 sm:rounded-3xl`}>
+                <summary className="cursor-pointer py-2 text-sm font-semibold">Besoin d’inspiration ? Voir les idées et conseils</summary>
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <span className="basis-full self-center text-xs font-semibold uppercase tracking-[0.18em] text-orange-700 sm:mr-1 sm:basis-auto">Idées rapides</span>
                   {visiblePromptIdeas.map((suggestion) => (
@@ -2061,11 +2008,11 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                     </Button>
                   ) : null}
                 </div>
-              </div>
+              </details>
 
               <div
                 ref={renderSettingsRef}
-                className={`${activeStep === 1 ? "" : "hidden"} min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background sm:rounded-3xl`}
+                className={`${activeStep === 1 ? "" : "hidden"} tok-journey-step min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm dark:bg-background sm:rounded-3xl`}
               >
                 <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">2</span>
@@ -2128,8 +2075,9 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                     <option>Minimaliste imprime</option>
                   </select>
                 </div>
-                <div className="min-w-0 space-y-2 md:col-span-2 xl:col-span-2">
-                  <Label htmlFor="marketing-generation-seed">Seed de generation</Label>
+                <details className="min-w-0 space-y-2 md:col-span-2 xl:col-span-2">
+                  <summary className="cursor-pointer py-2 text-sm font-semibold">Options avancées : reproduire un style</summary>
+                  <Label htmlFor="marketing-generation-seed">Identifiant de style (seed)</Label>
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <Input
                       id="marketing-generation-seed"
@@ -2143,9 +2091,9 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                     </Button>
                   </div>
                   <p className="text-xs leading-5 text-muted-foreground">
-                    Reutilisez une seed deja réussie pour garder une famille visuelle proche sur vos prochains supports.
+                    Réutilisez cet identifiant pour retrouver une famille visuelle. Vous pouvez laisser ce champ vide.
                   </p>
-                </div>
+                </details>
                 <div className="min-w-0 space-y-2">
                   <Label>Image IA</Label>
                   <div className="rounded-md border bg-background px-3 py-2 text-sm">
@@ -2155,21 +2103,12 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                     </p>
                   </div>
                 </div>
-                <div className="mt-2 flex justify-stretch md:col-span-2 xl:col-span-4 md:justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setActiveStep(2)}
-                    className="h-auto min-h-[44px] w-full min-w-0 whitespace-normal rounded-2xl border-orange-300 text-center text-orange-700 hover:bg-orange-50 sm:w-auto"
-                  >
-                    Continuer vers les références marketing
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </div>
+
               </div>
               </div>
 
-              <div className={`${activeStep === 3 ? "" : "hidden"} min-w-0 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3 text-sm shadow-sm sm:rounded-3xl sm:p-4`}>
+              <details className={`${activeStep === 3 ? "" : "hidden"} min-w-0 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3 text-sm shadow-sm sm:rounded-3xl sm:p-4`}>
+                <summary className="cursor-pointer py-2 font-semibold text-foreground">Vérifier les paramètres et références du visuel</summary>
                 <div className="mb-3 flex min-w-0 items-center gap-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">3</span>
                   <p className="min-w-0 break-words font-semibold text-emerald-950">Contrôle avant génération</p>
@@ -2195,7 +2134,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                   <span className="rounded-full bg-white/70 px-2.5 py-1 [overflow-wrap:anywhere]">Menu: {activeBusinessContextLoading ? "chargement" : `${activeBusinessContext?.menuItems.length || 0} plat(s)`}</span>
                 </div>
                 <p className="mt-2 line-clamp-2 min-w-0 rounded-2xl bg-white/80 p-3 text-emerald-950/80 [overflow-wrap:anywhere]">{sanitizedPrompt || "Le prompt apparaitra ici apres saisie."}</p>
-              </div>
+              </details>
 
               {activeStep === 3 && generatedMarketingImageUrl ? (
                 <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm dark:border-emerald-900/50 dark:bg-background">
@@ -2240,21 +2179,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                 </div>
               ) : null}
 
-              <div className={`${activeStep === 3 ? "flex" : "hidden"} min-w-0 flex-col gap-3 rounded-2xl border border-orange-200 bg-orange-50/80 p-3 sm:flex-row sm:items-center sm:rounded-3xl`}>
-                <Button type="button" onClick={requestGeneration} disabled={!restaurantId || loading} size="lg" className="h-auto min-h-12 w-full min-w-0 whitespace-normal rounded-2xl bg-orange-600 px-4 text-center text-base font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-700 sm:w-auto sm:px-6">
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  {loading
-                    ? "Génération de l'image..."
-                    : isCommercialDemo
-                      ? "Générer avec OpenAI · crédits Démo illimités"
-                      : `Générer l'image marketing (${outputPricing.photoCredits} cr.)`}
-                </Button>
-                <p className="min-w-0 break-words text-xs leading-5 text-muted-foreground">
-                  {isCommercialDemo
-                    ? "Le résultat et son historique restent dans la session Démo spéciale."
-                    : "Votre visuel est généré à partir du brief, du support choisi et des ressources de marque enregistrées."}
-                </p>
-              </div>
+
             </CardContent>
           </Card>
         </div>
@@ -2368,17 +2293,32 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
                   <p>{hasBrandResources ? "Éléments de références marketing prêts pour générer une image cohérente." : "Ajoutez logo + carte/menu/visuels dans cet onglet pour une image plus proche de votre marque."}</p>
                 </div>
               </div>
-              <div className="flex justify-end">
-                <Button type="button" onClick={() => setActiveStep(3)} className="gap-2 rounded-2xl bg-orange-600 hover:bg-orange-700">
-                  Continuer vers le brief
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
+
             </CardContent>
           </Card>
 
         </aside>
       </div>
+      <WorkflowActions
+        step={activeStep}
+        total={3}
+        title={MARKETING_STUDIO_STEPS[activeStep - 1].title}
+        hint={activeStep === 1 ? `${activeToolConfig.title} · ${selectedFormat.label}` : activeStep === 2 ? "Étape facultative : vos références existantes seront réutilisées." : `${activeToolConfig.title} · ${selectedFormat.label} · ${displayedPhotoCredits}`}
+        onBack={activeStep > 1 ? () => setActiveStep((activeStep - 1) as MarketingWorkflowStep) : undefined}
+        disabled={loading || uploadingKind !== null || deletingResourceId !== null}
+      >
+        {activeStep < 3 ? (
+          <Button type="button" className="min-h-11 gap-2 whitespace-normal text-left" disabled={loading || uploadingKind !== null || deletingResourceId !== null || resourcesLoading} onClick={() => setActiveStep((activeStep + 1) as MarketingWorkflowStep)}>
+            {activeStep === 1 ? "Continuer vers les références marketing" : "Continuer vers le brief"}
+            <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+          </Button>
+        ) : (
+          <Button type="button" className="min-h-11 gap-2 whitespace-normal text-left" onClick={requestGeneration} disabled={!restaurantId || loading || !sanitizedPrompt || promptWarnings.length > 0}>
+            {loading ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />}
+            {loading ? "Génération en cours…" : isCommercialDemo ? "Générer avec OpenAI · crédits Démo illimités" : `Générer le visuel · ${outputPricing.photoCredits} crédits`}
+          </Button>
+        )}
+      </WorkflowActions>
       <AiGenerationProgressDialog
         open={loading}
         title="Generation marketing en cours"

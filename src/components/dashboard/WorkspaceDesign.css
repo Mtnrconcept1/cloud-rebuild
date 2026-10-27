@@ -430,3 +430,49 @@
   .tok-hospitality-workspace *::before,
   .tok-hospitality-workspace *::after { scroll-behavior: auto; transition-duration: .01ms; animation-duration: .01ms; }
 }
+
+/* Journey controls: reveal the new task without a hidden continuation. */
+.tok-journey-step { scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 100px); }
+.tok-journey-step:focus,
+.tok-hospitality-workspace main[tabindex="-1"]:focus { outline: none; }
+.tok-workflow-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 35;
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  border-top: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 8%);
+}
+.tok-workflow-actions button { max-width: 100%; }
+.tok-workflow-actions + * { scroll-margin-bottom: 160px; }
+.tok-marketing-workflow :is(button, input, textarea, select, summary) { scroll-margin-block: 110px 170px; }
+.tok-marketing-workflow summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 4px; }
+.tok-client-mobile-nav > .grid > a { width: 100%; min-width: 0; }
+
+/* Task pages keep the brand images, with less space before the tools. */
+.tok-hospitality-workspace .tok-customer-hero-row[data-compact="true"] { min-height: 0; }
+.tok-hospitality-workspace .tok-customer-hero-row[data-compact="true"] .tok-customer-page-hero__copy { min-height: 220px; padding: 24px 28px; }
+.tok-hospitality-workspace .tok-customer-hero-row[data-compact="true"] h1 { font-size: clamp(30px, 3vw, 44px); }
+.tok-hospitality-workspace .tok-customer-hero-row[data-compact="true"] .tok-customer-hero-sidecar { padding: 18px; }
+.tok-hospitality-workspace .tok-customer-hero-row[data-compact="true"] .tok-customer-hero-sidecar img { max-height: 105px; }
+
+@media (max-width: 767px) {
+  .tok-hospitality-workspace .tok-customer-hero-row[data-compact="true"] .tok-customer-page-hero { min-height: 0; }
+  .tok-hospitality-workspace .tok-customer-hero-row[data-compact="true"] .tok-customer-page-hero__copy { min-height: 0; padding: 22px; }
+  .tok-hospitality-workspace .tok-customer-hero-row[data-compact="true"] .tok-customer-page-hero::after { background: rgb(255 255 255 / 96%); }
+  .dark .tok-hospitality-workspace .tok-customer-hero-row[data-compact="true"] .tok-customer-page-hero::after { background: rgb(39 32 26 / 96%); }
+  .tok-workflow-actions { gap: 8px; padding-inline: 12px; }
+  .tok-workflow-actions > div { flex-basis: 100%; }
+  .tok-workflow-actions > div:last-child { flex-wrap: nowrap; }
+  .tok-workflow-actions > div:last-child > button:last-child { flex: 1; }
+}
+
+@media (max-width: 767px) {
+  .tok-hospitality-workspace .tok-dashboard-hero[data-compact="true"][data-has-stats="false"] .tok-hospitality-hero-console { display: none; }
+}

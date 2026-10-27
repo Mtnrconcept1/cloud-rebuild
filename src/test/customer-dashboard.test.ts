@@ -38,8 +38,9 @@ describe("espace client central", () => {
     const customerStyles = readSource("src/components/dashboard/CustomerWorkspacePages.css");
 
     expect(layout).toContain('aria-label="Navigation de l’espace client"');
-    expect(layout).toContain("overflow-x-auto");
-    expect(layout).toContain("snap-x");
+    expect(layout).toContain("<CustomerMobileNavigation");
+    expect(layout).toContain("shortcuts={mobileItems.map");
+    expect(layout).not.toContain("overflow-x-auto");
     expect(layout).toContain('aria-current={active ? "page" : undefined}');
     expect(layout).toContain('to: "/profil?tab=favoris"');
     expect(layout).toContain('to: "/profil?tab=fidelite"');

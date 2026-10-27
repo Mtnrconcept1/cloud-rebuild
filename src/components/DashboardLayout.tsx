@@ -1,5 +1,6 @@
 import "@/components/dashboard/WorkspaceDesign.css";
 import "@/components/dashboard/RestaurantWorkspacePages.css";
+import { useJourneyFocus } from "@/hooks/useJourneyFocus";
 import WorkspaceNavigationSection from "@/components/dashboard/WorkspaceNavigationSection";
 import WorkspaceToolbar, { WorkspaceAccountLink, WorkspaceToolSearch } from "@/components/dashboard/WorkspaceToolbar";
 import { Link, useLocation } from "react-router-dom";
@@ -321,7 +322,9 @@ export default function DashboardLayout({
   mainClassName,
   constrainToViewport = false,
 }: DashboardLayoutProps) {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
+  const pageRef = useRef<HTMLElement>(null);
+  useJourneyFocus(pageRef, hash ? null : pathname);
   const queryClient = useQueryClient();
   const logoSrc = useTokLogoSrc();
   const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, onboardingConfigurationUnlocked, isDemoMode } = useDashboardRestaurant();
@@ -564,6 +567,9 @@ export default function DashboardLayout({
           {!commercialDemoFrame ? <WorkspaceAccountLink to="/dashboard/mon-compte-facturation" /> : null}
         </WorkspaceToolbar>
       <main
+        ref={pageRef}
+        tabIndex={-1}
+        aria-label={activeNavItem?.label || "Espace restaurateur"}
         className={cn(
           "tok-workspace-content relative min-w-0 flex-1 overflow-x-clip p-4 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] sm:p-5 sm:pb-[calc(env(safe-area-inset-bottom,0px)+2.5rem)] md:p-6 md:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]",
           constrainToViewport && "flex h-[100dvh] min-h-0 flex-col overflow-y-hidden",

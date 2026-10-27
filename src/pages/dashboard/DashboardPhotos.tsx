@@ -1,3 +1,4 @@
+import { useJourneyFocus } from "@/hooks/useJourneyFocus";
 import { type CSSProperties, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -537,21 +538,8 @@ export default function DashboardPhotos() {
     demoGalleryObjectUrlsRef.current.clear();
   }, []);
 
-  useEffect(() => {
-    const resetScroll = () => {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-      document.scrollingElement?.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
-      if (document.scrollingElement) {
-        document.scrollingElement.scrollTop = 0;
-        document.scrollingElement.scrollLeft = 0;
-      }
-    };
-
-    resetScroll();
-    const frame = window.requestAnimationFrame(resetScroll);
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [activeTool]);
+  const toolPageRef = useRef<HTMLDivElement>(null);
+  useJourneyFocus(toolPageRef, activeTool, "page", true);
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
@@ -696,7 +684,7 @@ export default function DashboardPhotos() {
 
   return (
     <DashboardLayout mainClassName="tok-restaurant-page tok-page-photos">
-      <div className="space-y-6">
+      <div ref={toolPageRef} tabIndex={-1} className="space-y-6">
         {!activeTool ? (
           <>
             <DashboardPageHero

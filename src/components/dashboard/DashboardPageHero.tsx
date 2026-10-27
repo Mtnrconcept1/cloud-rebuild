@@ -83,7 +83,7 @@ export default function DashboardPageHero({
   stats = [],
   visualLabel = "Pilotage",
   illustration,
-  compact = false,
+  compact = true,
   className,
 }: DashboardPageHeroProps) {
   const { pathname } = useLocation();

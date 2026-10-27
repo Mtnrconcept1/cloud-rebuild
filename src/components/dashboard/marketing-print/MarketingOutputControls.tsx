@@ -158,9 +158,10 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
               {selectedTarget ? <Badge variant="secondary" className="rounded-full">{selectedTarget.ratioLabel}</Badge> : null}
               {selectedTarget?.targetDpi ? <Badge variant="secondary" className="rounded-full">{selectedTarget.targetDpi} DPI</Badge> : null}
             </div>
-            <h2 className="mt-2 text-lg font-black sm:text-xl">Choisissez d’abord où le visuel sera utilisé</h2>
+            <h2 className="mt-2 text-lg font-black sm:text-xl">Format du visuel</h2>
             <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-              Cette cible est prioritaire sur le gabarit créatif du Studio. GPT Image génère le bucket natif le plus proche, puis TheTok recadre et rééchantillonne le fichier aux dimensions finales exactes.
+              {selectedTarget ? `${selectedTarget.label} · ${selectedTarget.widthPx} × ${selectedTarget.heightPx} px. ` : "Choisissez un format de sortie. "}
+              Vous pouvez modifier la destination et le format avant de générer votre visuel.
             </p>
           </div>
           <Button
@@ -175,7 +176,11 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
           </Button>
         </div>
 
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+        {!latestMarketingCreation ? <p className="text-xs text-muted-foreground">Le téléchargement sera disponible après la génération d’un visuel.</p> : null}
+        {printBlocked ? <p role="alert" className="text-sm font-semibold text-destructive">Ce format est trop grand pour une impression de qualité. Choisissez un autre format avant de générer.</p> : null}
+        <details className="rounded-2xl border bg-background/80 p-3">
+          <summary className="cursor-pointer py-2 text-sm font-semibold">Modifier la destination ou le format</summary>
+        <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <div className="grid grid-cols-2 gap-2 rounded-2xl border bg-background/80 p-1.5" aria-label="Destination du visuel">
             <button
               type="button"
@@ -247,11 +252,14 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
                 : "border-emerald-200 bg-emerald-50/80 text-emerald-950 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100",
           )}>
             <p className="font-bold">{selectedTarget.label}</p>
+            <details className="mt-2">
+              <summary className="cursor-pointer py-1 text-xs font-semibold">Détails techniques du format</summary>
             <p className="mt-1">{targetDescription(selectedTarget)}</p>
             <p className="mt-1 text-xs opacity-80">
               Source GPT attendue : {selectedTarget.nativeWidthPx}×{selectedTarget.nativeHeightPx} · facteur théorique {expectedPlan?.upscaleFactor.toFixed(2)}×.
               {printBlocked ? " Ce support dépasse le plafond 2,5× et la génération Print est bloquée." : ""}
             </p>
+            </details>
           </div>
         ) : destination === "print" ? (
           <div className="rounded-2xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" role="status">
@@ -260,6 +268,8 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
               : "Aucun format Cloudprinter mappé avec une géométrie fiable n’est disponible. Utilisez la sortie digitale ou corrigez le mapping dans l’Admin impression."}
           </div>
         ) : null}
+
+        </details>
 
         {downloadError ? (
           <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800" role="alert">

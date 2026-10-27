@@ -291,7 +291,7 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("Éléments de références marketing");
     expect(marketingStudio).toContain("Ils ne sont pas ajoutés à la galerie restaurant.");
     expect(marketingStudio).toContain("Brief & génération");
-    expect(marketingStudio).toContain("Votre visuel est généré à partir du brief");
+    expect(marketingStudio).toContain("Un visuel en trois étapes");
     expect(marketingStudio).toContain("Image IA");
     expect(marketingStudio).not.toContain("marketing-output-resolution");
     expect(marketingStudio).not.toContain("TOK_IMAGE_OUTPUT_OPTIONS");
@@ -339,7 +339,7 @@ describe("TOK photo studio persistence", () => {
     expect(mediaGovernance).toContain('media_type: "photo_ai_tok"');
   });
 
-  it("shows the marketing references continuation action only from render settings", () => {
+  it("keeps one marketing continuation action in the workflow footer", () => {
     const continuationLabel = "Continuer vers les références marketing";
     const continuationCount = marketingStudio.split(continuationLabel).length - 1;
     const renderSettingsIndex = marketingStudio.indexOf("Paramétrer le rendu");
@@ -350,15 +350,11 @@ describe("TOK photo studio persistence", () => {
     expect(continuationIndex).toBeGreaterThan(renderSettingsIndex);
   });
 
-  it("scrolls smoothly to render settings after selecting a marketing support", () => {
-    expect(marketingStudio).toContain("MARKETING_RENDER_SCROLL_DURATION_MS = 620");
-    expect(marketingStudio).toContain("MARKETING_RENDER_SCROLL_OFFSET_PX = 24");
-    expect(marketingStudio).toContain("function easeInOutCubic(progress: number)");
-    expect(marketingStudio).toContain("const renderSettingsRef = useRef<HTMLDivElement | null>(null)");
-    expect(marketingStudio).toContain("const scrollToMarketingRenderSettings = () => {");
-    expect(marketingStudio).toContain("window.requestAnimationFrame(scrollToMarketingRenderSettings)");
-    expect(marketingStudio).toContain("onClick={() => handleMarketingToolSelect(tool)}");
+  it("reveals render settings after support selection while respecting reduced motion", () => {
+    expect(marketingStudio).toContain("(prefers-reduced-motion: reduce)");
+    expect(marketingStudio).toContain('behavior: reducedMotion ? "instant" : "smooth"');
     expect(marketingStudio).toContain("ref={renderSettingsRef}");
+    expect(marketingStudio).toContain("onClick={() => handleMarketingToolSelect(tool)}");
   });
 
   it("offers print supports with support-specific Flyerline-inspired formats", () => {
@@ -423,8 +419,8 @@ describe("TOK photo studio persistence", () => {
     expect(marketingStudio).toContain("grid min-w-0 gap-4 p-3 sm:gap-6 sm:p-5 lg:p-6");
     expect(marketingStudio).toContain("min-w-0 rounded-2xl border border-orange-100 bg-white p-3 shadow-sm");
     expect(marketingStudio).toContain("basis-full self-center text-xs font-semibold uppercase");
-    expect(marketingStudio).toContain("h-auto min-h-[44px] w-full min-w-0 whitespace-normal");
-    expect(marketingStudio).toContain("h-auto min-h-12 w-full min-w-0 whitespace-normal");
+    expect(marketingStudio).toContain("<WorkflowActions");
+    expect(marketingStudio).toContain("min-h-11 gap-2 whitespace-normal text-left");
     expect((marketingStudio.match(/\[overflow-wrap:anywhere\]/g) || []).length).toBeGreaterThanOrEqual(6);
   });
 

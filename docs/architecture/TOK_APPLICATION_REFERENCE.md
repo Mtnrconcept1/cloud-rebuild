@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `0547a7026d84facc4d45034341a3f8b6a9390bc454bb92c8da77b77ba245150c`
+- Empreinte SHA-256 des sources indexées : `5d0f1f94127a8101007ea6b6fe1e414dbbae8079e46be71b27ec79e2b78b27b0`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,24 +29,24 @@
 | cronJobs | 36 |
 | databaseContract | 228 |
 | databaseObjects | 3027 |
-| documents | 223 |
+| documents | 224 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3998 |
+| exportedSymbols | 4001 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 577 |
-| modules | 1814 |
+| modules | 1821 |
 | pages | 133 |
-| pathLiterals | 894 |
+| pathLiterals | 896 |
 | publicAssets | 713 |
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18825 |
-| repositoryFiles | 3654 |
+| records | 18853 |
+| repositoryFiles | 3662 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1407,7 +1407,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /?q=restaurant | 1 | [src/test/marketing-autopilot-frontend.test.tsx:255](../../src/test/marketing-autopilot-frontend.test.tsx#L255) |
 | /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:147](../../src/test/plan-phase1-readiness.test.ts#L147) |
 | /CN=webhook-runtime.test | 2 | [scripts/security/run-webhook-deno-runtime.mjs:17](../../scripts/security/run-webhook-deno-runtime.mjs#L17) |
-| /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 4 | [src/components/FeatureWizard.tsx:19](../../src/components/FeatureWizard.tsx#L19) |
+| /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 4 | [src/components/FeatureWizard.tsx:20](../../src/components/FeatureWizard.tsx#L20) |
 | /Miamz2.webp | 4 | [src/components/home/SolidaritySection.tsx:58](../../src/components/home/SolidaritySection.tsx#L58) |
 | /Miamz3.webp | 3 | [src/components/home/SolidaritySection.tsx:52](../../src/components/home/SolidaritySection.tsx#L52) |
 | /Outlines | 2 | [src/test/guide-pdf.test.ts:19](../../src/test/guide-pdf.test.ts#L19) |
@@ -1554,7 +1554,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commande/id | 1 | [src/test/coming-soon-gate.test.tsx:42](../../src/test/coming-soon-gate.test.tsx#L42) |
 | /commande/order-1 | 3 | [src/test/notifications-sinistres-governance.test.ts:23](../../src/test/notifications-sinistres-governance.test.ts#L23) |
 | /commande/order-123 | 1 | [src/test/customer-workspace-routes.test.ts:27](../../src/test/customer-workspace-routes.test.ts#L27) |
-| /commandes | 43 | [scripts/prerender-seo.mjs:1271](../../scripts/prerender-seo.mjs#L1271) |
+| /commandes | 45 | [scripts/prerender-seo.mjs:1271](../../scripts/prerender-seo.mjs#L1271) |
 | /commandes/facture | 1 | [src/test/customer-workspace-routes.test.ts:29](../../src/test/customer-workspace-routes.test.ts#L29) |
 | /comments | 1 | [src/test/marketing-instagram-graph.test.ts:84](../../src/test/marketing-instagram-graph.test.ts#L84) |
 | /commercial | 52 | [scripts/application-index-core.mjs:171](../../scripts/application-index-core.mjs#L171) |
@@ -1592,9 +1592,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /create-reservation | 1 | [src/test/tok-connect-oauth-delegation.test.ts:118](../../src/test/tok-connect-oauth-delegation.test.ts#L118) |
 | /creneaux-garantis | 12 | [scripts/prerender-seo.mjs:1065](../../scripts/prerender-seo.mjs#L1065) |
 | /crm | 1 | [src/test/dashboard-design-preview-export.test.tsx:71](../../src/test/dashboard-design-preview-export.test.tsx#L71) |
-| /dashboard | 91 | [scripts/application-index-core.mjs:169](../../scripts/application-index-core.mjs#L169) |
+| /dashboard | 92 | [scripts/application-index-core.mjs:169](../../scripts/application-index-core.mjs#L169) |
 | /dashboard-design-preview/ | 1 | [src/test/dashboard-design-preview-export.test.tsx:87](../../src/test/dashboard-design-preview-export.test.tsx#L87) |
-| /dashboard/ | 4 | [src/App.tsx:316](../../src/App.tsx#L316) |
+| /dashboard/ | 5 | [src/App.tsx:316](../../src/App.tsx#L316) |
 | /dashboard/abonnement | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:224](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L224) |
 | /dashboard/actualites | 10 | [src/App.tsx:644](../../src/App.tsx#L644) |
 | /dashboard/advisor | 8 | [src/App.tsx:623](../../src/App.tsx#L623) |
@@ -2003,7 +2003,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /miamz | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:206](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L206) |
 | /miamz-solidaires | 14 | [scripts/prerender-seo.mjs:575](../../scripts/prerender-seo.mjs#L575) |
 | /mon-compte-facturation | 1 | [src/test/dashboard-design-preview-export.test.tsx:68](../../src/test/dashboard-design-preview-export.test.tsx#L68) |
-| /mon-espace | 41 | [scripts/prerender-seo.mjs:1274](../../scripts/prerender-seo.mjs#L1274) |
+| /mon-espace | 45 | [scripts/prerender-seo.mjs:1274](../../scripts/prerender-seo.mjs#L1274) |
 | /mon-espace-public | 1 | [src/test/customer-workspace-routes.test.ts:29](../../src/test/customer-workspace-routes.test.ts#L29) |
 | /mon-espace?source=pwa-shortcut | 1 | [src/test/application-search-index.test.ts:124](../../src/test/application-search-index.test.ts#L124) |
 | /multi-restaurant | 16 | [scripts/prerender-seo.mjs:1089](../../scripts/prerender-seo.mjs#L1089) |
@@ -2036,13 +2036,15 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /prices/lookup | 1 | [supabase/functions/_shared/print/cloudprinter.ts:283](../../supabase/functions/_shared/print/cloudprinter.ts#L283) |
 | /products | 3 | [src/test/cloudprinter-edge-runtime.test.ts:64](../../src/test/cloudprinter-edge-runtime.test.ts#L64) |
 | /products/info | 1 | [supabase/functions/_shared/print/cloudprinter.ts:273](../../supabase/functions/_shared/print/cloudprinter.ts#L273) |
-| /profil | 19 | [scripts/prerender-seo.mjs:1268](../../scripts/prerender-seo.mjs#L1268) |
+| /profil | 20 | [scripts/prerender-seo.mjs:1268](../../scripts/prerender-seo.mjs#L1268) |
 | /profil/edit | 1 | [src/test/customer-workspace-routes.test.ts:28](../../src/test/customer-workspace-routes.test.ts#L28) |
 | /profil?mode=edit | 1 | [src/test/navigation.test.ts:28](../../src/test/navigation.test.ts#L28) |
-| /profil?tab=abonnement | 6 | [src/components/CustomerDashboardLayout.tsx:118](../../src/components/CustomerDashboardLayout.tsx#L118) |
-| /profil?tab=favoris | 5 | [src/components/CustomerDashboardLayout.tsx:116](../../src/components/CustomerDashboardLayout.tsx#L116) |
-| /profil?tab=fidelite | 5 | [src/components/CustomerDashboardLayout.tsx:117](../../src/components/CustomerDashboardLayout.tsx#L117) |
-| /profil?tab=infos | 5 | [src/components/CustomerDashboardLayout.tsx:130](../../src/components/CustomerDashboardLayout.tsx#L130) |
+| /profil?tab=abonnement | 6 | [src/components/CustomerDashboardLayout.tsx:121](../../src/components/CustomerDashboardLayout.tsx#L121) |
+| /profil?tab=favoris | 6 | [src/components/CustomerDashboardLayout.tsx:119](../../src/components/CustomerDashboardLayout.tsx#L119) |
+| /profil?tab=fidelite | 6 | [src/components/CustomerDashboardLayout.tsx:120](../../src/components/CustomerDashboardLayout.tsx#L120) |
+| /profil?tab=infos | 8 | [src/components/CustomerDashboardLayout.tsx:133](../../src/components/CustomerDashboardLayout.tsx#L133) |
+| /profil?tab=infos#coordonnees | 1 | [src/test/dashboard-journey-focus.test.tsx:97](../../src/test/dashboard-journey-focus.test.tsx#L97) |
+| /profil?tab=infos&filter=recent | 1 | [src/test/dashboard-journey-focus.test.tsx:94](../../src/test/dashboard-journey-focus.test.tsx#L94) |
 | /profil?tab=notifications | 1 | [src/pages/Notifications.tsx:23](../../src/pages/Notifications.tsx#L23) |
 | /profilage | 1 | [src/test/customer-workspace-routes.test.ts:28](../../src/test/customer-workspace-routes.test.ts#L28) |
 | /profiles | 1 | [src/test/tok-connect-oauth-delegation.test.ts:105](../../src/test/tok-connect-oauth-delegation.test.ts#L105) |
@@ -2065,7 +2067,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
 | /register | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
 | /reseaux-sociaux | 2 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
-| /reservations | 33 | [scripts/prerender-seo.mjs:1273](../../scripts/prerender-seo.mjs#L1273) |
+| /reservations | 34 | [scripts/prerender-seo.mjs:1273](../../scripts/prerender-seo.mjs#L1273) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
 | /responses | 4 | [src/test/marketing-daily-visual.test.ts:91](../../src/test/marketing-daily-visual.test.ts#L91) |
 | /rest/v1/ | 4 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
@@ -2208,7 +2210,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /storage/v1/object/public/ | 2 | [src/lib/optimizedImages.ts:27](../../src/lib/optimizedImages.ts#L27) |
 | /storage/v1/object/public/restaurant-images/ | 2 | [supabase/functions/_shared/restaurant-cover-evidence.ts:52](../../supabase/functions/_shared/restaurant-cover-evidence.ts#L52) |
 | /storage/v1/object/public/social-post-media/ | 1 | [supabase/functions/_shared/marketing-content-review.ts:130](../../supabase/functions/_shared/marketing-content-review.ts#L130) |
-| /storage/v1/object/sign/commercial-demo-ai/ | 1 | [src/pages/dashboard/DashboardPhotos.tsx:88](../../src/pages/dashboard/DashboardPhotos.tsx#L88) |
+| /storage/v1/object/sign/commercial-demo-ai/ | 1 | [src/pages/dashboard/DashboardPhotos.tsx:89](../../src/pages/dashboard/DashboardPhotos.tsx#L89) |
 | /storage/v1/object/social-post-media | 1 | [src/test/marketing-mailing-image-bff.test.ts:86](../../src/test/marketing-mailing-image-bff.test.ts#L86) |
 | /storage/v1/render/image/public/ | 2 | [src/lib/optimizedImages.ts:35](../../src/lib/optimizedImages.ts#L35) |
 | /stripe-subscription-reconcile | 1 | [src/test/audit-remediation.test.ts:46](../../src/test/audit-remediation.test.ts#L46) |
@@ -6864,7 +6866,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 42 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 271 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 826 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 827 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6878,14 +6880,14 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 88 |
 | documentation | 6 |
 | edge-function-source | 242 |
-| frontend-component | 292 |
-| frontend-hook | 24 |
+| frontend-component | 294 |
+| frontend-hook | 25 |
 | frontend-page | 133 |
 | frontend-source | 35 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 745 |
+| test | 749 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -6973,6 +6975,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Supabase production audit — project `wwcrtyoueexyxkkikaos` (Tok) | 12 | [docs/audits/2026-04-18-supabase-production-audit.md:1](../../docs/audits/2026-04-18-supabase-production-audit.md#L1) |
 | Audit global TOK — routes, fonctionnalités et manques prioritaires | 22 | [docs/audits/2026-05-31-global-site-gap-audit.md:1](../../docs/audits/2026-05-31-global-site-gap-audit.md#L1) |
 | Audit d'authentification Supabase — 2026-08-02 | 19 | [docs/audits/2026-08-02-supabase-auth-audit.md:1](../../docs/audits/2026-08-02-supabase-auth-audit.md#L1) |
+| Parcours des dashboards TOK — 27 octobre 2026 | 7 | [docs/audits/2026-10-27-dashboard-ux.md:1](../../docs/audits/2026-10-27-dashboard-ux.md#L1) |
 | Remédiation des dépendances TOK — 3 octobre 2026 | 9 | [docs/audits/DEPENDABOT_2026-10-03.md:1](../../docs/audits/DEPENDABOT_2026-10-03.md#L1) |
 | Audit des campagnes marketing TOK — 28 juillet 2026 | 17 | [docs/audits/MARKETING_CAMPAIGNS_AUDIT_2026-07-28.md:1](../../docs/audits/MARKETING_CAMPAIGNS_AUDIT_2026-07-28.md#L1) |
 | TOK — audit des notifications et du temps réel | 6 | [docs/audits/TOK_NOTIFICATION_REALTIME_AUDIT_2026-10-11.md:1](../../docs/audits/TOK_NOTIFICATION_REALTIME_AUDIT_2026-10-11.md#L1) |
@@ -8130,7 +8133,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (175)</summary>
+<details><summary>documentation (176)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8144,6 +8147,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/audits/2026-04-18-supabase-production-audit.md`
 - `docs/audits/2026-05-31-global-site-gap-audit.md`
 - `docs/audits/2026-08-02-supabase-auth-audit.md`
+- `docs/audits/2026-10-27-dashboard-ux.md`
 - `docs/audits/DEPENDABOT_2026-10-03.md`
 - `docs/audits/MARKETING_CAMPAIGNS_AUDIT_2026-07-28.md`
 - `docs/audits/TOK_NOTIFICATION_REALTIME_AUDIT_2026-10-11.md`
@@ -8557,7 +8561,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (301)</summary>
+<details><summary>frontend-component (303)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8659,6 +8663,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/dashboard/AiCreationsGallery.tsx`
 - `src/components/dashboard/AiStyleReferencePicker.tsx`
 - `src/components/dashboard/CommercialDemoScenario.tsx`
+- `src/components/dashboard/CustomerMobileNavigation.tsx`
 - `src/components/dashboard/CustomerPageHero.tsx`
 - `src/components/dashboard/CustomerWorkspacePages.css`
 - `src/components/dashboard/DailyDishAiPanel.tsx`
@@ -8677,6 +8682,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/dashboard/TokAiMarketingStudioPrintShell.tsx`
 - `src/components/dashboard/TokAiPhotoStudio.tsx`
 - `src/components/dashboard/TokAiPhotoStudioV2.tsx`
+- `src/components/dashboard/WorkflowActions.tsx`
 - `src/components/dashboard/WorkspaceDesign.css`
 - `src/components/dashboard/WorkspaceNavigationSection.tsx`
 - `src/components/dashboard/WorkspaceToolbar.tsx`
@@ -8863,7 +8869,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-hook (24)</summary>
+<details><summary>frontend-hook (25)</summary>
 
 - `src/hooks/use-estimated-progress.ts`
 - `src/hooks/use-mobile.tsx`
@@ -8874,6 +8880,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/hooks/useCourierProfile.ts`
 - `src/hooks/useCourierPushStatus.ts`
 - `src/hooks/useGoogleBusinessBooking.ts`
+- `src/hooks/useJourneyFocus.ts`
 - `src/hooks/useLaunchPack.ts`
 - `src/hooks/useMealFormulaDetection.ts`
 - `src/hooks/useNotificationCenter.ts`
@@ -10090,7 +10097,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (745)</summary>
+<details><summary>test (749)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10262,6 +10269,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/customer-crm-export.test.ts`
 - `src/test/customer-crm.test.ts`
 - `src/test/customer-dashboard.test.ts`
+- `src/test/customer-mobile-navigation.test.tsx`
 - `src/test/customer-order-tracking-no-simulation.test.ts`
 - `src/test/customer-orders.test.ts`
 - `src/test/customer-workspace-routes.test.ts`
@@ -10280,6 +10288,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/dashboard-illustrations.test.ts`
 - `src/test/dashboard-invoice-restaurant-copy.test.ts`
 - `src/test/dashboard-invoices.test.ts`
+- `src/test/dashboard-journey-focus.test.tsx`
 - `src/test/dashboard-menu-categories.test.ts`
 - `src/test/dashboard-menu-photo-tools.test.ts`
 - `src/test/dashboard-notification-day-badges.test.ts`
@@ -10478,6 +10487,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-operations-consistency.test.tsx`
 - `src/test/marketing-operations-frontend.test.ts`
 - `src/test/marketing-orchestrator-schema.test.ts`
+- `src/test/marketing-output-controls-journey.test.tsx`
 - `src/test/marketing-output-geometry.test.ts`
 - `src/test/marketing-outreach-schema.test.ts`
 - `src/test/marketing-post-preview.test.tsx`
@@ -10497,6 +10507,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-social-series-import.test.tsx`
 - `src/test/marketing-source-discovery.test.tsx`
 - `src/test/marketing-sql-governance.test.ts`
+- `src/test/marketing-studio-journey.test.tsx`
 - `src/test/marketing-studio-output-targets.test.ts`
 - `src/test/marketing-studio-print-destination-regression.test.ts`
 - `src/test/marketing-studio-references.test.ts`

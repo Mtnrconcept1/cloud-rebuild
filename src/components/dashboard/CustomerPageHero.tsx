@@ -28,7 +28,7 @@ export default function CustomerPageHero({
   const contextLabel = breadcrumb || "Mon espace";
 
   return (
-    <div className="tok-customer-hero-row">
+    <div className="tok-customer-hero-row" data-compact={pathname !== "/mon-espace"}>
       <header className={cn("tok-customer-page-hero", className)} style={getTokHeroStyle(visual?.hero)}>
         <div className="tok-customer-page-hero__copy">
           <p className="tok-customer-page-hero__eyebrow">

@@ -1,4 +1,7 @@
 import "@/components/dashboard/WorkspaceDesign.css";
+import { useRef } from "react";
+import { useJourneyFocus } from "@/hooks/useJourneyFocus";
+import CustomerMobileNavigation from "@/components/dashboard/CustomerMobileNavigation";
 import { Link, useLocation } from "react-router-dom";
 import {
   BadgePercent,
@@ -144,7 +147,10 @@ function isNavItemActive(pathname: string, search: string, item: CustomerNavItem
 }
 
 export default function CustomerDashboardLayout({ children }: { children: React.ReactNode }) {
-  const { pathname: currentPathname, search } = useLocation();
+  const { pathname: currentPathname, search, hash } = useLocation();
+  const pageRef = useRef<HTMLElement>(null);
+  const tab = new URLSearchParams(search).get("tab") || "infos";
+  useJourneyFocus(pageRef, hash ? null : `${currentPathname}:${tab}`);
   const pathname = currentPathname.replace(/\/+$/, "").toLowerCase();
   const { role } = useAuth();
   const { itemCount } = useCart();
@@ -173,6 +179,9 @@ export default function CustomerDashboardLayout({ children }: { children: React.
     .filter((section) => section.items.length > 0);
   const visibleItems = visibleSections.flatMap((section) => section.items);
   const isHome = pathname === "/mon-espace";
+  const mobileDestinations = ["/mon-espace", "/reservations", "/commandes", "/profil?tab=infos"];
+  const mobileItems = mobileDestinations.flatMap((to) => visibleItems.filter((item) => item.to === to));
+  const currentMobilePage = visibleItems.find((item) => isNavItemActive(pathname, search, item));
   const primaryDestinations = ["/mon-espace", "/reservations", "/commandes", "/mes-avis", "/profil?tab=favoris", "/profil?tab=fidelite", "/profil?tab=abonnement", "/notifications", "/profil?tab=infos", "/memoire-tok"];
   const primaryItems = primaryDestinations.flatMap((to) => visibleItems.filter((item) => item.to === to));
   const extraSections = visibleSections.map((section) => ({ ...section, items: section.items.filter((item) => !primaryDestinations.includes(item.to)) })).filter((section) => section.items.length > 0);
@@ -186,16 +195,16 @@ export default function CustomerDashboardLayout({ children }: { children: React.
         aria-current={active ? "page" : undefined}
         className={cn(
           compact
-            ? "flex min-h-16 min-w-[78px] snap-start flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-center text-[11px] font-semibold"
+            ? "flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-0.5 py-2 text-center text-[11px] font-semibold"
             : "tok-workspace-nav-link flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
-          "relative shrink-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+          "relative transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
           active
             ? "bg-primary text-primary-foreground shadow-sm"
             : "text-foreground hover:bg-muted",
         )}
       >
         <item.icon className={compact ? "h-5 w-5" : "h-4 w-4"} aria-hidden="true" />
-        <span className={compact ? "max-w-[70px] truncate" : "truncate"}>{compact ? item.shortLabel || item.label : item.label}</span>
+        <span className={compact ? "max-w-full break-words hyphens-auto leading-tight" : "truncate"}>{compact ? item.shortLabel || item.label : item.label}</span>
         <NotificationMenuBadge route={item.to} role={role} unreadNotifications={unreadNotifications} />
       </Link>
     );
@@ -250,12 +259,18 @@ export default function CustomerDashboardLayout({ children }: { children: React.
           {!commercialDemoFrame ? <ChefHelpButton surface="client" compact className="tok-client-toolbar-help h-11 w-11" /> : null}
           {!commercialDemoFrame ? <WorkspaceAccountLink to="/profil?tab=infos" /> : null}
         </WorkspaceToolbar>
-        <nav aria-label="Navigation de l’espace client" className="tok-client-mobile-nav px-3 pt-3 md:hidden">
-          <div className="flex snap-x gap-2 overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {visibleItems.map((item) => renderItem(item, true))}
-          </div>
-        </nav>
-        <main className="tok-workspace-content min-h-[500px] min-w-0 px-4 pb-8 pt-4 sm:px-6">
+        <CustomerMobileNavigation
+          shortcuts={mobileItems.map((item) => renderItem(item, true))}
+          currentPage={currentMobilePage && !mobileDestinations.includes(currentMobilePage.to) ? currentMobilePage.label : undefined}
+        >
+          {visibleSections.map((section) => (
+            <section key={section.label} className="mb-5 space-y-1">
+              <h2 className="px-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">{section.label}</h2>
+              {section.items.map((item) => renderItem(item))}
+            </section>
+          ))}
+        </CustomerMobileNavigation>
+        <main ref={pageRef} tabIndex={-1} aria-label={currentMobilePage?.label || "Espace client"} className="tok-workspace-content min-h-[500px] min-w-0 px-4 pb-8 pt-4 sm:px-6">
           <div className="mx-auto min-w-0 max-w-7xl">
             {!isHome ? <BackNavigationButton fallback="/mon-espace" className="tok-workspace-back mb-4" /> : null}
             {children}
