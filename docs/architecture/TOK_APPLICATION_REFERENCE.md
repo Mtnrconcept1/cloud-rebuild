@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `1cc390de7bc3215cae2524d19ce7214c200513affce82476fbdd78d2bd4a5933`
+- Empreinte SHA-256 des sources indexées : `13496aa465b2fdd59a5f784d773c86d26a598c02c9d1f1e8288ad33e833ebd4c`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -27,26 +27,26 @@
 | --- | --- |
 | apiRoutes | 11 |
 | cronJobs | 36 |
-| databaseContract | 228 |
-| databaseObjects | 3028 |
+| databaseContract | 231 |
+| databaseObjects | 3041 |
 | documents | 226 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4001 |
+| exportedSymbols | 4003 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 578 |
-| modules | 1827 |
+| migrations | 579 |
+| modules | 1829 |
 | pages | 133 |
 | pathLiterals | 897 |
 | publicAssets | 713 |
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18889 |
-| repositoryFiles | 3673 |
+| records | 18913 |
+| repositoryFiles | 3676 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2704,7 +2704,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (861)</summary>
+<details><summary>function (864)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2772,6 +2772,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.accept_commercial_contract` (1 définition(s))
 - `public.accounting_month_start` (1 définition(s))
 - `public.acquire_payment_attempt` (1 définition(s))
+- `public.activate_restaurant_menu_card` (1 définition(s))
 - `public.actualites_premium_banner_plan` (1 définition(s))
 - `public.ad_campaign_conversion_entity_state` (3 définition(s))
 - `public.admin_activate_all_feature_flags` (2 définition(s))
@@ -3052,6 +3053,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.create_order_with_items` (7 définition(s))
 - `public.create_order_with_items_idempotent` (1 définition(s))
 - `public.create_premium_actualites_banner` (1 définition(s))
+- `public.create_restaurant_menu_card` (1 définition(s))
 - `public.create_social_post_boost_atomic` (1 définition(s))
 - `public.create_support_incident` (1 définition(s))
 - `public.create_zero_attente_checkout_hold` (3 définition(s))
@@ -3262,6 +3264,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.marketing_validate_outreach_url` (1 définition(s))
 - `public.marketing_write_audit` (1 définition(s))
 - `public.match_restaurant_images` (1 définition(s))
+- `public.menu_items_apply_menu_card` (1 définition(s))
 - `public.miamz_priority_from_rank` (1 définition(s))
 - `public.miamz_priority_rank` (1 définition(s))
 - `public.miamz_tier_rank` (1 définition(s))
@@ -3570,7 +3573,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (712)</summary>
+<details><summary>index (716)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -4074,6 +4077,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `marketing_provider_probes_account_time_idx` (1 définition(s))
 - `marketplace_alert_state_history_key_created_idx` (1 définition(s))
 - `marketplace_alert_states_status_updated_idx` (1 définition(s))
+- `menu_items_menu_card_id_idx` (1 définition(s))
 - `notification_campaigns_due_idx` (1 définition(s))
 - `notification_deliveries_notification_channel_unique` (1 définition(s))
 - `notification_deliveries_queue_claim_idx` (1 définition(s))
@@ -4143,6 +4147,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `restaurant_images_source_idx` (1 définition(s))
 - `restaurant_media_one_cover_per_restaurant_idx` (1 définition(s))
 - `restaurant_media_storage_object_unique_idx` (1 définition(s))
+- `restaurant_menu_cards_name_unique_idx` (1 définition(s))
+- `restaurant_menu_cards_one_active_idx` (1 définition(s))
+- `restaurant_menu_cards_restaurant_created_idx` (1 définition(s))
 - `restaurant_meta_accounts_restaurant_idx` (1 définition(s))
 - `restaurant_meta_oauth_states_expiry_idx` (1 définition(s))
 - `restaurant_meta_one_active_page_per_restaurant` (1 définition(s))
@@ -4287,7 +4294,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>policy (802)</summary>
+<details><summary>policy (806)</summary>
 
 - `ad_campaigns.Admins can manage ad campaigns` (1 définition(s))
 - `ad_campaigns.Anyone can read active campaigns` (1 définition(s))
@@ -4814,6 +4821,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restaurant_media.Admins can manage media` (1 définition(s))
 - `public.restaurant_media.Anyone can view restaurant media` (1 définition(s))
 - `public.restaurant_media.Restaurant owners can manage media` (1 définition(s))
+- `public.restaurant_menu_cards.restaurant_menu_cards_admin_select` (1 définition(s))
+- `public.restaurant_menu_cards.restaurant_menu_cards_owner_delete_inactive` (1 définition(s))
+- `public.restaurant_menu_cards.restaurant_menu_cards_owner_select` (1 définition(s))
+- `public.restaurant_menu_cards.tok_connect_oauth_isolation` (1 définition(s))
 - `public.restaurant_onboarding_state_events.restaurant_onboarding_state_events_owner_read` (1 définition(s))
 - `public.restaurant_paid_module_events.restaurant_paid_module_events_owner_read` (1 définition(s))
 - `public.restaurant_paid_modules.restaurant_paid_modules_owner_read` (1 définition(s))
@@ -5094,7 +5105,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (383)</summary>
+<details><summary>table (384)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5374,6 +5385,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restaurant_launch_packs` (1 définition(s))
 - `public.restaurant_leads` (1 définition(s))
 - `public.restaurant_media` (1 définition(s))
+- `public.restaurant_menu_cards` (1 définition(s))
 - `public.restaurant_meta_accounts` (1 définition(s))
 - `public.restaurant_meta_oauth_states` (1 définition(s))
 - `public.restaurant_meta_publications` (1 définition(s))
@@ -5482,7 +5494,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (263)</summary>
+<details><summary>trigger (264)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -5572,6 +5584,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `marketing_provider_accounts_touch` (1 définition(s))
 - `marketing_provider_probes_append_only` (1 définition(s))
 - `marketing_utm_plans_touch` (1 définition(s))
+- `menu_items_apply_menu_card` (1 définition(s))
 - `normalize_financial_ledger_stripe_mode` (1 définition(s))
 - `normalize_photo_ai_usage_credit_units` (2 définition(s))
 - `normalize_restaurant_city_alias` (1 définition(s))
@@ -5835,172 +5848,175 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | table | meal_formulas | [src/integrations/supabase/types.ts:2574](../../src/integrations/supabase/types.ts#L2574) |
 | table | menu_categories | [src/integrations/supabase/types.ts:2627](../../src/integrations/supabase/types.ts#L2627) |
 | table | menu_items | [src/integrations/supabase/types.ts:2669](../../src/integrations/supabase/types.ts#L2669) |
-| table | messages | [src/integrations/supabase/types.ts:2719](../../src/integrations/supabase/types.ts#L2719) |
-| table | ml_predictions | [src/integrations/supabase/types.ts:2760](../../src/integrations/supabase/types.ts#L2760) |
-| table | notification_campaigns | [src/integrations/supabase/types.ts:2790](../../src/integrations/supabase/types.ts#L2790) |
-| table | notification_deliveries | [src/integrations/supabase/types.ts:2838](../../src/integrations/supabase/types.ts#L2838) |
-| table | notification_preferences | [src/integrations/supabase/types.ts:2888](../../src/integrations/supabase/types.ts#L2888) |
-| table | notification_subscriptions | [src/integrations/supabase/types.ts:2915](../../src/integrations/supabase/types.ts#L2915) |
-| table | notifications | [src/integrations/supabase/types.ts:2939](../../src/integrations/supabase/types.ts#L2939) |
-| table | order_addresses | [src/integrations/supabase/types.ts:2975](../../src/integrations/supabase/types.ts#L2975) |
-| table | order_events | [src/integrations/supabase/types.ts:3028](../../src/integrations/supabase/types.ts#L3028) |
-| table | order_fees | [src/integrations/supabase/types.ts:3060](../../src/integrations/supabase/types.ts#L3060) |
-| table | order_groups | [src/integrations/supabase/types.ts:3089](../../src/integrations/supabase/types.ts#L3089) |
-| table | order_issues | [src/integrations/supabase/types.ts:3136](../../src/integrations/supabase/types.ts#L3136) |
-| table | order_item_modifiers | [src/integrations/supabase/types.ts:3183](../../src/integrations/supabase/types.ts#L3183) |
-| table | order_items | [src/integrations/supabase/types.ts:3225](../../src/integrations/supabase/types.ts#L3225) |
-| table | order_notes | [src/integrations/supabase/types.ts:3290](../../src/integrations/supabase/types.ts#L3290) |
-| table | order_refunds | [src/integrations/supabase/types.ts:3325](../../src/integrations/supabase/types.ts#L3325) |
-| table | order_status_history | [src/integrations/supabase/types.ts:3373](../../src/integrations/supabase/types.ts#L3373) |
-| table | order_taxes | [src/integrations/supabase/types.ts:3405](../../src/integrations/supabase/types.ts#L3405) |
-| table | orders | [src/integrations/supabase/types.ts:3437](../../src/integrations/supabase/types.ts#L3437) |
-| table | payment_intents | [src/integrations/supabase/types.ts:3599](../../src/integrations/supabase/types.ts#L3599) |
-| table | payment_transactions | [src/integrations/supabase/types.ts:3646](../../src/integrations/supabase/types.ts#L3646) |
-| table | payout_batches | [src/integrations/supabase/types.ts:3696](../../src/integrations/supabase/types.ts#L3696) |
-| table | payouts | [src/integrations/supabase/types.ts:3726](../../src/integrations/supabase/types.ts#L3726) |
-| table | profiles | [src/integrations/supabase/types.ts:3770](../../src/integrations/supabase/types.ts#L3770) |
-| table | promo_code_uses | [src/integrations/supabase/types.ts:3818](../../src/integrations/supabase/types.ts#L3818) |
-| table | promo_codes | [src/integrations/supabase/types.ts:3860](../../src/integrations/supabase/types.ts#L3860) |
-| table | proof_of_delivery | [src/integrations/supabase/types.ts:3925](../../src/integrations/supabase/types.ts#L3925) |
-| table | rate_limit_buckets | [src/integrations/supabase/types.ts:3979](../../src/integrations/supabase/types.ts#L3979) |
-| table | recommendation_logs | [src/integrations/supabase/types.ts:4003](../../src/integrations/supabase/types.ts#L4003) |
-| table | referral_codes | [src/integrations/supabase/types.ts:4038](../../src/integrations/supabase/types.ts#L4038) |
-| table | reservation_slots | [src/integrations/supabase/types.ts:4068](../../src/integrations/supabase/types.ts#L4068) |
-| table | reservation_status_history | [src/integrations/supabase/types.ts:4104](../../src/integrations/supabase/types.ts#L4104) |
-| table | reservation_table_layout_overrides | [src/integrations/supabase/types.ts:4139](../../src/integrations/supabase/types.ts#L4139) |
-| table | reservation_tables | [src/integrations/supabase/types.ts:4184](../../src/integrations/supabase/types.ts#L4184) |
-| table | reservations | [src/integrations/supabase/types.ts:4222](../../src/integrations/supabase/types.ts#L4222) |
-| table | restaurant_branches | [src/integrations/supabase/types.ts:4351](../../src/integrations/supabase/types.ts#L4351) |
-| table | restaurant_cuisines | [src/integrations/supabase/types.ts:4404](../../src/integrations/supabase/types.ts#L4404) |
-| table | restaurant_daily_kpis | [src/integrations/supabase/types.ts:4434](../../src/integrations/supabase/types.ts#L4434) |
-| table | restaurant_delivery_rules | [src/integrations/supabase/types.ts:4487](../../src/integrations/supabase/types.ts#L4487) |
-| table | restaurant_documents | [src/integrations/supabase/types.ts:4522](../../src/integrations/supabase/types.ts#L4522) |
-| table | restaurant_hours | [src/integrations/supabase/types.ts:4560](../../src/integrations/supabase/types.ts#L4560) |
-| table | restaurant_invoice_settings | [src/integrations/supabase/types.ts:4595](../../src/integrations/supabase/types.ts#L4595) |
-| table | restaurant_invoices | [src/integrations/supabase/types.ts:4672](../../src/integrations/supabase/types.ts#L4672) |
-| table | restaurant_invoice_line_items | [src/integrations/supabase/types.ts:4734](../../src/integrations/supabase/types.ts#L4734) |
-| table | restaurant_launch_packs | [src/integrations/supabase/types.ts:4815](../../src/integrations/supabase/types.ts#L4815) |
-| table | restaurant_media | [src/integrations/supabase/types.ts:4878](../../src/integrations/supabase/types.ts#L4878) |
-| table | restaurant_payout_settings | [src/integrations/supabase/types.ts:4934](../../src/integrations/supabase/types.ts#L4934) |
-| table | restaurant_promotions | [src/integrations/supabase/types.ts:4966](../../src/integrations/supabase/types.ts#L4966) |
-| table | restaurant_recommendations | [src/integrations/supabase/types.ts:5016](../../src/integrations/supabase/types.ts#L5016) |
-| table | restaurant_service_areas | [src/integrations/supabase/types.ts:5060](../../src/integrations/supabase/types.ts#L5060) |
-| table | restaurant_settings | [src/integrations/supabase/types.ts:5092](../../src/integrations/supabase/types.ts#L5092) |
-| table | restaurant_staff | [src/integrations/supabase/types.ts:5124](../../src/integrations/supabase/types.ts#L5124) |
-| table | restaurants | [src/integrations/supabase/types.ts:5156](../../src/integrations/supabase/types.ts#L5156) |
-| table | review_replies | [src/integrations/supabase/types.ts:5294](../../src/integrations/supabase/types.ts#L5294) |
-| table | reviews | [src/integrations/supabase/types.ts:5329](../../src/integrations/supabase/types.ts#L5329) |
-| table | search_logs | [src/integrations/supabase/types.ts:5408](../../src/integrations/supabase/types.ts#L5408) |
-| table | signup_application_documents | [src/integrations/supabase/types.ts:5438](../../src/integrations/supabase/types.ts#L5438) |
-| table | signup_applications | [src/integrations/supabase/types.ts:5497](../../src/integrations/supabase/types.ts#L5497) |
-| table | signup_application_drafts | [src/integrations/supabase/types.ts:5578](../../src/integrations/supabase/types.ts#L5578) |
-| table | solidarity_donations | [src/integrations/supabase/types.ts:5617](../../src/integrations/supabase/types.ts#L5617) |
-| table | stripe_webhook_events | [src/integrations/supabase/types.ts:5641](../../src/integrations/supabase/types.ts#L5641) |
-| table | subscription_benefits | [src/integrations/supabase/types.ts:5662](../../src/integrations/supabase/types.ts#L5662) |
-| table | support_messages | [src/integrations/supabase/types.ts:5694](../../src/integrations/supabase/types.ts#L5694) |
-| table | support_tickets | [src/integrations/supabase/types.ts:5732](../../src/integrations/supabase/types.ts#L5732) |
-| table | tok_one_subscriptions | [src/integrations/supabase/types.ts:5794](../../src/integrations/supabase/types.ts#L5794) |
-| table | user_addresses | [src/integrations/supabase/types.ts:5847](../../src/integrations/supabase/types.ts#L5847) |
-| table | user_analytics | [src/integrations/supabase/types.ts:5909](../../src/integrations/supabase/types.ts#L5909) |
-| table | user_devices | [src/integrations/supabase/types.ts:5950](../../src/integrations/supabase/types.ts#L5950) |
-| table | user_notification_settings | [src/integrations/supabase/types.ts:5991](../../src/integrations/supabase/types.ts#L5991) |
-| table | user_payment_methods | [src/integrations/supabase/types.ts:6035](../../src/integrations/supabase/types.ts#L6035) |
-| table | user_preferences | [src/integrations/supabase/types.ts:6082](../../src/integrations/supabase/types.ts#L6082) |
-| table | user_profiles | [src/integrations/supabase/types.ts:6106](../../src/integrations/supabase/types.ts#L6106) |
-| table | user_referrals | [src/integrations/supabase/types.ts:6139](../../src/integrations/supabase/types.ts#L6139) |
-| table | user_roles | [src/integrations/supabase/types.ts:6187](../../src/integrations/supabase/types.ts#L6187) |
-| table | user_subscription_plans | [src/integrations/supabase/types.ts:6205](../../src/integrations/supabase/types.ts#L6205) |
-| table | user_subscriptions | [src/integrations/supabase/types.ts:6247](../../src/integrations/supabase/types.ts#L6247) |
-| table | user_wallets | [src/integrations/supabase/types.ts:6298](../../src/integrations/supabase/types.ts#L6298) |
-| table | wallet_transactions | [src/integrations/supabase/types.ts:6322](../../src/integrations/supabase/types.ts#L6322) |
-| rpc | admin_activate_all_feature_flags | [src/integrations/supabase/types.ts:6365](../../src/integrations/supabase/types.ts#L6365) |
-| rpc | admin_dispatch_notification_campaign | [src/integrations/supabase/types.ts:6366](../../src/integrations/supabase/types.ts#L6366) |
-| rpc | dispatch_due_notification_campaigns | [src/integrations/supabase/types.ts:6380](../../src/integrations/supabase/types.ts#L6380) |
-| rpc | admin_get_cancellation_fraud_metrics | [src/integrations/supabase/types.ts:6395](../../src/integrations/supabase/types.ts#L6395) |
-| rpc | admin_get_reservation_billing_history | [src/integrations/supabase/types.ts:6408](../../src/integrations/supabase/types.ts#L6408) |
-| rpc | admin_list_users | [src/integrations/supabase/types.ts:6429](../../src/integrations/supabase/types.ts#L6429) |
-| rpc | admin_review_courier_profile | [src/integrations/supabase/types.ts:6439](../../src/integrations/supabase/types.ts#L6439) |
-| rpc | admin_review_signup_application | [src/integrations/supabase/types.ts:6450](../../src/integrations/supabase/types.ts#L6450) |
-| rpc | admin_seed_default_flags | [src/integrations/supabase/types.ts:6461](../../src/integrations/supabase/types.ts#L6461) |
-| rpc | admin_set_user_roles | [src/integrations/supabase/types.ts:6462](../../src/integrations/supabase/types.ts#L6462) |
-| rpc | admin_toggle_feature_flag | [src/integrations/supabase/types.ts:6469](../../src/integrations/supabase/types.ts#L6469) |
-| rpc | get_commercial_prospect_commission_summary | [src/integrations/supabase/types.ts:6473](../../src/integrations/supabase/types.ts#L6473) |
-| rpc | auth_can_manage_dispatch_job | [src/integrations/supabase/types.ts:6477](../../src/integrations/supabase/types.ts#L6477) |
-| rpc | auth_can_manage_order_delivery | [src/integrations/supabase/types.ts:6481](../../src/integrations/supabase/types.ts#L6481) |
-| rpc | auth_can_view_courier | [src/integrations/supabase/types.ts:6485](../../src/integrations/supabase/types.ts#L6485) |
-| rpc | auth_can_view_dispatch_job | [src/integrations/supabase/types.ts:6489](../../src/integrations/supabase/types.ts#L6489) |
-| rpc | auth_can_view_order_delivery | [src/integrations/supabase/types.ts:6493](../../src/integrations/supabase/types.ts#L6493) |
-| rpc | auth_is_admin | [src/integrations/supabase/types.ts:6497](../../src/integrations/supabase/types.ts#L6497) |
-| rpc | auth_owns_courier | [src/integrations/supabase/types.ts:6498](../../src/integrations/supabase/types.ts#L6498) |
-| rpc | auth_owns_restaurant | [src/integrations/supabase/types.ts:6499](../../src/integrations/supabase/types.ts#L6499) |
-| rpc | broadcast_topic_notification | [src/integrations/supabase/types.ts:6503](../../src/integrations/supabase/types.ts#L6503) |
-| rpc | cancel_reservation_by_customer | [src/integrations/supabase/types.ts:6514](../../src/integrations/supabase/types.ts#L6514) |
-| rpc | cancel_reservation_by_restaurant | [src/integrations/supabase/types.ts:6522](../../src/integrations/supabase/types.ts#L6522) |
-| rpc | claim_gift_points | [src/integrations/supabase/types.ts:6534](../../src/integrations/supabase/types.ts#L6534) |
-| rpc | cleanup_expired_groups | [src/integrations/supabase/types.ts:6535](../../src/integrations/supabase/types.ts#L6535) |
-| rpc | compute_order_discount_from_payload | [src/integrations/supabase/types.ts:6536](../../src/integrations/supabase/types.ts#L6536) |
-| rpc | compute_restaurant_reservation_fees | [src/integrations/supabase/types.ts:6545](../../src/integrations/supabase/types.ts#L6545) |
-| rpc | create_order_with_items | [src/integrations/supabase/types.ts:6556](../../src/integrations/supabase/types.ts#L6556) |
-| rpc | decrement_stock | [src/integrations/supabase/types.ts:6569](../../src/integrations/supabase/types.ts#L6569) |
-| rpc | delete_user_gdpr_cascade | [src/integrations/supabase/types.ts:6573](../../src/integrations/supabase/types.ts#L6573) |
-| rpc | donate_points_for_meal | [src/integrations/supabase/types.ts:6577](../../src/integrations/supabase/types.ts#L6577) |
-| rpc | enqueue_deliveries | [src/integrations/supabase/types.ts:6581](../../src/integrations/supabase/types.ts#L6581) |
-| rpc | enqueue_notification | [src/integrations/supabase/types.ts:6585](../../src/integrations/supabase/types.ts#L6585) |
-| rpc | ensure_guest_profile | [src/integrations/supabase/types.ts:6596](../../src/integrations/supabase/types.ts#L6596) |
-| rpc | estimate_campaign_audience | [src/integrations/supabase/types.ts:6604](../../src/integrations/supabase/types.ts#L6604) |
-| rpc | find_nearby_couriers | [src/integrations/supabase/types.ts:6608](../../src/integrations/supabase/types.ts#L6608) |
-| rpc | generate_monthly_invoices | [src/integrations/supabase/types.ts:6624](../../src/integrations/supabase/types.ts#L6624) |
-| rpc | generate_restaurant_payout_invoice | [src/integrations/supabase/types.ts:6625](../../src/integrations/supabase/types.ts#L6625) |
-| rpc | generate_tok_reservation_fee_invoice | [src/integrations/supabase/types.ts:6634](../../src/integrations/supabase/types.ts#L6634) |
-| rpc | generate_tok_reservation_fee_invoices_all | [src/integrations/supabase/types.ts:6638](../../src/integrations/supabase/types.ts#L6638) |
-| rpc | generate_tok_payable_invoice | [src/integrations/supabase/types.ts:6642](../../src/integrations/supabase/types.ts#L6642) |
-| rpc | generate_tok_payable_invoices_all | [src/integrations/supabase/types.ts:6646](../../src/integrations/supabase/types.ts#L6646) |
-| rpc | get_campaign_stats | [src/integrations/supabase/types.ts:6650](../../src/integrations/supabase/types.ts#L6650) |
-| rpc | get_customer_orders_dashboard | [src/integrations/supabase/types.ts:6666](../../src/integrations/supabase/types.ts#L6666) |
-| rpc | get_gift_stats | [src/integrations/supabase/types.ts:6687](../../src/integrations/supabase/types.ts#L6687) |
-| rpc | get_order_customers | [src/integrations/supabase/types.ts:6688](../../src/integrations/supabase/types.ts#L6688) |
-| rpc | get_reservation_customers | [src/integrations/supabase/types.ts:6696](../../src/integrations/supabase/types.ts#L6696) |
-| rpc | get_reservation_fee_invoice_lines | [src/integrations/supabase/types.ts:6704](../../src/integrations/supabase/types.ts#L6704) |
-| rpc | get_payable_invoice_lines | [src/integrations/supabase/types.ts:6717](../../src/integrations/supabase/types.ts#L6717) |
-| rpc | get_restaurant_comparison | [src/integrations/supabase/types.ts:6737](../../src/integrations/supabase/types.ts#L6737) |
-| rpc | get_restaurant_orders_dashboard | [src/integrations/supabase/types.ts:6741](../../src/integrations/supabase/types.ts#L6741) |
-| rpc | get_restaurant_payment_history | [src/integrations/supabase/types.ts:6762](../../src/integrations/supabase/types.ts#L6762) |
-| rpc | get_restaurant_performance | [src/integrations/supabase/types.ts:6780](../../src/integrations/supabase/types.ts#L6780) |
-| rpc | get_restaurant_recommendations | [src/integrations/supabase/types.ts:6784](../../src/integrations/supabase/types.ts#L6784) |
-| rpc | get_total_donated_meals | [src/integrations/supabase/types.ts:6788](../../src/integrations/supabase/types.ts#L6788) |
-| rpc | get_total_donated_points | [src/integrations/supabase/types.ts:6789](../../src/integrations/supabase/types.ts#L6789) |
-| rpc | has_role | [src/integrations/supabase/types.ts:6790](../../src/integrations/supabase/types.ts#L6790) |
-| rpc | increment_ad_campaign_metric | [src/integrations/supabase/types.ts:6797](../../src/integrations/supabase/types.ts#L6797) |
-| rpc | is_feature_flag_active | [src/integrations/supabase/types.ts:6801](../../src/integrations/supabase/types.ts#L6801) |
-| rpc | mark_noshow_reservations | [src/integrations/supabase/types.ts:6805](../../src/integrations/supabase/types.ts#L6805) |
-| rpc | normalize_search_text | [src/integrations/supabase/types.ts:6806](../../src/integrations/supabase/types.ts#L6806) |
-| rpc | queue_notification_deliveries | [src/integrations/supabase/types.ts:6807](../../src/integrations/supabase/types.ts#L6807) |
-| rpc | rate_limit_consume | [src/integrations/supabase/types.ts:6816](../../src/integrations/supabase/types.ts#L6816) |
-| rpc | restaurant_save_floor_plan_assignments | [src/integrations/supabase/types.ts:6825](../../src/integrations/supabase/types.ts#L6825) |
-| rpc | restaurant_save_floor_plan_furniture | [src/integrations/supabase/types.ts:6829](../../src/integrations/supabase/types.ts#L6829) |
-| rpc | restaurant_save_floor_plan_layouts | [src/integrations/supabase/types.ts:6838](../../src/integrations/supabase/types.ts#L6838) |
-| rpc | restaurant_save_floor_plan_layouts_v2 | [src/integrations/supabase/types.ts:6847](../../src/integrations/supabase/types.ts#L6847) |
-| rpc | restaurant_save_floor_plan_template | [src/integrations/supabase/types.ts:6858](../../src/integrations/supabase/types.ts#L6858) |
-| rpc | restaurant_save_floor_plan_variant_v2 | [src/integrations/supabase/types.ts:6867](../../src/integrations/supabase/types.ts#L6867) |
-| rpc | restaurant_save_floor_plan_workspace | [src/integrations/supabase/types.ts:6877](../../src/integrations/supabase/types.ts#L6877) |
-| rpc | restaurant_save_floor_plan_workspace_v2 | [src/integrations/supabase/types.ts:6888](../../src/integrations/supabase/types.ts#L6888) |
-| rpc | recompute_restaurant_review_stats | [src/integrations/supabase/types.ts:6901](../../src/integrations/supabase/types.ts#L6901) |
-| rpc | record_ad_campaign_event | [src/integrations/supabase/types.ts:6905](../../src/integrations/supabase/types.ts#L6905) |
-| rpc | redeem_loyalty_points | [src/integrations/supabase/types.ts:6919](../../src/integrations/supabase/types.ts#L6919) |
-| rpc | refresh_restaurant_daily_kpis_for_date | [src/integrations/supabase/types.ts:6927](../../src/integrations/supabase/types.ts#L6927) |
-| rpc | refresh_restaurant_daily_kpis_recent_days | [src/integrations/supabase/types.ts:6931](../../src/integrations/supabase/types.ts#L6931) |
-| rpc | search_restaurants_catalog | [src/integrations/supabase/types.ts:6935](../../src/integrations/supabase/types.ts#L6935) |
-| rpc | search_restaurants_nearby | [src/integrations/supabase/types.ts:6971](../../src/integrations/supabase/types.ts#L6971) |
-| rpc | send_gift_points | [src/integrations/supabase/types.ts:7002](../../src/integrations/supabase/types.ts#L7002) |
-| rpc | mark_signup_application_draft_finalized | [src/integrations/supabase/types.ts:7010](../../src/integrations/supabase/types.ts#L7010) |
-| rpc | sync_signup_application | [src/integrations/supabase/types.ts:7014](../../src/integrations/supabase/types.ts#L7014) |
-| rpc | update_restaurant_reservation_status_safe | [src/integrations/supabase/types.ts:7040](../../src/integrations/supabase/types.ts#L7040) |
-| rpc | validate_and_create_reservation | [src/integrations/supabase/types.ts:7048](../../src/integrations/supabase/types.ts#L7048) |
-| rpc | validate_and_create_reservation_safe | [src/integrations/supabase/types.ts:7060](../../src/integrations/supabase/types.ts#L7060) |
-| rpc | validate_service_settings_json | [src/integrations/supabase/types.ts:7076](../../src/integrations/supabase/types.ts#L7076) |
-| enum | app_role | [src/integrations/supabase/types.ts:7082](../../src/integrations/supabase/types.ts#L7082) |
-| enum | commercial_visit_status | [src/integrations/supabase/types.ts:7083](../../src/integrations/supabase/types.ts#L7083) |
-| enum | loyalty_tier | [src/integrations/supabase/types.ts:7084](../../src/integrations/supabase/types.ts#L7084) |
+| table | messages | [src/integrations/supabase/types.ts:2732](../../src/integrations/supabase/types.ts#L2732) |
+| table | ml_predictions | [src/integrations/supabase/types.ts:2773](../../src/integrations/supabase/types.ts#L2773) |
+| table | notification_campaigns | [src/integrations/supabase/types.ts:2803](../../src/integrations/supabase/types.ts#L2803) |
+| table | notification_deliveries | [src/integrations/supabase/types.ts:2851](../../src/integrations/supabase/types.ts#L2851) |
+| table | notification_preferences | [src/integrations/supabase/types.ts:2901](../../src/integrations/supabase/types.ts#L2901) |
+| table | notification_subscriptions | [src/integrations/supabase/types.ts:2928](../../src/integrations/supabase/types.ts#L2928) |
+| table | notifications | [src/integrations/supabase/types.ts:2952](../../src/integrations/supabase/types.ts#L2952) |
+| table | order_addresses | [src/integrations/supabase/types.ts:2988](../../src/integrations/supabase/types.ts#L2988) |
+| table | order_events | [src/integrations/supabase/types.ts:3041](../../src/integrations/supabase/types.ts#L3041) |
+| table | order_fees | [src/integrations/supabase/types.ts:3073](../../src/integrations/supabase/types.ts#L3073) |
+| table | order_groups | [src/integrations/supabase/types.ts:3102](../../src/integrations/supabase/types.ts#L3102) |
+| table | order_issues | [src/integrations/supabase/types.ts:3149](../../src/integrations/supabase/types.ts#L3149) |
+| table | order_item_modifiers | [src/integrations/supabase/types.ts:3196](../../src/integrations/supabase/types.ts#L3196) |
+| table | order_items | [src/integrations/supabase/types.ts:3238](../../src/integrations/supabase/types.ts#L3238) |
+| table | order_notes | [src/integrations/supabase/types.ts:3303](../../src/integrations/supabase/types.ts#L3303) |
+| table | order_refunds | [src/integrations/supabase/types.ts:3338](../../src/integrations/supabase/types.ts#L3338) |
+| table | order_status_history | [src/integrations/supabase/types.ts:3386](../../src/integrations/supabase/types.ts#L3386) |
+| table | order_taxes | [src/integrations/supabase/types.ts:3418](../../src/integrations/supabase/types.ts#L3418) |
+| table | orders | [src/integrations/supabase/types.ts:3450](../../src/integrations/supabase/types.ts#L3450) |
+| table | payment_intents | [src/integrations/supabase/types.ts:3612](../../src/integrations/supabase/types.ts#L3612) |
+| table | payment_transactions | [src/integrations/supabase/types.ts:3659](../../src/integrations/supabase/types.ts#L3659) |
+| table | payout_batches | [src/integrations/supabase/types.ts:3709](../../src/integrations/supabase/types.ts#L3709) |
+| table | payouts | [src/integrations/supabase/types.ts:3739](../../src/integrations/supabase/types.ts#L3739) |
+| table | profiles | [src/integrations/supabase/types.ts:3783](../../src/integrations/supabase/types.ts#L3783) |
+| table | promo_code_uses | [src/integrations/supabase/types.ts:3831](../../src/integrations/supabase/types.ts#L3831) |
+| table | promo_codes | [src/integrations/supabase/types.ts:3873](../../src/integrations/supabase/types.ts#L3873) |
+| table | proof_of_delivery | [src/integrations/supabase/types.ts:3938](../../src/integrations/supabase/types.ts#L3938) |
+| table | rate_limit_buckets | [src/integrations/supabase/types.ts:3992](../../src/integrations/supabase/types.ts#L3992) |
+| table | recommendation_logs | [src/integrations/supabase/types.ts:4016](../../src/integrations/supabase/types.ts#L4016) |
+| table | referral_codes | [src/integrations/supabase/types.ts:4051](../../src/integrations/supabase/types.ts#L4051) |
+| table | reservation_slots | [src/integrations/supabase/types.ts:4081](../../src/integrations/supabase/types.ts#L4081) |
+| table | reservation_status_history | [src/integrations/supabase/types.ts:4117](../../src/integrations/supabase/types.ts#L4117) |
+| table | reservation_table_layout_overrides | [src/integrations/supabase/types.ts:4152](../../src/integrations/supabase/types.ts#L4152) |
+| table | reservation_tables | [src/integrations/supabase/types.ts:4197](../../src/integrations/supabase/types.ts#L4197) |
+| table | reservations | [src/integrations/supabase/types.ts:4235](../../src/integrations/supabase/types.ts#L4235) |
+| table | restaurant_branches | [src/integrations/supabase/types.ts:4364](../../src/integrations/supabase/types.ts#L4364) |
+| table | restaurant_cuisines | [src/integrations/supabase/types.ts:4417](../../src/integrations/supabase/types.ts#L4417) |
+| table | restaurant_daily_kpis | [src/integrations/supabase/types.ts:4447](../../src/integrations/supabase/types.ts#L4447) |
+| table | restaurant_delivery_rules | [src/integrations/supabase/types.ts:4500](../../src/integrations/supabase/types.ts#L4500) |
+| table | restaurant_documents | [src/integrations/supabase/types.ts:4535](../../src/integrations/supabase/types.ts#L4535) |
+| table | restaurant_hours | [src/integrations/supabase/types.ts:4573](../../src/integrations/supabase/types.ts#L4573) |
+| table | restaurant_invoice_settings | [src/integrations/supabase/types.ts:4608](../../src/integrations/supabase/types.ts#L4608) |
+| table | restaurant_invoices | [src/integrations/supabase/types.ts:4685](../../src/integrations/supabase/types.ts#L4685) |
+| table | restaurant_invoice_line_items | [src/integrations/supabase/types.ts:4747](../../src/integrations/supabase/types.ts#L4747) |
+| table | restaurant_launch_packs | [src/integrations/supabase/types.ts:4828](../../src/integrations/supabase/types.ts#L4828) |
+| table | restaurant_media | [src/integrations/supabase/types.ts:4891](../../src/integrations/supabase/types.ts#L4891) |
+| table | restaurant_menu_cards | [src/integrations/supabase/types.ts:4947](../../src/integrations/supabase/types.ts#L4947) |
+| table | restaurant_payout_settings | [src/integrations/supabase/types.ts:4988](../../src/integrations/supabase/types.ts#L4988) |
+| table | restaurant_promotions | [src/integrations/supabase/types.ts:5020](../../src/integrations/supabase/types.ts#L5020) |
+| table | restaurant_recommendations | [src/integrations/supabase/types.ts:5070](../../src/integrations/supabase/types.ts#L5070) |
+| table | restaurant_service_areas | [src/integrations/supabase/types.ts:5114](../../src/integrations/supabase/types.ts#L5114) |
+| table | restaurant_settings | [src/integrations/supabase/types.ts:5146](../../src/integrations/supabase/types.ts#L5146) |
+| table | restaurant_staff | [src/integrations/supabase/types.ts:5178](../../src/integrations/supabase/types.ts#L5178) |
+| table | restaurants | [src/integrations/supabase/types.ts:5210](../../src/integrations/supabase/types.ts#L5210) |
+| table | review_replies | [src/integrations/supabase/types.ts:5348](../../src/integrations/supabase/types.ts#L5348) |
+| table | reviews | [src/integrations/supabase/types.ts:5383](../../src/integrations/supabase/types.ts#L5383) |
+| table | search_logs | [src/integrations/supabase/types.ts:5462](../../src/integrations/supabase/types.ts#L5462) |
+| table | signup_application_documents | [src/integrations/supabase/types.ts:5492](../../src/integrations/supabase/types.ts#L5492) |
+| table | signup_applications | [src/integrations/supabase/types.ts:5551](../../src/integrations/supabase/types.ts#L5551) |
+| table | signup_application_drafts | [src/integrations/supabase/types.ts:5632](../../src/integrations/supabase/types.ts#L5632) |
+| table | solidarity_donations | [src/integrations/supabase/types.ts:5671](../../src/integrations/supabase/types.ts#L5671) |
+| table | stripe_webhook_events | [src/integrations/supabase/types.ts:5695](../../src/integrations/supabase/types.ts#L5695) |
+| table | subscription_benefits | [src/integrations/supabase/types.ts:5716](../../src/integrations/supabase/types.ts#L5716) |
+| table | support_messages | [src/integrations/supabase/types.ts:5748](../../src/integrations/supabase/types.ts#L5748) |
+| table | support_tickets | [src/integrations/supabase/types.ts:5786](../../src/integrations/supabase/types.ts#L5786) |
+| table | tok_one_subscriptions | [src/integrations/supabase/types.ts:5848](../../src/integrations/supabase/types.ts#L5848) |
+| table | user_addresses | [src/integrations/supabase/types.ts:5901](../../src/integrations/supabase/types.ts#L5901) |
+| table | user_analytics | [src/integrations/supabase/types.ts:5963](../../src/integrations/supabase/types.ts#L5963) |
+| table | user_devices | [src/integrations/supabase/types.ts:6004](../../src/integrations/supabase/types.ts#L6004) |
+| table | user_notification_settings | [src/integrations/supabase/types.ts:6045](../../src/integrations/supabase/types.ts#L6045) |
+| table | user_payment_methods | [src/integrations/supabase/types.ts:6089](../../src/integrations/supabase/types.ts#L6089) |
+| table | user_preferences | [src/integrations/supabase/types.ts:6136](../../src/integrations/supabase/types.ts#L6136) |
+| table | user_profiles | [src/integrations/supabase/types.ts:6160](../../src/integrations/supabase/types.ts#L6160) |
+| table | user_referrals | [src/integrations/supabase/types.ts:6193](../../src/integrations/supabase/types.ts#L6193) |
+| table | user_roles | [src/integrations/supabase/types.ts:6241](../../src/integrations/supabase/types.ts#L6241) |
+| table | user_subscription_plans | [src/integrations/supabase/types.ts:6259](../../src/integrations/supabase/types.ts#L6259) |
+| table | user_subscriptions | [src/integrations/supabase/types.ts:6301](../../src/integrations/supabase/types.ts#L6301) |
+| table | user_wallets | [src/integrations/supabase/types.ts:6352](../../src/integrations/supabase/types.ts#L6352) |
+| table | wallet_transactions | [src/integrations/supabase/types.ts:6376](../../src/integrations/supabase/types.ts#L6376) |
+| rpc | admin_activate_all_feature_flags | [src/integrations/supabase/types.ts:6419](../../src/integrations/supabase/types.ts#L6419) |
+| rpc | activate_restaurant_menu_card | [src/integrations/supabase/types.ts:6420](../../src/integrations/supabase/types.ts#L6420) |
+| rpc | create_restaurant_menu_card | [src/integrations/supabase/types.ts:6433](../../src/integrations/supabase/types.ts#L6433) |
+| rpc | admin_dispatch_notification_campaign | [src/integrations/supabase/types.ts:6446](../../src/integrations/supabase/types.ts#L6446) |
+| rpc | dispatch_due_notification_campaigns | [src/integrations/supabase/types.ts:6460](../../src/integrations/supabase/types.ts#L6460) |
+| rpc | admin_get_cancellation_fraud_metrics | [src/integrations/supabase/types.ts:6475](../../src/integrations/supabase/types.ts#L6475) |
+| rpc | admin_get_reservation_billing_history | [src/integrations/supabase/types.ts:6488](../../src/integrations/supabase/types.ts#L6488) |
+| rpc | admin_list_users | [src/integrations/supabase/types.ts:6509](../../src/integrations/supabase/types.ts#L6509) |
+| rpc | admin_review_courier_profile | [src/integrations/supabase/types.ts:6519](../../src/integrations/supabase/types.ts#L6519) |
+| rpc | admin_review_signup_application | [src/integrations/supabase/types.ts:6530](../../src/integrations/supabase/types.ts#L6530) |
+| rpc | admin_seed_default_flags | [src/integrations/supabase/types.ts:6541](../../src/integrations/supabase/types.ts#L6541) |
+| rpc | admin_set_user_roles | [src/integrations/supabase/types.ts:6542](../../src/integrations/supabase/types.ts#L6542) |
+| rpc | admin_toggle_feature_flag | [src/integrations/supabase/types.ts:6549](../../src/integrations/supabase/types.ts#L6549) |
+| rpc | get_commercial_prospect_commission_summary | [src/integrations/supabase/types.ts:6553](../../src/integrations/supabase/types.ts#L6553) |
+| rpc | auth_can_manage_dispatch_job | [src/integrations/supabase/types.ts:6557](../../src/integrations/supabase/types.ts#L6557) |
+| rpc | auth_can_manage_order_delivery | [src/integrations/supabase/types.ts:6561](../../src/integrations/supabase/types.ts#L6561) |
+| rpc | auth_can_view_courier | [src/integrations/supabase/types.ts:6565](../../src/integrations/supabase/types.ts#L6565) |
+| rpc | auth_can_view_dispatch_job | [src/integrations/supabase/types.ts:6569](../../src/integrations/supabase/types.ts#L6569) |
+| rpc | auth_can_view_order_delivery | [src/integrations/supabase/types.ts:6573](../../src/integrations/supabase/types.ts#L6573) |
+| rpc | auth_is_admin | [src/integrations/supabase/types.ts:6577](../../src/integrations/supabase/types.ts#L6577) |
+| rpc | auth_owns_courier | [src/integrations/supabase/types.ts:6578](../../src/integrations/supabase/types.ts#L6578) |
+| rpc | auth_owns_restaurant | [src/integrations/supabase/types.ts:6579](../../src/integrations/supabase/types.ts#L6579) |
+| rpc | broadcast_topic_notification | [src/integrations/supabase/types.ts:6583](../../src/integrations/supabase/types.ts#L6583) |
+| rpc | cancel_reservation_by_customer | [src/integrations/supabase/types.ts:6594](../../src/integrations/supabase/types.ts#L6594) |
+| rpc | cancel_reservation_by_restaurant | [src/integrations/supabase/types.ts:6602](../../src/integrations/supabase/types.ts#L6602) |
+| rpc | claim_gift_points | [src/integrations/supabase/types.ts:6614](../../src/integrations/supabase/types.ts#L6614) |
+| rpc | cleanup_expired_groups | [src/integrations/supabase/types.ts:6615](../../src/integrations/supabase/types.ts#L6615) |
+| rpc | compute_order_discount_from_payload | [src/integrations/supabase/types.ts:6616](../../src/integrations/supabase/types.ts#L6616) |
+| rpc | compute_restaurant_reservation_fees | [src/integrations/supabase/types.ts:6625](../../src/integrations/supabase/types.ts#L6625) |
+| rpc | create_order_with_items | [src/integrations/supabase/types.ts:6636](../../src/integrations/supabase/types.ts#L6636) |
+| rpc | decrement_stock | [src/integrations/supabase/types.ts:6649](../../src/integrations/supabase/types.ts#L6649) |
+| rpc | delete_user_gdpr_cascade | [src/integrations/supabase/types.ts:6653](../../src/integrations/supabase/types.ts#L6653) |
+| rpc | donate_points_for_meal | [src/integrations/supabase/types.ts:6657](../../src/integrations/supabase/types.ts#L6657) |
+| rpc | enqueue_deliveries | [src/integrations/supabase/types.ts:6661](../../src/integrations/supabase/types.ts#L6661) |
+| rpc | enqueue_notification | [src/integrations/supabase/types.ts:6665](../../src/integrations/supabase/types.ts#L6665) |
+| rpc | ensure_guest_profile | [src/integrations/supabase/types.ts:6676](../../src/integrations/supabase/types.ts#L6676) |
+| rpc | estimate_campaign_audience | [src/integrations/supabase/types.ts:6684](../../src/integrations/supabase/types.ts#L6684) |
+| rpc | find_nearby_couriers | [src/integrations/supabase/types.ts:6688](../../src/integrations/supabase/types.ts#L6688) |
+| rpc | generate_monthly_invoices | [src/integrations/supabase/types.ts:6704](../../src/integrations/supabase/types.ts#L6704) |
+| rpc | generate_restaurant_payout_invoice | [src/integrations/supabase/types.ts:6705](../../src/integrations/supabase/types.ts#L6705) |
+| rpc | generate_tok_reservation_fee_invoice | [src/integrations/supabase/types.ts:6714](../../src/integrations/supabase/types.ts#L6714) |
+| rpc | generate_tok_reservation_fee_invoices_all | [src/integrations/supabase/types.ts:6718](../../src/integrations/supabase/types.ts#L6718) |
+| rpc | generate_tok_payable_invoice | [src/integrations/supabase/types.ts:6722](../../src/integrations/supabase/types.ts#L6722) |
+| rpc | generate_tok_payable_invoices_all | [src/integrations/supabase/types.ts:6726](../../src/integrations/supabase/types.ts#L6726) |
+| rpc | get_campaign_stats | [src/integrations/supabase/types.ts:6730](../../src/integrations/supabase/types.ts#L6730) |
+| rpc | get_customer_orders_dashboard | [src/integrations/supabase/types.ts:6746](../../src/integrations/supabase/types.ts#L6746) |
+| rpc | get_gift_stats | [src/integrations/supabase/types.ts:6767](../../src/integrations/supabase/types.ts#L6767) |
+| rpc | get_order_customers | [src/integrations/supabase/types.ts:6768](../../src/integrations/supabase/types.ts#L6768) |
+| rpc | get_reservation_customers | [src/integrations/supabase/types.ts:6776](../../src/integrations/supabase/types.ts#L6776) |
+| rpc | get_reservation_fee_invoice_lines | [src/integrations/supabase/types.ts:6784](../../src/integrations/supabase/types.ts#L6784) |
+| rpc | get_payable_invoice_lines | [src/integrations/supabase/types.ts:6797](../../src/integrations/supabase/types.ts#L6797) |
+| rpc | get_restaurant_comparison | [src/integrations/supabase/types.ts:6817](../../src/integrations/supabase/types.ts#L6817) |
+| rpc | get_restaurant_orders_dashboard | [src/integrations/supabase/types.ts:6821](../../src/integrations/supabase/types.ts#L6821) |
+| rpc | get_restaurant_payment_history | [src/integrations/supabase/types.ts:6842](../../src/integrations/supabase/types.ts#L6842) |
+| rpc | get_restaurant_performance | [src/integrations/supabase/types.ts:6860](../../src/integrations/supabase/types.ts#L6860) |
+| rpc | get_restaurant_recommendations | [src/integrations/supabase/types.ts:6864](../../src/integrations/supabase/types.ts#L6864) |
+| rpc | get_total_donated_meals | [src/integrations/supabase/types.ts:6868](../../src/integrations/supabase/types.ts#L6868) |
+| rpc | get_total_donated_points | [src/integrations/supabase/types.ts:6869](../../src/integrations/supabase/types.ts#L6869) |
+| rpc | has_role | [src/integrations/supabase/types.ts:6870](../../src/integrations/supabase/types.ts#L6870) |
+| rpc | increment_ad_campaign_metric | [src/integrations/supabase/types.ts:6877](../../src/integrations/supabase/types.ts#L6877) |
+| rpc | is_feature_flag_active | [src/integrations/supabase/types.ts:6881](../../src/integrations/supabase/types.ts#L6881) |
+| rpc | mark_noshow_reservations | [src/integrations/supabase/types.ts:6885](../../src/integrations/supabase/types.ts#L6885) |
+| rpc | normalize_search_text | [src/integrations/supabase/types.ts:6886](../../src/integrations/supabase/types.ts#L6886) |
+| rpc | queue_notification_deliveries | [src/integrations/supabase/types.ts:6887](../../src/integrations/supabase/types.ts#L6887) |
+| rpc | rate_limit_consume | [src/integrations/supabase/types.ts:6896](../../src/integrations/supabase/types.ts#L6896) |
+| rpc | restaurant_save_floor_plan_assignments | [src/integrations/supabase/types.ts:6905](../../src/integrations/supabase/types.ts#L6905) |
+| rpc | restaurant_save_floor_plan_furniture | [src/integrations/supabase/types.ts:6909](../../src/integrations/supabase/types.ts#L6909) |
+| rpc | restaurant_save_floor_plan_layouts | [src/integrations/supabase/types.ts:6918](../../src/integrations/supabase/types.ts#L6918) |
+| rpc | restaurant_save_floor_plan_layouts_v2 | [src/integrations/supabase/types.ts:6927](../../src/integrations/supabase/types.ts#L6927) |
+| rpc | restaurant_save_floor_plan_template | [src/integrations/supabase/types.ts:6938](../../src/integrations/supabase/types.ts#L6938) |
+| rpc | restaurant_save_floor_plan_variant_v2 | [src/integrations/supabase/types.ts:6947](../../src/integrations/supabase/types.ts#L6947) |
+| rpc | restaurant_save_floor_plan_workspace | [src/integrations/supabase/types.ts:6957](../../src/integrations/supabase/types.ts#L6957) |
+| rpc | restaurant_save_floor_plan_workspace_v2 | [src/integrations/supabase/types.ts:6968](../../src/integrations/supabase/types.ts#L6968) |
+| rpc | recompute_restaurant_review_stats | [src/integrations/supabase/types.ts:6981](../../src/integrations/supabase/types.ts#L6981) |
+| rpc | record_ad_campaign_event | [src/integrations/supabase/types.ts:6985](../../src/integrations/supabase/types.ts#L6985) |
+| rpc | redeem_loyalty_points | [src/integrations/supabase/types.ts:6999](../../src/integrations/supabase/types.ts#L6999) |
+| rpc | refresh_restaurant_daily_kpis_for_date | [src/integrations/supabase/types.ts:7007](../../src/integrations/supabase/types.ts#L7007) |
+| rpc | refresh_restaurant_daily_kpis_recent_days | [src/integrations/supabase/types.ts:7011](../../src/integrations/supabase/types.ts#L7011) |
+| rpc | search_restaurants_catalog | [src/integrations/supabase/types.ts:7015](../../src/integrations/supabase/types.ts#L7015) |
+| rpc | search_restaurants_nearby | [src/integrations/supabase/types.ts:7051](../../src/integrations/supabase/types.ts#L7051) |
+| rpc | send_gift_points | [src/integrations/supabase/types.ts:7082](../../src/integrations/supabase/types.ts#L7082) |
+| rpc | mark_signup_application_draft_finalized | [src/integrations/supabase/types.ts:7090](../../src/integrations/supabase/types.ts#L7090) |
+| rpc | sync_signup_application | [src/integrations/supabase/types.ts:7094](../../src/integrations/supabase/types.ts#L7094) |
+| rpc | update_restaurant_reservation_status_safe | [src/integrations/supabase/types.ts:7120](../../src/integrations/supabase/types.ts#L7120) |
+| rpc | validate_and_create_reservation | [src/integrations/supabase/types.ts:7128](../../src/integrations/supabase/types.ts#L7128) |
+| rpc | validate_and_create_reservation_safe | [src/integrations/supabase/types.ts:7140](../../src/integrations/supabase/types.ts#L7140) |
+| rpc | validate_service_settings_json | [src/integrations/supabase/types.ts:7156](../../src/integrations/supabase/types.ts#L7156) |
+| enum | app_role | [src/integrations/supabase/types.ts:7162](../../src/integrations/supabase/types.ts#L7162) |
+| enum | commercial_visit_status | [src/integrations/supabase/types.ts:7163](../../src/integrations/supabase/types.ts#L7163) |
+| enum | loyalty_tier | [src/integrations/supabase/types.ts:7164](../../src/integrations/supabase/types.ts#L7164) |
 
 ### Tâches pg_cron détectées
 
@@ -6639,6 +6655,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261023074600 Guardian Complete Repair Bounded Investigation | 145 | 1 | [supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql:1](../../supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql#L1) |
 | 20261026230000 Marketing Social Image Upload | 109 | 1 | [supabase/migrations/20261026230000_marketing_social_image_upload.sql:1](../../supabase/migrations/20261026230000_marketing_social_image_upload.sql#L1) |
 | 20261027020556 Harden Courier And Floor Plan Boundaries | 135 | 3 | [supabase/migrations/20261027020556_harden_courier_and_floor_plan_boundaries.sql:1](../../supabase/migrations/20261027020556_harden_courier_and_floor_plan_boundaries.sql#L1) |
+| 20261027180000 Restaurant Menu Cards | 295 | 13 | [supabase/migrations/20261027180000_restaurant_menu_cards.sql:1](../../supabase/migrations/20261027180000_restaurant_menu_cards.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6869,7 +6886,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 42 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 276 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 833 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 834 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6883,14 +6900,14 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 88 |
 | documentation | 6 |
 | edge-function-source | 242 |
-| frontend-component | 294 |
+| frontend-component | 295 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
 | frontend-source | 35 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 755 |
+| test | 756 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7556,7 +7573,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (578)</summary>
+<details><summary>database-migration (579)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8136,6 +8153,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql`
 - `supabase/migrations/20261026230000_marketing_social_image_upload.sql`
 - `supabase/migrations/20261027020556_harden_courier_and_floor_plan_boundaries.sql`
+- `supabase/migrations/20261027180000_restaurant_menu_cards.sql`
 
 </details>
 
@@ -8569,7 +8587,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (303)</summary>
+<details><summary>frontend-component (304)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8683,6 +8701,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/dashboard/IllustratedActionCard.tsx`
 - `src/components/dashboard/RestaurantDashboardHomeView.css`
 - `src/components/dashboard/RestaurantDashboardHomeView.tsx`
+- `src/components/dashboard/RestaurantMenuCardsBar.tsx`
 - `src/components/dashboard/RestaurantMenuCatalog.tsx`
 - `src/components/dashboard/RestaurantOrderBoard.tsx`
 - `src/components/dashboard/RestaurantWorkspacePages.css`
@@ -10107,7 +10126,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (755)</summary>
+<details><summary>test (756)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10654,6 +10673,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-image-truth-pipeline.test.ts`
 - `src/test/restaurant-media-governance.test.ts`
 - `src/test/restaurant-media-watermark.test.ts`
+- `src/test/restaurant-menu-cards.test.tsx`
 - `src/test/restaurant-menu-catalog.test.tsx`
 - `src/test/restaurant-onboarding-payments.test.ts`
 - `src/test/restaurant-order-board.test.tsx`
