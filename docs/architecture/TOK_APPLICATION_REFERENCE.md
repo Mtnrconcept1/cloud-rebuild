@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `c409753cb5004206ce78f7695be467464d8b258a5640a3ba98560d0610eaf932`
+- Empreinte SHA-256 des sources indexées : `47fdbed3cb5cf60b8fae71691cebd9bd9d579f369ace2bf6464eab78c0571e6f`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -26,9 +26,9 @@
 | Famille | Total |
 | --- | --- |
 | apiRoutes | 11 |
-| cronJobs | 36 |
+| cronJobs | 37 |
 | databaseContract | 231 |
-| databaseObjects | 3054 |
+| databaseObjects | 3065 |
 | documents | 227 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
@@ -37,16 +37,16 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 580 |
-| modules | 1835 |
+| migrations | 581 |
+| modules | 1836 |
 | pages | 133 |
 | pathLiterals | 897 |
 | publicAssets | 713 |
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18966 |
-| repositoryFiles | 3686 |
+| records | 18982 |
+| repositoryFiles | 3688 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2704,7 +2704,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (871)</summary>
+<details><summary>function (874)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3518,6 +3518,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.tok_connect_is_partner_member` (1 définition(s))
 - `public.tok_connect_oauth_request_allowed` (1 définition(s))
 - `public.tok_connect_restaurant_grant_enabled` (1 définition(s))
+- `public.tok_consent_immutable` (1 définition(s))
+- `public.tok_consent_take_slot` (1 définition(s))
+- `public.tok_consent_withdraw` (1 définition(s))
 - `public.tok_credit_balance_from_usage` (1 définition(s))
 - `public.tok_slugify` (1 définition(s))
 - `public.tok_workforce_can_manage` (1 définition(s))
@@ -3580,7 +3583,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (719)</summary>
+<details><summary>index (723)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -4240,6 +4243,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `tok_broker_refresh_history_session_idx` (1 définition(s))
 - `tok_broker_sessions_expiry_idx` (1 définition(s))
 - `tok_broker_sessions_owner_idx` (1 définition(s))
+- `tok_consent_admin_audit_created_idx` (1 définition(s))
+- `tok_contact_permissions_created_idx` (1 définition(s))
+- `tok_contact_permissions_email_idx` (1 définition(s))
+- `tok_contact_permissions_expiry_idx` (1 définition(s))
 - `tok_oauth_permits_expiry_idx` (1 définition(s))
 - `tok_workforce_absences_period_idx` (1 définition(s))
 - `tok_workforce_audit_recent_idx` (1 définition(s))
@@ -5115,7 +5122,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (386)</summary>
+<details><summary>table (389)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5469,7 +5476,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.tok_connect_restaurant_grants` (1 définition(s))
 - `public.tok_connect_webhook_deliveries` (1 définition(s))
 - `public.tok_connect_webhook_endpoints` (1 définition(s))
-- `public.tok_consent_settings` (1 définition(s))
+- `public.tok_consent_admin_audit` (1 définition(s))
+- `public.tok_consent_rate_limits` (1 définition(s))
+- `public.tok_consent_settings` (2 définition(s))
+- `public.tok_contact_permissions` (1 définition(s))
 - `public.tok_inbound_forward_receipts` (1 définition(s))
 - `public.tok_one_subscriptions` (1 définition(s))
 - `public.tok_workforce_absences` (1 définition(s))
@@ -5506,7 +5516,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (265)</summary>
+<details><summary>trigger (266)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -5712,6 +5722,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `tg_orders_apply_miamz_metadata` (1 définition(s))
 - `tg_reservations_apply_miamz_metadata` (1 définition(s))
 - `tg_support_incidents_apply_miamz_priority` (1 définition(s))
+- `tok_consent_immutable` (1 définition(s))
 - `tok_workforce_absence_shift_guard` (1 définition(s))
 - `tok_workforce_guard_account_link` (1 définition(s))
 - `tok_workforce_lock_approved_hours` (1 définition(s))
@@ -6050,6 +6061,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | tok-capture-due-match-groups | */5 * * * * | [supabase/migrations/20260712060000_fix_production_security_alerts.sql:249](../../supabase/migrations/20260712060000_fix_production_security_alerts.sql#L249) |
 | tok-close-due-match-groups | * * * * * | [supabase/migrations/20260531191057_security_linter_hardening_and_core_cron.sql:221](../../supabase/migrations/20260531191057_security_linter_hardening_and_core_cron.sql#L221) |
 | tok-connect-webhook-dispatcher | * * * * * | [supabase/migrations/20260626143100_tok_connect_webhook_scheduler.sql:27](../../supabase/migrations/20260626143100_tok_connect_webhook_scheduler.sql#L27) |
+| tok-consent-retention | 19 3 * * * | [supabase/migrations/20261027161330_native_tok_contact_permissions.sql:94](../../supabase/migrations/20261027161330_native_tok_contact_permissions.sql#L94) |
 | tok-directory-commercial-name-verification | * * * * * | [supabase/migrations/20260903084500_security_audit_p0_remediation.sql:81](../../supabase/migrations/20260903084500_security_audit_p0_remediation.sql#L81) |
 | tok-directory-cuisine-enrichment | * * * * * | [supabase/migrations/20260903084500_security_audit_p0_remediation.sql:105](../../supabase/migrations/20260903084500_security_audit_p0_remediation.sql#L105) |
 | tok-directory-cuisine-osm-enrichment | * * * * * | [supabase/migrations/20260903084500_security_audit_p0_remediation.sql:129](../../supabase/migrations/20260903084500_security_audit_p0_remediation.sql#L129) |
@@ -6669,6 +6681,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261026230000 Marketing Social Image Upload | 109 | 1 | [supabase/migrations/20261026230000_marketing_social_image_upload.sql:1](../../supabase/migrations/20261026230000_marketing_social_image_upload.sql#L1) |
 | 20261027020556 Harden Courier And Floor Plan Boundaries | 135 | 3 | [supabase/migrations/20261027020556_harden_courier_and_floor_plan_boundaries.sql:1](../../supabase/migrations/20261027020556_harden_courier_and_floor_plan_boundaries.sql#L1) |
 | 20261027161000 Commercial Signed Email Consent | 288 | 14 | [supabase/migrations/20261027161000_commercial_signed_email_consent.sql:1](../../supabase/migrations/20261027161000_commercial_signed_email_consent.sql#L1) |
+| 20261027161330 Native Tok Contact Permissions | 102 | 12 | [supabase/migrations/20261027161330_native_tok_contact_permissions.sql:1](../../supabase/migrations/20261027161330_native_tok_contact_permissions.sql#L1) |
 | 20261027180000 Restaurant Menu Cards | 311 | 13 | [supabase/migrations/20261027180000_restaurant_menu_cards.sql:1](../../supabase/migrations/20261027180000_restaurant_menu_cards.sql#L1) |
 
 ## Automatisation, dépendances et CI
@@ -6901,7 +6914,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 42 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 276 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 838 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 839 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6922,7 +6935,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 758 |
+| test | 759 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7593,7 +7606,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (580)</summary>
+<details><summary>database-migration (581)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8174,6 +8187,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261026230000_marketing_social_image_upload.sql`
 - `supabase/migrations/20261027020556_harden_courier_and_floor_plan_boundaries.sql`
 - `supabase/migrations/20261027161000_commercial_signed_email_consent.sql`
+- `supabase/migrations/20261027161330_native_tok_contact_permissions.sql`
 - `supabase/migrations/20261027180000_restaurant_menu_cards.sql`
 
 </details>
@@ -10150,7 +10164,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (758)</summary>
+<details><summary>test (759)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10161,6 +10175,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/stoppin-venue-seo.test.mjs`
 - `scripts/test-actualites-billing-runner.test.mjs`
 - `scripts/test-checkout-security-runner.test.mjs`
+- `scripts/test-native-consent-history.test.mjs`
 - `scripts/test-print-protocol-runner.test.mjs`
 - `src/test/MyWorkforce.test.tsx`
 - `src/test/accounting-ai-public-copy.test.ts`
