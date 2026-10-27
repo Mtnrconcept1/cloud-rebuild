@@ -48,7 +48,13 @@ CREATE INDEX IF NOT EXISTS restaurant_menu_cards_restaurant_created_idx
 
 ALTER TABLE public.menu_items
   ADD COLUMN IF NOT EXISTS menu_card_id uuid,
-  ADD COLUMN IF NOT EXISTS available_on_card boolean NOT NULL DEFAULT true;
+  ADD COLUMN IF NOT EXISTS available_on_card boolean;
+
+-- Les anciennes lignes ont une valeur NULL uniquement lors de la première
+-- application. Ne jamais recalculer depuis is_available lors d'une réexécution :
+-- pour une carte inactive, is_available vaut false même si la disponibilité
+-- souhaitée (available_on_card) vaut true.
+
 
 COMMENT ON COLUMN public.menu_items.menu_card_id IS
   'Carte de menu du plat. NULL = restaurant sans carte (comportement historique).';
@@ -58,7 +64,11 @@ COMMENT ON COLUMN public.menu_items.available_on_card IS
 -- La disponibilité voulue reprend l'état actuel (un plat épuisé le reste).
 UPDATE public.menu_items
 SET available_on_card = coalesce(is_available, true)
-WHERE available_on_card IS DISTINCT FROM coalesce(is_available, true);
+WHERE available_on_card IS NULL;
+
+ALTER TABLE public.menu_items
+  ALTER COLUMN available_on_card SET DEFAULT true,
+  ALTER COLUMN available_on_card SET NOT NULL;
 
 -- La clé composite empêche de rattacher un plat à la carte d'un autre restaurant.
 DO $fk$
@@ -277,6 +287,12 @@ BEGIN
   SET is_active = true, activated_at = now(), activated_by = auth.uid(), updated_at = now()
   WHERE id = p_card_id
   RETURNING * INTO v_card;
+
+  -- Une suppression concurrente de la carte ne doit jamais laisser le
+  -- restaurant sans carte active : l'erreur annule toute la transaction.
+  IF v_card.id IS NULL THEN
+    RAISE EXCEPTION 'menu_card_not_found' USING ERRCODE = 'P0002';
+  END IF;
 
   -- Recalcule la disponibilité effective de tous les plats via le trigger.
   -- Un éventuel plat sans carte rejoint l'ancienne carte active.
