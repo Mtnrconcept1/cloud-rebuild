@@ -65,6 +65,8 @@ export function createHandler(env:Env,fetcher:typeof fetch=fetch):(req:Request)=
  const base=env.SUPABASE_URL?.replace(/\/$/,'')||'',key=env.SUPABASE_SERVICE_ROLE_KEY||'';
  const publicKey=env.SUPABASE_ANON_KEY||'sb_publishable_hkHF8kMZXlRpsWKafVDQ4A_OeUiiGkG';
  const table='tok_contact_permissions';
+ // Same default as supabase/functions/send-email/index.ts; no secret or setting is changed.
+ const emailFrom=env.EMAIL_FROM||'Tok <noreply@thetok.ch>';
  async function db(path:string,method='GET',body?:unknown):Promise<any> {
    if(!base||!key)fail(503,'Le service est temporairement indisponible.');
    const r=await fetcher(`${base}/rest/v1/${path}`,{method,headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json',Prefer:'return=representation'},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(15000)});
@@ -85,11 +87,11 @@ export function createHandler(env:Env,fetcher:typeof fetch=fetch):(req:Request)=
  async function audit(actor:string,action:string,offset=0){await db('tok_consent_admin_audit','POST',{actor_user_id:actor,action,page_offset:offset});}
  async function sendConfirmation(row:Row,token:string):Promise<boolean> {
    if(row.email_status==='sent')return true;
-   if(!env.RESEND_API_KEY||!env.EMAIL_FROM)return false;
+   if(!env.RESEND_API_KEY)return false;
    const link=`${PUBLIC_URL}/#receipt=${token}`;
    const plain=`Une autorisation de contact TOK a été signée pour ${String(row.payload.restaurant)}.\n\nConsultez votre reçu et confirmez votre adresse pour activer l’autorisation :\n${link}\n\nLa simple ouverture du lien ne confirme rien. Aucun abonnement ni achat n’est créé. Si vous n’êtes pas à l’origine de cette demande, ne confirmez pas ; vous pouvez la retirer depuis le même lien. Ce lien est personnel : ne le transférez pas. La confirmation expire après 48 heures.\n\n${String(row.payload.text)}\n\nContact : ${String(row.payload.contact)}\nRetirer mon autorisation / me désabonner : ${link}`;
    let ok=false;
-   try {const r=await fetcher('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${env.RESEND_API_KEY}`,'Content-Type':'application/json','Idempotency-Key':`tok-consent-${row.id}`},body:JSON.stringify({from:env.EMAIL_FROM,to:[row.email],subject:'Confirmez votre autorisation de contact TOK',text:plain,html:`<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.6;color:#191919;padding:24px"><h1 style="font-family:Georgia,serif;color:#191919;font-size:28px">Votre autorisation TOK</h1><p>Une demande a été signée pour ${escapeHtml(String(row.payload.restaurant))}.</p><p><a style="color:#b83a00" href="${link}">Consulter le reçu et confirmer mon adresse</a></p><p>Aucun abonnement ni achat. La simple ouverture de ce lien ne confirme rien. Si vous n’êtes pas à l’origine de la demande, ne confirmez pas.</p><p>${escapeHtml(String(row.payload.text))}</p><p>Ce lien est personnel et confidentiel. Confirmation possible pendant 48 heures.</p><hr><p><a href="${link}">Retirer mon autorisation / me désabonner</a></p></td></tr></table></body></html>`}),signal:AbortSignal.timeout(15000)});ok=r.ok;}catch{ok=false;}
+   try {const r=await fetcher('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${env.RESEND_API_KEY}`,'Content-Type':'application/json','Idempotency-Key':`tok-consent-${row.id}`},body:JSON.stringify({from:emailFrom,to:[row.email],subject:'Confirmez votre autorisation de contact TOK',text:plain,html:`<!doctype html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.6;color:#191919;padding:24px"><h1 style="font-family:Georgia,serif;color:#191919;font-size:28px">Votre autorisation TOK</h1><p>Une demande a été signée pour ${escapeHtml(String(row.payload.restaurant))}.</p><p><a style="color:#b83a00" href="${link}">Consulter le reçu et confirmer mon adresse</a></p><p>Aucun abonnement ni achat. La simple ouverture de ce lien ne confirme rien. Si vous n’êtes pas à l’origine de la demande, ne confirmez pas.</p><p>${escapeHtml(String(row.payload.text))}</p><p>Ce lien est personnel et confidentiel. Confirmation possible pendant 48 heures.</p><hr><p><a href="${link}">Retirer mon autorisation / me désabonner</a></p></td></tr></table></body></html>`}),signal:AbortSignal.timeout(15000)});ok=r.ok;}catch{ok=false;}
    await db(table+'?'+query({id:`eq.${row.id}`}), 'PATCH',{email_status:ok?'sent':'failed'});return ok;
  }
  async function submit(v:Record<string,unknown>,req:Request) {
@@ -123,7 +125,7 @@ export function createHandler(env:Env,fetcher:typeof fetch=fetch):(req:Request)=
    try {
      if(origin&&origin!==PUBLIC_URL)fail(403,'Origine non autorisée.');
      if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
-     if(req.method==='GET'){const current=await contract();return response({contract:current,configured:Boolean(current),supabaseUrl:base,publicKey,mailConfigured:Boolean(env.RESEND_API_KEY&&env.EMAIL_FROM)});}
+     if(req.method==='GET'){const current=await contract();return response({contract:current,configured:Boolean(current),supabaseUrl:base,publicKey,mailConfigured:Boolean(env.RESEND_API_KEY)});}
      if(req.method!=='POST')fail(405,'Méthode non autorisée.');
      const v=await limitedJson(req);
      if(v.action==='submit')return response(await submit(v,req));
