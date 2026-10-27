@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `3aa553570186fc4dcda9b0e8e10d5d1c4dddc87d0ef03a6512c8ed4e9b9513ac`
+- Empreinte SHA-256 des sources indexées : `c409753cb5004206ce78f7695be467464d8b258a5640a3ba98560d0610eaf932`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,31 +28,31 @@
 | apiRoutes | 11 |
 | cronJobs | 36 |
 | databaseContract | 231 |
-| databaseObjects | 3041 |
-| documents | 226 |
+| databaseObjects | 3054 |
+| documents | 227 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4003 |
+| exportedSymbols | 4015 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 579 |
-| modules | 1829 |
+| migrations | 580 |
+| modules | 1835 |
 | pages | 133 |
 | pathLiterals | 897 |
 | publicAssets | 713 |
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18913 |
-| repositoryFiles | 3676 |
+| records | 18966 |
+| repositoryFiles | 3686 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 31 |
+| workflows | 32 |
 
 ## État distant observé
 
@@ -2704,7 +2704,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (864)</summary>
+<details><summary>function (871)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3000,6 +3000,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.cleanup_expired_groups` (1 définition(s))
 - `public.close_due_match_groups` (2 définition(s))
 - `public.commercial_build_signature_snapshot` (3 définition(s))
+- `public.commercial_configure_email_consent_controller` (1 définition(s))
+- `public.commercial_consent_assert_access` (1 définition(s))
+- `public.commercial_consent_document` (1 définition(s))
+- `public.commercial_consent_protect_receipt` (1 définition(s))
 - `public.commercial_demo_ai_apply_retention` (1 définition(s))
 - `public.commercial_demo_ai_archive_conversation` (1 définition(s))
 - `public.commercial_demo_ai_claim_request` (2 définition(s))
@@ -3026,7 +3030,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.commercial_demo_transition` (1 définition(s))
 - `public.commercial_demo_transition_reservation` (1 définition(s))
 - `public.commercial_demo_user_is_restricted` (2 définition(s))
+- `public.commercial_get_email_consent_context` (1 définition(s))
+- `public.commercial_get_email_consent_receipt` (1 définition(s))
 - `public.commercial_plan_key` (1 définition(s))
+- `public.commercial_record_signed_email_consent_v2` (1 définition(s))
 - `public.commercial_refusal_reason_codes_valid` (2 définition(s))
 - `public.commercial_signature_commission_chf` (1 définition(s))
 - `public.commercial_sprint_bonus_chf` (1 définition(s))
@@ -3225,7 +3232,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.marketing_build_content_review_snapshot` (1 définition(s))
 - `public.marketing_capture_lawful_basis_evidence` (1 définition(s))
 - `public.marketing_channel_availability` (1 définition(s))
-- `public.marketing_contact_is_eligible` (2 définition(s))
+- `public.marketing_contact_is_eligible` (3 définition(s))
 - `public.marketing_contact_matches_filter` (3 définition(s))
 - `public.marketing_content_review_allows_delivery` (1 définition(s))
 - `public.marketing_content_review_audience` (1 définition(s))
@@ -3573,7 +3580,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (716)</summary>
+<details><summary>index (719)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3647,6 +3654,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `commercial_demo_reservations_owner_created_idx` (1 définition(s))
 - `commercial_demo_reservations_restaurant_idx` (1 définition(s))
 - `commercial_demo_reservations_session_date_idx` (1 définition(s))
+- `commercial_email_consent_receipts_actor_idx` (1 définition(s))
+- `commercial_email_consent_receipts_contact_idx` (1 définition(s))
+- `commercial_email_consent_receipts_prospect_idx` (1 définition(s))
 - `commercial_prospect_catalog_marketing_cursor_idx` (1 définition(s))
 - `consent_receipts_marketing_user_latest_idx` (1 définition(s))
 - `crm_mfa_recovery_cleanup_idx` (1 définition(s))
@@ -5105,7 +5115,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (384)</summary>
+<details><summary>table (386)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5175,6 +5185,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.commercial_demo_reservations` (1 définition(s))
 - `public.commercial_demo_shared_restaurant` (1 définition(s))
 - `public.commercial_earning_events` (1 définition(s))
+- `public.commercial_email_consent_receipts` (1 définition(s))
 - `public.commercial_prospect_catalog` (1 définition(s))
 - `public.commercial_prospect_followup_history` (2 définition(s))
 - `public.commercial_prospect_followups` (1 définition(s))
@@ -5458,6 +5469,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.tok_connect_restaurant_grants` (1 définition(s))
 - `public.tok_connect_webhook_deliveries` (1 définition(s))
 - `public.tok_connect_webhook_endpoints` (1 définition(s))
+- `public.tok_consent_settings` (1 définition(s))
 - `public.tok_inbound_forward_receipts` (1 définition(s))
 - `public.tok_one_subscriptions` (1 définition(s))
 - `public.tok_workforce_absences` (1 définition(s))
@@ -5494,7 +5506,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (264)</summary>
+<details><summary>trigger (265)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -5518,6 +5530,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `block_commercial_demo_side_effect_row` (1 définition(s))
 - `block_commercial_demo_social_side_effect_row` (1 définition(s))
 - `capture_signup_application_draft_on_auth_user` (1 définition(s))
+- `commercial_consent_immutable` (1 définition(s))
 - `commercial_contract_acceptances_immutable` (1 définition(s))
 - `commercial_demo_accounts_updated_at` (1 définition(s))
 - `commercial_demo_ai_session_lifecycle_cleanup` (1 définition(s))
@@ -6655,6 +6668,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261023074600 Guardian Complete Repair Bounded Investigation | 145 | 1 | [supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql:1](../../supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql#L1) |
 | 20261026230000 Marketing Social Image Upload | 109 | 1 | [supabase/migrations/20261026230000_marketing_social_image_upload.sql:1](../../supabase/migrations/20261026230000_marketing_social_image_upload.sql#L1) |
 | 20261027020556 Harden Courier And Floor Plan Boundaries | 135 | 3 | [supabase/migrations/20261027020556_harden_courier_and_floor_plan_boundaries.sql:1](../../supabase/migrations/20261027020556_harden_courier_and_floor_plan_boundaries.sql#L1) |
+| 20261027161000 Commercial Signed Email Consent | 288 | 14 | [supabase/migrations/20261027161000_commercial_signed_email_consent.sql:1](../../supabase/migrations/20261027161000_commercial_signed_email_consent.sql#L1) |
 | 20261027180000 Restaurant Menu Cards | 311 | 13 | [supabase/migrations/20261027180000_restaurant_menu_cards.sql:1](../../supabase/migrations/20261027180000_restaurant_menu_cards.sql#L1) |
 
 ## Automatisation, dépendances et CI
@@ -6755,6 +6769,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Changed Test Files | changed-tests | [.github/workflows/changed-test-files.yml](../../.github/workflows/changed-test-files.yml) |
 | Checkout security PostgreSQL replay | replay | [.github/workflows/checkout-security-postgres.yml](../../.github/workflows/checkout-security-postgres.yml) |
 | CI | validate, validation | [.github/workflows/ci.yml](../../.github/workflows/ci.yml) |
+| Commercial consent regression | regression | [.github/workflows/commercial-consent.yml](../../.github/workflows/commercial-consent.yml) |
 | Dashboard design preview | preview | [.github/workflows/dashboard-design-preview.yml](../../.github/workflows/dashboard-design-preview.yml) |
 | Deploy Production | attach_marketing_domain, baseline, build_frontend, configure_project_domains, deploy_frontend, deploy_supabase, deployment_gate, preflight, record_production_baseline, validation | [.github/workflows/deploy-production.yml](../../.github/workflows/deploy-production.yml) |
 | Ensure Supabase Auth SMTP | configure | [.github/workflows/ensure-supabase-auth-smtp.yml](../../.github/workflows/ensure-supabase-auth-smtp.yml) |
@@ -6886,7 +6901,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 42 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 9 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 276 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 834 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 838 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6896,18 +6911,18 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 219 |
-| automation-script | 88 |
+| application-library | 220 |
+| automation-script | 90 |
 | documentation | 6 |
 | edge-function-source | 242 |
-| frontend-component | 295 |
+| frontend-component | 296 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
 | frontend-source | 35 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 756 |
+| test | 758 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7100,6 +7115,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Admin TheFork-only filter plan | 1 | [docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md:1](../../docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md#L1) |
 | Refonte TOK — application réelle en preview | 8 | [docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md:1](../../docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md#L1) |
 | TOK marketing publication repair | 6 | [docs/superpowers/plans/2026-10-11-marketing-publication-repair.md:1](../../docs/superpowers/plans/2026-10-11-marketing-publication-repair.md#L1) |
+| Consentement restaurateur dans le Cockpit commercial | 8 | [docs/superpowers/plans/2026-10-27-commercial-consent.md:1](../../docs/superpowers/plans/2026-10-27-commercial-consent.md#L1) |
 | Facturation des réservations (5.-/resa) & détection anti-fraude | 26 | [docs/superpowers/specs/2026-04-17-reservation-billing-design.md:1](../../docs/superpowers/specs/2026-04-17-reservation-billing-design.md#L1) |
 | Refonte compta: accueil + entrees/sorties | 52 | [docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md:1](../../docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md#L1) |
 | Lisibilite dashboard: factures, reservations et commandes | 39 | [docs/superpowers/specs/2026-04-21-dashboard-readability-design.md:1](../../docs/superpowers/specs/2026-04-21-dashboard-readability-design.md#L1) |
@@ -7207,7 +7223,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (219)</summary>
+<details><summary>application-library (220)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/actualitesFeedOrdering.ts`
@@ -7263,6 +7279,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/commercialDemoRestaurantScope.ts`
 - `src/lib/commercialDemoRestaurantTools.ts`
 - `src/lib/commercialDomains.ts`
+- `src/lib/commercialEmailConsent.ts`
 - `src/lib/commercialProspectionMarkerTheme.ts`
 - `src/lib/commercialSales.ts`
 - `src/lib/comptaCommissionSources.ts`
@@ -7431,7 +7448,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (101)</summary>
+<details><summary>automation-script (103)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7515,6 +7532,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/take-screenshots.mjs`
 - `scripts/test-actualites-billing-postgres.mjs`
 - `scripts/test-checkout-security-postgres.mjs`
+- `scripts/test-commercial-consent-local.mjs`
+- `scripts/test-commercial-consent-postgres.mjs`
 - `scripts/test-golden-tok-responsive.mjs`
 - `scripts/test-print-protocol-postgres.mjs`
 - `scripts/test-reservation-guarantee-idempotency-postgres.mjs`
@@ -7537,7 +7556,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (31)</summary>
+<details><summary>ci-workflow (32)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -7556,6 +7575,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/changed-test-files.yml`
 - `.github/workflows/checkout-security-postgres.yml`
 - `.github/workflows/ci.yml`
+- `.github/workflows/commercial-consent.yml`
 - `.github/workflows/dashboard-design-preview.yml`
 - `.github/workflows/deploy-production.yml`
 - `.github/workflows/ensure-supabase-auth-smtp.yml`
@@ -7573,7 +7593,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (579)</summary>
+<details><summary>database-migration (580)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8153,11 +8173,12 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql`
 - `supabase/migrations/20261026230000_marketing_social_image_upload.sql`
 - `supabase/migrations/20261027020556_harden_courier_and_floor_plan_boundaries.sql`
+- `supabase/migrations/20261027161000_commercial_signed_email_consent.sql`
 - `supabase/migrations/20261027180000_restaurant_menu_cards.sql`
 
 </details>
 
-<details><summary>documentation (178)</summary>
+<details><summary>documentation (179)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8304,6 +8325,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md`
 - `docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md`
 - `docs/superpowers/plans/2026-10-11-marketing-publication-repair.md`
+- `docs/superpowers/plans/2026-10-27-commercial-consent.md`
 - `docs/superpowers/specs/2026-04-17-reservation-billing-design.md`
 - `docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md`
 - `docs/superpowers/specs/2026-04-21-dashboard-readability-design.md`
@@ -8587,7 +8609,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (304)</summary>
+<details><summary>frontend-component (305)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8674,6 +8696,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/commercial/CommercialDemoHostSecurityBoundary.tsx`
 - `src/components/commercial/CommercialDemoRestaurantHome.tsx`
 - `src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx`
+- `src/components/commercial/CommercialEmailConsentDialog.tsx`
 - `src/components/commercial/CommercialHostBoundary.tsx`
 - `src/components/commercial/CommercialMultiSpaceDemo.tsx`
 - `src/components/commercial/CommercialSingleSpaceDemo.tsx`
@@ -10083,7 +10106,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (38)</summary>
+<details><summary>supabase-configuration (39)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -10102,6 +10125,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/tests/checkout_security_710_assertions.sql`
 - `supabase/tests/checkout_security_710_baseline_prerequisites.sql`
 - `supabase/tests/checkout_security_710_fixture.sql`
+- `supabase/tests/commercial_email_consent.sql`
 - `supabase/tests/courier_floor_plan_security_assertions.sql`
 - `supabase/tests/courier_floor_plan_security_fixture.sql`
 - `supabase/tests/critical_rpc_smoke.sql`
@@ -10126,7 +10150,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (756)</summary>
+<details><summary>test (758)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10283,6 +10307,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/commercial-demo-user-role-rls.test.ts`
 - `src/test/commercial-demo-visible-navigation-isolation.test.ts`
 - `src/test/commercial-domain-isolation.test.ts`
+- `src/test/commercial-email-consent-contract.test.ts`
+- `src/test/commercial-email-consent.test.tsx`
 - `src/test/commercial-multi-space-demo.test.ts`
 - `src/test/commercial-prospection-pins.test.ts`
 - `src/test/commercial-prospection-thefork-filter.test.ts`
