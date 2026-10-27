@@ -247,7 +247,7 @@ export default function Recherche() {
   const delivery = searchParams.get("delivery") || "";
   const minRatingParam = searchParams.get("rating") || "";
   const minRating10 = normalizeMinRating10(minRatingParam);
-  const minRatingDb = minRating10 > 0 ? minRating10 / 2 : 0;
+  const minRatingDb = minRating10;
   const minRatingSelectValue = minRating10 > 0 ? String(minRating10) : "0";
   const sortParam = searchParams.get("sort");
   const orderParam = searchParams.get("order");

@@ -102,7 +102,12 @@ function formatDashboardPromotionEndDate(endAt: string) {
 
 export default function DashboardRestaurant() {
   const { user } = useAuth();
-  const { selectedId, setSelectedId } = useDashboardRestaurant();
+  const {
+    selectedId,
+    setSelectedId,
+    loading: ownerRestaurantsLoading,
+    error: ownerRestaurantsError,
+  } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -123,11 +128,17 @@ export default function DashboardRestaurant() {
   );
 
   const [loading, setLoading] = useState(false);
+  const [formRestaurantId, setFormRestaurantId] = useState<string | null>(null);
   const saveInFlightRef = useRef(false);
   const createdRestaurantIdRef = useRef<string | null>(null);
   const [connectLoading, setConnectLoading] = useState(false);
   const [connectIssue, setConnectIssue] = useState<"platform_profile_required" | null>(null);
   const [selectedCuisineIds, setSelectedCuisineIds] = useState<string[]>([]);
+  const [cuisineFormSource, setCuisineFormSource] = useState<{
+    restaurantId: string;
+    links: string[];
+    options: CuisineOption[];
+  } | null>(null);
   const [disabledPaymentMethods, setDisabledPaymentMethods] = useState<
     string[]
   >([]);
@@ -150,7 +161,13 @@ export default function DashboardRestaurant() {
     amenities: [] as string[],
   });
 
-  const { data: restaurant } = useQuery({
+  const {
+    data: restaurant,
+    isLoading: restaurantLoading,
+    isFetching: restaurantFetching,
+    error: restaurantError,
+    refetch: refetchRestaurant,
+  } = useQuery({
     queryKey: ["my-restaurant", selectedId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -185,7 +202,13 @@ export default function DashboardRestaurant() {
     enabled: !!selectedId,
   });
 
-  const { data: cuisineOptions = [] } = useQuery({
+  const {
+    data: cuisineOptions = [],
+    isLoading: cuisineOptionsLoading,
+    isFetching: cuisineOptionsFetching,
+    error: cuisineOptionsError,
+    refetch: refetchCuisineOptions,
+  } = useQuery({
     queryKey: ["restaurant-cuisine-options"],
     queryFn: async () => {
       const fallback = PREDEFINED_RESTAURANT_CATEGORIES.map(
@@ -204,7 +227,13 @@ export default function DashboardRestaurant() {
     },
   });
 
-  const { data: restaurantCuisineLinks = [] } = useQuery({
+  const {
+    data: restaurantCuisineLinks = [],
+    isLoading: restaurantCuisineLinksLoading,
+    isFetching: restaurantCuisineLinksFetching,
+    error: restaurantCuisineLinksError,
+    refetch: refetchRestaurantCuisineLinks,
+  } = useQuery({
     queryKey: ["restaurant-cuisine-links", selectedId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -217,8 +246,11 @@ export default function DashboardRestaurant() {
     enabled: !!selectedId,
   });
 
+  const cuisineDataReady = !cuisineOptionsLoading && !cuisineOptionsError
+    && !restaurantCuisineLinksLoading && !restaurantCuisineLinksError;
+
   useEffect(() => {
-    if (!restaurant) return;
+    if (!restaurant || restaurant.id !== selectedId) return;
     setForm({
       name: restaurant.name,
       description: restaurant.description || "",
@@ -243,10 +275,13 @@ export default function DashboardRestaurant() {
       ((restaurant as Record<string, unknown>)
         .disabled_payment_methods as string[]) || [],
     );
-  }, [restaurant]);
+    setFormRestaurantId(restaurant.id);
+  }, [restaurant, selectedId]);
 
   useEffect(() => {
-    if (!restaurant || cuisineOptions.length === 0) return;
+    if (!restaurant || restaurant.id !== selectedId || !cuisineDataReady || cuisineOptions.length === 0) return;
+
+    setCuisineFormSource({ restaurantId: restaurant.id, links: restaurantCuisineLinks, options: cuisineOptions });
 
     if (restaurantCuisineLinks.length > 0) {
       setSelectedCuisineIds(restaurantCuisineLinks);
@@ -275,7 +310,7 @@ export default function DashboardRestaurant() {
       .map((option) => option.id);
 
     setSelectedCuisineIds(inferredIds);
-  }, [restaurant, cuisineOptions, restaurantCuisineLinks]);
+  }, [restaurant, selectedId, cuisineOptions, restaurantCuisineLinks, cuisineDataReady]);
 
   const selectedCuisineNames = useMemo(() => {
     const selectedSet = new Set(selectedCuisineIds);
@@ -323,8 +358,21 @@ export default function DashboardRestaurant() {
     if (error) throw error;
   };
 
+  const restaurantCuisinesReady = !selectedId || (
+    cuisineDataReady
+    && cuisineFormSource?.restaurantId === selectedId
+    && cuisineFormSource.links === restaurantCuisineLinks
+    && cuisineFormSource.options === cuisineOptions
+  );
+  const restaurantProfileReady = !ownerRestaurantsLoading && !ownerRestaurantsError && (!selectedId || (
+    restaurant?.id === selectedId
+    && formRestaurantId === selectedId
+    && !restaurantError
+    && restaurantCuisinesReady
+  ));
+
   const handleSave = async () => {
-    if (!user || saveInFlightRef.current) return;
+    if (!user || saveInFlightRef.current || !restaurantProfileReady) return;
     saveInFlightRef.current = true;
     setLoading(true);
 
@@ -339,7 +387,7 @@ export default function DashboardRestaurant() {
         disabled_payment_methods: disabledPaymentMethods,
       };
 
-      let restaurantId = restaurant?.id || createdRestaurantIdRef.current;
+      let restaurantId = selectedId || createdRestaurantIdRef.current;
 
       if (restaurantId) {
         const { error } = await supabase
@@ -464,6 +512,61 @@ export default function DashboardRestaurant() {
       setConnectLoading(false);
     }
   };
+
+  const restaurantLoadFailed = selectedId && !restaurantLoading && (
+    restaurantError || !restaurant || restaurant.id !== selectedId
+  );
+  const cuisineLoadFailed = selectedId && (cuisineOptionsError || restaurantCuisineLinksError);
+  const loadErrorTitle = ownerRestaurantsError
+    ? "La liste de vos restaurants n’a pas pu être chargée"
+    : restaurantLoadFailed
+      ? "Le restaurant n’a pas pu être chargé"
+      : cuisineLoadFailed
+        ? "Les catégories du restaurant n’ont pas pu être chargées"
+        : null;
+  const retrying = restaurantLoadFailed ? restaurantFetching
+    : Boolean(cuisineOptionsError && cuisineOptionsFetching)
+      || Boolean(restaurantCuisineLinksError && restaurantCuisineLinksFetching);
+
+  const retryLoad = () => {
+    if (ownerRestaurantsError) {
+      void queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] });
+    } else if (restaurantLoadFailed) {
+      void refetchRestaurant();
+    } else {
+      if (cuisineOptionsError) void refetchCuisineOptions();
+      if (restaurantCuisineLinksError) void refetchRestaurantCuisineLinks();
+    }
+  };
+
+  if (loadErrorTitle && !ownerRestaurantsLoading) {
+    return (
+      <DashboardLayout mainClassName="tok-restaurant-page tok-page-restaurant">
+        <div role="alert" className="space-y-4 rounded-2xl border border-destructive/30 bg-card p-6">
+          <h1 className="font-display text-2xl">{loadErrorTitle}</h1>
+          <p className="text-muted-foreground">Vérifiez votre connexion puis réessayez pour modifier votre restaurant.</p>
+          <Button type="button" onClick={retryLoad} disabled={retrying}>
+            {retrying ? "Nouvelle tentative…" : "Réessayer"}
+          </Button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!restaurantProfileReady) {
+    return (
+      <DashboardLayout mainClassName="tok-restaurant-page tok-page-restaurant">
+        <div role="status" className="flex min-h-64 items-center justify-center gap-3 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+          {ownerRestaurantsLoading
+            ? "Chargement de vos restaurants…"
+            : restaurant?.id === selectedId && formRestaurantId === selectedId
+              ? "Chargement des catégories du restaurant…"
+              : "Chargement du restaurant…"}
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout mainClassName="tok-restaurant-page tok-page-restaurant">

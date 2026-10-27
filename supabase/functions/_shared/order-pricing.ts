@@ -782,6 +782,7 @@ async function resolveTokOnePricing(input: {
   isDeliveryJourney: boolean;
   subtotal: number;
   deliveryFee: number;
+  stripeMode: "live" | "test";
 }) {
   const defaults = {
     tokOneMember: false,
@@ -799,6 +800,7 @@ async function resolveTokOnePricing(input: {
       .from("tok_one_subscriptions")
       .select("id, plan_id, status, current_period_end")
       .eq("user_id", input.userId)
+      .eq("stripe_mode", input.stripeMode)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -818,6 +820,7 @@ async function resolveTokOnePricing(input: {
         .from("payment_transactions")
         .select("id, created_at, metadata, status")
         .eq("user_id", input.userId)
+        .eq("stripe_mode", input.stripeMode)
         .order("created_at", { ascending: false })
         .limit(20);
 
@@ -906,6 +909,8 @@ export async function buildVerifiedOrderPricing(input: {
   context?: "cart" | "zero-attente";
   reservationDate?: string;
   reservationTime?: string;
+  // Trusted server context only; client metadata cannot select test entitlements.
+  stripeMode?: "live" | "test";
   // Internal checkout context only; never read reservation credit from metadata.
   reservedStockCheckoutId?: string;
   reservedStockOrderId?: string;
@@ -1176,6 +1181,7 @@ export async function buildVerifiedOrderPricing(input: {
     isDeliveryJourney,
     subtotal,
     deliveryFee,
+    stripeMode: input.stripeMode === "test" ? "test" : "live",
   });
   const miamzPricing = await resolveMiamzPricing({
     adminClient: input.adminClient,

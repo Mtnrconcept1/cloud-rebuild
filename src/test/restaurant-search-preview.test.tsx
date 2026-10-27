@@ -9,12 +9,16 @@ const state = vi.hoisted(() => ({
   loading: false,
   profileCity: null as string | null,
   user: null as { id: string } | null,
+  activeFeatures: [] as string[],
+  sponsoredCampaigns: [] as { id: string; restaurants: { id: string; name: string; rating: number } }[],
+  searchQueryFn: null as ((context: { pageParam: number }) => Promise<unknown>) | null,
+  rpc: vi.fn().mockResolvedValue({ data: { items: [], total_count: 0, next_offset: null }, error: null }),
   refetch: vi.fn(),
   next: vi.fn(),
 }));
-vi.mock("@/integrations/supabase/client", () => ({ getSupabase: () => ({}) }));
+vi.mock("@/integrations/supabase/client", () => ({ getSupabase: () => ({ rpc: state.rpc }) }));
 vi.mock("@/lib/auth-context", () => ({ useAuth: () => ({ user: state.user }) }));
-vi.mock("@/lib/featureFlags", () => ({ useActiveFeatures: () => new Set() }));
+vi.mock("@/lib/featureFlags", () => ({ useActiveFeatures: () => new Set(state.activeFeatures) }));
 vi.mock("@/components/commercial/CommercialDemoFrameProvider", () => ({ useCommercialDemoFrame: () => null }));
 vi.mock("@/components/CampaignBanner", () => ({ default: () => null }));
 vi.mock("@/components/RestaurantCard", () => ({ default: ({ name }: { name: string }) => <article>{name}</article> }));
@@ -26,9 +30,14 @@ vi.mock("@/components/CityAutocomplete", () => ({
 vi.mock("@/lib/analytics", () => ({ trackSearch: vi.fn(), getActiveSponsoredRestaurants: vi.fn() }));
 vi.mock("@tanstack/react-query", () => ({
   useQuery: ({ queryKey }: { queryKey: unknown[] }) => ({
-    data: queryKey[0] === "search-profile-city" ? state.profileCity : [],
+    data: queryKey[0] === "search-profile-city"
+      ? state.profileCity
+      : queryKey[0] === "sponsored-search" ? state.sponsoredCampaigns : [],
   }),
-  useInfiniteQuery: () => ({ data: state.error && !state.nextError ? undefined : { pages: [{ items: state.nextError ? [{ id: "1", name: "Chez TOK" }] : [], totalCount: state.nextError ? 2 : 0 }] }, isLoading: state.loading, isError: state.error, isFetchNextPageError: state.nextError, refetch: state.refetch, fetchNextPage: state.next, hasNextPage: state.nextError, isFetchingNextPage: false, isFetching: false }),
+  useInfiniteQuery: ({ queryFn }: { queryFn: NonNullable<typeof state.searchQueryFn> }) => {
+    state.searchQueryFn = queryFn;
+    return { data: state.error && !state.nextError ? undefined : { pages: [{ items: state.nextError ? [{ id: "1", name: "Chez TOK" }] : [], totalCount: state.nextError ? 2 : 0 }] }, isLoading: state.loading, isError: state.error, isFetchNextPageError: state.nextError, refetch: state.refetch, fetchNextPage: state.next, hasNextPage: state.nextError, isFetchingNextPage: false, isFetching: false };
+  },
 }));
 function LocationProbe() { const l = useLocation(); return <output data-testid="url">{l.search}</output>; }
 function setup(url = "/recherche") { render(<MemoryRouter initialEntries={[url]}><Recherche /><LocationProbe /></MemoryRouter>); }
@@ -39,9 +48,29 @@ afterEach(() => {
   state.loading = false;
   state.profileCity = null;
   state.user = null;
+  state.activeFeatures = [];
+  state.sponsoredCampaigns = [];
+  state.searchQueryFn = null;
   vi.clearAllMocks();
 });
 describe("restaurant search recovery and URL criteria", () => {
+  it.each([7, 8, 9])("passes the selected %s/10 minimum rating to the catalog", async (rating) => {
+    setup(`/recherche?rating=${rating}`);
+    await state.searchQueryFn!({ pageParam: 0 });
+    expect(state.rpc).toHaveBeenCalledWith("search_restaurants_catalog_page", expect.objectContaining({
+      p_min_rating: rating,
+    }));
+  });
+  it("applies the same /10 minimum to sponsored restaurants, including the boundary", () => {
+    state.activeFeatures = ["campagnes-pub"];
+    state.sponsoredCampaigns = [
+      { id: "below", restaurants: { id: "restaurant-below", name: "Sous le seuil", rating: 8.9 } },
+      { id: "boundary", restaurants: { id: "restaurant-boundary", name: "Au seuil", rating: 9 } },
+    ];
+    setup("/recherche?rating=9");
+    expect(screen.queryByText("Sous le seuil")).not.toBeInTheDocument();
+    expect(screen.getByText("Au seuil")).toBeVisible();
+  });
   it("keeps city and sort when submitting a trimmed search", () => {
     setup("/recherche?city=Lausanne&sort=prix&order=asc");
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "  ramen & sushi  " } });

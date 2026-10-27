@@ -96,6 +96,34 @@ function formatDashboardDateTime(value: string) {
   }).format(new Date(value));
 }
 
+function DashboardQueryState({
+  title,
+  description,
+  onRetry,
+  retrying = false,
+}: {
+  title: string;
+  description: string;
+  onRetry?: () => void;
+  retrying?: boolean;
+}) {
+  return (
+    <Card role={onRetry ? "alert" : "status"}>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">{description}</p>
+        {onRetry ? (
+          <Button onClick={onRetry} disabled={retrying}>
+            {retrying ? "Actualisation…" : "Réessayer"}
+          </Button>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Dashboard() {
   const commercialDemoFrame = useCommercialDemoFrame();
   const { isDemoMode } = useDashboardRestaurant();
@@ -108,7 +136,12 @@ export default function Dashboard() {
 function LiveDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { selectedId, dashboardAccessLocked } = useDashboardRestaurant();
+  const {
+    selectedId,
+    loading: restaurantSelectionLoading,
+    error: restaurantSelectionError,
+    dashboardAccessLocked,
+  } = useDashboardRestaurant();
   const { data: rawSignupApplication } = useSignupApplication("restaurateur");
   const signupApplication = Array.isArray(rawSignupApplication)
     ? rawSignupApplication[0] || null
@@ -267,42 +300,45 @@ function LiveDashboard() {
     new Date().getMonth(),
     1,
   ).toISOString();
-  const { data: restaurant } = useQuery({
+  const restaurantQuery = useQuery({
     queryKey: ["my-restaurant-detail", selectedId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("restaurants")
         .select("*")
         .eq("id", selectedId!)
         .single();
+      if (error) throw error;
       return data;
     },
     enabled: !!selectedId,
   });
+  const { data: restaurant } = restaurantQuery;
 
   const operationalQueriesEnabled = Boolean(
     restaurant?.id && !dashboardAccessLocked,
   );
 
-  const { data: upcomingOrders = [] } = useQuery({
+  const upcomingOrdersQuery = useQuery({
     queryKey: ["dashboard-upcoming-orders", restaurant?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("orders")
         .select("*")
         .eq("restaurant_id", restaurant!.id)
         .in("status", UPCOMING_ORDER_STATUSES)
         .order("created_at", { ascending: false })
         .limit(5);
+      if (error) throw error;
       return data || [];
     },
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: upcomingReservations = [] } = useQuery({
+  const upcomingReservationsQuery = useQuery({
     queryKey: ["dashboard-upcoming-reservations", restaurant?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("reservations")
         .select("*")
         .eq("restaurant_id", restaurant!.id)
@@ -310,39 +346,42 @@ function LiveDashboard() {
         .not("status", "in", INVALID_RESERVATION_STATUS_FILTER)
         .order("date")
         .limit(5);
+      if (error) throw error;
       return data || [];
     },
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: totalUpcomingReservations = 0 } = useQuery({
+  const totalUpcomingReservationsQuery = useQuery({
     queryKey: ["dashboard-total-upcoming-reservations", restaurant?.id, today],
     queryFn: async () => {
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from("reservations")
         .select("*", { count: "exact", head: true })
         .eq("restaurant_id", restaurant!.id)
         .gte("date", today)
         .not("status", "in", INVALID_RESERVATION_STATUS_FILTER);
+      if (error) throw error;
       return count || 0;
     },
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: totalUpcomingOrders = 0 } = useQuery({
+  const totalUpcomingOrdersQuery = useQuery({
     queryKey: ["dashboard-total-upcoming-orders", restaurant?.id],
     queryFn: async () => {
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from("orders")
         .select("*", { count: "exact", head: true })
         .eq("restaurant_id", restaurant!.id)
         .in("status", UPCOMING_ORDER_STATUSES);
+      if (error) throw error;
       return count || 0;
     },
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: mobileMenuItems = [] } = useQuery<
+  const mobileMenuItemsQuery = useQuery<
     RestaurantDashboardMobileMenuItem[]
   >({
     queryKey: ["dashboard-mobile-menu-items", restaurant?.id],
@@ -360,7 +399,7 @@ function LiveDashboard() {
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: mobileTodayReservations = [] } = useQuery<
+  const mobileTodayReservationsQuery = useQuery<
     RestaurantDashboardMobileReservation[]
   >({
     queryKey: ["dashboard-mobile-today-reservations", restaurant?.id, today],
@@ -379,7 +418,7 @@ function LiveDashboard() {
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: mobileReadyOrdersCount = 0 } = useQuery({
+  const mobileReadyOrdersCountQuery = useQuery({
     queryKey: ["dashboard-mobile-ready-orders", restaurant?.id],
     queryFn: async () => {
       const { count, error } = await supabase
@@ -393,7 +432,7 @@ function LiveDashboard() {
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: todayRevenue = 0 } = useQuery({
+  const todayRevenueQuery = useQuery({
     queryKey: ["dashboard-today-revenue", restaurant?.id, today],
     queryFn: async () => {
       const [ordersRes, reservationsRes] = await Promise.all([
@@ -413,6 +452,8 @@ function LiveDashboard() {
           .not("status", "in", "(cancelled,no_show)")
           .gt("total_amount", 0),
       ]);
+      if (ordersRes.error) throw ordersRes.error;
+      if (reservationsRes.error) throw reservationsRes.error;
       const orderRevenue = (ordersRes.data || []).reduce(
         (sum, row) => sum + Number(row.total_amount || 0),
         0,
@@ -426,20 +467,21 @@ function LiveDashboard() {
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: activeCampaignsCount = 0 } = useQuery({
+  const activeCampaignsCountQuery = useQuery({
     queryKey: ["dashboard-active-campaigns-count", restaurant?.id],
     queryFn: async () => {
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from("ad_campaigns")
         .select("*", { count: "exact", head: true })
         .eq("restaurant_id", restaurant!.id)
         .eq("status", "active");
+      if (error) throw error;
       return count || 0;
     },
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: monthlyRevenue = 0 } = useQuery({
+  const monthlyRevenueQuery = useQuery({
     queryKey: ["dashboard-monthly-revenue", restaurant?.id, monthStart],
     queryFn: async () => {
       const [ordersRes, reservationsRes] = await Promise.all([
@@ -458,6 +500,8 @@ function LiveDashboard() {
           .not("status", "in", "(cancelled,no_show)")
           .gt("total_amount", 0),
       ]);
+      if (ordersRes.error) throw ordersRes.error;
+      if (reservationsRes.error) throw reservationsRes.error;
       const orderRevenue = (ordersRes.data || []).reduce(
         (sum, row) => sum + Number(row.total_amount),
         0,
@@ -471,7 +515,7 @@ function LiveDashboard() {
     enabled: operationalQueriesEnabled,
   });
 
-  const { data: adminCorrectionRequests = [] } = useQuery({
+  const adminCorrectionRequestsQuery = useQuery({
     queryKey: ["restaurant-admin-correction-requests", restaurant?.id],
     queryFn: async () => {
       const { data, error } = await (supabase.from as any)(
@@ -488,6 +532,47 @@ function LiveDashboard() {
     },
     enabled: operationalQueriesEnabled,
   });
+
+  const { data: upcomingOrders = [] } = upcomingOrdersQuery;
+  const { data: upcomingReservations = [] } = upcomingReservationsQuery;
+  const { data: totalUpcomingReservations = 0 } = totalUpcomingReservationsQuery;
+  const { data: totalUpcomingOrders = 0 } = totalUpcomingOrdersQuery;
+  const { data: mobileMenuItems = [] } = mobileMenuItemsQuery;
+  const { data: mobileTodayReservations = [] } = mobileTodayReservationsQuery;
+  const { data: mobileReadyOrdersCount = 0 } = mobileReadyOrdersCountQuery;
+  const { data: todayRevenue = 0 } = todayRevenueQuery;
+  const { data: activeCampaignsCount = 0 } = activeCampaignsCountQuery;
+  const { data: monthlyRevenue = 0 } = monthlyRevenueQuery;
+  const { data: adminCorrectionRequests = [] } = adminCorrectionRequestsQuery;
+  const operationalQueries = [
+    upcomingOrdersQuery,
+    upcomingReservationsQuery,
+    totalUpcomingReservationsQuery,
+    totalUpcomingOrdersQuery,
+    mobileMenuItemsQuery,
+    mobileTodayReservationsQuery,
+    mobileReadyOrdersCountQuery,
+    todayRevenueQuery,
+    activeCampaignsCountQuery,
+    monthlyRevenueQuery,
+    adminCorrectionRequestsQuery,
+  ];
+  const failedOperationalQueries = operationalQueriesEnabled
+    ? operationalQueries.filter((query) => query.isError)
+    : [];
+  const dashboardRefreshFailed = Boolean(
+    restaurantSelectionError || restaurantQuery.isError || failedOperationalQueries.length,
+  );
+  const dashboardRetrying = restaurantSelectionLoading || restaurantQuery.isFetching || (
+    operationalQueriesEnabled && operationalQueries.some((query) => query.isFetching)
+  );
+  const retryDashboard = () => {
+    if (restaurantSelectionError) {
+      void queryClient.invalidateQueries({ queryKey: ["owner-restaurants"] });
+    }
+    if (restaurantQuery.isError) void restaurantQuery.refetch();
+    failedOperationalQueries.forEach((query) => { void query.refetch(); });
+  };
 
   const markAdminCorrectionDone = useMutation({
     mutationFn: async (requestId: string) => {
@@ -777,22 +862,51 @@ function LiveDashboard() {
     { lunch: 0, dinner: 0 },
   );
 
+  const signupStatusCard = (
+    <SignupApplicationStatusCard
+      application={signupApplication}
+      onStartRestaurantOnboardingPayment={startRestaurantOnboardingPayment}
+      onboardingPaymentLoading={onboardingCheckoutLoading}
+      onboardingAttempt={onboardingAttempt}
+      onResubmitApplication={resubmitSignupApplication.mutateAsync}
+      resubmittingApplication={resubmitSignupApplication.isPending}
+      title="Dossier de vérification restaurateur"
+      emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
+    />
+  );
+
+  if (!restaurant && dashboardRefreshFailed) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          {signupStatusCard}
+          <DashboardQueryState
+            title="Restaurant indisponible"
+            description="Votre restaurant n’a pas pu être chargé. Réessayez dans quelques instants."
+            onRetry={retryDashboard}
+            retrying={dashboardRetrying}
+          />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (restaurantSelectionLoading || (selectedId && restaurantQuery.isPending)) {
+    return (
+      <DashboardLayout>
+        <DashboardQueryState
+          title="Chargement du restaurant"
+          description="Nous récupérons les informations de votre restaurant."
+        />
+      </DashboardLayout>
+    );
+  }
+
   if (!restaurant) {
     return (
       <DashboardLayout>
         <div className="space-y-6">
-          <SignupApplicationStatusCard
-            application={signupApplication}
-            onStartRestaurantOnboardingPayment={
-              startRestaurantOnboardingPayment
-            }
-            onboardingPaymentLoading={onboardingCheckoutLoading}
-            onboardingAttempt={onboardingAttempt}
-            onResubmitApplication={resubmitSignupApplication.mutateAsync}
-            resubmittingApplication={resubmitSignupApplication.isPending}
-            title="Dossier de vérification restaurateur"
-            emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
-          />
+          {signupStatusCard}
           <div className="space-y-4 py-12 text-center">
             <h2 className="font-display text-2xl font-bold">
               Aucun restaurant
@@ -801,6 +915,28 @@ function LiveDashboard() {
               Créez votre restaurant depuis l'onglet "Mon restaurant".
             </p>
           </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // An operational snapshot is usable only once every displayed query has data.
+  // Query errors retain their previous data during background refreshes.
+  if (operationalQueriesEnabled && operationalQueries.some((query) => query.data === undefined)) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          {signupStatusCard}
+          <DashboardQueryState
+            title={dashboardRefreshFailed
+              ? "Données du tableau de bord indisponibles"
+              : "Chargement du tableau de bord"}
+            description={dashboardRefreshFailed
+              ? "Les commandes, réservations et indicateurs n’ont pas pu être chargés. Réessayez dans quelques instants."
+              : "Nous récupérons vos commandes, réservations et indicateurs."}
+            onRetry={dashboardRefreshFailed ? retryDashboard : undefined}
+            retrying={dashboardRetrying}
+          />
         </div>
       </DashboardLayout>
     );
@@ -844,18 +980,15 @@ function LiveDashboard() {
       mobileReadyOrdersCount={mobileReadyOrdersCount}
       leadingContent={
         <>
-          <SignupApplicationStatusCard
-            application={signupApplication}
-            onStartRestaurantOnboardingPayment={
-              startRestaurantOnboardingPayment
-            }
-            onboardingPaymentLoading={onboardingCheckoutLoading}
-            onboardingAttempt={onboardingAttempt}
-            onResubmitApplication={resubmitSignupApplication.mutateAsync}
-            resubmittingApplication={resubmitSignupApplication.isPending}
-            title="Dossier de vérification restaurateur"
-            emptyDescription="Aucun dossier restaurateur n'a encore été soumis."
-          />
+          {dashboardRefreshFailed ? (
+            <DashboardQueryState
+              title="Actualisation impossible"
+              description="Les dernières données chargées restent affichées et peuvent être obsolètes. Réessayez pour les actualiser."
+              onRetry={retryDashboard}
+              retrying={dashboardRetrying}
+            />
+          ) : null}
+          {signupStatusCard}
 
           {adminCorrectionRequests.length > 0 ? (
             <Card className="tok-dashboard-section rounded-3xl border border-amber-200 bg-amber-50/80 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-50">

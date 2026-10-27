@@ -328,11 +328,20 @@ async function assertNoTrackedSubscriptionConflict(input: {
 }) {
   const metadata = input.subscription.metadata || {};
   const userId = String(metadata.user_id || "");
-  if (userId) {
+  const restaurantId = String(metadata.restaurant_id || "");
+  const checkoutKind = String(metadata.checkout_kind || "");
+  const isRestaurantSubscription = checkoutKind.startsWith("restaurant-")
+    || (checkoutKind !== "tok-one" && Boolean(restaurantId || metadata.restaurant_subscription_plan_id));
+  // The retrieved Stripe object owns mode. Metadata must not allow test/live
+  // subscriptions to block one another or select the wrong conflict scope.
+  const stripeMode = input.subscription.livemode ? "live" : "test";
+  if (userId && !isRestaurantSubscription) {
     const { data, error } = await input.adminClient
       .from("tok_one_subscriptions")
       .select("id, stripe_subscription_id, status")
       .eq("user_id", userId)
+      .eq("stripe_mode", stripeMode)
+      .eq("billing_provider", "stripe")
       .neq("stripe_subscription_id", input.subscription.id)
       .in("status", ["trialing", "active", "past_due"])
       .limit(1);
@@ -342,12 +351,12 @@ async function assertNoTrackedSubscriptionConflict(input: {
     }
   }
 
-  const restaurantId = String(metadata.restaurant_id || "");
   if (restaurantId) {
     const { data, error } = await input.adminClient
       .from("restaurant_ai_subscriptions")
       .select("id, stripe_subscription_id, status")
       .eq("restaurant_id", restaurantId)
+      .eq("stripe_mode", stripeMode)
       .neq("stripe_subscription_id", input.subscription.id)
       .in("status", ["trialing", "active", "past_due"])
       .limit(1);

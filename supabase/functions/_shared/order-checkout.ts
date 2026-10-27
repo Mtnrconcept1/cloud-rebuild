@@ -45,6 +45,8 @@ export type FinalizedOrderSummary = {
   payment_status: string;
 };
 
+const ORDER_LOOKUP_SELECT = "id, status, payment_status, user_id, restaurant_id, delivery_address, total_amount, original_total, discount_amount, delivery_fee, service_fee_amount, order_number, metadata, scheduled_at";
+
 function isJsonRecord(value: unknown): value is JsonRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -114,7 +116,7 @@ async function findOrdersByIdentifiers(
     }
   };
 
-  const baseSelect = "id, status, payment_status, user_id, restaurant_id, delivery_address, total_amount, original_total, discount_amount, delivery_fee, service_fee_amount, order_number, metadata, scheduled_at";
+  const baseSelect = ORDER_LOOKUP_SELECT;
 
   const { data: sessionOrders, error: sessionOrdersError } = await adminClient
     .from("orders")
@@ -407,14 +409,17 @@ export async function finalizePaidOrderCheckout(input: {
   const finalizedOrders: FinalizedOrderSummary[] = [];
   let shouldDispatch = false;
 
-  for (const [index, order] of orders.entries()) {
+  for (const [index, initialOrder] of orders.entries()) {
+    const { order, newlyFinalized } = await reconcilePaidOrderState({
+      adminClient, order: initialOrder, session, cardBrand, cardLast4, billingPhone,
+    });
     const existingMetadata = isJsonRecord(order.metadata) ? order.metadata : {};
     const isDelivery = isDeliveryOrder({
       deliveryAddress: order.delivery_address,
       metadata: existingMetadata,
       orderType: String(existingMetadata.type || ""),
     });
-    const deliveryMetadata: JsonRecord = isDelivery ? enrichDeliveryMetadata(existingMetadata) : existingMetadata;
+    const deliveryMetadata = existingMetadata;
     const scheduledAt = isDelivery
       ? String(deliveryMetadata.scheduled_delivery_at || order.scheduled_at || "") || null
       : null;
@@ -425,32 +430,6 @@ export async function finalizePaidOrderCheckout(input: {
       ? session.payment_intent
       : session.payment_intent?.id || null;
     const paymentMethod = String(existingMetadata.payment_method || session.metadata?.payment_method_label || "card");
-    const wasAlreadyFinalized = order.status === "confirmed" && order.payment_status === "captured";
-
-    const { data: updatedOrder, error: orderUpdateError } = await adminClient
-      .from("orders")
-      .update({
-        status: "confirmed",
-        payment_status: "captured",
-        estimated_delivery_at: estimatedDeliveryAt,
-        metadata: {
-          ...deliveryMetadata,
-          stripe_session_id: session.id,
-          stripe_payment_intent: paymentIntentId,
-          payment_status: session.payment_status,
-          payment_method: paymentMethod,
-          billing_phone: billingPhone || null,
-          card_brand: cardBrand,
-          card_last4: cardLast4,
-          checkout_session_state: "completed",
-        },
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", order.id)
-      .select("id")
-      .maybeSingle();
-    if (orderUpdateError) throw new Error(orderUpdateError.message || "ORDER_FINALIZE_UPDATE_FAILED", { cause: orderUpdateError });
-    if (!updatedOrder?.id) throw new Error(`ORDER_FINALIZE_NOT_UPDATED:${order.id}`);
 
     await recordOrderChargeIfMissing({
       adminClient,
@@ -473,12 +452,12 @@ export async function finalizePaidOrderCheckout(input: {
       log,
     });
 
-    if (isDelivery && scheduledAt) {
+    if (order.status === "confirmed" && ["captured", "paid"].includes(String(order.payment_status)) && isDelivery && scheduledAt) {
       const { error: deliveryTrackingError } = await adminClient.from("delivery_tracking").upsert({
         order_id: order.id,
         status: "scheduled",
         estimated_arrival: estimatedDeliveryAt,
-      });
+      }, { onConflict: "order_id", ignoreDuplicates: true });
       if (deliveryTrackingError) throw deliveryTrackingError;
     }
 
@@ -487,11 +466,11 @@ export async function finalizePaidOrderCheckout(input: {
       order_number: order.order_number,
       restaurant_id: order.restaurant_id,
       total_amount: Number(order.total_amount || 0),
-      status: "confirmed",
-      payment_status: "captured",
+      status: String(order.status || ""),
+      payment_status: String(order.payment_status || ""),
     });
 
-    if (wasAlreadyFinalized) {
+    if (!newlyFinalized) {
       continue;
     }
 
@@ -611,6 +590,74 @@ export async function finalizePaidOrderCheckout(input: {
     orderReference: primaryOrder?.order_number || session.metadata?.order_reference || null,
     newlyFinalized: shouldDispatch,
   };
+}
+
+async function reconcilePaidOrderState(input: {
+  adminClient: any;
+  order: OrderLookupRow;
+  session: Stripe.Checkout.Session;
+  cardBrand: string;
+  cardLast4: string;
+  billingPhone?: string | null;
+}) {
+  let order = input.order;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const isRefunded = ["refunded", "partially_refunded"].includes(String(order.payment_status || ""));
+    const shouldConfirm = order.status === "pending_payment" && !isRefunded;
+    const shouldCapture = !isRefunded && !["captured", "paid"].includes(String(order.payment_status || ""));
+    if (!shouldConfirm && !shouldCapture) return { order, newlyFinalized: false };
+
+    const metadata = isJsonRecord(order.metadata) ? order.metadata : {};
+    const isDelivery = isDeliveryOrder({ deliveryAddress: order.delivery_address, metadata, orderType: String(metadata.type || "") });
+    const deliveryMetadata = shouldConfirm && isDelivery ? enrichDeliveryMetadata(metadata) : metadata;
+    const scheduledAt = String(deliveryMetadata.scheduled_delivery_at || order.scheduled_at || "") || null;
+    const paymentIntentId = typeof input.session.payment_intent === "string"
+      ? input.session.payment_intent
+      : input.session.payment_intent?.id || null;
+
+    let updateQuery = input.adminClient.from("orders").update({
+      ...(shouldConfirm ? {
+        status: "confirmed",
+        estimated_delivery_at: isDelivery ? getEstimatedArrivalTime(deliveryMetadata, scheduledAt) : null,
+      } : {}),
+      ...(shouldCapture ? { payment_status: "captured" } : {}),
+      metadata: {
+        ...deliveryMetadata,
+        stripe_session_id: input.session.id,
+        stripe_payment_intent: paymentIntentId,
+        payment_status: input.session.payment_status,
+        payment_method: String(metadata.payment_method || input.session.metadata?.payment_method_label || "card"),
+        billing_phone: input.billingPhone || null,
+        card_brand: input.cardBrand,
+        card_last4: input.cardLast4,
+        checkout_session_state: "completed",
+      },
+      updated_at: new Date().toISOString(),
+    }).eq("id", order.id);
+
+    // Only this exact snapshot may claim fulfillment or merge payment metadata.
+    // A concurrent completion, refund or restaurant update must win intact.
+    for (const field of ["status", "payment_status", "total_amount", "metadata"] as const) {
+      updateQuery = order[field] == null
+        ? updateQuery.is(field, null)
+        : updateQuery.eq(field, field === "metadata" ? JSON.stringify(order[field]) : order[field]);
+    }
+    const { data: updatedOrder, error: updateError } = await updateQuery.select(ORDER_LOOKUP_SELECT).maybeSingle();
+    if (updateError) throw new Error(updateError.message || "ORDER_FINALIZE_UPDATE_FAILED", { cause: updateError });
+    if (updatedOrder?.id) return { order: updatedOrder as OrderLookupRow, newlyFinalized: shouldConfirm };
+
+    const { data: latestOrder, error: latestError } = await input.adminClient.from("orders")
+      .select(ORDER_LOOKUP_SELECT).eq("id", order.id).maybeSingle();
+    if (latestError) throw latestError;
+    if (!latestOrder?.id) throw new Error(`ORDER_FINALIZE_NOT_UPDATED:${order.id}`);
+    if (Math.round(Number(latestOrder.total_amount || 0) * 100) !== Math.round(Number(input.order.total_amount || 0) * 100)) {
+      throw new Error(`ORDER_CHECKOUT_AMOUNT_CHANGED:${order.id}`);
+    }
+    order = latestOrder as OrderLookupRow;
+  }
+
+  throw new Error(`ORDER_FINALIZE_CONCURRENT_UPDATE:${order.id}`);
 }
 
 export async function markOrderCheckoutSessionState(input: {
