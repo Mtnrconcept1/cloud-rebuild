@@ -44,6 +44,7 @@ import {
 import {
   BUYER_GUIDE_CHAPTERS,
   GUIDE_SCREENSHOTS,
+  GUIDE_REVIEW_DATE,
   RESTAURANT_GUIDE_CHAPTERS,
   RESTAURANT_GUIDE_ROUTE_LABELS,
   SURFACE_LABELS,
@@ -694,7 +695,7 @@ function GuidePage({ audience }: { audience: Audience }) {
     const sections: { title: string; lines: string[]; images?: GuidePdfImage[] }[] = chapters.map((chapter) => ({
       title: chapter.title,
       lines: [
-        chapter.summary, "",
+        `Guide relu le ${GUIDE_REVIEW_DATE}.`, chapter.summary, "",
         ...chapter.steps.map((step, index) => `${index + 1}. ${step}`),
         "", isRestaurant
           ? `Dans le menu TOK : ${chapter.routes.map((route) => RESTAURANT_GUIDE_ROUTE_LABELS[route]).join(", ")}`
@@ -764,7 +765,7 @@ function GuidePage({ audience }: { audience: Audience }) {
             <Link to={isRestaurant ? "/dashboard" : "/admin"} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ff6a1a] text-sm font-black text-white">TOK</Link>
             <div className="min-w-0">
               <p className="truncate text-sm font-black">{title}</p>
-              <p className="hidden text-xs text-slate-500 sm:block">Documentation de référence</p>
+              <p className="hidden text-xs text-slate-500 sm:block">Guide relu le {GUIDE_REVIEW_DATE}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

@@ -1,3 +1,5 @@
+import { useConsentCategory } from "@/hooks/useConsentCategory";
+import { hasConsent } from "@/lib/consent";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
 import { Loader2, MapPin } from "lucide-react";
@@ -240,6 +242,7 @@ export default function AddressAutocomplete({
   preferredCountry = "Suisse",
   locationBias,
 }: AddressAutocompleteProps) {
+  const geolocationAllowed = useConsentCategory("geolocation");
   const [inputValue, setInputValue] = useState(value);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -273,14 +276,19 @@ export default function AddressAutocomplete({
   }, []);
 
   useEffect(() => {
+    if (!geolocationAllowed) {
+      setBrowserLocationBias(null);
+      return;
+    }
     if (preferredCity || locationBias) return;
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
 
     let cancelled = false;
     const readCurrentPosition = () => {
+      if (cancelled || !hasConsent("geolocation")) return;
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          if (cancelled) return;
+          if (cancelled || !hasConsent("geolocation")) return;
           setBrowserLocationBias({
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
@@ -303,7 +311,7 @@ export default function AddressAutocomplete({
     return () => {
       cancelled = true;
     };
-  }, [locationBias, preferredCity]);
+  }, [geolocationAllowed, locationBias, preferredCity]);
 
   const fetchSuggestions = async (query: string) => {
     if (query.length < 3) {

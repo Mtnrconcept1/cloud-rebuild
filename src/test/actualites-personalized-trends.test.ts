@@ -6,6 +6,7 @@ import {
   readActualitesPostSignals,
   rememberActualitesPostSignal,
 } from "@/lib/actualitesPersonalizedTrends";
+import { CONSENT_STORAGE_KEY, CONSENT_VERSION, DEFAULT_CONSENT } from "@/lib/consent";
 import type { SocialFeedPost } from "@/lib/socialFeed";
 
 function makePost(overrides: Partial<SocialFeedPost> = {}): SocialFeedPost {
@@ -96,7 +97,17 @@ describe("Actualites personalized trends", () => {
     expect(trends).toHaveLength(4);
   });
 
+  it("does not store or read inferred interests before consent", () => {
+    rememberActualitesPostSignal(makePost());
+    expect(readActualitesPostSignals()).toEqual([]);
+    expect(window.localStorage.getItem(ACTUALITES_CLICK_SIGNAL_STORAGE_KEY)).toBeNull();
+  });
+
   it("stores compact clicked-post signals without storing restaurant names", () => {
+    window.localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify({
+      version: CONSENT_VERSION, preferences: { ...DEFAULT_CONSENT, personalization: true },
+      recordedAt: new Date().toISOString(), source: "settings",
+    }));
     rememberActualitesPostSignal(makePost());
 
     const stored = readActualitesPostSignals();

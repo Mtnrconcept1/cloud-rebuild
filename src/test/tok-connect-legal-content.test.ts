@@ -60,7 +60,7 @@ describe("TOK Connect legal and help content", () => {
 
   it("documents restaurant consent and responsibilities for TOK Connect", () => {
     const restaurantTerms = read("src/pages/ConditionsRestaurateurs.tsx");
-    expect(restaurantTerms).toContain("const updatedAt = LEGAL_EFFECTIVE_DATE_FR;");
+    expect(restaurantTerms).toContain("const updatedAt = LEGAL_DOCUMENTS.restaurantTerms.effectiveDateFr;");
     expect(restaurantTerms).toContain("TOK Connect et partenaires autorisés");
     expect(restaurantTerms).toContain("autoriser ou révoquer un partenaire TOK Connect");
     expect(restaurantTerms).toContain("Une réservation réelle");

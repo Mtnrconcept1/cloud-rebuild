@@ -7,10 +7,12 @@ const navbarSource = readFileSync(resolve(process.cwd(), "src/components/Navbar.
 
 describe("legal consent banner layout", () => {
   it("renders the pending consent prompt as a centered white modal", () => {
-    expect(source).toContain("fixed inset-0");
-    expect(source).toContain("items-center justify-center");
-    expect(source).toContain("bg-slate-950/45");
-    expect(source).toContain('aria-modal="true"');
+    expect(source).toContain("<Dialog open={open} onOpenChange={setOpen}>");
+    expect(source).toContain("<DialogTitle");
+    expect(source).toContain("<DialogDescription");
+    expect(source).toContain("data-dialog-scroll-area");
+    expect(source).toContain("overflow-y-auto");
+    expect(source).toContain("shrink-0 gap-2 border-t");
     expect(source).toContain("max-w-3xl");
     expect(source).toContain("bg-white");
     expect(source).not.toContain("fixed inset-x-0 bottom-0");

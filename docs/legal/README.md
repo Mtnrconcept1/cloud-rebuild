@@ -1,6 +1,8 @@
 # Pack contractuel TOK
 
-Version de travail : 24 juillet 2026.
+Dernière revue : 27 octobre 2026.
+
+Les fichiers de ce dossier sont des modèles de travail : ils ne doivent pas être publiés ou réutilisés comme s’ils étaient les conditions actuellement acceptées dans l’application. Les pages `src/pages/CGU.tsx`, `PolitiqueConfidentialite.tsx`, `Cookies.tsx` et le manifeste `src/lib/legalDocuments.ts` constituent la référence des textes et versions affichés. Voir le [rapport de revue du 27 octobre](../audits/2026-10-27-legal-privacy-guide.md) pour les écarts et les informations à confirmer avant publication.
 
 Ces modèles sont séparés par relation contractuelle afin d'éviter qu'une acceptation générale masque des obligations spécifiques. Ils doivent être validés par un avocat suisse avant le lancement public et complétés avec la raison sociale, l'IDE, l'adresse, le numéro TVA et les représentants autorisés de l'exploitant.
 

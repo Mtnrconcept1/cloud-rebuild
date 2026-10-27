@@ -1,3 +1,4 @@
+import { hasConsent, subscribeToConsent } from "@/lib/consent";
 import type { SocialFeedPost, SocialPostCtaType, SocialPostType } from "@/lib/socialFeed";
 
 export const ACTUALITES_FALLBACK_TRENDS = ["Offre midi", "Arrivages", "Coulisses", "Tables libres"] as const;
@@ -176,7 +177,7 @@ function safeParseClickSignals(value: string | null): ActualitesPostClickSignal[
 }
 
 export function readActualitesPostSignals() {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined" || !hasConsent("personalization")) return [];
   try {
     return safeParseClickSignals(window.localStorage.getItem(ACTUALITES_CLICK_SIGNAL_STORAGE_KEY));
   } catch {
@@ -185,7 +186,7 @@ export function readActualitesPostSignals() {
 }
 
 export function rememberActualitesPostSignal(post: SocialFeedPost) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !hasConsent("personalization")) return;
 
   try {
     const previous = readActualitesPostSignals();
@@ -265,4 +266,15 @@ export function buildPersonalizedActualitesTrends({
     if (!fallback.some((item) => normalizeText(item) === normalizeText(trend))) fallback.push(trend);
   }
   return fallback;
+}
+
+
+if (typeof window !== "undefined") {
+  const clearUnconsentedSignals = () => {
+    if (hasConsent("personalization")) return;
+    try { window.localStorage.removeItem(ACTUALITES_CLICK_SIGNAL_STORAGE_KEY); } catch { /* Storage may be unavailable. */ }
+    window.dispatchEvent(new CustomEvent(ACTUALITES_CLICK_SIGNAL_EVENT));
+  };
+  clearUnconsentedSignals();
+  subscribeToConsent(clearUnconsentedSignals);
 }
