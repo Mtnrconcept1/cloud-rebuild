@@ -100,6 +100,7 @@ const PUBLIC_ERROR_CODES = new Set([
   "configuration_unavailable", "service_unavailable", "mfa_setup_unavailable",
   "ai_auth_unavailable", "discovery_unavailable", "discovery_invalid_response",
   "mailing_image_invalid", "mailing_image_conflict", "mailing_image_upload_failed",
+  "social_image_invalid", "social_image_conflict", "social_image_upload_failed",
   "mailing_recipients_invalid", "mailing_recipients_unavailable",
   ...Object.keys(MARKETING_OPERATION_ERRORS),
 ]);
@@ -118,6 +119,9 @@ function publicErrorMessage(status: number, code?: string) {
   if (status === 503 && code === "mailing_image_upload_failed") {
     return "L’image n’a pas pu être enregistrée. Réessayez l’import de cet e-mail.";
   }
+  if (status === 400 && code === "social_image_invalid") return "Choisissez une image JPG ou PNG valide de 3 Mo maximum.";
+  if (status === 409 && code === "social_image_conflict") return "La publication ou sa campagne a changé. Actualisez avant de réimporter l’image.";
+  if (status === 503 && code === "social_image_upload_failed") return "L’image n’a pas pu être enregistrée. Réessayez l’import.";
   if (status === 400 && code === "mailing_recipients_invalid") {
     return "Vérifiez la liste : de 1 à 500 adresses e-mail valides sont acceptées.";
   }
@@ -243,7 +247,7 @@ export async function marketingBffRequest<T>(
   const serializedBody = options.body === undefined ? undefined : JSON.stringify(options.body);
   const isMailingImageUpload = method === "POST" && path === MARKETING_BFF_ENDPOINTS.agent
     && options.body !== null && typeof options.body === "object" && !Array.isArray(options.body)
-    && "action" in options.body && options.body.action === "upload_mailing_image";
+    && "action" in options.body && ["upload_mailing_image", "upload_social_image"].includes(String(options.body.action));
   const maxRequestBytes = isMailingImageUpload ? MAX_MAILING_IMAGE_REQUEST_BYTES : MAX_MARKETING_REQUEST_BYTES;
   if (serializedBody && new TextEncoder().encode(serializedBody).byteLength > maxRequestBytes) {
     throw new MarketingBffError("La demande dépasse la taille autorisée.", 413);

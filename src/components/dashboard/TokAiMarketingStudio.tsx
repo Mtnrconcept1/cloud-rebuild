@@ -1788,6 +1788,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
           <div className="min-w-0 rounded-2xl border bg-background p-4">
             <h2 className="text-lg font-bold text-foreground">Un visuel en trois étapes</h2>
             <p className="mt-1 text-sm text-muted-foreground">Choisissez un support, retrouvez votre marque, puis décrivez votre idée. Vos choix restent conservés lorsque vous revenez à l’étape précédente.</p>
+            {isCommercialDemo ? <Badge variant="outline" className="mt-3 whitespace-normal border-emerald-300 bg-emerald-50 text-emerald-800">OpenAI réel · crédits Démo illimités · coût suivi en interne</Badge> : null}
           </div>
 
           {isCommercialDemo && (demoHistoryLoading || demoGenerationHistory.length > 0) ? (
@@ -2314,7 +2315,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
         ) : (
           <Button type="button" className="min-h-11 gap-2 whitespace-normal text-left" onClick={requestGeneration} disabled={!restaurantId || loading || !sanitizedPrompt || promptWarnings.length > 0}>
             {loading ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />}
-            {loading ? "Génération en cours…" : isCommercialDemo ? "Générer le visuel · Démo" : `Générer le visuel · ${outputPricing.photoCredits} crédits`}
+            {loading ? "Génération en cours…" : isCommercialDemo ? "Générer avec OpenAI · crédits Démo illimités" : `Générer le visuel · ${outputPricing.photoCredits} crédits`}
           </Button>
         )}
       </WorkflowActions>

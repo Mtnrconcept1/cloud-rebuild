@@ -1047,6 +1047,35 @@ export async function uploadMarketingMailingImage(
   return normalizeCalendarItem(item);
 }
 
+export async function uploadMarketingSocialImage(
+  itemId: string,
+  expectedUpdatedAt: string,
+  file: File,
+  signal?: AbortSignal,
+): Promise<MarketingCalendarItem> {
+  const expectedRevision = mailingImageRevision(expectedUpdatedAt);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(itemId)
+    || !expectedRevision) throw new Error("Actualisez cette publication avant d’importer son image.");
+  assertSafeFileUpload(file, { allowedMimeTypes: MAILING_IMAGE_MIME_TYPES, maxBytes: MAX_MAILING_IMAGE_BYTES, label: "Image" });
+  const imageBase64 = await readMailingImage(file, signal);
+  if (signal?.aborted) throw new DOMException("Import annulé.", "AbortError");
+  const result = asRecord(await marketingBffRequest<unknown>(MARKETING_BFF_ENDPOINTS.agent, {
+    method: "POST", timeoutMs: 60_000, signal,
+    body: { action: "upload_social_image", itemId, expectedUpdatedAt, contentType: file.type, imageBase64 },
+  }));
+  const item = asRecord(result.item);
+  const content = asRecord(item.content);
+  const visualUrl = marketingPreviewImageUrl(result.visualUrl);
+  const savedRevision = mailingImageRevision(item.updated_at);
+  if (result.ok !== true || item.id !== itemId || !["instagram", "facebook"].includes(asString(item.channel))
+    || content.visual_source !== "upload" || content.visual_status !== "ready"
+    || !visualUrl || marketingPreviewImageUrl(content.visual_url) !== visualUrl
+    || !savedRevision || savedRevision === expectedRevision) {
+    throw new Error("La réponse de l’import est incomplète. Actualisez cette publication pour vérifier son image.");
+  }
+  return normalizeCalendarItem(item);
+}
+
 export async function cancelMarketingItem(itemId: string, reason: string) {
   return invokeRpc<unknown>("admin_cancel_marketing_item", {
     p_item_id: itemId,

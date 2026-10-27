@@ -531,7 +531,7 @@ function parseJsonBody(req: MarketingApiRequest, maxBytes = MAX_REQUEST_BYTES, a
   if (serializedSize > maxBytes) {
     throw new PublicBffError(413, "request_too_large", "Requête trop volumineuse.");
   }
-  if (allowMailingImageBase64 && value.action === "upload_mailing_image" && typeof value.imageBase64 === "string") {
+  if (allowMailingImageBase64 && ["upload_mailing_image", "upload_social_image"].includes(String(value.action)) && typeof value.imageBase64 === "string") {
     // The image has a separate binary validator. Every other field keeps the
     // original JSON depth, key, node and string limits.
     assertSafeJson({ ...value, imageBase64: "" });
@@ -550,7 +550,7 @@ function parseMarketingAgentBody(req: MarketingApiRequest): JsonObject {
   const recipientRequest = body.action === "prepare_mailing_recipients"
     || (body.action === "generate" && isPlainObject(body.mailingOptions)
       && Object.hasOwn(body.mailingOptions, "recipientEmails"));
-  const maximum = body.action === "upload_mailing_image" ? MAX_MAILING_UPLOAD_REQUEST_BYTES
+  const maximum = ["upload_mailing_image", "upload_social_image"].includes(String(body.action)) ? MAX_MAILING_UPLOAD_REQUEST_BYTES
     : recipientRequest ? MAX_MAILING_RECIPIENT_REQUEST_BYTES : 16 * 1024;
   const rawBytes = Buffer.isBuffer(req.body) ? req.body.length
     : typeof req.body === "string" ? Buffer.byteLength(req.body, "utf8") : 0;
@@ -2108,6 +2108,85 @@ async function uploadMailingImage(
   return { ok: true, item: persisted, visualUrl };
 }
 
+async function uploadSocialImage(
+  config: BffConfig,
+  req: MarketingApiRequest,
+  session: ActiveMarketingSession,
+  body: JsonObject,
+): Promise<JsonObject> {
+  const itemId = stringField(body, "itemId", 64);
+  const expectedUpdatedAt = stringField(body, "expectedUpdatedAt", 40);
+  const revision = mailingRevision(expectedUpdatedAt);
+  if (!UUID_PATTERN.test(itemId) || revision === null
+    || Object.keys(body).some((key) => !["action", "itemId", "expectedUpdatedAt", "contentType", "imageBase64"].includes(key))) {
+    throw new PublicBffError(400, "social_image_invalid", "Image ou version de la publication invalide.");
+  }
+  await consumeRateLimit(config, req, `social-image-upload:${itemId}`, session.userId, false);
+  let image;
+  try { image = validateMailingImage(body.contentType, body.imageBase64); }
+  catch (error) {
+    if (error instanceof MailingImageInputError) throw new PublicBffError(400, "social_image_invalid", error.message);
+    throw error;
+  }
+  try {
+    const rows = await serviceRestRequest(config,
+      `/marketing_calendar_items?id=eq.${itemId}&select=id,campaign_id,channel,status,approval_status,content,updated_at&limit=1`);
+    const item = Array.isArray(rows) && rows.length === 1 ? asRecord(rows[0]) : {};
+    if (item.id !== itemId || !["instagram", "facebook"].includes(String(item.channel))
+      || item.approval_status === "approved" || !["draft", "blocked_configuration", "failed"].includes(String(item.status))
+      || mailingRevision(item.updated_at) !== revision) throw new PublicBffError(409, "social_image_conflict", "Publication modifiée. Actualisez-la.");
+    if (item.campaign_id !== null && item.campaign_id !== undefined) {
+      if (typeof item.campaign_id !== "string" || !UUID_PATTERN.test(item.campaign_id)) throw mailingImageConflict();
+      const campaigns = await serviceRestRequest(config,
+        `/marketing_campaigns?id=eq.${item.campaign_id}&select=id,status,approved_at&limit=1`);
+      const campaign = Array.isArray(campaigns) && campaigns.length === 1 ? asRecord(campaigns[0]) : {};
+      if (campaign.id !== item.campaign_id || campaign.approved_at
+        || ["completed", "cancelled", "failed"].includes(String(campaign.status))) throw mailingImageConflict();
+    }
+  } catch (error) {
+    if (error instanceof PublicBffError) {
+      if (error.code === "mailing_image_conflict") throw new PublicBffError(409, "social_image_conflict", "Campagne modifiée. Actualisez-la.");
+      throw error;
+    }
+    throw new PublicBffError(503, "social_image_upload_failed", "Publication indisponible.");
+  }
+  const path = `marketing-social/${session.userId}/${itemId}/${randomUUID()}.${image.extension}`;
+  const visualUrl = `${config.supabaseUrl}/storage/v1/object/public/social-post-media/${path}`;
+  try {
+    const uploaded = await boundedFetch(`${config.supabaseUrl}/storage/v1/object/social-post-media/${path}`, {
+      method: "POST", headers: { ...serviceKeyHeaders(config), "Content-Type": image.contentType, "x-upsert": "false" },
+      body: new Uint8Array(image.bytes),
+    }, ORCHESTRATOR_TIMEOUT_MS, 64 * 1024);
+    if (!uploaded.ok) throw new Error("storage");
+  } catch { throw new PublicBffError(503, "social_image_upload_failed", "Image indisponible."); }
+
+  let persisted: JsonObject;
+  try {
+    persisted = normalizeRpcObject(await serviceRpc(config, "service_execute_marketing_admin_operation", {
+      p_sid_hash: session.sessionHash, p_csrf_hash: session.csrfHash,
+      p_operation: "admin_attach_marketing_social_image",
+      p_args: { p_item_id: itemId, p_expected_updated_at: expectedUpdatedAt,
+        p_visual_url: visualUrl, p_width: image.width, p_height: image.height },
+    }));
+  } catch (error) {
+    if (error instanceof DownstreamHttpError && error.status >= 400 && error.status < 500) {
+      await boundedFetch(`${config.supabaseUrl}/storage/v1/object/social-post-media`, {
+        method: "DELETE", headers: { ...serviceKeyHeaders(config), "Content-Type": "application/json" },
+        body: JSON.stringify({ prefixes: [path] }),
+      }, DATABASE_TIMEOUT_MS, 64 * 1024).catch(() => undefined);
+      throw new PublicBffError(409, "social_image_conflict", "Publication modifiée. Actualisez-la.");
+    }
+    throw new PublicBffError(503, "social_image_upload_failed", "Image indisponible.");
+  }
+  const content = asRecord(persisted.content);
+  if (persisted.id !== itemId || !["instagram", "facebook"].includes(String(persisted.channel))
+    || mailingRevision(persisted.updated_at) === null || content.visual_status !== "ready"
+    || content.visual_source !== "upload" || content.visual_url !== visualUrl) {
+    throw new PublicBffError(503, "social_image_upload_failed", "Image indisponible.");
+  }
+  return { ok: true, item: persisted, visualUrl };
+}
+
 async function prepareMailingRecipients(
   config: BffConfig,
   req: MarketingApiRequest,
@@ -2202,7 +2281,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
   const config = readConfig();
   const body = parseMarketingAgentBody(req);
   const action = stringField(body, "action", 32);
-  if (!["generate", "list_runs", "discover_sources", "mailing_facets", "interpret_mailing", "upload_mailing_image", "prepare_mailing_recipients"].includes(action)) {
+  if (!["generate", "list_runs", "discover_sources", "mailing_facets", "interpret_mailing", "upload_mailing_image", "upload_social_image", "prepare_mailing_recipients"].includes(action)) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
 
@@ -2211,6 +2290,10 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
 
   if (action === "upload_mailing_image") {
     sendJson(res, 200, await uploadMailingImage(config, req, session, body));
+    return;
+  }
+  if (action === "upload_social_image") {
+    sendJson(res, 200, await uploadSocialImage(config, req, session, body));
     return;
   }
   if (action === "prepare_mailing_recipients") {
