@@ -117,8 +117,17 @@ describe("restaurant menu cards migration", () => {
   it("enforces availability in the database so checkout and public reads follow the active card", () => {
     expect(migration).toContain("BEFORE INSERT OR UPDATE ON public.menu_items");
     expect(migration).toContain("NEW.is_available := NEW.available_on_card AND v_card_active;");
-    // Les plats épuisés le restent après la migration.
-    expect(migration).toContain("SET available_on_card = coalesce(is_available, true)");
+    // La reprise d'état initial est unique : la réexécution de la migration
+    // ne doit pas désactiver durablement les plats d'une carte inactive.
+    expect(migration).toMatch(/SET available_on_card = coalesce\(is_available, true\)\s+WHERE available_on_card IS NULL;/);
+    expect(migration).toContain("ALTER COLUMN available_on_card SET DEFAULT true");
+    expect(migration).toContain("ALTER COLUMN available_on_card SET NOT NULL");
+    expect(migration).not.toContain("WHERE available_on_card IS DISTINCT FROM");
+  });
+
+  it("rolls back activation if the target card disappears concurrently", () => {
+    expect(migration).toContain("IF v_card.id IS NULL THEN");
+    expect(migration).toContain("RAISE EXCEPTION 'menu_card_not_found' USING ERRCODE = 'P0002'");
   });
 
   it("protects the cards table with RLS and only exposes creation and activation through owner-checked RPCs", () => {
