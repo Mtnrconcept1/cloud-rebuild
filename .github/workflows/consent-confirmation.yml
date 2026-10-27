@@ -1,0 +1,56 @@
+name: Consent confirmation workspace
+on:
+  pull_request:
+    paths:
+      - .github/workflows/consent-confirmation.yml
+permissions:
+  contents: read
+jobs:
+  workspace:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/commercial-consent-email-confirmation-20261027'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22'
+      - name: Install frozen dependencies without lifecycle scripts
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate && pnpm install --frozen-lockfile --ignore-scripts
+      - name: Verify current consent baseline
+        run: pnpm exec vitest run src/test/commercial-email-consent.test.tsx src/test/commercial-email-consent-contract.test.ts
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+      - name: Create additive migration with project CLI
+        run: pnpm dlx supabase@2.102.0 migration new commercial_email_confirmation
+      - name: Package credential-free Git objects and dependencies for offline tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/consent-workspace"
+          mkdir -p "$out"
+          git init --bare "$out/repo.git"
+          cp -a .git/objects/. "$out/repo.git/objects/"
+          if test -f .git/shallow; then cp .git/shallow "$out/repo.git/shallow"; fi
+          mkdir -p "$out/repo.git/refs/heads/feat"
+          git rev-parse HEAD > "$out/repo.git/refs/heads/feat/commercial-consent-email-confirmation-20261027"
+          git rev-parse HEAD^ > "$out/repo.git/refs/heads/reference-base"
+          git --git-dir="$out/repo.git" symbolic-ref HEAD refs/heads/feat/commercial-consent-email-confirmation-20261027
+          git rev-parse HEAD > "$out/source-sha.txt"
+          tar -czf "$out/repository.tgz" -C "$out" repo.git
+          rm -rf "$out/repo.git"
+          tar -czf "$out/dependencies.tgz" node_modules
+          cp supabase/migrations/*_commercial_email_confirmation.sql "$out/"
+          cd "$out"
+          sha256sum repository.tgz dependencies.tgz > SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: consent-offline-workspace
+          path: ${{ runner.temp }}/consent-workspace
+          retention-days: 1
+          compression-level: 0
