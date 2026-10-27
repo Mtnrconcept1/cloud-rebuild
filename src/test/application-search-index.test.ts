@@ -77,7 +77,10 @@ describe("application search index", () => {
         .filter((operation: { group: string }) => operation.group === "MARKETING_DAILY_OPERATION_NAMES")
         .map((operation: { name: string }) => operation.name),
     ).toEqual(["admin_get_marketing_daily_series", "admin_upsert_marketing_daily_series"]);
-    expect(index.catalogs.cronJobs).toHaveLength(36);
+    expect(index.catalogs.cronJobs).toHaveLength(37);
+    expect(
+      index.catalogs.cronJobs.find((job: { name: string }) => job.name === "tok-consent-retention"),
+    ).toMatchObject({ schedules: ["19 3 * * *"] });
     expect(
       index.catalogs.cronJobs.find((job: { name: string }) => job.name === "tok-marketing-daily-generator"),
     ).toMatchObject({ schedules: ["*/5 * * * *"] });
