@@ -1,3 +1,4 @@
+import { hasConsent, subscribeToConsent } from "@/lib/consent";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
   DEFAULT_AUDIENCE_CRITERIA,
@@ -53,6 +54,9 @@ interface TrackEventParams {
 }
 
 let currentUserId: string | null = null;
+let marketingConsentGeneration = 0;
+let previousMarketingConsent = hasConsent("marketing");
+const marketingConsentRequired = () => ({ recorded: false, deduped: false, ignored: true, reason: "consent_required" });
 
 const SPONSORED_ROTATION_KEY = "miamz-sponsored-rotation-v1";
 const SPONSORED_SELECTION_KEY = "miamz-sponsored-placement-selection-v1";
@@ -184,6 +188,7 @@ const sponsoredDisplayLedger = new Map<string, number>();
 let runtimeAnalyticsViewerId: string | null = null;
 
 export function getOrCreateAnalyticsViewerId() {
+  if (!hasConsent("analytics") && !hasConsent("marketing")) return "consent-required";
   if (typeof window === "undefined") return "server-render";
   if (runtimeAnalyticsViewerId) return runtimeAnalyticsViewerId;
 
@@ -274,6 +279,7 @@ export function createSponsoredImpressionEventId(placementKey: string) {
 let sponsoredRotationMemoryStore: SponsoredRotationStore = {};
 
 function readSponsoredRotationStore(): SponsoredRotationStore {
+  if (!hasConsent("marketing")) return {};
   if (typeof window === "undefined") return sponsoredRotationMemoryStore;
   try {
     const raw = window.localStorage.getItem(SPONSORED_ROTATION_KEY);
@@ -288,6 +294,7 @@ function readSponsoredRotationStore(): SponsoredRotationStore {
 }
 
 function writeSponsoredRotationStore(store: SponsoredRotationStore) {
+  if (!hasConsent("marketing")) return;
   sponsoredRotationMemoryStore = store;
   if (typeof window === "undefined") return;
   try {
@@ -300,6 +307,7 @@ function writeSponsoredRotationStore(store: SponsoredRotationStore) {
 let sponsoredSelectionMemoryStore: SponsoredPlacementSelectionMemory = {};
 
 function readSponsoredSelectionMemory(now = Date.now()): SponsoredPlacementSelectionMemory {
+  if (!hasConsent("marketing")) return {};
   const fallback = sponsoredSelectionMemoryStore;
   let parsed = fallback;
 
@@ -346,6 +354,7 @@ function readSponsoredSelectionMemory(now = Date.now()): SponsoredPlacementSelec
 }
 
 function writeSponsoredSelectionMemory(store: SponsoredPlacementSelectionMemory) {
+  if (!hasConsent("marketing")) return;
   sponsoredSelectionMemoryStore = store;
   if (typeof window === "undefined") return;
   try {
@@ -461,7 +470,7 @@ function deriveTimeServiceMoment(timeValue: unknown) {
 }
 
 async function getCurrentAudienceSnapshot(): Promise<AudienceSnapshot | null> {
-  if (!currentUserId) return null;
+  if (!currentUserId || !hasConsent("personalization") || !hasConsent("marketing")) return null;
 
   if (
     sponsoredAudienceSnapshotCache &&
@@ -569,6 +578,7 @@ async function getCurrentAudienceSnapshot(): Promise<AudienceSnapshot | null> {
       serviceMoments: Array.from(serviceMoments),
     };
 
+    if (!hasConsent("personalization") || !hasConsent("marketing")) return null;
     sponsoredAudienceSnapshotCache = {
       userId: currentUserId,
       fetchedAt: Date.now(),
@@ -674,6 +684,7 @@ const analyticsDedupeLedger = new Map<string, number>();
 let analyticsFlushTimer: number | null = null;
 
 async function invokeAnalyticsIngest(body: Record<string, unknown>): Promise<AnalyticsIngestResponse | null> {
+  if (!hasConsent("analytics")) return null;
   if (_analyticsTrackingDisabled) return null;
 
   try {
@@ -741,6 +752,7 @@ export async function flushAnalyticsQueue() {
 }
 
 export function queueAnalyticsEvent(body: Record<string, unknown>): Promise<AnalyticsIngestResponse | null> {
+  if (!hasConsent("analytics")) return Promise.resolve(null);
   if (_analyticsTrackingDisabled) return Promise.resolve(null);
 
   const now = Date.now();
@@ -851,6 +863,7 @@ let sponsoredQueueStorageAvailable: boolean | null = null;
 const sponsoredEventInFlightIds = new Set<string>();
 
 function getSponsoredQueueStorage() {
+  if (!hasConsent("marketing")) return null;
   if (typeof window === "undefined") return null;
   if (sponsoredQueueStorageAvailable === false) return null;
   try {
@@ -915,6 +928,7 @@ function readSponsoredEventQueue(): QueuedSponsoredEvent[] {
 }
 
 function writeSponsoredEventQueue(queue: QueuedSponsoredEvent[]) {
+  if (!hasConsent("marketing")) return false;
   sponsoredEventQueueMemory = queue.slice(-MAX_SPONSORED_QUEUED_EVENTS);
   const storage = getSponsoredQueueStorage();
   if (!storage) return false;
@@ -948,6 +962,7 @@ function isSponsoredTrackAccepted(result: SponsoredTrackResult) {
 }
 
 function applySponsoredTrackResult(input: SponsoredEventInput, result: SponsoredTrackResult) {
+  if (!hasConsent("marketing")) return;
   if (input.eventType === "click" && result.touchToken) {
     rememberSponsoredAttribution(input.campaignId, input.restaurantId, {
       touchToken: result.touchToken,
@@ -960,6 +975,8 @@ function applySponsoredTrackResult(input: SponsoredEventInput, result: Sponsored
 }
 
 async function invokeSponsoredEvent(input: SponsoredEventInput): Promise<SponsoredTrackResult> {
+  if (!hasConsent("marketing")) return marketingConsentRequired();
+  const consentGeneration = marketingConsentGeneration;
   const viewerId = input.viewerId || getOrCreateAnalyticsViewerId();
   const { data, error } = await getSupabase().functions.invoke("track-sponsored-event", {
     body: {
@@ -979,6 +996,7 @@ async function invokeSponsoredEvent(input: SponsoredEventInput): Promise<Sponsor
   });
 
   if (error) throw error;
+  if (!hasConsent("marketing") || consentGeneration !== marketingConsentGeneration) return marketingConsentRequired();
 
   return {
     recorded: Boolean(data?.recorded),
@@ -1006,6 +1024,7 @@ function isRetryableSponsoredError(error: unknown) {
 }
 
 function scheduleSponsoredQueueFlush(delayMs = SPONSORED_RETRY_BASE_MS) {
+  if (!hasConsent("marketing")) return;
   if (typeof window === "undefined") return;
   if (sponsoredQueueTimer !== null) window.clearTimeout(sponsoredQueueTimer);
   sponsoredQueueTimer = window.setTimeout(() => {
@@ -1015,6 +1034,7 @@ function scheduleSponsoredQueueFlush(delayMs = SPONSORED_RETRY_BASE_MS) {
 }
 
 function enqueueSponsoredEvent(input: SponsoredEventInput) {
+  if (!hasConsent("marketing")) return false;
   const now = Date.now();
   const queue = readSponsoredEventQueue().filter(
     (item) => (now - item.queuedAt) <= SPONSORED_EVENT_MAX_AGE_MS,
@@ -1099,6 +1119,8 @@ function getQueuedConversionTouch(input: SponsoredEventInput) {
 }
 
 async function flushSponsoredEventQueue() {
+  if (!hasConsent("marketing")) return;
+  const consentGeneration = marketingConsentGeneration;
   if (sponsoredQueueFlushPromise) return sponsoredQueueFlushPromise;
   if (typeof navigator !== "undefined" && navigator.onLine === false) return;
   if (!analyticsAuthHydrated || !analyticsAuthIdentityVerified) return;
@@ -1111,6 +1133,7 @@ async function flushSponsoredEventQueue() {
 
     try {
       for (const item of snapshot) {
+        if (!hasConsent("marketing") || consentGeneration !== marketingConsentGeneration) return;
         if (
           (now - item.queuedAt) > SPONSORED_EVENT_MAX_AGE_MS
           || item.attempts >= MAX_SPONSORED_EVENT_ATTEMPTS
@@ -1195,6 +1218,7 @@ async function flushSponsoredEventQueue() {
         }
       }
 
+      if (!hasConsent("marketing") || consentGeneration !== marketingConsentGeneration) return;
       const current = new Map(readSponsoredEventQueue().map((item) => [item.id, item]));
       updates.forEach((item, id) => {
         if (item) current.set(id, item);
@@ -1223,6 +1247,8 @@ async function flushSponsoredEventQueue() {
 }
 
 async function trackSponsoredEvent(input: SponsoredEventInput): Promise<SponsoredTrackResult> {
+  if (!hasConsent("marketing")) return marketingConsentRequired();
+  const consentGeneration = marketingConsentGeneration;
   const authIdentityPending = input.actorUserId === undefined && !analyticsAuthIdentityVerified;
   let actorUserId = input.actorUserId ?? null;
   if (input.actorUserId === undefined && !authIdentityPending) {
@@ -1241,6 +1267,7 @@ async function trackSponsoredEvent(input: SponsoredEventInput): Promise<Sponsore
 
   await analyticsAuthHydration;
 
+  if (!hasConsent("marketing") || consentGeneration !== marketingConsentGeneration) return marketingConsentRequired();
   if (!analyticsAuthIdentityVerified) {
     return {
       recorded: false,
@@ -1395,6 +1422,7 @@ function readSponsoredSocialEventQueue(): QueuedSponsoredSocialEvent[] {
 }
 
 function writeSponsoredSocialEventQueue(queue: QueuedSponsoredSocialEvent[]) {
+  if (!hasConsent("marketing")) return false;
   sponsoredSocialEventQueueMemory = queue.slice(-MAX_SPONSORED_QUEUED_EVENTS);
   const storage = getSponsoredQueueStorage();
   if (!storage) return false;
@@ -1416,6 +1444,7 @@ function writeSponsoredSocialEventQueue(queue: QueuedSponsoredSocialEvent[]) {
 }
 
 function scheduleSponsoredSocialQueueFlush(delayMs = SPONSORED_RETRY_BASE_MS) {
+  if (!hasConsent("marketing")) return;
   if (typeof window === "undefined") return;
   if (sponsoredSocialQueueTimer !== null) window.clearTimeout(sponsoredSocialQueueTimer);
   sponsoredSocialQueueTimer = window.setTimeout(() => {
@@ -1425,6 +1454,7 @@ function scheduleSponsoredSocialQueueFlush(delayMs = SPONSORED_RETRY_BASE_MS) {
 }
 
 function enqueueSponsoredSocialEvent(input: SponsoredSocialEventInput) {
+  if (!hasConsent("marketing")) return false;
   const now = Date.now();
   const queue = readSponsoredSocialEventQueue().filter(
     (item) => (now - item.queuedAt) <= SPONSORED_EVENT_MAX_AGE_MS,
@@ -1457,7 +1487,7 @@ function applySponsoredSocialTrackResult(
   input: SponsoredSocialEventInput,
   result: SponsoredSocialTrackResult,
 ) {
-  if (input.eventType === "impression") return;
+  if (!hasConsent("marketing") || input.eventType === "impression") return;
 
   const fallbackRestaurantId = typeof input.metadata.restaurantId === "string"
     ? input.metadata.restaurantId
@@ -1485,12 +1515,15 @@ function applySponsoredSocialTrackResult(
 async function invokeSponsoredSocialEvent(
   input: SponsoredSocialEventInput,
 ): Promise<SponsoredSocialTrackResult> {
+  if (!hasConsent("marketing")) return { queued: false, reason: "consent_required" };
+  const consentGeneration = marketingConsentGeneration;
   const { data, error } = await (getSupabase().rpc as any)("record_social_feed_event_v2", {
     p_post_id: input.postId,
     p_event_type: input.eventType,
     p_metadata: input.metadata,
   });
   if (error) throw error;
+  if (!hasConsent("marketing") || consentGeneration !== marketingConsentGeneration) return { queued: false, reason: "consent_required" };
   return (data || {}) as SponsoredSocialTrackResult;
 }
 
@@ -1533,6 +1566,8 @@ function isRetryableSponsoredSocialError(error: unknown) {
 }
 
 async function flushSponsoredSocialEventQueue() {
+  if (!hasConsent("marketing")) return;
+  const consentGeneration = marketingConsentGeneration;
   if (sponsoredSocialQueueFlushPromise) return sponsoredSocialQueueFlushPromise;
   if (typeof navigator !== "undefined" && navigator.onLine === false) return;
   if (!analyticsAuthHydrated || !analyticsAuthIdentityVerified) return;
@@ -1545,6 +1580,7 @@ async function flushSponsoredSocialEventQueue() {
 
     try {
       for (const item of snapshot) {
+        if (!hasConsent("marketing") || consentGeneration !== marketingConsentGeneration) return;
         if (
           (now - item.queuedAt) > SPONSORED_EVENT_MAX_AGE_MS
           || item.attempts >= MAX_SPONSORED_EVENT_ATTEMPTS
@@ -1592,6 +1628,7 @@ async function flushSponsoredSocialEventQueue() {
         }
       }
 
+      if (!hasConsent("marketing") || consentGeneration !== marketingConsentGeneration) return;
       const current = new Map(readSponsoredSocialEventQueue().map((item) => [item.id, item]));
       updates.forEach((item, id) => {
         if (item) current.set(id, item);
@@ -1681,6 +1718,7 @@ function readDeferredSponsoredConversionQueue(): QueuedDeferredSponsoredConversi
 function writeDeferredSponsoredConversionQueue(
   queue: QueuedDeferredSponsoredConversion[],
 ) {
+  if (!hasConsent("marketing")) return false;
   deferredSponsoredConversionMemory = queue.slice(-MAX_SPONSORED_QUEUED_EVENTS);
   const storage = getSponsoredQueueStorage();
   if (!storage) return false;
@@ -1704,6 +1742,7 @@ function writeDeferredSponsoredConversionQueue(
 function scheduleDeferredSponsoredConversionFlush(
   delayMs = SPONSORED_RETRY_BASE_MS,
 ) {
+  if (!hasConsent("marketing")) return;
   if (typeof window === "undefined") return;
   if (deferredSponsoredConversionTimer !== null) {
     window.clearTimeout(deferredSponsoredConversionTimer);
@@ -1717,6 +1756,7 @@ function scheduleDeferredSponsoredConversionFlush(
 function enqueueDeferredSponsoredConversion(
   input: DeferredSponsoredConversionInput,
 ) {
+  if (!hasConsent("marketing")) return false;
   const now = Date.now();
   const id = [
     input.restaurantId,
@@ -1740,6 +1780,8 @@ function enqueueDeferredSponsoredConversion(
 }
 
 async function flushDeferredSponsoredConversionQueue() {
+  if (!hasConsent("marketing")) return;
+  const consentGeneration = marketingConsentGeneration;
   if (deferredSponsoredConversionFlushPromise) {
     return deferredSponsoredConversionFlushPromise;
   }
@@ -1752,6 +1794,7 @@ async function flushDeferredSponsoredConversionQueue() {
     const identityUpdates = new Map<string, QueuedDeferredSponsoredConversion>();
 
     for (const item of snapshot) {
+      if (!hasConsent("marketing") || consentGeneration !== marketingConsentGeneration) return;
       if ((Date.now() - item.queuedAt) > SPONSORED_EVENT_MAX_AGE_MS) {
         completedIds.add(item.id);
         continue;
@@ -1814,6 +1857,7 @@ async function flushDeferredSponsoredConversionQueue() {
       if (handedOff) scheduleSponsoredQueueFlush(0);
     }
 
+    if (!hasConsent("marketing") || consentGeneration !== marketingConsentGeneration) return;
     const current = new Map(
       readDeferredSponsoredConversionQueue().map((item) => [item.id, item]),
     );
@@ -1851,6 +1895,8 @@ export async function recordSponsoredSocialFeedEvent({
   metadata?: Record<string, unknown>;
   trackingCallId?: string | null;
 }): Promise<SponsoredSocialTrackResult> {
+  if (!hasConsent("marketing")) return { queued: false, reason: "consent_required" };
+  const consentGeneration = marketingConsentGeneration;
   let requestedTrackingCallId = "";
   if (typeof trackingCallId === "string") {
     requestedTrackingCallId = trackingCallId.trim();
@@ -1878,6 +1924,7 @@ export async function recordSponsoredSocialFeedEvent({
 
   await analyticsAuthHydration;
 
+  if (!hasConsent("marketing") || consentGeneration !== marketingConsentGeneration) return { queued: false, reason: "consent_required" };
   if (!analyticsAuthIdentityVerified) {
     return {
       trackingCallId: stableTrackingCallId,
@@ -1968,7 +2015,7 @@ export async function trackSponsoredImpression(
   source = "sponsored_impression",
   eventId?: string | null,
 ) {
-  if (!restaurantId) return false;
+  if (!restaurantId || !hasConsent("marketing")) return false;
 
   try {
     const result = await trackSponsoredEvent({
@@ -1992,6 +2039,7 @@ export async function trackSponsoredClick(
   source = "sponsored_click",
   eventId?: string | null,
 ) {
+  if (!hasConsent("marketing")) return false;
   try {
     const result = await trackSponsoredEvent({
       eventType: "click",
@@ -2001,12 +2049,12 @@ export async function trackSponsoredClick(
       eventId: eventId || createClientEventId(),
     });
 
-    if (
+    if (hasConsent("marketing") && (
       isSponsoredTrackAccepted(result)
       || result.queued
       || result.reason === "internal_actor"
       || Boolean(result.touchToken)
-    ) {
+    )) {
       rememberSponsoredAttribution(campaignId, restaurantId, {
         touchToken: result.touchToken || null,
       });
@@ -2046,6 +2094,7 @@ export async function trackSponsoredConversion(
   restaurantId: string,
   options?: TrackSponsoredConversionOptions
 ) {
+  if (!hasConsent("marketing")) return false;
   if (
     hasQueuedSponsoredSocialClick(restaurantId)
     && options?.entityId
@@ -2247,4 +2296,42 @@ export async function getCampaignStats(restaurantId: string) {
     conversionRate: totalClicks > 0 ? ((totalConversions / totalClicks) * 100).toFixed(1) : "0",
     campaigns: all,
   };
+}
+
+
+function enforceTrackingConsent() {
+  const marketingAllowed = hasConsent("marketing");
+  if (marketingAllowed !== previousMarketingConsent) marketingConsentGeneration += 1;
+  previousMarketingConsent = marketingAllowed;
+  if (!hasConsent("analytics")) {
+    if (analyticsFlushTimer !== null) window.clearTimeout(analyticsFlushTimer);
+    analyticsFlushTimer = null;
+    analyticsQueue.splice(0).forEach((item) => item.resolve(null));
+    analyticsDedupeLedger.clear();
+  }
+  if (!hasConsent("personalization") || !marketingAllowed) sponsoredAudienceSnapshotCache = null;
+  if (!marketingAllowed) {
+    for (const timer of [sponsoredQueueTimer, sponsoredSocialQueueTimer, deferredSponsoredConversionTimer]) {
+      if (timer !== null) window.clearTimeout(timer);
+    }
+    sponsoredQueueTimer = sponsoredSocialQueueTimer = deferredSponsoredConversionTimer = null;
+    sponsoredEventQueueMemory = [];
+    sponsoredSocialEventQueueMemory = [];
+    deferredSponsoredConversionMemory = [];
+    sponsoredRotationMemoryStore = {};
+    sponsoredSelectionMemoryStore = {};
+    sponsoredDisplayLedger.clear();
+    for (const key of [SPONSORED_EVENT_QUEUE_KEY, SPONSORED_SOCIAL_EVENT_QUEUE_KEY, SPONSORED_DEFERRED_CONVERSION_QUEUE_KEY, SPONSORED_ROTATION_KEY, SPONSORED_SELECTION_KEY, "miamz-sponsored-attribution-v1"]) {
+      try { window.localStorage.removeItem(key); } catch { /* Storage may be unavailable. */ }
+    }
+  }
+  if (!hasConsent("analytics") && !marketingAllowed) {
+    runtimeAnalyticsViewerId = null;
+    try { window.localStorage.removeItem(ANALYTICS_VIEWER_KEY); } catch { /* Storage may be unavailable. */ }
+  }
+}
+
+if (typeof window !== "undefined") {
+  enforceTrackingConsent();
+  subscribeToConsent(enforceTrackingConsent);
 }

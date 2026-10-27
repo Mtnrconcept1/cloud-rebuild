@@ -1,3 +1,5 @@
+import { useConsentCategory } from "@/hooks/useConsentCategory";
+import { hasConsent } from "@/lib/consent";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { BadgePercent, ChevronRight, Compass, Heart, MapPinned, MoonStar, ShoppingCart, Sparkles, SunMedium, Timer, TrendingUp, UserRound, Users } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -208,6 +210,7 @@ function ProgressiveOfferCountdown({ endsAt }: { endsAt: ProgressiveReservationO
 }
 
 export default function Index() {
+  const geolocationAllowed = useConsentCategory("geolocation");
   const { user } = useAuth();
   const { itemCount } = useCart();
   const commercialDemoFrame = useCommercialDemoFrame();
@@ -247,7 +250,7 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    if (isCommercialDemoClient) {
+    if (isCommercialDemoClient || !geolocationAllowed) {
       setUserCoordinates(null);
       return;
     }
@@ -255,7 +258,7 @@ export default function Index() {
     let active = true;
     getCurrentPosition()
       .then((position) => {
-        if (!active) return;
+        if (!active || !hasConsent("geolocation")) return;
         const latitude = Number(position.coords.latitude);
         const longitude = Number(position.coords.longitude);
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
@@ -268,7 +271,7 @@ export default function Index() {
     return () => {
       active = false;
     };
-  }, [isCommercialDemoClient]);
+  }, [geolocationAllowed, isCommercialDemoClient]);
 
   useEffect(() => {
     if (shouldLoadMap) return;

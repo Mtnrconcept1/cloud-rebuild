@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import { Analytics } from "@vercel/analytics/react";
+import OptionalAnalytics from "@/components/legal/OptionalAnalytics";
 import App from "./App.tsx";
 import { recoverChunkLoadError } from "@/components/ErrorBoundary";
 import "./index.css";
@@ -44,7 +44,7 @@ createRoot(document.getElementById("root")!).render(
     <App />
     <DirectoryRestaurantOwnershipNotice />
     <DirectoryClaimPersistenceBridge />
-    <Analytics />
+    <OptionalAnalytics />
   </>
 );
 

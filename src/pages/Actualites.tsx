@@ -1,3 +1,4 @@
+import { useConsentCategory } from "@/hooks/useConsentCategory";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -249,6 +250,7 @@ export default function Actualites() {
   const [scope, setScope] = useState<SocialFeedScope>(() => normalizeSocialFeedScope(searchParams.get("scope")));
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const personalizationAllowed = useConsentCategory("personalization");
   const [localClickSignals, setLocalClickSignals] = useState(() => readActualitesPostSignals());
   const [userTrendSignals, setUserTrendSignals] = useState<ActualitesUserTrendSignals>({
     orders: [],
@@ -324,12 +326,12 @@ export default function Actualites() {
     return { restaurantsCount, offersCount, savedCount, mediaCount };
   }, [filteredPosts]);
   const personalizedTrends = useMemo(() => buildPersonalizedActualitesTrends({
-    orders: userTrendSignals.orders,
-    reservations: userTrendSignals.reservations,
-    clickedPosts: [...localClickSignals, ...userTrendSignals.clickedPosts],
+    orders: personalizationAllowed ? userTrendSignals.orders : [],
+    reservations: personalizationAllowed ? userTrendSignals.reservations : [],
+    clickedPosts: personalizationAllowed ? [...localClickSignals, ...userTrendSignals.clickedPosts] : [],
     feedPosts: posts,
     max: 4,
-  }), [localClickSignals, posts, userTrendSignals]);
+  }), [localClickSignals, personalizationAllowed, posts, userTrendSignals]);
 
   useSeoMeta({
     title: "Actualités des restaurants à Genève et en Suisse romande | TOK",
@@ -361,7 +363,7 @@ export default function Actualites() {
 
   useEffect(() => {
     let active = true;
-    if (isCommercialDemoClient || !user?.id) {
+    if (isCommercialDemoClient || !user?.id || !personalizationAllowed) {
       setUserTrendSignals({ orders: [], reservations: [], clickedPosts: [] });
       return () => {
         active = false;
@@ -380,7 +382,7 @@ export default function Actualites() {
     return () => {
       active = false;
     };
-  }, [isCommercialDemoClient, user?.id]);
+  }, [isCommercialDemoClient, personalizationAllowed, user?.id]);
 
   useEffect(() => {
     const syncClickSignals = () => setLocalClickSignals(readActualitesPostSignals());
@@ -397,7 +399,7 @@ export default function Actualites() {
       window.removeEventListener(ACTUALITES_CLICK_SIGNAL_EVENT, syncClickSignals);
       window.removeEventListener("storage", handleStorage);
     };
-  }, []);
+  }, [personalizationAllowed]);
 
   const changeScope = (value: string) => {
     const nextScope = normalizeSocialFeedScope(value);

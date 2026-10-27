@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { useConsentCategory } from "@/hooks/useConsentCategory";
+import { hasConsent } from "@/lib/consent";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -89,6 +91,7 @@ async function recordSocialEventBestEffort({
   eventType: "impression" | "click" | "cta_click" | "reaction" | "comment" | "share" | "save" | "follow" | "repost";
   metadata?: Record<string, unknown>;
 }) {
+  if (!hasConsent("marketing")) return null;
   if (eventType === "impression" || eventType === "click" || eventType === "cta_click") {
     return recordSponsoredSocialFeedEvent({
       postId,
@@ -982,7 +985,7 @@ async function getViewerSocialState(
   return { followedRestaurantIds, repostedPostIds, savedPostIds };
 }
 
-async function loadPublicSocialPostsById(postIds: string[], viewerId?: string | null) {
+async function loadPublicSocialPostsById(postIds: string[], viewerId?: string | null, includeFollowedContent = false) {
   const uniquePostIds = Array.from(new Set(postIds.filter(Boolean)));
   if (uniquePostIds.length === 0) return [] as SocialFeedPost[];
 
@@ -990,7 +993,7 @@ async function loadPublicSocialPostsById(postIds: string[], viewerId?: string | 
     .select("*, restaurants(id,name,image_url,city,cuisine_type), social_post_media(*)")
     .in("id", uniquePostIds)
     .eq("status", "published")
-    .eq("visibility", "public")
+    .in("visibility", includeFollowedContent ? ["public", "followers"] : ["public"])
     .or(`published_at.is.null,published_at.lte.${new Date().toISOString()}`);
 
   if (error) throw error;
@@ -1166,7 +1169,59 @@ export function useSocialRealtime(enabled = true) {
   }, [enabled]);
 }
 
+async function loadUnpersonalizedFeed(
+  scope: SocialFeedScope,
+  limit: number,
+  cursor: string | null,
+  userId: string | null,
+  hiddenFeedback: ReturnType<typeof readSocialFeedHiddenFeedback>,
+) {
+  const empty = { posts: [] as SocialFeedPost[], nextCursor: null as string | null };
+  if ((scope === "saved" || scope === "followed") && !userId) return empty;
+  let query = (supabase.from("social_posts" as any) as any)
+    .select("id,created_at,restaurants!inner(city)")
+    .eq("status", "published")
+    .or(`published_at.is.null,published_at.lte.${new Date().toISOString()}`)
+    .or(`scheduled_at.is.null,scheduled_at.lte.${new Date().toISOString()}`)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (cursor) query = query.lt("created_at", cursor);
+  query = query.in("visibility", scope === "followed" ? ["public", "followers"] : ["public"]);
+  if (scope === "offers") query = query.eq("post_type", "promo");
+  if (scope === "saved" || scope === "followed") {
+    const table = scope === "saved" ? "social_post_saves" : "restaurant_follows";
+    const column = scope === "saved" ? "post_id" : "restaurant_id";
+    // These are explicit saved/followed lists, not inferred interests.
+    const ids: string[] = [];
+    for (let offset = 0; ; offset += 500) {
+      const selected = await (supabase.from(table as any) as any)
+        .select(column).eq("user_id", userId).order(column, { ascending: true }).range(offset, offset + 499);
+      if (selected.error) throw selected.error;
+      const rows = (selected.data || []) as Record<string, string>[];
+      ids.push(...rows.map((row) => row[column]));
+      if (rows.length < 500) break;
+    }
+    if (ids.length === 0) return empty;
+    query = query.in(scope === "saved" ? "id" : "restaurant_id", ids);
+  }
+  if (scope === "nearby" && userId) {
+    const profile = await supabase.from("profiles").select("city").eq("user_id", userId).maybeSingle();
+    if (profile.error) throw profile.error;
+    if (profile.data?.city) query = query.eq("restaurants.city", profile.data.city);
+  }
+  const result = await query;
+  if (result.error) throw result.error;
+  const rows = (result.data || []) as { id: string; created_at: string }[];
+  const posts = await loadPublicSocialPostsById(rows.map((row) => row.id), userId, scope === "followed");
+  const byId = new Map(posts.map((post) => [post.id, post]));
+  return {
+    posts: filterSocialPostsByHiddenFeedback(rows.flatMap((row) => byId.get(row.id) || []), hiddenFeedback),
+    nextCursor: rows.length === limit ? rows.at(-1)?.created_at || null : null,
+  };
+}
+
 export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit = 20) {
+  const personalizationAllowed = useConsentCategory("personalization");
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
   useSocialRealtime(!isCommercialDemoClient);
@@ -1178,7 +1233,7 @@ export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit 
     : userId;
 
   return useInfiniteQuery({
-    queryKey: ["social-feed", scope, limit, viewerKey],
+    queryKey: ["social-feed", scope, limit, viewerKey, personalizationAllowed],
     queryFn: async ({ pageParam }) => {
       if (isCommercialDemoClient) {
         const posts = filterCommercialDemoPostsByScope(
@@ -1189,6 +1244,11 @@ export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit 
       }
 
       const hiddenFeedback = readSocialFeedHiddenFeedback(userId);
+      // A general chronological feed must not call the RPC that derives
+      // interests from orders, reservations and browsing history.
+      if (!personalizationAllowed || !hasConsent("personalization")) {
+        return loadUnpersonalizedFeed(scope, limit, pageParam, userId, hiddenFeedback);
+      }
       const { data, error } = await (supabase.rpc as any)("get_social_feed_v2", {
         p_limit: limit,
         p_cursor: pageParam || null,

@@ -31,6 +31,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SUPPORT_EMAIL } from "@/lib/contact";
+import { CLIENT_QUICK_START, GUIDE_REVIEW_DATE } from "@/data/userGuideContent";
+import { openConsentSettings } from "@/lib/consent";
 import { useFeatureFlagSnapshot } from "@/lib/featureFlags";
 import { isHelpCategoryVisible, isHelpQuestionVisible } from "@/lib/featureVisibility";
 import type { HelpChatOpenOptions } from "@/lib/helpChat";
@@ -347,7 +349,7 @@ const FAQS: FaqSection[] = [
       },
       {
         q: "Comment supprimer mon compte ?",
-        a: "Depuis Profil ou Contact, demandez la suppression. Certaines données peuvent être conservées temporairement pour obligations légales, comptables, anti-fraude ou litiges. Les points, avantages, historiques personnels et préférences non nécessaires seront supprimés ou anonymisés selon les règles applicables.",
+        a: "Ouvrez Profil, Paramètres du compte, puis Supprimer mon compte et relisez la confirmation. Vous pouvez aussi contacter TOK. Vérifiez vos opérations et abonnements avant la suppression : supprimer l’application ne résilie pas un abonnement. Certaines pièces restent conservées pour les obligations légales ou un litige ; les autres données sont supprimées ou anonymisées selon les règles applicables.",
       },
       {
         q: "Pourquoi dois-je fournir mon téléphone ?",
@@ -1019,6 +1021,20 @@ export default function Aide() {
       </div>
 
       <main className="container -mt-7 max-w-6xl space-y-10 px-4 md:px-6">
+        <section id="guide-client" className="scroll-mt-28 space-y-5 rounded-2xl border bg-card p-5 shadow-sm md:p-7">
+          <div>
+            <h2 className="font-display text-2xl font-bold">Guide d’utilisation client</h2>
+            <p className="mt-2 text-sm text-muted-foreground">Les étapes essentielles, relues le {GUIDE_REVIEW_DATE}. Les services disponibles dépendent du restaurant et de votre compte.</p>
+          </div>
+          <ol className="grid gap-4 md:grid-cols-2">
+            {CLIENT_QUICK_START.filter((step) => !("feature" in step) || activeFeatures.has(step.feature)).map((step, index) => <li key={step.title} className="rounded-xl border p-4">
+              <h3 className="font-semibold">{index + 1}. {step.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-foreground/80">{step.description}</p>
+              <Link className="mt-3 inline-flex text-sm font-semibold underline underline-offset-4" to={step.route}>{step.label}</Link>
+            </li>)}
+          </ol>
+          <Button variant="outline" onClick={openConsentSettings}>Gérer mes cookies</Button>
+        </section>
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {visibleCategories.map((category) => (
             <button
@@ -1264,6 +1280,9 @@ export default function Aide() {
                 </Link>
                 <Link to="/cgu" className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
                   Conditions générales <ChevronRight className="h-4 w-4" />
+                </Link>
+                <Link to="/cookies" className="flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+                  Cookies et préférences <ChevronRight className="h-4 w-4" />
                 </Link>
                 <Link
                   to="/politique-confidentialite"

@@ -1,6 +1,7 @@
 import { getSupabase } from "@/integrations/supabase/client";
+import { LEGAL_DOCUMENTS } from "@/lib/legalDocuments";
 
-export const CONSENT_VERSION = "cookies-2026-07-v3";
+export const CONSENT_VERSION = LEGAL_DOCUMENTS.cookies.version;
 export const CONSENT_STORAGE_KEY = `tok_consent_${CONSENT_VERSION}`;
 export const CONSENT_EVENT = "tok:consent-change";
 
@@ -120,6 +121,22 @@ export async function saveConsent(
 
 export function hasConsent(category: Exclude<ConsentCategory, "necessary">) {
   return readConsent()?.preferences[category] === true;
+}
+
+export function subscribeToConsent(listener: () => void) {
+  if (typeof window === "undefined") return () => undefined;
+  const storageChanged = (event: StorageEvent) => {
+    if (event.key === null || event.key === CONSENT_STORAGE_KEY) {
+      volatileReceipt = null;
+      listener();
+    }
+  };
+  window.addEventListener(CONSENT_EVENT, listener);
+  window.addEventListener("storage", storageChanged);
+  return () => {
+    window.removeEventListener(CONSENT_EVENT, listener);
+    window.removeEventListener("storage", storageChanged);
+  };
 }
 
 export function openConsentSettings() {

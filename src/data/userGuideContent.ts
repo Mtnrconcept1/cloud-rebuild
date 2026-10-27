@@ -16,6 +16,17 @@ export type GuideScreenshot = {
   audiences: readonly ("restaurant" | "buyer")[];
 };
 
+export const GUIDE_REVIEW_DATE = "27 octobre 2026";
+
+export const CLIENT_QUICK_START = [
+  { title: "Trouver un restaurant", description: "Saisissez une ville ou une adresse, filtrez la recherche puis vérifiez horaires, menu, prix et services proposés. Le GPS est facultatif.", route: "/recherche", label: "Chercher un restaurant" },
+  { title: "Réserver une table", description: "Choisissez le restaurant, le jour, l’heure et le nombre de convives. Relisez les conditions, notamment une éventuelle garantie bancaire, avant de confirmer. Retrouvez ensuite la référence dans Mes réservations.", route: "/reservations", label: "Mes réservations", feature: "reservation" },
+  { title: "Commander à emporter", description: "Ajoutez les plats au panier, vérifiez quantités, restaurant, créneau et total, puis confirmez le paiement proposé. Attendez le statut de confirmation avant de vous déplacer ; en cas de doute bancaire, vérifiez Mes commandes avant de recommencer.", route: "/commandes", label: "Mes commandes", feature: "commandes" },
+  { title: "Gérer son compte", description: "Depuis le menu de votre espace client, ouvrez Profil puis Paramètres du compte pour vos informations, votre sécurité et la suppression du compte. Résiliez séparément un abonnement depuis son parcours de gestion.", route: "/profil?tab=parametres", label: "Paramètres du compte" },
+  { title: "Choisir sa confidentialité", description: "Ouvrez Gérer mes cookies pour accepter ou refuser chaque catégorie. Retirez séparément les permissions de position et de notification dans l’appareil. Les choix de traceurs ne vous inscrivent pas à une newsletter.", route: "/cookies", label: "Cookies et préférences" },
+  { title: "Demander de l’aide", description: "Pour une commande, une réservation ou une facture, transmettez sa référence et une description du problème au support. N’envoyez ni mot de passe, ni code de connexion, ni numéro complet de carte.", route: "/contact", label: "Contacter TOK" },
+] as const;
+
 export const RESTAURANT_GUIDE_CHAPTERS: readonly GuideChapter[] = [
   {
     id: "reussite-et-performances",
@@ -48,6 +59,10 @@ export const RESTAURANT_GUIDE_CHAPTERS: readonly GuideChapter[] = [
     steps: [
       "Dans « Campagnes », préparez une communication et vérifiez son texte, son visuel et sa période avant de la diffuser.",
       "Ouvrez « Campaign Studio IA » ou « Studio Marketing » pour préparer des visuels lorsque ces outils sont disponibles sur votre abonnement.",
+      "Dans « Studio Marketing », commencez par le support et son format. Utilisez le bouton Continuer dans la barre d’actions qui reste visible en bas de l’écran.",
+      "À l’étape « Votre marque », ajoutez ou retrouvez vos logos et références ; cette étape est facultative. Passez ensuite au brief pour décrire le sujet, le texte attendu et les éléments indispensables.",
+      "Relisez le coût ou les crédits annoncés avant Générer. Retour permet de corriger les choix en conservant le brief ; la nouvelle étape s’affiche depuis son début.",
+      "Après génération, contrôlez la lisibilité, les prix, les allergènes et les droits sur les images. Télécharger, publier sur un réseau et commander une impression sont des actions distinctes ; vérifiez le format et les marges avant de confirmer une impression payante.",
       "Avec « Actualités », partagez une nouveauté, un événement ou une information utile à vos clients.",
       "Utilisez « Promotions » pour mettre en avant une offre et « CRM clients » pour retrouver les informations clients auxquelles vous avez droit.",
       "Si vos comptes sont reliés, contrôlez le résultat dans « Reseaux sociaux » avant et après publication.",
@@ -73,6 +88,7 @@ export const RESTAURANT_GUIDE_CHAPTERS: readonly GuideChapter[] = [
       "Dans « Comptabilité & factures », consultez vos factures et choisissez la période qui vous intéresse.",
       "Avant de signaler un écart, comparez les montants et les dates indiqués avec vos relevés.",
       "Si vous ne retrouvez pas une facture ou un règlement, contactez « Aide et support » avec sa référence.",
+      "Avant d’activer, renouveler ou résilier un abonnement, vérifiez le montant, la période et l’échéance affichés. Une suppression d’application ou de compte ne remplace pas la résiliation du parcours de facturation.",
     ],
     routes: ["/dashboard/mon-compte-facturation", "/dashboard/factures", "/dashboard/support"],
     screenshots: [
@@ -147,6 +163,7 @@ export const RESTAURANT_GUIDE_CHAPTERS: readonly GuideChapter[] = [
       "Dans « Aide et support », expliquez votre demande et indiquez le restaurant concerné.",
       "Pour une réservation, une commande ou une facture, ajoutez sa référence afin de faciliter la recherche.",
       "Vérifiez les réponses reçues et conservez les informations utiles pour la suite.",
+      "Consultez les CGU, la Confidentialité et les Cookies pour les règles et les traitements de données. Gérer mes cookies permet de retirer les catégories facultatives ; une demande d’accès, de rectification ou d’effacement se transmet au contact indiqué dans la politique.",
     ],
     routes: ["/dashboard/notifications", "/dashboard/support", "/dashboard/guide"],
     screenshots: [
@@ -314,6 +331,8 @@ export const BUYER_GUIDE_CHAPTERS: readonly GuideChapter[] = [
       "Préparez les éléments d’une campagne et leurs variantes avant approbation.",
       "Vérifiez les droits, canaux et budgets avant une action externe.",
       "Distinguez toujours une prévisualisation, une publication demandée et une publication réellement confirmée.",
+      "Pour les mailings, vérifiez la provenance des destinataires, les autorisations nécessaires et le lien de désabonnement. Une adresse trouvée dans un registre public ne constitue pas à elle seule un accord à recevoir de la publicité.",
+      "Contrôlez les choix de traceurs et les informations sur les prestataires avant d’interpréter les statistiques : le refus de mesures facultatives peut réduire les événements disponibles.",
     ],
     routes: ["/marketing/login", "/marketing"],
     screenshots: [{

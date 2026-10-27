@@ -1,3 +1,4 @@
+import { CONSENT_STORAGE_KEY } from "@/lib/consent";
 import type { ConsentCategory } from "@/lib/consent";
 
 export type TrackerInventoryItem = {
@@ -21,7 +22,7 @@ export const TRACKER_INVENTORY: TrackerInventoryItem[] = [
     activation: "Connexion ou restauration d’une session existante.",
   },
   {
-    name: "tok_consent_cookies-2026-07-v3",
+    name: CONSENT_STORAGE_KEY,
     provider: "TOK",
     storage: "localStorage",
     category: "necessary",
@@ -35,7 +36,7 @@ export const TRACKER_INVENTORY: TrackerInventoryItem[] = [
     storage: "server event",
     category: "necessary",
     purpose: "Conserver une preuve datée et append-only du choix exprimé.",
-    duration: "Durée probatoire définie dans le registre de conservation; à valider avant lancement.",
+    duration: "Le temps nécessaire à la preuve du choix et à la gestion d’une contestation ; renseignements sur demande au contact données personnelles.",
     activation: "Enregistrement d’un choix dans le bandeau ou les réglages.",
   },
   {
@@ -44,7 +45,7 @@ export const TRACKER_INVENTORY: TrackerInventoryItem[] = [
     storage: "localStorage",
     category: "necessary",
     purpose: "Conserver le panier, le mode de commande et les étapes indispensables au paiement.",
-    duration: "Session d’achat ou jusqu’à déconnexion, finalisation ou nettoyage.",
+    duration: "Stockage persistant sans échéance automatique du navigateur ; supprimé par les parcours de nettoyage du panier, la déconnexion ou l’effacement manuel.",
     activation: "Ajout au panier ou démarrage d’un checkout.",
   },
   {
@@ -53,7 +54,7 @@ export const TRACKER_INVENTORY: TrackerInventoryItem[] = [
     storage: "server event",
     category: "analytics",
     purpose: "Détecter les erreurs, régressions et performances dégradées.",
-    duration: "Selon la durée configurée dans le projet Sentry; à reporter dans le registre fournisseur.",
+    duration: "Selon la durée du projet Sentry ; les diagnostics futurs sont bloqués dès le retrait. La durée applicable aux événements déjà transmis peut être demandée à TOK.",
     activation: "Uniquement après consentement analytics, hors événements strictement nécessaires à la sécurité.",
   },
   {
@@ -62,7 +63,7 @@ export const TRACKER_INVENTORY: TrackerInventoryItem[] = [
     storage: "server event",
     category: "analytics",
     purpose: "Mesurer pages, recherches, clics et conversion sous forme agrégée ou pseudonymisée.",
-    duration: "Selon la table et la politique de conservation TOK; à automatiser par job de rétention.",
+    duration: "Selon la nécessité de la mesure et des statistiques conservées ; le refus bloque les nouveaux événements et supprime les événements navigateur en attente.",
     activation: "Uniquement après consentement analytics.",
   },
   {
@@ -71,7 +72,7 @@ export const TRACKER_INVENTORY: TrackerInventoryItem[] = [
     storage: "server event",
     category: "marketing",
     purpose: "Attribuer impressions, clics, réservations et commandes aux campagnes sponsorisées.",
-    duration: "Fenêtre d’attribution puis durée probatoire et comptable définie par campagne.",
+    duration: "Attribution navigateur valable 24 heures ; les événements reçus côté serveur suivent les besoins de mesure, de preuve et de facturation de la campagne.",
     activation: "Uniquement après consentement marketing, sauf preuve strictement nécessaire à une transaction demandée.",
   },
   {
@@ -80,8 +81,8 @@ export const TRACKER_INVENTORY: TrackerInventoryItem[] = [
     storage: "server event",
     category: "personalization",
     purpose: "Adapter le fil, les restaurants et offres selon les interactions et préférences.",
-    duration: "Vie du compte ou jusqu’au retrait, effacement ou anonymisation.",
-    activation: "Uniquement après consentement personnalisation.",
+    duration: "Le temps nécessaire aux recommandations ; les signaux de clics stockés dans le navigateur sont supprimés lors du retrait de la personnalisation.",
+    activation: "Après consentement personnalisation pour les tendances déduites ; vos favoris et abonnements explicitement demandés restent disponibles.",
   },
   {
     name: "Browser or native geolocation",
@@ -90,7 +91,7 @@ export const TRACKER_INVENTORY: TrackerInventoryItem[] = [
     category: "geolocation",
     purpose: "Trouver les restaurants, offres, distances et services disponibles à proximité.",
     duration: "Permission contrôlée par l’appareil; les coordonnées serveur suivent la politique de conservation.",
-    activation: "Consentement géolocalisation TOK et autorisation explicite de l’appareil.",
+    activation: "Accord géolocalisation TOK et permission de l’appareil pour la recherche facultative ; autorisation propre au service pour une localisation opérationnelle expressément demandée.",
   },
   {
     name: "Stripe checkout and fraud-prevention technologies",
@@ -98,8 +99,62 @@ export const TRACKER_INVENTORY: TrackerInventoryItem[] = [
     storage: "cookie",
     category: "necessary",
     purpose: "Sécuriser et exécuter un paiement explicitement demandé, prévenir la fraude et maintenir le checkout.",
-    duration: "Selon la documentation Stripe applicable au parcours de paiement.",
+    duration: "Notamment __stripe_mid : 1 an ; __stripe_sid : 30 minutes, selon le composant Stripe utilisé. D’autres technologies peuvent dépendre du moyen de paiement.",
     activation: "Ouverture de Stripe Checkout ou d’un composant de paiement.",
+  },
+  {
+    name: "Vercel Web Analytics",
+    provider: "Vercel",
+    storage: "server event",
+    category: "analytics",
+    purpose: "Mesurer l’audience et les pages consultées.",
+    duration: "Selon la rétention du service Vercel ; les événements futurs sont bloqués au retrait.",
+    activation: "Chargement seulement après accord à la mesure d’audience ; contrôle du choix avant chaque événement.",
+  },
+  {
+    name: "miamz-analytics-viewer-v1",
+    provider: "TOK",
+    storage: "localStorage",
+    category: "analytics",
+    purpose: "Identifiant technique pour les événements de mesure autorisés, également utilisé par le suivi marketing si cette catégorie est acceptée.",
+    duration: "Sans échéance automatique ; supprimé lorsque mesure d’audience et marketing sont tous deux refusés, ou lors d’un effacement manuel.",
+    activation: "Mesure d’audience ou marketing accepté ; aucun identifiant créé avant le choix.",
+  },
+  {
+    name: "miamz-sponsored-*-queue-v1 / miamz-sponsored-attribution-v1",
+    provider: "TOK",
+    storage: "localStorage",
+    category: "marketing",
+    purpose: "Réessayer les événements de campagne lors d’une interruption et attribuer une conversion à un clic autorisé.",
+    duration: "Validité maximale de 24 heures ; purge à la reprise du traitement ou immédiatement au retrait du marketing.",
+    activation: "Après accord marketing ; les événements d’un choix retiré ne sont pas rejoués après réactivation.",
+  },
+  {
+    name: "miamz-sponsored-rotation-v1 / miamz-sponsored-placement-selection-v1",
+    provider: "TOK",
+    storage: "localStorage",
+    category: "marketing",
+    purpose: "Mémoriser les placements de campagne affichés et leur rotation.",
+    duration: "Sélection valide 15 minutes ; rotation sans échéance automatique. Suppression au refus marketing ou par effacement manuel.",
+    activation: "Après accord marketing.",
+  },
+  {
+    name: "tok-actualites-click-signals-v1",
+    provider: "TOK",
+    storage: "localStorage",
+    category: "personalization",
+    purpose: "Déduire les tendances des actualités à partir de vos clics, avec un maximum de 80 signaux.",
+    duration: "Sans échéance automatique ; les signaux anciens sont remplacés à la limite de stockage et tous sont supprimés au retrait de la personnalisation.",
+    activation: "Après accord personnalisation.",
+  },
+  {
+    name: "theme",
+    provider: "TOK",
+    storage: "localStorage",
+    category: "necessary",
+    purpose: "Mémoriser l’apparence claire ou sombre choisie pour l’interface.",
+    duration: "Jusqu’au changement de préférence ou à l’effacement du stockage.",
+    activation: "Choix d’apparence explicite.",
   },
   {
     name: "Firebase installation and push token",

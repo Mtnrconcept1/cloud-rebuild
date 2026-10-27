@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import { SUPPORT_EMAIL } from "@/lib/contact";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
-import { LEGAL_DOCUMENTS, LEGAL_EFFECTIVE_DATE_FR } from "@/lib/legalDocuments";
+import { LEGAL_DOCUMENTS } from "@/lib/legalDocuments";
 
-const updatedAt = LEGAL_EFFECTIVE_DATE_FR;
+const updatedAt = LEGAL_DOCUMENTS.restaurantTerms.effectiveDateFr;
 
 const quickPoints = [
   "Abonnements : Starter CHF 69, Business CHF 129, Premium CHF 199 et Elite CHF 499 par mois ; l'annuel correspond à 12 mois de service au prix de 11 mensualités.",
