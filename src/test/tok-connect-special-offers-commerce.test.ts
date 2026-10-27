@@ -144,12 +144,13 @@ describe("native atomic special-offer restoration bridge", () => {
   });
   it("preserves a database reconciliation message as an Error on payment finalization", async () => {
     const databaseError = { message: "PAID_ORDER_SPECIAL_OFFER_STOCK_RECONCILIATION_REQUIRED", code: "P0001" };
-    const finalize = new Function("isDeliveryOrder", transpile("supabase/functions/_shared/order-checkout.ts") + ";findOrdersForSession=async()=>[{id:'order',total_amount:10,metadata:{},status:'pending_payment'}];return finalizePaidOrderCheckout;")(() => false);
-    const query = { update: () => query, eq: () => query, select: () => query, maybeSingle: async () => ({ data: null, error: databaseError }) };
+    const finalize = new Function("isDeliveryOrder", transpile("supabase/functions/_shared/order-checkout.ts") + ";findOrdersForSession=async()=>[{id:'order',total_amount:10,metadata:{},status:'pending_payment',payment_status:null}];return finalizePaidOrderCheckout;")(() => false);
+    const query = { update: () => query, eq: () => query, is: vi.fn(() => query), select: () => query, maybeSingle: async () => ({ data: null, error: databaseError }) };
     const failure = await finalize({ adminClient: { from: () => query }, session: { metadata: {}, currency: "chf", amount_total: 1000 }, cardBrand: "visa", cardLast4: "4242" }).catch((error: unknown) => error);
     expect(failure).toBeInstanceOf(Error);
     expect(failure.message).toBe(databaseError.message);
     expect(failure.cause).toBe(databaseError);
+    expect(query.is).toHaveBeenCalledWith("payment_status", null);
   });
 });
 

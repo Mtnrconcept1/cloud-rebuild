@@ -4,6 +4,12 @@ import type Stripe from "npm:stripe@22.3.2";
 type AdminClient = EdgeSupabaseClient;
 
 const TOK_ONE_ENTITLED_STATUSES = new Set(["active", "trialing"]);
+const TOK_ONE_REPLACEABLE_STATUSES = new Set(["inactive", "cancelled", "canceled", "unpaid", "incomplete_expired"]);
+const RESTAURANT_SUBSCRIPTION_CHECKOUT_KINDS = new Set([
+  "restaurant-onboarding",
+  "restaurant-subscription-upgrade",
+  "restaurant-subscription-sync",
+]);
 
 export function isTokOneEntitledStatus(status: string | null | undefined) {
   return TOK_ONE_ENTITLED_STATUSES.has(String(status || "").toLowerCase());
@@ -141,15 +147,37 @@ export async function syncTokOneSubscriptionRecord(input: {
     stripeCheckoutSessionId = null,
   } = input;
   const metadata = subscription.metadata || {};
+  const checkoutKind = String(metadata.checkout_kind || "");
+  // Restaurant subscriptions share user_id/plan_id metadata, but their plans
+  // belong to restaurant_subscription_plans, not user_subscription_plans.
+  if (
+    RESTAURANT_SUBSCRIPTION_CHECKOUT_KINDS.has(checkoutKind)
+    || (!checkoutKind && metadata.restaurant_subscription_plan_id)
+  ) {
+    return { updated: false, row: null };
+  }
   const normalizedStripeMode = stripeMode === "test" ? "test" : "live";
 
-  const existing = await findExistingTokOneSubscription({
+  let existing = await findExistingTokOneSubscription({
     adminClient,
     stripeSubscriptionId: subscription.id,
     userId: typeof metadata.user_id === "string" ? metadata.user_id : fallbackUserId,
     planId: typeof metadata.plan_id === "string" ? metadata.plan_id : fallbackPlanId,
     stripeMode: normalizedStripeMode,
   });
+
+  if (existing?.stripe_subscription_id && existing.stripe_subscription_id !== subscription.id) {
+    // The user/plan fallback may find a newer subscription after a replacement.
+    // Never attach an old event to that row. A paid re-subscription gets its own
+    // row so delayed events can continue updating the old Stripe identity.
+    if (
+      !TOK_ONE_REPLACEABLE_STATUSES.has(String(existing.status || "").toLowerCase())
+      || !isTokOneEntitledStatus(subscription.status)
+    ) {
+      return { updated: false, row: existing };
+    }
+    existing = null;
+  }
 
   const userId = typeof metadata.user_id === "string" && metadata.user_id
     ? metadata.user_id
@@ -159,6 +187,9 @@ export async function syncTokOneSubscriptionRecord(input: {
     : (existing?.plan_id || fallbackPlanId);
 
   if (!userId || !planId) {
+    if (checkoutKind === "tok-one") {
+      throw new Error("TOK_ONE_SUBSCRIPTION_IDENTITY_MISSING");
+    }
     console.warn("Tok One subscription sync skipped: missing user_id or plan_id", {
       stripe_subscription_id: subscription.id,
       user_id: userId,
@@ -182,18 +213,21 @@ export async function syncTokOneSubscriptionRecord(input: {
     stripe_checkout_session_id: stripeCheckoutSessionId || existing?.stripe_checkout_session_id || null,
   };
 
-  const { data, error } = existing?.id
-    ? await adminClient
+  const mutation = existing?.id
+    ? adminClient
       .from("tok_one_subscriptions")
       .update(payload)
       .eq("id", existing.id)
-      .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
-      .single()
-    : await adminClient
+    : adminClient
       .from("tok_one_subscriptions")
-      .insert(payload)
-      .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
-      .single();
+      .insert(payload);
+  if (existing?.id && !existing.stripe_subscription_id) {
+    // A concurrent first binding must retry rather than overwrite the winner.
+    mutation.is("stripe_subscription_id", null);
+  }
+  const { data, error } = await mutation
+    .select("id, user_id, plan_id, status, current_period_start, current_period_end, cancel_at_period_end, stripe_subscription_id, stripe_mode, stripe_checkout_session_id")
+    .single();
 
   if (error) throw error;
 
