@@ -1,7 +1,20 @@
-name: Consent audit registry validation bridge
+name: Consent confirmation regression
 on:
   pull_request:
-    paths: [.github/workflows/consent-confirmation.yml]
+    paths:
+      - .github/workflows/consent-confirmation.yml
+      - src/components/commercial/CommercialEmailConsentDialog.tsx
+      - src/lib/commercialEmailConsent.ts
+      - src/test/commercial-consent*.test.*
+      - src/test/commercial-email-consent*.test.*
+      - public/consentement-email.*
+      - supabase/config.toml
+      - supabase/functions/send-email/**
+      - supabase/functions/commercial-consent-confirmation/**
+      - supabase/functions/_shared/commercial-consent-confirmation.ts
+      - supabase/migrations/*commercial_email_confirmation.sql
+      - supabase/tests/commercial_email_confirmation.sql
+      - scripts/test-commercial-consent-postgres.mjs
 permissions:
   contents: read
 concurrency:
@@ -9,62 +22,50 @@ concurrency:
   cancel-in-progress: true
 jobs:
   regression:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/commercial-consent-email-confirmation-20261027'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 54322:5432
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     env:
+      PGHOST: 127.0.0.1
+      PGPORT: '54322'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+      TOK_CONSENT_DISPOSABLE: 'true'
+      TOK_TEST_EMAIL_CONFIRMATION: 'true'
       VITE_SUPABASE_URL: https://example.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
       VITE_SUPABASE_ANON_KEY: ci-public-placeholder
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: 1ba91c29b090e6e8ce362bb1f5f383feb7a01533
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with: { node-version: '22' }
-      - name: Apply the single reviewed audit purpose label
-        run: |
-          node --input-type=module <<'JS'
-          import {readFileSync,writeFileSync} from 'node:fs';import {createHash} from 'node:crypto';
-          const p='src/lib/admin/auditLogNarrative.ts',source=readFileSync(p,'utf8');
-          const marker='const FUNCTION_PURPOSE: Record<string, string> = {\n';
-          if(source.split(marker).length!==2||source.includes('"commercial-consent-confirmation":'))throw new Error('Unexpected registry baseline');
-          const patched=source.replace(marker,marker+'  "commercial-consent-confirmation": "la consultation, la confirmation ou le retrait du consentement commercial par e-mail",\n');
-          const bytes=Buffer.from(patched);if(createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex')!=='f79aeb664426316b62b4844cb83a3df6e7e1bd3a')throw new Error('Unexpected patch output');
-          writeFileSync(p,patched);
-          JS
-      - name: Frozen dependencies and final canonical references
-        run: |
-          corepack enable && corepack prepare pnpm@10.28.1 --activate && pnpm install --frozen-lockfile
-          node scripts/generate-application-index.mjs
-      - name: Audit, index, consent tests, types and lint
-        run: |
-          pnpm exec vitest run src/test/admin-audit-log-narrative.test.ts src/test/application-search-index.test.ts src/test/commercial-email-consent.test.tsx src/test/commercial-email-consent-contract.test.ts src/test/commercial-consent-confirmation.test.ts src/test/commercial-consent-page.test.ts src/test/email-provider-reconciliation.test.ts src/test/marketing-consent-dispatch.test.ts
-          pnpm typecheck && pnpm lint
-      - name: Package exactly the four validated file objects
-        run: |
-          mkdir -p "$RUNNER_TEMP/consent-registry"
-          cp --parents src/lib/admin/auditLogNarrative.ts docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts "$RUNNER_TEMP/consent-registry/"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: consent-registry-validated
-          path: ${{ runner.temp }}/consent-registry
-          retention-days: 1
-  publish-validated-objects:
-    needs: regression
-    runs-on: ubuntu-latest
-    permissions: { contents: write }
-    steps:
-      - uses: actions/download-artifact@v4
-        with: { name: consent-registry-validated, path: validated }
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with: { node-version: '22' }
-      - name: Publish four validated blobs only, never commits or refs
-        env: { GH_TOKEN: '${{ github.token }}' }
+          node-version: '22'
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: 'v2.9.6'
+      - name: Check modified Edge entry points
+        env:
+          DENO_NO_PACKAGE_JSON: '1'
+          DENO_NO_UPDATE_CHECK: '1'
         run: |
-          node --input-type=module <<'JS'
-          import {readFileSync} from 'node:fs';import {createHash} from 'node:crypto';
-          const files={'src/lib/admin/auditLogNarrative.ts':'f79aeb664426316b62b4844cb83a3df6e7e1bd3a','docs/architecture/TOK_APPLICATION_REFERENCE.md':'cfbd635109e2aa102c209f743ef407ff0fe02f95','docs/architecture/tok-application-search-index.json':'17c542c39ddcbbf574a543beb4b7d348a665acf1','src/data/tok-user-guide-catalog.generated.ts':'a09f560088317626d7f692d7856b60ee1e7c4905'};
-          for(const [path,expected] of Object.entries(files)){const bytes=readFileSync('validated/'+path);if(createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex')!==expected)throw new Error('Unexpected reviewed file');const r=await fetch('https://api.github.com/repos/Mtnrconcept1/cloud-rebuild/git/blobs',{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({content:bytes.toString('base64'),encoding:'base64'})});if(!r.ok)throw new Error('Publication failed: '+r.status);const data=await r.json();if(data.sha!==expected)throw new Error('Object integrity mismatch');console.log(JSON.stringify({path,sha:data.sha}));}
-          JS
+          cp deno.lock "$RUNNER_TEMP/consent-edge-check.lock"
+          deno check --no-config --node-modules-dir=none --lock="$RUNNER_TEMP/consent-edge-check.lock" supabase/functions/send-email/index.ts supabase/functions/commercial-consent-confirmation/index.ts
+      - name: Historical migration, permissions, transitions and concurrent replay
+        run: node --test scripts/test-native-consent-history.test.mjs && node scripts/test-commercial-consent-postgres.mjs
+      - name: Frozen dependencies
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate && pnpm install --frozen-lockfile
+      - name: Consent, mailbox page, sender boundary and existing email regressions
+        run: pnpm exec vitest run src/test/commercial-email-consent.test.tsx src/test/commercial-email-consent-contract.test.ts src/test/commercial-consent-confirmation.test.ts src/test/commercial-consent-page.test.ts src/test/email-provider-reconciliation.test.ts src/test/marketing-consent-dispatch.test.ts
+      - name: Typecheck, lint and build
+        run: pnpm typecheck && pnpm lint && pnpm build

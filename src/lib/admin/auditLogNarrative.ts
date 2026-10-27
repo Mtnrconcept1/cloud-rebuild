@@ -44,6 +44,7 @@ export type AuditNarrative = {
 
 /** What each Edge Function is for, phrased as a noun group. */
 const FUNCTION_PURPOSE: Record<string, string> = {
+  "commercial-consent-confirmation": "la consultation, la confirmation ou le retrait du consentement commercial par e-mail",
   "send-email": "l’envoi des e-mails transactionnels en file d’attente",
   "resend-inbound-forward": "le transfert sécurisé des e-mails reçus par TOK vers la boîte Outlook de l’administration",
   "send-push": "l’envoi des notifications push en file d’attente",
