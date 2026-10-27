@@ -2668,6 +2668,7 @@ export type Database = {
       }
       menu_items: {
         Row: {
+          available_on_card: boolean
           category: string | null
           created_at: string
           description: string | null
@@ -2676,11 +2677,13 @@ export type Database = {
           image_url: string | null
           is_available: boolean | null
           is_exclusive: boolean | null
+          menu_card_id: string | null
           name: string
           price: number
           restaurant_id: string
         }
         Insert: {
+          available_on_card?: boolean
           category?: string | null
           created_at?: string
           description?: string | null
@@ -2689,11 +2692,13 @@ export type Database = {
           image_url?: string | null
           is_available?: boolean | null
           is_exclusive?: boolean | null
+          menu_card_id?: string | null
           name: string
           price: number
           restaurant_id: string
         }
         Update: {
+          available_on_card?: boolean
           category?: string | null
           created_at?: string
           description?: string | null
@@ -2702,11 +2707,19 @@ export type Database = {
           image_url?: string | null
           is_available?: boolean | null
           is_exclusive?: boolean | null
+          menu_card_id?: string | null
           name?: string
           price?: number
           restaurant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "menu_items_menu_card_same_restaurant_fkey"
+            columns: ["restaurant_id", "menu_card_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_menu_cards"
+            referencedColumns: ["restaurant_id", "id"]
+          },
           {
             foreignKeyName: "menu_items_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -4931,6 +4944,47 @@ export type Database = {
           },
         ]
       }
+      restaurant_menu_cards: {
+        Row: {
+          activated_at: string | null
+          activated_by: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          restaurant_id: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          restaurant_id: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          activated_by?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          restaurant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_menu_cards_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurant_payout_settings: {
         Row: {
           commission_rate: number | null
@@ -6363,6 +6417,32 @@ export type Database = {
     }
     Functions: {
       admin_activate_all_feature_flags: { Args: never; Returns: number }
+      activate_restaurant_menu_card: {
+        Args: { p_card_id: string }
+        Returns: {
+          activated_at: string | null
+          activated_by: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          restaurant_id: string
+          updated_at: string
+        }
+      }
+      create_restaurant_menu_card: {
+        Args: { p_name: string; p_restaurant_id: string }
+        Returns: {
+          activated_at: string | null
+          activated_by: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          restaurant_id: string
+          updated_at: string
+        }
+      }
       admin_dispatch_notification_campaign: {
         Args: { p_campaign_id: string }
         Returns: {

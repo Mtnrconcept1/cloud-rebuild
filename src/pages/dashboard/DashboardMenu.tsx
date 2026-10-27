@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import RestaurantMenuCatalog from "@/components/dashboard/RestaurantMenuCatalog";
+import RestaurantMenuCardsBar, { type RestaurantMenuCard } from "@/components/dashboard/RestaurantMenuCardsBar";
 import DailyDishAiPanel from "@/components/dashboard/DailyDishAiPanel";
 import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
 import OperationProgressDialog from "@/components/ui/operation-progress-dialog";
@@ -17,7 +18,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, CheckCircle2, Image as ImageIcon, Images, Loader2, Pencil, Plus, ScanLine, Sparkles, Trash2, Upload } from "lucide-react";
+import { BookOpen, CheckCircle2, Image as ImageIcon, Images, Layers, Loader2, Plus, ScanLine, Sparkles, Upload } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import { optimizeImageUpload } from "@/lib/optimizedImages";
 import type { TokImageGenerationResult } from "@/lib/ai/tokAiClient";
@@ -60,6 +61,8 @@ type MenuItemRecord = {
   category: string | null;
   image_url: string | null;
   is_available: boolean | null;
+  menu_card_id?: string | null;
+  available_on_card?: boolean | null;
 };
 
 type ImportedMenuItem = {
@@ -174,6 +177,22 @@ function getMenuImportErrorMessage(error: unknown) {
   return message || "Analyse impossible";
 }
 
+function getMenuCardErrorMessage(error: unknown) {
+  const source = error as { message?: string | null; code?: string | null } | null;
+  const message = String(source?.message || error || "");
+  if (message.includes("menu_card_name_taken")) return "Une carte porte déjà ce nom.";
+  if (message.includes("menu_card_name_required")) return "Donnez un nom à la carte (80 caractères maximum).";
+  if (message.includes("menu_card_limit_reached")) return "Vous avez atteint la limite de 20 cartes. Supprimez une carte vide avant d'en créer une nouvelle.";
+  if (message.includes("menu_card_forbidden") || message.includes("row-level security")) return "Vous n'avez pas les droits pour gérer les cartes de ce restaurant.";
+  if (source?.code === "23503" || message.includes("foreign key")) return "Cette carte contient encore des plats. Supprimez-les avant de supprimer la carte.";
+  return message || "Opération impossible.";
+}
+
+/** Disponibilité affichée au restaurateur : celle qu'il a choisie, même si la carte est inactive. */
+function getPreferredAvailability(item: MenuItemRecord) {
+  return item.available_on_card ?? item.is_available ?? true;
+}
+
 function getMenuItemSaveErrorMessage(error: { message?: string | null } | null | undefined) {
   const message = String(error?.message || "");
   if (message.includes("menu_items_price_positive_check")) return "Le prix doit être supérieur à 0 CHF.";
@@ -201,6 +220,10 @@ export default function DashboardMenu() {
   const [analyzingMenu, setAnalyzingMenu] = useState(false);
   const [savingImportedMenu, setSavingImportedMenu] = useState(false);
   const [savingItem, setSavingItem] = useState(false);
+  const [viewedCardId, setViewedCardId] = useState<string | null>(null);
+  const [creatingCard, setCreatingCard] = useState(false);
+  const [activatingCardId, setActivatingCardId] = useState<string | null>(null);
+  const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
   const menuImportInputRef = useRef<HTMLInputElement | null>(null);
   const mountedRef = useRef(true);
 
@@ -278,6 +301,135 @@ export default function DashboardMenu() {
     enabled: !!restaurant,
   });
 
+  const menuCardsQueryKey = ["my-menu-cards", restaurant?.id] as const;
+  // Les cartes saisonnières ne sont pas simulées en démo commerciale : aucune lecture de production.
+  const { data: menuCards = [] } = useQuery<RestaurantMenuCard[]>({
+    queryKey: menuCardsQueryKey,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("restaurant_menu_cards")
+        .select("id, restaurant_id, name, is_active, activated_at, created_at")
+        .eq("restaurant_id", restaurant!.id)
+        .order("created_at", { ascending: true })
+        .limit(50);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!restaurant && !isCommercialDemo,
+  });
+
+  const activeCard = menuCards.find((card) => card.is_active) || null;
+  const viewedCard = menuCards.find((card) => card.id === viewedCardId) || activeCard;
+  const hasMenuCards = menuCards.length > 0;
+  // Un plat sans carte (créé avant la première carte) appartient à la carte active.
+  const menuCardItemCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of items || []) {
+      const cardId = item.menu_card_id || activeCard?.id;
+      if (cardId) counts[cardId] = (counts[cardId] || 0) + 1;
+    }
+    return counts;
+  }, [items, activeCard?.id]);
+  const viewedItems = useMemo(() => {
+    const all = items || [];
+    if (!hasMenuCards || !viewedCard) return all;
+    return all.filter((item) => (item.menu_card_id || activeCard?.id) === viewedCard.id);
+  }, [items, hasMenuCards, viewedCard, activeCard?.id]);
+  const activeCardItems = useMemo(() => {
+    const all = items || [];
+    if (!hasMenuCards || !activeCard) return all;
+    return all.filter((item) => (item.menu_card_id || activeCard.id) === activeCard.id);
+  }, [items, hasMenuCards, activeCard]);
+  const catalogItems = useMemo(
+    () => viewedItems.map((item) => ({ ...item, is_available: getPreferredAvailability(item) })),
+    [viewedItems],
+  );
+  const targetCardId = hasMenuCards ? viewedCard?.id || null : null;
+
+  useEffect(() => {
+    setViewedCardId(null);
+  }, [restaurant?.id]);
+
+  const refreshMenuCards = () => {
+    if (!restaurant) return;
+    queryClient.invalidateQueries({ queryKey: ["my-menu-cards", restaurant.id] });
+  };
+
+  const handleCreateMenuCard = async (name: string) => {
+    if (!restaurant || isCommercialDemo || creatingCard) return false;
+    setCreatingCard(true);
+    try {
+      const { data, error } = await supabase.rpc("create_restaurant_menu_card", {
+        p_restaurant_id: restaurant.id,
+        p_name: name,
+      });
+      if (error) {
+        toast({ title: "Création impossible", description: getMenuCardErrorMessage(error), variant: "destructive" });
+        return false;
+      }
+      const created = data as RestaurantMenuCard | null;
+      if (created?.id) setViewedCardId(created.id);
+      refreshMenuCards();
+      refreshMenu();
+      toast({
+        title: "Carte créée",
+        description: "Ajoutez vos plats dans cette carte, puis activez-la quand vous êtes prêt. Votre carte actuelle reste en ligne.",
+      });
+      return true;
+    } finally {
+      setCreatingCard(false);
+    }
+  };
+
+  const handleActivateMenuCard = async (cardId: string) => {
+    if (!restaurant || isCommercialDemo || activatingCardId) return;
+    setActivatingCardId(cardId);
+    try {
+      const { error } = await supabase.rpc("activate_restaurant_menu_card", { p_card_id: cardId });
+      if (error) {
+        toast({ title: "Activation impossible", description: getMenuCardErrorMessage(error), variant: "destructive" });
+        return;
+      }
+      refreshMenuCards();
+      refreshMenu();
+      const card = menuCards.find((candidate) => candidate.id === cardId);
+      toast({
+        title: "Carte activée",
+        description: card ? `« ${card.name} » est désormais proposée à vos clients.` : "La nouvelle carte est proposée à vos clients.",
+      });
+    } finally {
+      setActivatingCardId(null);
+    }
+  };
+
+  const removeMenuCard = async (cardId: string) => {
+    if (!restaurant || isCommercialDemo || deletingCardId) return;
+    setDeletingCardId(cardId);
+    try {
+      const { data, error } = await supabase
+        .from("restaurant_menu_cards")
+        .delete()
+        .eq("id", cardId)
+        .eq("restaurant_id", restaurant.id)
+        .eq("is_active", false)
+        .select("id");
+      if (error) {
+        toast({ title: "Suppression impossible", description: getMenuCardErrorMessage(error), variant: "destructive" });
+        return;
+      }
+      if (!data?.length) {
+        toast({ title: "Suppression impossible", description: "Seule une carte inactive peut être supprimée.", variant: "destructive" });
+        return;
+      }
+      setViewedCardId(null);
+      refreshMenuCards();
+      toast({ title: "Carte supprimée" });
+    } finally {
+      setDeletingCardId(null);
+    }
+  };
+
   const restaurantMediaPickerBaseQuery = {
     queryKey: ["restaurant-media-picker", restaurant?.id],
   };
@@ -354,7 +506,7 @@ export default function DashboardMenu() {
       price: Number(item.price),
       category,
       image_url: item.image_url || "",
-      is_available: item.is_available ?? true,
+      is_available: getPreferredAvailability(item),
     });
     setCategoryMode(category && !isPresetCategory(category) ? "custom" : "preset");
     setPhotoStudioResult(null);
@@ -424,6 +576,7 @@ export default function DashboardMenu() {
       category: form.category.trim() || null,
       image_url: form.image_url.trim(),
       is_available: form.is_available,
+      available_on_card: form.is_available,
     };
 
     setSavingItem(true);
@@ -440,7 +593,11 @@ export default function DashboardMenu() {
         return;
       }
     } else {
-      const { error } = await supabase.from("menu_items").insert({ ...payload, restaurant_id: restaurant.id });
+      const { error } = await supabase.from("menu_items").insert({
+        ...payload,
+        restaurant_id: restaurant.id,
+        ...(targetCardId ? { menu_card_id: targetCardId } : {}),
+      });
       if (error) {
         toast({ title: "Erreur", description: getMenuItemSaveErrorMessage(error), variant: "destructive" });
         return;
@@ -498,7 +655,7 @@ export default function DashboardMenu() {
 
     const { error } = await supabase
       .from("menu_items")
-      .update({ is_available: !current })
+      .update({ is_available: !current, available_on_card: !current })
       .eq("id", id)
       .eq("restaurant_id", restaurant.id);
 
@@ -724,6 +881,7 @@ export default function DashboardMenu() {
         category: item.category.trim() || "Autres",
         image_url: "",
         is_available: true,
+        ...(targetCardId ? { menu_card_id: targetCardId } : {}),
       }));
 
     if (!selectedItems.length) {
@@ -773,9 +931,9 @@ export default function DashboardMenu() {
           visualLabel="Catalogue"
           illustration={DASHBOARD_ILLUSTRATIONS.menu}
           stats={[
-            { label: "Plats", value: items?.length || 0, icon: BookOpen },
-            { label: "Disponibles", value: items?.filter((item) => item.is_available).length || 0, icon: Plus },
-            { label: "Restaurant", value: restaurant ? "Selectionne" : "Aucun", icon: BookOpen },
+            { label: "Plats", value: viewedItems.length, icon: BookOpen },
+            { label: "Disponibles", value: viewedItems.filter((item) => getPreferredAvailability(item)).length, icon: Plus },
+            { label: "Carte active", value: activeCard?.name || (restaurant ? "Carte actuelle" : "Aucune"), icon: Layers },
           ]}
           actions={(
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -796,7 +954,25 @@ export default function DashboardMenu() {
             key={restaurant.id}
             restaurantId={restaurant.id}
             planSlug={selectedPlanSlug}
-            menuItems={items}
+            menuItems={activeCardItems}
+          />
+        ) : null}
+
+        {restaurant ? (
+          <RestaurantMenuCardsBar
+            cards={menuCards}
+            viewedCardId={viewedCard?.id || null}
+            itemCounts={menuCardItemCounts}
+            totalItemCount={items?.length || 0}
+            disabled={isCommercialDemo}
+            disabledReason={isCommercialDemo ? "Les cartes saisonnières ne sont pas disponibles en démonstration commerciale." : undefined}
+            creating={creatingCard}
+            activatingId={activatingCardId}
+            deletingId={deletingCardId}
+            onSelect={setViewedCardId}
+            onCreate={handleCreateMenuCard}
+            onActivate={handleActivateMenuCard}
+            onDelete={removeMenuCard}
           />
         ) : null}
 
@@ -805,7 +981,7 @@ export default function DashboardMenu() {
         ) : (
           <RestaurantMenuCatalog
             key={restaurant.id}
-            items={items || []}
+            items={catalogItems}
             onEdit={openEdit}
             onDelete={handleDelete}
             onToggleAvailability={toggleAvailability}

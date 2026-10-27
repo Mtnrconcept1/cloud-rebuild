@@ -62,6 +62,7 @@ jobs:
         run: |
           mkdir -p /tmp/consent-canonical
           cp --parents docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts supabase/functions/_shared/error-code-map.ts /tmp/consent-canonical/
+          cp --parents src/pages/CommercialProspection.tsx src/components/commercial/CommercialEmailConsentDialog.tsx src/lib/commercialEmailConsent.ts src/test/commercial-email-consent.test.tsx src/test/commercial-email-consent-contract.test.ts scripts/test-commercial-consent-postgres.mjs scripts/test-commercial-consent-local.mjs supabase/tests/commercial_email_consent.sql supabase/migrations/20261027161000_commercial_signed_email_consent.sql docs/superpowers/plans/2026-10-27-commercial-consent.md .github/workflows/commercial-consent.yml /tmp/consent-canonical/
           git rev-parse HEAD > /tmp/consent-canonical/source-sha.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:

@@ -21,8 +21,15 @@ const fill = async () => {
  fireEvent.click(screen.getByRole("checkbox"));
  fireEvent.click(screen.getByText("Tracer la signature de test"));
 };
-beforeEach(() => { mocks.rpc.mockReset(); mocks.toast.mockReset(); mocks.rpc.mockImplementation(async (name: string) => ({ data: name === "commercial_get_email_consent_context" ? context : receipt, error: null })); });
-afterEach(cleanup);
+beforeEach(() => {
+  // jsdom does not implement layout observation; retain the real Radix checkbox.
+  vi.stubGlobal("ResizeObserver", class {
+    observe = vi.fn();
+    unobserve = vi.fn();
+    disconnect = vi.fn();
+  });
+  mocks.rpc.mockReset(); mocks.toast.mockReset(); mocks.rpc.mockImplementation(async (name: string) => ({ data: name === "commercial_get_email_consent_context" ? context : receipt, error: null })); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 describe("consentement personnel du restaurateur", () => {
  it("exige un accord positif, des coordonnées concordantes et une signature", () => {
