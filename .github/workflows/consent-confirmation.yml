@@ -1,8 +1,7 @@
 name: Consent confirmation validation bridge
 on:
   pull_request:
-    paths:
-      - .github/workflows/consent-confirmation.yml
+    paths: [.github/workflows/consent-confirmation.yml]
 permissions:
   contents: read
 concurrency:
@@ -16,10 +15,8 @@ jobs:
     services:
       postgres:
         image: postgres:17
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 54322:5432
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ['54322:5432']
         options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       PGHOST: 127.0.0.1
@@ -38,69 +35,62 @@ jobs:
           ref: 67160668e55fc2d1fb8bf5ee31346e96f7d23c67
           persist-credentials: false
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: '22'
-      - name: Restore reviewed patches from integrity-checked repository objects
-        env:
-          GH_TOKEN: ${{ github.token }}
+        with: { node-version: '22' }
+      - name: Restore reviewed integrity-checked patches
+        env: { GH_TOKEN: '${{ github.token }}' }
         run: |
           node --input-type=module <<'JS'
           import {writeFileSync} from 'node:fs';
           import {createHash} from 'node:crypto';
           import {brotliDecompressSync} from 'node:zlib';
           import {execFileSync} from 'node:child_process';
-          const patches=[{shas:['96bcd05cab069f2acac9ffde305e210bf8d99108','408ae109edf05576e3d42393cf396ba3ade42a6b','5c34ab95557d3e2ed8dd2baeeec8b516daa8436c','f2d05888a0ca6fa0f4bae3886efbe17f90f6b2ef'],hash:'ad41403a3c98a88c02e9431a073a95a9739da4cecafcadd4459103996e7bb07e'},{shas:['17014346853f3c6ab17dd1f662d32a6223f19418'],hash:'0766037bdf18888a2a24cbf5137f1fbf48fb3a50ee767007ebc0e7e3a2308a9c'}];
-          for(const patch of patches){
-            const chunks=[];
-            for(const sha of patch.shas){
-              const response=await fetch(`https://api.github.com/repos/Mtnrconcept1/cloud-rebuild/git/blobs/${sha}`,{headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'}});
-              if(!response.ok)throw new Error('Source object unavailable: '+response.status);
-              const data=await response.json();const bytes=Buffer.from(data.content,'base64');
-              if(createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex')!==sha)throw new Error('Source object integrity mismatch');
-              chunks.push(bytes);
-            }
-            const packed=Buffer.concat(chunks);
-            if(createHash('sha256').update(packed).digest('hex')!==patch.hash)throw new Error('Patch digest mismatch');
-            writeFileSync('/tmp/consent.patch',brotliDecompressSync(packed));
-            execFileSync('git',['apply','--check','/tmp/consent.patch'],{stdio:'inherit'});
-            execFileSync('git',['apply','/tmp/consent.patch'],{stdio:'inherit'});
-          }
+          const patches=[{shas:['96bcd05cab069f2acac9ffde305e210bf8d99108','408ae109edf05576e3d42393cf396ba3ade42a6b','5c34ab95557d3e2ed8dd2baeeec8b516daa8436c','f2d05888a0ca6fa0f4bae3886efbe17f90f6b2ef'],hash:'ad41403a3c98a88c02e9431a073a95a9739da4cecafcadd4459103996e7bb07e'},{shas:['17014346853f3c6ab17dd1f662d32a6223f19418'],hash:'0766037bdf18888a2a24cbf5137f1fbf48fb3a50ee767007ebc0e7e3a2308a9c'},{shas:['c9508bb25316dd11ff2e8a543c9289b8636be429'],hash:'ce664a70415452027f0fab77950eef8eb61e58c92f8e929d6f99f4fa7a275e88'}];
+          for(const patch of patches){const chunks=[];for(const sha of patch.shas){
+            const response=await fetch(`https://api.github.com/repos/Mtnrconcept1/cloud-rebuild/git/blobs/${sha}`,{headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json'}});
+            if(!response.ok)throw new Error('Source read failed: '+response.status);
+            const data=await response.json(),bytes=Buffer.from(data.content,'base64');
+            if(createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex')!==sha)throw new Error('Object mismatch');chunks.push(bytes);
+          }const bytes=Buffer.concat(chunks);if(createHash('sha256').update(bytes).digest('hex')!==patch.hash)throw new Error('Patch mismatch');writeFileSync('/tmp/consent.patch',brotliDecompressSync(bytes));execFileSync('git',['apply','--check','/tmp/consent.patch']);execFileSync('git',['apply','/tmp/consent.patch']);}
           const paths=['.github/workflows/consent-confirmation.yml','docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md','public/consentement-email.css','public/consentement-email.html','public/consentement-email.js','scripts/test-commercial-consent-postgres.mjs','src/components/commercial/CommercialEmailConsentDialog.tsx','src/lib/commercialEmailConsent.ts','src/test/commercial-consent-confirmation.test.ts','src/test/commercial-consent-page.test.ts','src/test/commercial-email-consent.test.tsx','supabase/config.toml','supabase/functions/_shared/commercial-consent-confirmation.ts','supabase/functions/commercial-consent-confirmation/index.ts','supabase/functions/send-email/index.ts','supabase/migrations/20261027221840_commercial_email_confirmation.sql','supabase/tests/commercial_email_confirmation.sql'];
-          const changed=[...new Set((execFileSync('git',['diff','--name-only'],{encoding:'utf8'})+'\n'+execFileSync('git',['ls-files','--others','--exclude-standard'],{encoding:'utf8'})).trim().split('\n').filter(Boolean))].sort();
-          if(JSON.stringify(changed)!==JSON.stringify([...paths].sort()))throw new Error('Unexpected patch scope');
-          execFileSync('git',['add','--',...paths]);
-          writeFileSync('/tmp/consent-paths.json',JSON.stringify(paths));
-          console.log('Verified reviewed source patches and exact 17-file scope; no ref changed.');
+          const changed=[...new Set((execFileSync('git',['diff','--name-only'],{encoding:'utf8'})+'\n'+execFileSync('git',['ls-files','--others','--exclude-standard'],{encoding:'utf8'})).split('\n').filter(Boolean))].sort();if(JSON.stringify(changed)!==JSON.stringify([...paths].sort()))throw new Error('Unexpected scope');execFileSync('git',['add','--',...paths]);writeFileSync('/tmp/consent-paths.json',JSON.stringify(paths));console.log('17 reviewed files restored; no ref modified.');
           JS
       - uses: denoland/setup-deno@v2
-        with:
-          deno-version: 'v2.9.6'
-      - name: Check modified Edge entry points
-        env:
-          DENO_NO_PACKAGE_JSON: '1'
-          DENO_NO_UPDATE_CHECK: '1'
+        with: { deno-version: 'v2.9.6' }
+      - name: Edge import graph checks
+        env: { DENO_NO_PACKAGE_JSON: '1', DENO_NO_UPDATE_CHECK: '1' }
         run: |
-          cp deno.lock "$RUNNER_TEMP/consent-edge-check.lock"
-          deno check --no-config --node-modules-dir=none --lock="$RUNNER_TEMP/consent-edge-check.lock" supabase/functions/send-email/index.ts supabase/functions/commercial-consent-confirmation/index.ts
-      - name: Historical migration and PostgreSQL transitions, permissions and concurrency
-        run: node --test scripts/test-native-consent-history.test.mjs && node scripts/test-commercial-consent-postgres.mjs
-      - name: Frozen dependencies
-        run: corepack enable && corepack prepare pnpm@10.28.1 --activate && pnpm install --frozen-lockfile
-      - name: Consent UI, mailbox page, sender and existing email regressions
-        run: pnpm exec vitest run src/test/commercial-email-consent.test.tsx src/test/commercial-email-consent-contract.test.ts src/test/commercial-consent-confirmation.test.ts src/test/commercial-consent-page.test.ts src/test/email-provider-reconciliation.test.ts src/test/marketing-consent-dispatch.test.ts
-      - name: Generate final read-only source references
-        run: node scripts/generate-application-index.mjs && node scripts/generate-error-code-map.mjs
-      - name: Typecheck lint build and canonical references
-        run: pnpm typecheck && pnpm lint && pnpm build && pnpm exec vitest run src/test/application-search-index.test.ts
-      - name: Package only reviewed source files and generated references
+          cp deno.lock "$RUNNER_TEMP/consent-edge.lock"
+          deno check --no-config --node-modules-dir=none --lock="$RUNNER_TEMP/consent-edge.lock" supabase/functions/send-email/index.ts supabase/functions/commercial-consent-confirmation/index.ts
+      - name: Prove regressions fail without fixes on disposable databases
         run: |
           node --input-type=module <<'JS'
-          import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
-          import {dirname,join} from 'node:path';
-          const files=[...JSON.parse(readFileSync('/tmp/consent-paths.json','utf8')),'docs/architecture/TOK_APPLICATION_REFERENCE.md','docs/architecture/tok-application-search-index.json','src/data/tok-user-guide-catalog.generated.ts','supabase/functions/_shared/error-code-map.ts'];
-          const out=process.env.RUNNER_TEMP+'/consent-validated';
-          for(const file of files){const dest=join(out,file);mkdirSync(dirname(dest),{recursive:true});writeFileSync(dest,readFileSync(file));}
-          writeFileSync(join(out,'paths.json'),JSON.stringify(files));
+          import {readFileSync,writeFileSync} from 'node:fs';import {execFileSync} from 'node:child_process';
+          if(process.env.PGHOST!=='127.0.0.1'||process.env.TOK_CONSENT_DISPOSABLE!=='true')throw new Error('Local fixture only');
+          const path='supabase/migrations/20261027221840_commercial_email_confirmation.sql',fixed=readFileSync(path,'utf8');
+          const variants=[['pending',"OR confirmation.revoked_at IS NOT NULL\n      OR (confirmation.receipt_id IS NULL AND c.lawful_basis = 'none')","OR c.lawful_basis = 'none'",'pending signature is not a withdrawal'],['scope',"v_scope := v_old_basis NOT IN ('consent','existing_customer')","v_scope := v_old_basis='none'",'mailbox approval never grants another channel']];
+          for(const [name,from,to,label] of variants){if(!fixed.includes(from))throw new Error('Missing regression mutation');const db='consent_red_'+name;execFileSync('createdb',[db]);let failed=false;
+            try{writeFileSync(path,fixed.replace(from,to));execFileSync('node',['scripts/test-commercial-consent-postgres.mjs'],{env:{...process.env,PGDATABASE:db},stdio:'pipe'});}catch(e){const log=String(e.stderr||'')+String(e.stdout||'');if(!log.includes(label))throw e;failed=true;console.log('Expected RED: '+label);}
+            finally{writeFileSync(path,fixed);execFileSync('dropdb',[db]);execFileSync('psql',['-X','-v','ON_ERROR_STOP=1','-c','DROP ROLE anon,authenticated,service_role;'],{stdio:'pipe'});}
+            if(!failed)throw new Error('Regression did not catch removed fix');
+          }
+          JS
+      - name: PostgreSQL permissions, transitions, history and concurrent replay
+        run: node --test scripts/test-native-consent-history.test.mjs && node scripts/test-commercial-consent-postgres.mjs
+      - name: Frozen dependencies and targeted tests
+        run: |
+          corepack enable && corepack prepare pnpm@10.28.1 --activate && pnpm install --frozen-lockfile
+          pnpm exec vitest run src/test/commercial-email-consent.test.tsx src/test/commercial-email-consent-contract.test.ts src/test/commercial-consent-confirmation.test.ts src/test/commercial-consent-page.test.ts src/test/email-provider-reconciliation.test.ts src/test/marketing-consent-dispatch.test.ts
+      - name: Final references, typecheck, lint, build and index verification
+        run: |
+          node scripts/generate-application-index.mjs && node scripts/generate-error-code-map.mjs
+          pnpm typecheck && pnpm lint && pnpm build
+          pnpm exec vitest run src/test/application-search-index.test.ts
+      - name: Package reviewed source only
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';import {dirname,join} from 'node:path';
+          const files=[...JSON.parse(readFileSync('/tmp/consent-paths.json','utf8')),'docs/architecture/TOK_APPLICATION_REFERENCE.md','docs/architecture/tok-application-search-index.json','src/data/tok-user-guide-catalog.generated.ts','supabase/functions/_shared/error-code-map.ts'],out=process.env.RUNNER_TEMP+'/consent-validated';
+          for(const file of files){const dest=join(out,file);mkdirSync(dirname(dest),{recursive:true});writeFileSync(dest,readFileSync(file));}writeFileSync(join(out,'paths.json'),JSON.stringify(files));
           JS
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -111,32 +101,16 @@ jobs:
   publish-validated-objects:
     needs: regression
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    permissions: { contents: write }
     steps:
       - uses: actions/download-artifact@v4
-        with:
-          name: consent-confirmation-validated
-          path: validated
+        with: { name: consent-confirmation-validated, path: validated }
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
-        with:
-          node-version: '22'
-      - name: Publish validated Git blobs only, never commits or refs
-        env:
-          GH_TOKEN: ${{ github.token }}
+        with: { node-version: '22' }
+      - name: Publish file objects only, never commits or refs
+        env: { GH_TOKEN: '${{ github.token }}' }
         run: |
           node --input-type=module <<'JS'
-          import {readFileSync} from 'node:fs';
-          import {createHash} from 'node:crypto';
-          const files=JSON.parse(readFileSync('validated/paths.json','utf8'));
-          if(files.length!==21)throw new Error('Unexpected artifact file count');
-          for(const path of files){
-            if(path.startsWith('/')||path.includes('..')||path.includes('.env')||!path.match(/^(\.github\/workflows\/consent-confirmation.yml|docs\/|public\/consentement-email\.|scripts\/test-commercial-consent-postgres.mjs|src\/|supabase\/)/))throw new Error('Unexpected publication path');
-            const bytes=readFileSync('validated/'+path);if(bytes.length>12000000)throw new Error('Oversized source file');
-            const expected=createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
-            const response=await fetch('https://api.github.com/repos/Mtnrconcept1/cloud-rebuild/git/blobs',{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({content:bytes.toString('base64'),encoding:'base64'})});
-            if(!response.ok)throw new Error('Blob publication failed: '+response.status);
-            const result=await response.json();if(result.sha!==expected)throw new Error('Git blob integrity mismatch');
-            console.log(JSON.stringify({path,sha:result.sha,size:bytes.length}));
-          }
+          import {readFileSync} from 'node:fs';import {createHash} from 'node:crypto';const files=JSON.parse(readFileSync('validated/paths.json','utf8'));if(files.length!==21)throw new Error('Invalid file count');
+          for(const path of files){if(path.startsWith('/')||path.includes('..')||path.includes('.env')||!path.match(/^(\.github\/workflows\/consent-confirmation.yml|docs\/|public\/consentement-email\.|scripts\/test-commercial-consent-postgres.mjs|src\/|supabase\/)/))throw new Error('Invalid path');const bytes=readFileSync('validated/'+path);if(bytes.length>12000000)throw new Error('Invalid size');const expected=createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');const r=await fetch('https://api.github.com/repos/Mtnrconcept1/cloud-rebuild/git/blobs',{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({content:bytes.toString('base64'),encoding:'base64'})});if(!r.ok)throw new Error('Publication failed: '+r.status);const result=await r.json();if(result.sha!==expected)throw new Error('Object mismatch');console.log(JSON.stringify({path,sha:result.sha,size:bytes.length}));}
           JS
