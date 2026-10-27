@@ -72,7 +72,7 @@ describe("commercial demo Actualites isolation", () => {
     const detail = readProjectFile("src/pages/ActualitePost.tsx");
 
     expect(page).toContain("const canManage = !isCommercialDemoClient");
-    expect(page).toContain("if (isCommercialDemoClient || !user?.id)");
+    expect(page).toContain("if (isCommercialDemoClient || !user?.id || !personalizationAllowed)");
     expect(card).toContain("const canDeletePost = !isCommercialDemoClient");
     expect(trackedCard).toContain("if (!productionTrackingEnabled) return");
     expect(detail).toContain('? "noindex,nofollow"');

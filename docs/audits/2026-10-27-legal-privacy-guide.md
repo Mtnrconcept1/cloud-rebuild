@@ -59,6 +59,7 @@ Vérifications locales :
 - Ensemble de régression du domaine : 237 tests sur 46 fichiers ; quatre fichiers UI ont d’abord dépassé leur délai sous forte charge locale, puis leurs 24 tests ont tous réussi dans une exécution isolée (`--maxWorkers=1 --testTimeout=45000`). Les autres fichiers avaient réussi au premier passage.
 - Suite ciblée juridique, consentement, guide, données sociales et monitoring : 106 tests réussis sur 17 fichiers ; vérification finale des limites de collecte : 14 tests réussis sur 3 fichiers, dont le retrait pendant une réponse de permission GPS différée.
 - Pages et services facultatifs : 6 tests réussis ; export visuel explicite des pages et du dialogue : 9 tests réussis sur 2 fichiers.
+- Premier passage CI : build de production, qualité, vérifications Deno et PostgreSQL, tests ciblés et navigateur sur huit largeurs réussis. Un garde textuel du mode démo attendait la condition précédente ; il a été aligné sur la condition renforcée, sans retirer la vérification d’isolation. La CI est relancée sur le commit de suivi.
 - Typecheck applicatif réussi ; ESLint complet sans erreur, avec 23 avertissements dans des fichiers non modifiés par cette PR.
 - Build Vite de développement réussi ; avertissement préexistant concernant certains bundles de plus de 500 kB. Le build de production final et la suite complète du dépôt sont contrôlés par la CI de la PR.
 - Revue Chrome sur exports locaux des composants réels, sans bootstrap de l’application : desktop 1348 px et petit écran 320 × 568 px ; boutons de consentement visibles, défilement interne, lecture des CGU, de la confidentialité et des cookies, aucun débordement horizontal du dialogue (largeur mesurée 320/320).
@@ -116,6 +117,7 @@ Retour arrière : revert du commit et livraison par le workflow habituel. Aucune
 - `src/pages/Index.tsx`
 - `src/pages/PolitiqueConfidentialite.tsx`
 - `src/test/actualites-personalized-trends.test.ts`
+- `src/test/commercial-demo-actualites-isolation.test.ts`
 - `src/test/legal-consent-banner-layout.test.ts`
 - `src/test/legal-consent-journey.test.tsx`
 - `src/test/legal-pages-review.test.tsx`
