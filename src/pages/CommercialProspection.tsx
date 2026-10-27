@@ -52,6 +52,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import CommercialWorkspaceChrome from "@/components/commercial/CommercialWorkspaceChrome";
+import CommercialEmailConsentDialog from "@/components/commercial/CommercialEmailConsentDialog";
 import {
   fetchGenevaCommercialProspects,
   type GenevaCommercialProspect,
@@ -998,6 +999,7 @@ export default function CommercialProspection() {
   const [appliedFilters, setAppliedFilters] = useState<CommercialSearchFilters>(DEFAULT_COMMERCIAL_SEARCH_FILTERS);
   const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null);
   const [prospectDialogOpen, setProspectDialogOpen] = useState(false);
+  const [consentDialogOpen, setConsentDialogOpen] = useState(false);
   const [draftStatus, setDraftStatus] = useState<EditableProspectStatus | null>(null);
   const [draftSubscriptionPlanSlug, setDraftSubscriptionPlanSlug] = useState("");
   const [draftNotes, setDraftNotes] = useState("");
@@ -1356,6 +1358,9 @@ export default function CommercialProspection() {
 
   const workflowContent = selectedProspect ? (selectedCanEdit ? (
     <div className="space-y-5">
+      <Button type="button" variant="outline" className="w-full" onClick={() => { setProspectDialogOpen(false); setConsentDialogOpen(true); }}>
+        <Mail className="mr-2 h-4 w-4" /> Faire signer l’autorisation e-mail TOK
+      </Button>
                 <div className="space-y-3">
                   <Label>Avancement terrain</Label>
                   <div className="grid min-w-0 grid-cols-1 gap-2 min-[430px]:grid-cols-2">
@@ -1785,6 +1790,7 @@ export default function CommercialProspection() {
         </section>
       </div>
       </main>
+      <CommercialEmailConsentDialog open={consentDialogOpen} onOpenChange={setConsentDialogOpen} prospect={selectedProspect} />
       <CommercialProspectDetailsDialog
         open={prospectDialogOpen}
         onOpenChange={setProspectDialogOpen}
