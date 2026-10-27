@@ -69,7 +69,7 @@ BEGIN
    END IF;
    UPDATE public.marketing_contacts SET lawful_basis='consent',
      consent_source='commercial_signed_tok_b2b_v1',consent_at=now(),
-     updated_at=now(),version=version+1
+     updated_at=now()
    WHERE id=v_contact.id;
  ELSE
    INSERT INTO public.marketing_contacts
@@ -91,8 +91,8 @@ BEGIN
    actor_user_id,evidence_fingerprint)
  VALUES (v_contact.id,'granted',coalesce(v_contact.lawful_basis,'none'),'consent',
    'commercial_signed_tok_b2b_v1','Signature manuscrite capturée dans Cockpit TOK, reçu privé '||v_receipt::text,
-   now(),'verified','commercial_cockpit',v_receipt::text,v_actor,
-   encode(digest(v_receipt::text||':'||v_email,'sha256'),'hex'));
+   now(),'system_event','commercial_cockpit',v_receipt::text,v_actor,
+   encode(extensions.digest(v_receipt::text||':'||v_email,'sha256'),'hex'));
  RETURN jsonb_build_object('receipt_id',v_receipt,'email',v_email,'consent_at',now());
 END;
 $$;
