@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7844f51e6876bd11e584c8d3f3dbb25d465b81a27defa8ac3ebc7a016bd53156`
+- Empreinte SHA-256 des sources indexées : `0547a7026d84facc4d45034341a3f8b6a9390bc454bb92c8da77b77ba245150c`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 11 |
 | cronJobs | 36 |
 | databaseContract | 228 |
-| databaseObjects | 3026 |
-| documents | 222 |
+| databaseObjects | 3027 |
+| documents | 223 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 3994 |
+| exportedSymbols | 3998 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 576 |
-| modules | 1811 |
+| migrations | 577 |
+| modules | 1814 |
 | pages | 133 |
 | pathLiterals | 894 |
 | publicAssets | 713 |
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18807 |
-| repositoryFiles | 3648 |
+| records | 18825 |
+| repositoryFiles | 3654 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2201,7 +2201,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /src/pages/CommercialProspection.tsx | 1 | [scripts/check-commercial-map.mjs:37](../../scripts/check-commercial-map.mjs#L37) |
 | /src/pages/dashboard/DashboardCampagnes.tsx | 1 | [scripts/check-campaign-layout.mjs:54](../../scripts/check-campaign-layout.mjs#L54) |
 | /start | 1 | [src/test/telegram-codex-request.test.ts:22](../../src/test/telegram-codex-request.test.ts#L22) |
-| /storage/ | 5 | [src/test/marketing-mailing-image-bff.test.ts:185](../../src/test/marketing-mailing-image-bff.test.ts#L185) |
+| /storage/ | 8 | [src/test/marketing-mailing-image-bff.test.ts:185](../../src/test/marketing-mailing-image-bff.test.ts#L185) |
 | /storage/v1/object | 2 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:104](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L104) |
 | /storage/v1/object/ | 1 | [supabase/functions/_shared/print/pdf.ts:84](../../supabase/functions/_shared/print/pdf.ts#L84) |
 | /storage/v1/object/private/key | 1 | [src/test/tok-connect-oauth-delegation.test.ts:110](../../src/test/tok-connect-oauth-delegation.test.ts#L110) |
@@ -2229,7 +2229,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-pulse | 11 | [scripts/prerender-seo.mjs:1247](../../scripts/prerender-seo.mjs#L1247) |
 | /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:89](../../supabase/functions/ai-image-enhance/index.ts#L89) |
 | /tok-slot-machine/index.html?v=20260719 | 1 | [src/components/DailyMiamzSlotMachine.tsx:15](../../src/components/DailyMiamzSlotMachine.tsx#L15) |
-| /tok_connect_mcp_action_idempotency | 2 | [server/marketingBff.ts:2522](../../server/marketingBff.ts#L2522) |
+| /tok_connect_mcp_action_idempotency | 2 | [server/marketingBff.ts:2605](../../server/marketingBff.ts#L2605) |
 | /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
 | /token?grant_type=password | 1 | [server/marketingBff.ts:815](../../server/marketingBff.ts#L815) |
 | /user | 1 | [server/marketingBff.ts:804](../../server/marketingBff.ts#L804) |
@@ -2299,7 +2299,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | claimName | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:84](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L84) |
 | claimPhone | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:81](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L81) |
 | claimRestaurant | — | 2 | [src/components/DirectoryClaimPersistenceBridge.tsx:37](../../src/components/DirectoryClaimPersistenceBridge.tsx#L37) |
-| code | — | 4 | [server/marketingBff.ts:2588](../../server/marketingBff.ts#L2588) |
+| code | — | 4 | [server/marketingBff.ts:2671](../../server/marketingBff.ts#L2671) |
 | code_challenge_method | — | 1 | [src/test/tok-connect-broker.test.ts:241](../../src/test/tok-connect-broker.test.ts#L241) |
 | commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:916](../../src/pages/Auth.tsx#L916) |
 | commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:280](../../src/pages/CommercialComptabilite.tsx#L280) |
@@ -2701,7 +2701,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (860)</summary>
+<details><summary>function (861)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -2783,6 +2783,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.admin_archive_loyalty_tier` (1 définition(s))
 - `public.admin_archive_subscription_plan` (1 définition(s))
 - `public.admin_attach_marketing_mailing_image` (1 définition(s))
+- `public.admin_attach_marketing_social_image` (1 définition(s))
 - `public.admin_cancel_marketing_item` (1 définition(s))
 - `public.admin_cancel_notification_campaign` (1 définition(s))
 - `public.admin_complete_manual_marketing_delivery` (1 définition(s))
@@ -6632,6 +6633,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261022104000 Marketing Resend Integration Readiness | 38 | 0 | [supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql:1](../../supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql#L1) |
 | 20261023043000 Tok Connect Broker Access Lifetime | 52 | 2 | [supabase/migrations/20261023043000_tok_connect_broker_access_lifetime.sql:1](../../supabase/migrations/20261023043000_tok_connect_broker_access_lifetime.sql#L1) |
 | 20261023074600 Guardian Complete Repair Bounded Investigation | 145 | 1 | [supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql:1](../../supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql#L1) |
+| 20261026230000 Marketing Social Image Upload | 109 | 1 | [supabase/migrations/20261026230000_marketing_social_image_upload.sql:1](../../supabase/migrations/20261026230000_marketing_social_image_upload.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6876,14 +6878,14 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 88 |
 | documentation | 6 |
 | edge-function-source | 242 |
-| frontend-component | 290 |
+| frontend-component | 292 |
 | frontend-hook | 24 |
 | frontend-page | 133 |
 | frontend-source | 35 |
 | public-asset | 4 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 744 |
+| test | 745 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7005,6 +7007,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Pistes de backlinks TOK sans compte existant | 6 | [docs/marketing-backlink-opportunities.md:1](../../docs/marketing-backlink-opportunities.md#L1) |
 | Veille Instagram Genève | 7 | [docs/marketing/INSTAGRAM_RESEARCH.md:1](../../docs/marketing/INSTAGRAM_RESEARCH.md#L1) |
 | Légendes des campagnes TOK | 5 | [docs/marketing/SOCIAL_EDITORIAL_POLICY.md:1](../../docs/marketing/SOCIAL_EDITORIAL_POLICY.md#L1) |
+| Import d’une série de visuels sociaux | 2 | [docs/marketing/SOCIAL_SERIES_IMPORT.md:1](../../docs/marketing/SOCIAL_SERIES_IMPORT.md#L1) |
 | Mailings ciblés TOK | 8 | [docs/marketing/TARGETED_MAILING.md:1](../../docs/marketing/TARGETED_MAILING.md#L1) |
 | Validation Telegram des contenus Marketing | 12 | [docs/marketing/TELEGRAM_CONTENT_REVIEWS.md:1](../../docs/marketing/TELEGRAM_CONTENT_REVIEWS.md#L1) |
 | Références visuelles des campagnes TOK | 4 | [docs/marketing/TOK_BRAND_REFERENCES.md:1](../../docs/marketing/TOK_BRAND_REFERENCES.md#L1) |
@@ -7545,7 +7548,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (576)</summary>
+<details><summary>database-migration (577)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8123,10 +8126,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261022104000_marketing_resend_integration_readiness.sql`
 - `supabase/migrations/20261023043000_tok_connect_broker_access_lifetime.sql`
 - `supabase/migrations/20261023074600_guardian_complete_repair_bounded_investigation.sql`
+- `supabase/migrations/20261026230000_marketing_social_image_upload.sql`
 
 </details>
 
-<details><summary>documentation (174)</summary>
+<details><summary>documentation (175)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8200,6 +8204,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing-email-examples/03-rive-droite-soiree.txt`
 - `docs/marketing/INSTAGRAM_RESEARCH.md`
 - `docs/marketing/SOCIAL_EDITORIAL_POLICY.md`
+- `docs/marketing/SOCIAL_SERIES_IMPORT.md`
 - `docs/marketing/TARGETED_MAILING.md`
 - `docs/marketing/TELEGRAM_CONTENT_REVIEWS.md`
 - `docs/marketing/TOK_BRAND_REFERENCES.md`
@@ -8552,7 +8557,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (299)</summary>
+<details><summary>frontend-component (301)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8741,6 +8746,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/marketing/MarketingPostPreview.tsx`
 - `src/components/marketing/MarketingProtectedRoute.tsx`
 - `src/components/marketing/MarketingShared.tsx`
+- `src/components/marketing/MarketingSocialImageUpload.tsx`
+- `src/components/marketing/MarketingSocialSeriesImport.tsx`
 - `src/components/marketing/MarketingSourceDiscovery.tsx`
 - `src/components/marketing/MarketingWorkspaceChrome.tsx`
 - `src/components/marketing/analyticsPresentation.ts`
@@ -10042,7 +10049,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (35)</summary>
+<details><summary>supabase-configuration (36)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -10071,6 +10078,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/tests/marketing_daily_publication.sql`
 - `supabase/tests/marketing_mailing_image_upload.sql`
 - `supabase/tests/marketing_mailing_recipients.sql`
+- `supabase/tests/marketing_social_image_upload.sql`
 - `supabase/tests/marketing_targeted_mailing.sql`
 - `supabase/tests/marketing_targeted_mailing_fixture.sql`
 - `supabase/tests/print_fulfillment_protocol_assertions.sql`
@@ -10082,7 +10090,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (744)</summary>
+<details><summary>test (745)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10486,6 +10494,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-service-auth.test.ts`
 - `src/test/marketing-session-recovery.test.tsx`
 - `src/test/marketing-social-editorial.test.ts`
+- `src/test/marketing-social-series-import.test.tsx`
 - `src/test/marketing-source-discovery.test.tsx`
 - `src/test/marketing-sql-governance.test.ts`
 - `src/test/marketing-studio-output-targets.test.ts`

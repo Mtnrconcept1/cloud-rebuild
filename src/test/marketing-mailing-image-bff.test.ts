@@ -85,7 +85,7 @@ function upstream(options: {
     ]);
     if (url.includes("/storage/v1/object/social-post-media")) return json({ Key: "stored" }, options.storageStatus ?? 200);
     if (url.endsWith("/rpc/service_execute_marketing_admin_operation")) {
-      if (args.p_operation === "admin_attach_marketing_mailing_image") {
+      if (["admin_attach_marketing_mailing_image", "admin_attach_marketing_social_image"].includes(args.p_operation)) {
         if (options.attachThrows) throw new DOMException("Timeout", "AbortError");
         const previous = item(options.item ?? {});
         return json(options.invalidAttachment ? {} : { ...previous, id: args.p_args.p_item_id,
@@ -284,6 +284,42 @@ describe("mailing upload service boundary", () => {
     await marketingAgentHandler(request(uploadBody()), res.response);
     expect(res.response.statusCode).toBe(503);
     expect(mock.mock.calls.every(([url]) => !String(url).includes("service_execute_marketing_admin_operation"))).toBe(true);
+  });
+});
+
+describe("social image upload boundary", () => {
+  const social = (patch: Record<string, unknown> = {}) => ({ ...uploadBody({ action: "upload_social_image" }), ...patch });
+  const draft = { channel: "instagram", content: { body: "Texte conservé", image_mode: "manual" } };
+
+  it("blocks direct access to the attachment operation", async () => {
+    const mock = upstream(); vi.stubGlobal("fetch", mock); const res = recorder();
+    await marketingRpcHandler(request({ operation: "admin_attach_marketing_social_image", args: {} }), res.response);
+    expect(res.response.statusCode).toBeGreaterThanOrEqual(400);
+    expect(mock).not.toHaveBeenCalled();
+  });
+  it("uploads the original PNG for an editable Instagram draft and retains its copy", async () => {
+    const mock = upstream({ item: draft }); vi.stubGlobal("fetch", mock); const res = recorder();
+    await marketingAgentHandler(request(social()), res.response);
+    expect(res.response.statusCode).toBe(200);
+    expect(res.value().item.content.body).toBe("Texte conservé");
+    const upload = mock.mock.calls.find(([url, init]) => String(url).includes("/storage/") && init?.method === "POST")!;
+    expect(String(upload[0])).toContain(`/marketing-social/${actor}/${itemId}/`);
+    expect(Buffer.from(upload[1]!.body as Uint8Array).equals(PNG)).toBe(true);
+    const attach = mock.mock.calls.find(([url]) => String(url).includes("service_execute_marketing_admin_operation"))!;
+    expect(JSON.parse(String(attach[1]!.body)).p_operation).toBe("admin_attach_marketing_social_image");
+  });
+  it.each([{ status: "scheduled" }, { approval_status: "approved" }, { channel: "email" },
+    { updated_at: "2026-10-18T09:30:00.123457+00:00" }])("refuses an ineligible row before storage: %o", async (patch) => {
+    const mock = upstream({ item: { ...draft, ...patch } }); vi.stubGlobal("fetch", mock); const res = recorder();
+    await marketingAgentHandler(request(social()), res.response);
+    expect(res.response.statusCode).toBe(409);
+    expect(mock.mock.calls.every(([url]) => !String(url).includes("/storage/"))).toBe(true);
+  });
+  it("refuses a forged image URL before storage", async () => {
+    const mock = upstream({ item: draft }); vi.stubGlobal("fetch", mock); const res = recorder();
+    await marketingAgentHandler(request(social({ visualUrl: "https://elsewhere.example/other.png" })), res.response);
+    expect(res.response.statusCode).toBe(400);
+    expect(mock.mock.calls.every(([url]) => !String(url).includes("/storage/"))).toBe(true);
   });
 });
 
