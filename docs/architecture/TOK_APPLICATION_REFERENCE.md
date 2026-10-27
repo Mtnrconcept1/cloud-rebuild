@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `cff01e818eaf434a0986fdbf971e1b7ab106e7d2931889bf4a637ee9264db0d3`
+- Empreinte SHA-256 des sources indexées : `9f0ea8c56c4d482b009b728f903f7547f5a17d9da8aa0c6f71fea21d78d8da1d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,7 +29,7 @@
 | cronJobs | 37 |
 | databaseContract | 231 |
 | databaseObjects | 3065 |
-| documents | 227 |
+| documents | 228 |
 | edgeFunctions | 120 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 4015 |
@@ -45,8 +45,8 @@
 | publicEntries | 739 |
 | publicNavigableRoutes | 2 |
 | queryParameters | 118 |
-| records | 18982 |
-| repositoryFiles | 3688 |
+| records | 19032 |
+| repositoryFiles | 3689 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7067,6 +7067,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Audit du marketing automatique TOK — 8 octobre 2026 | 7 | [docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md:1](../../docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md#L1) |
 | TOK Marketing Autopilot — runbook d'exploitation | 13 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
 | Marketing : session, recherche de sources et diagnostic Meta | 5 | [docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md:1](../../docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md#L1) |
+| TOK — Stratégie réseaux sociaux et génération de leads à budget zéro | 48 | [docs/marketing/TOK_STRATEGIE_SOCIAL_LEADGEN_ZERO_BUDGET_2026-10.md:1](../../docs/marketing/TOK_STRATEGIE_SOCIAL_LEADGEN_ZERO_BUDGET_2026-10.md#L1) |
 | Analytics TOK — données et preuves | 7 | [docs/marketing/analytics-evidence.md:1](../../docs/marketing/analytics-evidence.md#L1) |
 | TOK — Série Instagram quotidienne | 14 | [docs/marketing/daily-instagram.md:1](../../docs/marketing/daily-instagram.md#L1) |
 | Revue Mobile Fullstack - 2026-03-29 | 25 | [docs/mobile-fullstack-review-2026-03-29.md:1](../../docs/mobile-fullstack-review-2026-03-29.md#L1) |
@@ -8192,7 +8193,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (179)</summary>
+<details><summary>documentation (180)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8276,6 +8277,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md`
 - `docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md`
 - `docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md`
+- `docs/marketing/TOK_STRATEGIE_SOCIAL_LEADGEN_ZERO_BUDGET_2026-10.md`
 - `docs/marketing/analytics-evidence.md`
 - `docs/marketing/campaigns/2026-10-12-geneve-visuals.json`
 - `docs/marketing/daily-instagram.md`
