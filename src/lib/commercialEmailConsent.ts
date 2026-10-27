@@ -50,7 +50,7 @@ export function validConsentEmail(value: string): boolean {
   const email = normalizeConsentEmail(value);
   const [local, domain, extra] = email.split("@");
   return email.length <= 254 && !!local && local.length <= 64 && !!domain && extra === undefined
-    && /^[a-z0-9._%+\-]+$/.test(local) && !local.startsWith(".") && !local.endsWith(".") && !local.includes("..")
+    && /^[a-z0-9._%+-]+$/.test(local) && !local.startsWith(".") && !local.endsWith(".") && !local.includes("..")
     && domain.includes(".") && /\.[a-z]{2,}$/.test(domain)
     && domain.split(".").every(part => part.length <= 63 && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(part));
 }
