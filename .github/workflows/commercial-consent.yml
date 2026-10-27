@@ -6,6 +6,8 @@ on:
       - src/lib/commercialEmailConsent.ts
       - src/test/commercial-email-consent*.test.*
       - supabase/migrations/*commercial_signed_email_consent.sql
+      - supabase/migrations/*native_tok_contact_permissions.sql
+      - scripts/test-native-consent-history.test.mjs
       - supabase/tests/commercial_email_consent.sql
       - scripts/test-commercial-consent-postgres.mjs
       - .github/workflows/commercial-consent.yml
@@ -44,6 +46,8 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '22'
+      - name: Verify exact historical migration and prevent duplicate replay
+        run: node --test scripts/test-native-consent-history.test.mjs
       - name: PostgreSQL permissions, actual evidence trigger and concurrent replay
         run: node scripts/test-commercial-consent-postgres.mjs
       - name: Install frozen dependencies
@@ -63,6 +67,7 @@ jobs:
           mkdir -p /tmp/consent-canonical
           cp --parents docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts supabase/functions/_shared/error-code-map.ts /tmp/consent-canonical/
           cp --parents src/pages/CommercialProspection.tsx src/components/commercial/CommercialEmailConsentDialog.tsx src/lib/commercialEmailConsent.ts src/test/commercial-email-consent.test.tsx src/test/commercial-email-consent-contract.test.ts scripts/test-commercial-consent-postgres.mjs scripts/test-commercial-consent-local.mjs supabase/tests/commercial_email_consent.sql supabase/migrations/20261027161000_commercial_signed_email_consent.sql docs/superpowers/plans/2026-10-27-commercial-consent.md .github/workflows/commercial-consent.yml /tmp/consent-canonical/
+          cp --parents scripts/test-native-consent-history.test.mjs supabase/migrations/20261027161330_native_tok_contact_permissions.sql /tmp/consent-canonical/
           git rev-parse HEAD > /tmp/consent-canonical/source-sha.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -70,3 +75,49 @@ jobs:
           path: /tmp/consent-canonical
           retention-days: 3
           include-hidden-files: true
+  # Temporary bridge: only generated objects, never a ref or commit.
+  canonical-blobs:
+    needs: regression
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/commercial-signed-email-consent-20261027'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22'
+      - name: Install generator dependencies without lifecycle scripts or write-token exposure
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate && pnpm install --frozen-lockfile --ignore-scripts
+      - name: Prepare final read-only workflow and generate exact canonical references
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const path='.github/workflows/commercial-consent.yml';
+          const source=readFileSync(path,'utf8');
+          const marker='  # Temporary bridge: only generated objects, never a ref or commit.\n';
+          if(!source.includes(marker))throw new Error('Missing cleanup marker');
+          writeFileSync(path,source.split(marker)[0]);
+          JS
+          node scripts/generate-application-index.mjs
+          node scripts/generate-error-code-map.mjs
+      - name: Upload only final workflow and four generated file objects
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const paths=['.github/workflows/commercial-consent.yml','docs/architecture/TOK_APPLICATION_REFERENCE.md','docs/architecture/tok-application-search-index.json','src/data/tok-user-guide-catalog.generated.ts','supabase/functions/_shared/error-code-map.ts'];
+          for(const path of paths){
+            const bytes=readFileSync(path);
+            const expected=createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
+            const r=await fetch('https://api.github.com/repos/Mtnrconcept1/cloud-rebuild/git/blobs',{method:'POST',headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'},body:JSON.stringify({content:bytes.toString('base64'),encoding:'base64'})});
+            if(!r.ok)throw new Error('Generated blob publication failed: '+r.status);
+            const result=await r.json();if(result.sha!==expected)throw new Error('Blob integrity mismatch');
+            console.log(JSON.stringify({path,sha:result.sha,size:bytes.length}));
+          }
+          JS

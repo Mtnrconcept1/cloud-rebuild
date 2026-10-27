@@ -21,6 +21,14 @@ const table=name=>block(`CREATE TABLE IF NOT EXISTS public.${name} (`,'\n);');
 const bootstrap=`
 CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN BYPASSRLS;
 CREATE SCHEMA auth; CREATE SCHEMA extensions; CREATE EXTENSION pgcrypto WITH SCHEMA extensions;
+-- pg_cron registration-only fixture: captures schedules but never executes jobs.
+-- Database permissions, triggers and data below still run in real PostgreSQL 17.
+CREATE SCHEMA cron;
+CREATE TABLE cron.job(jobid bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,jobname text UNIQUE,schedule text,command text);
+CREATE FUNCTION cron.schedule(p_name text,p_schedule text,p_command text) RETURNS bigint LANGUAGE sql AS $$
+ INSERT INTO cron.job(jobname,schedule,command) VALUES(p_name,p_schedule,p_command)
+ ON CONFLICT(jobname) DO UPDATE SET schedule=excluded.schedule,command=excluded.command RETURNING jobid;
+$$;
 GRANT USAGE ON SCHEMA public,auth TO anon,authenticated,service_role;
 CREATE TYPE public.app_role AS ENUM('client','commercial','admin','restaurateur','courier');
 CREATE TABLE auth.users(id uuid PRIMARY KEY);
@@ -67,6 +75,8 @@ function fixtureSignature() {
 const psql=(sql)=>execFileSync('psql',['-X','-v','ON_ERROR_STOP=1','-At'],{input:sql,encoding:'utf8',stdio:['pipe','pipe','pipe']});
 try {
  writeFileSync(join(temp,'bootstrap.sql'),bootstrap); console.log(psql(bootstrap));
+ const historical=readFileSync('supabase/migrations/20261027161330_native_tok_contact_permissions.sql','utf8');
+ console.log(psql(historical));
  const migration=readFileSync('supabase/migrations/20261027161000_commercial_signed_email_consent.sql','utf8');
  console.log(psql(migration)); console.log(psql(migration));
  console.log(psql(readFileSync('supabase/tests/commercial_email_consent.sql','utf8').replace('__SIGNATURE_FIXTURE__',fixtureSignature())));
@@ -76,5 +86,14 @@ try {
  const results=await Promise.all([1,2,3].map(()=>execute('psql',['-X','-v','ON_ERROR_STOP=1','-At','-c',prefix+call],{encoding:'utf8'})));
  const ids=results.map(r=>r.stdout.trim().split('\n').at(-1));assert.equal(new Set(ids).size,1);
  assert.equal(psql("SELECT count(*) FROM public.marketing_lawful_basis_evidence WHERE source_reference=(SELECT id::text FROM public.commercial_email_consent_receipts WHERE request_id='00000000-0000-4000-8000-000000000099');").trim(),'1');
+ // Replaying the exact historical schema after the Cockpit schema must preserve
+ // the shared legal-controller settings and every recorded commercial proof.
+ const snapshotSql="SELECT jsonb_build_object('settings',(SELECT jsonb_agg(to_jsonb(s)) FROM public.tok_consent_settings s),'proofs',(SELECT jsonb_agg(to_jsonb(r) ORDER BY id) FROM public.commercial_email_consent_receipts r));";
+ const beforeReplay=psql(snapshotSql).trim();
+ console.log(psql(historical));
+ assert.equal(psql(snapshotSql).trim(),beforeReplay);
+ assert.equal(psql("SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname IN ('tok_contact_permissions','tok_consent_rate_limits','tok_consent_admin_audit','tok_consent_settings') AND c.relrowsecurity AND NOT has_table_privilege('anon',c.oid,'SELECT') AND NOT has_table_privilege('authenticated',c.oid,'SELECT');").trim(),'4');
+ assert.equal(psql("SELECT count(*) FROM cron.job WHERE jobname='tok-consent-retention' AND schedule='19 3 * * *';").trim(),'1');
+ console.log('PASS: restored historical schema coexists with Cockpit consent; controller/proofs preserved, private tables protected, one retention registration (cron execution not simulated).');
  console.log('PASS: real PostgreSQL17 assertions and three simultaneous same-request submissions; one receipt and one evidence event.');
 } catch(error) { if(error.stderr)console.error(String(error.stderr));throw error; }
