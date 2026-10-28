@@ -1,0 +1,37 @@
+name: TOK Edge bundling index refresh (temporary)
+on:
+  push:
+    branches:
+      - fix/edge-bundling-jsr-type-imports-20261028
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/edge-bundling-jsr-type-imports-20261028
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Regenerate canonical app index and remove temporary workflow
+        run: |
+          set -euo pipefail
+          git rm -- .github/workflows/repair-edge-bundling-index-once.yml
+          pnpm run docs:application-index
+          pnpm run docs:application-index:check
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(edge): regenerate index after Vitest path correction"
+          git push origin HEAD:refs/heads/fix/edge-bundling-jsr-type-imports-20261028

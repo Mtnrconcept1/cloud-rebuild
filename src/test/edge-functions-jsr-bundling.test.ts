@@ -1,12 +1,11 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 // The Deno Edge runtime already supplies Deno.serve and Deno.env. Importing
 // functions-js solely for its .d.ts file makes every remote bundle depend on
 // jsr.io availability, despite needing no JavaScript from that package.
-const functionRoot = fileURLToPath(new URL("../../supabase/functions/", import.meta.url));
+const functionRoot = join(process.cwd(), "supabase/functions");
 const guardedSlugs = [
   "admin-demo-entities",
   "commercial-demo-checkout",
