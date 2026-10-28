@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildAdvisorAttachmentModelSummary,
   getAdvisorEditErrorMessage,
+  needsAdvisorAttachmentInstruction,
   parseAdvisorCrmContactsFile,
   prepareAdvisorAttachmentFiles,
 } from "@/lib/advisorAttachments";
@@ -191,6 +192,20 @@ describe("secure TOK advisor attachments", () => {
     })).toBe("incompatible");
   });
 
+  it("requires an explicit action for images and PDFs without blocking a CRM-only import", () => {
+    expect(needsAdvisorAttachmentInstruction([{ kind: "image" }], "")).toBe(true);
+    expect(needsAdvisorAttachmentInstruction([{ kind: "pdf" }], "  ")).toBe(true);
+    expect(needsAdvisorAttachmentInstruction([{ kind: "image" }], "ok")).toBe(true);
+    expect(needsAdvisorAttachmentInstruction([{ kind: "image" }], "Modifie la description du plat X")).toBe(false);
+    expect(needsAdvisorAttachmentInstruction([{ kind: "crm_contacts" }], "")).toBe(false);
+    expect(needsAdvisorAttachmentInstruction([], "")).toBe(false);
+
+    const advisor = readSource("src/pages/dashboard/DashboardAdvisor.tsx");
+    expect(advisor).toContain("needsAdvisorAttachmentInstruction(selectedAttachments, messageText)");
+    expect(advisor).toContain("setInput(messageText)");
+    expect(advisor).toContain("Aucun fichier n'a été envoyé");
+  });
+
   it("displays a helpful French rejection instead of raw server codes", () => {
     expect(getAdvisorEditErrorMessage(new Error("attachment_content_rejected")))
       .toMatch(/carte|menu|restaurant/i);
@@ -198,6 +213,12 @@ describe("secure TOK advisor attachments", () => {
       .not.toContain("attachment_content_rejected");
     expect(getAdvisorEditErrorMessage(new Error("attachment_hash_mismatch")))
       .toMatch(/à nouveau/);
+    expect(getAdvisorEditErrorMessage(new Error("Plat non identifié")))
+      .toMatch(/plat existant|nom exact/);
+    expect(getAdvisorEditErrorMessage(new Error("ai_empty_response")))
+      .toMatch(/analyse IA|instruction précise/);
+    expect(getAdvisorEditErrorMessage(new Error("ai_invalid_response")))
+      .not.toContain("ai_invalid_response");
     expect(getAdvisorEditErrorMessage(new Error("réseau indisponible")))
       .toBe("réseau indisponible");
   });
@@ -208,6 +229,9 @@ describe("secure TOK advisor attachments", () => {
     expect(editor).toContain("attachmentProposalTargets(hasImage)");
     expect(editor).toContain("evaluateAdvisorAttachmentUse");
     expect(editor).toContain("Une photo de carte");
+    expect(editor).toContain("const maxOutputTokens = 1600;");
+    expect(editor).toContain("coordonnées PUBLIQUES du restaurant");
+    expect(editor).toContain("n'invente jamais d'identifiant");
     expect(editor).toContain('proposed.target === "uploaded_dish_photo"');
     expect(editor).toContain("attachment_content_rejected");
     expect(editor).not.toContain('hasImage ? ["uploaded_dish_photo"]');

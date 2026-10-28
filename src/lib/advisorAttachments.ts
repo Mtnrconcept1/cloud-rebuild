@@ -456,6 +456,15 @@ export async function prepareAdvisorAttachmentFiles(files: File[] | FileList): P
   return prepared as AdvisorPreparedAttachment[];
 }
 
+/** Keep vague image/PDF submissions out of the mutation planner until an action is specified. */
+export function needsAdvisorAttachmentInstruction(
+  attachments: Array<Pick<AdvisorPreparedAttachment, "kind">>,
+  instruction: string,
+): boolean {
+  return attachments.some((attachment) => attachment.kind === "image" || attachment.kind === "pdf")
+    && instruction.trim().length < 5;
+}
+
 /** Show actionable copy instead of exposing internal attachment rejection codes. */
 export function getAdvisorEditErrorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : "";
@@ -464,6 +473,12 @@ export function getAdvisorEditErrorMessage(error: unknown): string {
   }
   if (message.includes("attachment_hash_mismatch")) {
     return "La pièce jointe a changé depuis la proposition. Retirez-la, joignez-la à nouveau et recommencez.";
+  }
+  if (message.includes("Plat non identifié") || message.includes("Élément introuvable dans ce restaurant")) {
+    return "Aucun plat existant n'a pu être identifié avec certitude. Précisez le nom exact du plat enregistré dans votre menu et la modification souhaitée. Rien n'a été modifié.";
+  }
+  if (message.includes("ai_empty_response") || message.includes("ai_invalid_response")) {
+    return "L'analyse IA n'a pas produit de proposition exploitable. Réessayez avec une instruction précise, par exemple le plat à modifier. Rien n'a été modifié.";
   }
   return message || "La modification n'a pas pu être préparée.";
 }

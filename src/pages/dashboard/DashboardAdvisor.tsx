@@ -47,6 +47,7 @@ import {
   ADVISOR_MAX_TOTAL_BYTES,
   prepareAdvisorAttachmentFiles,
   getAdvisorEditErrorMessage,
+  needsAdvisorAttachmentInstruction,
   toAdvisorAttachmentPlanPayload,
   type AdvisorPreparedAttachment,
 } from "@/lib/advisorAttachments";
@@ -745,6 +746,13 @@ export default function DashboardAdvisor() {
     const messageText = (text || input.trim()).trim();
     const selectedAttachments = attachments;
     if ((!messageText && selectedAttachments.length === 0) || isLoading || isPreparingAttachments || !restaurant) return;
+    if (needsAdvisorAttachmentInstruction(selectedAttachments, messageText)) {
+      toast({
+        title: "Précisez la modification à réaliser",
+        description: "Pour une photo ou un PDF, indiquez un plat déjà présent dans votre menu et l'action souhaitée, par exemple « Mets à jour la description du plat X à partir de cette carte ». Aucun fichier n'a été envoyé.",
+      });
+      return;
+    }
 
     const fallbackPrompt = selectedAttachments.some((attachment) => attachment.kind === "crm_contacts")
       ? "Importer cette liste de contacts dans le CRM du restaurant."
@@ -796,6 +804,7 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
           ? getAdvisorEditErrorMessage(error)
           : error instanceof Error ? error.message : "Modification indisponible";
         toast({ title: "Modification non préparée", description: errorMessage, variant: "destructive" });
+        setInput(messageText);
         setMessages((current) => current.filter((message) => message !== userMsg));
       } finally {
         setIsLoading(false);
