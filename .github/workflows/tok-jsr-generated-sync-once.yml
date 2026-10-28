@@ -1,0 +1,38 @@
+name: TOK generated incident-map sync (temporary)
+on:
+  push:
+    branches:
+      - fix/tok-supabase-jsr-type-imports-20261028
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/tok-supabase-jsr-type-imports-20261028
+          fetch-depth: 1
+          persist-credentials: true
+      - run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Regenerate generated error map and indexes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -- .github/workflows/tok-jsr-generated-sync-once.yml
+          pnpm run generate:error-code-map
+          pnpm run docs:application-index
+          pnpm run docs:application-index:check
+          pnpm exec vitest run src/test/incident-evidence-depth.test.ts src/test/supabase-edge-jsr-type-imports.test.ts
+          git add supabase/functions/_shared/error-code-map.ts docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(edge): synchronize generated error locations and application index"
+          git push origin HEAD:refs/heads/fix/tok-supabase-jsr-type-imports-20261028
