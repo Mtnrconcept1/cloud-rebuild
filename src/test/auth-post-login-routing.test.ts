@@ -11,6 +11,14 @@ describe("post-auth workspace routing", () => {
     }
   });
 
+  it("returns a recovering administrator to CRM without opening arbitrary redirect targets", () => {
+    expect(getPostAuthTargetForRole("admin", "/admin/crm")).toBe("/admin/crm");
+    expect(getPostAuthTargetForRole("client", "/admin/crm")).toBe("/");
+    expect(getPostAuthTargetForRole("restaurateur", "/admin/crm")).toBe("/espaces");
+    expect(getPostAuthTargetForRole("admin", "/admin/crm?external=1")).toBe("/espaces");
+    expect(getPostAuthTargetForRole("admin", "//attacker.example/admin/crm")).toBe("/espaces");
+  });
+
   it("sends clients to the public homepage instead of their dashboard after launch", () => {
     expect(getPostAuthTargetForRole("client", null, { launchEnabled: false })).toBe("/");
     expect(getPostAuthTargetForRole("client", "/mon-espace", { launchEnabled: false })).toBe("/");

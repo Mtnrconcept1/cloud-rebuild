@@ -45,6 +45,12 @@ export function getPostAuthTargetForRole(
   const workforceTarget = getWorkforceContinuationTarget(postAuthRedirectTarget);
   if (workforceTarget) return workforceTarget;
 
+  // The CRM recovery flow must return admins to the exact protected page.
+  // Do not honor arbitrary admin or cross-origin redirect targets.
+  if (selectedRole === "admin" && postAuthRedirectTarget === "/admin/crm") {
+    return "/admin/crm";
+  }
+
   if (selectedRole === "client") {
     return context.launchEnabled ? "/coming-soon" : "/";
   }

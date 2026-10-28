@@ -11,6 +11,9 @@ import {
   findPendingCrmMfaFactor,
   findVerifiedCrmMfaFactor,
   isCrmMfaFactor,
+  isValidCrmRecoveryCode,
+  isValidCrmTotpCode,
+  sanitizeCrmMfaNumericCode,
 } from "@/lib/crmMfa";
 
 function readSource(path: string) {
@@ -144,6 +147,35 @@ describe("customer CRM", () => {
       verifiedView.indexOf("{children}"),
     );
     expect(guard).toContain("currentLevel !== \"aal2\"");
+  });
+
+  it("does not mistake Marketing MFA for a recovered CRM factor", () => {
+    const marketing = {
+      id: "marketing-factor",
+      factor_type: "totp",
+      friendly_name: "TheTOK Marketing",
+      status: "verified",
+    };
+    const legacy = {
+      id: "legacy-factor",
+      factor_type: "totp",
+      friendly_name: "Compte principal",
+      status: "verified",
+    };
+
+    expect(findVerifiedCrmMfaFactor({ all: [marketing], totp: [marketing] })).toBeNull();
+    expect(findVerifiedCrmMfaFactor({ all: [marketing, legacy] })).toEqual(legacy);
+  });
+
+  it("keeps six-digit authenticator codes separate from eight-digit recovery codes", () => {
+    expect(isValidCrmTotpCode("123456")).toBe(true);
+    expect(isValidCrmTotpCode("12345678")).toBe(false);
+    expect(isValidCrmRecoveryCode("12345678")).toBe(true);
+    expect(isValidCrmRecoveryCode("123456")).toBe(false);
+    expect(isValidCrmTotpCode("123 456")).toBe(false);
+    expect(isValidCrmRecoveryCode("12abc45678")).toBe(false);
+    expect(sanitizeCrmMfaNumericCode("12 34-56789", 6)).toBe("123456");
+    expect(sanitizeCrmMfaNumericCode("12 34-56789", 8)).toBe("12345678");
   });
 
   it("reuses verified CRM MFA factors and replaces incomplete TOK CRM setup", () => {

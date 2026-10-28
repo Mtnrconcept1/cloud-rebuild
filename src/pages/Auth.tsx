@@ -1617,9 +1617,11 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
     if (!isDemoAuthMode) {
       const targetRole =
-        role && switchableRoles.includes(role)
-          ? role
-          : switchableRoles[0] || getDefaultActiveRole(roles);
+        postAuthRedirectTarget === "/admin/crm" && switchableRoles.includes("admin")
+          ? "admin"
+          : role && switchableRoles.includes(role)
+            ? role
+            : switchableRoles[0] || getDefaultActiveRole(roles);
       if (targetRole !== role) switchRole(targetRole);
       navigateToPostAuthTarget(targetRole, true);
       return;
@@ -1642,6 +1644,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     incompletePrivilegedSignupRole,
     isDemoAuthMode,
     navigateToPostAuthTarget,
+    postAuthRedirectTarget,
     privilegedSignupResumeChecking,
     privilegedSignupSubmitting,
     role,
