@@ -1,0 +1,71 @@
+name: Consent confirmation regression
+on:
+  pull_request:
+    paths:
+      - .github/workflows/consent-confirmation.yml
+      - src/components/commercial/CommercialEmailConsentDialog.tsx
+      - src/lib/commercialEmailConsent.ts
+      - src/test/commercial-consent*.test.*
+      - src/test/commercial-email-consent*.test.*
+      - public/consentement-email.*
+      - supabase/config.toml
+      - supabase/functions/send-email/**
+      - supabase/functions/commercial-consent-confirmation/**
+      - supabase/functions/_shared/commercial-consent-confirmation.ts
+      - supabase/migrations/*commercial_email_confirmation.sql
+      - supabase/tests/commercial_email_confirmation.sql
+      - scripts/test-commercial-consent-postgres.mjs
+permissions:
+  contents: read
+concurrency:
+  group: consent-confirmation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 54322:5432
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '54322'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+      TOK_CONSENT_DISPOSABLE: 'true'
+      TOK_TEST_EMAIL_CONFIRMATION: 'true'
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+      VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22'
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: 'v2.9.6'
+      - name: Check modified Edge entry points
+        env:
+          DENO_NO_PACKAGE_JSON: '1'
+          DENO_NO_UPDATE_CHECK: '1'
+        run: |
+          cp deno.lock "$RUNNER_TEMP/consent-edge-check.lock"
+          deno check --no-config --node-modules-dir=none --lock="$RUNNER_TEMP/consent-edge-check.lock" supabase/functions/send-email/index.ts supabase/functions/commercial-consent-confirmation/index.ts
+      - name: Historical migration, permissions, transitions and concurrent replay
+        run: node --test scripts/test-native-consent-history.test.mjs && node scripts/test-commercial-consent-postgres.mjs
+      - name: Frozen dependencies
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate && pnpm install --frozen-lockfile
+      - name: Consent, mailbox page, sender boundary and existing email regressions
+        run: pnpm exec vitest run src/test/commercial-email-consent.test.tsx src/test/commercial-email-consent-contract.test.ts src/test/commercial-consent-confirmation.test.ts src/test/commercial-consent-page.test.ts src/test/email-provider-reconciliation.test.ts src/test/marketing-consent-dispatch.test.ts
+      - name: Typecheck, lint and build
+        run: pnpm typecheck && pnpm lint && pnpm build
