@@ -1,5 +1,6 @@
+import { buildNativePrintTemplate, nativePrintContractMatches } from "../../../../supabase/functions/_shared/print/artwork";
 import { readGeneratedOutputFormat, matchesGeneratedPrintFormat, type GeneratedOutputFormat } from "../../../../supabase/functions/_shared/print/source-format";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabase } from "@/integrations/supabase/client";
-import { renderMarketingOutputBlob } from "@/lib/marketing/imageOutput";
 import { createMarketingPrintDocument, type MarketingPrintDocument, type PrintProductSpec } from "@/lib/print/document";
 import { runPrintPreflight } from "@/lib/print/preflight";
 import { buildPrintRenderingPlan } from "@/lib/print/rendering";
@@ -22,10 +22,9 @@ import {
 } from "@/lib/print/client";
 import { createPrintCheckout } from "@/lib/print/checkout";
 import PrintProof from "./PrintProof";
-import { AlertTriangle, CreditCard, Loader2, Printer, RefreshCw } from "lucide-react";
+import { CreditCard, Loader2, Printer, RefreshCw } from "lucide-react";
 
 const supabase = getSupabase();
-const PRINT_RENDER_BUCKET = "restaurant-images";
 
 type PrintableAsset = {
   outputFormat: GeneratedOutputFormat | null;
@@ -247,11 +246,9 @@ export default function PrintComposerDialog({
   const [catalog, setCatalog] = useState<PrintCatalogProduct[]>([]);
   const [selectedAssetId, setSelectedAssetId] = useState("");
   const [selectedVariantId, setSelectedVariantId] = useState("");
-  const [title, setTitle] = useState("Votre offre du moment");
-  const [subtitle, setSubtitle] = useState("");
-  const [price, setPrice] = useState("");
-  const [cta, setCta] = useState("Réservez maintenant");
-  const [qrUrl, setQrUrl] = useState("");
+  const proofRevision = useRef(0);
+  const [proofAcknowledged, setProofAcknowledged] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(250);
   const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
   const [exportId, setExportId] = useState<string | null>(null);
@@ -269,6 +266,7 @@ export default function PrintComposerDialog({
     : null;
 
   useEffect(() => {
+    proofRevision.current += 1;
     if (!open) return;
     let cancelled = false;
     setLoading(true);
@@ -277,6 +275,8 @@ export default function PrintComposerDialog({
     setApproved(false);
     setQuote(null);
     setPreparedDocument(null);
+    setProofAcknowledged(false);
+    setPreviewUrl(null);
     Promise.all([
       loadPrintableAssets(restaurantId, initialSourceGenerationId),
       getPrintCatalog(restaurantId),
@@ -310,7 +310,7 @@ export default function PrintComposerDialog({
     }).finally(() => {
       if (!cancelled) setLoading(false);
     });
-    return () => { cancelled = true; };
+    return () => { cancelled = true; proofRevision.current += 1; };
   }, [open, restaurantId, initialSourceGenerationId, toast]);
 
   useEffect(() => {
@@ -324,38 +324,29 @@ export default function PrintComposerDialog({
     setApproved(false);
     setQuote(null);
     setPreparedDocument(null);
+    setProofAcknowledged(false);
+    setPreviewUrl(null);
   }, [selectedVariantId, selectedVariant]);
 
   useEffect(() => {
+    proofRevision.current += 1;
     setExportId(null);
     setApproved(false);
     setQuote(null);
     setPreparedDocument(null);
-  }, [selectedAssetId, title, subtitle, price, cta, qrUrl]);
+    setProofAcknowledged(false);
+    setPreviewUrl(null);
+  }, [selectedAssetId]);
 
   const document = useMemo<MarketingPrintDocument | null>(() => {
     if (!selectedAsset || !selectedVariant) return null;
-    const texts = [
-      { id: "title", kind: "title" as const, text: title, x: 0.09, y: 0.10, width: 0.82, height: 0.16, align: "center" as const, fontSizeMm: 8, weight: "bold" as const, color: "#ffffff" },
-      ...(subtitle.trim() ? [{ id: "subtitle", kind: "subtitle" as const, text: subtitle.trim(), x: 0.12, y: 0.29, width: 0.76, height: 0.10, align: "center" as const, fontSizeMm: 4.5, weight: "bold" as const, color: "#ffffff" }] : []),
-      ...(price.trim() ? [{ id: "price", kind: "price" as const, text: price.trim(), x: 0.17, y: 0.55, width: 0.40, height: 0.12, align: "left" as const, fontSizeMm: 8, weight: "bold" as const, color: "#ffffff" }] : []),
-      ...(cta.trim() ? [{ id: "cta", kind: "cta" as const, text: cta.trim(), x: 0.12, y: 0.76, width: qrUrl.trim() ? 0.50 : 0.76, height: 0.10, align: "left" as const, fontSizeMm: 4.5, weight: "bold" as const, color: "#ffffff" }] : []),
-    ];
     return createMarketingPrintDocument({
-      title: title || selectedAsset.name,
-      background: {
-        url: selectedAsset.url,
-        mimeType: selectedAsset.mimeType,
-        widthPx: selectedAsset.widthPx,
-        heightPx: selectedAsset.heightPx,
-      },
-      sourceGenerationId: selectedAsset.sourceGenerationId || selectedAsset.id,
-      texts,
-      qr: qrUrl.trim() ? { value: qrUrl.trim(), x: 0.70, y: 0.70, size: 0.18 } : null,
-      orientation: selectedVariant.widthMm === selectedVariant.heightMm
-        ? "square" : selectedVariant.widthMm > selectedVariant.heightMm ? "landscape" : "portrait",
+      title: selectedAsset.name,
+      sourceGenerationId: selectedAsset.sourceGenerationId,
+      background: { url: selectedAsset.url, mimeType: selectedAsset.mimeType, widthPx: selectedAsset.widthPx, heightPx: selectedAsset.heightPx },
+      orientation: selectedVariant.widthMm === selectedVariant.heightMm ? "square" : selectedVariant.widthMm > selectedVariant.heightMm ? "landscape" : "portrait",
     });
-  }, [selectedAsset, selectedVariant, title, subtitle, price, cta, qrUrl]);
+  }, [selectedAsset, selectedVariant]);
 
   const renderingPlan = useMemo(() => {
     if (!selectedAsset || !selectedVariant || !selectedProduct) return null;
@@ -366,77 +357,30 @@ export default function PrintComposerDialog({
     }
   }, [selectedAsset, selectedProduct, selectedVariant]);
 
-  const plannedDocument = useMemo<MarketingPrintDocument | null>(() => {
-    if (!document || !renderingPlan) return document;
-    return {
-      ...document,
-      background: {
-        ...document.background,
-        widthPx: renderingPlan.target.widthPx,
-        heightPx: renderingPlan.target.heightPx,
-      },
-      rendering: renderingPlan.rendering,
-    };
-  }, [document, renderingPlan]);
+  // The proof uses native source pixels. No substitute raster, crop or upscaled dimensions.
+  const plannedDocument = document;
+  const nativeContractValid = useMemo(() => {
+    if (!selectedAsset || !selectedVariant) return false;
+    try { return nativePrintContractMatches(selectedAsset.outputFormat, buildNativePrintTemplate(selectedVariant)); }
+    catch { return false; }
+  }, [selectedAsset, selectedVariant]);
 
   const preflight = plannedDocument && selectedVariant ? runPrintPreflight(plannedDocument, selectedVariant) : null;
 
   async function createExport() {
-    if (!document || !selectedVariant || !selectedProduct || !renderingPlan || renderingPlan.blocked || !preflight?.ready) return;
+    if (!document || !selectedVariant || !selectedAsset || !nativeContractValid || !preflight?.ready) return;
+    const revision = proofRevision.current;
     setWorking("export");
-    let uploadedPath: string | null = null;
     try {
-      const rendered = await renderMarketingOutputBlob({
-        sourceUrl: document.background.url,
-        target: renderingPlan.target,
-        mimeType: "image/png",
-      });
-      if (rendered.quality === "upscale_blocked") throw new Error("Ce visuel dépasse le plafond d’agrandissement 2,5× pour l’impression.");
-
-      uploadedPath = `${restaurantId}/print-renders/${crypto.randomUUID()}.png`;
-      const { error: uploadError } = await supabase.storage.from(PRINT_RENDER_BUCKET).upload(uploadedPath, rendered.blob, {
-        contentType: "image/png",
-        upsert: false,
-        cacheControl: "3600",
-      });
-      if (uploadError) throw uploadError;
-      const publicUrl = supabase.storage.from(PRINT_RENDER_BUCKET).getPublicUrl(uploadedPath).data.publicUrl;
-      if (!publicUrl?.startsWith("https://")) throw new Error("URL du raster d’impression indisponible.");
-
-      const exactDocument: MarketingPrintDocument = {
-        ...document,
-        background: {
-          url: publicUrl,
-          mimeType: "image/png",
-          widthPx: rendered.widthPx,
-          heightPx: rendered.heightPx,
-        },
-        rendering: {
-          ...renderingPlan.rendering,
-          sourceWidthPx: rendered.sourceWidthPx,
-          sourceHeightPx: rendered.sourceHeightPx,
-          upscaleFactor: rendered.upscaleFactor,
-        },
-      };
-      const exactPreflight = runPrintPreflight(exactDocument, selectedVariant);
-      if (!exactPreflight.ready) {
-        throw new Error(exactPreflight.blocking.map((item) => item.message).join(" ") || "Le raster final ne passe pas le préflight.");
-      }
-
-      const result = await createPrintExport({ restaurantId, providerProductId: selectedVariant.providerProductId, document: exactDocument });
-      setPreparedDocument(exactDocument);
+      const result = await createPrintExport({ restaurantId, providerProductId: selectedVariant.providerProductId, document });
+      if (revision !== proofRevision.current) return;
+      setPreparedDocument(document);
       setExportId(result.exportId);
       setApproved(false);
-      setQuote(null);
-      uploadedPath = null;
-      toast({
-        title: "BAT généré",
-        description: `Raster ${rendered.widthPx}×${rendered.heightPx} px préparé à ${renderingPlan.target.targetDpi} DPI puis validé par le préflight serveur.`,
-      });
+      setPreviewUrl(result.previewUrl);
+      setProofAcknowledged(false);
+      toast({ title: "BAT natif contrôlé", description: "Consultez le PDF réel, vérifiez les marges, les textes et la netteté avant approbation." });
     } catch (error) {
-      if (uploadedPath) {
-        await supabase.storage.from(PRINT_RENDER_BUCKET).remove([uploadedPath]).catch(() => undefined);
-      }
       toast({ title: "BAT impossible", description: error instanceof Error ? error.message : "Erreur de préparation.", variant: "destructive" });
     } finally {
       setWorking(null);
@@ -444,10 +388,12 @@ export default function PrintComposerDialog({
   }
 
   async function approve() {
-    if (!exportId) return;
+    if (!exportId || !proofAcknowledged || !previewUrl) return;
+    const revision = proofRevision.current;
     setWorking("approve");
     try {
-      await approvePrintExport({ restaurantId, exportId });
+      await approvePrintExport({ restaurantId, exportId, proofAcknowledged: true });
+      if (revision !== proofRevision.current) return;
       setApproved(true);
       toast({ title: "BAT approuvé", description: "Cette version est maintenant verrouillée pour l’impression." });
     } catch (error) {
@@ -508,7 +454,7 @@ export default function PrintComposerDialog({
       <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>TheTok Print</DialogTitle>
-          <DialogDescription>Transformez une création du Marketing Studio en raster exact puis en PDF conforme à l’imprimeur, approuvez le BAT et commandez sans quitter TheTok.</DialogDescription>
+          <DialogDescription>Vérifiez votre création native puis approuvez le PDF avant de payer. Aucun texte ni élément graphique ne sera ajouté après génération.</DialogDescription>
         </DialogHeader>
 
         {loading ? (
@@ -522,7 +468,7 @@ export default function PrintComposerDialog({
             <div className="space-y-5">
               <div className="grid gap-3">
                 <Label>Création à imprimer</Label>
-                <Select value={selectedAsset?.id || ""} onValueChange={setSelectedAssetId}>
+                <Select value={selectedAsset?.id || ""} onValueChange={setSelectedAssetId} disabled={working !== null}>
                   <SelectTrigger><SelectValue placeholder="Choisir une création" /></SelectTrigger>
                   <SelectContent>{assets.map((asset) => <SelectItem key={asset.id} value={asset.id}>{asset.name} · {new Date(asset.createdAt).toLocaleDateString("fr-CH")}</SelectItem>)}</SelectContent>
                 </Select>
@@ -535,32 +481,18 @@ export default function PrintComposerDialog({
                 <p className="text-xs text-muted-foreground">Format et orientation verrouillés sur la création générée.</p>
               </div>
 
-              {renderingPlan && selectedVariant ? (
-                <div className={renderingPlan.blocked
-                  ? "rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-100"
-                  : renderingPlan.quality === "upscale_allowed"
-                    ? "rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100"
-                    : "rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100"}
-                >
-                  <p className="font-bold">Géométrie de production</p>
-                  <p className="mt-1">
-                    {selectedVariant.widthMm}×{selectedVariant.heightMm} mm à plat · bleed {selectedVariant.bleedMm} mm · {renderingPlan.target.targetDpi} DPI · {renderingPlan.target.widthPx}×{renderingPlan.target.heightPx} px.
-                  </p>
-                  {renderingPlan.target.print?.foldedWidthMm && renderingPlan.target.print.foldedHeightMm ? (
-                    <p className="mt-1">Format fermé : {renderingPlan.target.print.foldedWidthMm}×{renderingPlan.target.print.foldedHeightMm} mm.</p>
-                  ) : null}
-                  <p className="mt-1 text-xs opacity-80">Source {selectedAsset?.widthPx}×{selectedAsset?.heightPx} · rééchantillonnage théorique {renderingPlan.rendering.upscaleFactor.toFixed(2)}×.</p>
-                  {renderingPlan.blocked ? <p className="mt-2 flex items-center gap-1.5 font-bold"><AlertTriangle className="h-4 w-4" />Dépassement du plafond 2,5× : choisissez une autre création ou un autre support.</p> : null}
+              {renderingPlan ? (
+                <div className="rounded-xl border bg-muted/30 p-3 text-xs">
+                  <p className="font-semibold">Image native conservée : {selectedAsset?.widthPx}×{selectedAsset?.heightPx} px · {renderingPlan.rendering.targetDpi} DPI effectifs.</p>
+                  <p>300 DPI recommandés. Aucun agrandissement artificiel, recadrage ou ajout graphique. Un contrôle visuel IA borné est effectué à la préparation du BAT ; il ne remplace pas votre vérification du PDF.</p>
+                  {renderingPlan.blocked ? <p role="alert" className="mt-1 font-semibold text-destructive">Le ratio ou la résolution native est incompatible avec ce support. Régénérez le visuel.</p> : null}
                 </div>
               ) : null}
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div><Label>Titre</Label><Input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={80} /></div>
-                <div><Label>Prix / accroche courte</Label><Input value={price} onChange={(event) => setPrice(event.target.value)} placeholder="CHF 39.–" maxLength={40} /></div>
+              <div className="rounded-xl border bg-muted/30 p-3 text-sm">
+                Le titre, le prix, les textes, le logo et l’appel à l’action doivent être intégrés lors de la génération IA.
+                Pour les modifier, régénérez le visuel avec le même support. Aucun QR code ni calque ne peut être ajouté ici.
               </div>
-              <div><Label>Sous-titre</Label><Input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} maxLength={120} /></div>
-              <div><Label>Appel à l’action</Label><Input value={cta} onChange={(event) => setCta(event.target.value)} maxLength={80} /></div>
-              <div><Label>QR code (optionnel)</Label><Input value={qrUrl} onChange={(event) => setQrUrl(event.target.value)} placeholder="https://www.thetok.ch/..." /></div>
+              {!nativeContractValid ? <p role="alert" className="text-sm text-destructive">Cette création utilise un ancien gabarit. Régénérez-la avec le support d’impression sélectionné avant de préparer le BAT.</p> : null}
               <div>
                 <Label>Quantité</Label>
                 <Input
@@ -600,9 +532,14 @@ export default function PrintComposerDialog({
 
             <div className="space-y-4">
               {(preparedDocument || plannedDocument) && selectedVariant ? <PrintProof document={(preparedDocument || plannedDocument)!} product={selectedVariant} approved={approved} /> : null}
+              {previewUrl ? <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="block text-sm font-semibold underline">Consulter le PDF contrôlé (lien temporaire)</a> : null}
+              {exportId && !approved ? <label className="flex items-start gap-3 rounded-xl border p-3 text-sm">
+                <input type="checkbox" checked={proofAcknowledged} onChange={event => setProofAcknowledged(event.target.checked)} className="mt-1" />
+                J’ai vérifié le PDF réel, tous les textes et logos à l’intérieur des marges et la netteté à la taille imprimée, y compris tout avertissement de résolution. J’approuve ce fichier sans ajout ni modification.
+              </label> : null}
               <div className="flex flex-wrap gap-2">
-                {!exportId ? <Button disabled={!preflight?.ready || Boolean(renderingPlan?.blocked) || working !== null} onClick={() => void createExport()}>{working === "export" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Préparer le raster & générer le BAT</Button> : null}
-                {exportId && !approved ? <Button disabled={working !== null} onClick={() => void approve()}>{working === "approve" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}J’approuve ce BAT</Button> : null}
+                {!exportId ? <Button disabled={!preflight?.ready || !nativeContractValid || Boolean(renderingPlan?.blocked) || working !== null} onClick={() => void createExport()}>{working === "export" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Contrôler le visuel & générer le BAT</Button> : null}
+                {exportId && !approved ? <Button disabled={working !== null || !proofAcknowledged || !previewUrl} onClick={() => void approve()}>{working === "approve" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}J’approuve ce BAT</Button> : null}
                 {approved && !quote ? <Button disabled={working !== null} onClick={() => void quoteOrder()}>{working === "quote" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}Calculer le prix livré</Button> : null}
                 {quote ? <Button disabled={working !== null} onClick={() => void checkout()}>{working === "checkout" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}Payer {formatMoney(quote.customerAmountCents, quote.customerCurrency)}</Button> : null}
               </div>

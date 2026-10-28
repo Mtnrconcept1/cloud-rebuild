@@ -10,7 +10,8 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { CloudprinterError, getPrintProvider } from "../_shared/print/cloudprinter.ts";
 
-import { geometryMatchesLogicalProduct, isSinglePagePrintProduct } from "../_shared/print/catalog.ts";
+import { buildNativePrintTemplate, printSafeMargin } from "../_shared/print/artwork.ts";
+import { geometryMatchesLogicalProduct, isSinglePagePrintProduct, isNativeArtworkProduct } from "../_shared/print/catalog.ts";
 import type { PrintProviderProductDetails } from "../_shared/print/types.ts";
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -53,7 +54,7 @@ function buildVariantPayload(variant: any, logicalProduct: any) {
     widthMm: positiveGeometry(variant.width_mm),
     heightMm: positiveGeometry(variant.height_mm),
     bleedMm: Math.max(0, toNumber(variant.bleed_mm)),
-    safeMarginMm: Math.max(0, toNumber(variant.safe_margin_mm, 3)),
+    safeMarginMm: printSafeMargin(variant.safe_margin_mm),
     printableSides: Math.max(1, Math.round(toNumber(variant.printable_sides, 1))),
     orientation: variant.orientation,
     printTechnology: variant.print_technology,
@@ -170,7 +171,11 @@ Deno.serve(async (req) => {
         // A provider mapping is never exposed until /products/info geometry has
         // been hydrated and matches its provider-agnostic TheTok product.
         if (!logicalProduct || variant.active !== true || !geometryMatchesLogicalProduct(logicalProduct, variant)
-          || !isSinglePagePrintProduct(variant, logicalProduct)) continue;
+          || !isSinglePagePrintProduct(variant, logicalProduct) || !isNativeArtworkProduct(variant, logicalProduct)) continue;
+        try {
+          buildNativePrintTemplate({ widthMm: variant.width_mm, heightMm: variant.height_mm,
+            bleedMm: variant.bleed_mm, safeMarginMm: variant.safe_margin_mm });
+        } catch { continue; }
         const rows = validByProduct.get(variant.print_product_id) || [];
         rows.push(variant);
         validByProduct.set(variant.print_product_id, rows);

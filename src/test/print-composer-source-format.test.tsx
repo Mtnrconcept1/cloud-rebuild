@@ -49,6 +49,15 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.clearAllMocks(); });
 
 describe("print composer follows the generated creation", () => {
+  it("has no post-generation title, price, subtitle, CTA or QR editor", async () => {
+    fixtures.assets = [asset("selected", { destination: "print", ...a4 })];
+    render(<PrintComposerDialog restaurantId="restaurant" initialSourceGenerationId="selected" open showTrigger={false} />);
+    await screen.findByText("Format et orientation verrouillés sur la création générée.");
+    for (const label of ["Titre", "Prix / accroche courte", "Sous-titre", "Appel à l’action", "QR code (optionnel)"]) {
+      expect(screen.queryByText(label)).toBeNull();
+    }
+  });
+
   it("loads a selected creation older than the gallery page within its restaurant", async () => {
     fixtures.assets = [...Array.from({ length: 35 }, (_, i) => asset(`new-${i}`, null)),
       asset("old-selected", { destination: "print", ...a4 })];

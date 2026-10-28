@@ -5,6 +5,13 @@ export type GeneratedOutputFormat = {
   widthMm?: number;
   heightMm?: number;
   bleedMm?: number;
+  nativeArtworkVersion?: number;
+  sourceSha256?: string;
+  safeMarginMm?: number;
+  minimumDpi?: number;
+  recommendedDpi?: number;
+  nativeWidthPx?: number;
+  nativeHeightPx?: number;
 };
 
 export function readGeneratedOutputFormat(value: unknown): GeneratedOutputFormat | null {
@@ -16,7 +23,21 @@ export function readGeneratedOutputFormat(value: unknown): GeneratedOutputFormat
     || typeof row.widthMm !== "number" || !Number.isFinite(row.widthMm) || row.widthMm <= 0
     || typeof row.heightMm !== "number" || !Number.isFinite(row.heightMm) || row.heightMm <= 0
     || typeof row.bleedMm !== "number" || !Number.isFinite(row.bleedMm) || row.bleedMm < 0) return null;
-  return { destination: "print", providerProductId: row.providerProductId,
+  const native: Partial<GeneratedOutputFormat> = {};
+  if (row.nativeArtworkVersion !== undefined) {
+    if (row.nativeArtworkVersion !== 1) return null;
+    for (const key of ["safeMarginMm", "minimumDpi", "recommendedDpi", "nativeWidthPx", "nativeHeightPx"] as const) {
+      const value = row[key];
+      if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return null;
+      native[key] = value;
+    }
+    native.nativeArtworkVersion = 1;
+    if (row.sourceSha256 !== undefined) {
+      if (typeof row.sourceSha256 !== "string" || !/^[a-f0-9]{64}$/.test(row.sourceSha256)) return null;
+      native.sourceSha256 = row.sourceSha256;
+    }
+  }
+  return { ...native, destination: "print", providerProductId: row.providerProductId,
     widthMm: row.widthMm, heightMm: row.heightMm, bleedMm: row.bleedMm };
 }
 

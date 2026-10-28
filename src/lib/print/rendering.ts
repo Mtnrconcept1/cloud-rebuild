@@ -26,14 +26,14 @@ export function buildPrintRenderingPlan(input: {
   }
   const plan = calculateMarketingOutputPlan(input.asset.widthPx, input.asset.heightPx, target);
   const rendering: PrintRenderingMetadata = {
-    targetWidthPx: target.widthPx,
-    targetHeightPx: target.heightPx,
-    targetDpi: target.targetDpi,
+    targetWidthPx: input.asset.widthPx,
+    targetHeightPx: input.asset.heightPx,
+    targetDpi: Math.floor(Math.min(input.asset.widthPx / (input.variant.widthMm + input.variant.bleedMm * 2), input.asset.heightPx / (input.variant.heightMm + input.variant.bleedMm * 2)) * 25.4),
     sourceWidthPx: input.asset.widthPx,
     sourceHeightPx: input.asset.heightPx,
     upscaleFactor: plan.upscaleFactor,
-    cropMode: "cover",
-    strategy: "high_quality_resample",
+    cropMode: "none",
+    strategy: "native_artwork",
   };
   return {
     target,

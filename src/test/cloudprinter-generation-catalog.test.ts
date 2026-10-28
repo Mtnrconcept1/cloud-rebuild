@@ -28,7 +28,7 @@ describe("Cloudprinter generation catalog", () => {
     const edge = read("supabase/functions/print-catalog/index.ts");
     expect(edge).toContain("function toNumber(value: unknown, fallback = 0)");
     expect(edge).toContain('value === null || value === undefined || value === ""');
-    expect(edge).toContain("safeMarginMm: Math.max(0, toNumber(variant.safe_margin_mm, 3))");
+    expect(edge).toContain("safeMarginMm: printSafeMargin(variant.safe_margin_mm)");
   });
 
   it("persists the expanded logical TheTok print catalog without seeding provider mappings", () => {

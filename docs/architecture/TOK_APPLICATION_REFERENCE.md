@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7baf14d85e557d50f027ad7bc683d1f09afbb67a9c625b17a98e66982f9d5445`
+- Empreinte SHA-256 des sources indexées : `92e9c553fd396c3aae010260b133bb16f0bdd58aa305678f0a552480553cb762`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,24 +29,24 @@
 | cronJobs | 37 |
 | databaseContract | 231 |
 | databaseObjects | 3096 |
-| documents | 229 |
+| documents | 230 |
 | edgeFunctions | 121 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4066 |
+| exportedSymbols | 4083 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 583 |
-| modules | 1849 |
+| modules | 1854 |
 | pages | 133 |
-| pathLiterals | 900 |
+| pathLiterals | 901 |
 | publicAssets | 713 |
 | publicEntries | 743 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 119 |
-| records | 19129 |
-| repositoryFiles | 3709 |
+| records | 19169 |
+| repositoryFiles | 3715 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2029,6 +2029,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /orders/cancel | 1 | [supabase/functions/_shared/print/cloudprinter.ts:342](../../supabase/functions/_shared/print/cloudprinter.ts#L342) |
 | /orders/info | 2 | [src/test/marketing-print-contract.test.ts:192](../../src/test/marketing-print-contract.test.ts#L192) |
 | /orders/quote | 1 | [supabase/functions/_shared/print/cloudprinter.ts:294](../../supabase/functions/_shared/print/cloudprinter.ts#L294) |
+| /original.png? | 1 | [src/test/print-export-source-format.test.ts:59](../../src/test/print-export-source-format.test.ts#L59) |
 | /other | 3 | [src/test/tok-connect-broker.test.ts:106](../../src/test/tok-connect-broker.test.ts#L106) |
 | /other/../equipe/mon-espace | 1 | [src/test/workforce-auth-continuation.test.ts:32](../../src/test/workforce-auth-continuation.test.ts#L32) |
 | /packs-restaurateur | 17 | [scripts/prerender-seo.mjs:606](../../scripts/prerender-seo.mjs#L606) |
@@ -2213,7 +2214,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /start | 1 | [src/test/telegram-codex-request.test.ts:22](../../src/test/telegram-codex-request.test.ts#L22) |
 | /storage/ | 8 | [src/test/marketing-mailing-image-bff.test.ts:185](../../src/test/marketing-mailing-image-bff.test.ts#L185) |
 | /storage/v1/object | 2 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:104](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L104) |
-| /storage/v1/object/ | 1 | [supabase/functions/_shared/print/pdf.ts:84](../../supabase/functions/_shared/print/pdf.ts#L84) |
+| /storage/v1/object/ | 1 | [supabase/functions/_shared/print/pdf.ts:22](../../supabase/functions/_shared/print/pdf.ts#L22) |
 | /storage/v1/object/private/key | 1 | [src/test/tok-connect-oauth-delegation.test.ts:110](../../src/test/tok-connect-oauth-delegation.test.ts#L110) |
 | /storage/v1/object/public/ | 2 | [src/lib/optimizedImages.ts:27](../../src/lib/optimizedImages.ts#L27) |
 | /storage/v1/object/public/restaurant-images/ | 2 | [supabase/functions/_shared/restaurant-cover-evidence.ts:52](../../supabase/functions/_shared/restaurant-cover-evidence.ts#L52) |
@@ -2237,7 +2238,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-one | 27 | [scripts/prerender-seo.mjs:559](../../scripts/prerender-seo.mjs#L559) |
 | /tok-one?status=success | 1 | [src/test/security-url-helpers.test.ts:62](../../src/test/security-url-helpers.test.ts#L62) |
 | /tok-pulse | 11 | [scripts/prerender-seo.mjs:1247](../../scripts/prerender-seo.mjs#L1247) |
-| /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:89](../../supabase/functions/ai-image-enhance/index.ts#L89) |
+| /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:91](../../supabase/functions/ai-image-enhance/index.ts#L91) |
 | /tok-slot-machine/index.html?v=20260719 | 1 | [src/components/DailyMiamzSlotMachine.tsx:15](../../src/components/DailyMiamzSlotMachine.tsx#L15) |
 | /tok_connect_mcp_action_idempotency | 2 | [server/marketingBff.ts:2605](../../server/marketingBff.ts#L2605) |
 | /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
@@ -6952,12 +6953,12 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 123 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 144 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 146 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 278 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 844 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 852 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 71 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6970,7 +6971,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 221 |
 | automation-script | 91 |
 | documentation | 6 |
-| edge-function-source | 245 |
+| edge-function-source | 247 |
 | frontend-component | 297 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
@@ -6978,7 +6979,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 6 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 764 |
+| test | 767 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7113,7 +7114,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Analytics TOK — données et preuves | 13 | [docs/marketing/analytics-evidence.md:1](../../docs/marketing/analytics-evidence.md#L1) |
 | TOK — Série Instagram quotidienne | 14 | [docs/marketing/daily-instagram.md:1](../../docs/marketing/daily-instagram.md#L1) |
 | Revue Mobile Fullstack - 2026-03-29 | 25 | [docs/mobile-fullstack-review-2026-03-29.md:1](../../docs/mobile-fullstack-review-2026-03-29.md#L1) |
-| Cloudprinter : formats de génération et d’impression | 5 | [docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md:1](../../docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md#L1) |
+| Cloudprinter : formats de génération et d’impression | 9 | [docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md:1](../../docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md#L1) |
 | TOK Intelligence Suite — Campaign Studio, Customer Memory, Support & Resolution, Guardian | 11 | [docs/operations/TOK_INTELLIGENCE_SUITE.md:1](../../docs/operations/TOK_INTELLIGENCE_SUITE.md#L1) |
 | TOK — intelligence d’incident unifiée | 12 | [docs/operations/incident-intelligence-unification.md:1](../../docs/operations/incident-intelligence-unification.md#L1) |
 | Préparation des PR — IA, catalogue fournisseur et incidents | 8 | [docs/operations/pr-readiness-2026-07-28.md:1](../../docs/operations/pr-readiness-2026-07-28.md#L1) |
@@ -7173,6 +7174,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | TOK marketing publication repair | 6 | [docs/superpowers/plans/2026-10-11-marketing-publication-repair.md:1](../../docs/superpowers/plans/2026-10-11-marketing-publication-repair.md#L1) |
 | Consentement restaurateur dans le Cockpit commercial | 8 | [docs/superpowers/plans/2026-10-27-commercial-consent.md:1](../../docs/superpowers/plans/2026-10-27-commercial-consent.md#L1) |
 | Consentement signé immédiat et confirmation e-mail complémentaire | 5 | [docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md:1](../../docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md#L1) |
+| Cloudprinter native artwork implementation plan | 6 | [docs/superpowers/plans/2026-10-28-cloudprinter-native-artwork.md:1](../../docs/superpowers/plans/2026-10-28-cloudprinter-native-artwork.md#L1) |
 | Préremplissage du consentement restaurateur — plan et décision | 5 | [docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md:1](../../docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md#L1) |
 | Facturation des réservations (5.-/resa) & détection anti-fraude | 26 | [docs/superpowers/specs/2026-04-17-reservation-billing-design.md:1](../../docs/superpowers/specs/2026-04-17-reservation-billing-design.md#L1) |
 | Refonte compta: accueil + entrees/sorties | 52 | [docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md:1](../../docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md#L1) |
@@ -8242,7 +8244,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (181)</summary>
+<details><summary>documentation (182)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8391,6 +8393,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/superpowers/plans/2026-10-11-marketing-publication-repair.md`
 - `docs/superpowers/plans/2026-10-27-commercial-consent.md`
 - `docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md`
+- `docs/superpowers/plans/2026-10-28-cloudprinter-native-artwork.md`
 - `docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md`
 - `docs/superpowers/specs/2026-04-17-reservation-billing-design.md`
 - `docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md`
@@ -8428,7 +8431,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (245)</summary>
+<details><summary>edge-function-source (247)</summary>
 
 - `supabase/functions/_shared/ai-image-operation.ts`
 - `supabase/functions/_shared/ai-image-response.ts`
@@ -8496,6 +8499,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/payment-attempts.ts`
 - `supabase/functions/_shared/payment-transactions.ts`
 - `supabase/functions/_shared/pinned-public-http.ts`
+- `supabase/functions/_shared/print/artwork-review.ts`
+- `supabase/functions/_shared/print/artwork.ts`
 - `supabase/functions/_shared/print/catalog.ts`
 - `supabase/functions/_shared/print/cloudprinter.ts`
 - `supabase/functions/_shared/print/options.ts`
@@ -10225,7 +10230,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (764)</summary>
+<details><summary>test (767)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10338,8 +10343,10 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/chef-table-checkout-hold-governance.test.ts`
 - `src/test/chef-table-vip-miamz-access.test.ts`
 - `src/test/client-checkout-session-guards.test.ts`
+- `src/test/cloudprinter-artwork-review.test.ts`
 - `src/test/cloudprinter-edge-runtime.test.ts`
 - `src/test/cloudprinter-generation-catalog.test.ts`
+- `src/test/cloudprinter-native-artwork.test.ts`
 - `src/test/cloudprinter-print-quote-regression.test.ts`
 - `src/test/cloudprinter-product-geometry.test.ts`
 - `src/test/cloudprinter-sandbox-checkout.test.ts`
@@ -10710,6 +10717,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/print-catalog-admin-pagination.test.tsx`
 - `src/test/print-composer-source-format.test.tsx`
 - `src/test/print-export-source-format.test.ts`
+- `src/test/print-native-proof.test.tsx`
 - `src/test/print-orchestrator-runtime.test.ts`
 - `src/test/print-pdf-dimensions.test.ts`
 - `src/test/print-source-format.test.ts`

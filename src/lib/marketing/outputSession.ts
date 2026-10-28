@@ -1,3 +1,4 @@
+import { buildNativePrintTemplate, buildNativePrintInstructions } from "../../../supabase/functions/_shared/print/artwork";
 import type { TokImageGenerationRequest } from "../ai/tokAiClient";
 import {
   DIGITAL_MARKETING_OUTPUT_TARGETS,
@@ -28,7 +29,7 @@ const listeners = new Set<() => void>();
 function sameTargetList(left: MarketingOutputTarget[], right: MarketingOutputTarget[]) {
   if (left === right) return true;
   if (left.length !== right.length) return false;
-  return left.every((target, index) => target.id === right[index]?.id);
+  return left.every((target, index) => JSON.stringify(target) === JSON.stringify(right[index]));
 }
 
 export function setMarketingOutputSession(next: MarketingOutputSessionSnapshot) {
@@ -36,7 +37,7 @@ export function setMarketingOutputSession(next: MarketingOutputSessionSnapshot) 
     ? next.target
     : null;
   const unchanged = outputSessionSnapshot.destination === next.destination
-    && outputSessionSnapshot.target?.id === normalizedTarget?.id
+    && JSON.stringify(outputSessionSnapshot.target) === JSON.stringify(normalizedTarget)
     && sameTargetList(outputSessionSnapshot.targets, next.targets);
   if (unchanged) return;
   outputSessionSnapshot = {
@@ -84,26 +85,20 @@ export function applyMarketingOutputTargetToImageRequest<T extends TokImageGener
     throw new Error("MARKETING_OUTPUT_UPSCALE_BLOCKED");
   }
 
-  const printInstruction = target.destination === "print" && target.print
-    ? [
-      `Support imprimé à plat ${target.print.widthMm}×${target.print.heightMm} mm, fond perdu ${target.print.bleedMm} mm, cible ${target.targetDpi} DPI.`,
-      `MARGE DE SÉCURITÉ IMPRESSION : conserver AUCUN texte, logo, prix, QR code, CTA, visage ou élément essentiel dans les ${target.print.safeMarginMm} mm proches des bords du format fini.`,
-      `Le fond perdu doit rester visuellement continu : seuls les fonds, textures, motifs ou images de fond pouvant être tronqués à l’impression sans gravité peuvent aller jusqu’aux bords et déborder dans le fond perdu de ${target.print.bleedMm} mm.`,
-      "Ne jamais placer de texte ni d’information importante dans le fond perdu ; garder une respiration nette autour de tous les contenus utiles.",
-    ].join(" ")
-    : "";
+  const printTemplate = target.destination === "print" && target.print ? buildNativePrintTemplate(target.print) : null;
+  const printInstruction = printTemplate ? buildNativePrintInstructions(printTemplate) : "";
   const outputInstruction = [
     "CIBLE FINALE PRIORITAIRE POUR LA COMPOSITION :",
     `${target.label}, ratio ${target.ratioLabel}, fichier final ${target.widthPx}×${target.heightPx} px.`,
     printInstruction,
-    "Le modèle produit son bucket natif ; composer le sujet, le texte et les éléments critiques pour supporter un recadrage cover centré vers ce ratio final, sans élément essentiel au bord.",
+    printTemplate ? "Image native définitive : aucun calque artistique ni recadrage après génération." : "Le modèle produit son bucket natif ; composer le sujet, le texte et les éléments critiques pour supporter un recadrage cover centré vers ce ratio final, sans élément essentiel au bord.",
   ].filter(Boolean).join(" ");
 
   return {
     ...request,
     marketingOutputFormat: target.destination === "print" && target.print
       ? { destination: "print", providerProductId: target.print.providerProductId,
-        widthMm: target.print.widthMm, heightMm: target.print.heightMm, bleedMm: target.print.bleedMm }
+        widthMm: target.print.widthMm, heightMm: target.print.heightMm, bleedMm: target.print.bleedMm, ...printTemplate?.contract }
       : { destination: "digital" },
     format: target.nativeFormat,
     prompt: `${request.prompt.trim()}\n\n${outputInstruction}`,

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   DIGITAL_MARKETING_OUTPUT_TARGETS,
-  MAX_PRINT_UPSCALE_FACTOR,
   buildPrintMarketingOutputTargets,
   calculateMarketingOutputPlan,
 } from "@/lib/marketing/outputGeometry";
@@ -68,79 +67,31 @@ describe("Marketing Studio output geometry", () => {
     expect(digitalTarget("youtube-thumbnail")).toMatchObject({ widthPx: 1280, heightPx: 720, ratioLabel: "16:9" });
   });
 
-  it("keeps an 85x55 business card native at 300 DPI with provider bleed", () => {
-    const [target] = buildPrintMarketingOutputTargets([
-      printProduct({ category: "business_card", marketingToolId: "business_card", widthMm: 85, heightMm: 55, bleedMm: 3 }),
-    ] as any);
-
-    expect(target).toMatchObject({
-      destination: "print",
-      widthPx: 1075,
-      heightPx: 721,
-      targetDpi: 300,
-      nativeFormat: "landscape",
-    });
-    const plan = calculateMarketingOutputPlan(1536, 1024, target);
-    expect(plan.upscaleFactor).toBeLessThanOrEqual(1);
+  it("requests native, bleed-inclusive business-card pixels without inventing resolution", () => {
+    const [target] = buildPrintMarketingOutputTargets([printProduct({ category: "business_card", marketingToolId: "business_card", widthMm: 85, heightMm: 55, bleedMm: 3 })]);
+    expect(target.widthPx % 16).toBe(0);
+    expect(target.heightPx % 16).toBe(0);
+    expect(target.widthPx / (91 / 25.4)).toBeGreaterThanOrEqual(299.5);
+    expect(target.nativeWidthPx).toBe(target.widthPx);
+    const plan = calculateMarketingOutputPlan(target.widthPx, target.heightPx, target);
+    expect(plan.upscaleFactor).toBe(1);
+    expect(plan.crop).toEqual({ sourceX: 0, sourceY: 0, sourceWidth: target.widthPx, sourceHeight: target.heightPx });
     expect(plan.quality).toBe("native_or_downscale");
   });
-
-  it("allows an A4 hand-held menu up to the x2.5 print ceiling", () => {
-    const [target] = buildPrintMarketingOutputTargets([
-      printProduct({ category: "restaurant_menu", marketingToolId: "restaurant_menu", widthMm: 210, heightMm: 297, bleedMm: 3 }),
-    ] as any);
-
-    expect(target).toMatchObject({ widthPx: 2552, heightPx: 3579, targetDpi: 300, nativeFormat: "portrait" });
-    const plan = calculateMarketingOutputPlan(1024, 1536, target);
-    expect(plan.upscaleFactor).toBeGreaterThan(2.4);
-    expect(plan.upscaleFactor).toBeLessThanOrEqual(MAX_PRINT_UPSCALE_FACTOR);
-    expect(plan.quality).toBe("upscale_allowed");
+  it.each([[210, 297], [297, 420]])("rejects an old bucket for %s×%s instead of cropping/upscaling it", (widthMm, heightMm) => {
+    const [target] = buildPrintMarketingOutputTargets([printProduct({ category: "poster", marketingToolId: "poster", widthMm, heightMm, bleedMm: 3 })]);
+    const old = calculateMarketingOutputPlan(1024, 1536, target);
+    expect(old.quality).toBe("upscale_blocked");
+    expect(old.upscaleFactor).toBe(1);
+    expect(old.crop.sourceWidth).toBe(1024);
+    expect(old.crop.sourceHeight).toBe(1536);
+    expect(target.targetDpi).toBeLessThan(300);
+    expect(calculateMarketingOutputPlan(target.widthPx, target.heightPx, target).quality).toBe("native_or_downscale");
   });
-
-  it("uses 150 DPI for an A3 poster viewed at distance", () => {
-    const [target] = buildPrintMarketingOutputTargets([
-      printProduct({ category: "poster", marketingToolId: "poster", widthMm: 297, heightMm: 420, bleedMm: 3 }),
-    ] as any);
-
-    expect(target).toMatchObject({ widthPx: 1790, heightPx: 2516, targetDpi: 150, nativeFormat: "portrait" });
-  });
-
-  it("uses the open trimmed spread while exposing the closed folded size", () => {
-    const [target] = buildPrintMarketingOutputTargets([
-      printProduct({
-        category: "folded_leaflet",
-        marketingToolId: "folded_leaflet",
-        widthMm: 296,
-        heightMm: 210,
-        bleedMm: 3,
-        specifications: {
-          "the exact width of the card in mm. after folding": "148",
-          "the exact height of the card in mm. after folding": "210",
-        },
-      }),
-    ] as any);
-
-    expect(target).toMatchObject({
-      widthPx: 3567,
-      heightPx: 2552,
-      targetDpi: 300,
-      nativeFormat: "landscape",
-      print: {
-        widthMm: 296,
-        heightMm: 210,
-        foldedWidthMm: 148,
-        foldedHeightMm: 210,
-      },
-    });
-  });
-
-  it("blocks print targets whose required crop-aware upscale exceeds x2.5", () => {
-    const [target] = buildPrintMarketingOutputTargets([
-      printProduct({ category: "restaurant_menu", marketingToolId: "restaurant_menu", widthMm: 240, heightMm: 350, bleedMm: 3 }),
-    ] as any);
-    expect(target.widthPx * target.heightPx).toBeLessThan(20_000_000);
-    const plan = calculateMarketingOutputPlan(1024, 1536, target);
-    expect(plan.upscaleFactor).toBeGreaterThan(MAX_PRINT_UPSCALE_FACTOR);
-    expect(plan.quality).toBe("upscale_blocked");
+  it("does not expose folded or multi-page templates as a single native picture", () => {
+    expect(buildPrintMarketingOutputTargets([printProduct({ category: "folded_leaflet", marketingToolId: "folded_leaflet", widthMm: 296, heightMm: 210, bleedMm: 3 })])).toEqual([]);
+    const product = printProduct({ category: "flyer", marketingToolId: "flyer", widthMm: 105, heightMm: 148, bleedMm: 3 });
+    product.variants[0].printableSides = 2;
+    expect(buildPrintMarketingOutputTargets([product])).toEqual([]);
   });
 });

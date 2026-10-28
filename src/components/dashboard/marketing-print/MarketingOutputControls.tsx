@@ -1,3 +1,5 @@
+import { buildNativePrintTemplate, nativePrintContractMatches } from "../../../../supabase/functions/_shared/print/artwork";
+import { matchesGeneratedPrintFormat } from "../../../../supabase/functions/_shared/print/source-format";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Download, Loader2, MonitorSmartphone, Printer, Share2 } from "lucide-react";
@@ -39,7 +41,7 @@ function targetDescription(target: MarketingOutputTarget) {
   const folded = target.print.foldedWidthMm && target.print.foldedHeightMm
     ? ` · fermé ${target.print.foldedWidthMm}×${target.print.foldedHeightMm} mm`
     : "";
-  return `${target.print.widthMm}×${target.print.heightMm} mm à plat${folded} · bleed ${target.print.bleedMm} mm · marge sûre ${target.print.safeMarginMm} mm · ${target.targetDpi} DPI · ${target.widthPx}×${target.heightPx} px`;
+  return `${target.print.widthMm}×${target.print.heightMm} mm à plat${folded} · fond perdu ${target.print.bleedMm} mm · marge sûre ${target.print.safeMarginMm} mm · ${target.targetDpi} DPI natifs estimés (300 recommandés) · ${target.widthPx}×${target.heightPx} px`;
 }
 
 export default function MarketingOutputControls({ restaurantId, printEnabled }: Props) {
@@ -99,9 +101,14 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
 
   const latestMarketingCreation = records.find((record) => (
     record.tool === "marketing_studio"
+    && (!restaurantId || record.restaurantId === restaurantId)
     && record.status === "completed"
     && Boolean(getAiCreationImageUrl(record))
   ));
+
+  const canDownloadCurrentPrint = selectedTarget?.destination !== "print" || Boolean(selectedTarget.print
+    && matchesGeneratedPrintFormat(latestMarketingCreation?.result?.marketing_output_target, selectedTarget.print)
+    && nativePrintContractMatches(latestMarketingCreation?.result?.marketing_output_target, buildNativePrintTemplate(selectedTarget.print)));
 
   const handleDestination = (next: MarketingOutputDestination) => {
     if (next === "print" && !printEnabled) return;
@@ -127,7 +134,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
   };
 
   const handleDownload = async () => {
-    if (!selectedTarget || !latestMarketingCreation) return;
+    if (!selectedTarget || !latestMarketingCreation || !canDownloadCurrentPrint) return;
     const sourceUrl = getAiCreationImageUrl(latestMarketingCreation);
     if (!sourceUrl) return;
     setDownloading(true);
@@ -168,7 +175,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
             type="button"
             variant="outline"
             className="shrink-0 rounded-xl"
-            disabled={!selectedTarget || !latestMarketingCreation || Boolean(printBlocked) || downloading}
+            disabled={!selectedTarget || !latestMarketingCreation || !canDownloadCurrentPrint || Boolean(printBlocked) || downloading}
             onClick={() => void handleDownload()}
           >
             {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
@@ -176,6 +183,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
           </Button>
         </div>
 
+        {!canDownloadCurrentPrint ? <p role="status" className="text-xs text-muted-foreground">Générez d’abord un visuel natif pour ce support. Un visuel numérique ne peut pas devenir un fichier d’impression par agrandissement.</p> : null}
         {!latestMarketingCreation ? <p className="text-xs text-muted-foreground">Le téléchargement sera disponible après la génération d’un visuel.</p> : null}
         {printBlocked ? <p role="alert" className="text-sm font-semibold text-destructive">Ce format est trop grand pour une impression de qualité. Choisissez un autre format avant de générer.</p> : null}
         <details className="rounded-2xl border bg-background/80 p-3">
@@ -238,7 +246,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
 
         {destination === "print" ? (
           <p className="rounded-xl border bg-background/70 px-3 py-2 text-xs text-muted-foreground">
-            Seuls les produits réellement mappés au catalogue Cloudprinter apparaissent dans le Studio. La génération respecte leur format à plat, leur fond perdu et leur marge de sécurité. La disponibilité à la commande reste contrôlée séparément par TheTok Print.
+            Seuls les produits réellement mappés au catalogue Cloudprinter apparaissent dans le Studio. Le gabarit natif impose le format, le fond perdu et la marge de sécurité. Les pixels et les éléments intégrés sont contrôlés avant le BAT. Pour modifier un titre, prix, texte ou logo, régénérez le visuel : aucun calque ne sera ajouté.
           </p>
         ) : null}
 
@@ -256,8 +264,8 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
               <summary className="cursor-pointer py-1 text-xs font-semibold">Détails techniques du format</summary>
             <p className="mt-1">{targetDescription(selectedTarget)}</p>
             <p className="mt-1 text-xs opacity-80">
-              Source GPT attendue : {selectedTarget.nativeWidthPx}×{selectedTarget.nativeHeightPx} · facteur théorique {expectedPlan?.upscaleFactor.toFixed(2)}×.
-              {printBlocked ? " Ce support dépasse le plafond 2,5× et la génération Print est bloquée." : ""}
+              Source GPT attendue : {selectedTarget.nativeWidthPx}×{selectedTarget.nativeHeightPx}. {selectedTarget.destination === "print" ? "Export natif sans recadrage ni agrandissement artificiel ; contrôle final sur les pixels réels." : "Adaptation au format numérique choisi."}
+              {printBlocked ? " Ce support ne peut pas être produit au ratio et à la résolution native requis." : ""}
             </p>
             </details>
           </div>

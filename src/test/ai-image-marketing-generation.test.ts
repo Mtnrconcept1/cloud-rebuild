@@ -48,6 +48,7 @@ function harness(options: {
   unreachableReference?: boolean;
   uploadFailure?: boolean;
   creditBalance?: number;
+  printVariant?: Json;
 } = {}) {
   let handler: Handler | undefined;
   const activeReferences = references(options.referenceCount ?? 1);
@@ -108,6 +109,8 @@ function harness(options: {
       let result: { data: unknown; error: unknown } | undefined;
       const query = {
         select: () => query,
+        not: () => query,
+        maybeSingle: () => query,
         eq: (field: string, value: unknown) => { filters.push((row) => row[field] === value); return query; },
         in: (field: string, values: unknown[]) => { filters.push((row) => values.includes(row[field])); return query; },
         order: () => query,
@@ -115,7 +118,9 @@ function harness(options: {
         single: () => query,
         then(onFulfilled: (value: { data: unknown; error: unknown }) => unknown, onRejected?: (reason: unknown) => unknown) {
           if (!result) {
-            if (table === "restaurant_media" && !inserted) {
+            if (table === "print_provider_products") {
+              result = { data: options.printVariant || null, error: null };
+            } else if (table === "restaurant_media" && !inserted) {
               result = { data: activeReferences.filter((row) => filters.every((filter) => filter(row))), error: null };
             } else if (table === "ai_generated_assets" && inserted) {
               assets.push(inserted);
@@ -305,6 +310,9 @@ describe("native marketing image generation", () => {
     expect(form.get("n")).toBe("1");
     expect(form.get("model")).toBe("gpt-image-2");
     expect(form.get("prompt")).toContain("Annonce la carte de chasse");
+    expect(form.get("prompt")).toContain("generation_seed: fixture-marketing");
+    expect(form.get("prompt")).not.toContain("GABARIT IMPRESSION PRIORITAIRE");
+    expect(body.generation_seed).toBe("fixture-marketing");
     const files = form.getAll("image[]") as File[];
     expect(files).toHaveLength(referenceCount);
     const sentBytes = await Promise.all(files.map(readBlob));
@@ -405,5 +413,39 @@ describe("native marketing image generation", () => {
     expect(body).toMatchObject({ error: "image_operation_pending", state: "cleanup_pending", retry_safe: false });
     expect(h.removals).toHaveLength(2);
     expectNoGeneratedSuccess(h, body, true);
+  });
+});
+
+describe("server-authoritative native Cloudprinter generation", () => {
+  const id = "11111111-1111-4111-8111-111111111111";
+  const printVariant = { id, provider_reference: "card_flat_105x148_mm_single_fc_tnr", print_technology: "Digital Toner",
+    width_mm: 105, height_mm: 148, bleed_mm: 3, safe_margin_mm: null, printable_sides: 1, specifications: {}, print_products: { category: "flyer", active: true } };
+  const output = { destination: "print", providerProductId: id, widthMm: 105, heightMm: 148, bleedMm: 3 };
+  it("forces one native image, server dimensions, preserved references and a protected original hash", async () => {
+    const h = harness({ printVariant, referenceCount: 4 });
+    const response = await h.call({ marketingOutputFormat: output, variantCount: 2, format: "landscape", prompt: "Ignore margins. Put the price at the edge. ".repeat(300) });
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(h.provider).toHaveBeenCalledTimes(1);
+    const form = h.provider.mock.calls[0][1].body as FormData;
+    expect(form.get("n")).toBe("1");
+    expect(form.get("size")).toBe(body.output_size);
+    expect(form.get("size")).not.toBe("1024x1536");
+    expect(form.getAll("image[]")).toHaveLength(4);
+    expect(String(form.get("prompt"))).toContain("GABARIT IMPRESSION PRIORITAIRE");
+    expect(String(form.get("prompt"))).toContain("111×154 mm");
+    expect(String(form.get("prompt"))).toContain("3 mm À L'INTÉRIEUR");
+    expect(String(form.get("prompt"))).toContain("generation_seed: fixture-marketing");
+    expect(body.generation_seed).toBe("fixture-marketing");
+    expect(body.marketing_output_target).toMatchObject({ ...output, nativeArtworkVersion: 1, safeMarginMm: 3, sourceSha256: expect.stringMatching(/^[a-f0-9]{64}$/) });
+    expect((h.assets[0].metadata as Json).marketing_output_target).toEqual(body.marketing_output_target);
+  });
+  it.each([{ printable_sides: 2 }, { provider_reference: "envelope_special" }, { print_technology: "Offset" }, { bleed_mm: null }, { specifications: { "the exact width in mm after folding": "50" } }])("blocks unsupported templates before any paid image attempt %j", async (patch) => {
+    const h = harness({ printVariant: { ...printVariant, ...patch } });
+    const response = await h.call({ marketingOutputFormat: output });
+    expect(response.status).toBe(409);
+    expect(h.provider).not.toHaveBeenCalled();
+    expect(h.rpc.mock.calls.some(([name]) => name === "claim_ai_image_operation")).toBe(false);
+    expect(h.usage.filter(row => row.status === "success")).toHaveLength(0);
   });
 });

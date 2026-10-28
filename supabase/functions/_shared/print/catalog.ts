@@ -21,3 +21,17 @@ export function geometryMatchesLogicalProduct(product: LogicalProduct, variant: 
   const [width, height, expectedWidth, expectedHeight] = values;
   return Math.abs(width - expectedWidth) <= 1.5 && Math.abs(height - expectedHeight) <= 1.5;
 }
+
+/** Native raster output cannot fulfil folds, dielines, multiple pages, spot colours or offset printing. */
+export function isNativeArtworkProduct(variant: PrintVariant & { provider_reference?: unknown; print_technology?: unknown }, logicalProduct?: LogicalProduct | null): boolean {
+  if (!isSinglePagePrintProduct(variant, logicalProduct)) return false;
+  if (!/^digital(?:\s|$)/i.test(String(variant.print_technology || ""))) return false;
+  if (!/^(card_flat_|businesscard_ss_|poster_)/.test(String(variant.provider_reference || ""))) return false;
+  const specs = variant.specifications && typeof variant.specifications === "object"
+    ? variant.specifications as Record<string, unknown> : {};
+  for (const [key, value] of Object.entries(specs)) {
+    if (/after folding|die.?cut|cut.?contour|gripper|spot.?colou?r|pantone|white.?ink|pdf.?x|icc profile/i.test(key)
+      && value != null && value !== "" && !/^(no|none|false|0)$/i.test(String(value))) return false;
+  }
+  return true;
+}

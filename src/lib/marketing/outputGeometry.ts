@@ -1,3 +1,5 @@
+import { isSinglePagePrintProduct } from "../../../supabase/functions/_shared/print/catalog";
+import { buildNativePrintTemplate, validateNativeArtwork } from "../../../supabase/functions/_shared/print/artwork";
 import type { TokImageFormat } from "../ai/tokAiClient";
 
 export type MarketingOutputDestination = "digital" | "print";
@@ -180,16 +182,6 @@ export function chooseNativeFormat(width: number, height: number): TokImageForma
   return width > height ? "landscape" : "portrait";
 }
 
-function printDpi(category: string, marketingToolId?: string | null) {
-  const normalized = `${category} ${marketingToolId || ""}`.toLowerCase();
-  if (/(poster|large_poster|calendar|banner|pos_display|large format|wall)/.test(normalized)) return 150;
-  return 300;
-}
-
-function millimetersToPixels(mm: number, dpi: number) {
-  return Math.ceil((mm / 25.4) * dpi);
-}
-
 function normalizedSpecs(specifications: Record<string, unknown> | undefined) {
   return new Map(
     Object.entries(specifications || {}).map(([key, value]) => [key.trim().toLowerCase(), String(value ?? "").trim()]),
@@ -238,18 +230,20 @@ export function buildPrintMarketingOutputTargets(
   const targets: MarketingOutputTarget[] = [];
   for (const product of products || []) {
     for (const variant of product.variants || []) {
+      if (!isSinglePagePrintProduct({ printable_sides: variant.printableSides, specifications: variant.specifications }, product)) continue;
       const widthMm = Number(variant.widthMm);
       const heightMm = Number(variant.heightMm);
       const bleedMm = Math.max(0, Number(variant.bleedMm) || 0);
       if (!Number.isFinite(widthMm) || !Number.isFinite(heightMm) || widthMm <= 0 || heightMm <= 0) continue;
-      const targetDpi = printDpi(product.category, product.marketingToolId);
-      const fullWidthMm = widthMm + bleedMm * 2;
-      const fullHeightMm = heightMm + bleedMm * 2;
-      const widthPx = millimetersToPixels(fullWidthMm, targetDpi);
-      const heightPx = millimetersToPixels(fullHeightMm, targetDpi);
+      let template: ReturnType<typeof buildNativePrintTemplate>;
+      try {
+        template = buildNativePrintTemplate({ widthMm, heightMm, bleedMm: variant.bleedMm, safeMarginMm: variant.safeMarginMm });
+      } catch { continue; }
+      const targetDpi = Math.floor(template.nativeDpi);
+      const { widthPx, heightPx } = template;
       if (widthPx * heightPx > MAX_MARKETING_OUTPUT_PIXELS) continue;
       const nativeFormat = chooseNativeFormat(widthPx, heightPx);
-      const native = NATIVE_SIZE[nativeFormat];
+      const native = { width: widthPx, height: heightPx };
       const foldedWidthMm = foldedDimension(variant.specifications, "width");
       const foldedHeightMm = foldedDimension(variant.specifications, "height");
       const foldedSuffix = foldedWidthMm && foldedHeightMm
@@ -276,7 +270,7 @@ export function buildPrintMarketingOutputTargets(
           widthMm,
           heightMm,
           bleedMm,
-          safeMarginMm: Math.max(0, Number(variant.safeMarginMm) || 0),
+          safeMarginMm: template.safeMarginMm,
           foldedWidthMm,
           foldedHeightMm,
           printableSides: Math.max(1, Math.round(Number(variant.printableSides) || 1)),
@@ -330,6 +324,15 @@ export function calculateMarketingOutputPlan(
   sourceHeight: number,
   target: MarketingOutputTarget,
 ) {
+  if (target.destination === "print" && target.print) {
+    const validation = validateNativeArtwork(sourceWidth, sourceHeight, buildNativePrintTemplate(target.print));
+    return {
+      crop: { sourceX: 0, sourceY: 0, sourceWidth, sourceHeight },
+      upscaleFactor: 1,
+      quality: (validation.ready ? "native_or_downscale" : "upscale_blocked") as MarketingOutputQuality,
+      sourceWidth, sourceHeight, targetWidth: sourceWidth, targetHeight: sourceHeight,
+    };
+  }
   const crop = calculateCoverCrop(sourceWidth, sourceHeight, target.widthPx, target.heightPx);
   const scaleX = target.widthPx / crop.sourceWidth;
   const scaleY = target.heightPx / crop.sourceHeight;

@@ -121,7 +121,7 @@ describe("Cloudprinter catalogue administration", () => {
 describe("orderable generation catalogue", () => {
   it("excludes inactive, rotated, duplex and multipage variants", async () => {
     state.products = [state.logical];
-    const variant = { id: "good", print_product_id: productId, provider_reference: "a4", width_mm: 210, height_mm: 297, printable_sides: 1, specifications: {}, active: true };
+    const variant = { id: "good", print_product_id: productId, provider_reference: "poster_a4_fc", print_technology: "Digital Toner", width_mm: 210, height_mm: 297, bleed_mm: 3, safe_margin_mm: null, printable_sides: 1, specifications: {}, active: true };
     state.variants = [variant, { ...variant, id: "inactive", active: false }, { ...variant, id: "rotated", width_mm: 297, height_mm: 210 }, { ...variant, id: "duplex", printable_sides: 2 }, { ...variant, id: "book", specifications: { "number of printable pages": 12 } }];
     for (const action of ["list", "generation_catalog"]) {
       const body = await (await request({ action, restaurantId: "restaurant" })).json();

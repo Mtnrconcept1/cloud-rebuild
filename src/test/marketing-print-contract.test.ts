@@ -120,9 +120,9 @@ describe("TheTok Print foundation contracts", () => {
     }
     expect(preflight).toContain("runPrintPreflight");
     expect(preflight).toContain("blocking");
-    expect(preflight).toContain("bleed");
-    expect(preflight).toContain("safe");
-    expect(preflight).toContain("resolution");
+    expect(preflight).toContain("buildNativePrintTemplate");
+    expect(preflight).toContain("hasArtworkOverlays");
+    expect(preflight).toContain("validateNativeArtwork");
     expect(proof).toContain("approved");
     expect(proof).toContain("Ligne de coupe");
     expect(proof).toContain("Zone de sécurité");
