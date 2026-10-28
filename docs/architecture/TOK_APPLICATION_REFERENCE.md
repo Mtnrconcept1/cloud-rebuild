@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8a8e0264e50682a4094ead0f4f024cb3cf34925f1074fdb171ff00f7458ca504`
+- Empreinte SHA-256 des sources indexées : `7aa22617339d7d89cda907323ed1fa97275516481ff3e402d81dfbe5d9d0eeb3`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1537,12 +1537,12 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/v1/token?grant_type=password | 5 | [src/test/marketing-bff-security.test.ts:240](../../src/test/marketing-bff-security.test.ts#L240) |
 | /auth/v1/user | 10 | [src/test/marketing-bff-security.test.ts:251](../../src/test/marketing-bff-security.test.ts#L251) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
-| /auth?confirmed=1 | 3 | [src/test/auth-signup-form.test.tsx:624](../../src/test/auth-signup-form.test.tsx#L624) |
+| /auth?confirmed=1 | 3 | [src/test/auth-signup-form.test.tsx:593](../../src/test/auth-signup-form.test.tsx#L593) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
 | /auth?redirect=/commercial | 1 | [src/test/admin-commercial-accounts.test.ts:192](../../src/test/admin-commercial-accounts.test.ts#L192) |
 | /auth?role=restaurateur | 1 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
 | /auth?type=client | 18 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
-| /auth?type=restaurateur | 5 | [src/test/auth-signup-form.test.tsx:504](../../src/test/auth-signup-form.test.tsx#L504) |
+| /auth?type=restaurateur | 5 | [src/test/auth-signup-form.test.tsx:481](../../src/test/auth-signup-form.test.tsx#L481) |
 | /authorize | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
 | /availability | 1 | [supabase/functions/tok-connect-api/index.ts:1039](../../supabase/functions/tok-connect-api/index.ts#L1039) |
 | /avis | 1 | [src/test/dashboard-design-preview-export.test.tsx:64](../../src/test/dashboard-design-preview-export.test.tsx#L64) |
@@ -1551,7 +1551,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /campaign-studio | 1 | [src/test/dashboard-design-preview-export.test.tsx:62](../../src/test/dashboard-design-preview-export.test.tsx#L62) |
 | /carte | 2 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
 | /cgu | 22 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
-| /chef2.png | 4 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
+| /chef2.png | 3 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
 | /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:672](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L672) |
 | /chefs-table | 27 | [scripts/prerender-seo.mjs:1049](../../scripts/prerender-seo.mjs#L1049) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
@@ -1672,7 +1672,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
 | /enrich-directory-images | 2 | [src/test/directory-image-discovery-worker.test.ts:44](../../src/test/directory-image-discovery-worker.test.ts#L44) |
 | /equipe | 3 | [src/test/dashboard-design-preview-export.test.tsx:70](../../src/test/dashboard-design-preview-export.test.tsx#L70) |
-| /equipe/ | 1 | [src/pages/Auth.tsx:1141](../../src/pages/Auth.tsx#L1141) |
+| /equipe/ | 1 | [src/pages/Auth.tsx:1132](../../src/pages/Auth.tsx#L1132) |
 | /equipe/gestion | 12 | [src/App.tsx:573](../../src/App.tsx#L573) |
 | /equipe/gestion/private | 1 | [src/test/workforce-auth-continuation.test.ts:100](../../src/test/workforce-auth-continuation.test.ts#L100) |
 | /equipe/gestion?next=/admin | 1 | [src/test/auth-post-login-routing.test.ts:70](../../src/test/auth-post-login-routing.test.ts#L70) |
@@ -1992,7 +1992,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /inventory/partners/{partnerId}/merchants/{merchantId}/availability:replace | 1 | [supabase/functions/google-actions-center-sync/index.ts:52](../../supabase/functions/google-actions-center-sync/index.ts#L52) |
 | /launch | 1 | [src/components/launch/LaunchArtwork.tsx:51](../../src/components/launch/LaunchArtwork.tsx#L51) |
 | /logo.png | 1 | [src/test/workspace-layout-controls.test.tsx:23](../../src/test/workspace-layout-controls.test.tsx#L23) |
-| /logotok.png | 10 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
+| /logotok.png | 9 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
 | /logout?scope=local | 1 | [server/marketingBff.ts:823](../../server/marketingBff.ts#L823) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:30](../../src/hooks/useTokLogo.ts#L30) |
 | /marketing | 34 | [scripts/application-index-core.mjs:168](../../scripts/application-index-core.mjs#L168) |
@@ -2338,7 +2338,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | delivery | /recherche | 2 | [src/pages/Recherche.tsx:247](../../src/pages/Recherche.tsx#L247) |
 | demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:85](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L85) |
 | demo_session_id | — | 4 | [src/components/commercial/CommercialDemoActorWorkspace.tsx:88](../../src/components/commercial/CommercialDemoActorWorkspace.tsx#L88) |
-| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2395](../../src/pages/Auth.tsx#L2395) |
+| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2385](../../src/pages/Auth.tsx#L2385) |
 | fields | — | 2 | [src/test/marketing-instagram-graph.test.ts:15](../../src/test/marketing-instagram-graph.test.ts#L15) |
 | fields[appScreenshotSets] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:205](../../scripts/app-store-connect-upload-screenshots.mjs#L205) |
 | fields[appScreenshots] | — | 2 | [scripts/app-store-connect-upload-screenshots.mjs:237](../../scripts/app-store-connect-upload-screenshots.mjs#L237) |

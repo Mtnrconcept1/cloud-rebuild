@@ -45,14 +45,16 @@ describe("daily dish, mobile cookies and legal consent hotfix", () => {
     expect(cookieBanner).toContain("left-[calc(env(safe-area-inset-left,0px)+0.75rem)]");
   });
 
-  it("requires an explicit legal acceptance or refusal without closing on checkbox change", () => {
+  it("keeps both consent checkboxes inline before signup submission", () => {
     expect(auth).toContain("legalAcceptanceDraft");
     expect(auth).toContain("checked={legalAcceptanceDraft}");
     expect(auth).toContain("setLegalAcceptanceDraft(checked === true)");
-    expect(auth).toContain('disabled={!legalAcceptanceDraft || (roleMode === "restaurateur" && !commissionConsentDraft)}');
-    expect(auth).toContain("Accepter et continuer");
-    expect(auth).toContain("Refuser");
-    expect(auth).toContain("setIsLogin(true)");
-    expect(auth).toContain("pointer-events-auto");
+    expect(auth).toContain("checked={commissionConsentDraft}");
+    expect(auth).toContain("setCommissionConsentDraft(checked === true)");
+    expect(auth).toContain('roleMode !== "restaurateur" || commissionConsentDraft');
+    expect(auth).toContain('aria-labelledby="signup-legal-consent-title"');
+    expect(auth).not.toContain('aria-labelledby="legal-acceptance-title"');
+    expect(auth).not.toContain("Accepter et continuer");
+    expect(auth).toContain('type="submit"');
   });
 });
