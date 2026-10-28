@@ -9,6 +9,12 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
+import {
+  normalizeAcquisitionTouch,
+  normalizeLandingPath,
+  normalizeReferrerHost,
+  normalizeUtm,
+} from "../_shared/marketing-utm.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 
 const UUID_PATTERN =
@@ -44,6 +50,10 @@ const MAX_EVENT_PAYLOAD_KEYS = 12;
 const MAX_EVENT_PAYLOAD_BYTES = 2_048;
 const MAX_EVENT_PAYLOAD_STRING_LENGTH = 160;
 const MAX_BATCH_EVENTS = 20;
+// Page views describe the public site, not a restaurant: one fixed entity keeps
+// them out of the restaurant event allowlist and its per-entity indexes.
+const SITE_ENTITY_ID = "00000000-0000-0000-0000-000000000000";
+const CONSENT_VERSION_PATTERN = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 
 type AnalyticsPayload = {
   kind?: string;
@@ -57,6 +67,12 @@ type AnalyticsPayload = {
   locationLng?: number | null;
   source?: string | null;
   impressionId?: string | null;
+  path?: string;
+  referrerHost?: string | null;
+  utm?: Record<string, unknown> | null;
+  touch?: Record<string, unknown> | null;
+  consentVersion?: string;
+  marketingConsent?: boolean;
 };
 
 type AnalyticsBatchPayload = AnalyticsPayload & {
@@ -125,6 +141,7 @@ function buildBatchEventDedupeKey(input: AnalyticsPayload) {
     searchQuery: normalizeText(input.searchQuery),
     impressionId: normalizeText(input.impressionId),
     source: normalizeText(input.source),
+    path: normalizeText(input.path),
   });
 }
 
@@ -307,6 +324,31 @@ Deno.serve(async (req) => {
       }
     };
 
+    // Sent by the browser only after analytics consent; campaign fields only
+    // after marketing consent. Anonymous visitors are counted without an id.
+    const recordPageView = async (input: AnalyticsPayload) => {
+      const path = normalizeLandingPath(input.path);
+      if (!path) {
+        throw new HttpError(400, "path invalide");
+      }
+      const referrerHost = normalizeReferrerHost(input.referrerHost);
+      const { error } = await adminClient.from("event_store").insert({
+        entity_id: SITE_ENTITY_ID,
+        entity_type: "site",
+        event_name: "page_view",
+        payload: {
+          path,
+          ...(referrerHost ? { referrer_host: referrerHost } : {}),
+          ...normalizeUtm(input.utm),
+          user_id: userId,
+        },
+      });
+
+      if (error) {
+        throw new HttpError(500, error.message);
+      }
+    };
+
     const recordImpression = async (input: AnalyticsPayload) => {
       const entityType = normalizeKind(input.entityType);
       const entityId = normalizeText(input.entityId);
@@ -354,6 +396,8 @@ Deno.serve(async (req) => {
             await recordClick(event);
           } else if (eventKind === "impression") {
             await recordImpression(event);
+          } else if (eventKind === "page_view") {
+            await recordPageView(event);
           } else {
             throw new HttpError(400, "Type de tracking invalide");
           }
@@ -385,6 +429,59 @@ Deno.serve(async (req) => {
       case "click": {
         await recordClick(input);
         return jsonResponse({ recorded: true }, 200, corsHeaders);
+      }
+
+      case "page_view": {
+        await recordPageView(input);
+        return jsonResponse({ recorded: true }, 200, corsHeaders);
+      }
+
+      // First touch is bound to the account proven by the JWT, never to an id
+      // from the body. The campaign is resolved in SQL from published items.
+      case "acquisition": {
+        if (!userId) {
+          throw new HttpError(401, "Authentification requise");
+        }
+        const consentVersion = normalizeText(input.consentVersion);
+        if (input.marketingConsent !== true || !CONSENT_VERSION_PATTERN.test(consentVersion)) {
+          throw new HttpError(400, "consentement marketing requis");
+        }
+        const touch = normalizeAcquisitionTouch(input.touch);
+        if (!touch) {
+          throw new HttpError(400, "touch invalide");
+        }
+        await limiter.consume(`user:${userId}:acquisition`, { maxRequests: 10, windowSeconds: 3600 });
+        const { data, error } = await adminClient.rpc("service_record_marketing_acquisition_touch", {
+          p_user_id: userId,
+          p_touch: {
+            ...touch.utm,
+            referrer_host: touch.referrerHost,
+            landing_path: touch.landingPath,
+            touched_at: touch.touchedAt,
+          },
+          p_consent_version: consentVersion,
+        });
+        if (error) {
+          throw new HttpError(500, error.message);
+        }
+        const result = asObject(data);
+        return jsonResponse({
+          recorded: result.recorded === true,
+          reason: typeof result.reason === "string" ? result.reason : null,
+        }, 200, corsHeaders);
+      }
+
+      case "acquisition_forget": {
+        if (!userId) {
+          throw new HttpError(401, "Authentification requise");
+        }
+        const { error } = await adminClient.rpc("service_forget_marketing_acquisition_touch", {
+          p_user_id: userId,
+        });
+        if (error) {
+          throw new HttpError(500, error.message);
+        }
+        return jsonResponse({ forgotten: true }, 200, corsHeaders);
       }
 
       default:

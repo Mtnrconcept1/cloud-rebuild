@@ -38,6 +38,8 @@ Les outils Studio marketing, Photo Pro, plan de salle, menu digital, offres et f
 
 Une URL Instagram est affichée dans la légende sans promettre qu'elle sera cliquable. Aucun « lien en bio » n'est annoncé automatiquement.
 
+À la publication, les liens `https://www.thetok.ch/…` reçoivent `utm_source` (`instagram` ou `facebook`), `utm_medium=social`, `utm_campaign={campagne}_{aaaamm}` et `utm_content={élément du calendrier}`. La destination du catalogue ne change pas, un lien déjà suivi n'est pas modifié et le brouillon approuvé reste intact. Détails : `docs/marketing/analytics-evidence.md`, section « Attribution first-touch ».
+
 ## Sources et maintenance
 
 Les skills `marketing:content-creation` et `marketing:brand-review` ont servi à construire la structure et la cohérence de marque. Les règles produit TOK restent la source des bénéfices et restrictions commerciales.

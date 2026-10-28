@@ -64,4 +64,40 @@ describe("analytics ingest contract", () => {
     expect(edgeFunction).toContain("if (!isAllowedEvent(entityType, eventName))");
     expect(edgeFunction).toContain('throw new HttpError(400, "eventName invalide")');
   });
+
+  it("records consent-gated page views for anonymous visitors without opening the restaurant allowlist", () => {
+    const edgeFunction = read("supabase/functions/track-analytics/index.ts");
+    const attribution = read("src/lib/acquisitionAttribution.ts");
+    const app = read("src/App.tsx");
+    const index = read("src/pages/Index.tsx");
+    const restaurantEvents = edgeFunction.match(
+      /\["restaurant", new Set\(\[(.*?)\]\)\]/,
+    )?.[1];
+
+    expect(restaurantEvents).not.toContain('"page_view"');
+    expect(edgeFunction).toContain('case "page_view"');
+    expect(edgeFunction).toContain('eventKind === "page_view"');
+    expect(edgeFunction).toContain('entity_type: "site"');
+    expect(edgeFunction).toContain("normalizeLandingPath(input.path)");
+    expect(edgeFunction).toContain("path: normalizeText(input.path)");
+
+    expect(attribution).toContain("receipt.preferences.analytics");
+    expect(attribution).toContain("receipt.preferences.marketing");
+    expect(attribution).toContain('kind: "page_view"');
+    expect(app).toContain("{showLaunchClientChrome ? <PageViewTracker /> : null}");
+    expect(index).not.toContain('eventType: "page_view"');
+    expect(read("src/lib/analytics.ts")).not.toContain('| "page_view"');
+  });
+
+  it("binds acquisition touches only to the account proven by the JWT", () => {
+    const edgeFunction = read("supabase/functions/track-analytics/index.ts");
+    const acquisition = edgeFunction.slice(edgeFunction.indexOf('case "acquisition"'), edgeFunction.indexOf('case "acquisition_forget"'));
+
+    expect(acquisition).toContain("if (!userId)");
+    expect(acquisition).toContain("input.marketingConsent !== true");
+    expect(acquisition).toContain("p_user_id: userId");
+    expect(acquisition).toContain('"service_record_marketing_acquisition_touch"');
+    expect(acquisition).not.toMatch(/input\.(user_?id|userId|campaign)/i);
+    expect(edgeFunction).toContain('"service_forget_marketing_acquisition_touch"');
+  });
 });

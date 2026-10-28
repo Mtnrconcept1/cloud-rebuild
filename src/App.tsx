@@ -26,6 +26,7 @@ import RoleSpaceSwitcher from "@/components/navigation/RoleSpaceSwitcher";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import LegalConsentBanner from "@/components/legal/LegalConsentBanner";
+import PageViewTracker from "@/components/PageViewTracker";
 import DailyMiamzSlotMachine from "@/components/DailyMiamzSlotMachine";
 import AiCreationNotifications from "@/components/AiCreationNotifications";
 import { setupDeepLinks } from "@/lib/deep-links";
@@ -714,6 +715,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
       {!commercialDemoFrame && pathname === "/" ? <DailyMiamzSlotMachine /> : null}
       {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
       {showLaunchClientChrome ? <LegalConsentBanner /> : null}
+      {showLaunchClientChrome ? <PageViewTracker /> : null}
     </>
   );
 }
