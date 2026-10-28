@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `0ff5f38068ce02981ab4002763bb3099807458346660bf894a778ba2f843c51e`
+- Empreinte SHA-256 des sources indexées : `dac8640650d372dc1c417a5628d120d900089f8d966b20a96e7beaa5ad0a6afe`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 585 |
-| modules | 1883 |
+| modules | 1884 |
 | pages | 133 |
 | pathLiterals | 921 |
 | publicAssets | 715 |
 | publicEntries | 748 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19470 |
-| repositoryFiles | 3758 |
+| records | 19472 |
+| repositoryFiles | 3759 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -508,7 +508,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | cloudprinter-webhook | [supabase/functions/cloudprinter-webhook/index.ts:1](../../supabase/functions/cloudprinter-webhook/index.ts#L1) | oui ([supabase/config.toml:303](../../supabase/config.toml#L303)) | false | POST | — | — |
 | commercial-consent-confirmation | [supabase/functions/commercial-consent-confirmation/index.ts:1](../../supabase/functions/commercial-consent-confirmation/index.ts#L1) | oui ([supabase/config.toml:377](../../supabase/config.toml#L377)) | false | ANY | — | — |
 | commercial-demo-ai | [supabase/functions/commercial-demo-ai/index.ts:1](../../supabase/functions/commercial-demo-ai/index.ts#L1) | oui ([supabase/config.toml:92](../../supabase/config.toml#L92)) | false | POST | chat, maintenance_cleanup, visual_generate | openai, supabase |
-| commercial-demo-checkout | [supabase/functions/commercial-demo-checkout/index.ts:1](../../supabase/functions/commercial-demo-checkout/index.ts#L1) | oui ([supabase/config.toml:89](../../supabase/config.toml#L89)) | false | POST | create | stripe, supabase |
+| commercial-demo-checkout | [supabase/functions/commercial-demo-checkout/index.ts:1](../../supabase/functions/commercial-demo-checkout/index.ts#L1) | oui ([supabase/config.toml:89](../../supabase/config.toml#L89)) | false | POST | create | stripe |
 | commercial-followup-reminder | [supabase/functions/commercial-followup-reminder/index.ts:1](../../supabase/functions/commercial-followup-reminder/index.ts#L1) | oui ([supabase/config.toml:86](../../supabase/config.toml#L86)) | false | POST | — | — |
 | complete-order-checkout | [supabase/functions/complete-order-checkout/index.ts:1](../../supabase/functions/complete-order-checkout/index.ts#L1) | oui ([supabase/config.toml:104](../../supabase/config.toml#L104)) | false | ANY | — | stripe |
 | complete-restaurant-credit-pack-checkout | [supabase/functions/complete-restaurant-credit-pack-checkout/index.ts:1](../../supabase/functions/complete-restaurant-credit-pack-checkout/index.ts#L1) | oui ([supabase/config.toml:107](../../supabase/config.toml#L107)) | false | ANY | — | stripe |
@@ -560,9 +560,9 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | print-reconcile | [supabase/functions/print-reconcile/index.ts:1](../../supabase/functions/print-reconcile/index.ts#L1) | oui ([supabase/config.toml:330](../../supabase/config.toml#L330)) | false | POST | — | — |
 | print-sandbox-complete | [supabase/functions/print-sandbox-complete/index.ts:1](../../supabase/functions/print-sandbox-complete/index.ts#L1) | oui ([supabase/config.toml:315](../../supabase/config.toml#L315)) | false | GET | — | stripe |
 | process-refund | [supabase/functions/process-refund/index.ts:1](../../supabase/functions/process-refund/index.ts#L1) | oui ([supabase/config.toml:200](../../supabase/config.toml#L200)) | false | ANY | — | stripe |
-| process-reservation-cancellation-fees | [supabase/functions/process-reservation-cancellation-fees/index.ts:1](../../supabase/functions/process-reservation-cancellation-fees/index.ts#L1) | oui ([supabase/config.toml:203](../../supabase/config.toml#L203)) | false | POST | — | stripe, supabase |
+| process-reservation-cancellation-fees | [supabase/functions/process-reservation-cancellation-fees/index.ts:1](../../supabase/functions/process-reservation-cancellation-fees/index.ts#L1) | oui ([supabase/config.toml:203](../../supabase/config.toml#L203)) | false | POST | — | stripe |
 | provision-commercial-accounts | [supabase/functions/provision-commercial-accounts/index.ts:1](../../supabase/functions/provision-commercial-accounts/index.ts#L1) | oui ([supabase/config.toml:209](../../supabase/config.toml#L209)) | false | POST | create, list, reset_password, string | — |
-| provision-commercial-demo-logins | [supabase/functions/provision-commercial-demo-logins/index.ts:1](../../supabase/functions/provision-commercial-demo-logins/index.ts#L1) | oui ([supabase/config.toml:370](../../supabase/config.toml#L370)) | true | OPTIONS | — | supabase |
+| provision-commercial-demo-logins | [supabase/functions/provision-commercial-demo-logins/index.ts:1](../../supabase/functions/provision-commercial-demo-logins/index.ts#L1) | oui ([supabase/config.toml:370](../../supabase/config.toml#L370)) | true | OPTIONS | — | — |
 | provision-commercial-demo-project-session | [supabase/functions/provision-commercial-demo-project-session/index.ts:1](../../supabase/functions/provision-commercial-demo-project-session/index.ts#L1) | oui ([supabase/config.toml:212](../../supabase/config.toml#L212)) | false | POST | — | stripe, supabase |
 | reconcile-match-group-authorizations | [supabase/functions/reconcile-match-group-authorizations/index.ts:1](../../supabase/functions/reconcile-match-group-authorizations/index.ts#L1) | oui ([supabase/config.toml:230](../../supabase/config.toml#L230)) | false | ANY | — | stripe |
 | reconcile-paid-order-checkouts | [supabase/functions/reconcile-paid-order-checkouts/index.ts:1](../../supabase/functions/reconcile-paid-order-checkouts/index.ts#L1) | oui ([supabase/config.toml:233](../../supabase/config.toml#L233)) | false | ANY | — | stripe |
@@ -576,8 +576,8 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | settle-developer-statement | [supabase/functions/settle-developer-statement/index.ts:1](../../supabase/functions/settle-developer-statement/index.ts#L1) | oui ([supabase/config.toml:269](../../supabase/config.toml#L269)) | false | ANY | — | stripe |
 | stripe-connect-onboard | [supabase/functions/stripe-connect-onboard/index.ts:1](../../supabase/functions/stripe-connect-onboard/index.ts#L1) | oui ([supabase/config.toml:254](../../supabase/config.toml#L254)) | false | POST | — | stripe |
 | stripe-connect-status | [supabase/functions/stripe-connect-status/index.ts:1](../../supabase/functions/stripe-connect-status/index.ts#L1) | oui ([supabase/config.toml:257](../../supabase/config.toml#L257)) | false | POST | — | stripe |
-| stripe-setup | [supabase/functions/stripe-setup/index.ts:1](../../supabase/functions/stripe-setup/index.ts#L1) | non | null | OPTIONS | — | stripe, supabase |
-| stripe-subscription-reconcile | [supabase/functions/stripe-subscription-reconcile/index.ts:1](../../supabase/functions/stripe-subscription-reconcile/index.ts#L1) | oui ([supabase/config.toml:266](../../supabase/config.toml#L266)) | false | POST | — | stripe, supabase |
+| stripe-setup | [supabase/functions/stripe-setup/index.ts:1](../../supabase/functions/stripe-setup/index.ts#L1) | non | null | OPTIONS | — | stripe |
+| stripe-subscription-reconcile | [supabase/functions/stripe-subscription-reconcile/index.ts:1](../../supabase/functions/stripe-subscription-reconcile/index.ts#L1) | oui ([supabase/config.toml:266](../../supabase/config.toml#L266)) | false | POST | — | stripe |
 | stripe-webhook | [supabase/functions/stripe-webhook/index.ts:1](../../supabase/functions/stripe-webhook/index.ts#L1) | oui ([supabase/config.toml:260](../../supabase/config.toml#L260)) | false | POST | — | stripe, supabase |
 | stripe-worker | [supabase/functions/stripe-worker/index.ts:1](../../supabase/functions/stripe-worker/index.ts#L1) | oui ([supabase/config.toml:263](../../supabase/config.toml#L263)) | false | OPTIONS, POST | — | stripe, supabase |
 | submit-signup-application | [supabase/functions/submit-signup-application/index.ts:1](../../supabase/functions/submit-signup-application/index.ts#L1) | oui ([supabase/config.toml:281](../../supabase/config.toml#L281)) | false | ANY | — | — |
@@ -7017,7 +7017,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 278 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 856 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 852 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 73 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7038,7 +7038,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 781 |
+| test | 782 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -10322,7 +10322,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (781)</summary>
+<details><summary>test (782)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10985,6 +10985,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/supabase-client-imports.test.ts`
 - `src/test/supabase-cors.test.ts`
 - `src/test/supabase-critical-rpc-contracts.test.ts`
+- `src/test/supabase-edge-jsr-type-imports.test.ts`
 - `src/test/supabase-function-deploy-retry.test.ts`
 - `src/test/supabase-migration-order.test.ts`
 - `src/test/supabase-production-migration-history.test.ts`
