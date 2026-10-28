@@ -62,12 +62,13 @@ export function loadTokMarketingReferences(): Promise<Blob[]> {
 }
 
 export async function buildTokMarketingImageForm(prompt: string, format: CampaignFormat = "4:5", forEmail = false): Promise<FormData> {
-  if (!Object.hasOwn(CAMPAIGN_FORMAT_SIZES, format)) throw new Error("marketing_image_format_invalid");
+  const selectedFormat: CampaignFormat = forEmail ? "9:16" : format;
+  if (!Object.hasOwn(CAMPAIGN_FORMAT_SIZES, selectedFormat)) throw new Error("marketing_image_format_invalid");
   const references = await loadTokMarketingReferences();
   const form = new FormData();
   form.set("model", "gpt-image-2");
-  form.set("prompt", forEmail ? buildTokMailingVisualPrompt(prompt) : buildTokMarketingVisualPrompt(prompt, format));
-  form.set("size", CAMPAIGN_FORMAT_SIZES[format]);
+  form.set("prompt", forEmail ? buildTokMailingVisualPrompt(prompt) : buildTokMarketingVisualPrompt(prompt, selectedFormat));
+  form.set("size", CAMPAIGN_FORMAT_SIZES[selectedFormat]);
   form.set("output_format", "jpeg");
   form.set("output_compression", "90");
   form.set("n", "1");
