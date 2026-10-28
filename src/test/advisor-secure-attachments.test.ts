@@ -4,9 +4,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildAdvisorAttachmentModelSummary,
+  getAdvisorEditErrorMessage,
   parseAdvisorCrmContactsFile,
   prepareAdvisorAttachmentFiles,
 } from "@/lib/advisorAttachments";
+
+import { evaluateAdvisorAttachmentUse } from "../../supabase/functions/_shared/advisor-attachment-policy";
 
 function readSource(path: string) {
   return readFileSync(resolve(process.cwd(), path), "utf8");
@@ -137,6 +140,80 @@ describe("secure TOK advisor attachments", () => {
     expect(openai).toContain("moderation");
     expect(openai).toContain("assertOpenAIModerationPassed");
     expect(openai).toContain('typeof (entry as Record<string, unknown>).flagged !== "boolean"');
+  });
+
+  it("uses photographed menus as reference documents without treating them as dish photos", () => {
+    const common = {
+      attachmentSafe: true,
+      hasImage: true,
+      hasPdf: false,
+    };
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, category: "restaurant_business_document", target: "menu_item",
+    })).toBe("allowed");
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, category: "restaurant_business_document", target: "restaurant",
+    })).toBe("allowed");
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, category: "restaurant_business_document", target: "uploaded_dish_photo",
+    })).toBe("incompatible");
+
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, category: "restaurant_image", target: "uploaded_dish_photo",
+    })).toBe("allowed");
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, category: "restaurant_image", target: "menu_item",
+    })).toBe("allowed");
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, category: "mixed_restaurant_material", target: "menu_item", hasPdf: true,
+    })).toBe("allowed");
+  });
+
+  it("fails closed on unsafe, unsupported and mismatched attachment operations", () => {
+    const common = { hasImage: true, hasPdf: false, target: "menu_item" };
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, attachmentSafe: false, category: "restaurant_business_document",
+    })).toBe("content_rejected");
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, attachmentSafe: true, category: "unsafe_or_irrelevant",
+    })).toBe("content_rejected");
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, attachmentSafe: true, category: "unknown",
+    })).toBe("content_rejected");
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, attachmentSafe: true, category: "restaurant_business_document", target: "payment_transactions",
+    })).toBe("incompatible");
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, attachmentSafe: true, category: "restaurant_image", target: "uploaded_dish_photo", hasImage: false, hasPdf: true,
+    })).toBe("incompatible");
+    expect(evaluateAdvisorAttachmentUse({
+      ...common, attachmentSafe: true, category: "restaurant_image", hasImage: false, hasPdf: true,
+    })).toBe("incompatible");
+  });
+
+  it("displays a helpful French rejection instead of raw server codes", () => {
+    expect(getAdvisorEditErrorMessage(new Error("attachment_content_rejected")))
+      .toMatch(/carte|menu|restaurant/i);
+    expect(getAdvisorEditErrorMessage(new Error("attachment_content_rejected")))
+      .not.toContain("attachment_content_rejected");
+    expect(getAdvisorEditErrorMessage(new Error("attachment_hash_mismatch")))
+      .toMatch(/à nouveau/);
+    expect(getAdvisorEditErrorMessage(new Error("réseau indisponible")))
+      .toBe("réseau indisponible");
+  });
+
+  it("keeps the plan schema and enforcement aligned when a menu is photographed", () => {
+    const editor = readSource("supabase/functions/ai-restaurant-editor/index.ts");
+    const advisor = readSource("src/pages/dashboard/DashboardAdvisor.tsx");
+    expect(editor).toContain("attachmentProposalTargets(hasImage)");
+    expect(editor).toContain("evaluateAdvisorAttachmentUse");
+    expect(editor).toContain("Une photo de carte");
+    expect(editor).toContain('proposed.target === "uploaded_dish_photo"');
+    expect(editor).toContain("attachment_content_rejected");
+    expect(editor).not.toContain('hasImage ? ["uploaded_dish_photo"]');
+    expect(advisor).toContain("getAdvisorEditErrorMessage(error)");
+    expect(editor).toContain("sameAdvisorAttachmentManifest");
+    expect(editor).toContain("requireRestaurantAccess(actor, restaurantId)");
   });
 
   it("adds an isolated CRM import store protected by RLS, MFA and Premium/Elite access", () => {

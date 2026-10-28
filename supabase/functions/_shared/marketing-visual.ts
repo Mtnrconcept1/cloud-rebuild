@@ -62,18 +62,17 @@ export function loadTokMarketingReferences(): Promise<Blob[]> {
 }
 
 export async function buildTokMarketingImageForm(prompt: string, format: CampaignFormat = "4:5", forEmail = false): Promise<FormData> {
-  const selectedFormat: CampaignFormat = forEmail ? "9:16" : format;
-  if (!Object.hasOwn(CAMPAIGN_FORMAT_SIZES, selectedFormat)) throw new Error("marketing_image_format_invalid");
+  if (!Object.hasOwn(CAMPAIGN_FORMAT_SIZES, forEmail ? "9:16" : format)) throw new Error("marketing_image_format_invalid");
   const references = await loadTokMarketingReferences();
   const form = new FormData();
   form.set("model", "gpt-image-2");
-  form.set("prompt", forEmail ? buildTokMailingVisualPrompt(prompt) : buildTokMarketingVisualPrompt(prompt, selectedFormat));
-  form.set("size", CAMPAIGN_FORMAT_SIZES[selectedFormat]);
+  form.set("prompt", forEmail ? buildTokMailingVisualPrompt(prompt) : buildTokMarketingVisualPrompt(prompt, format));
+  form.set("size", CAMPAIGN_FORMAT_SIZES[forEmail ? "9:16" : format]);
   form.set("output_format", "jpeg");
   form.set("output_compression", "90");
   form.set("n", "1");
   // gpt-image-2 processes references at high fidelity; input_fidelity is not needed.
-  references.forEach((blob, index) => form.append("image[]", blob, `${TOK_MARKETING_REFERENCES[index].id}.jpg`));
+  (forEmail ? [2, 0, 1] : [0, 1, 2]).forEach((index) => form.append("image[]", references[index], `${TOK_MARKETING_REFERENCES[index].id}.jpg`));
   return form;
 }
 

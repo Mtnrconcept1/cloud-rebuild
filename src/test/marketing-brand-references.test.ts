@@ -142,6 +142,7 @@ describe("TOK brand reference conditioning", () => {
   it("uses the approved TOK mailing editorial system without reproducing the unrelated social grid", () => {
     const prompt = buildTokMailingVisualPrompt("TITRE : Plusieurs adresses. Une vue claire.");
     expect(prompt).toContain("CHARTE DES 10 EXEMPLES EMAIL VALIDÉS");
+    expect(prompt).toContain("public/marketing/brand/tok-v3/studio-chef.jpeg");
     expect(prompt).toContain("#FF4B11");
     expect(prompt).toContain("« Pensé pour les restaurateurs. »");
     expect(prompt).toContain("grand bouton noir");
@@ -157,7 +158,9 @@ describe("TOK brand reference conditioning", () => {
     const form = await buildTokMarketingImageForm("Le message réel d'un restaurant", "16:9", true);
     expect(form.get("size")).toBe("720x1280");
     expect(form.get("output_format")).toBe("jpeg");
-    expect(form.getAll("image[]")).toHaveLength(3);
+    expect((form.getAll("image[]") as File[]).map(file => file.name)).toEqual([
+      "studio-chef.jpg", "instagram-profile.jpg", "culinary.jpg",
+    ]);
     expect(String(form.get("prompt"))).toContain("en-tête logo+signature");
     expect(String(form.get("prompt"))).toContain("Découvrir TOK");
   });

@@ -338,11 +338,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-restaurant-editor/index.ts",
-      "line": 426
-    },
-    {
-      "file": "supabase/functions/ai-restaurant-editor/index.ts",
-      "line": 434
+      "line": 440
     }
   ],
   "attachment_data_required": [
@@ -370,7 +366,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-restaurant-editor/index.ts",
-      "line": 650
+      "line": 659
     }
   ],
   "attachment_invalid": [
