@@ -455,3 +455,15 @@ export async function prepareAdvisorAttachmentFiles(files: File[] | FileList): P
   if (crmFiles.length > 1) throw new Error("Importez une seule liste CRM à la fois.");
   return prepared as AdvisorPreparedAttachment[];
 }
+
+/** Show actionable copy instead of exposing internal attachment rejection codes. */
+export function getAdvisorEditErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : "";
+  if (message.includes("attachment_content_rejected")) {
+    return "Le fichier semble contenir des données sensibles ou ne correspond pas à une activité du restaurant. Pour une carte ou un menu, joignez une photo lisible sans informations personnelles et précisez la modification souhaitée.";
+  }
+  if (message.includes("attachment_hash_mismatch")) {
+    return "La pièce jointe a changé depuis la proposition. Retirez-la, joignez-la à nouveau et recommencez.";
+  }
+  return message || "La modification n'a pas pu être préparée.";
+}

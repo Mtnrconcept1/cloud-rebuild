@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `c201b0c86e8755048d19a666a7a802f18f883ed916ecef84a8af38e3b45f814b`
+- Empreinte SHA-256 des sources indexées : `9e9191a9fe454e9b80986ef67aa5ad82623d7c026386e7794dadcaafb9c4bc62`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 234 |
 | edgeFunctions | 122 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4172 |
+| exportedSymbols | 4176 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 585 |
-| modules | 1878 |
+| modules | 1879 |
 | pages | 133 |
 | pathLiterals | 911 |
 | publicAssets | 715 |
 | publicEntries | 746 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19436 |
-| repositoryFiles | 3752 |
+| records | 19442 |
+| repositoryFiles | 3753 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7018,7 +7018,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 224 |
 | automation-script | 91 |
 | documentation | 6 |
-| edge-function-source | 250 |
+| edge-function-source | 251 |
 | frontend-component | 302 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
@@ -8492,8 +8492,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (250)</summary>
+<details><summary>edge-function-source (251)</summary>
 
+- `supabase/functions/_shared/advisor-attachment-policy.ts`
 - `supabase/functions/_shared/advisor-attachments.ts`
 - `supabase/functions/_shared/ai-image-operation.ts`
 - `supabase/functions/_shared/ai-image-response.ts`
