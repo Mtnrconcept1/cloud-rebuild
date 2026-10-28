@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `9e9191a9fe454e9b80986ef67aa5ad82623d7c026386e7794dadcaafb9c4bc62`
+- Empreinte SHA-256 des sources indexées : `8a8e0264e50682a4094ead0f4f024cb3cf34925f1074fdb171ff00f7458ca504`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1551,7 +1551,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /campaign-studio | 1 | [src/test/dashboard-design-preview-export.test.tsx:62](../../src/test/dashboard-design-preview-export.test.tsx#L62) |
 | /carte | 2 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
 | /cgu | 22 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
-| /chef2.png | 3 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
+| /chef2.png | 4 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
 | /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:672](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L672) |
 | /chefs-table | 27 | [scripts/prerender-seo.mjs:1049](../../scripts/prerender-seo.mjs#L1049) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
@@ -1992,7 +1992,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /inventory/partners/{partnerId}/merchants/{merchantId}/availability:replace | 1 | [supabase/functions/google-actions-center-sync/index.ts:52](../../supabase/functions/google-actions-center-sync/index.ts#L52) |
 | /launch | 1 | [src/components/launch/LaunchArtwork.tsx:51](../../src/components/launch/LaunchArtwork.tsx#L51) |
 | /logo.png | 1 | [src/test/workspace-layout-controls.test.tsx:23](../../src/test/workspace-layout-controls.test.tsx#L23) |
-| /logotok.png | 9 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
+| /logotok.png | 10 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
 | /logout?scope=local | 1 | [server/marketingBff.ts:823](../../server/marketingBff.ts#L823) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:30](../../src/hooks/useTokLogo.ts#L30) |
 | /marketing | 34 | [scripts/application-index-core.mjs:168](../../scripts/application-index-core.mjs#L168) |
