@@ -29,6 +29,17 @@ import {
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_VISUALS = 6;
 const MIN_ITEMS = 1;
+
+/** Keep poster copy legible; the complete customer-facing body remains in email text. */
+function mailingPosterExcerpt(body: string): string {
+  const text = body.replace(/\s+/g, " ").trim();
+  if (text.length <= 180) return text;
+  const firstSentence = text.slice(0, 180).match(/^.*?[.!?](?=\s|$)/)?.[0];
+  if (firstSentence && firstSentence.length >= 35) return firstSentence;
+  const clipped = text.slice(0, 180);
+  const lastSpace = clipped.lastIndexOf(" ");
+  return (lastSpace > 0 ? clipped.slice(0, lastSpace) : clipped).trim() + "…";
+}
 const MAX_ITEMS = 12;
 
 type Action = "generate" | "list_runs" | "discover_sources" | "interpret_mailing";
@@ -257,12 +268,13 @@ Deno.serve(async (req) => {
     const slug = slugifyCampaignName(plan.campaign.name);
     const visualRequests = plan.items.map((item) => ({
       visual_prompt: item.channel === "email" && item.visual_prompt
-        ? [item.visual_prompt, "TEXTE À REPRODUIRE SUR L'AFFICHE (respecter exactement):",
+        ? [item.visual_prompt, "COPIE COURTE À REPRODUIRE SUR L'AFFICHE (texte exact, pas l'intégralité de l'email) :",
           "TITRE : " + item.content.headline,
-          "CORPS : " + item.content.body,
-          "APPEL À L'ACTION : " + item.content.call_to_action].join("\n")
+          "CORPS COURT : " + mailingPosterExcerpt(item.content.body),
+          "BOUTON ILLUSTRÉ : Découvrir TOK",
+          "DEUX BÉNÉFICES : seulement ceux explicitement autorisés dans le brief, sans chiffre ni promesse inventés."].join("\n")
         : item.visual_prompt,
-      visual_format: item.visual_format || formats[item.channel],
+      visual_format: item.channel === "email" ? "9:16" : item.visual_format || formats[item.channel],
     }));
     // Manual mailings spend no image credits and wait for one upload per item.
     const manualMailing = mailingOptions?.imageMode === "manual";
