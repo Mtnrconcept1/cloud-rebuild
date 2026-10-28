@@ -1,0 +1,36 @@
+/* The SEO prerender is still in the HTML for crawlers and no-JS visitors.
+   In a JS-enabled browser, never flash it before the app takes over #root. */
+html.tok-app-booting #root > #tok-prerendered-content {
+  display: none !important;
+}
+
+html.tok-app-booting #root:has(> #tok-prerendered-content) {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: radial-gradient(circle at 50% 42%, #fff4ea, #fff 65%);
+}
+
+html.tok-app-booting #root:has(> #tok-prerendered-content)::before {
+  content: "";
+  display: block;
+  width: 88px;
+  height: 88px;
+  border-radius: 24px;
+  border: 1px solid rgba(241, 93, 34, 0.18);
+  background: #fff url("/favicon-192x192.png") center / 72px 72px no-repeat;
+  box-shadow: 0 12px 45px rgba(241, 93, 34, 0.15);
+  animation: tok-app-boot-pulse 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes tok-app-boot-pulse {
+  from { opacity: 0.8; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.tok-app-booting #root:has(> #tok-prerendered-content)::before {
+    animation: none;
+  }
+}
