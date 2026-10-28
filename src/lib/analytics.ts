@@ -30,7 +30,6 @@ import {
 
 export type AnalyticsEventType =
   | "view"
-  | "page_view"
   | "search"
   | "menu_view"
   | "add_to_cart"

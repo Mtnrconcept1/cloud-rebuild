@@ -83,10 +83,9 @@ sur leur ensemble historique, séparément du filtre de période.
 
 ## Limites et livraison
 
-Le dépôt ne contient actuellement aucun producteur de `marketing_attribution_facts`.
-Ce correctif n'en crée pas. Un raccordement métier ultérieur doit documenter
-identifiants, campagne, source, consentements applicables et idempotence. Les chiffres
-du grand livre ou les abonnements globaux ne remplacent pas cette attribution.
+Le seul producteur de `marketing_attribution_facts` est l'attribution first-touch
+décrite ci-dessous (`source_system = 'tok_first_touch'`). Les chiffres du grand livre
+ou les abonnements globaux ne remplacent pas cette attribution.
 
 Le webhook marketing générique attend une enveloppe interne signée. Il ne constitue
 pas un adaptateur natif Resend/Svix et ce lot n'en configure pas un.
@@ -96,6 +95,104 @@ Contrôler une lecture authentifiée de la période, les preuves de publication 
 l'absence de double comptage. Le retour arrière restaure la définition précédente
 du RPC via une nouvelle migration compensatoire ; les index ajoutés peuvent rester.
 Aucune restauration de données n'est requise.
+
+## Attribution first-touch
+
+Migration `20261027220000_marketing_first_touch_attribution.sql`, fonction Edge
+`track-analytics`, module partagé `supabase/functions/_shared/marketing-utm.ts` et
+module navigateur `src/lib/acquisitionAttribution.ts`.
+
+### Convention UTM des publications Meta
+
+Au moment de la publication, et sans réécrire le brouillon approuvé, chaque lien
+`https://www.thetok.ch/…` de la légende Instagram ou du message Facebook reçoit :
+
+| Paramètre | Valeur |
+| --- | --- |
+| `utm_source` | `instagram` ou `facebook` |
+| `utm_medium` | `social` |
+| `utm_campaign` | `{slug du nom de campagne}_{aaaamm}`, mois suisse de `scheduled_at` ; `tok_{aaaamm}` sans campagne |
+| `utm_content` | identifiant de l'élément du calendrier |
+
+Un lien qui porte déjà un paramètre `utm_*`, un autre domaine ou le simple texte
+`thetok.ch` ne sont pas modifiés : la destination reste celle du catalogue public.
+Si les paramètres feraient dépasser la limite du réseau, la légende approuvée est
+publiée telle quelle. `result_summary.utm_applied` et `utm_campaign` indiquent le
+résultat. Les légendes de la série quotidienne citent `thetok.ch` sans URL et ne
+portent donc pas d'UTM ; le lien en bio doit suivre la même convention et peut être
+déclaré dans `marketing_utm_plans`.
+
+### Capture et consentement
+
+- Au chargement de l'application publique, le navigateur lit les UTM de l'URL
+  d'arrivée, le seul domaine du référent externe et le chemin d'arrivée sans
+  requête ni fragment. Retours de TOK, Stripe, Supabase et des fournisseurs de
+  connexion exclus. Une visite directe n'est pas une source.
+- Tant que le bandeau n'a pas reçu de réponse, la source reste en mémoire. Elle est
+  enregistrée dans `localStorage` (`tok_first_touch_v1`, 90 jours) uniquement après
+  consentement marketing. La première source conservée n'est jamais remplacée
+  avant expiration. Un refus ou un retrait l'efface.
+- `page_view` est envoyé pour tout visiteur, connecté ou non, après consentement
+  mesure d'audience, une fois par chemin et par chargement de page. Seule la page
+  d'arrivée porte UTM et référent, et seulement avec consentement marketing. Les
+  vues sont stockées dans `event_store` (`entity_type = 'site'`) sans identifiant de
+  visiteur anonyme.
+
+### Rattachement serveur
+
+Après connexion ou inscription, le navigateur envoie la source à `track-analytics`
+(`kind: "acquisition"`). Le compte est celui du JWT vérifié, jamais un identifiant du
+corps. `service_record_marketing_acquisition_touch` renormalise les valeurs et
+conserve une ligne par compte dans `marketing_acquisition_touches` (RLS forcée,
+aucun accès direct). La campagne est résolue côté serveur :
+
+1. `utm_content` désigne un élément du calendrier publié sur le réseau de
+   `utm_source` et rattaché à une campagne ;
+2. sinon un plan `marketing_utm_plans` actif correspond à source, support et campagne.
+
+Un identifiant de campagne envoyé par le navigateur est ignoré. Une source sans
+campagne identifiée reste visible côté serveur dans la ligne de rattachement, sans
+produire de fait.
+
+### Faits produits
+
+| Fait | `source_fact_id` | Condition |
+| --- | --- | --- |
+| `lead` | `lead:account:{compte}` | Compte créé après la source, dans la fenêtre de la campagne |
+| `conversion` | `conversion:reservation:{id}` | Réservation confirmée, hors fichier client du restaurant et démo |
+| `conversion` | `conversion:order:{id}` | Commande confirmée et payée |
+| `revenue` | `revenue:order:{id}` | Même commande ; `total_amount` serveur en centimes, devise de la commande |
+| `conversion` | `conversion:signup_application:{id}` | Candidature partenaire soumise |
+
+États confirmés et exclusion du personnel du restaurant : mêmes règles que les
+conversions sponsorisées (`ad_campaign_conversion_entity_state`,
+`is_restaurant_internal_actor`). La fenêtre est `attribution_window_hours` de la
+campagne, avec dix minutes de tolérance d'horloge. `subject_hash` est un SHA-256
+pseudonyme ; les métadonnées portent la source, la version du consentement et le
+modèle `first_touch`, jamais l'identifiant du compte. Le revenu correspond au
+montant payé de la commande, pas à la commission TOK. Les faits étant append-only, une
+annulation ou un remboursement ultérieur ne retire pas la conversion ni le revenu
+déjà enregistrés : le revenu attribué est un revenu encaissé à la confirmation, pas un
+revenu net.
+
+Idempotence : `UNIQUE (source_system, source_fact_id)` avec `ON CONFLICT DO NOTHING`.
+Les déclencheurs sur `reservations`, `orders` et `signup_applications` traitent
+uniquement leur ligne ; le rattachement rapproche aussi les conversions antérieures.
+Une erreur d'attribution est ignorée et ne bloque jamais une réservation, une
+commande ou une candidature. Les colonnes `acquisition_source` utilisées pour la
+facturation des restaurants ne sont ni lues pour un montant ni modifiées.
+
+### Retrait, effacement et retour arrière
+
+Le retrait du consentement marketing efface la ligne de rattachement : tout de suite
+si une session est ouverte, sinon à la prochaine connexion sur cet appareil
+(`tok_first_touch_forget_v1`, nécessaire), avant tout nouveau rattachement. La
+suppression du compte l'efface en cascade. Les faits déjà produits sont pseudonymes
+et append-only.
+
+Retour arrière : une migration compensatoire supprime les trois déclencheurs et les
+fonctions ; les faits restent valides. Retirer le code frontend arrête la capture et
+retirer `utm` dans l'orchestrateur rétablit les liens sans paramètres.
 
 ## Vérification locale
 
@@ -108,6 +205,17 @@ de clés étrangères hors marketing sont limités à leur contrat utile.
 TOK_PGLITE_MODULE=/chemin/verification/node_modules/@electric-sql/pglite/dist/index.js \
   node scripts/verification/test-marketing-analytics.mjs
 ```
+
+L'attribution first-touch se vérifie de la même façon :
+
+```sh
+TOK_PGLITE_MODULE=/chemin/verification/node_modules/@electric-sql/pglite/dist/index.js \
+  node scripts/verification/test-marketing-first-touch.mjs
+```
+
+Elle couvre accès, visite anonyme puis inscription, réservation, commande payée,
+candidature, indices de campagne non fiables, rattachement tardif, panne
+d'attribution non bloquante, lecture Analytics et retrait.
 
 Le module PGlite est fourni par l'environnement de vérification et n'ajoute aucune
 dépendance à la production. Huit groupes couvrent les bornes, les comptes natifs,

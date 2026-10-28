@@ -37,6 +37,8 @@ function clientFixture(options: {
   accountId?: string;
   storedContent?: Record<string, unknown>;
   replaceContentAtMarker?: Record<string, unknown>;
+  campaignName?: string;
+  scheduledAt?: string;
 } = {}) {
   let summary = options.summary || {};
   let providerId = options.providerId || null;
@@ -83,7 +85,7 @@ function clientFixture(options: {
             public_configuration: { page_id: "1409554725565734", ig_user_id: accountId, graph_version: "v26.0" },
           }, error: null };
           if (table === "marketing_campaigns") return { data: {
-            status: "draft", approved_at: "2026-10-20T12:05:00Z", metadata: { approval_source: approvalSource },
+            name: options.campaignName || "Campagne", status: "draft", approved_at: "2026-10-20T12:05:00Z", metadata: { approval_source: approvalSource },
           }, error: null };
           if (patch) {
             if (!patch.provider_external_id && options.replaceContentAtMarker) {
@@ -102,7 +104,8 @@ function clientFixture(options: {
             content: storedContent, integration_id: "integration-1", version,
           }, error: null };
           return { data: { provider_external_id: providerId, result_summary: summary,
-            integration_id: "integration-1", campaign_id: options.campaignId || null, content: storedContent }, error: null };
+            integration_id: "integration-1", campaign_id: options.campaignId || null, content: storedContent,
+            scheduled_at: options.scheduledAt || null }, error: null };
         },
         then: (resolve: (value: unknown) => unknown) => Promise.resolve({ error: null }).then(resolve),
       };
@@ -225,6 +228,38 @@ describe("Meta daily publication destination", () => {
       accountId: "17841440000000000", providerId: "123456789", storedContent: {} });
     expect(await processMetaMarketingItem(fixture.client, dailyItem)).toMatchObject({ status: "published", recovered: true });
     expect(publish).not.toHaveBeenCalled();
+  });
+});
+
+describe("Meta publication UTMs", () => {
+  const itemId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+  const campaignItem = { ...item, id: itemId };
+
+  it("tags links from the campaign name, the scheduled Swiss month and the calendar item id", async () => {
+    publish.mockImplementation(async ({ beforeExternalPublish }) => {
+      await beforeExternalPublish();
+      return { providerExternalId: "123456789", graphVersion: "v26.0", utmApplied: true };
+    });
+    const fixture = clientFixture({ item: campaignItem, campaignId: "campaign-1",
+      campaignName: "Guide Carouge terrasses", scheduledAt: "2026-11-02T08:00:00Z" });
+    expect(await processMetaMarketingItem(fixture.client, campaignItem)).toMatchObject({ status: "published" });
+    expect(publish.mock.calls[0][0].tagLinks("Voir https://www.thetok.ch/zero-attente"))
+      .toBe(`Voir https://www.thetok.ch/zero-attente?utm_source=facebook&utm_medium=social&utm_campaign=guide-carouge-terrasses_202611&utm_content=${itemId}`);
+    expect(fixture.completions.at(-1)?.p_result).toMatchObject({
+      utm_applied: true, utm_campaign: "guide-carouge-terrasses_202611",
+    });
+  });
+
+  it("records an untagged publication when the caption had no TOK link", async () => {
+    publish.mockImplementation(async ({ beforeExternalPublish }) => {
+      await beforeExternalPublish();
+      return { providerExternalId: "123456789", graphVersion: "v26.0", utmApplied: false };
+    });
+    const fixture = clientFixture({ item: campaignItem, campaignId: "campaign-1" });
+    await processMetaMarketingItem(fixture.client, campaignItem);
+    const result = fixture.completions.at(-1)?.p_result as Record<string, unknown>;
+    expect(result.utm_applied).toBe(false);
+    expect(result).not.toHaveProperty("utm_campaign");
   });
 });
 

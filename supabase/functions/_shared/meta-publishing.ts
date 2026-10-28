@@ -28,6 +28,7 @@ export type MetaPublishResult = {
   instagramUserId?: string;
   containerId?: string;
   usedMedia: boolean;
+  utmApplied: boolean;
 };
 
 export const META_REQUEST_TIMEOUT_MS = 10_000;
@@ -109,7 +110,10 @@ export function composeMetaCaption(content: MetaSocialContent) {
   return [...parts, hashtags].filter(Boolean).join("\n\n");
 }
 
-export function buildMetaCaption(content: MetaSocialContent, channel: MetaChannel) {
+/** Adds tracking to links at publication; the approved draft is never rewritten. */
+export type MetaCaptionLinkTagger = (caption: string) => string;
+
+export function buildMetaCaption(content: MetaSocialContent, channel: MetaChannel, tagLinks?: MetaCaptionLinkTagger | null) {
   const text = composeMetaCaption(content);
   if (!text) {
     throw new MetaPublishError("meta_content_empty");
@@ -118,7 +122,11 @@ export function buildMetaCaption(content: MetaSocialContent, channel: MetaChanne
   if (text.length > maxLength) {
     throw new MetaPublishError("meta_content_too_long");
   }
-  return text;
+  if (!tagLinks) return text;
+  // Measurement never blocks an approved post: keep the approved caption when
+  // the tagged links would exceed the network limit.
+  const tagged = tagLinks(text);
+  return tagged && tagged.length <= maxLength ? tagged : text;
 }
 
 function isPrivateIpv4(hostname: string) {
@@ -365,11 +373,15 @@ export async function publishMetaContent(input: {
   fetchImpl?: FetchLike;
   sleepImpl?: SleepLike;
   beforeExternalPublish?: () => Promise<void>;
+  // Injected rather than imported: the Node marketing BFF loads this module
+  // without a TypeScript loader, so it keeps no runtime imports.
+  tagLinks?: MetaCaptionLinkTagger | null;
 }): Promise<MetaPublishResult> {
   const config = validateMetaPublishingConfig(input.config, input.channel);
   const fetchImpl = input.fetchImpl || fetch;
   const sleepImpl = input.sleepImpl || defaultSleep;
-  const caption = buildMetaCaption(input.content, input.channel);
+  const caption = buildMetaCaption(input.content, input.channel, input.tagLinks);
+  const utmApplied = caption !== buildMetaCaption(input.content, input.channel);
   const visualUrl = validateMetaMediaContent(input.content, input.channel);
   const page = await resolvePageIdentity(config, fetchImpl);
 
@@ -392,6 +404,7 @@ export async function publishMetaContent(input: {
       graphVersion: config.graphVersion,
       pageId: config.pageId,
       usedMedia: Boolean(visualUrl),
+      utmApplied,
     };
   }
 
@@ -464,5 +477,6 @@ export async function publishMetaContent(input: {
     instagramUserId: config.instagramUserId || undefined,
     containerId,
     usedMedia: true,
+    utmApplied,
   };
 }

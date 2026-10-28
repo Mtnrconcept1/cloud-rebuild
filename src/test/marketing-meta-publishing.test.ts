@@ -11,6 +11,11 @@ import {
   validateMetaPublishingConfig,
   validateMetaMediaContent,
 } from "../../supabase/functions/_shared/meta-publishing";
+import {
+  marketingCampaignSlug,
+  metaPublicationUtm,
+  tagTokUrlsInText,
+} from "../../supabase/functions/_shared/marketing-utm";
 
 const metaIntegrationMigration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/20261006022139_configure_meta_marketing_integrations.sql"),
@@ -390,5 +395,98 @@ describe("complete social captions and required visuals", () => {
     await expect(publishMetaContent({ channel: "instagram", content: { body: "TOK" },
       config: baseConfig, fetchImpl, beforeExternalPublish })).rejects.toMatchObject({ code: "instagram_media_required" });
     expect(fetchImpl).not.toHaveBeenCalled(); expect(beforeExternalPublish).not.toHaveBeenCalled();
+  });
+});
+
+describe("UTM links on published Meta captions", () => {
+  const itemId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+  const pageResponse = {
+    body: {
+      data: [{
+        id: baseConfig.pageId,
+        access_token: "PAGE_TOKEN_12345678901234567890",
+        tasks: ["CREATE_CONTENT"],
+        instagram_business_account: { id: baseConfig.instagramUserId },
+      }],
+    },
+  };
+  const utmFor = (channel: "instagram" | "facebook") => metaPublicationUtm({
+    channel, campaignName: "Guide Carouge — Terrasses d'été", itemId, at: new Date("2026-11-03T09:00:00Z"),
+  });
+  const taggerFor = (channel: "instagram" | "facebook") => (caption: string) => tagTokUrlsInText(caption, utmFor(channel)!);
+
+  it("follows the TOK convention: network source, social medium, campaign slug and month, calendar item", () => {
+    expect(utmFor("instagram")).toEqual({
+      utm_source: "instagram",
+      utm_medium: "social",
+      utm_campaign: "guide-carouge-terrasses-d-ete_202611",
+      utm_content: itemId,
+    });
+    expect(utmFor("facebook")?.utm_source).toBe("facebook");
+    // 2026-10-31 23:30 UTC is already November in Switzerland.
+    expect(metaPublicationUtm({ channel: "facebook", itemId, at: new Date("2026-10-31T23:30:00Z") })?.utm_campaign)
+      .toBe("tok_202611");
+    expect(marketingCampaignSlug("   ")).toBe("tok");
+    expect(marketingCampaignSlug("x".repeat(90))).toHaveLength(60);
+    expect(metaPublicationUtm({ channel: "instagram", itemId: "item-1", at: new Date() })).toBeNull();
+  });
+
+  it("tags catalog destinations only once and leaves other hosts, tagged links and plain domains unchanged", () => {
+    const utm = utmFor("instagram")!;
+    const text = [
+      "À consulter : https://www.thetok.ch/zero-attente.",
+      "Livraison : https://www.thetok.ch/recherche?delivery=true",
+      "Déjà suivi : https://www.thetok.ch/tok-one?utm_source=bio",
+      "Partenaire : https://example.com/page",
+      "Découvrez TOK sur thetok.ch.",
+    ].join("\n");
+    const tagged = tagTokUrlsInText(text, utm).split("\n");
+    expect(tagged[0]).toBe(`À consulter : https://www.thetok.ch/zero-attente?utm_source=instagram&utm_medium=social&utm_campaign=guide-carouge-terrasses-d-ete_202611&utm_content=${itemId}.`);
+    expect(new URL(tagged[1].split(" : ")[1]).searchParams.get("delivery")).toBe("true");
+    expect(new URL(tagged[1].split(" : ")[1]).searchParams.get("utm_content")).toBe(itemId);
+    expect(tagged.slice(2)).toEqual(text.split("\n").slice(2));
+    expect(tagTokUrlsInText(tagTokUrlsInText(text, utm), utm)).toBe(tagTokUrlsInText(text, utm));
+  });
+
+  it("keeps the approved caption when tagged links would exceed the network limit", () => {
+    const body = `${"a".repeat(2_150)}\n\nhttps://www.thetok.ch/`;
+    const tagLinks = taggerFor("instagram");
+    expect(buildMetaCaption({ body }, "instagram", tagLinks)).toBe(body);
+    expect(buildMetaCaption({ body: "TOK https://www.thetok.ch/" }, "instagram", tagLinks)).toContain("utm_source=instagram");
+    expect(buildMetaCaption({ body: "TOK https://www.thetok.ch/" }, "instagram")).toBe("TOK https://www.thetok.ch/");
+  });
+
+  it("sends the tagged link to the Facebook Page without rewriting the stored draft", async () => {
+    const { fetchImpl, calls } = queuedFetch([pageResponse, { body: { id: `${baseConfig.pageId}_9988776655` } }]);
+    const content = { body: "Réservez sans attendre.", call_to_action: "Découvrez la fonctionnalité : https://www.thetok.ch/zero-attente" };
+    const result = await publishMetaContent({ channel: "facebook", content, config: baseConfig, fetchImpl, tagLinks: taggerFor("facebook") });
+    const message = new URLSearchParams(calls[1].body).get("message") || "";
+    expect(message).toContain(`https://www.thetok.ch/zero-attente?utm_source=facebook&utm_medium=social&utm_campaign=guide-carouge-terrasses-d-ete_202611&utm_content=${itemId}`);
+    expect(result.utmApplied).toBe(true);
+    expect(content.call_to_action).toBe("Découvrez la fonctionnalité : https://www.thetok.ch/zero-attente");
+  });
+
+  it("sends the tagged link in the Instagram container caption", async () => {
+    const { fetchImpl, calls } = queuedFetch([
+      pageResponse,
+      { body: { id: "18270815569115548" } },
+      { body: { id: "18270815569115548", status_code: "FINISHED" } },
+      { body: { id: "90011803596441" } },
+    ]);
+    const result = await publishMetaContent({
+      channel: "instagram",
+      content: { body: "Bonjour Genève", call_to_action: "À consulter : https://www.thetok.ch/anti-gaspi", visual_url: "https://cdn.example.com/ig-tok.jpg" },
+      config: baseConfig, fetchImpl, sleepImpl: async () => {}, tagLinks: taggerFor("instagram"),
+    });
+    const caption = new URLSearchParams(calls[1].body).get("caption") || "";
+    expect(caption).toContain("https://www.thetok.ch/anti-gaspi?utm_source=instagram&utm_medium=social");
+    expect(result.utmApplied).toBe(true);
+  });
+
+  it("reports an untagged publication when the caption has no TOK link", async () => {
+    const { fetchImpl } = queuedFetch([pageResponse, { body: { id: `${baseConfig.pageId}_1234567` } }]);
+    const result = await publishMetaContent({ channel: "facebook", content: { body: "Découvrez TOK sur thetok.ch." },
+      config: baseConfig, fetchImpl, tagLinks: taggerFor("facebook") });
+    expect(result.utmApplied).toBe(false);
   });
 });

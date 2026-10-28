@@ -28,7 +28,7 @@ import {
 } from "@/lib/nearbyRestaurants";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
-import { getActiveSponsoredRestaurants, setAnalyticsUser, trackEvent } from "@/lib/analytics";
+import { getActiveSponsoredRestaurants, setAnalyticsUser } from "@/lib/analytics";
 import {
   formatProgressiveCountdown,
   formatProgressiveServiceDate,
@@ -296,7 +296,6 @@ export default function Index() {
   useEffect(() => {
     if (isCommercialDemoClient) return;
     setAnalyticsUser(user?.id || null);
-    if (user) trackEvent({ eventType: "page_view", eventData: { page: "home" } });
   }, [isCommercialDemoClient, user]);
 
   const { data: sponsoredCampaigns } = useQuery({

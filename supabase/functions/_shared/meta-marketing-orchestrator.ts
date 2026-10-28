@@ -1,5 +1,6 @@
 import type { createAdminClient } from "./auth.ts";
 import { asRecord } from "./marketing.ts";
+import { metaPublicationUtm, tagTokUrlsInText } from "./marketing-utm.ts";
 import {
   MetaPublishError,
   publishMetaContent,
@@ -32,6 +33,7 @@ type MetaItemState = {
   integration_id: string;
   campaign_id: string | null;
   content: Record<string, unknown>;
+  scheduled_at?: string | null;
 };
 
 type DailyPublicationAuthorization = {
@@ -88,7 +90,7 @@ function sameDailyAuthorization(left: DailyPublicationAuthorization | null, righ
 
 async function readApprovedCampaign(client: AdminClient, campaignId: string | null) {
   if (!campaignId) return null;
-  const { data, error } = await client.from("marketing_campaigns").select("status, approved_at, metadata")
+  const { data, error } = await client.from("marketing_campaigns").select("name, status, approved_at, metadata")
     .eq("id", campaignId).maybeSingle();
   if (error || !data?.approved_at || ["paused", "completed", "cancelled", "failed"].includes(data.status)) {
     throw new MetaPublishError("meta_campaign_not_approved");
@@ -117,7 +119,7 @@ async function completeMetaItem(
 async function readItemState(client: AdminClient, item: MetaClaimedItem): Promise<MetaItemState> {
   const { data, error } = await client
     .from("marketing_calendar_items")
-    .select("provider_external_id, result_summary, integration_id, campaign_id, content")
+    .select("provider_external_id, result_summary, integration_id, campaign_id, content, scheduled_at")
     .eq("id", item.id)
     .eq("lease_token", item.lease_token)
     .maybeSingle();
@@ -328,9 +330,19 @@ export async function processMetaMarketingItem(client: AdminClient, item: MetaCl
       authorization, approvalSource, campaignId: state.campaign_id, integrationId: state.integration_id, instagramUserId,
     };
 
+    // The scheduled month keeps the campaign value stable across retries.
+    const scheduledAt = new Date(stringValue(state.scheduled_at) || Date.now());
+    const utm = metaPublicationUtm({
+      channel,
+      campaignName: stringValue(campaign?.name),
+      itemId: item.id,
+      at: Number.isFinite(scheduledAt.getTime()) ? scheduledAt : new Date(),
+    });
+
     const published = await publishMetaContent({
       channel,
       content: asRecord(item.content),
+      tagLinks: utm ? (caption) => tagTokUrlsInText(caption, utm) : null,
       config: {
         graphVersion,
         pageId,
@@ -359,6 +371,8 @@ export async function processMetaMarketingItem(client: AdminClient, item: MetaCl
       ...(published.instagramUserId ? { ig_user_id: published.instagramUserId } : {}),
       ...(published.containerId ? { instagram_container_id: published.containerId } : {}),
       used_media: published.usedMedia,
+      utm_applied: published.utmApplied === true,
+      ...(published.utmApplied && utm?.utm_campaign ? { utm_campaign: utm.utm_campaign } : {}),
       external_effect_committed: true,
       published_at_provider: new Date().toISOString(),
     };
