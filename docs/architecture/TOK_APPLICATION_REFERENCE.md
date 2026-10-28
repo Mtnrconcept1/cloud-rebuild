@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `6794324424ee3db3c5fc18acd02be71608579cbd4d59cdfe52222b068b888ed8`
+- Empreinte SHA-256 des sources indexées : `276fb02d2d2476d4a2d9965c666f77886ae272b230789a63f7abc915ec188593`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1678,7 +1678,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/performances | 9 | [src/App.tsx:634](../../src/App.tsx#L634) |
 | /dashboard/photos | 19 | [src/App.tsx:646](../../src/App.tsx#L646) |
 | /dashboard/plan-de-salle | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:211](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L211) |
-| /dashboard/plan-salle | 10 | [src/App.tsx:658](../../src/App.tsx#L658) |
+| /dashboard/plan-salle | 11 | [src/App.tsx:658](../../src/App.tsx#L658) |
 | /dashboard/plan-salle-v2 | 2 | [src/App.tsx:660](../../src/App.tsx#L660) |
 | /dashboard/promotions | 6 | [src/App.tsx:647](../../src/App.tsx#L647) |
 | /dashboard/recommandations | 2 | [src/App.tsx:633](../../src/App.tsx#L633) |
