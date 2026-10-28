@@ -138,14 +138,36 @@ function normalizeRequestId(value: unknown) {
   return v.length > 0 ? v.slice(0, 100) : crypto.randomUUID();
 }
 
-function resolveBranchIdFromRestaurant(restaurant: Record<string, unknown>) {
-  const candidate =
-    (typeof restaurant.primary_branch_id === "string" && restaurant.primary_branch_id) ||
-    (typeof restaurant.branch_id === "string" && restaurant.branch_id) ||
-    null;
+async function resolveBranchIdFromRestaurant(
+  restaurant: Record<string, unknown>,
+  actor: Awaited<ReturnType<typeof authenticateRequest>>,
+  requestedBranchId: unknown,
+) {
+  const hasExplicitBranch = requestedBranchId !== undefined && requestedBranchId !== null;
+  const selectedBranchId = typeof requestedBranchId === "string" ? requestedBranchId.trim().toLowerCase() : "";
+  if (hasExplicitBranch && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(selectedBranchId)) {
+    throw new HttpError(400, "invalid_branch_id");
+  }
 
-  if (!candidate) throw new HttpError(500, "branch_id_missing");
-  return candidate;
+  // The caller has already passed requireRestaurantAccess. Never trust a
+  // client-supplied branch without checking its active restaurant scope.
+  let query = actor.adminClient
+    .from("restaurant_branches")
+    .select("id")
+    .eq("restaurant_id", restaurant.id)
+    .eq("is_active", true);
+  if (hasExplicitBranch) query = query.eq("id", selectedBranchId);
+  const { data, error } = await query.limit(2);
+  if (error) throw new HttpError(503, "branch_lookup_failed");
+  if (!data?.length) {
+    if (hasExplicitBranch) throw new HttpError(404, "branch_not_found");
+    throw new HttpError(409, "branch_id_missing");
+  }
+
+  // Older clients may omit branchId only when there is no ambiguity.
+  // In particular, never silently choose the first branch of a multi-site restaurant.
+  if (data.length !== 1) throw new HttpError(409, "branch_id_missing");
+  return data[0].id as string;
 }
 
 async function getExistingIdempotentResponse(params: {
@@ -1077,7 +1099,7 @@ Deno.serve(async (req) => {
 
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
 
-    const branchId = resolveBranchIdFromRestaurant(restaurant as Record<string, unknown>);
+    const branchId = await resolveBranchIdFromRestaurant(restaurant as Record<string, unknown>, actor, body.branchId);
     const operationKind = `floorplan:${action}`;
 
     // Verification d'idempotence AVANT tout appel OpenAI

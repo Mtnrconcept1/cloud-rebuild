@@ -294,9 +294,18 @@ describe("DashboardPlanSalle — vraie page, données mémoire", () => {
     fireEvent.click(
       within(navigation).getByRole("tab", { name: "Aménagement" }),
     );
-    fireEvent.click(
-      await screen.findByRole("button", { name: "Sélectionner T02" }),
-    );
+    const selectedCanvasTable = await screen.findByRole("button", {
+      name: "Sélectionner T02",
+    });
+    const readTabletopStyle = () =>
+      selectedCanvasTable
+        .querySelector(
+          '[data-floor-plan-asset="round-table-top"], [data-floor-plan-asset="square-table-top"], [data-floor-plan-asset="rect-table-top"]',
+        )
+        ?.getAttribute("style") || "";
+    const oakStyle = readTabletopStyle();
+    expect(oakStyle).not.toContain("filter:");
+    fireEvent.click(selectedCanvasTable);
     fireEvent.click(
       screen.getByRole("button", { name: "Augmenter la capacité" }),
     );
@@ -308,6 +317,9 @@ describe("DashboardPlanSalle — vraie page, données mémoire", () => {
     expect(
       screen.getByRole("button", { name: "Finition : Noyer" }),
     ).toHaveAttribute("aria-pressed", "true");
+    const walnutStyle = readTabletopStyle();
+    expect(walnutStyle).toContain("filter:");
+    expect(walnutStyle).not.toBe(oakStyle);
     fireEvent.click(
       screen.getByRole("button", { name: "Enregistrer", exact: true }),
     );

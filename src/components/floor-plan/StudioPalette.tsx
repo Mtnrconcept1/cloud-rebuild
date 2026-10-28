@@ -41,6 +41,7 @@ import type { StudioDraftTable, StudioLibraryTab } from "./studioShared";
 
 type StudioPaletteProps = {
   selectedId: string | null;
+  branchId?: string | null;
   selectedSector: string;
   sectorOptions: string[];
   libraryTab: StudioLibraryTab;
@@ -157,6 +158,7 @@ function StudioPresetCard({
 
 export default function StudioPalette({
   selectedId,
+  branchId,
   selectedSector,
   sectorOptions,
   libraryTab,
@@ -611,6 +613,7 @@ export default function StudioPalette({
             </CollapsibleTrigger>
             <CollapsibleContent className="border-t border-[#eee7df] p-3">
               <FloorPlanAIPanel
+                branchId={branchId}
                 restaurantId={selectedId}
                 sectorLabel={selectedSector}
                 currentLayout={draftTables

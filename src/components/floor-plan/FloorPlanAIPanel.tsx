@@ -132,6 +132,7 @@ type CurrentLayoutItem = {
 
 interface FloorPlanAIPanelProps {
   restaurantId: string;
+  branchId?: string | null;
   currentLayout: CurrentLayoutItem[];
   canvasWidth: number;
   canvasHeight: number;
@@ -259,8 +260,20 @@ function readImageDimensions(dataUrl: string) {
   });
 }
 
+function formatFloorPlanAiError(error: unknown) {
+  const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  if (/\b(branch_id_missing|invalid_branch_id)\b/.test(message))
+    return "Sélectionnez un établissement actif avant de générer une proposition.";
+  if (/\bbranch_not_found\b/.test(message))
+    return "Cet établissement n’est plus disponible pour ce restaurant. Actualisez le plan et sélectionnez un établissement actif.";
+  if (/\bbranch_lookup_failed\b/.test(message))
+    return "Impossible de vérifier l’établissement pour le moment. Réessayez dans quelques instants.";
+  return formatAiImageGenerationError(error);
+}
+
 export default function FloorPlanAIPanel({
   restaurantId,
+  branchId,
   currentLayout,
   canvasWidth,
   canvasHeight,
@@ -273,7 +286,7 @@ export default function FloorPlanAIPanel({
 }: FloorPlanAIPanelProps) {
   const inputId = useId();
   const workspace = mode === "workspace";
-  const scope = `${restaurantId}:${sectorLabel}`;
+  const scope = `${restaurantId}:${branchId || ""}:${sectorLabel}`;
   const scopeRef = useRef(scope);
   scopeRef.current = scope;
   const mountedRef = useRef(true);
@@ -351,7 +364,7 @@ export default function FloorPlanAIPanel({
           preservation[option.id] && matchesPreservation(item, option.id),
       ),
   );
-  const busy = loading || preparingImage || disabled;
+  const busy = loading || preparingImage || disabled || !branchId;
 
   const previewFor = (result: AIFloorPlanResult) => {
     if (resolvePreview) return resolvePreview(result);
@@ -410,7 +423,7 @@ export default function FloorPlanAIPanel({
     prompt?: string,
     image?: ImportImagePayload | null,
   ) => {
-    if (disabled || inFlightRef.current || preparingImage) return;
+    if (!branchId || disabled || inFlightRef.current || preparingImage) return;
     inFlightRef.current = true;
     const requestId = ++requestRef.current;
     const requestScope = scope;
@@ -425,6 +438,7 @@ export default function FloorPlanAIPanel({
           body: {
             action,
             restaurantId,
+            branchId,
             currentLayout,
             canvasWidth,
             canvasHeight,
@@ -481,7 +495,7 @@ export default function FloorPlanAIPanel({
         requestId === requestRef.current &&
         requestScope === scopeRef.current
       )
-        setError(formatAiImageGenerationError(error));
+        setError(formatFloorPlanAiError(error));
     } finally {
       if (requestId === requestRef.current) {
         inFlightRef.current = false;

@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 501 error codes mapped from supabase/functions/**.
+// 504 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -102,7 +102,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1221
+      "line": 1243
     }
   ],
   "ai_input_rejected": [
@@ -140,7 +140,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1228
+      "line": 1250
     }
   ],
   "ai_provider_billing_unavailable": [
@@ -210,7 +210,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1216
+      "line": 1238
     },
     {
       "file": "supabase/functions/restaurant-advisor/index.ts",
@@ -536,7 +536,23 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "branch_id_missing": [
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 147
+      "line": 164
+    },
+    {
+      "file": "supabase/functions/floorplan-ai/index.ts",
+      "line": 169
+    }
+  ],
+  "branch_lookup_failed": [
+    {
+      "file": "supabase/functions/floorplan-ai/index.ts",
+      "line": 161
+    }
+  ],
+  "branch_not_found": [
+    {
+      "file": "supabase/functions/floorplan-ai/index.ts",
+      "line": 163
     }
   ],
   "campaign_not_found": [
@@ -1691,6 +1707,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 130
     }
   ],
+  "invalid_branch_id": [
+    {
+      "file": "supabase/functions/floorplan-ai/index.ts",
+      "line": 149
+    }
+  ],
   "invalid_callback_data": [
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
@@ -1752,7 +1774,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_image": [
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1075
+      "line": 1097
     }
   ],
   "invalid_incident_workflow_transition": [
@@ -1822,7 +1844,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1072
+      "line": 1094
     },
     {
       "file": "supabase/functions/plinko-play/index.ts",

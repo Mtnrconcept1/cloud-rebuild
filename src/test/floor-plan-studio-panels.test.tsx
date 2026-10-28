@@ -22,9 +22,6 @@ vi.mock("@/lib/session", () => ({ invokeSupabaseFunction: invoke }));
 vi.mock("@/lib/optimizedImages", () => ({
   optimizeImageUpload: vi.fn(async (file: File) => file),
 }));
-vi.mock("@/lib/publicErrorMessages", () => ({
-  formatAiImageGenerationError: () => "La proposition n’a pas pu être générée.",
-}));
 vi.mock("@/components/floor-plan/FloorPlanItemIllustration", () => ({
   FloorPlanItemIllustration: () => <svg aria-hidden="true" />,
 }));
@@ -62,6 +59,7 @@ function paletteProps(
 ): ComponentProps<typeof StudioPalette> {
   return {
     selectedId: "restaurant-1",
+    branchId: "22222222-2222-4222-8222-222222222222",
     selectedSector: "Salle principale",
     sectorOptions: ["Salle principale"],
     libraryTab: "tables",
@@ -262,6 +260,7 @@ describe("studio AI assistant", () => {
     render(
       <FloorPlanAIPanel
         restaurantId="restaurant-1"
+        branchId="22222222-2222-4222-8222-222222222222"
         mode="workspace"
         sectorLabel="Salle principale"
         currentLayout={[table]}
@@ -286,6 +285,7 @@ describe("studio AI assistant", () => {
     const [endpoint, request] = invoke.mock.calls[0];
     expect(endpoint).toBe("floorplan-ai");
     expect(request.body.restaurantId).toBe("restaurant-1");
+    expect(request.body.branchId).toBe("22222222-2222-4222-8222-222222222222");
     expect(request.body.prompt).toContain("24 places au total");
     expect(request.body.prompt).toContain("davantage de places");
     expect(request.body.prompt).toContain("120 unités du canevas");
@@ -333,6 +333,7 @@ describe("studio AI assistant", () => {
     render(
       <FloorPlanAIPanel
         restaurantId="restaurant-1"
+        branchId="22222222-2222-4222-8222-222222222222"
         currentLayout={[table, bench]}
         canvasWidth={1040}
         canvasHeight={760}
@@ -375,6 +376,7 @@ describe("studio AI assistant", () => {
     );
     const props = {
       restaurantId: "restaurant-1",
+      branchId: "22222222-2222-4222-8222-222222222222",
       currentLayout: [table],
       canvasWidth: 1040,
       canvasHeight: 760,
@@ -398,4 +400,69 @@ describe("studio AI assistant", () => {
     ).not.toBeInTheDocument();
     expect(props.onApply).not.toHaveBeenCalled();
   });
+});
+
+
+describe("studio AI assistant branch isolation", () => {
+  const first = "22222222-2222-4222-8222-222222222222";
+  const second = "33333333-3333-4333-8333-333333333333";
+  function props(branchId: string | null = first) {
+    return { restaurantId: "restaurant-1", branchId, currentLayout: [],
+      canvasWidth: 1040, canvasHeight: 760, onApply: vi.fn() };
+  }
+  it("passes the selected branch even when the plan has no tables", async () => {
+    invoke.mockResolvedValue({ data: aiResult, error: null });
+    render(<FloorPlanAIPanel {...props(second)} />);
+    fireEvent.click(screen.getByRole("button", { name: "Générer une proposition" }));
+    await screen.findByRole("heading", { name: "Proposition 1" });
+    expect(invoke.mock.calls[0][1].body).toMatchObject({ branchId: second, currentLayout: [] });
+  });
+  it("disables generation while no branch is selected", () => {
+    render(<FloorPlanAIPanel {...props(null)} />);
+    const button = screen.getByRole("button", { name: "Générer une proposition" });
+    expect(button).toBeDisabled();
+    fireEvent.click(button);
+    expect(invoke).not.toHaveBeenCalled();
+  });
+  it("ignores a late result after switching branches with the same restaurant and sector", async () => {
+    let finish!: (value: { data: AIFloorPlanResult; error: null }) => void;
+    invoke.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    const initial = props();
+    const view = render(<FloorPlanAIPanel {...initial} />);
+    fireEvent.click(screen.getByRole("button", { name: "Générer une proposition" }));
+    view.rerender(<FloorPlanAIPanel {...initial} branchId={second} />);
+    await act(async () => finish({ data: aiResult, error: null }));
+    expect(screen.queryByRole("heading", { name: "Proposition 1" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Appliquer au plan" })).toBeDisabled();
+    expect(initial.onApply).not.toHaveBeenCalled();
+  });
+  it("hides existing proposals when another branch is selected", async () => {
+    invoke.mockResolvedValue({ data: aiResult, error: null });
+    const initial = props();
+    const view = render(<FloorPlanAIPanel {...initial} />);
+    fireEvent.click(screen.getByRole("button", { name: "Générer une proposition" }));
+    await screen.findByRole("heading", { name: "Proposition 1" });
+    view.rerender(<FloorPlanAIPanel {...initial} branchId={second} />);
+    expect(screen.queryByRole("heading", { name: "Proposition 1" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Appliquer au plan" })).toBeDisabled();
+    expect(initial.onApply).not.toHaveBeenCalled();
+  });
+  it("passes branch selection from the inline furniture-library assistant", async () => {
+    invoke.mockResolvedValue({ data: aiResult, error: null });
+    render(<StudioPalette {...paletteProps({ showInlineAssistant: true, branchId: second })} />);
+    fireEvent.click(screen.getByRole("button", { name: "Assistant IA" }));
+    fireEvent.click(screen.getByRole("button", { name: "Générer une proposition" }));
+    await screen.findByRole("heading", { name: "Proposition 1" });
+    expect(invoke.mock.calls[0][1].body.branchId).toBe(second);
+  });
+  it.each(["branch_id_missing", "invalid_branch_id", "branch_not_found", "branch_lookup_failed"])(
+    "shows a useful French message instead of raw %s", async (code) => {
+      invoke.mockRejectedValue(new Error(code));
+      render(<FloorPlanAIPanel {...props()} />);
+      fireEvent.click(screen.getByRole("button", { name: "Générer une proposition" }));
+      const alert = await screen.findByRole("alert");
+      expect(alert).not.toHaveTextContent(code);
+      expect(alert).toHaveTextContent(/établissement/);
+    },
+  );
 });
