@@ -5,7 +5,7 @@ export const TOK_CONNECT_PREVIEW_BRIDGE_SCRIPT_PATH = "/tok-connect-preview-brid
 
 /** Use the exact MCP widget runtime in the browser preview, without duplicating its logic. */
 export function getTokConnectPreviewWidgetScript(): string {
-  const matches = Array.from(TOK_DISCOVERY_WIDGET_HTML.matchAll(/<script>([\s\S]*?)<\/script>/g));
+  const matches = Array.from(TOK_DISCOVERY_WIDGET_HTML.matchAll(/<script>([\s\S]*?)<\/script>/gi));
   if (matches.length !== 1) {
     throw new Error("unexpected_tok_connect_widget_script_count");
   }
@@ -26,7 +26,7 @@ export function buildTokConnectPreviewDocument(parentOrigin: string, channel: st
 
   // about:srcdoc inherits the site's strict CSP. Both scripts must therefore be
   // first-party external files; inline JavaScript is intentionally disallowed.
-  const nativeScript = TOK_DISCOVERY_WIDGET_HTML.match(/<script>[\s\S]*?<\/script>/);
+  const nativeScript = TOK_DISCOVERY_WIDGET_HTML.match(/<script>[\s\S]*?<\/script>/i);
   if (!nativeScript) throw new Error("missing_tok_connect_widget_script");
   const html = TOK_DISCOVERY_WIDGET_HTML.replace(
     nativeScript[0],
