@@ -1524,6 +1524,7 @@ const TOK_CONNECT_APP_QUERY_TOOL: TokConnectMcpTool = {
       modules: { type: "array" },
       answer: { type: "string" },
       guardrails: { type: "array" },
+      next_real_action: { type: "object" },
       next_sandbox_action: { type: "object" },
     },
     required: ["modules", "answer", "guardrails", "next_sandbox_action"],
@@ -2219,6 +2220,19 @@ function buildApplicationToolQueryResult(args: Record<string, unknown> = {}) {
       modules: mappedModules,
       answer,
       guardrails,
+      // Actual image creation takes place in the authenticated dashboard, not the sandbox.
+      ...(modules.some((module) => module.id === "studio_marketing") ? {
+        next_real_action: {
+          type: "open_authenticated_dashboard",
+          url: `${TOK_CONNECT_PUBLIC_ORIGIN}/dashboard/photos`,
+          requires_login: true,
+          requires_restaurant_access: true,
+          action: "create_marketing_visual",
+          generation_executed: false,
+          publication_executed: false,
+          instructions: "Ouvrir le Studio Marketing, choisir le restaurant autorisé, soumettre le brief, puis valider les crédits avant de générer.",
+        },
+      } : {}),
       next_sandbox_action: {
         tool_name: TOK_CONNECT_APP_SANDBOX_TOOL.name,
         suggested_arguments: {
