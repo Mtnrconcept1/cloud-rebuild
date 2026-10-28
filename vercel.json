@@ -562,6 +562,32 @@
       ]
     },
     {
+      "source": "/equipe/mon-espace",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store, max-age=0"
+        }
+      ]
+    },
+    {
+      "source": "/equipe/gestion",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store, max-age=0"
+        }
+      ]
+    },
+    {
       "source": "/tok-connect/developer",
       "headers": [
         {
@@ -780,6 +806,14 @@
     },
     {
       "source": "/:surface(admin|marketing|dashboard|courier|commercial|profil|memoire-tok|notifications|commandes|commande|reservations|mon-espace|compte|espace-client|mes-avis|points-cadeau|panier|auth|oauth|espaces|r)/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/equipe/mon-espace",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/equipe/gestion",
       "destination": "/index.html"
     },
     {

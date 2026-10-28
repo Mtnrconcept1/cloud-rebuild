@@ -2,7 +2,7 @@ import process from "node:process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const DEFAULT_TARGETS = [
+export const DEFAULT_TARGETS = [
   {
     url: "https://www.thetok.ch/",
     expect: [
@@ -127,6 +127,28 @@ const DEFAULT_TARGETS = [
     expect: ["<div id=\"root\""],
     expectedHeaders: {
       "x-robots-tag": "noindex",
+    },
+  },
+  {
+    url: "https://www.thetok.ch/equipe/mon-espace",
+    expectedStatus: 200,
+    contentType: "text/html",
+    expect: ["<div id=\"root\""],
+    reject: ["Page introuvable"],
+    expectedHeaders: {
+      "x-robots-tag": "noindex",
+      "cache-control": "private, no-store",
+    },
+  },
+  {
+    url: "https://www.thetok.ch/equipe/gestion",
+    expectedStatus: 200,
+    contentType: "text/html",
+    expect: ["<div id=\"root\""],
+    reject: ["Page introuvable"],
+    expectedHeaders: {
+      "x-robots-tag": "noindex",
+      "cache-control": "private, no-store",
     },
   },
   {
