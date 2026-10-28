@@ -22,6 +22,14 @@ Le Plinko s’adresse aux visiteurs **non authentifiés**. Sur l’accueil et le
 
 Les trois issues courantes représentent exactement 99 % du poids du tirage ; repas et réduction se partagent le 1 % restant. Il s’agit de chances par bille, y compris les replays, et non d’un quota garanti dans un échantillon de visiteurs. La trajectoire illustre le tirage, elle ne le détermine pas.
 
+## Physique de la bille
+
+La présentation utilise une simulation fixe à 240 Hz : gravité, inertie horizontale, restitution et frottement des contacts circulaires, rotation, parois, séparateurs arrondis et rebonds au fond des cases. Les positions des plots et séparateurs sont partagées entre le moteur et le SVG. L’animation suit les états physiques interpolés à la fréquence d’affichage, sans courbe de trajectoire, attraction vers la cible, correction en vol ni recentrage final.
+
+Après le tirage serveur, le navigateur cherche parmi 32 lâchers aux positions et vitesses initiales variables une simulation qui atteint naturellement la case correspondante. En cas d’épuisement, il simule un des lâchers physiques vérifiés pour cette case. Une simulation bloquée est rejetée. Ce choix des conditions initiales préserve les probabilités serveur ; aucune simulation ne déclenche un second tirage ni ne décide du gain.
+
+La case ne s’allume et le formulaire ne s’affiche qu’après stabilisation de la bille. Les impacts éclairent brièvement les plots. Fermer le jeu annule la boucle d’affichage ; le résultat reste récupérable sans relancer de tirage. Le mouvement réduit révèle directement le résultat. Aucun nouvel appel backend, paquet, secret ou changement de schéma n’est requis pour cette animation.
+
 ## Autorité et données
 
 - Une session anonyme reçoit un jeton aléatoire de 256 bits ; seul son SHA-256 est conservé en base. Le navigateur conserve le jeton pour retrouver le résultat après rechargement. Le jeton ne figure jamais dans une URL ou un e-mail.
@@ -48,11 +56,15 @@ Le rendu doit aussi être contrôlé dans un navigateur à 320 px, 390 px et sur
 ## Fichiers de cette modification
 
 - `src/App.tsx`
+- `src/components/plinko/PlinkoBoard.tsx`
 - `src/components/plinko/PlinkoDialog.tsx`
 - `src/components/plinko/WelcomePlinko.tsx`
 - `src/components/plinko/plinko.css`
 - `src/lib/plinko.ts`
+- `src/lib/plinko-physics.ts`
 - `src/lib/admin/auditLogNarrative.ts`
+- `src/test/plinko-board.test.tsx`
+- `src/test/plinko-physics.test.ts`
 - `src/test/plinko-api.test.ts`
 - `src/test/plinko-edge.test.ts`
 - `src/test/plinko-rules.test.ts`

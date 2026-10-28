@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `602d48efd5085d406fea2cabb7fc8dc66df179e84518bce032de2230f5beddb4`
+- Empreinte SHA-256 des sources indexées : `8fa8637a8949241f1b2aa9bcc08176554378d421354d276a3f41550f6a3511b9`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 237 |
 | edgeFunctions | 123 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4246 |
+| exportedSymbols | 4259 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 586 |
-| modules | 1910 |
+| modules | 1914 |
 | pages | 133 |
 | pathLiterals | 946 |
 | publicAssets | 737 |
 | publicEntries | 772 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19706 |
-| repositoryFiles | 3817 |
+| records | 19728 |
+| repositoryFiles | 3821 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1581,7 +1581,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /campaign-studio | 1 | [src/test/dashboard-design-preview-export.test.tsx:62](../../src/test/dashboard-design-preview-export.test.tsx#L62) |
 | /carte | 2 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
 | /cgu | 22 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
-| /chef.png | 1 | [src/components/plinko/PlinkoDialog.tsx:80](../../src/components/plinko/PlinkoDialog.tsx#L80) |
+| /chef.png | 1 | [src/components/plinko/PlinkoDialog.tsx:41](../../src/components/plinko/PlinkoDialog.tsx#L41) |
 | /chef2.png | 4 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
 | /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:672](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L672) |
 | /chefs-table | 27 | [scripts/prerender-seo.mjs:1049](../../scripts/prerender-seo.mjs#L1049) |
@@ -1860,7 +1860,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
 | /images/home/tok-leman-signature-fast.webp | 1 | [src/test/home-core-web-vitals.test.ts:17](../../src/test/home-core-web-vitals.test.ts#L17) |
 | /images/home/tok-leman-signature.webp | 3 | [src/components/home/HeroSection.tsx:48](../../src/components/home/HeroSection.tsx#L48) |
-| /images/home/tok-logo-ui.webp | 4 | [src/components/plinko/PlinkoDialog.tsx:79](../../src/components/plinko/PlinkoDialog.tsx#L79) |
+| /images/home/tok-logo-ui.webp | 4 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
 | /images/kebab-box-spread.jpeg | 22 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
@@ -7089,18 +7089,18 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 228 |
+| application-library | 229 |
 | automation-script | 91 |
 | documentation | 6 |
 | edge-function-source | 253 |
-| frontend-component | 309 |
+| frontend-component | 310 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
 | frontend-source | 36 |
 | public-asset | 7 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 796 |
+| test | 798 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7209,7 +7209,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | TOK — Affiche animée et décompte de lancement | 6 | [docs/design/tok-launch/README.md:1](../../docs/design/tok-launch/README.md#L1) |
 | TOK — Proposition UX/UI du 10 octobre 2026 | 12 | [docs/design/tok-ux-ui-audit-20261010.md:1](../../docs/design/tok-ux-ui-audit-20261010.md#L1) |
 | Modèle économique restaurateur — hypothèses | 8 | [docs/fair-growth-business-model.md:1](../../docs/fair-growth-business-model.md#L1) |
-| Plinko de bienvenue TOK | 7 | [docs/features/tok-welcome-plinko.md:1](../../docs/features/tok-welcome-plinko.md#L1) |
+| Plinko de bienvenue TOK | 8 | [docs/features/tok-welcome-plinko.md:1](../../docs/features/tok-welcome-plinko.md#L1) |
 | Intégration de `marketing.thetok.ch` | 9 | [docs/implementation/MARKETING_SUBDOMAIN_INTEGRATION.md:1](../../docs/implementation/MARKETING_SUBDOMAIN_INTEGRATION.md#L1) |
 | TOK Équipe — intégration de SwissTime Tracker | 10 | [docs/integrations/TOK_WORKFORCE.md:1](../../docs/integrations/TOK_WORKFORCE.md#L1) |
 | Audit de candidature — TOK comme fournisseur de réservation Google | 11 | [docs/integrations/google-actions-center-audit.md:1](../../docs/integrations/google-actions-center-audit.md#L1) |
@@ -7411,7 +7411,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (228)</summary>
+<details><summary>application-library (229)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/acquisitionAttribution.ts`
@@ -7562,6 +7562,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/paymentAttempt.ts`
 - `src/lib/paymentMethods.ts`
 - `src/lib/platform.ts`
+- `src/lib/plinko-physics.ts`
 - `src/lib/plinko.ts`
 - `src/lib/print/checkout.ts`
 - `src/lib/print/client.ts`
@@ -8834,7 +8835,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (321)</summary>
+<details><summary>frontend-component (322)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -9065,6 +9066,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/orders/DeliveryProofCard.tsx`
 - `src/components/orders/OrderPaymentBreakdown.tsx`
 - `src/components/orders/order-payment-breakdown-utils.ts`
+- `src/components/plinko/PlinkoBoard.tsx`
 - `src/components/plinko/PlinkoDialog.tsx`
 - `src/components/plinko/WelcomePlinko.tsx`
 - `src/components/plinko/plinko.css`
@@ -10431,7 +10433,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (796)</summary>
+<details><summary>test (798)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10925,7 +10927,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/plan2-fk-index-readiness.test.ts`
 - `src/test/plan2-security-definer-rpc-grants.test.ts`
 - `src/test/plinko-api.test.ts`
+- `src/test/plinko-board.test.tsx`
 - `src/test/plinko-edge.test.ts`
+- `src/test/plinko-physics.test.ts`
 - `src/test/plinko-rules.test.ts`
 - `src/test/post-deploy-seo-regressions.test.ts`
 - `src/test/print-and-chart-sinks.test.ts`

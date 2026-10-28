@@ -4,6 +4,7 @@ import { useReducedMotion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
 import { claimPlinko, getPlinkoStatus, isPlinkoSurface, parsePlinkoState, PlinkoSessionExpiredError, playPlinko, startPlinkoSession, type PlinkoState } from "@/lib/plinko";
 import PlinkoDialog from "./PlinkoDialog";
+import { createPlinkoTrajectory, PLINKO_POCKETS, type PlinkoTrajectory } from "@/lib/plinko-physics";
 
 const TOKEN_KEY = "tok:plinko:welcome-v1:token";
 const SHOWN_KEY = "tok:plinko:welcome-v1:shown";
@@ -34,31 +35,33 @@ export default function WelcomePlinko({ enabled = true, arrivedAt }: { enabled?:
   const locked = useRef(false);
   const mounted = useRef(true);
   const focusReturn = useRef<HTMLElement | null>(null);
-  const animationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<PlinkoState | null>(null);
   const [busy, setBusy] = useState(false);
   const [animating, setAnimating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [animationKey, setAnimationKey] = useState(0);
+  const [trajectory, setTrajectory] = useState<PlinkoTrajectory | null>(null);
+  const finishAnimation = useCallback(() => setAnimating(false), []);
 
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
-      if (animationTimer.current) clearTimeout(animationTimer.current);
     };
   }, []);
 
   const changeOpen = useCallback((next: boolean) => {
     if (next) focusReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    openRef.current = next;
     setOpen(next);
+    if (!next) setAnimating(false);
     if (!next) window.requestAnimationFrame(() => focusReturn.current?.focus());
   }, []);
 
   useEffect(() => {
-    if (!eligible) { setOpen(false); return; }
+    if (!eligible) { changeOpen(false); return; }
     let timer: ReturnType<typeof setTimeout>;
     let cancelled = false;
     const maybeOpen = () => {
@@ -130,11 +133,11 @@ export default function WelcomePlinko({ enabled = true, arrivedAt }: { enabled?:
       writeStorage("localStorage", REQUEST_KEY, null);
       if (mounted.current) {
         setState(next);
-        setAnimationKey((key) => key + 1);
-        setAnimating(!reduceMotion);
-        animationTimer.current = setTimeout(() => {
-          if (mounted.current) setAnimating(false);
-        }, reduceMotion ? 0 : 2_300);
+        // Physics never decides the reward or sends another play request.
+        // On reopen/hidden response, reveal the already committed result directly.
+        const animate = !reduceMotion && openRef.current && !document.hidden;
+        setTrajectory(animate ? createPlinkoTrajectory(PLINKO_POCKETS.indexOf(next.play.outcome)) : null);
+        setAnimating(animate);
       }
     } catch (cause) {
       if (mounted.current) setError(cause instanceof Error ? cause.message : "La connexion a été interrompue. Réessayez pour retrouver votre tirage.");
@@ -169,6 +172,6 @@ export default function WelcomePlinko({ enabled = true, arrivedAt }: { enabled?:
   if (!eligible || state?.enabled === false) return null;
   return <>
     {ready && !open && <button type="button" className="tok-plinko-launcher" aria-label="Ouvrir le Plinko TOK" onClick={() => changeOpen(true)}><img src="/images/home/tok-logo-ui.webp" width="29" height="29" alt="" />Le Plinko du chef</button>}
-    <PlinkoDialog open={open} onOpenChange={changeOpen} state={state} busy={busy} animating={animating} error={error} animationKey={animationKey} onPlay={() => void play()} onRetry={() => void loadSession()} onClaim={(email, consent) => void claim(email, consent)} />
+    <PlinkoDialog open={open} onOpenChange={changeOpen} state={state} busy={busy} animating={animating} error={error} trajectory={trajectory} onAnimationComplete={finishAnimation} onPlay={() => void play()} onRetry={() => void loadSession()} onClaim={(email, consent) => void claim(email, consent)} />
   </>;
 }
