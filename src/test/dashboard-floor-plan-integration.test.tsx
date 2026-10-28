@@ -149,6 +149,10 @@ describe("DashboardPlanSalle — vraie page, données mémoire", () => {
 
   it("searches the reservation queue without changing real table occupation", async () => {
     await renderPage();
+    // The reservation time can cross the service cutoff while CI is running.
+    // Assert that filtering preserves the actual status, whatever it is today.
+    const initialTableState = screen.getByRole("button", { name: /^T03, / }).getAttribute("aria-label");
+    expect(initialTableState).toBeTruthy();
     fireEvent.change(
       screen.getByRole("textbox", { name: "Rechercher une réservation" }),
       { target: { value: "Léa" } },
@@ -164,9 +168,8 @@ describe("DashboardPlanSalle — vraie page, données mémoire", () => {
     expect(
       screen.getByRole("button", { name: /^T01, Occupée/ }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /^T03, Réservée/ }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^T03, / }))
+      .toHaveAttribute("aria-label", initialTableState);
     expect(previewState.operations).toHaveLength(0);
   });
 

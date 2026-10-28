@@ -439,6 +439,7 @@ export default function FloorPlanAIPanel({
             action,
             restaurantId,
             branchId,
+            requestId: globalThis.crypto?.randomUUID?.() ?? `floorplan-${Date.now()}-${requestId}`,
             currentLayout,
             canvasWidth,
             canvasHeight,

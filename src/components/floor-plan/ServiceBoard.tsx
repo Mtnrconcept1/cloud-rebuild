@@ -1,5 +1,5 @@
 import {
-  useEffect,
+  useLayoutEffect,
   useState,
   type DragEvent,
   type KeyboardEvent,
@@ -252,7 +252,7 @@ export default function ServiceBoard({
     canvasHeight,
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const viewport = canvasViewportRef.current;
     if (!viewport) return undefined;
 
@@ -339,8 +339,8 @@ export default function ServiceBoard({
   ).length;
 
   return (
-    <Card className="flex h-[min(75svh,800px)] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-[0_3px_20px_-14px_rgba(64,42,22,0.2)] dark:border-border dark:bg-card xl:h-full xl:min-h-0">
-      <CardHeader className="shrink-0 space-y-3 px-4 pb-3 pt-4 sm:px-5">
+    <Card className="flex h-[min(68svh,720px)] min-h-[400px] min-w-0 flex-col overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-[0_3px_20px_-14px_rgba(64,42,22,0.2)] dark:border-border dark:bg-card sm:h-[min(75svh,800px)] xl:h-full xl:min-h-0">
+      <CardHeader className="shrink-0 space-y-2 px-3 pb-2 pt-2 sm:px-4 sm:pt-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <CardTitle className="font-serif text-xl font-semibold tracking-tight text-stone-900 dark:text-foreground">
@@ -386,13 +386,13 @@ export default function ServiceBoard({
               size="icon"
               className="h-10 w-10 rounded-md"
               onClick={resetZoom}
-              aria-label="Ajuster le plan à la largeur (100 %)"
+              aria-label="Ajuster le plan à la zone visible (100 %)"
             >
               <Maximize2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-y-3 rounded-xl border border-stone-200/80 bg-stone-50/40 px-3 py-3 dark:border-border dark:bg-muted/20 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-y-2 rounded-xl border border-stone-200/80 bg-stone-50/40 px-2 py-2 dark:border-border dark:bg-muted/20 sm:grid-cols-4">
           {[
             {
               value: reservableTablesCount,
@@ -492,12 +492,12 @@ export default function ServiceBoard({
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-stone-200/80 bg-[#f8f6f2] p-1.5 dark:border-border">
           <div
             ref={canvasViewportRef}
-            className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain rounded-lg"
+            className="flex min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain rounded-lg p-1"
             role="region"
             aria-label={`Plan de service du secteur ${selectedSector}`}
           >
             <div
-              className="mx-auto overflow-hidden"
+              className="m-auto shrink-0 overflow-hidden"
               style={{
                 width: canvasWidth * canvasZoom * canvasScale,
                 height: canvasHeight * canvasZoom * canvasScale,

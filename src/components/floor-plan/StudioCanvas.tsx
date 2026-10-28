@@ -1,5 +1,5 @@
 import {
-  useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type KeyboardEvent,
@@ -156,7 +156,7 @@ export default function StudioCanvas({
   );
   const covers = tables.reduce((sum, table) => sum + table.capacity, 0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const viewport = canvasViewportRef.current;
     if (!viewport) return undefined;
     let lastWidth = 0;
@@ -225,7 +225,7 @@ export default function StudioCanvas({
   };
 
   return (
-    <Card className="fp-canvas flex h-[min(68svh,720px)] min-h-[430px] flex-1 flex-col overflow-hidden rounded-2xl xl:h-full xl:min-h-0">
+    <Card className="fp-canvas flex h-[min(60svh,560px)] min-h-[320px] min-w-0 flex-1 flex-col overflow-hidden rounded-2xl sm:h-[min(75svh,800px)] xl:h-full xl:min-h-0">
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
         <div className="min-w-0">
           <h2 className="truncate font-display text-lg">{selectedSector}</h2>
@@ -284,7 +284,7 @@ export default function StudioCanvas({
         <div
           ref={canvasViewportRef}
           className={cn(
-            "min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain rounded-xl",
+            "flex min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain rounded-xl p-1",
             tool === "pan" && "cursor-grab touch-none",
           )}
           role="region"
@@ -315,7 +315,7 @@ export default function StudioCanvas({
           }}
         >
           <div
-            className="mx-auto overflow-hidden"
+            className="m-auto shrink-0 overflow-hidden"
             style={{
               width: canvasWidth * canvasZoom * canvasScale,
               height: canvasHeight * canvasZoom * canvasScale,
@@ -537,7 +537,7 @@ export default function StudioCanvas({
               type="button"
               className="!w-12 text-xs font-semibold"
               onClick={resetZoom}
-              title="Ajuster à la largeur du canevas"
+              title="Ajuster le plan à la zone visible"
             >
               {canvasZoomLabel}
             </button>

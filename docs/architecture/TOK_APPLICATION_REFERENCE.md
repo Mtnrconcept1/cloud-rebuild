@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8f64f27b3e04c7811f3da71a60697e0912afce6caa592dc43b3f197f44f6d0be`
+- Empreinte SHA-256 des sources indexées : `f6a8178075b753fe5d6afb7c1233bc49692b0628a36909820e7c56781b840ec0`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,7 +28,7 @@
 | apiRoutes | 11 |
 | cronJobs | 37 |
 | databaseContract | 231 |
-| databaseObjects | 3134 |
+| databaseObjects | 3136 |
 | documents | 237 |
 | edgeFunctions | 123 |
 | edgeHttpRoutes | 20 |
@@ -37,7 +37,7 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 586 |
+| migrations | 587 |
 | modules | 1914 |
 | pages | 133 |
 | pathLiterals | 946 |
@@ -45,8 +45,8 @@
 | publicEntries | 772 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19731 |
-| repositoryFiles | 3821 |
+| records | 19735 |
+| repositoryFiles | 3822 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2792,7 +2792,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (906)</summary>
+<details><summary>function (908)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3209,6 +3209,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.floor_plan_autoassign_reservation` (2 définition(s))
 - `public.floor_plan_reservation_duration_minutes` (1 définition(s))
 - `public.floor_plan_table_is_free` (1 définition(s))
+- `public.floorplan_ai_read_operation` (1 définition(s))
+- `public.floorplan_ai_save_operation` (1 définition(s))
 - `public.generate_monthly_invoices` (5 définition(s))
 - `public.generate_reference_number` (1 définition(s))
 - `public.generate_restaurant_payout_invoice` (6 définition(s))
@@ -6845,6 +6847,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261028044351 Tok Workforce Integrity And Workflows | 679 | 32 | [supabase/migrations/20261028044351_tok_workforce_integrity_and_workflows.sql:1](../../supabase/migrations/20261028044351_tok_workforce_integrity_and_workflows.sql#L1) |
 | 20261028045849 Advisor Secure Attachments | 388 | 6 | [supabase/migrations/20261028045849_advisor_secure_attachments.sql:1](../../supabase/migrations/20261028045849_advisor_secure_attachments.sql#L1) |
 | 20261028132220 Tok Welcome Plinko | 218 | 11 | [supabase/migrations/20261028132220_tok_welcome_plinko.sql:1](../../supabase/migrations/20261028132220_tok_welcome_plinko.sql#L1) |
+| 20261028194500 Floorplan Ai Idempotency Rpc | 68 | 2 | [supabase/migrations/20261028194500_floorplan_ai_idempotency_rpc.sql:1](../../supabase/migrations/20261028194500_floorplan_ai_idempotency_rpc.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7792,7 +7795,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (586)</summary>
+<details><summary>database-migration (587)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8380,6 +8383,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261028044351_tok_workforce_integrity_and_workflows.sql`
 - `supabase/migrations/20261028045849_advisor_secure_attachments.sql`
 - `supabase/migrations/20261028132220_tok_welcome_plinko.sql`
+- `supabase/migrations/20261028194500_floorplan_ai_idempotency_rpc.sql`
 
 </details>
 

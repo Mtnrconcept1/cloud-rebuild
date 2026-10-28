@@ -78,7 +78,6 @@ REGLES CRITIQUES COMPTAGE (priorite absolue):
 type FloorplanAction = "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
 
 type ReservationRow = { party_size: number | null };
-type ExistingOperationRow = { response: Record<string, unknown> | null };
 
 type ImagePayload = {
   dataUrl: string;
@@ -178,17 +177,18 @@ async function getExistingIdempotentResponse(params: {
   requestId: string;
 }) {
   const { actor, actorId, branchId, operationKind, requestId } = params;
-  const { data } = await actor.adminClient
-    .schema("private")
-    .from("floor_plan_save_operations")
-    .select("response")
-    .eq("actor_id", actorId)
-    .eq("branch_id", branchId)
-    .eq("operation_kind", operationKind)
-    .eq("request_id", requestId)
-    .maybeSingle<ExistingOperationRow>();
-
-  return data?.response ?? null;
+  // The private replay table is not exposed to PostgREST, including to service_role.
+  // Access it only through a service-role-only, SECURITY DEFINER RPC.
+  const { data, error } = await actor.adminClient.rpc("floorplan_ai_read_operation", {
+    p_actor_id: actorId,
+    p_branch_id: branchId,
+    p_operation_kind: operationKind,
+    p_request_id: requestId,
+  });
+  if (error) throw new HttpError(503, "floorplan_idempotency_unavailable");
+  return data && typeof data === "object" && !Array.isArray(data)
+    ? data as Record<string, unknown>
+    : null;
 }
 
 async function saveIdempotentResponse(params: {
@@ -201,31 +201,24 @@ async function saveIdempotentResponse(params: {
   response: Record<string, unknown>;
 }) {
   const { actor, actorId, branchId, operationKind, requestId, requestPayload, response } = params;
-
-  const { error } = await actor.adminClient
-    .schema("private")
-    .from("floor_plan_save_operations")
-    .insert({
-      actor_id: actorId,
-      branch_id: branchId,
-      operation_kind: operationKind,
-      request_id: requestId,
-      request_payload: requestPayload,
-      response,
-    });
-
-  if (!error) return response;
-
-  const existing = await getExistingIdempotentResponse({
-    actor,
-    actorId,
-    branchId,
-    operationKind,
-    requestId,
+  const { data, error } = await actor.adminClient.rpc("floorplan_ai_save_operation", {
+    p_actor_id: actorId,
+    p_branch_id: branchId,
+    p_operation_kind: operationKind,
+    p_request_id: requestId,
+    p_request_payload: requestPayload,
+    p_response: response,
   });
-
-  if (existing) return existing;
-  throw error;
+  if (error) {
+    if (String(error.message || "").includes("floorplan_ai_request_conflict")) {
+      throw new HttpError(409, "idempotency_conflict");
+    }
+    throw new HttpError(503, "floorplan_idempotency_unavailable");
+  }
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new HttpError(503, "floorplan_idempotency_unavailable");
+  }
+  return data as Record<string, unknown>;
 }
 
 function clampNumber(value: unknown, fallback: number, min: number, max: number) {
@@ -1060,9 +1053,14 @@ Deno.serve(async (req) => {
   const cors = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, cors);
   if (preflight) return preflight;
+  // Opening the function URL is GET, not an authenticated AI request.
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "method_not_allowed" }, 405, cors);
+  }
 
   const log = makeLogger(FUNCTION_NAME);
   let actor: Awaited<ReturnType<typeof authenticateRequest>> | null = null;
+  let phase = "authentication";
 
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
@@ -1097,12 +1095,14 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "invalid_image");
     }
 
+    phase = "restaurant_access";
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
 
     const branchId = await resolveBranchIdFromRestaurant(restaurant as Record<string, unknown>, actor, body.branchId);
     const operationKind = `floorplan:${action}`;
 
     // Verification d'idempotence AVANT tout appel OpenAI
+    phase = "idempotency_read";
     const existingResponse = await getExistingIdempotentResponse({
       actor,
       actorId: actor.userId,
@@ -1212,6 +1212,7 @@ Deno.serve(async (req) => {
       requiredCredits: preflightCredits,
     });
 
+    phase = "provider_request";
     const aiResponse = await fetch(OPENAI_URL, {
       method: "POST",
       headers: {
@@ -1252,6 +1253,7 @@ Deno.serve(async (req) => {
 
     const usage = extractChatUsage(data);
 
+    phase = "credit_spend";
     await insertUsage(actor, {
       status: "success",
       action,
@@ -1279,6 +1281,29 @@ Deno.serve(async (req) => {
       },
     });
 
+    const normalizedResult = normalizeFloorPlanAiResult(parsed, canvasWidth, canvasHeight, image);
+
+    phase = "idempotency_write";
+    const persistedResponse = await saveIdempotentResponse({
+      actor,
+      actorId: actor.userId,
+      branchId,
+      operationKind,
+      requestId,
+      requestPayload: {
+        action,
+        restaurantId,
+        requestId,
+        hasImage: Boolean(image),
+        canvasWidth,
+        canvasHeight,
+        requestedCanvasWidth,
+        requestedCanvasHeight,
+      },
+      response: normalizedResult as Record<string, unknown>,
+    });
+
+    phase = "success_audit";
     await writeAuditLog({
       adminClient: actor.adminClient,
       functionName: FUNCTION_NAME,
@@ -1299,33 +1324,11 @@ Deno.serve(async (req) => {
       },
     });
 
-    const normalizedResult = normalizeFloorPlanAiResult(parsed, canvasWidth, canvasHeight, image);
-
-    const persistedResponse = await saveIdempotentResponse({
-      actor,
-      actorId: actor.userId,
-      branchId,
-      operationKind,
-      requestId,
-      requestPayload: {
-        action,
-        restaurantId,
-        requestId,
-        rid: log.rid,
-        hasImage: Boolean(image),
-        canvasWidth,
-        canvasHeight,
-        requestedCanvasWidth,
-        requestedCanvasHeight,
-      },
-      response: normalizedResult as Record<string, unknown>,
-    });
-
     return jsonResponse(persistedResponse, 200, cors);
   } catch (err) {
     const status = err instanceof HttpError ? err.status : 500;
     const message = err instanceof HttpError ? err.message : "internal_error";
-    log.error("request_failed", { status, message });
+    log.error("request_failed", { status, message, phase, code: err && typeof err === "object" && "code" in err ? String(err.code).slice(0, 32) : undefined });
 
     if (actor) {
       await writeAuditLog({
