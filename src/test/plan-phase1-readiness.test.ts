@@ -57,7 +57,8 @@ describe("phase 1 launch audit plan readiness", () => {
     expect(deployWorkflow).toContain("name: Release readiness");
     expect(deployWorkflow).toContain("pnpm run release:readiness");
     expect(deployWorkflow).toContain('RELEASE_READINESS_STRICT: "true"');
-    expect(deployWorkflow).toContain("if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}");
+    expect(deployWorkflow).toContain("vars.PRODUCTION_DEPLOY_ENABLED == 'true'");
+    expect(deployWorkflow).toContain("needs.validation.outputs.has_deployable_changes == 'true'");
 
     for (const requiredSecret of [
       "secrets.VITE_STRIPE_PUBLISHABLE_KEY",
@@ -104,6 +105,18 @@ describe("phase 1 launch audit plan readiness", () => {
 
     expect(deployWorkflow).toContain("APP_BASE_URL: ${{ env.APP_BASE_URL }}");
     expect(deployWorkflow).toContain("PUBLIC_APP_URL: ${{ env.PUBLIC_APP_URL }}");
+  });
+
+  it("skips domain reconciliation when no frontend is being deployed", () => {
+    const workflow = readProjectFile(".github/workflows/deploy-production.yml");
+    const domainJob = workflow.split("  configure_project_domains:")[1]?.split("  deploy_supabase:")[0];
+    const gateJob = workflow.split("  deployment_gate:")[1]?.split("  record_production_baseline:")[0];
+
+    expect(domainJob).toContain("needs.validation.result == 'success'");
+    expect(domainJob).toContain("needs.validation.outputs.deploy_frontend == 'true'");
+    expect(gateJob).toContain(
+      'if [[ "$FRONTEND_REQUIRED" == "true" ]]; then\n            require_success "configure_project_domains" "$DOMAIN_RESULT"',
+    );
   });
 
   it("retries transient Supabase platform errors during production deploy", () => {

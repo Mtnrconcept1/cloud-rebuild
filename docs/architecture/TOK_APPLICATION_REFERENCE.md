@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `51499fa45478fa789c12721b274ffbf56b21c6f58dadfdd16694e6b991574e8f`
+- Empreinte SHA-256 des sources indexées : `75ab71da6a77a1ba656595fd30d00847f74bf7d9cb1509a5a4de049a0a7ff35e`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1441,7 +1441,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /:surface(admin\|marketing\|dashboard\|courier\|commercial\|profil\|memoire-tok\|notifications\|commandes\|commande\|reservations\|mon-espace\|compte\|espace-client\|mes-avis\|points-cadeau\|panier\|auth\|oauth\|espaces\|r) | 2 | [src/test/vercel-rewrites.test.ts:107](../../src/test/vercel-rewrites.test.ts#L107) |
 | /?$ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /?q=restaurant | 1 | [src/test/marketing-autopilot-frontend.test.tsx:255](../../src/test/marketing-autopilot-frontend.test.tsx#L255) |
-| /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:147](../../src/test/plan-phase1-readiness.test.ts#L147) |
+| /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:160](../../src/test/plan-phase1-readiness.test.ts#L160) |
 | /CN=webhook-runtime.test | 2 | [scripts/security/run-webhook-deno-runtime.mjs:17](../../scripts/security/run-webhook-deno-runtime.mjs#L17) |
 | /EmbeddedFile | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
 | /FontFile2 | 1 | [src/test/tokWorkforcePdf.test.ts:41](../../src/test/tokWorkforcePdf.test.ts#L41) |
@@ -2332,7 +2332,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /v1/campaigns/preview | 4 | [src/lib/tokConnect.ts:154](../../src/lib/tokConnect.ts#L154) |
 | /v1/credits/balance | 3 | [src/lib/tokConnect.ts:148](../../src/lib/tokConnect.ts#L148) |
 | /v1/projects/${encodeURIComponent(projectRef)}/database/query | 1 | [src/test/commercial-demo-migration-workflow.test.ts:34](../../src/test/commercial-demo-migration-workflow.test.ts#L34) |
-| /v1/projects/${projectRef}/config/auth | 1 | [src/test/plan-phase1-readiness.test.ts:100](../../src/test/plan-phase1-readiness.test.ts#L100) |
+| /v1/projects/${projectRef}/config/auth | 1 | [src/test/plan-phase1-readiness.test.ts:101](../../src/test/plan-phase1-readiness.test.ts#L101) |
 | /v1/reservations | 5 | [src/lib/tokConnect.ts:130](../../src/lib/tokConnect.ts#L130) |
 | /v1/reservations/preview | 4 | [src/lib/tokConnect.ts:124](../../src/lib/tokConnect.ts#L124) |
 | /v1/reservations/{id}/cancel | 3 | [src/lib/tokConnect.ts:142](../../src/lib/tokConnect.ts#L142) |

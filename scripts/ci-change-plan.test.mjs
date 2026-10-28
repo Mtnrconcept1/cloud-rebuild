@@ -115,15 +115,53 @@ test("reconnaît une modification de documentation et contrôle l’index canoni
   assert.equal(isDocumentationFile("docs/ci.md"), true);
 });
 
-test("une modification de la référence canonique impose la suite complète", () => {
+test("une référence générée seule ne lance pas la suite complète", () => {
   const plan = buildChangePlan([
     "docs/architecture/TOK_APPLICATION_REFERENCE.md",
+    "docs/architecture/tok-application-search-index.json",
   ]);
 
   assert.equal(plan.docsOnly, true);
-  assert.equal(plan.fullSuite, true);
-  assert.equal(plan.installRequired, true);
-  assert.equal(plan.testMode, "full");
+  assert.equal(plan.fullSuite, false);
+  assert.equal(plan.installRequired, true); // freshness check remains mandatory
+  assert.equal(plan.testMode, "none");
+  assert.equal(plan.runBuild, false);
+  assert.equal(plan.hasDeployableChanges, false);
+  assert.equal(plan.checkMigrationVersions, false);
+});
+
+test("un minuscule changement UI avec index régénéré garde uniquement ses tests liés", () => {
+  const plan = buildChangePlan([
+    "src/pages/dashboard/DashboardPlanSalle.tsx",
+    "docs/architecture/TOK_APPLICATION_REFERENCE.md",
+    "docs/architecture/tok-application-search-index.json",
+    "src/data/tok-user-guide-catalog.generated.ts",
+  ]);
+
+  assert.equal(plan.fullSuite, false);
+  assert.equal(plan.testMode, "affected");
+  assert.equal(plan.runLint, true);
+  assert.equal(plan.runTypecheck, true);
+  assert.equal(plan.runBuild, true);
+  assert.equal(plan.deployFrontend, true);
+  assert.equal(plan.checkMigrationVersions, false);
+});
+
+test("un guide généré sans changement applicatif évite les tests inutiles", () => {
+  const plan = buildChangePlan([
+    "docs/guide-utilisateur.md",
+    "docs/architecture/TOK_APPLICATION_REFERENCE.md",
+    "docs/architecture/tok-application-search-index.json",
+    "src/data/tok-user-guide-catalog.generated.ts",
+  ]);
+
+  assert.equal(plan.fullSuite, false);
+  assert.equal(plan.testMode, "none");
+  assert.equal(plan.runLint, false);
+  assert.equal(plan.runTypecheck, false);
+  // The guide is consumed by the frontend: a deployment/build remains required.
+  assert.equal(plan.runBuild, true);
+  assert.equal(plan.deployFrontend, true);
 });
 
 test("cible les tests liés et le frontend pour une page React", () => {
@@ -131,6 +169,7 @@ test("cible les tests liés et le frontend pour une page React", () => {
 
   assert.equal(plan.fullSuite, false);
   assert.equal(plan.testMode, "affected");
+  assert.equal(plan.checkMigrationVersions, false);
   assert.equal(plan.runTypecheck, true);
   assert.equal(plan.runBuild, true);
   assert.equal(plan.deployFrontend, true);
@@ -176,6 +215,7 @@ test("force la suite complète et le push DB pour une migration", () => {
   ]);
 
   assert.equal(plan.fullSuite, true);
+  assert.equal(plan.checkMigrationVersions, true);
   assert.equal(plan.deployDatabase, true);
   assert.equal(plan.paymentCritical, false);
   assert.equal(plan.accountingCritical, true);
@@ -188,6 +228,7 @@ test("force la suite complète et le déploiement DB pour une migration du proje
   ]);
 
   assert.equal(plan.fullSuite, true);
+  assert.equal(plan.checkMigrationVersions, true);
   assert.equal(plan.deployDatabase, true);
   assert.equal(plan.supabaseCritical, true);
   assert.equal(plan.hasDeployableChanges, true);
@@ -245,6 +286,7 @@ test("un diff indisponible reste fail-safe", () => {
   const plan = buildChangePlan([], { forceFull: true, forceDeploy: true });
 
   assert.equal(plan.fullSuite, true);
+  assert.equal(plan.checkMigrationVersions, true);
   assert.equal(plan.deployFrontend, true);
   assert.equal(plan.deployDatabase, true);
   assert.equal(plan.deployAllFunctions, true);
@@ -255,9 +297,22 @@ test("un redéploiement manuel force toutes les surfaces même avec une baseline
 
   assert.equal(plan.deployFrontend, true);
   assert.equal(plan.deployDatabase, true);
+  assert.equal(plan.checkMigrationVersions, true);
   assert.equal(plan.deployFunctions, true);
   assert.equal(plan.deployAllFunctions, true);
   assert.equal(plan.syncSupabaseSecrets, true);
+});
+
+test("la modification des contrôles CI reste une validation complète", () => {
+  for (const file of [
+    ".github/workflows/_validation.yml",
+    ".github/workflows/deploy-production.yml",
+    "scripts/ci-change-plan.mjs",
+  ]) {
+    const plan = buildChangePlan([file]);
+    assert.equal(plan.fullSuite, true);
+    assert.equal(plan.testMode, "full");
+  }
 });
 
 test("un chemin inconnu force validation complète et frontend", () => {
