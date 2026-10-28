@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `3a0bd279727122a8b9fe7358f22ad312ae775f89f7e60c6711a2fed8001b86cf`
+- Empreinte SHA-256 des sources indexées : `366b778e0ec76237d8fec32d92198ca45b0ceaa6dfde1cbc5548b2ed69c1a459`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 583 |
 | modules | 1849 |
 | pages | 133 |
-| pathLiterals | 900 |
+| pathLiterals | 901 |
 | publicAssets | 713 |
 | publicEntries | 743 |
 | publicNavigableRoutes | 3 |
-| queryParameters | 119 |
-| records | 19129 |
+| queryParameters | 121 |
+| records | 19132 |
 | repositoryFiles | 3709 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1390,7 +1390,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
 | / | 282 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
-| /(.*) | 6 | [src/test/admin-crm-theme-csp.test.ts:27](../../src/test/admin-crm-theme-csp.test.ts#L27) |
+| /(.*) | 7 | [src/test/admin-crm-theme-csp.test.ts:27](../../src/test/admin-crm-theme-csp.test.ts#L27) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:100](../../src/test/application-search-index.test.ts#L100) |
 | /.well-known/apple-app-site-association-extra | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
@@ -1648,6 +1648,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/tok-connect | 10 | [src/App.tsx:657](../../src/App.tsx#L657) |
 | /dashboard/ventes-flash | 9 | [src/App.tsx:639](../../src/App.tsx#L639) |
 | /data/geneva-commercial-prospects.json | 2 | [src/data/genevaCommercialProspects.ts:39](../../src/data/genevaCommercialProspects.ts#L39) |
+| /data/reverse-geocode-client | 1 | [src/test/home-world-hero.test.ts:38](../../src/test/home-world-hero.test.ts#L38) |
 | /data/thefork-geneva-commercial-prospects.json | 1 | [src/data/theForkCommercialProspects.ts:7](../../src/data/theForkCommercialProspects.ts#L7) |
 | /database/query | 1 | [src/test/production-preflight-hardening.test.ts:204](../../src/test/production-preflight-hardening.test.ts#L204) |
 | /demo-restaurant.jpg | 1 | [src/test/commercial-demo-client-data-isolation.test.ts:19](../../src/test/commercial-demo-client-data-isolation.test.ts#L19) |
@@ -2344,11 +2345,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | itemId | — | 1 | [src/marketing/useMarketingUrlState.ts:122](../../src/marketing/useMarketingUrlState.ts#L122) |
 | job | /courier/jobs | 1 | [src/pages/courier/CourierJobs.tsx:54](../../src/pages/courier/CourierJobs.tsx#L54) |
 | lat | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 2 | [src/pages/LocalRestaurants.tsx:477](../../src/pages/LocalRestaurants.tsx#L477) |
+| latitude | — | 1 | [src/test/home-world-hero.test.ts:39](../../src/test/home-world-hero.test.ts#L39) |
 | layer | — | 1 | [src/test/tok-connect-delivery-address.test.ts:16](../../src/test/tok-connect-delivery-address.test.ts#L16) |
 | layers | — | 1 | [src/test/home-canton-hero.test.ts:58](../../src/test/home-canton-hero.test.ts#L58) |
 | limit | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 14 | [scripts/app-store-connect-preflight.mjs:77](../../scripts/app-store-connect-preflight.mjs#L77) |
 | lng | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 1 | [src/pages/LocalRestaurants.tsx:480](../../src/pages/LocalRestaurants.tsx#L480) |
 | lon | — | 1 | [src/test/address-autocomplete-location-bias.test.tsx:78](../../src/test/address-autocomplete-location-bias.test.tsx#L78) |
+| longitude | — | 1 | [src/test/home-world-hero.test.ts:40](../../src/test/home-world-hero.test.ts#L40) |
 | match_group_authorized | /match-groupes | 2 | [src/pages/MatchGroupes.tsx:389](../../src/pages/MatchGroupes.tsx#L389) |
 | max_lat | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:121](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L121) |
 | max_lng | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:123](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L123) |
