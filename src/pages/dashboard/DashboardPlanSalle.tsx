@@ -57,7 +57,10 @@ import {
 import SimpleReservationQueue from "@/components/floor-plan/SimpleReservationQueue";
 import ServiceBoard from "@/components/floor-plan/ServiceBoard";
 import StudioCanvas from "@/components/floor-plan/StudioCanvas";
-import { clampFloorPlanZoom } from "@/components/floor-plan/useFloorPlanZoomViewport";
+import {
+  clampFloorPlanZoom,
+  getFloorPlanWidthFitScale,
+} from "@/components/floor-plan/useFloorPlanZoomViewport";
 import StudioInspector from "@/components/floor-plan/StudioInspector";
 import StudioPalette from "@/components/floor-plan/StudioPalette";
 import TableConfigDialog from "@/components/floor-plan/TableConfigDialog";
@@ -1401,10 +1404,9 @@ export default function DashboardPlanSalle() {
   const syncCanvasSizeFromViewport = useCallback(
     (width: number, height: number) => {
       if (width <= 0 || height <= 0) return;
-      const nextScale = Math.max(
-        0.1,
-        Math.min(width / CANVAS_WIDTH, height / CANVAS_HEIGHT),
-      );
+      // Fit the plan to the full width, not the shorter viewport height.
+      // Service and Aménagement already provide vertical scrolling.
+      const nextScale = getFloorPlanWidthFitScale(width, CANVAS_WIDTH);
       setCanvasScale((current) =>
         Math.abs(current - nextScale) < 0.001 ? current : nextScale,
       );
