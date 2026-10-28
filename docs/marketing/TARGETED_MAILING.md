@@ -7,7 +7,7 @@ Depuis **Campagnes → Créer un mailing ou une campagne IA**, la carte **Mailin
 1. Décrire la cible, le nombre de messages, le rythme et les bénéfices à présenter. Le bouton **Interpréter le brief** préremplit les filtres et la cadence ; les choix manuels restent prioritaires.
 2. Cocher les cantons, villes, communes, codes postaux, cuisines/catégories, types d’établissement, tailles d’entreprise, langues, sources et statuts des contacts. Chaque rubrique propose **Tous**, une recherche et une pagination. Plusieurs valeurs d’une rubrique sont combinées par OU ; les rubriques sont combinées par ET.
 3. Vérifier les destinataires, choisir le premier envoi en heure de Genève et entre 1 et 12 messages. Le rythme peut être quotidien, tous les deux jours, deux fois par semaine, hebdomadaire ou toutes les deux semaines.
-4. Choisir explicitement **Image générée** ou **Import manuel**, puis générer la séquence. Chaque message possède un objet, un titre, un corps complet et un appel à l’action. En mode généré, une bannière native TOK 16:9 commune est produite avec les références de marque existantes. En mode manuel, seuls les textes sont générés ; chaque message attend ensuite son image propre.
+4. Choisir explicitement **Image générée** ou **Import manuel**, puis générer la séquence. Chaque message possède un objet, un titre, un corps complet et un appel à l’action. En mode généré, une affiche native TOK verticale 9:16 distincte est produite pour chaque e-mail avec les références de marque existantes et l'identité crème/orange/noir TOK. En mode manuel, seuls les textes sont générés ; chaque message attend ensuite son image propre.
 5. Relire chaque e-mail dans son template, vérifier la bannière et les dates, puis utiliser les validations de campagne et de calendrier existantes. La génération et l’interprétation ne donnent aucune approbation et n’envoient aucun e-mail.
 
 Exemple : « Campagne mailing de 4 mails sur un mois, un par semaine, visant les pizzerias de Genève. Promouvoir le zéro attente, les ventes flash, le marketing studio et le plan de table automatisé. » La séquence comporte quatre dates espacées d’une semaine, à heure locale constante, y compris lors du changement d’heure.
@@ -26,7 +26,7 @@ Les brouillons peuvent être préparés lorsque les contacts existent mais ne so
 
 ## Images indépendantes et template
 
-**Image générée** conserve une bannière commune par campagne. Une panne du fournisseur conserve les textes, signale l’image manquante et empêche l’approbation des messages incomplets. Les anciens appels API qui omettent imageMode conservent ce comportement.
+**Image générée** produit une affiche verticale 9:16 indépendante pour chaque e-mail (logo TOK Miamz!, chef, titre noir massif, sous-titre orange, carte double bénéfice et bouton noir). Une panne du fournisseur conserve les textes, signale l’image manquante et empêche l’approbation des messages incomplets. Les anciens appels API qui omettent imageMode conservent ce comportement.
 
 **Import manuel** n’appelle ni l’allocateur ni le fournisseur d’images, pour une campagne de un à douze e-mails. Les textes sont produits puis chaque e-mail reçoit sa propre image depuis les résultats de génération ou la galerie de campagne. Changer l’image d’un message ne modifie pas les autres. Les erreurs conservent les textes et l’image précédente.
 
@@ -34,7 +34,7 @@ Les imports acceptent **JPEG/PNG jusqu’à 3 Mio**, avec un maximum de 8 192 pi
 
 Le composant suit chaque upload indépendamment, vérifie la réponse et utilise la version exacte updated_at du mail. L’upload est refusé en lecture seule, après approbation de l’e-mail ou de sa campagne, ou dans un état terminé/incompatible. Les actions qui pourraient perdre un upload en cours ou approuver un état intermédiaire sont bloquées.
 
-Le logo utilise **public/marketing/email/tok-logo.jpg**, optimisé à 320 × 320 pixels à partir de la troisième pièce fournie. Le damier fait partie du JPEG d’origine et ne constitue pas une transparence. Le pied de mail présente une bannière promotionnelle orange inspirée de la quatrième référence, avec **public/marketing/email/restaurant-promotion.png**, dérivé de chef3.png à proportions conservées. Le bouton **Mettre mon restaurant en avant** ouvre https://www.thetok.ch/dashboard/campagnes ; le lien éditorial vers https://www.thetok.ch/packs-restaurateur reste distinct. Le texte brut comprend aussi le lien de promotion.
+Le rendu mailing est **image-first** : une affiche JPEG 9:16 indépendante et intégralement cliquable, affichée sans recadrage dans une table HTML compatible Gmail/Outlook (600 px max). Elle reprend l'identité maître TOK : vrai logo Miamz!, chef TOK 3D fidèle, fond ivoire, noir profond, orange `#FF4B11`, grand titre noir, sous-titre orange, bloc ticket double bénéfice et CTA noir. L'affiche utilise l'URL vérifiée de la campagne ; la version texte conserve le contenu et le lien. Le désabonnement **signé et personnalisé** reste dans un pied de mail HTML hors image. Sans affiche, l'aperçu de secours conserve le logo et le chef, mais le contrôle d'approbation bloque les nouveaux mailings incomplets.
 
 L’aperçu et l’envoi utilisent le même HTML, une largeur maximale de 600 pixels, des styles compatibles e-mail et des images fluides.
 

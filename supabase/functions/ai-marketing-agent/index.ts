@@ -257,12 +257,12 @@ Deno.serve(async (req) => {
     const slug = slugifyCampaignName(plan.campaign.name);
     const visualRequests = plan.items.map((item) => ({
       visual_prompt: item.channel === "email" && item.visual_prompt
-        ? [item.visual_prompt, "TEXTE À REPRODUIRE SUR L'AFFICHE (respecter exactement):",
+        ? [item.visual_prompt, "COPIE COURTE À REPRODUIRE SUR L'AFFICHE (respecter exactement):",
           "TITRE : " + item.content.headline,
-          "CORPS : " + item.content.body,
-          "APPEL À L'ACTION : " + item.content.call_to_action].join("\n")
+          "CORPS COURT : " + (item.content.body.match(/^[\s\S]*?[.!?](?=\s|$)/)?.[0] ?? item.content.body.slice(0, 160)),
+          "BOUTON ILLUSTRÉ : Découvrir TOK"].join("\n")
         : item.visual_prompt,
-      visual_format: item.visual_format || formats[item.channel],
+      visual_format: item.channel === "email" ? "9:16" : item.visual_format || formats[item.channel],
     }));
     // Manual mailings spend no image credits and wait for one upload per item.
     const manualMailing = mailingOptions?.imageMode === "manual";

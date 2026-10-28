@@ -21,7 +21,7 @@ export type MarketingEmailBrand = {
   senderName: string;
   senderAddress: string;
 };
-const COLORS = { paper: "#FFF7EB", ink: "#211C19", muted: "#665B51", orange: "#F4551E" } as const;
+const COLORS = { paper: "#FFF7EB", ink: "#211C19", muted: "#665B51", orange: "#FF4B11" } as const;
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
@@ -52,10 +52,38 @@ export function renderMarketingEmail(content: MarketingEmailContent, brand: Mark
         <img src="${escapeHtml(visual)}" width="600" border="0" alt="${alt}" style="display:block;width:100%;max-width:600px;height:auto;border:0;" />
       </a>
     </td></tr>`
-    : `<tr><td bgcolor="${COLORS.paper}" style="background-color:${COLORS.paper};padding-top:24px;padding-right:24px;padding-bottom:24px;padding-left:24px;">
-      <h1 style="margin-top:0;margin-bottom:18px;font-family:Arial,Helvetica,sans-serif;font-size:32px;line-height:38px;font-weight:900;color:${COLORS.ink};overflow-wrap:anywhere;word-break:break-word;">${escapeHtml(content.headline)}</h1>
-      ${paragraphs(content.body)}
-      <a href="${escapeHtml(link)}" style="display:inline-block;background-color:${COLORS.ink};color:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:24px;font-weight:bold;text-decoration:none;padding-top:12px;padding-bottom:12px;padding-left:20px;padding-right:20px;">${escapeHtml(action)} →</a>
+    : `<tr><td bgcolor="${COLORS.paper}" style="background-color:${COLORS.paper};padding:0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;table-layout:fixed;background-color:${COLORS.paper};">
+        <tr><td style="padding:24px 25px 16px;">
+          <img src="${escapeHtml(new URL("/logotok.png", siteUrl).href)}" width="96" border="0" alt="Logo officiel TOK" style="display:block;width:96px;max-width:100%;height:auto;border:0;" />
+          <p style="margin:12px 0 0;border-top:2px solid ${COLORS.orange};padding-top:10px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;line-height:20px;color:${COLORS.ink};">Pensé pour les restaurateurs.</p>
+        </td></tr>
+        <tr><td style="padding:18px 25px 20px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;table-layout:fixed;">
+            <tr><td width="64%" valign="middle" style="width:64%;vertical-align:middle;overflow-wrap:anywhere;word-break:break-word;">
+              <h1 style="margin:0 8px 12px 0;font-family:Arial,Helvetica,sans-serif;font-size:29px;line-height:1.11;font-weight:900;color:${COLORS.ink};">${escapeHtml(content.headline)}</h1>
+              <p style="margin:0 8px 0 0;border-bottom:3px solid ${COLORS.orange};padding-bottom:8px;font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:24px;font-weight:800;color:${COLORS.orange};">${escapeHtml(action)}</p>
+            </td><td width="36%" valign="middle" bgcolor="${COLORS.orange}" style="width:36%;vertical-align:middle;background-color:${COLORS.orange};border-radius:90px 90px 8px 8px;">
+              <img src="${escapeHtml(new URL("/chef2.png", siteUrl).href)}" width="185" border="0" alt="Le chef TOK" style="display:block;width:100%;max-width:185px;height:auto;border:0;" />
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="padding:0 25px 16px;">
+          <p style="margin:0 0 10px;font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:24px;font-weight:800;color:${COLORS.ink};">Bonjour,</p>
+          ${paragraphs(content.body)}
+        </td></tr>
+        <tr><td style="padding:18px 25px 25px;background-color:${COLORS.orange};border-radius:22px 22px 0 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${COLORS.paper}" style="width:100%;table-layout:fixed;background-color:${COLORS.paper};border-radius:14px;">
+            <tr><td align="center" width="50%" style="width:50%;padding:16px 6px;border-right:1px solid ${COLORS.orange};font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:22px;font-weight:800;color:${COLORS.ink};">Vos actualités<br /><span style="color:${COLORS.orange};">À partager</span></td>
+            <td align="center" width="50%" style="width:50%;padding:16px 6px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:22px;font-weight:800;color:${COLORS.ink};">Votre présence<br /><span style="color:${COLORS.orange};">À faire vivre</span></td></tr>
+          </table>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin-top:20px;table-layout:fixed;">
+            <tr><td align="center" bgcolor="${COLORS.ink}" style="border-radius:30px;background-color:${COLORS.ink};">
+              <a href="${escapeHtml(link)}" style="display:block;padding:16px 14px;font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:24px;font-weight:900;color:#FFFFFF;text-decoration:none;border-radius:30px;">${escapeHtml(action)} &#8594;</a>
+            </td></tr>
+          </table>
+        </td></tr>
+      </table>
     </td></tr>`;
   const html = `<!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="color-scheme" content="light"><title>${escapeHtml(content.headline)}</title></head>
