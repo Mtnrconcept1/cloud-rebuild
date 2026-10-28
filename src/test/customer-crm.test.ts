@@ -6,6 +6,7 @@ import {
   buildCustomerCrmInsights,
   getPreferredHourLabel,
   normalizeCustomerCrmProfile,
+  normalizeImportedCustomerCrmProfile,
 } from "@/lib/customerCrm";
 import {
   findPendingCrmMfaFactor,
@@ -57,6 +58,26 @@ describe("customer CRM", () => {
     expect(profile.favoriteCuisines).toEqual(["Italien", "Bistro"]);
     expect(profile.crmScore).toBe(82);
     expect(profile.totalMatchingCount).toBe(14);
+  });
+
+  it("keeps imported contacts isolated with unknown marketing consent", () => {
+    const profile = normalizeImportedCustomerCrmProfile({
+      id: "contact-1",
+      restaurant_name: "Restaurant Test",
+      full_name: "Alice Importée",
+      email: "alice@example.test",
+      phone: "+41790000001",
+      city: "Genève",
+      marketing_consent_status: "unknown",
+      created_at: "2026-10-28T04:00:00Z",
+      total_matching_count: 3,
+    });
+
+    expect(profile.userId).toBe("imported:contact-1");
+    expect(profile.source).toBe("imported");
+    expect(profile.marketingConsentStatus).toBe("unknown");
+    expect(profile.totalOrders).toBe(0);
+    expect(buildCustomerCrmInsights(profile).nextBestActions.join(" ")).toMatch(/consentement marketing explicite/i);
   });
 
   it("builds useful sales insights from habits and preferences", () => {

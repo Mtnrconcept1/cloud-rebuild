@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `785490ce4846443de6489cb35942bbc22ebd51f27aba98357415d295d66f37a7`
+- Empreinte SHA-256 des sources indexées : `2d2988e41168edf0806cb8c29dc54c35a22730e931198d487f7830e55a9cec8b`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 11 |
 | cronJobs | 37 |
 | databaseContract | 231 |
-| databaseObjects | 3117 |
-| documents | 232 |
+| databaseObjects | 3123 |
+| documents | 234 |
 | edgeFunctions | 122 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4131 |
+| exportedSymbols | 4172 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 584 |
-| modules | 1875 |
+| migrations | 585 |
+| modules | 1878 |
 | pages | 133 |
-| pathLiterals | 904 |
+| pathLiterals | 911 |
 | publicAssets | 715 |
 | publicEntries | 746 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19347 |
-| repositoryFiles | 3746 |
+| records | 19436 |
+| repositoryFiles | 3752 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1416,12 +1416,19 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /?q=restaurant | 1 | [src/test/marketing-autopilot-frontend.test.tsx:255](../../src/test/marketing-autopilot-frontend.test.tsx#L255) |
 | /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:147](../../src/test/plan-phase1-readiness.test.ts#L147) |
 | /CN=webhook-runtime.test | 2 | [scripts/security/run-webhook-deno-runtime.mjs:17](../../scripts/security/run-webhook-deno-runtime.mjs#L17) |
+| /EmbeddedFile | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
 | /FontFile2 | 1 | [src/test/tokWorkforcePdf.test.ts:41](../../src/test/tokWorkforcePdf.test.ts#L41) |
 | /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 4 | [src/components/FeatureWizard.tsx:20](../../src/components/FeatureWizard.tsx#L20) |
+| /JS | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
+| /JavaScript | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
+| /Launch | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
 | /Miamz2.webp | 4 | [src/components/home/SolidaritySection.tsx:58](../../src/components/home/SolidaritySection.tsx#L58) |
 | /Miamz3.webp | 3 | [src/components/home/SolidaritySection.tsx:52](../../src/components/home/SolidaritySection.tsx#L52) |
+| /OpenAction | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
 | /Outlines | 2 | [src/test/guide-pdf.test.ts:19](../../src/test/guide-pdf.test.ts#L19) |
 | /PROFIL/?tab=favoris | 1 | [src/test/workspace-layout-controls.test.tsx:42](../../src/test/workspace-layout-controls.test.tsx#L42) |
+| /RichMedia | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
+| /XFA | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
 | /[^/]+ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
 | /^[0-9a-f-]{36}$/i.test(deliveryId) | 1 | [src/test/marketing-one-click-unsubscribe.test.ts:69](../../src/test/marketing-one-click-unsubscribe.test.ts#L69) |
 | /^\d{4}-\d{2}-\d{2}$/ | 1 | [src/test/tok-connect-customer-journey.test.ts:167](../../src/test/tok-connect-customer-journey.test.ts#L167) |
@@ -2723,7 +2730,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (900)</summary>
+<details><summary>function (902)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3185,6 +3192,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.get_restaurant_comparison` (6 définition(s))
 - `public.get_restaurant_credit_usage` (8 définition(s))
 - `public.get_restaurant_credit_usage_before_fair_growth` (1 définition(s))
+- `public.get_restaurant_crm_imported_contacts` (1 définition(s))
 - `public.get_restaurant_image_truth_stats` (1 définition(s))
 - `public.get_restaurant_order_capacity_state` (2 définition(s))
 - `public.get_restaurant_orders_dashboard` (4 définition(s))
@@ -3218,6 +3226,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.handle_new_user` (8 définition(s))
 - `public.has_role` (1 définition(s))
 - `public.immutable_unaccent_lower` (1 définition(s))
+- `public.import_restaurant_crm_contacts` (1 définition(s))
 - `public.increment_ad_campaign_metric` (1 définition(s))
 - `public.invoke_directory_image_truth_worker` (2 définition(s))
 - `public.invoke_marketing_content_review_cron` (1 définition(s))
@@ -3628,7 +3637,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (732)</summary>
+<details><summary>index (735)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -4176,6 +4185,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `reservations_id_restaurant_uidx` (1 définition(s))
 - `reservations_restaurant_user_date_idx` (1 définition(s))
 - `reservations_review_eligibility_idx` (1 définition(s))
+- `restaurant_crm_contacts_restaurant_email_idx` (1 définition(s))
+- `restaurant_crm_contacts_restaurant_phone_idx` (1 définition(s))
+- `restaurant_crm_contacts_restaurant_updated_idx` (1 définition(s))
 - `restaurant_cuisine_evidence_source_idx` (1 définition(s))
 - `restaurant_daily_dish_runs_requested_by_idx` (1 définition(s))
 - `restaurant_daily_dish_runs_status_idx` (1 définition(s))
@@ -5178,7 +5190,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (393)</summary>
+<details><summary>table (394)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5433,6 +5445,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restaurant_contracts` (1 définition(s))
 - `public.restaurant_credit_packs` (1 définition(s))
 - `public.restaurant_credit_purchases` (1 définition(s))
+- `public.restaurant_crm_contacts` (1 définition(s))
 - `public.restaurant_cuisine_evidence` (1 définition(s))
 - `public.restaurant_cuisines` (1 définition(s))
 - `public.restaurant_daily_dish_runs` (1 définition(s))
@@ -6757,6 +6770,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261027220000 Marketing First Touch Attribution | 468 | 12 | [supabase/migrations/20261027220000_marketing_first_touch_attribution.sql:1](../../supabase/migrations/20261027220000_marketing_first_touch_attribution.sql#L1) |
 | 20261027221840 Commercial Email Confirmation | 591 | 24 | [supabase/migrations/20261027221840_commercial_email_confirmation.sql:1](../../supabase/migrations/20261027221840_commercial_email_confirmation.sql#L1) |
 | 20261028044351 Tok Workforce Integrity And Workflows | 679 | 32 | [supabase/migrations/20261028044351_tok_workforce_integrity_and_workflows.sql:1](../../supabase/migrations/20261028044351_tok_workforce_integrity_and_workflows.sql#L1) |
+| 20261028045849 Advisor Secure Attachments | 388 | 6 | [supabase/migrations/20261028045849_advisor_secure_attachments.sql:1](../../supabase/migrations/20261028045849_advisor_secure_attachments.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -6986,12 +7000,12 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 123 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 148 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 150 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 278 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 854 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 856 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 71 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7001,10 +7015,10 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 223 |
+| application-library | 224 |
 | automation-script | 91 |
 | documentation | 6 |
-| edge-function-source | 249 |
+| edge-function-source | 250 |
 | frontend-component | 302 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
@@ -7012,7 +7026,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 6 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 779 |
+| test | 780 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7211,6 +7225,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Consentement signé immédiat et confirmation e-mail complémentaire | 5 | [docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md:1](../../docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md#L1) |
 | Cloudprinter native artwork implementation plan | 6 | [docs/superpowers/plans/2026-10-28-cloudprinter-native-artwork.md:1](../../docs/superpowers/plans/2026-10-28-cloudprinter-native-artwork.md#L1) |
 | Préremplissage du consentement restaurateur — plan et décision | 5 | [docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md:1](../../docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md#L1) |
+| Plan d’implémentation — assistant TOK avec pièces jointes sécurisées | 11 | [docs/superpowers/plans/2026-10-28-tok-advisor-secure-attachments-implementation.md:1](../../docs/superpowers/plans/2026-10-28-tok-advisor-secure-attachments-implementation.md#L1) |
 | Facturation des réservations (5.-/resa) & détection anti-fraude | 26 | [docs/superpowers/specs/2026-04-17-reservation-billing-design.md:1](../../docs/superpowers/specs/2026-04-17-reservation-billing-design.md#L1) |
 | Refonte compta: accueil + entrees/sorties | 52 | [docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md:1](../../docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md#L1) |
 | Lisibilite dashboard: factures, reservations et commandes | 39 | [docs/superpowers/specs/2026-04-21-dashboard-readability-design.md:1](../../docs/superpowers/specs/2026-04-21-dashboard-readability-design.md#L1) |
@@ -7228,6 +7243,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Abonnements Et Entitlements Design | 17 | [docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md:1](../../docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md#L1) |
 | Parcours d'inscription — durcissement (client, restaurateur, livreur) | 24 | [docs/superpowers/specs/2026-05-30-parcours-inscription-design.md:1](../../docs/superpowers/specs/2026-05-30-parcours-inscription-design.md#L1) |
 | Marketing Studio Output Geometry Design | 15 | [docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md:1](../../docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md#L1) |
+| Conception — pièces jointes sécurisées pour l’assistant TOK | 12 | [docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md:1](../../docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md#L1) |
 | Actualités — identité des événements facturables | 5 | [docs/testing/actualites-billing-identity.md:1](../../docs/testing/actualites-billing-identity.md#L1) |
 | Scénario Actualités sponsorisées | 5 | [docs/testing/actualites-sponsored-scenario.md:1](../../docs/testing/actualites-sponsored-scenario.md#L1) |
 | Télémétrie navigateur et consentement | 5 | [docs/testing/browser-monitoring-consent.md:1](../../docs/testing/browser-monitoring-consent.md#L1) |
@@ -7318,7 +7334,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (223)</summary>
+<details><summary>application-library (224)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/acquisitionAttribution.ts`
@@ -7327,6 +7343,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/admin/auditLogNarrative.ts`
 - `src/lib/adminComptaActions.ts`
 - `src/lib/adminDomains.ts`
+- `src/lib/advisorAttachments.ts`
 - `src/lib/ai/accountingPublicCopy.ts`
 - `src/lib/ai/aiCreationJobs.ts`
 - `src/lib/ai/dailyDishAi.ts`
@@ -7693,7 +7710,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (584)</summary>
+<details><summary>database-migration (585)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8279,10 +8296,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261027220000_marketing_first_touch_attribution.sql`
 - `supabase/migrations/20261027221840_commercial_email_confirmation.sql`
 - `supabase/migrations/20261028044351_tok_workforce_integrity_and_workflows.sql`
+- `supabase/migrations/20261028045849_advisor_secure_attachments.sql`
 
 </details>
 
-<details><summary>documentation (185)</summary>
+<details><summary>documentation (187)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8436,6 +8454,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md`
 - `docs/superpowers/plans/2026-10-28-cloudprinter-native-artwork.md`
 - `docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md`
+- `docs/superpowers/plans/2026-10-28-tok-advisor-secure-attachments-implementation.md`
 - `docs/superpowers/specs/2026-04-17-reservation-billing-design.md`
 - `docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md`
 - `docs/superpowers/specs/2026-04-21-dashboard-readability-design.md`
@@ -8453,6 +8472,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md`
 - `docs/superpowers/specs/2026-05-30-parcours-inscription-design.md`
 - `docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md`
+- `docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md`
 - `docs/testing/actualites-billing-identity.md`
 - `docs/testing/actualites-sponsored-scenario.md`
 - `docs/testing/browser-monitoring-consent.md`
@@ -8472,8 +8492,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (249)</summary>
+<details><summary>edge-function-source (250)</summary>
 
+- `supabase/functions/_shared/advisor-attachments.ts`
 - `supabase/functions/_shared/ai-image-operation.ts`
 - `supabase/functions/_shared/ai-image-response.ts`
 - `supabase/functions/_shared/ai-pricing.ts`
@@ -10284,7 +10305,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (779)</summary>
+<details><summary>test (780)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10349,6 +10370,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/admin-thefork-only-filter.test.ts`
 - `src/test/admin-user-roles.test.ts`
 - `src/test/admin-users-governance.test.ts`
+- `src/test/advisor-secure-attachments.test.ts`
 - `src/test/ai-creations-server-history.test.ts`
 - `src/test/ai-gallery-print-media-contract.test.ts`
 - `src/test/ai-generation-progress-dialog.test.tsx`

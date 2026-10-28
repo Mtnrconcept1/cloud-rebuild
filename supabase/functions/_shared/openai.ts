@@ -18,6 +18,8 @@ const TOK_AI_SUPPORT_RESOLUTION_MODEL = Deno.env.get("OPENAI_MODEL_TOK_SUPPORT_R
 const TOK_AI_SUPPORT_RESOLUTION_COMPLEX_MODEL = Deno.env.get("OPENAI_MODEL_TOK_SUPPORT_RESOLUTION_COMPLEX")?.trim() || "gpt-5.6-terra";
 
 const RESPONSES_URL = "https://api.openai.com/v1/responses";
+const MODERATIONS_URL = "https://api.openai.com/v1/moderations";
+const OPENAI_MODERATION_MODEL = "omni-moderation-latest";
 const DEFAULT_RESPONSE_TIMEOUT_MS = readBoundedTimeout(
   Deno.env.get("OPENAI_RESPONSE_TIMEOUT_MS"),
   45_000,
@@ -162,6 +164,50 @@ ${securityContext.instruction}`,
         ...input,
       ];
     }
+
+export async function assertOpenAIModerationPassed(input: unknown, timeoutMs = 20_000) {
+  if (!OPENAI_API_KEY) throw new HttpError(503, "moderation_service_unavailable");
+  if (input === null || input === undefined || input === "") return;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), readBoundedTimeout(timeoutMs, 20_000));
+  let response: Response;
+  try {
+    response = await fetch(MODERATIONS_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ model: OPENAI_MODERATION_MODEL, input }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new HttpError(503, "moderation_service_unavailable");
+    }
+    throw new HttpError(503, "moderation_service_unavailable");
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!response.ok) throw new HttpError(503, "moderation_service_unavailable");
+  const payload = await response.json().catch(() => null) as Record<string, unknown> | null;
+  const results = Array.isArray(payload?.results) ? payload.results : null;
+  if (!results?.length || results.some((entry) => !entry || typeof entry !== "object" || typeof (entry as Record<string, unknown>).flagged !== "boolean")) {
+    throw new HttpError(503, "moderation_service_unavailable");
+  }
+
+  const flagged = results.find((entry) => entry && typeof entry === "object" && (entry as Record<string, unknown>).flagged === true) as Record<string, unknown> | undefined;
+  if (!flagged) return;
+  const categories = flagged.categories && typeof flagged.categories === "object"
+    ? Object.entries(flagged.categories as Record<string, unknown>)
+      .filter(([, value]) => value === true)
+      .map(([key]) => key)
+      .slice(0, 12)
+    : [];
+  throw new HttpError(422, "attachment_content_rejected", { categories, moderation_model: OPENAI_MODERATION_MODEL });
+}
 
 export async function createOpenAIResponse(options: OpenAIRequestOptions) {
   if (!OPENAI_API_KEY) {

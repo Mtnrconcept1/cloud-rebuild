@@ -25,8 +25,12 @@ export type MailingRecipientsReport = {
   warnings?: string[];
 };
 
-type RecipientCell = { value: string; formula?: boolean };
-type RecipientTable = { name: string; rows: RecipientCell[][] };
+export type SafeSpreadsheetCell = { value: string; formula?: boolean };
+export type SafeSpreadsheetTable = { name: string; rows: SafeSpreadsheetCell[][] };
+export type SafeSpreadsheetReport = { tables: SafeSpreadsheetTable[]; warnings: string[] };
+
+type RecipientCell = SafeSpreadsheetCell;
+type RecipientTable = SafeSpreadsheetTable;
 const limits = MAILING_RECIPIENT_LIMITS;
 const emailHeaders = new Set([
   "email", "emails", "mail", "mails", "courriel", "courriels", "emailaddress", "emailaddresses",
@@ -287,14 +291,14 @@ async function preflightXlsx(bytes: Uint8Array) {
   }
 }
 
-export async function parseMailingRecipientsFile(file: File): Promise<MailingRecipientsReport> {
+export async function parseBoundedSpreadsheetFile(file: File): Promise<SafeSpreadsheetReport> {
   if (!file.size) throw new Error("Le fichier est vide.");
   if (file.size > limits.maxFileBytes) throw new Error("Le fichier dépasse 2 Mo.");
   const extension = file.name.split(".").pop()?.toLowerCase();
   if (!["csv", "xls", "xlsx"].includes(extension || "")) throw new Error("Choisissez un fichier CSV, XLS ou XLSX.");
   const bytes = new Uint8Array(await readFileBytes(file));
   if (bytes.length !== file.size || bytes.length > limits.maxFileBytes) throw new Error("La taille du fichier ne peut pas être confirmée.");
-  if (extension === "csv") return readTables([{ name: file.name, rows: csvRows(csvText(bytes)) }]);
+  if (extension === "csv") return { tables: [{ name: file.name, rows: csvRows(csvText(bytes)) }], warnings: [] };
   if (extension === "xlsx") {
     if (bytes[0] !== 80 || bytes[1] !== 75 || bytes[2] !== 3 || bytes[3] !== 4) throw archiveError();
     await preflightXlsx(bytes);
@@ -308,7 +312,8 @@ export async function parseMailingRecipientsFile(file: File): Promise<MailingRec
   const metadata = XLSX.read(bytes, { ...readOptions, bookSheets: true, bookProps: true });
   if (!metadata.SheetNames.length || metadata.SheetNames.length > limits.maxSheets) throw new Error(`Le classeur dépasse ${limits.maxSheets} feuilles ou ne contient aucune feuille.`);
   const workbook = XLSX.read(bytes, { ...readOptions, sheets: metadata.SheetNames });
-  const tables: RecipientTable[] = []; const warnings: string[] = [];
+  const tables: SafeSpreadsheetTable[] = [];
+  const warnings: string[] = [];
   let totalRows = 0;
   for (const [index, name] of workbook.SheetNames.entries()) {
     if (workbook.Workbook?.Sheets?.[index]?.Hidden) { warnings.push(`${name} : feuille masquée ignorée.`); continue; }
@@ -319,9 +324,9 @@ export async function parseMailingRecipientsFile(file: File): Promise<MailingRec
     if (range.e.r >= limits.maxRows || (totalRows += range.e.r + 1) > limits.maxRows) throw new Error(`Le classeur dépasse ${limits.maxRows} lignes.`);
     if (range.e.c >= limits.maxColumns) throw new Error(`Le classeur dépasse ${limits.maxColumns} colonnes.`);
     const dense = sheet["!data"] as CellObject[][] | undefined;
-    const rows: RecipientCell[][] = [];
+    const rows: SafeSpreadsheetCell[][] = [];
     for (let row = 0; row <= range.e.r; row += 1) {
-      const cells: RecipientCell[] = [];
+      const cells: SafeSpreadsheetCell[] = [];
       for (let column = 0; column <= range.e.c; column += 1) {
         const cell: CellObject | undefined = dense?.[row]?.[column] || sheet[XLSX.utils.encode_cell({ r: row, c: column })];
         cells.push({ value: cell?.v === undefined || cell.v === null ? "" : String(cell.v), formula: Boolean(cell?.f || cell?.F) });
@@ -331,5 +336,11 @@ export async function parseMailingRecipientsFile(file: File): Promise<MailingRec
     }
     tables.push({ name, rows });
   }
+  if (!tables.length) throw new Error("Le classeur ne contient aucune feuille exploitable.");
+  return { tables, warnings };
+}
+
+export async function parseMailingRecipientsFile(file: File): Promise<MailingRecipientsReport> {
+  const { tables, warnings } = await parseBoundedSpreadsheetFile(file);
   return readTables(tables, warnings);
 }

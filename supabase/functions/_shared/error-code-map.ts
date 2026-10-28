@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 477 error codes mapped from supabase/functions/**.
+// 497 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -94,7 +94,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_empty_response": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 354
+      "line": 400
     },
     {
       "file": "supabase/functions/commercial-demo-ai/index.ts",
@@ -108,7 +108,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_input_rejected": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 153
+      "line": 155
     }
   ],
   "ai_invalid_plan": [
@@ -120,7 +120,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_invalid_response": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 364
+      "line": 410
     },
     {
       "file": "supabase/functions/ai-social-post-copy/index.ts",
@@ -146,7 +146,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_provider_billing_unavailable": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 230
+      "line": 276
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
@@ -182,7 +182,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_rate_limited": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 226
+      "line": 272
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
@@ -206,7 +206,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_service_error": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 233
+      "line": 279
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
@@ -220,7 +220,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_service_unavailable": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 168
+      "line": 214
     },
     {
       "file": "supabase/functions/ai-accounting-agent/index.ts",
@@ -270,7 +270,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_timeout": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 217
+      "line": 263
     }
   ],
   "ai_usage_recording_failed": [
@@ -329,6 +329,200 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ops-incident-control/index.ts",
       "line": 2111
+    }
+  ],
+  "attachment_content_rejected": [
+    {
+      "file": "supabase/functions/_shared/openai.ts",
+      "line": 209
+    },
+    {
+      "file": "supabase/functions/ai-restaurant-editor/index.ts",
+      "line": 426
+    },
+    {
+      "file": "supabase/functions/ai-restaurant-editor/index.ts",
+      "line": 434
+    }
+  ],
+  "attachment_data_required": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 177
+    }
+  ],
+  "attachment_duplicate_id": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 268
+    }
+  ],
+  "attachment_formula_rejected": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 122
+    }
+  ],
+  "attachment_hash_mismatch": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 257
+    },
+    {
+      "file": "supabase/functions/ai-restaurant-editor/index.ts",
+      "line": 650
+    }
+  ],
+  "attachment_invalid": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 236
+    }
+  ],
+  "attachment_invalid_contact": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 99
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 102
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 105
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 115
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 120
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 126
+    }
+  ],
+  "attachment_invalid_contacts": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 144
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 155
+    }
+  ],
+  "attachment_invalid_encoding": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 167
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 180
+    }
+  ],
+  "attachment_invalid_metadata": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 225
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 231
+    }
+  ],
+  "attachment_invalid_text": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 72
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 75
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 81
+    }
+  ],
+  "attachment_kind_invalid": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 239
+    }
+  ],
+  "attachment_mime_mismatch": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 199
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 202
+    }
+  ],
+  "attachment_mime_rejected": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 250
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 251
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 340
+    }
+  ],
+  "attachment_pdf_rejected": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 205
+    }
+  ],
+  "attachment_size_mismatch": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 253
+    }
+  ],
+  "attachment_too_large": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 161
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 169
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 242
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 249
+    }
+  ],
+  "attachments_invalid": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 262
+    },
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 274
+    }
+  ],
+  "attachments_too_large": [
+    {
+      "file": "supabase/functions/_shared/advisor-attachments.ts",
+      "line": 271
     }
   ],
   "autopilot_plan_fields_required": [
@@ -1903,6 +2097,28 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-social-post-copy/index.ts",
       "line": 136
+    }
+  ],
+  "moderation_service_unavailable": [
+    {
+      "file": "supabase/functions/_shared/openai.ts",
+      "line": 169
+    },
+    {
+      "file": "supabase/functions/_shared/openai.ts",
+      "line": 187
+    },
+    {
+      "file": "supabase/functions/_shared/openai.ts",
+      "line": 189
+    },
+    {
+      "file": "supabase/functions/_shared/openai.ts",
+      "line": 194
+    },
+    {
+      "file": "supabase/functions/_shared/openai.ts",
+      "line": 198
     }
   ],
   "only_image_id_is_accepted": [
