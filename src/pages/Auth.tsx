@@ -978,9 +978,11 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     selectedSubscriptionBillingPeriod,
     setSelectedSubscriptionBillingPeriod,
   ] = useState<SignupSubscriptionBillingPeriod>("monthly");
-  const [legalAccepted, setLegalAccepted] = useState(false);
   const [legalAcceptanceDraft, setLegalAcceptanceDraft] = useState(false);
   const [commissionConsentDraft, setCommissionConsentDraft] = useState(false);
+  const legalAccepted =
+    legalAcceptanceDraft &&
+    (roleMode !== "restaurateur" || commissionConsentDraft);
   const [contractSignerName, setContractSignerName] = useState("");
   const [contractSignatureDataUrl, setContractSignatureDataUrl] = useState("");
   const [subscriptionPlans, setSubscriptionPlans] = useState<
@@ -1010,17 +1012,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       authMountedRef.current = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (
-      !isLogin &&
-      roleMode === "restaurateur" &&
-      legalAccepted &&
-      !commissionConsentDraft
-    ) {
-      setLegalAccepted(false);
-    }
-  }, [commissionConsentDraft, isLogin, legalAccepted, roleMode]);
 
   useEffect(() => {
     if (searchParams.get("mode") === "recovery") {
@@ -1415,7 +1406,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           setRoleMode(draft.requested_role);
           setSignupForm(recoveredForm);
           setDocuments(recoveredDocuments);
-          setLegalAccepted(recoveredLegalAccepted);
           setLegalAcceptanceDraft(recoveredLegalAccepted);
           setCommissionConsentDraft(recoveredCommissionConsent);
           if (recoveredOnboardingChoices) {
@@ -3098,125 +3088,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                 </div>
               ) : null}
 
-              {!isLogin && legalAccepted ? (
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-                  <p className="font-medium">Conditions acceptées</p>
-                  <p className="mt-1 text-emerald-800">
-                    Vous pouvez finaliser votre inscription. Les liens
-                    juridiques restent accessibles depuis le pied de page.
-                  </p>
-                </div>
-              ) : null}
-
-              {!isLogin && !legalAccepted ? (
-                <div
-                  className="fixed inset-0 z-[1900] isolate flex items-start justify-center overflow-y-auto overscroll-contain bg-slate-950/45 px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))] backdrop-blur-md sm:items-center"
-                  role="dialog"
-                  aria-modal="true"
-                  aria-labelledby="legal-acceptance-title"
-                >
-                  <div className="pointer-events-auto max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white p-5 text-slate-950 shadow-2xl sm:p-7">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <Shield className="h-6 w-6" />
-                    </div>
-                    <div className="mt-5 text-center">
-                      <h2
-                        id="legal-acceptance-title"
-                        className="text-xl font-semibold"
-                      >
-                        Accepter les conditions générales
-                      </h2>
-                      <p className="mt-2 text-sm leading-6 text-slate-600">
-                        Avant de créer votre compte TOK, confirmez que vous avez
-                        lu et accepté les conditions applicables et la politique
-                        de confidentialité.
-                      </p>
-                    </div>
-                    <div className="mt-6 flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left text-sm">
-                      <Checkbox
-                        id="legal-acceptance"
-                        checked={legalAcceptanceDraft}
-                        onCheckedChange={(checked) =>
-                          setLegalAcceptanceDraft(checked === true)
-                        }
-                        aria-label="J'accepte les CGU et la politique de confidentialité"
-                        className="mt-0.5"
-                      />
-                      <div className="leading-6 text-slate-700">
-                        <label
-                          htmlFor="legal-acceptance"
-                          className="cursor-pointer"
-                        >
-                          J'accepte les
-                        </label>{" "}
-                        <Link
-                          to="/cgu"
-                          target="_blank"
-                          className="font-semibold text-primary hover:underline"
-                        >
-                          CGU
-                        </Link>{" "}
-                        et la{" "}
-                        <Link
-                          to="/politique-confidentialite"
-                          target="_blank"
-                          className="font-semibold text-primary hover:underline"
-                        >
-                          politique de confidentialité
-                        </Link>{" "}
-                        de TOK.
-                      </div>
-                    </div>
-                    {roleMode === "restaurateur" ? (
-                      <div className="mt-3 flex items-start gap-3 rounded-2xl border border-primary/25 bg-primary/5 p-4 text-left text-sm">
-                        <Checkbox
-                          id="commission-mandate-consent"
-                          checked={commissionConsentDraft}
-                          onCheckedChange={(checked) => setCommissionConsentDraft(checked === true)}
-                          aria-label="J'autorise le prélèvement automatique des abonnements et commissions TOK"
-                          className="mt-0.5"
-                        />
-                        <label htmlFor="commission-mandate-consent" className="cursor-pointer leading-6 text-slate-700">
-                          J'autorise TOK à enregistrer ma carte via Stripe et à débiter
-                          l'abonnement choisi dès la première véritable réservation,
-                          puis à chaque échéance mensuelle ou annuelle. J'autorise
-                          aussi le prélèvement de CHF 5 par table réellement honorée,
-                          jamais par personne. Aucun montant n'est bloqué à
-                          l'inscription ; les paiements refusés ou nécessitant
-                          une authentification bancaire restent à confirmer.
-                        </label>
-                      </div>
-                    ) : null}
-                    <p className="mt-4 text-center text-xs leading-5 text-slate-500">
-                      Cochez la case, puis confirmez votre choix. La fenêtre
-                      reste ouverte tant que vous n'avez pas accepté ou refusé.
-                    </p>
-                    <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setLegalAcceptanceDraft(false);
-                          setCommissionConsentDraft(false);
-                          setLegalAccepted(false);
-                          setIsLogin(true);
-                          setForgotPassword(false);
-                        }}
-                      >
-                        Refuser
-                      </Button>
-                      <Button
-                        type="button"
-                        disabled={!legalAcceptanceDraft || (roleMode === "restaurateur" && !commissionConsentDraft)}
-                        onClick={() => setLegalAccepted(true)}
-                      >
-                        Accepter et continuer
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-
               {isLogin && !isRecoveringPrivilegedSignup && !isDemoAuthMode && getPlatform() === "web" ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Checkbox
@@ -3238,6 +3109,76 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                   action={isLogin ? "auth_login" : `auth_signup_${roleMode}`}
                   onTokenChange={setCaptchaToken}
                 />
+              ) : null}
+              {!isLogin ? (
+                <section
+                  role="group"
+                  aria-labelledby="signup-legal-consent-title"
+                  className="space-y-3 rounded-2xl border border-border bg-muted/20 p-4 sm:p-5"
+                >
+                  <div className="flex items-start gap-3">
+                    <Shield aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                    <div className="space-y-1">
+                      <h3 id="signup-legal-consent-title" className="text-base font-semibold">
+                        Conditions et autorisations
+                      </h3>
+                      <p className="text-sm leading-5 text-muted-foreground">
+                        Dernière étape : confirmez les autorisations nécessaires pour valider votre inscription.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 rounded-xl border bg-background p-3 text-sm sm:p-4">
+                    <Checkbox
+                      id="legal-acceptance"
+                      checked={legalAcceptanceDraft}
+                      onCheckedChange={(checked) => setLegalAcceptanceDraft(checked === true)}
+                      aria-label="J'accepte les CGU et la politique de confidentialité"
+                      aria-required="true"
+                      className="mt-0.5 shrink-0"
+                    />
+                    <div className="min-w-0 leading-6 text-foreground">
+                      <label htmlFor="legal-acceptance" className="cursor-pointer">
+                        J'accepte les
+                      </label>{" "}
+                      <Link to="/cgu" target="_blank" className="font-semibold text-primary hover:underline">
+                        CGU
+                      </Link>{" "}
+                      et la{" "}
+                      <Link
+                        to="/politique-confidentialite"
+                        target="_blank"
+                        className="font-semibold text-primary hover:underline"
+                      >
+                        politique de confidentialité
+                      </Link>{" "}
+                      de TOK.
+                    </div>
+                  </div>
+                  {roleMode === "restaurateur" ? (
+                    <div className="flex items-start gap-3 rounded-xl border border-primary/25 bg-primary/5 p-3 text-sm sm:p-4">
+                      <Checkbox
+                        id="commission-mandate-consent"
+                        checked={commissionConsentDraft}
+                        onCheckedChange={(checked) => setCommissionConsentDraft(checked === true)}
+                        aria-label="J'autorise le prélèvement automatique des abonnements et commissions TOK"
+                        aria-required="true"
+                        className="mt-0.5 shrink-0"
+                      />
+                      <label
+                        htmlFor="commission-mandate-consent"
+                        className="min-w-0 cursor-pointer leading-6 text-foreground"
+                      >
+                        J'autorise TOK à enregistrer ma carte via Stripe et à débiter
+                        l'abonnement choisi dès la première véritable réservation,
+                        puis à chaque échéance mensuelle ou annuelle. J'autorise
+                        aussi le prélèvement de CHF 5 par table réellement honorée,
+                        jamais par personne. Aucun montant n'est bloqué à
+                        l'inscription ; les paiements refusés ou nécessitant
+                        une authentification bancaire restent à confirmer.
+                      </label>
+                    </div>
+                  ) : null}
+                </section>
               ) : null}
               <Button
                 type="submit"
@@ -3425,7 +3366,6 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                 onClick={() => {
                   setIsLogin((current) => !current);
                   setForgotPassword(false);
-                  setLegalAccepted(false);
                   setLegalAcceptanceDraft(false);
                   setCommissionConsentDraft(false);
                 }}

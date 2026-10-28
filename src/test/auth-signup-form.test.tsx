@@ -250,9 +250,6 @@ function acceptLegalTerms() {
   if (commissionConsent && commissionConsent.getAttribute("aria-checked") !== "true") {
     fireEvent.click(commissionConsent);
   }
-  fireEvent.click(
-    screen.getByRole("button", { name: "Accepter et continuer" }),
-  );
 }
 
 describe("Auth signup form", () => {
@@ -433,102 +430,74 @@ describe("Auth signup form", () => {
     expect(supabaseMocks.signUp).not.toHaveBeenCalled();
   });
 
-  it("keeps the legal dialog open until the user explicitly confirms", async () => {
+  it("places legal consent at the bottom of the form without blocking signup fields", async () => {
     await renderAuth("/auth?type=client");
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }),
-    );
-    const dialog = screen.getByRole("dialog", {
-      name: "Accepter les conditions générales",
-    });
-    const acceptButton = screen.getByRole("button", {
-      name: "Accepter et continuer",
-    });
+    const consents = screen.getByRole("group", { name: "Conditions et autorisations" });
+    const terms = screen.getByLabelText(/J'accepte les CGU/i);
+    const submit = screen.getByRole("button", { name: "Créer mon compte" });
+    expect(screen.queryByRole("dialog", { name: "Accepter les conditions générales" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Nom complet")).toBeVisible();
+    expect(consents.nextElementSibling).toBe(submit);
+    expect(terms).not.toBeChecked();
 
-    expect(acceptButton).toBeDisabled();
-    fireEvent.click(screen.getByLabelText(/J'accepte les CGU/i));
-    expect(dialog).toBeInTheDocument();
-    expect(acceptButton).toBeEnabled();
-
-    fireEvent.click(acceptButton);
-    expect(
-      screen.queryByRole("dialog", {
-        name: "Accepter les conditions générales",
-      }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText("Conditions acceptées")).toBeInTheDocument();
+    fireEvent.click(terms);
+    expect(terms).toBeChecked();
+    expect(consents).toBeVisible();
+    expect(supabaseMocks.signUp).not.toHaveBeenCalled();
   });
 
-  it("requests explicit debit consent after switching from client to restaurateur without losing the form", async () => {
+  it("requires the separate debit checkbox after switching to restaurateur without losing the form", async () => {
     await renderAuth("/auth?type=client");
     fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
     fireEvent.click(screen.getByLabelText(/J'accepte les CGU/i));
-    fireEvent.click(screen.getByRole("button", { name: "Accepter et continuer" }));
     fireEvent.change(screen.getByLabelText("Nom complet"), { target: { value: "Marie Dupont" } });
     fireEvent.change(screen.getByLabelText("Email"), { target: { value: "restaurant@example.com" } });
 
     fireEvent.mouseDown(screen.getByRole("tab", { name: "Restaurateur" }), { button: 0, ctrlKey: false });
 
-    const dialog = await screen.findByRole("dialog", { name: "Accepter les conditions générales" });
     const mandate = screen.getByLabelText(/J'autorise le prélèvement automatique/i);
-    const acceptButton = screen.getByRole("button", { name: "Accepter et continuer" });
+    const consents = screen.getByRole("group", { name: "Conditions et autorisations" });
     expect(screen.getByRole("tab", { name: "Restaurateur" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.queryByText("Conditions acceptées")).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Accepter les conditions générales" })).not.toBeInTheDocument();
     expect(screen.getByLabelText("Nom du responsable")).toHaveValue("Marie Dupont");
     expect(screen.getByLabelText("Email")).toHaveValue("restaurant@example.com");
     expect(screen.getByLabelText(/J'accepte les CGU/i)).toBeChecked();
     expect(mandate).not.toBeChecked();
-    expect(acceptButton).toBeDisabled();
-
-    fireEvent.click(acceptButton);
-    expect(dialog).toBeInTheDocument();
-    expect(supabaseMocks.signUp).not.toHaveBeenCalled();
+    expect(consents.nextElementSibling).toBe(screen.getByRole("button", { name: "Envoyer mon inscription vérifiée" }));
 
     fireEvent.click(mandate);
     expect(mandate).toBeChecked();
-    expect(dialog).toBeInTheDocument();
-    expect(acceptButton).toBeEnabled();
     expect(supabaseMocks.signUp).not.toHaveBeenCalled();
-
-    fireEvent.click(acceptButton);
-    expect(screen.queryByRole("dialog", { name: "Accepter les conditions générales" })).not.toBeInTheDocument();
-    expect(screen.getByText("Conditions acceptées")).toBeInTheDocument();
 
     fireEvent.mouseDown(screen.getByRole("tab", { name: "Client" }), { button: 0, ctrlKey: false });
     fireEvent.mouseDown(screen.getByRole("tab", { name: "Restaurateur" }), { button: 0, ctrlKey: false });
+    expect(screen.getByLabelText(/J'autorise le prélèvement automatique/i)).toBeChecked();
     expect(screen.queryByRole("dialog", { name: "Accepter les conditions générales" })).not.toBeInTheDocument();
   });
 
-  it("clears debit authorization when starting a new signup after returning to login", async () => {
+  it("clears both consent checkboxes when starting a new signup after returning to login", async () => {
     await renderAuth("/auth?type=restaurateur");
     acceptLegalTerms();
     fireEvent.click(screen.getByRole("button", { name: "Déjà un compte ? Se connecter" }));
     fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
 
-    expect(screen.getByRole("dialog", { name: "Accepter les conditions générales" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Conditions et autorisations" })).toBeInTheDocument();
     expect(screen.getByLabelText(/J'accepte les CGU/i)).not.toBeChecked();
     expect(screen.getByLabelText(/J'autorise le prélèvement automatique/i)).not.toBeChecked();
-    expect(screen.getByRole("button", { name: "Accepter et continuer" })).toBeDisabled();
     expect(supabaseMocks.signUp).not.toHaveBeenCalled();
   });
 
-  it("lets the user refuse the legal terms and return to login", async () => {
+  it("lets users abandon signup without accepting the terms", async () => {
     await renderAuth("/auth?type=client");
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
+    expect(screen.getByLabelText(/J'accepte les CGU/i)).not.toBeChecked();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }),
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Refuser" }));
-
-    expect(
-      screen.queryByRole("dialog", {
-        name: "Accepter les conditions générales",
-      }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Se connecter" }),
-    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Déjà un compte ? Se connecter" }));
+    expect(screen.queryByRole("group", { name: "Conditions et autorisations" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Se connecter" })).toBeInTheDocument();
+    expect(supabaseMocks.signUp).not.toHaveBeenCalled();
   });
 
   it("submits client signup with the confirmation redirect and does not auto-login without a session", async () => {
@@ -712,7 +681,7 @@ describe("Auth signup form", () => {
       fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
       acceptLegalTerms();
       fireEvent.mouseDown(screen.getByRole("tab", { name: "Restaurateur" }), { button: 0, ctrlKey: false });
-      await screen.findByRole("dialog", { name: "Accepter les conditions générales" });
+      await screen.findByLabelText(/J'autorise le prélèvement automatique/i);
     }
     await screen.findByText("TOK Starter");
 
@@ -1106,15 +1075,15 @@ describe("Auth signup form", () => {
     expect(recoveryMocks.load).toHaveBeenCalledWith(operationId);
     expect(screen.getByLabelText("Téléphone")).toHaveValue("");
 
-    if (hasSavedMandate) {
-      expect(screen.getByText("Conditions acceptées")).toBeInTheDocument();
-      expect(screen.queryByRole("dialog", { name: "Accepter les conditions générales" })).not.toBeInTheDocument();
-    } else {
-      expect(screen.getByRole("dialog", { name: "Accepter les conditions générales" })).toBeInTheDocument();
-      expect(screen.queryByText("Conditions acceptées")).not.toBeInTheDocument();
-      expect(screen.getByLabelText(/J'autorise le prélèvement automatique/i)).not.toBeChecked();
-      expect(screen.getByRole("button", { name: "Accepter et continuer" })).toBeDisabled();
-    }
+    expect(screen.queryByRole("dialog", { name: "Accepter les conditions générales" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/J'accepte les CGU/i)).toHaveAttribute(
+      "aria-checked",
+      String(hasSavedMandate),
+    );
+    expect(screen.getByLabelText(/J'autorise le prélèvement automatique/i)).toHaveAttribute(
+      "aria-checked",
+      String(hasSavedMandate),
+    );
 
     expect(supabaseMocks.signUp).not.toHaveBeenCalled();
     expect(supabaseMocks.upload).not.toHaveBeenCalled();
