@@ -36,11 +36,18 @@ describe("TOK image-first mailing email", () => {
     expect(html).toContain("token=test&amp;source=mail");
     expect(text).toContain("Se désabonner : " + brand.unsubscribeUrl);
   });
-  it("falls back to accessible text rather than a broken image when no visual is available", () => {
+  it("uses the branded TOK email fallback with its real chef and an accessible button", () => {
     const { html } = renderMarketingEmail({ ...content, visualUrl: null }, brand);
     const document = doc(html);
-    expect(document.images).toHaveLength(0);
+    expect(document.images).toHaveLength(2);
+    expect(Array.from(document.images).map(image => image.getAttribute("src"))).toEqual([
+      "https://www.thetok.ch/logotok.png", "https://www.thetok.ch/chef2.png",
+    ]);
     expect(document.querySelector("h1")?.textContent).toBe(content.headline);
+    expect(document.body.textContent).toContain("Pensé pour les restaurateurs.");
+    expect(document.body.textContent).toContain("Vos actualités");
+    expect(html).toContain("#FF4B11");
+    expect(html).not.toMatch(/object-fit|display:(?:flex|grid)/);
     expect(document.body.textContent).toContain(content.body);
     expect(Array.from(document.links).map(a=>a.getAttribute("href"))).toContain(content.callToActionUrl);
   });
@@ -57,7 +64,8 @@ describe("TOK image-first mailing email", () => {
     "https://username:password@example.ch/a.jpg", 'https://example.ch/" onerror="bad()',
   ])("rejects unsafe URL %s without interpolating it into HTML", unsafe => {
     const { html } = renderMarketingEmail({ ...content, visualUrl: unsafe, callToActionUrl: unsafe }, brand);
-    expect(doc(html).images).toHaveLength(0);
+    expect(doc(html).images).toHaveLength(2);
+    expect(Array.from(doc(html).images).every(image => image.getAttribute("src")?.startsWith("https://www.thetok.ch/"))).toBe(true);
     expect(html).not.toContain(unsafe);
     expect(Array.from(doc(html).links).map(a=>a.getAttribute("href"))).toContain("https://www.thetok.ch/");
   });

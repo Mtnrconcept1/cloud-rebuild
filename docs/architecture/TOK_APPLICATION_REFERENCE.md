@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `c4316ea07a124018e3eab890ad4988471707cbdf61059c46483cc99484d0a6bb`
+- Empreinte SHA-256 des sources indexées : `4a6562d8df74365d96eeaadfdf52e812d339df8e300a54833dc64765a7565c58`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 234 |
 | edgeFunctions | 122 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4179 |
+| exportedSymbols | 4176 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 585 |
-| modules | 1880 |
+| modules | 1879 |
 | pages | 133 |
-| pathLiterals | 913 |
+| pathLiterals | 911 |
 | publicAssets | 715 |
-| publicEntries | 747 |
+| publicEntries | 746 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19450 |
-| repositoryFiles | 3754 |
+| records | 19442 |
+| repositoryFiles | 3753 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1365,7 +1365,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /sitemap-restaurants.xml | platform | [public/sitemap-restaurants.xml](../../public/sitemap-restaurants.xml) |
 | /sitemap.xml | platform | [public/sitemap.xml](../../public/sitemap.xml) |
 | /theme-preference-init.js | other | [public/theme-preference-init.js](../../public/theme-preference-init.js) |
-| /tok-connect-preview-bridge.js | other | [public/tok-connect-preview-bridge.js](../../public/tok-connect-preview-bridge.js) |
 | /tok-reference-food-webp/tok-reference-food-01.webp | media | [public/tok-reference-food-webp/tok-reference-food-01.webp](../../public/tok-reference-food-webp/tok-reference-food-01.webp) |
 | /tok-reference-food-webp/tok-reference-food-02.webp | media | [public/tok-reference-food-webp/tok-reference-food-02.webp](../../public/tok-reference-food-webp/tok-reference-food-02.webp) |
 | /tok-reference-food-webp/tok-reference-food-03.webp | media | [public/tok-reference-food-webp/tok-reference-food-03.webp](../../public/tok-reference-food-webp/tok-reference-food-03.webp) |
@@ -1395,7 +1394,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
 | / | 282 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
-| /(.*) | 8 | [src/test/admin-crm-theme-csp.test.ts:27](../../src/test/admin-crm-theme-csp.test.ts#L27) |
+| /(.*) | 7 | [src/test/admin-crm-theme-csp.test.ts:27](../../src/test/admin-crm-theme-csp.test.ts#L27) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:100](../../src/test/application-search-index.test.ts#L100) |
 | /.well-known/apple-app-site-association-extra | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
@@ -1517,7 +1516,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/marketing/rpc | 21 | [src/marketing/marketingBffClient.ts:13](../../src/marketing/marketingBffClient.ts#L13) |
 | /api/marketing/session | 7 | [scripts/stoppin-venue-seo.test.mjs:146](../../scripts/stoppin-venue-seo.test.mjs#L146) |
 | /api/missing | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
-| /api/photon | 1 | [vite.config.ts:123](../../vite.config.ts#L123) |
+| /api/photon | 1 | [vite.config.ts:94](../../vite.config.ts#L94) |
 | /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:525](../../src/test/tok-ai-tools.test.ts#L525) |
 | /assets/missing.js | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /attachments? | 1 | [src/test/resend-inbound-forward.test.ts:25](../../src/test/resend-inbound-forward.test.ts#L25) |
@@ -1552,7 +1551,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /campaign-studio | 1 | [src/test/dashboard-design-preview-export.test.tsx:62](../../src/test/dashboard-design-preview-export.test.tsx#L62) |
 | /carte | 2 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
 | /cgu | 22 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
-| /chef2.png | 3 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
+| /chef2.png | 4 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
 | /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:672](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L672) |
 | /chefs-table | 27 | [scripts/prerender-seo.mjs:1049](../../scripts/prerender-seo.mjs#L1049) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
@@ -1993,7 +1992,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /inventory/partners/{partnerId}/merchants/{merchantId}/availability:replace | 1 | [supabase/functions/google-actions-center-sync/index.ts:52](../../supabase/functions/google-actions-center-sync/index.ts#L52) |
 | /launch | 1 | [src/components/launch/LaunchArtwork.tsx:51](../../src/components/launch/LaunchArtwork.tsx#L51) |
 | /logo.png | 1 | [src/test/workspace-layout-controls.test.tsx:23](../../src/test/workspace-layout-controls.test.tsx#L23) |
-| /logotok.png | 9 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
+| /logotok.png | 10 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
 | /logout?scope=local | 1 | [server/marketingBff.ts:823](../../server/marketingBff.ts#L823) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:30](../../src/hooks/useTokLogo.ts#L30) |
 | /marketing | 34 | [scripts/application-index-core.mjs:168](../../scripts/application-index-core.mjs#L168) |
@@ -2246,8 +2245,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-connect | 15 | [scripts/prerender-seo.mjs:567](../../scripts/prerender-seo.mjs#L567) |
 | /tok-connect-api | 1 | [supabase/functions/tok-connect-api/index.ts:89](../../supabase/functions/tok-connect-api/index.ts#L89) |
 | /tok-connect-app-bridge | 2 | [supabase/functions/_shared/auth.ts:269](../../supabase/functions/_shared/auth.ts#L269) |
-| /tok-connect-preview-bridge.js | 1 | [src/lib/tok-connect-preview.ts:4](../../src/lib/tok-connect-preview.ts#L4) |
-| /tok-connect-preview-widget.js | 1 | [src/lib/tok-connect-preview.ts:3](../../src/lib/tok-connect-preview.ts#L3) |
 | /tok-connect/developer | 13 | [scripts/prerender-seo.mjs:1284](../../scripts/prerender-seo.mjs#L1284) |
 | /tok-connect/developer/:path* | 2 | [src/test/vercel-rewrites.test.ts:117](../../src/test/vercel-rewrites.test.ts#L117) |
 | /tok-connect/mcp-widget | 6 | [src/App.tsx:611](../../src/App.tsx#L611) |
@@ -7003,14 +7000,14 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 123 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 150 | [public/tok-connect-preview-bridge.js:1](../../public/tok-connect-preview-bridge.js#L1) |
+| Openai | 150 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 278 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 856 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 72 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 71 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
@@ -7026,7 +7023,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | frontend-hook | 25 |
 | frontend-page | 133 |
 | frontend-source | 35 |
-| public-asset | 7 |
+| public-asset | 6 |
 | repository-file | 8 |
 | server-source | 2 |
 | test | 780 |
@@ -9345,7 +9342,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (747)</summary>
+<details><summary>public-asset (746)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -10070,7 +10067,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/sitemap-restaurants.xml`
 - `public/sitemap.xml`
 - `public/theme-preference-init.js`
-- `public/tok-connect-preview-bridge.js`
 - `public/tok-reference-food-webp/tok-reference-food-01.webp`
 - `public/tok-reference-food-webp/tok-reference-food-02.webp`
 - `public/tok-reference-food-webp/tok-reference-food-03.webp`

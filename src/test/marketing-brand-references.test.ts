@@ -2,7 +2,7 @@ import { createHash, webcrypto } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildTokMarketingVisualPrompt, TOK_MARKETING_REFERENCES } from "../../supabase/functions/_shared/marketing-brand";
+import { buildTokMarketingVisualPrompt, buildTokMailingVisualPrompt, TOK_MARKETING_REFERENCES } from "../../supabase/functions/_shared/marketing-brand";
 
 const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0xff, 0xd9]);
 function setup(mode: "ok" | "missing" | "changed" | "provider" | "invalid-output" | "oversize" = "ok") {
@@ -139,4 +139,30 @@ describe("TOK brand reference conditioning", () => {
     expect(form.get("size")).toBe(size);
     expect(form.get("prompt")).toContain(`au format ${format}`);
   });
+  it("uses the approved TOK mailing editorial system without reproducing the unrelated social grid", () => {
+    const prompt = buildTokMailingVisualPrompt("TITRE : Plusieurs adresses. Une vue claire.");
+    expect(prompt).toContain("CHARTE DES 10 EXEMPLES EMAIL VALIDÉS");
+    expect(prompt).toContain("public/marketing/brand/tok-v3/studio-chef.jpeg");
+    expect(prompt).toContain("#FF4B11");
+    expect(prompt).toContain("« Pensé pour les restaurateurs. »");
+    expect(prompt).toContain("grand bouton noir");
+    expect(prompt).toContain("petite bulle Miamz!");
+    expect(prompt).toContain("AFFICHE EMAIL TOK");
+    expect(prompt).toContain("BRIEF COURANT");
+    expect(prompt).toContain("Plusieurs adresses. Une vue claire.");
+    expect(prompt).not.toContain("Aucun paragraphe sur l'image");
+  });
+  it("enforces exact 9:16 dimensions on mailing even when a caller requests a social format", async () => {
+    setup();
+    const { buildTokMarketingImageForm } = await import("../../supabase/functions/_shared/marketing-visual");
+    const form = await buildTokMarketingImageForm("Le message réel d'un restaurant", "16:9", true);
+    expect(form.get("size")).toBe("720x1280");
+    expect(form.get("output_format")).toBe("jpeg");
+    expect((form.getAll("image[]") as File[]).map(file => file.name)).toEqual([
+      "studio-chef.jpg", "instagram-profile.jpg", "culinary.jpg",
+    ]);
+    expect(String(form.get("prompt"))).toContain("en-tête logo+signature");
+    expect(String(form.get("prompt"))).toContain("Découvrir TOK");
+  });
+
 });
