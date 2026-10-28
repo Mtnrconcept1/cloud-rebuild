@@ -1,9 +1,9 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "99c987d590fe48783ccd9aeaa58cd34630130395980bcad57032393e2f648801",
+  "sourceDigest": "bd39fe5376e51e6477ec9d6638a851965de07b5e3b084cfb8dcc5687f0e287c5",
   "routeCount": 143,
-  "toolCount": 122
+  "toolCount": 123
 } as const;
 
 export const TOK_USER_GUIDE_ROUTES = [
@@ -2586,6 +2586,21 @@ export const TOK_USER_GUIDE_TOOLS = [
     "integrations": [
       "stripe"
     ]
+  },
+  {
+    "name": "plinko-play",
+    "endpoint": "/functions/v1/plinko-play",
+    "methods": [
+      "POST"
+    ],
+    "actions": [
+      "claim",
+      "play",
+      "start",
+      "status",
+      "string"
+    ],
+    "integrations": []
   },
   {
     "name": "print-admin",

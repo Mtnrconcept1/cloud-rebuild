@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 497 error codes mapped from supabase/functions/**.
+// 501 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -1673,6 +1673,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/customer-memory/index.ts",
       "line": 427
+    },
+    {
+      "file": "supabase/functions/plinko-play/index.ts",
+      "line": 45
     }
   ],
   "invalid_approval_payload": [
@@ -1777,6 +1781,24 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 109
     }
   ],
+  "invalid_marketing_consent": [
+    {
+      "file": "supabase/functions/plinko-play/index.ts",
+      "line": 81
+    }
+  ],
+  "invalid_plinko_email": [
+    {
+      "file": "supabase/functions/plinko-play/index.ts",
+      "line": 80
+    }
+  ],
+  "invalid_plinko_session": [
+    {
+      "file": "supabase/functions/plinko-play/index.ts",
+      "line": 63
+    }
+  ],
   "invalid_recovery_challenge": [
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
@@ -1801,6 +1823,14 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
       "line": 1072
+    },
+    {
+      "file": "supabase/functions/plinko-play/index.ts",
+      "line": 10
+    },
+    {
+      "file": "supabase/functions/plinko-play/index.ts",
+      "line": 28
     },
     {
       "file": "supabase/functions/restaurant-advisor/index.ts",
@@ -2071,6 +2101,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 95
     },
     {
+      "file": "supabase/functions/plinko-play/index.ts",
+      "line": 42
+    },
+    {
       "file": "supabase/functions/restaurant-media-governance/index.ts",
       "line": 107
     },
@@ -2303,6 +2337,16 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
       "line": 483
+    }
+  ],
+  "plinko_unavailable": [
+    {
+      "file": "supabase/functions/plinko-play/index.ts",
+      "line": 90
+    },
+    {
+      "file": "supabase/functions/plinko-play/index.ts",
+      "line": 92
     }
   ],
   "premium_required": [
@@ -2715,6 +2759,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
       "line": 1288
+    },
+    {
+      "file": "supabase/functions/plinko-play/index.ts",
+      "line": 18
     },
     {
       "file": "supabase/functions/tok-workforce-assistant/index.ts",
