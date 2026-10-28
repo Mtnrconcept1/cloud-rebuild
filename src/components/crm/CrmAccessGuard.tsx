@@ -12,6 +12,7 @@ import {
   CRM_MFA_FRIENDLY_NAME,
   findPendingCrmMfaFactor,
   findVerifiedCrmMfaFactor,
+  findVerifiedOtherMfaFactor,
   getCrmMfaFactorId,
   isCrmMfaFactor,
   isValidCrmRecoveryCode,
@@ -81,6 +82,7 @@ export default function CrmAccessGuard({
   const { toast } = useToast();
   const [state, setState] = useState<MfaState>("checking");
   const [factor, setFactor] = useState<MfaFactor | null>(null);
+  const [hasVerifiedCrmFactor, setHasVerifiedCrmFactor] = useState(false);
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [verificationCode, setVerificationCode] = useState("");
   const [qrCode, setQrCode] = useState<string | null>(null);
@@ -143,17 +145,22 @@ export default function CrmAccessGuard({
       const { data: assurance, error: assuranceError } = await mfa.getAuthenticatorAssuranceLevel();
       if (assuranceError) throw assuranceError;
 
+      const { data: factors, error: factorsError } = await mfa.listFactors();
+      if (factorsError) throw factorsError;
+      const reusableFactor = findVerifiedCrmMfaFactor(factors);
+      setHasVerifiedCrmFactor(Boolean(reusableFactor));
+
       if (assurance?.currentLevel === "aal2") {
         setState("verified");
         return;
       }
 
-      const { data: factors, error: factorsError } = await mfa.listFactors();
-      if (factorsError) throw factorsError;
-      const reusableFactor = findVerifiedCrmMfaFactor(factors);
-
-      if (reusableFactor) {
-        await startChallenge(reusableFactor);
+      // Supabase rejects a new enrollment with 403/insufficient_aal when
+      // another verified factor exists but the session is still AAL1.
+      // Prove possession of that factor first, without resetting Marketing.
+      const factorToVerify = reusableFactor || findVerifiedOtherMfaFactor(factors);
+      if (factorToVerify) {
+        await startChallenge(factorToVerify);
         return;
       }
 
@@ -181,8 +188,20 @@ export default function CrmAccessGuard({
       if (factorsError) throw factorsError;
       const reusableFactor = findVerifiedCrmMfaFactor(factors);
       if (reusableFactor) {
+        setHasVerifiedCrmFactor(true);
         await startChallenge(reusableFactor);
         return;
+      }
+      const otherFactor = findVerifiedOtherMfaFactor(factors);
+      if (otherFactor) {
+        const { data: assurance, error: assuranceError } = await mfa.getAuthenticatorAssuranceLevel();
+        if (assuranceError) throw assuranceError;
+        if (assurance?.currentLevel !== "aal2") {
+          // Do not call enroll: Supabase correctly requires AAL2 here.
+          setHasVerifiedCrmFactor(false);
+          await startChallenge(otherFactor);
+          return;
+        }
       }
       const pendingFactor = findPendingCrmMfaFactor(factors);
       const pendingFactorId = getFactorId(pendingFactor);
@@ -402,6 +421,7 @@ export default function CrmAccessGuard({
       }
 
       const { error: refreshError } = await supabase.auth.refreshSession();
+      setHasVerifiedCrmFactor((current) => current || Boolean(qrCode));
       setState("verified");
       setVerificationCode("");
       setQrCode(null);
@@ -425,6 +445,7 @@ export default function CrmAccessGuard({
     () => isValidCrmTotpCode(verificationCode) && Boolean(challengeId) && !busy,
     [busy, challengeId, verificationCode],
   );
+  const requiresExistingAccountFactor = state === "challenge" && !hasVerifiedCrmFactor;
 
   if (accessLoading) {
     return (
@@ -470,10 +491,17 @@ export default function CrmAccessGuard({
             <div>
               <p className="text-sm font-semibold text-sky-950">Application d'authentification CRM</p>
               <p className="mt-1 text-sm text-sky-900/75">
-                Changez d'application ou réinitialisez le code ici. L'ancien accès reste actif jusqu'à la validation du nouveau.
+                {hasVerifiedCrmFactor
+                  ? "Changez d'application ou réinitialisez le code ici. L'ancien accès reste actif jusqu'à la validation du nouveau."
+                  : "Votre compte est vérifié avec un facteur existant. Vous pouvez maintenant créer un QR code TOK CRM dédié, sans modifier le facteur des autres espaces."}
               </p>
             </div>
-            {rotationConfirmationVisible ? (
+            {!hasVerifiedCrmFactor ? (
+              <Button type="button" onClick={enrollTotp} disabled={busy} className="gap-2">
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
+                Créer le QR code CRM
+              </Button>
+            ) : rotationConfirmationVisible ? (
               <div className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 sm:flex-row sm:items-center">
                 <p className="max-w-md text-xs leading-5 text-amber-950">
                   Le nouveau QR code devra être vérifié avant que l'ancien code soit révoqué.
@@ -575,9 +603,19 @@ export default function CrmAccessGuard({
               <label className="text-sm font-medium" htmlFor="crm-mfa-code">
                 Code à 6 chiffres de votre application d'authentification
               </label>
-              <p className="text-xs text-muted-foreground">
-                Le code de récupération reçu par e-mail comporte 8 chiffres et se saisit dans le formulaire de récupération ci-dessous.
-              </p>
+              {requiresExistingAccountFactor ? (
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Un facteur 2FA est déjà actif pour un autre espace TOK.
+                  {factor?.friendly_name === "TheTOK Marketing"
+                    ? " Saisissez le code à 6 chiffres de TheTOK Marketing."
+                    : " Saisissez le code à 6 chiffres de votre application déjà enregistrée."}
+                  {" "}Cette vérification est obligatoire avant la création d'un nouveau QR code CRM.
+                </p>
+              ) : state === "challenge" ? (
+                <p className="text-xs text-muted-foreground">
+                  Le code de récupération reçu par e-mail comporte 8 chiffres et se saisit dans le formulaire de récupération ci-dessous.
+                </p>
+              ) : null}
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Input
                   id="crm-mfa-code"
@@ -595,7 +633,7 @@ export default function CrmAccessGuard({
             </div>
           ) : null}
 
-          {state === "challenge" ? (
+          {state === "challenge" && hasVerifiedCrmFactor ? (
             <div className="mt-4 border-t pt-4">
               {rotationRequested ? (
                 <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
@@ -704,6 +742,13 @@ export default function CrmAccessGuard({
                   </div>
                 ) : null}
               </div>
+            </div>
+          ) : null}
+
+          {requiresExistingAccountFactor ? (
+            <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-950">
+              Vous n'avez plus accès au code de cet autre espace ? La récupération par e-mail du CRM ne réinitialise pas ce facteur.
+              Contactez le support TOK pour une vérification d'identité. Aucun code existant ne sera supprimé automatiquement.
             </div>
           ) : null}
 

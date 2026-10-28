@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `e4f37161aac6544dbc2fd8ba656b007acafab465adbf497180b10e0e734a3175`
+- Empreinte SHA-256 des sources indexées : `f902a725924917b0971914dd0f86c5e83e7eda51aacc8655519840ba68db3498`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 228 |
 | edgeFunctions | 121 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4065 |
+| exportedSymbols | 4066 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 583 |
-| modules | 1848 |
+| modules | 1849 |
 | pages | 133 |
 | pathLiterals | 900 |
 | publicAssets | 713 |
 | publicEntries | 743 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 119 |
-| records | 19119 |
-| repositoryFiles | 3707 |
+| records | 19122 |
+| repositoryFiles | 3708 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -6957,7 +6957,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 278 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 843 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 844 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 71 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6978,7 +6978,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 6 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 763 |
+| test | 764 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -10223,7 +10223,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (763)</summary>
+<details><summary>test (764)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10395,6 +10395,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/compta-flow.test.ts`
 - `src/test/courier.test.ts`
 - `src/test/create-checkout-subscription.test.ts`
+- `src/test/crm-mfa-existing-factor-enrollment.test.tsx`
 - `src/test/crm-mfa-recovery.test.ts`
 - `src/test/crm-mfa-resend-provider-errors.test.ts`
 - `src/test/crm-mfa-resend-readiness.test.ts`
