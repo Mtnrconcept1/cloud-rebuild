@@ -23,10 +23,10 @@ describe("weekly employee planning", () => {
     const monday = screen.getByRole("cell", { name: "Camille Martin, lundi 19 octobre" });
     expect(within(monday).getByText("11:00 – 15:00")).toBeInTheDocument();
     const tuesday = screen.getByRole("cell", { name: "Alex Dupont, mardi 20 octobre" });
-    expect(within(tuesday).getByText("Absence")).toBeInTheDocument();
+    expect(within(tuesday).getByText("Vacances")).toBeInTheDocument();
   });
 
-  it("keeps confirmation, keyboard date movement, deletion and same-employee drag movement connected to the original shift", () => {
+  it("keeps confirmation, keyboard date movement, deletion and reassignment connected to the original shift", () => {
     const onChange = vi.fn();
     const onDelete = vi.fn();
     render(<WorkforceWeekGrid days={days} employees={employees} shifts={[shift]} absences={[]} changing={false} removing={false} onChange={onChange} onDelete={onDelete} />);
@@ -40,10 +40,23 @@ describe("weekly employee planning", () => {
 
     const dataTransfer = { getData: () => "shift-1" };
     fireEvent.drop(screen.getByRole("cell", { name: "Camille Martin, mercredi 21 octobre" }), { dataTransfer });
-    expect(onChange).toHaveBeenLastCalledWith({ id: "shift-1", patch: { shift_date: "2026-10-21" } });
+    expect(onChange).toHaveBeenLastCalledWith({ id: "shift-1", patch: { shift_date: "2026-10-21", employee_id: "camille" } });
     onChange.mockClear();
     fireEvent.drop(screen.getByRole("cell", { name: "Alex Dupont, jeudi 22 octobre" }), { dataTransfer });
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenLastCalledWith({ id: "shift-1", patch: { shift_date: "2026-10-22", employee_id: "alex" } });
+  });
+
+  it("exposes keyboard editing and creation, and keeps existing shifts visible during an absence", () => {
+    const onEdit = vi.fn(), onCreate = vi.fn();
+    render(<WorkforceWeekGrid days={days} employees={employees} shifts={[shift]} absences={[{ ...absence, employee_id: "camille", start_date: "2026-10-18", end_date: "2026-10-20", notes: "Congé approuvé" }]} changing={false} removing={false} onChange={vi.fn()} onDelete={vi.fn()} onEdit={onEdit} onCreate={onCreate} />);
+    fireEvent.click(screen.getByRole("button", { name: "Modifier le service de Camille Martin du 2026-10-19" }));
+    expect(onEdit).toHaveBeenCalledWith(shift);
+    expect(onCreate).not.toHaveBeenCalled();
+    expect(screen.getByText("Conflit : service pendant une absence")).toBeInTheDocument();
+    expect(screen.getByText("11:00 – 15:00")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ajouter un service pour Camille Martin le 2026-10-19" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Ajouter un service pour Alex Dupont le 2026-10-23" }));
+    expect(onCreate).toHaveBeenCalledWith("alex", "2026-10-23");
   });
 
   it("keeps busy and cancelled shifts from being moved by drag and drop", () => {

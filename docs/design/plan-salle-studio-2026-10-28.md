@@ -8,7 +8,7 @@ La direction visuelle utilise papier ivoire, titres sérif, orange TOK, chêne e
 
 ## Risque et procédure
 
-**Niveau 3**, proportionné au domaine des réservations : les parcours de placement, sauvegarde et changement de mode restent sensibles même si cette PR est frontend. Branche dédiée `codex/tok-floorplan-studio-20261028`, dans un worktree séparé. Base mise à jour sur `837705c65cedfbfb3406fe9542e4afdf66020938` sans modifier `main`.
+**Niveau 3**, proportionné au domaine des réservations : les parcours de placement, sauvegarde et changement de mode restent sensibles même si cette PR est frontend. Branche dédiée `codex/tok-floorplan-studio-20261028`, dans un worktree séparé. Base des validations locales : `837705c65cedfbfb3406fe9542e4afdf66020938`. La branche intègre ensuite `c560a7de37f0fc46eb0d1192ae8492287c624422` (PR Équipe #1004), sans modifier `main`. Les conflits concernent exclusivement les trois références générées, recalculées sur les deux évolutions. Les fichiers fonctionnels de cette refonte restent identiques ; la CI contrôle cet arbre consolidé et les dépendances actualisées en amont.
 
 Aucune migration, nouvelle politique RLS, route protégée, Edge Function, variable d'environnement, dépendance ou configuration de déploiement n'est modifiée. Les mutations et RPC existants restent utilisés. La PR de fiabilité #907 demeure indépendante. Retour arrière : revert du commit frontend ; les propriétés JSON de présentation sont optionnelles et ignorées par l'ancienne interface.
 

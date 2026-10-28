@@ -1,20 +1,22 @@
 /** SwissTime core adapted to TOK (tenant-specific data lives in Supabase). */
-export type WorkforceEmployee = { id:string; restaurant_id:string; first_name:string; last_name:string; email:string|null; user_id:string|null; role:"employee"|"manager"; contracted_hours_per_week:number; vacation_days_per_year:number; hourly_cost_chf:number; is_active:boolean };
-export type WorkforceShift = { id:string; restaurant_id:string; employee_id:string; shift_date:string; start_time:string; end_time:string; break_minutes:number; status:"planned"|"confirmed"|"completed"|"cancelled"; notes:string|null };
-export type WorkforceEntry = { id:string; restaurant_id:string; employee_id:string; entry_date:string; start_time:string; end_time:string; break_minutes:number; notes:string|null; is_night_work:boolean; is_sunday_work:boolean };
-export type WorkforceAbsence = { id:string; restaurant_id:string; employee_id:string; absence_type:"vacation"|"sick"|"holiday"|"other"; start_date:string; end_date:string; days_count:number; notes:string|null };
-export type WorkforceRequest = { id:string; restaurant_id:string; employee_id:string; request_type:"vacation"|"correction"|"schedule"|"other"; description:string; requested_start_date?:string|null; requested_end_date?:string|null; requested_days?:number|null; status:"pending"|"approved"|"rejected" };
-export type WorkforceExchange = { id:string; restaurant_id:string; requester_id:string; requester_shift_id:string; target_employee_id:string; target_shift_id:string|null; target_accepted_at?:string|null; status:"pending"|"approved"|"rejected"|"cancelled" };
+export type WorkforceEmployee = { id:string; restaurant_id:string; first_name:string; last_name:string; email:string|null; user_id:string|null; role:"employee"|"manager"; contracted_hours_per_week:number; vacation_days_per_year:number; hourly_cost_chf:number; is_active:boolean; started_on?:string|null; ended_on?:string|null; updated_at?:string };
+export type WorkforceShift = { id:string; restaurant_id:string; employee_id:string; shift_date:string; start_time:string; end_time:string; break_minutes:number; status:"planned"|"confirmed"|"completed"|"cancelled"; notes:string|null; updated_at?:string };
+export type WorkforceEntry = { id:string; restaurant_id:string; employee_id:string; entry_date:string; start_time:string; end_time:string; break_minutes:number; notes:string|null; is_night_work:boolean; is_sunday_work:boolean; updated_at?:string; version?:number };
+export type WorkforceAbsence = { id:string; restaurant_id:string; employee_id:string; absence_type:"vacation"|"sick"|"holiday"|"other"; start_date:string; end_date:string; days_count:number; notes:string|null; source_request_id?:string|null };
+export type WorkforceRequest = { id:string; restaurant_id:string; employee_id:string; request_type:"vacation"|"correction"|"schedule"|"other"; description:string; requested_start_date?:string|null; requested_end_date?:string|null; requested_days?:number|null; requested_entry_id?:string|null; requested_entry_version?:number|null; requested_start_time?:string|null; requested_end_time?:string|null; requested_break_minutes?:number|null; review_note?:string|null; reviewed_at?:string|null; status:"pending"|"approved"|"rejected" };
+export type WorkforceExchange = { id:string; restaurant_id:string; requester_id:string; requester_shift_id:string; target_employee_id:string; target_shift_id:string|null; target_accepted_at?:string|null; target_accepted_by?:string|null; requester_message?:string|null; manager_notes?:string|null; created_at?:string; status:"pending"|"approved"|"rejected"|"cancelled" };
 export type WorkforceSettings = { restaurant_id:string; enabled:boolean; canton:string; max_weekly_hours:number; min_vacation_days:number };
-export type WorkforceValidation = { id:string; restaurant_id:string; time_entry_id:string; signed_name:string; signed_at:string; signature_data?:string|null };
+export type WorkforceValidation = { id:string; restaurant_id:string; time_entry_id:string; signed_name:string; signed_at:string; signature_data?:string|null; signed_by?:string; entry_version?:number|null; entry_snapshot?:Record<string,unknown>|null; entry_hash?:string|null };
+export type WorkforceHoliday = { id:string; restaurant_id:string; holiday_date:string; name:string; is_national?:boolean; created_by?:string|null; created_at?:string; updated_at?:string };
+export type WorkforceClockSession = { id:string; restaurant_id:string; employee_id:string; entry_id:string|null; clock_in_at:string; clock_out_at:string|null; break_seconds:number; pause_started_at?:string|null };
 
 export function employeeName(employee: Pick<WorkforceEmployee,"first_name"|"last_name"> | undefined): string {
   return employee ? employee.first_name+" "+employee.last_name : "Collaborateur inconnu";
 }
 export function minutesFromTime(value:string):number {
-  const m=/^([0-2]\d):([0-5]\d)(?::[0-5]\d(?:\.\d{1,6})?)?$/.exec(value);
+  const m=/^([0-2]\d):([0-5]\d)(?::([0-5]\d(?:\.\d{1,6})?))?$/.exec(value);
   if(!m || +m[1]>23) throw new Error("Heure invalide.");
-  return +m[1]*60 + +m[2];
+  return +m[1]*60 + +m[2] + Number(m[3] || 0)/60;
 }
 export function workedHours(start:string,end:string,breakMinutes:number):number {
   const first=minutesFromTime(start),last=minutesFromTime(end);

@@ -155,7 +155,16 @@ describe("TOK Équipe — invitations depuis la fiche", () => {
     fireEvent.submit(screen.getByRole("form", { name: "Ajouter un collaborateur" }));
     await waitFor(() => expect(mocks.toast).toHaveBeenCalledWith({ title: "Collaborateur ajouté" }));
     expect(insert).toHaveBeenCalledTimes(1);
+    expect(insert).toHaveBeenCalledWith(expect.objectContaining({ started_on: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/), ended_on: null, vacation_days_per_year: 20 }));
     expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it("refuse un début de contrat effacé avant tout enregistrement", async () => {
+    renderEmployees(); fillNewEmployee();
+    fireEvent.change(screen.getByLabelText("Début du contrat"), { target: { value: "" } });
+    fireEvent.submit(screen.getByRole("form", { name: "Ajouter un collaborateur" }));
+    await waitFor(() => expect(mocks.toast).toHaveBeenCalledWith(expect.objectContaining({ title: "Enregistrement impossible", description: expect.stringContaining("date de début est requise") })));
+    expect(mocks.from).not.toHaveBeenCalled(); expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
   it("confirme la révocation d’une invitation en attente via la RPC du restaurant", async () => {
@@ -210,5 +219,40 @@ describe("TOK Équipe — invitations depuis la fiche", () => {
     expect(screen.getByText("Suivi indisponible")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Inviter Alice Martin" })).toBeDisabled();
     expect(screen.queryByText("Accès non activé")).not.toBeInTheDocument();
+  });
+
+  it("modifie une fiche et son contrat sans envoyer d’invitation ni changer son compte", async () => {
+    mocks.employees = [{ ...baseEmployee, updated_at: "2026-10-01T10:00:00Z" }];
+    const filters: unknown[][] = [];
+    const query = { eq: vi.fn((...args: unknown[]) => { filters.push(args); return query; }), select: vi.fn(() => query), single: vi.fn(async () => ({ data: { id: baseEmployee.id }, error: null })) };
+    const update = vi.fn(() => query);
+    mocks.from.mockReturnValue({ update });
+    renderEmployees();
+    fireEvent.click(screen.getByRole("button", { name: "Modifier la fiche de Alice Martin" }));
+    const dialog = within(screen.getByRole("dialog"));
+    fireEvent.change(dialog.getByLabelText("Prénom"), { target: { value: "Alicia" } });
+    fireEvent.change(dialog.getByLabelText("Heures contractuelles par semaine"), { target: { value: "35" } });
+    fireEvent.change(dialog.getByLabelText("Vacances annuelles (jours)"), { target: { value: "25" } });
+    fireEvent.change(dialog.getByLabelText("Début du contrat"), { target: { value: "2026-01-01" } });
+    fireEvent.change(dialog.getByLabelText("Fin du contrat"), { target: { value: "2026-12-31" } });
+    fireEvent.submit(dialog.getByRole("form", { name: "Modifier le collaborateur" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ first_name: "Alicia", contracted_hours_per_week: 35, vacation_days_per_year: 25, started_on: "2026-01-01", ended_on: "2026-12-31" }));
+    expect(update.mock.calls[0][0]).not.toHaveProperty("user_id");
+    expect(filters).toEqual([["restaurant_id", "restaurant-1"], ["id", "employee-1"], ["updated_at", "2026-10-01T10:00:00Z"]]);
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it("conserve la modification refusée et ne confirme aucun succès", async () => {
+    const query = { eq: vi.fn(() => query), select: vi.fn(() => query), single: vi.fn(async () => ({ data: null, error: { message: "Version modifiée" } })) };
+    mocks.from.mockReturnValue({ update: () => query });
+    renderEmployees();
+    fireEvent.click(screen.getByRole("button", { name: "Modifier la fiche de Alice Martin" }));
+    const dialog = within(screen.getByRole("dialog"));
+    fireEvent.change(dialog.getByLabelText("Prénom"), { target: { value: "Alicia" } });
+    fireEvent.submit(dialog.getByRole("form", { name: "Modifier le collaborateur" }));
+    expect(await dialog.findByRole("alert")).toHaveTextContent("Version modifiée");
+    expect(dialog.getByLabelText("Prénom")).toHaveValue("Alicia");
+    expect(mocks.toast).not.toHaveBeenCalled();
   });
 });

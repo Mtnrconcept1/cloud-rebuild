@@ -15,7 +15,7 @@ import WorkforcePersonal from "@/components/workforce/WorkforcePersonal";
 
 type Member = { restaurant_id: string; employee_id: string; restaurant_name: string; linked: boolean };
 type EmployeeProfile = Pick<WorkforceEmployee,
-  "id" | "restaurant_id" | "first_name" | "last_name" | "role" | "contracted_hours_per_week" | "vacation_days_per_year"
+  "id" | "restaurant_id" | "first_name" | "last_name" | "role" | "contracted_hours_per_week" | "vacation_days_per_year" | "started_on" | "ended_on"
 >;
 
 export default function MyWorkforce() {
@@ -53,7 +53,7 @@ export default function MyWorkforce() {
     enabled: !!user?.id && !!selected?.linked && !changingAccount,
     queryFn: async () => {
       const { data, error } = await workforceDb().from("tok_workforce_employees")
-        .select("id,restaurant_id,first_name,last_name,role,contracted_hours_per_week,vacation_days_per_year")
+        .select("id,restaurant_id,first_name,last_name,role,contracted_hours_per_week,vacation_days_per_year,started_on,ended_on")
         .eq("id", selected!.employee_id).eq("restaurant_id", selected!.restaurant_id)
         .eq("user_id", user!.id).single();
       if (error) throw error;
@@ -177,10 +177,10 @@ export default function MyWorkforce() {
         </Card> : null}
         {selected.linked && profile.isPending ? <p className="text-muted-foreground">Chargement de votre profil…</p> : null}
         {profile.isError ? <p role="alert" className="text-destructive">Impossible de charger votre profil employé. Actualisez vos accès pour réessayer.</p> : null}
-        {selected.linked && !profile.isError && profile.data?.role === "manager" ? <Button asChild className="w-fit"><Link to="/equipe/gestion">Gérer mon équipe</Link></Button> : null}
+        {selected.linked && !profile.isError && profile.data?.role === "manager" ? <Button asChild className="w-fit"><Link to={"/equipe/gestion?restaurant="+selected.restaurant_id}>Gérer mon équipe</Link></Button> : null}
         {selected.linked && !profile.isError && profile.data ? <WorkforcePersonal key={selected.employee_id}
           restaurantId={selected.restaurant_id} employeeId={selected.employee_id}
-          contractHours={Number(profile.data.contracted_hours_per_week)} vacationDays={Number(profile.data.vacation_days_per_year)} /> : null}
+          contractHours={Number(profile.data.contracted_hours_per_week)} vacationDays={Number(profile.data.vacation_days_per_year)} startedOn={profile.data.started_on} endedOn={profile.data.ended_on} firstName={profile.data.first_name} lastName={profile.data.last_name} /> : null}
       </div> : null}
     </>}
   </main>;

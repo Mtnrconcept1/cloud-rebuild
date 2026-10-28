@@ -1,9 +1,9 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "0a5656c6f4548c14d6a5ce3e162c27e6a0c9f980ce75f39cb5d23a2d17652fc0",
+  "sourceDigest": "241d83b33e8307dc6421261f6f8f84dc9d7024c480395df5dcb65344997f4cfa",
   "routeCount": 143,
-  "toolCount": 121
+  "toolCount": 122
 } as const;
 
 export const TOK_USER_GUIDE_ROUTES = [
@@ -3154,6 +3154,18 @@ export const TOK_USER_GUIDE_TOOLS = [
     ],
     "actions": [],
     "integrations": [
+      "supabase"
+    ]
+  },
+  {
+    "name": "tok-workforce-assistant",
+    "endpoint": "/functions/v1/tok-workforce-assistant",
+    "methods": [
+      "POST"
+    ],
+    "actions": [],
+    "integrations": [
+      "openai",
       "supabase"
     ]
   },

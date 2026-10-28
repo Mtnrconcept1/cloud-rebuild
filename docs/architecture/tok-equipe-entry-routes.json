@@ -1,0 +1,41 @@
+{
+  "projectId": "prj_v4X2Bhefbcf12CVIanrvS62q9Vy6",
+  "teamId": "team_FvFPXdOD5Vw9DAQS5grAuJAv",
+  "previousVersion": "250b0e5b-2fbe-4d51-9fce-8bb184ce91ce",
+  "publishedVersion": "788308b6-0969-47e9-81f1-9b2ff38e56f0",
+  "publishedAt": "2026-10-28",
+  "domains": [
+    "equipe.thetok.ch",
+    "xn--quipe-9ra.thetok.ch"
+  ],
+  "routes": [
+    {
+      "name": "TOK Équipe entrée",
+      "host": "equipe.thetok.ch",
+      "source": "^/$",
+      "destination": "https://www.thetok.ch/equipe/mon-espace",
+      "status": 307
+    },
+    {
+      "name": "TOK Équipe entrée",
+      "host": "xn--quipe-9ra.thetok.ch",
+      "source": "^/$",
+      "destination": "https://www.thetok.ch/equipe/mon-espace",
+      "status": 307
+    },
+    {
+      "name": "TOK Équipe liens",
+      "host": "equipe.thetok.ch",
+      "source": "^/(.+)$",
+      "destination": "https://www.thetok.ch/$1",
+      "status": 307
+    },
+    {
+      "name": "TOK Équipe liens",
+      "host": "xn--quipe-9ra.thetok.ch",
+      "source": "^/(.+)$",
+      "destination": "https://www.thetok.ch/$1",
+      "status": 307
+    }
+  ]
+}

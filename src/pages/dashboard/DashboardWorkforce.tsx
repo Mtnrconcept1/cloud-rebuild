@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { CalendarDays, Clock3, ClipboardList, ArrowLeftRight, BarChart3, Users, CalendarOff, ShieldCheck } from "lucide-react";
+import { CalendarDays, Clock3, ClipboardList, ArrowLeftRight, BarChart3, Users, CalendarOff, ShieldCheck, Bot, Settings2 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +18,12 @@ import WorkforceReports from "@/components/workforce/WorkforceReports";
 import WorkforceClockOverview from "@/components/workforce/WorkforceClockOverview";
 import WorkforceAnalytics from "@/components/workforce/WorkforceAnalytics";
 
+import WorkforceAssistant from "@/components/workforce/WorkforceAssistant";
+import WorkforceSettingsPanel from "@/components/workforce/WorkforceSettingsPanel";
+
 export default function DashboardWorkforce() {
-  const {selectedId,loading,isDemoMode}=useDashboardRestaurant();
+  const {selectedId,restaurants,loading,isDemoMode}=useDashboardRestaurant();
+  const restaurantName=restaurants.find(restaurant=>restaurant.id===selectedId)?.name;
   const settings=useWorkforceSettings(isDemoMode?null:selectedId);
   const enabled=!isDemoMode && settings.data?.enabled===true;
   return <DashboardLayout mainClassName="tok-restaurant-page tok-page-workforce">
@@ -42,8 +46,8 @@ export default function DashboardWorkforce() {
             <CardContent className="space-y-3"><p className="text-sm text-muted-foreground">TOK Équipe est une fonctionnalité optionnelle. Un administrateur TOK doit l'activer pour votre restaurant. Vos autres outils restent disponibles.</p>
               <Button asChild variant="outline"><Link to="/dashboard/support">Demander l'activation</Link></Button>
             </CardContent></Card>:
-          <Tabs defaultValue="planning" className="w-full space-y-5">
-            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1 sm:grid-cols-4 xl:grid-cols-9">
+          <Tabs key={selectedId} defaultValue="planning" className="w-full space-y-5">
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1 sm:grid-cols-4 xl:grid-cols-6">
               <TabsTrigger className="gap-1.5" value="planning"><CalendarDays className="h-4 w-4"/>Planning</TabsTrigger>
               <TabsTrigger className="gap-1.5" value="employees"><Users className="h-4 w-4"/>Équipe</TabsTrigger>
               <TabsTrigger className="gap-1.5" value="clock"><Clock3 className="h-4 w-4"/>Badgeuse</TabsTrigger>
@@ -53,6 +57,8 @@ export default function DashboardWorkforce() {
               <TabsTrigger className="gap-1.5" value="exchanges"><ArrowLeftRight className="h-4 w-4"/>Échanges</TabsTrigger>
               <TabsTrigger className="gap-1.5" value="reports"><BarChart3 className="h-4 w-4"/>Rapports</TabsTrigger>
               <TabsTrigger className="gap-1.5" value="insights">Analyses</TabsTrigger>
+              <TabsTrigger className="gap-1.5" value="assistant"><Bot className="h-4 w-4"/>Assistant</TabsTrigger>
+              <TabsTrigger className="gap-1.5" value="settings"><Settings2 className="h-4 w-4"/>Paramètres</TabsTrigger>
             </TabsList>
             <TabsContent value="planning"><WorkforcePlanning restaurantId={selectedId!}/></TabsContent>
             <TabsContent value="employees"><WorkforceEmployees restaurantId={selectedId!}/></TabsContent>
@@ -61,8 +67,10 @@ export default function DashboardWorkforce() {
             <TabsContent value="absences"><WorkforceAbsences restaurantId={selectedId!}/></TabsContent>
             <TabsContent value="requests"><WorkforceRequests restaurantId={selectedId!}/></TabsContent>
             <TabsContent value="exchanges"><WorkforceExchanges restaurantId={selectedId!}/></TabsContent>
-            <TabsContent value="reports"><WorkforceReports restaurantId={selectedId!} settings={settings.data!}/></TabsContent>
+            <TabsContent value="reports"><WorkforceReports restaurantId={selectedId!} settings={settings.data!} restaurantName={restaurantName}/></TabsContent>
             <TabsContent value="insights"><WorkforceAnalytics restaurantId={selectedId!} settings={settings.data!}/></TabsContent>
+            <TabsContent value="assistant"><WorkforceAssistant restaurantId={selectedId!}/></TabsContent>
+            <TabsContent value="settings"><WorkforceSettingsPanel restaurantId={selectedId!} settings={settings.data!} canEdit/></TabsContent>
           </Tabs>}
       {enabled?<p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><Badge variant="outline">RH · Suisse</Badge>Les alertes horaires sont indicatives. Le suivi légal et la paie restent sous la responsabilité de l'employeur.</p>:null}
     </div>

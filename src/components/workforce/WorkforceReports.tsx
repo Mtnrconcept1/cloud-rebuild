@@ -1,75 +1,179 @@
-import "@/styles/workforce-report-print.css";
-import { useMemo,useState } from "react";
-import { addWeeks,subWeeks,format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { AlertTriangle, BarChart3, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { useMemo, useState } from "react";
+import { BarChart3, ChevronLeft, ChevronRight, Download, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card,CardContent,CardHeader,CardTitle } from "@/components/ui/card";
-import { csvCell,employeeName,weekRange,workedHours,type WorkforceSettings } from "@/lib/tokWorkforce";
-import { planningWarnings } from "@/lib/tokWorkforceWarnings";
-import { useWorkforceEmployees,useWorkforceShifts,useWorkforceEntriesInRange } from "@/hooks/useTokWorkforce";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { employeeName, weekRange, workforceZurichClock, type WorkforceSettings } from "@/lib/tokWorkforce";
+import {
+  buildWorkforceReport, workforceAddDays, workforceHours, workforceMonthPeriod,
+  workforceReportCsv, workforceReportTotals, WORKFORCE_CALCULATION_NOTE, type WorkforceReport,
+} from "@/lib/tokWorkforceReporting";
+import {
+  useWorkforceAbsences, useWorkforceClockSessionsInRange, useWorkforceEmployees,
+  useWorkforceEntriesInRange, useWorkforceHolidays, useWorkforceShifts, useWorkforceValidations,
+} from "@/hooks/useTokWorkforce";
 
-export default function WorkforceReports({restaurantId,settings}:{restaurantId:string;settings:WorkforceSettings}) {
-  const [cursor,setCursor]=useState(new Date());
-  const {start,end}=useMemo(()=>weekRange(cursor),[cursor]);
-  const {data:employees=[]}=useWorkforceEmployees(restaurantId,true);
-  const {data:shifts=[],isPending}=useWorkforceShifts(restaurantId,true,start,end);
-  const {data:entries=[]}=useWorkforceEntriesInRange(restaurantId,true,start,end);
-  const data=useMemo(()=>employees.filter(e=>e.is_active).map(employee=>{
-    const planned=shifts.filter(s=>s.employee_id===employee.id&&s.status!=="cancelled").reduce((acc,shift)=>{
-      try{return acc+workedHours(shift.start_time,shift.end_time,shift.break_minutes);}catch{return acc;}
-    },0);
-    const actual=entries.filter(entry=>entry.employee_id===employee.id&&entry.entry_date>=start&&entry.entry_date<=end)
-      .reduce((acc,entry)=>{try{return acc+workedHours(entry.start_time,entry.end_time,entry.break_minutes);}catch{return acc;}},0);
-    return {employee,planned:Math.round(planned*100)/100,actual:Math.round(actual*100)/100};
-  }),[employees,shifts,entries,start,end]);
-  const warnings=useMemo(()=>planningWarnings(shifts,employees,settings.max_weekly_hours),[shifts,employees,settings.max_weekly_hours]);
-  const download=()=>{
-    const rows=[
-      ["Collaborateur","Du","Au","Heures contractuelles","Heures planifiées","Heures saisies"],
-      ...data.map(d=>[employeeName(d.employee),start,end,d.employee.contracted_hours_per_week,d.planned,d.actual]),
-    ];
-    const csv="\uFEFF"+rows.map(row=>row.map(csvCell).join(";")).join("\r\n");
-    const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
-    const url=URL.createObjectURL(blob);const a=document.createElement("a");
-    a.href=url;a.download="tok-equipe-"+start+"-"+end+".csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+const selectClass = "h-10 w-full rounded-md border bg-background px-3 text-sm";
+export default function WorkforceReports({ restaurantId, settings, restaurantName }: { restaurantId: string; settings: WorkforceSettings; restaurantName?: string }) {
+  const { toast } = useToast();
+  const [mode, setMode] = useState<"month" | "week">("month");
+  const [cursor, setCursor] = useState(workforceZurichClock().date);
+  const [selectedEmployee, setSelectedEmployee] = useState("all");
+  const [validatedOnly, setValidatedOnly] = useState(false);
+  const [page, setPage] = useState(0);
+  const [exporting, setExporting] = useState(false);
+  const period = useMemo(() => mode === "month" ? workforceMonthPeriod(cursor.slice(0, 7)) : weekRange(new Date(cursor + "T12:00:00")), [mode, cursor]);
+  const queryStart = workforceAddDays(period.start, -1);
+  const employeeId = selectedEmployee === "all" ? undefined : selectedEmployee;
+  const employees = useWorkforceEmployees(restaurantId, true);
+  const shifts = useWorkforceShifts(restaurantId, true, queryStart, period.end, employeeId);
+  const entries = useWorkforceEntriesInRange(restaurantId, true, queryStart, period.end, employeeId);
+  const validations = useWorkforceValidations(restaurantId, true, queryStart, period.end, employeeId);
+  const absences = useWorkforceAbsences(restaurantId, true, employeeId);
+  const holidays = useWorkforceHolidays(restaurantId, true);
+  const sessions = useWorkforceClockSessionsInRange(restaurantId, true, queryStart, period.end, employeeId);
+  const queries = [employees, shifts, entries, validations, absences, holidays, sessions];
+  const pending = queries.some(query => query.isPending);
+  const error = queries.some(query => query.isError);
+  const refreshing = queries.some(query => query.isFetching);
+  const report = useMemo(() => buildWorkforceReport({
+    restaurantId, period, employees: employees.data || [], entries: entries.data || [], shifts: shifts.data || [],
+    validations: validations.data || [], absences: absences.data || [], holidays: holidays.data || [],
+    clockSessions: sessions.data || [], employeeId, validatedOnly,
+  }), [restaurantId, period, employees.data, entries.data, shifts.data, validations.data, absences.data, holidays.data, sessions.data, employeeId, validatedOnly]);
+  const totals = workforceReportTotals(report);
+  const details = report.employees.flatMap(employee => employee.records.map(record => ({ ...record, employee: employee.employee })))
+    .sort((a, b) => a.startInstant - b.startInstant || employeeName(a.employee).localeCompare(employeeName(b.employee)));
+  const pageSize = 50;
+  const pages = Math.max(1, Math.ceil(details.length / pageSize));
+  const currentPage = Math.min(page, pages - 1);
+  const blocked = pending || error || refreshing || report.issues.length > 0 || !report.employees.length;
+  const move = (direction: number) => {
+    if (mode === "week") setCursor(workforceAddDays(cursor, direction * 7));
+    else {
+      const date = new Date(period.start + "T12:00:00Z");
+      date.setUTCMonth(date.getUTCMonth() + direction);
+      setCursor(date.toISOString().slice(0, 10));
+    }
+    setPage(0);
   };
-  return <div id="tok-workforce-print" className="space-y-5">
+  const downloadCsv = () => {
+    const url = URL.createObjectURL(new Blob([workforceReportCsv(report)], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url; link.download = `tok-equipe-${period.start}-${period.end}.csv`;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  const downloadPdf = async (selection: WorkforceReport) => {
+    setExporting(true);
+    try {
+      const { downloadWorkforcePdf } = await import("@/lib/tokWorkforcePdf");
+      await downloadWorkforcePdf(selection, restaurantName);
+    } catch (cause) {
+      toast({ title: "Export PDF impossible", description: cause instanceof Error ? cause.message : "Réessayez le téléchargement.", variant: "destructive" });
+    } finally { setExporting(false); }
+  };
+  return <div className="space-y-5">
     <Card className="rounded-2xl">
       <CardHeader><div className="flex flex-wrap items-center justify-between gap-3">
-        <CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary"/>Rapport hebdomadaire</CardTitle>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button size="icon" variant="outline" aria-label="Semaine précédente" onClick={()=>setCursor(d=>subWeeks(d,1))}><ChevronLeft className="h-4 w-4"/></Button>
-          <span className="text-sm font-semibold">{format(new Date(start+"T12:00:00"),"d MMM",{locale:fr})} – {format(new Date(end+"T12:00:00"),"d MMM yyyy",{locale:fr})}</span>
-          <Button size="icon" variant="outline" aria-label="Semaine suivante" onClick={()=>setCursor(d=>addWeeks(d,1))}><ChevronRight className="h-4 w-4"/></Button>
-          <Button size="sm" variant="outline" onClick={download}><Download className="mr-1 h-4 w-4"/>Exporter CSV</Button>
-          <Button className="workforce-no-print" size="sm" variant="outline" onClick={()=>window.print()}>Imprimer / PDF</Button>
+        <div><CardTitle className="flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary" />Rapports de l’équipe</CardTitle>
+          <p className="mt-2 text-sm text-muted-foreground">Synthèse et détail quotidien, avec les validations liées aux relevés.</p></div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" disabled={blocked || exporting} onClick={downloadCsv}><Download className="mr-2 h-4 w-4" />CSV complet</Button>
+          <Button disabled={blocked || exporting} onClick={() => void downloadPdf(report)}>
+            {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+            {employeeId ? "PDF individuel" : "PDF global"}
+          </Button>
         </div>
       </div></CardHeader>
-      <CardContent>
-        {isPending?<p className="text-muted-foreground">Calcul du rapport…</p>:null}
-        <div className="overflow-x-auto"><table className="w-full min-w-[520px] text-left text-sm">
-          <thead><tr className="border-b text-muted-foreground"><th className="p-3">Collaborateur</th><th className="p-3 text-right">Contrat</th><th className="p-3 text-right">Prévu</th><th className="p-3 text-right">Réalisé</th><th className="p-3 text-right">Écart prévu</th></tr></thead>
-          <tbody>{data.map(d=><tr key={d.employee.id} className="border-b last:border-0">
-            <td className="p-3 font-medium">{employeeName(d.employee)}</td><td className="p-3 text-right">{d.employee.contracted_hours_per_week} h</td>
-            <td className="p-3 text-right">{d.planned.toFixed(1)} h</td><td className="p-3 text-right">{d.actual.toFixed(1)} h</td>
-            <td className="p-3 text-right"><Badge variant={d.planned>d.employee.contracted_hours_per_week?"destructive":"secondary"}>{(d.planned-d.employee.contracted_hours_per_week).toFixed(1)} h</Badge></td>
+      <CardContent className="space-y-5">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="space-y-1 text-sm">Période
+            <select className={selectClass} value={mode} onChange={event => { setMode(event.target.value as "month" | "week"); setPage(0); }}>
+              <option value="month">Mois</option><option value="week">Semaine</option>
+            </select>
+          </label>
+          <label className="space-y-1 text-sm">{mode === "month" ? "Mois et année" : "Date de la semaine"}
+            <Input type={mode === "month" ? "month" : "date"} value={mode === "month" ? cursor.slice(0, 7) : cursor}
+              onChange={event => { if (event.target.value) { setCursor(mode === "month" ? event.target.value + "-01" : event.target.value); setPage(0); } }} />
+          </label>
+          <label className="space-y-1 text-sm">Collaborateur
+            <select className={selectClass} value={selectedEmployee} onChange={event => { setSelectedEmployee(event.target.value); setPage(0); }}>
+              <option value="all">Tous les collaborateurs</option>
+              {(employees.data || []).filter(employee => employee.restaurant_id === restaurantId).map(employee => <option key={employee.id} value={employee.id}>{employeeName(employee)}{!employee.is_active ? " · Archivé" : ""}</option>)}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 self-end rounded-md border px-3 py-2.5 text-sm">
+            <input type="checkbox" checked={validatedOnly} onChange={event => { setValidatedOnly(event.target.checked); setPage(0); }} />
+            Relevés validés uniquement
+          </label>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button size="icon" variant="outline" aria-label="Période précédente" onClick={() => move(-1)}><ChevronLeft className="h-4 w-4" /></Button>
+          <p className="text-sm font-semibold">{period.start} au {period.end}</p>
+          <Button size="icon" variant="outline" aria-label="Période suivante" onClick={() => move(1)}><ChevronRight className="h-4 w-4" /></Button>
+        </div>
+        {pending ? <p role="status" className="py-6 text-center text-muted-foreground">Chargement de tous les relevés du rapport…</p> : error ? <div role="alert" className="space-y-3 rounded-xl border border-destructive/30 p-4">
+          <p className="text-destructive">Le rapport est indisponible. Aucune donnée partielle ne sera exportée.</p>
+          <Button variant="outline" onClick={() => void Promise.all(queries.map(query => query.refetch()))}>Réessayer</Button>
+        </div> : <>
+          {report.issues.length > 0 ? <div role="alert" className="space-y-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+            <p className="font-medium">Relevés à régulariser avant l’export</p>
+            <p className="text-sm">Les totaux ci-dessous excluent les horaires et les décomptes d’absences qui ne peuvent pas être calculés de façon fiable.</p>
+            {report.issues.map(issue => <p key={issue} className="text-sm">{issue}</p>)}
+          </div> : null}
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              ["Heures réalisées", workforceHours(totals.workedMinutes) + " h"],
+              ["Heures validées", workforceHours(totals.validatedMinutes) + " h"],
+              ["Heures de nuit", workforceHours(totals.nightMinutes) + " h"],
+              ["Heures du dimanche", workforceHours(totals.sundayMinutes) + " h"],
+            ].map(([label, value]) => <div key={label} className="rounded-xl bg-muted/50 p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-bold">{value}</p></div>)}
+          </div>
+          <div className="overflow-x-auto rounded-xl border">
+            <table className="w-full min-w-[1100px] text-left text-sm">
+              <caption className="sr-only">Synthèse du rapport par collaborateur</caption>
+              <thead className="bg-muted/50"><tr>{["Collaborateur", "Prévu", "Réalisé", "Attendu", "Solde à date", "Nuit", "Dimanche", "Vacances prises", "Réservées", "Disponibles", "PDF"].map(label => <th key={label} className="whitespace-nowrap px-3 py-3 font-medium">{label}</th>)}</tr></thead>
+              <tbody>{report.employees.map(row => <tr key={row.employee.id} className="border-t">
+                <td className="px-3 py-3 font-medium">{employeeName(row.employee)}{!row.employee.is_active ? <span className="block text-xs text-muted-foreground">Archivé</span> : null}</td>
+                <td className="px-3 py-3">{workforceHours(row.plannedMinutes)} h</td><td className="px-3 py-3">{workforceHours(row.workedMinutes)} h</td>
+                <td className="px-3 py-3">{workforceHours(row.expectedMinutes)} h</td><td className="px-3 py-3">{row.balanceMinutes > 0 ? "+" : ""}{workforceHours(row.balanceMinutes)} h</td>
+                <td className="px-3 py-3">{workforceHours(row.nightMinutes)} h</td><td className="px-3 py-3">{workforceHours(row.sundayMinutes)} h</td>
+                <td className="px-3 py-3">{row.vacation.usedDays.toFixed(1)} j</td><td className="px-3 py-3">{row.vacation.reservedDays.toFixed(1)} j</td><td className="px-3 py-3">{row.vacation.remainingDays.toFixed(1)} j</td>
+                <td className="px-3 py-3"><Button size="icon" variant="outline" aria-label={`PDF de ${employeeName(row.employee)}`} disabled={blocked || exporting} onClick={() => void downloadPdf({ ...report, employees: [row] })}><FileText className="h-4 w-4" /></Button></td>
+              </tr>)}</tbody>
+            </table>
+            {!report.employees.length ? <p className="p-5 text-sm text-muted-foreground">Aucun collaborateur correspondant à ce filtre.</p> : null}
+          </div>
+          <p className="text-xs text-muted-foreground">Vacances : année {period.end.slice(0, 4)}, droits proratisés aux dates du contrat. « Attendu » couvre toute la période ; le solde est arrêté au {report.asOf < period.end ? report.asOf : period.end}. Les collaborateurs archivés restent dans l’historique.</p>
+        </>}
+      </CardContent>
+    </Card>
+    {!pending && !error ? <Card className="rounded-2xl">
+      <CardHeader><CardTitle>Détail quotidien des heures</CardTitle></CardHeader><CardContent className="space-y-4">
+        <div className="overflow-x-auto rounded-xl border"><table className="w-full min-w-[850px] text-left text-sm">
+          <caption className="sr-only">Détail quotidien des heures</caption>
+          <thead className="bg-muted/50"><tr>{["Date", "Collaborateur", "Horaire", "Pause", "Net", "Nuit", "Dimanche", "Validation"].map(label => <th className="px-3 py-3 font-medium" key={label}>{label}</th>)}</tr></thead>
+          <tbody>{details.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map(row => <tr key={row.entry.id + ":" + row.date} className="border-t">
+            <td className="px-3 py-3">{row.date}</td><td className="px-3 py-3">{employeeName(row.employee)}</td>
+            <td className="px-3 py-3">{row.startTime}–{row.endTime}<span className="block text-xs text-muted-foreground">{row.source === "clock" ? "Badgeuse serveur" : "Saisie locale"}</span></td>
+            <td className="px-3 py-3">{row.breakMinutes.toFixed(1)} min</td><td className="px-3 py-3 font-semibold">{workforceHours(row.workedMinutes, 2)} h</td>
+            <td className="px-3 py-3">{workforceHours(row.nightMinutes, 2)} h</td><td className="px-3 py-3">{workforceHours(row.sundayMinutes, 2)} h</td>
+            <td className="px-3 py-3">{row.validation ? <><Badge>{row.validation.entry_version == null ? "Signature historique" : "Validé"}</Badge><span className="mt-1 block text-xs">{row.validation.signed_name}</span></> : <Badge variant="secondary">En attente</Badge>}</td>
           </tr>)}</tbody>
-        </table></div>
-        {!data.length?<p className="py-4 text-muted-foreground">Aucun collaborateur actif.</p>:null}
-        <p className="mt-4 text-xs text-muted-foreground">Données calculées sur les relevés récents disponibles (jusqu'à 1 000 pour la semaine) et les services de la semaine (jusqu'à 350). Export indicatif, non destiné à la paie sans vérification.</p>
+        </table>{!details.length ? <p className="p-5 text-sm text-muted-foreground">Aucune heure correspondant à la période et aux filtres.</p> : null}</div>
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+          <span>{details.length} ligne(s) · Page {currentPage + 1} sur {pages}</span>
+          <div className="flex gap-2"><Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Précédent</Button><Button variant="outline" size="sm" disabled={currentPage >= pages - 1} onClick={() => setPage(currentPage + 1)}>Suivant</Button></div>
+        </div>
+        <p className="text-xs text-muted-foreground">Les services passant minuit sont ventilés sur les dates concernées. Plusieurs relevés d’une journée restent distincts. Les exports comprennent toutes les lignes, indépendamment de cette pagination.</p>
       </CardContent>
-    </Card>
-    <Card className="rounded-2xl">
-      <CardHeader><CardTitle className="flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-amber-500"/>Points de vigilance du planning</CardTitle></CardHeader>
-      <CardContent className="space-y-2">
-        <p className="text-sm text-muted-foreground">Canton : {settings.canton} · Seuil hebdomadaire configurable : {settings.max_weekly_hours} h. Les règles dépendent du secteur, des dérogations applicables et du droit suisse.</p>
-        {warnings.length?warnings.map(warning=><p key={warning} className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-sm">{warning}</p>):
-          <p className="rounded-xl bg-muted/50 px-3 py-2 text-sm">Aucun conflit élémentaire détecté sur les services chargés. Vérifiez la conformité légale avec votre spécialiste RH.</p>}
-        {entries.length>=1000?<p role="alert" className="text-destructive">Limite de 1 000 relevés atteinte : rapport potentiellement incomplet.</p>:null}
-        {shifts.length>=350?<p role="alert" className="text-destructive">Limite de 350 services atteinte : rapport potentiellement incomplet.</p>:null}
-      </CardContent>
-    </Card>
+    </Card> : null}
+    <Card className="rounded-2xl"><CardHeader><CardTitle className="text-base">Règles de calcul du rapport</CardTitle></CardHeader><CardContent className="space-y-2 text-sm text-muted-foreground">
+      <p>{WORKFORCE_CALCULATION_NOTE}</p>
+      <p>Canton : {settings.canton}. Les fériés configurés pour le restaurant sont utilisés. Le tarif horaire propre à chaque collaborateur sert aux estimations, hors charges et majorations.</p>
+    </CardContent></Card>
   </div>;
 }
