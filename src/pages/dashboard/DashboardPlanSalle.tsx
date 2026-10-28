@@ -4687,6 +4687,7 @@ export default function DashboardPlanSalle() {
 
   const renderStudioPalette = (mode: "compact" | "expanded") => (
     <StudioPalette
+      branchId={selectedBranch?.id ?? null}
       mode={mode}
       showInlineAssistant={false}
       selectedTable={selectedTable}
@@ -5564,6 +5565,7 @@ export default function DashboardPlanSalle() {
                 </div>
               ) : (
                 <FloorPlanAIPanel
+                  branchId={selectedBranch?.id ?? null}
                   mode="workspace"
                   sectorLabel={selectedSector}
                   restaurantId={selectedId}

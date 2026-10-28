@@ -1,0 +1,86 @@
+name: Temporary floorplan final index
+on:
+  push:
+    branches: [codex/fix-floorplan-ai-branch-20261028]
+    paths: [.github/workflows/floorplan-branch-index.yml]
+permissions:
+  contents: read
+jobs:
+  index:
+    if: github.repository == 'Mtnrconcept1/cloud-rebuild' && github.ref == 'refs/heads/codex/fix-floorplan-ai-branch-20261028'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+    steps:
+      - name: Isolated worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init "$RUNNER_TEMP/fp-index-repo"
+          git -C "$RUNNER_TEMP/fp-index-repo" remote add origin https://github.com/Mtnrconcept1/cloud-rebuild.git
+          git -C "$RUNNER_TEMP/fp-index-repo" fetch --no-tags --depth=2 origin "$GITHUB_SHA"
+          git -C "$RUNNER_TEMP/fp-index-repo" worktree add -b codex/fix-floorplan-ai-branch-20261028 "$RUNNER_TEMP/fp-index-worktree" FETCH_HEAD
+          cd "$RUNNER_TEMP/fp-index-worktree"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain)"
+          git branch --show-current
+          cat AGENTS.md
+      - name: Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '22'
+      - name: Locked dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/fp-index-worktree"
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+          pnpm install --frozen-lockfile
+      - name: Generate and check references without any bootstrap path
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/fp-index-worktree"
+          git rm -- .github/workflows/floorplan-branch-index.yml
+          test -z "$(git ls-files | grep -E 'floorplan-branch-(repair|index)' || true)"
+          mkdir -p "$RUNNER_TEMP/floorplan-final-index"
+          node scripts/generate-application-index.mjs
+          node scripts/generate-application-index.mjs --check | tee "$RUNNER_TEMP/floorplan-final-index/index.log"
+          test "$(grep -c 'floorplan-branch-repair\|floorplan-branch-index' docs/architecture/TOK_APPLICATION_REFERENCE.md)" = 0
+          git diff --check
+          for p in docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts; do
+            mkdir -p "$RUNNER_TEMP/floorplan-final-index/$(dirname "$p")"
+            cp "$p" "$RUNNER_TEMP/floorplan-final-index/$p"
+          done
+          git restore --staged --worktree -- .github/workflows/floorplan-branch-index.yml
+      - name: Commit generated references only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/fp-index-worktree"
+          branch=codex/fix-floorplan-ai-branch-20261028
+          test "$(git branch --show-current)" = "$branch"
+          test "$(git ls-remote origin "refs/heads/$branch" | cut -f1)" = "$GITHUB_SHA"
+          git add -- docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs(plan de salle): synchronize clean branch application references'
+          git rev-parse HEAD > "$RUNNER_TEMP/floorplan-final-index/verified-commit.txt"
+          export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader
+          export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git push origin "HEAD:refs/heads/$branch"
+          unset GIT_CONFIG_VALUE_0 GH_TOKEN
+      - name: Complete generated references
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tok-floorplan-final-index
+          path: ${{ runner.temp }}/floorplan-final-index
+          retention-days: 5
