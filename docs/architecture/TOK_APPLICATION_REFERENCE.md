@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `11908519bf11dedd337e385556061727e9c75de0b3629feba6a340a5055b4697`
+- Empreinte SHA-256 des sources indexées : `33f0c0a12cb7278915e51bc416cb8479461609d06eb78922db8638f993b8c9a3`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -6977,7 +6977,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | vite | development | ^6.4.3 |
 | vitest | development | ^4.1.11 |
 | xlsx | runtime | https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz |
-| zod | runtime | ^3.25.76 |
+| zod | runtime | ^4.6.6 |
 
 ### Intégrations détectées
 
