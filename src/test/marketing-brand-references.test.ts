@@ -146,7 +146,7 @@ describe("TOK brand reference conditioning", () => {
     expect(prompt).toContain("« Pensé pour les restaurateurs. »");
     expect(prompt).toContain("grand bouton noir");
     expect(prompt).toContain("petite bulle Miamz!");
-    expect(prompt).toContain("mailing");
+    expect(prompt).toContain("AFFICHE EMAIL TOK");
     expect(prompt).toContain("BRIEF COURANT");
     expect(prompt).toContain("Plusieurs adresses. Une vue claire.");
     expect(prompt).not.toContain("Aucun paragraphe sur l'image");
