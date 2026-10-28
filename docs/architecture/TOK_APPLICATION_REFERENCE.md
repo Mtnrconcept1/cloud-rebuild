@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `1e5fa47b89f0056dbf01d09f908517e967a571d6e0f84894ea1169df944263c7`
+- Empreinte SHA-256 des sources indexées : `78ee399d28cd24a2514801e7d2af4e3821472b15efcd960d7a0aefa0fabe7162`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 236 |
 | edgeFunctions | 122 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4215 |
+| exportedSymbols | 4218 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 585 |
-| modules | 1894 |
+| modules | 1896 |
 | pages | 133 |
 | pathLiterals | 943 |
 | publicAssets | 737 |
 | publicEntries | 772 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19608 |
-| repositoryFiles | 3795 |
+| records | 19615 |
+| repositoryFiles | 3797 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7073,7 +7073,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 226 |
+| application-library | 227 |
 | automation-script | 91 |
 | documentation | 6 |
 | edge-function-source | 251 |
@@ -7084,7 +7084,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 787 |
+| test | 788 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7394,7 +7394,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (226)</summary>
+<details><summary>application-library (227)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/acquisitionAttribution.ts`
@@ -7494,6 +7494,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/floorPlanHealth.ts`
 - `src/lib/floorPlanHistory.ts`
 - `src/lib/floorPlanPersistence.ts`
+- `src/lib/floorPlanSave.ts`
 - `src/lib/floorPlanStudio.ts`
 - `src/lib/geo.ts`
 - `src/lib/geolocation-native.ts`
@@ -10401,7 +10402,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (787)</summary>
+<details><summary>test (788)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10673,6 +10674,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/floor-plan-history.test.ts`
 - `src/test/floor-plan-page-layout.test.ts`
 - `src/test/floor-plan-persistence.test.ts`
+- `src/test/floor-plan-save-timeout.test.ts`
 - `src/test/floor-plan-studio-panels.test.tsx`
 - `src/test/floor-plan-studio.test.ts`
 - `src/test/floor-plan.test.ts`
