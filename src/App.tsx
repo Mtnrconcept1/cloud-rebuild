@@ -19,6 +19,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import { BackNavigationButton, FloatingRouteBackButton } from "@/components/navigation/BackNavigationButton";
+import { InternalLinkNavigation, PageSwipeTransition } from "@/components/navigation/AppPageNavigation";
 import AdminMobileNavigation from "@/components/admin/AdminMobileNavigation";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
@@ -457,7 +458,8 @@ function CommercialDemoFrameRouteBoundary({
 }
 
 function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: CommercialDemoFrameConfig | null }) {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
   const oauthConsentFrame = pathname === "/oauth/consent";
   const commercialDemoContext = useCommercialDemoFrame();
   useTokLogoDocumentIcons();
@@ -553,8 +555,9 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
       {showLaunchClientChrome ? <AiCreationNotifications /> : null}
       {!launchFrame ? publicNavbar : null}
       {showLaunchClientChrome ? <FloatingRouteBackButton /> : null}
-      <Suspense
-        fallback={(
+      <PageSwipeTransition routeKey={pathname} routeLocation={location}>
+        <Suspense
+          fallback={(
           <AppLoadingScreen
             fullScreen
             title="Ouverture de la page"
@@ -562,7 +565,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           />
         )}
       >
-        <Routes>
+        <Routes location={location}>
           <Route path="/coming-soon" element={<ComingSoon />} />
           <Route path="/" element={<ClientSurfaceRoute><Index /></ClientSurfaceRoute>} />
           <Route path="/auth" element={<Auth />} />
@@ -705,7 +708,8 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/guide/plateforme" element={<Navigate to="/aide" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </Suspense>
+        </Suspense>
+      </PageSwipeTransition>
       {aiSupportChatEnabled === true && !oauthConsentFrame && supportChatAllowed ? <SupportChat /> : null}
       {showGlobalClientChrome ? (
         !launchFrame ? <Suspense fallback={null}>
@@ -734,6 +738,7 @@ function AppRuntime({ commercialDemoFrame }: { commercialDemoFrame: CommercialDe
 function MarketingApplication() {
   return (
     <MarketingSessionProvider>
+      <ScrollToTop />
       <Suspense
         fallback={(
           <AppLoadingScreen
@@ -803,7 +808,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter basename={commercialDemoFrame?.basename}>
             <MarketingHostBoundary>
-              <ScrollToTop />
+              <InternalLinkNavigation enabled={!commercialDemoFrame && !isNative()} />
               <RouteSeoFallback />
               <ApplicationBoundary commercialDemoFrame={commercialDemoFrame} />
             </MarketingHostBoundary>

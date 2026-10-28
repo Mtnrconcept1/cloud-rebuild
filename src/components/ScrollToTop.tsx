@@ -1,9 +1,15 @@
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, type Location } from "react-router-dom";
 import { isCustomerWorkspacePath } from "@/lib/customerWorkspaceRoutes";
 
-export default function ScrollToTop() {
-  const { pathname, search, hash } = useLocation();
+export default function ScrollToTop({
+  locationOverride,
+}: {
+  locationOverride?: Pick<Location, "pathname" | "search" | "hash">;
+} = {}) {
+  const currentLocation = useLocation();
+  // Keep the exiting screen at its present scroll position until the swipe ends.
+  const { pathname, search, hash } = locationOverride ?? currentLocation;
   // Workspace filters do not represent a new page. Profile tabs do.
   const workspace = pathname === "/dashboard" || pathname.startsWith("/dashboard/") || isCustomerWorkspacePath(pathname);
   const destination = workspace ? new URLSearchParams(search).get("tab") || "" : search;
