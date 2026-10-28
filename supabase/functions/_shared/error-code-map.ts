@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 504 error codes mapped from supabase/functions/**.
+// 506 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -102,7 +102,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1243
+      "line": 1244
     }
   ],
   "ai_input_rejected": [
@@ -140,7 +140,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1250
+      "line": 1251
     }
   ],
   "ai_provider_billing_unavailable": [
@@ -210,7 +210,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1238
+      "line": 1239
     },
     {
       "file": "supabase/functions/restaurant-advisor/index.ts",
@@ -536,23 +536,23 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "branch_id_missing": [
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 164
+      "line": 163
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 169
+      "line": 168
     }
   ],
   "branch_lookup_failed": [
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 161
+      "line": 160
     }
   ],
   "branch_not_found": [
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 163
+      "line": 162
     }
   ],
   "campaign_not_found": [
@@ -1199,6 +1199,20 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 52
     }
   ],
+  "floorplan_idempotency_unavailable": [
+    {
+      "file": "supabase/functions/floorplan-ai/index.ts",
+      "line": 188
+    },
+    {
+      "file": "supabase/functions/floorplan-ai/index.ts",
+      "line": 216
+    },
+    {
+      "file": "supabase/functions/floorplan-ai/index.ts",
+      "line": 219
+    }
+  ],
   "forbidden": [
     {
       "file": "supabase/functions/ai-client-support/index.ts",
@@ -1369,6 +1383,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
       "line": 935
+    }
+  ],
+  "idempotency_conflict": [
+    {
+      "file": "supabase/functions/floorplan-ai/index.ts",
+      "line": 214
     }
   ],
   "idempotency_key_in_progress": [
@@ -1710,7 +1730,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_branch_id": [
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 149
+      "line": 148
     }
   ],
   "invalid_callback_data": [
@@ -1774,7 +1794,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_image": [
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1097
+      "line": 1095
     }
   ],
   "invalid_incident_workflow_transition": [
@@ -1844,7 +1864,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
-      "line": 1094
+      "line": 1092
     },
     {
       "file": "supabase/functions/plinko-play/index.ts",
