@@ -1,5 +1,6 @@
 import { sha256Hex } from "../_shared/print/security.ts";
-import { buildNativePrintTemplate, buildNativePrintInstructions, type NativePrintTemplate } from "../_shared/print/artwork.ts";
+import { buildNativePrintTemplate, buildNativePrintInstructions, nativePrintContractMatches, type NativePrintTemplate } from "../_shared/print/artwork.ts";
+import { readPrintMarginCorrection, buildPrintMarginCorrectionPrompt } from "../_shared/print/margin-correction.ts";
 import { readGeneratedOutputFormat, matchesGeneratedPrintFormat, generatedPrintOrientation } from "../_shared/print/source-format.ts";
 import { isSinglePagePrintProduct, isNativeArtworkProduct } from "../_shared/print/catalog.ts";
 import {
@@ -1387,15 +1388,27 @@ Deno.serve(async (req) => {
       marketingOutputFormat = { ...marketingOutputFormat, ...printTemplate.contract };
 
     }
-    const rawPrompt = sanitizeText(body.prompt || body.objective || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT);
+    let printMarginCorrection: ReturnType<typeof readPrintMarginCorrection>;
+    try {
+      printMarginCorrection = readPrintMarginCorrection(body.printMarginCorrection);
+    } catch {
+      throw new HttpError(400, "Correction des marges invalide");
+    }
+    if (printMarginCorrection && (!marketingAssetMode || marketingOutputFormat?.destination !== "print" || !printTemplate)) {
+      throw new HttpError(400, "La correction des marges nécessite un visuel d’impression natif");
+    }
+    const rawPrompt = printMarginCorrection
+      ? buildPrintMarginCorrectionPrompt(printMarginCorrection.insetPercent)
+      : sanitizeText(body.prompt || body.objective || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT);
     const prompt = marketingAssetMode
       ? rawPrompt
       : stripPlatformBrandTerms(stripBrandOverlayInstructions(rawPrompt));
     const dishName = sanitizeText(body.dishName, 120);
-    const sourceImageUrl = sanitizeUrl(body.sourceImageUrl);
-    const requestedReferenceImageUrls = normalizeReferenceImageUrls(body.referenceImageUrls)
+    // Correction mode ignores untrusted client-supplied image URLs and references.
+    const sourceImageUrl = printMarginCorrection ? null : sanitizeUrl(body.sourceImageUrl);
+    const requestedReferenceImageUrls = printMarginCorrection ? [] : normalizeReferenceImageUrls(body.referenceImageUrls)
       .filter((url) => url !== sourceImageUrl);
-    const requestedReferenceMediaIds = normalizeReferenceMediaIds(body.referenceMediaIds);
+    const requestedReferenceMediaIds = printMarginCorrection ? [] : normalizeReferenceMediaIds(body.referenceMediaIds);
     const format = normalizeFormat(marketingOutputFormat?.destination === "print"
       ? generatedPrintOrientation(marketingOutputFormat)
       : body.format);
@@ -1414,6 +1427,37 @@ Deno.serve(async (req) => {
     const restaurant = await requireRestaurantAccess(actor, restaurantId);
     await requireActiveAiFeature(actor, "ai_premium_image_generation");
     await requireActiveAiFeature(actor, marketingAssetMode ? "ai_marketing_campaigns" : "ai_photo_enhancer");
+    let printCorrectionSourceUrl: string | null = null;
+    if (printMarginCorrection && printTemplate && marketingOutputFormat?.destination === "print") {
+      const { data: original, error: originalError } = await actor.adminClient.from("ai_generated_assets")
+        .select("metadata, storage_bucket, storage_path")
+        .eq("id", printMarginCorrection.sourceGenerationId)
+        .eq("restaurant_id", restaurantId)
+        .eq("status", "stored").maybeSingle();
+      if (originalError) throw new HttpError(503, "Création source indisponible");
+      const sourceFormat = original?.metadata && typeof original.metadata === "object"
+        ? (original.metadata as Record<string, unknown>).marketing_output_target : null;
+      const sourceContract = sourceFormat && typeof sourceFormat === "object"
+        ? sourceFormat as Record<string, unknown> : {};
+      if (!original || !matchesGeneratedPrintFormat(sourceFormat, {
+        providerProductId: marketingOutputFormat.providerProductId!,
+        widthMm: marketingOutputFormat.widthMm!, heightMm: marketingOutputFormat.heightMm!,
+        bleedMm: marketingOutputFormat.bleedMm!,
+      }) || !nativePrintContractMatches(sourceFormat, printTemplate)
+        || !/^[a-f0-9]{64}$/.test(String(sourceContract.sourceSha256 || ""))) {
+        throw new HttpError(409, "Le format de l’original ne correspond pas au support d’impression");
+      }
+      const sourceBucket = String(original.storage_bucket || "");
+      const sourcePath = String(original.storage_path || "");
+      if (sourceBucket !== IMAGE_BUCKET || !sourcePath.startsWith(`ai-generated/${restaurantId}/`)
+        || sourcePath.includes("..") || !sourcePath.endsWith(".png")) {
+        throw new HttpError(409, "Original natif introuvable");
+      }
+      const { data: signedSource, error: signingError } = await actor.adminClient.storage
+        .from(sourceBucket).createSignedUrl(sourcePath, 10 * 60);
+      if (signingError || !signedSource?.signedUrl) throw new HttpError(503, "Original natif inaccessible");
+      printCorrectionSourceUrl = signedSource.signedUrl;
+    }
     const rl = createRateLimiter(actor.adminClient, FUNCTION_NAME);
     await rl.consume(`user:${actor.userId}`, { maxRequests: 20, windowSeconds: 600 });
     await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 60, windowSeconds: 600 });
@@ -1428,15 +1472,19 @@ Deno.serve(async (req) => {
     assetId = operation.assetId;
     const availableTokCredits = operation.availableCreditsBefore;
 
-    const marketingReferences = marketingAssetMode
+    const marketingReferences = marketingAssetMode && !printMarginCorrection
       ? await resolveCurrentMarketingReferences(actor, restaurantId, requestedReferenceMediaIds)
       : null;
     const photoStyleReferences = !marketingAssetMode && sourceImageUrl && requestedReferenceMediaIds.length
       ? await resolveCurrentPhotoStyleReferences(actor, restaurantId, requestedReferenceMediaIds)
       : null;
     const resolvedReferences = marketingReferences || photoStyleReferences;
-    const referenceImageUrls = resolvedReferences?.urls || requestedReferenceImageUrls;
-    const referenceSource = resolvedReferences ? "server_current_restaurant_media" : "request_payload";
+    const referenceImageUrls = printMarginCorrection
+      ? [printCorrectionSourceUrl!]
+      : resolvedReferences?.urls || requestedReferenceImageUrls;
+    const referenceSource = printMarginCorrection
+      ? "server_owned_print_generation"
+      : resolvedReferences ? "server_current_restaurant_media" : "request_payload";
     const resolvedReferenceMediaIds = resolvedReferences?.ids || [];
     const resolvedReferenceMediaTypes = resolvedReferences?.mediaTypes || [];
     const resolvedReferenceFingerprint = resolvedReferences?.fingerprint || null;
@@ -1527,6 +1575,7 @@ Deno.serve(async (req) => {
           : failure;
       }
       usedImageOptions = imageOptions;
+      sourceEditUsed = Boolean(printMarginCorrection);
     } else if (sourceImageUrl && referenceImageUrls.length) {
       const editResult = await callOpenAIImageEditWithReferencesAndRecovery({
         prompt: finalPrompt,
@@ -1651,7 +1700,9 @@ Deno.serve(async (req) => {
         gallery_storage_bucket: GALLERY_BUCKET,
         gallery_storage_path: stored.galleryPath,
         marketing_asset_mode: marketingAssetMode,
-        reference_image_urls: referenceImageUrls,
+        // A signed, restaurant-private original URL is short-lived and must not
+        // be persisted into the asset metadata or leak into future galleries.
+        reference_image_urls: printMarginCorrection ? [] : referenceImageUrls,
         reference_image_count: referenceImageUrls.length,
         requested_reference_image_count: requestedReferenceImageUrls.length,
         reference_source: referenceSource,
@@ -1660,7 +1711,9 @@ Deno.serve(async (req) => {
         reference_media_types: resolvedReferenceMediaTypes,
         reference_fingerprint: resolvedReferenceFingerprint,
         photo_style_reference_ids: photoStyleReferences?.ids || [],
-        reference_identity_scope: marketingAssetMode
+        reference_identity_scope: printMarginCorrection
+          ? "server_owned_original_native_print"
+          : marketingAssetMode
           ? "current_uploaded_restaurant_resources"
           : photoStyleReferences
           ? "current_restaurant_photo_style_reference"
@@ -1669,7 +1722,12 @@ Deno.serve(async (req) => {
         generation_seed: activeGenerationSeed,
         dish_name: dishName,
         format: format.label,
-        source_preservation_policy: sourceImageUrl
+        print_margin_correction: printMarginCorrection
+          ? { sourceGenerationId: printMarginCorrection.sourceGenerationId, insetPercent: printMarginCorrection.insetPercent }
+          : null,
+        source_preservation_policy: printMarginCorrection
+          ? "single_native_print_edit_without_generation_fallback"
+          : sourceImageUrl
           ? "strict_source_edit_without_generation_fallback"
           : "generation_without_source",
         reference_folder: marketingAssetMode ? null : `public${TOK_REFERENCE_FOLDER}`,

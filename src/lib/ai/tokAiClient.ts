@@ -1,4 +1,5 @@
 import type { GeneratedOutputFormat } from "../../../supabase/functions/_shared/print/source-format";
+import type { PrintMarginCorrection } from "../../../supabase/functions/_shared/print/margin-correction";
 import type { AdvisorAttachmentPlanPayload } from "@/lib/advisorAttachments";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { TokImageModel, TokImageOutputResolution } from "@/lib/ai/imagePricing";
@@ -162,6 +163,7 @@ export type TokImageGenerationRequest = {
   imageOnly?: boolean;
   marketingAssetMode?: boolean;
   marketingOutputFormat?: GeneratedOutputFormat | null;
+  printMarginCorrection?: PrintMarginCorrection;
   styleMode?: string | null;
   demoReferencePalette?: {
     primaryColor: string;
