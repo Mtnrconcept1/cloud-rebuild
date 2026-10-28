@@ -57,6 +57,10 @@ const message = document.getElementById("message");
 const subMessage = document.getElementById("subMessage");
 const attemptsEl = document.getElementById("attempts");
 const winEl = document.getElementById("win");
+const sessionWinEl = document.getElementById("sessionWin");
+const gainCard = document.getElementById("gainCard");
+const gainCopy = document.getElementById("gainCopy");
+const roundEls = [...document.querySelectorAll("[data-round]")];
 
 const reelCycles = 10;
 const safeCycle = 1;
@@ -70,13 +74,17 @@ let spinning = false;
 let positions = [0, 0, 0];
 let resizeFrame = 0;
 let activeSpinToken = 0;
+let sessionRewardPoints = 0;
+let attemptsRemaining = 0;
+let maxAttempts = 3;
+let lastResultRequestId = null;
 
 function positiveModulo(value, modulo) {
   return ((value % modulo) + modulo) % modulo;
 }
 
 function getSymbolHeight() {
-  return reelEls[0]?.parentElement?.getBoundingClientRect().height || 140;
+  return reelEls[0]?.firstElementChild?.getBoundingClientRect().height || reelEls[0]?.parentElement?.clientHeight || 140;
 }
 
 function setReelTransform(reel, position, symbolHeight) {
@@ -155,6 +163,12 @@ function setMachineEnabled(enabled) {
   machineEnabled = Boolean(enabled);
   spinButton.disabled = !machineEnabled;
   leverHandle.disabled = !machineEnabled;
+  slotMachine.setAttribute("aria-busy", String(spinning));
+  spinButton.textContent = spinning
+    ? "Ça tourne…"
+    : attemptsRemaining <= 0
+      ? "À demain !"
+      : `Lancer le tour ${Math.max(maxAttempts - attemptsRemaining + 1, 1)}`;
 }
 
 function formatAttempts(payload) {
@@ -174,7 +188,29 @@ function formatAttempts(payload) {
 function setAttempts(payload) {
   const attempts = formatAttempts(payload);
   attemptsEl.textContent = attempts.label;
+  attemptsRemaining = attempts.attemptsRemaining;
+  maxAttempts = attempts.maxAttempts;
+
+  const roundsUsed = maxAttempts - attemptsRemaining;
+  roundEls.forEach((round, index) => {
+    const isComplete = index < roundsUsed;
+    const isCurrent = index === roundsUsed && attemptsRemaining > 0;
+    round.hidden = index >= maxAttempts;
+    round.classList.toggle("is-complete", isComplete);
+    round.classList.toggle("is-current", isCurrent);
+    round.textContent = isComplete ? "✓" : String(index + 1);
+    round.setAttribute("aria-label", `Tour ${index + 1} ${isComplete ? "terminé" : isCurrent ? "à jouer" : "à venir"}`);
+    if (isCurrent) round.setAttribute("aria-current", "step");
+    else round.removeAttribute("aria-current");
+  });
   return attempts;
+}
+
+function setSessionReward(payload) {
+  if (typeof payload.sessionRewardPoints === "number" && Number.isFinite(payload.sessionRewardPoints)) {
+    sessionRewardPoints = Math.max(Math.trunc(payload.sessionRewardPoints), 0);
+  }
+  sessionWinEl.textContent = String(sessionRewardPoints);
 }
 
 function postToParent(payload) {
@@ -187,11 +223,13 @@ function postSpinRequest() {
   spinning = true;
   setMachineEnabled(false);
   slotMachine.classList.remove("is-winning");
+  gainCard.classList.remove("is-winning");
+  slotMachine.classList.add("is-waiting");
+  reelEls.forEach((reel) => reel.parentElement.classList.remove("is-landed"));
   lever.classList.add("is-pulled");
-  winEl.textContent = "0";
-  message.textContent = "TOK Spin";
-  subMessage.textContent =
-    "Tirage sécurisé — résultat calculé côté serveur TOK.";
+  winEl.textContent = "…";
+  message.textContent = "Un peu de suspense…";
+  subMessage.textContent = "Vos Miamz du tour arrivent.";
 
   window.setTimeout(() => {
     lever.classList.remove("is-pulled");
@@ -239,6 +277,7 @@ function animateReel(
       reel.style.transform = targetTransform;
       animation.cancel();
       reel.classList.remove("is-spinning");
+      reel.parentElement.classList.add("is-landed");
     });
 }
 
@@ -254,10 +293,10 @@ function normalizeReelsToResults(results) {
   });
 }
 
-function rainCoins(rewardPoints) {
-  if (reducedMotion.matches || rewardPoints < 10) return;
+function rainCoins(rewardPoints, isFinal = false) {
+  if (reducedMotion.matches || (rewardPoints < 10 && !isFinal)) return;
 
-  const count = rewardPoints >= 40 ? 18 : 9;
+  const count = rewardPoints >= 40 ? 22 : 12;
 
   for (let index = 0; index < count; index += 1) {
     const coin = document.createElement("span");
@@ -281,6 +320,7 @@ function finishServerSpin(payload, results, spinToken) {
   if (spinToken !== activeSpinToken) return;
 
   normalizeReelsToResults(results);
+  slotMachine.classList.remove("is-waiting");
 
   const rewardPoints = Math.max(Number(payload.rewardPoints || 0), 0);
   const totalPoints =
@@ -289,25 +329,24 @@ function finishServerSpin(payload, results, spinToken) {
       : null;
   const attempts = setAttempts(payload);
 
+  setSessionReward(payload);
+  const isFinished = attempts.attemptsRemaining <= 0;
   winEl.textContent = rewardPoints > 0 ? `+${rewardPoints}` : "0";
-  message.textContent =
-    payload.rewardLabel ||
-    (rewardPoints > 0 ? "Bravo TOK !" : "Tirage terminé");
+  message.textContent = isFinished
+    ? `+${sessionRewardPoints} Miamz. Bien joué !`
+    : `+${rewardPoints} Miamz pour vous !`;
 
-  const balanceLabel =
-    totalPoints === null ? "" : ` Solde : ${totalPoints} Miamz.`;
-  const remainingLabel =
-    attempts.attemptsRemaining > 0
-      ? ` Il reste ${attempts.attemptsRemaining} essai${attempts.attemptsRemaining > 1 ? "s" : ""}.`
-      : " C’était le dernier essai du jour.";
-
-  subMessage.textContent =
-    `+${rewardPoints} Miamz crédités.${balanceLabel}${remainingLabel}`;
-
-  if (rewardPoints >= 4) {
-    slotMachine.classList.add("is-winning");
-    rainCoins(rewardPoints);
-  }
+  const balanceLabel = totalPoints === null ? "" : ` Votre cagnotte : ${totalPoints} Miamz.`;
+  subMessage.textContent = isFinished
+    ? "Votre récolte est créditée. À demain ! La machine se ferme…"
+    : `${payload.rewardLabel || "Tour terminé"}.${balanceLabel} Encore ${attempts.attemptsRemaining} tour${attempts.attemptsRemaining > 1 ? "s" : ""} à savourer.`;
+  gainCopy.textContent = isFinished
+    ? "Bien joué ! Vos Miamz sont dans votre cagnotte."
+    : "Gagnés pendant cette partie, déjà dans votre cagnotte.";
+  slotMachine.classList.toggle("is-finished", isFinished);
+  slotMachine.classList.toggle("is-winning", rewardPoints > 0);
+  gainCard.classList.toggle("is-winning", rewardPoints > 0);
+  rainCoins(isFinished ? sessionRewardPoints : rewardPoints, isFinished);
 
   spinning = false;
   setMachineEnabled(attempts.attemptsRemaining > 0);
@@ -320,6 +359,9 @@ function finishServerSpin(payload, results, spinToken) {
 }
 
 function applyServerSpinResult(payload) {
+  if (typeof payload.requestId !== "string" || !payload.requestId || payload.requestId === lastResultRequestId) return;
+  lastResultRequestId = payload.requestId;
+  slotMachine.classList.remove("is-waiting");
   const results = serverSymbolsToIndexes(payload.symbols);
   const symbolHeight = getSymbolHeight();
   const spinToken = ++activeSpinToken;
@@ -362,12 +404,44 @@ function applyServerSpinResult(payload) {
 function handleStatus(payload) {
   const attempts = setAttempts(payload);
 
-  message.textContent = payload.message || "TOK Spin";
-  subMessage.textContent = payload.subMessage || "";
-  winEl.textContent = "0";
+  setSessionReward(payload);
+  const isWaiting = !payload.enabled && attempts.attemptsRemaining > 0;
+  const isFinished = attempts.attemptsRemaining <= 0 && sessionRewardPoints > 0;
+  const isRecoveredResult = payload.message === "Vos Miamz sont enregistrés !" || isFinished;
+  if (isRecoveredResult) {
+    // A parent watchdog can recover a committed result if an animation stalls.
+    // Cancel the old presentation so its late promise cannot overwrite a new turn.
+    activeSpinToken += 1;
+    reelEls.forEach((reel, index) => {
+      reel.getAnimations?.().forEach((animation) => animation.cancel());
+      positions[index] = (safeCycle + index) * symbols.length + positiveModulo(positions[index], symbols.length);
+      setReelTransform(reel, positions[index], getSymbolHeight());
+      reel.classList.remove("is-spinning");
+    });
+    gainCopy.textContent = "Vos Miamz sont enregistrés dans votre cagnotte.";
+    slotMachine.classList.toggle("is-finished", isFinished);
+  }
+  message.textContent = payload.enabled
+    ? attempts.maxAttempts === attempts.attemptsRemaining ? "À vous de jouer." : "On remet ça ?"
+    : isWaiting ? "Un peu de suspense…" : payload.message || "À demain !";
+  subMessage.textContent = payload.enabled
+    ? payload.message === "Tirage interrompu" ? payload.subMessage : "Alignez les symboles TOK et récoltez vos Miamz."
+    : isWaiting ? "Votre tirage se prépare…" : payload.subMessage || "";
+  if (payload.message === "Tirage interrompu") message.textContent = "Un petit contretemps.";
+  if (isFinished) {
+    message.textContent = `+${sessionRewardPoints} Miamz. Bien joué !`;
+    subMessage.textContent = "Votre récolte est créditée. À demain ! La machine se ferme…";
+  } else if (isRecoveredResult) {
+    message.textContent = payload.message;
+    subMessage.textContent = payload.subMessage || "Vos Miamz sont enregistrés.";
+  }
 
   if (payload.enabled || attempts.attemptsRemaining <= 0) {
     spinning = false;
+    slotMachine.classList.remove("is-waiting");
+  } else {
+    spinning = true;
+    slotMachine.classList.add("is-waiting");
   }
 
   setMachineEnabled(Boolean(payload.enabled) && !spinning);
@@ -432,5 +506,6 @@ if ("ResizeObserver" in window) {
 buildReels();
 setAttempts({ attemptsRemaining: 0, maxAttempts: 3 });
 winEl.textContent = "0";
+spinButton.textContent = "Un instant…";
 postToParent({ type: "TOK_SLOT_FRAME_READY" });
 
