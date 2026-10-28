@@ -129,7 +129,8 @@ describe("daily TOK editorial rotation", () => {
     }
     for (let day = 0; day < 126; day++) {
       const brief = buildDailyMarketingBrief(dateAfter(day));
-      expect(brief.caption).toContain("Restaurateurs à Genève : découvrez TOK sur thetok.ch.");
+      expect(brief.caption).toContain("Restaurateurs à Genève : découvrez TOK sur https://www.thetok.ch/restaurateurs/geneve");
+      expect(brief.caption.match(/https?:\/\/\S+/g)).toEqual(["https://www.thetok.ch/restaurateurs/geneve"]);
       expect(brief.caption.startsWith(brief.title + "\n\n")).toBe(true);
       expect(brief.caption).not.toContain("@");
       expect(brief.caption.match(/#[\p{Letter}]+/gu)).toHaveLength(5);
@@ -155,5 +156,20 @@ describe("daily TOK editorial rotation", () => {
       expect(prompt.length).toBeLessThan(8000);
       expect(brief.visualPrompt).toContain(brief.requiresChef ? "Mascotte chef TOK obligatoire" : "Aucune mascotte ni personnage cartoon");
     }
+  });
+});
+
+describe("daily caption link", () => {
+  it("carries the restaurateur page, which publication tags with the Instagram UTM parameters", async () => {
+    const { tagTokUrlsInText, metaPublicationUtm } = await import("../../supabase/functions/_shared/marketing-utm");
+    const itemId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+    const brief = buildDailyMarketingBrief("2026-11-03");
+    const utm = metaPublicationUtm({ channel: "instagram", campaignName: "TOK Instagram quotidien", itemId, at: new Date("2026-11-03T10:00:00Z") });
+    const published = tagTokUrlsInText(brief.caption, utm!);
+    const url = new URL(published.match(/https:\/\/www\.thetok\.ch\/\S+/)![0]);
+    expect(url.pathname).toBe("/restaurateurs/geneve");
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      utm_source: "instagram", utm_medium: "social", utm_campaign: "tok-instagram-quotidien_202611", utm_content: itemId,
+    });
   });
 });
