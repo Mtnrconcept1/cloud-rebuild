@@ -1,5 +1,6 @@
 import { buildNativePrintTemplate, nativePrintContractMatches } from "../../../../supabase/functions/_shared/print/artwork";
 import { readGeneratedOutputFormat, matchesGeneratedPrintFormat, type GeneratedOutputFormat } from "../../../../supabase/functions/_shared/print/source-format";
+import { PRINT_MARGIN_INSET_OPTIONS, type PrintMarginInsetPercent } from "../../../../supabase/functions/_shared/print/margin-correction";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -21,8 +22,9 @@ import {
   type PrintQuoteResult,
 } from "@/lib/print/client";
 import { createPrintCheckout } from "@/lib/print/checkout";
+import { generateTokDishImage } from "@/lib/ai/tokAiClient";
 import PrintProof from "./PrintProof";
-import { CreditCard, Loader2, Printer, RefreshCw } from "lucide-react";
+import { CreditCard, Loader2, Printer, RefreshCw, WandSparkles } from "lucide-react";
 
 const supabase = getSupabase();
 
@@ -249,13 +251,16 @@ export default function PrintComposerDialog({
   const proofRevision = useRef(0);
   const [proofAcknowledged, setProofAcknowledged] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [marginInsetPercent, setMarginInsetPercent] = useState<PrintMarginInsetPercent>(5);
+  const [retouchedFrom, setRetouchedFrom] = useState<PrintableAsset | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(250);
   const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
   const [exportId, setExportId] = useState<string | null>(null);
   const [approved, setApproved] = useState(false);
   const [quote, setQuote] = useState<PrintQuoteResult | null>(null);
   const [preparedDocument, setPreparedDocument] = useState<MarketingPrintDocument | null>(null);
-  const [working, setWorking] = useState<"export" | "approve" | "quote" | "checkout" | null>(null);
+  const [working, setWorking] = useState<"correct" | "export" | "approve" | "quote" | "checkout" | null>(null);
 
   const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || assets[0] || null;
   const variants = catalog.flatMap((product) => product.variants)
@@ -277,6 +282,8 @@ export default function PrintComposerDialog({
     setPreparedDocument(null);
     setProofAcknowledged(false);
     setPreviewUrl(null);
+    setRetouchedFrom(null);
+    setExportError(null);
     Promise.all([
       loadPrintableAssets(restaurantId, initialSourceGenerationId),
       getPrintCatalog(restaurantId),
@@ -336,6 +343,7 @@ export default function PrintComposerDialog({
     setPreparedDocument(null);
     setProofAcknowledged(false);
     setPreviewUrl(null);
+    setExportError(null);
   }, [selectedAssetId]);
 
   const document = useMemo<MarketingPrintDocument | null>(() => {
@@ -367,10 +375,51 @@ export default function PrintComposerDialog({
 
   const preflight = plannedDocument && selectedVariant ? runPrintPreflight(plannedDocument, selectedVariant) : null;
 
+  async function correctMargins() {
+    if (!selectedAsset?.sourceGenerationId || !selectedVariant || !nativeContractValid || working !== null) return;
+    if (!selectedAsset.outputFormat?.sourceSha256) return;
+    const revision = proofRevision.current;
+    const original = selectedAsset;
+    setWorking("correct");
+    setExportError(null);
+    try {
+      // The server resolves this original by restaurant ownership. Client URLs,
+      // crop coordinates, references and free-form prompts are not trusted.
+      const result = await generateTokDishImage({
+        restaurantId,
+        assetType: "campaign_visual",
+        marketingAssetMode: true,
+        marketingOutputFormat: selectedAsset.outputFormat,
+        printMarginCorrection: { sourceGenerationId: original.sourceGenerationId, insetPercent: marginInsetPercent },
+        prompt: "Correction native des marges pour impression",
+        outputResolution: "print",
+        variantCount: 1,
+      });
+      const candidates = result.assetId ? await loadPrintableAssets(restaurantId, result.assetId) : [];
+      const corrected = candidates.find((asset) => asset.sourceGenerationId === result.assetId
+        && matchesGeneratedPrintFormat(asset.outputFormat, selectedVariant));
+      if (revision !== proofRevision.current) return;
+      if (!corrected || !corrected.outputFormat || !nativePrintContractMatches(corrected.outputFormat, buildNativePrintTemplate(selectedVariant))) {
+        throw new Error("La nouvelle image a été enregistrée, mais son format natif n’est pas prêt. Réouvrez l’impression depuis la galerie.");
+      }
+      setRetouchedFrom(original);
+      setAssets((current) => [corrected, ...current.filter((asset) => asset.id !== corrected.id)].slice(0, 30));
+      setSelectedAssetId(corrected.id);
+      toast({ title: "Nouvelle version générée", description: "Comparez les deux visuels, vérifiez chaque mot et logo, puis demandez le contrôle du BAT." });
+    } catch (error) {
+      if (revision === proofRevision.current) {
+        toast({ title: "Correction générative impossible", description: error instanceof Error ? error.message : "Impossible de modifier les marges.", variant: "destructive" });
+      }
+    } finally {
+      setWorking(null);
+    }
+  }
+
   async function createExport() {
     if (!document || !selectedVariant || !selectedAsset || !nativeContractValid || !preflight?.ready) return;
     const revision = proofRevision.current;
     setWorking("export");
+    setExportError(null);
     try {
       const result = await createPrintExport({ restaurantId, providerProductId: selectedVariant.providerProductId, document });
       if (revision !== proofRevision.current) return;
@@ -381,7 +430,9 @@ export default function PrintComposerDialog({
       setProofAcknowledged(false);
       toast({ title: "BAT natif contrôlé", description: "Consultez le PDF réel, vérifiez les marges, les textes et la netteté avant approbation." });
     } catch (error) {
-      toast({ title: "BAT impossible", description: error instanceof Error ? error.message : "Erreur de préparation.", variant: "destructive" });
+      const message = error instanceof Error ? error.message : "Erreur de préparation.";
+      if (revision === proofRevision.current) setExportError(message);
+      toast({ title: "BAT impossible", description: message, variant: "destructive" });
     } finally {
       setWorking(null);
     }
@@ -468,7 +519,7 @@ export default function PrintComposerDialog({
             <div className="space-y-5">
               <div className="grid gap-3">
                 <Label>Création à imprimer</Label>
-                <Select value={selectedAsset?.id || ""} onValueChange={setSelectedAssetId} disabled={working !== null}>
+                <Select value={selectedAsset?.id || ""} onValueChange={(id) => { setRetouchedFrom(null); setSelectedAssetId(id); }} disabled={working !== null}>
                   <SelectTrigger><SelectValue placeholder="Choisir une création" /></SelectTrigger>
                   <SelectContent>{assets.map((asset) => <SelectItem key={asset.id} value={asset.id}>{asset.name} · {new Date(asset.createdAt).toLocaleDateString("fr-CH")}</SelectItem>)}</SelectContent>
                 </Select>
@@ -493,6 +544,43 @@ export default function PrintComposerDialog({
                 Pour les modifier, régénérez le visuel avec le même support. Aucun QR code ni calque ne peut être ajouté ici.
               </div>
               {!nativeContractValid ? <p role="alert" className="text-sm text-destructive">Cette création utilise un ancien gabarit. Régénérez-la avec le support d’impression sélectionné avant de préparer le BAT.</p> : null}
+              <section className="space-y-3 rounded-2xl border border-primary/20 bg-primary/[0.035] p-4" aria-label="Correction générative des marges" data-testid="print-margin-correction">
+                <div className="flex items-center gap-2">
+                  <WandSparkles className="h-5 w-5 text-primary" aria-hidden="true" />
+                  <h3 className="text-sm font-semibold">Ajuster les marges avec l’IA</h3>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Un élément peut être hors de la <strong>marge de sécurité verte</strong> sans toucher le fond perdu.
+                  L’IA recule légèrement la composition et prolonge naturellement la photo et les décors sur les bords.
+                  L’original est conservé.
+                </p>
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Recul génératif">
+                  {PRINT_MARGIN_INSET_OPTIONS.map((percent) => (
+                    <Button key={percent} type="button" size="sm" variant={marginInsetPercent === percent ? "default" : "outline"}
+                      aria-pressed={marginInsetPercent === percent}
+                      disabled={working !== null || approved}
+                      onClick={() => setMarginInsetPercent(percent)}>
+                      {percent} %
+                    </Button>
+                  ))}
+                </div>
+                <Button type="button" variant="outline" className="w-full gap-2" onClick={() => void correctMargins()}
+                  disabled={working !== null || approved || !nativeContractValid || !selectedAsset?.sourceGenerationId || !selectedAsset.outputFormat?.sourceSha256}>
+                  {working === "correct" ? <Loader2 className="h-4 w-4 animate-spin" /> : <WandSparkles className="h-4 w-4" />}
+                  {working === "correct" ? "Génération des marges en cours…" : "Générer une version avec fond perdu étendu"}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Nouvelle génération IA pouvant consommer des crédits TOK. Aucun recadrage logiciel ni ajout de texte après génération.
+                  Vérifiez soigneusement les prix, les mots, le téléphone et les logos : l’IA peut les altérer.
+                  Le serveur et votre approbation du PDF restent obligatoires.
+                </p>
+                {retouchedFrom && selectedAsset && retouchedFrom.id !== selectedAsset.id ? (
+                  <div className="grid grid-cols-2 gap-3 border-t pt-3" data-testid="print-margin-comparison">
+                    <figure className="space-y-1"><img src={retouchedFrom.url} alt="Création originale avant correction" className="max-h-48 w-full rounded-md border object-contain" /><figcaption className="text-xs">Avant · original</figcaption></figure>
+                    <figure className="space-y-1"><img src={selectedAsset.url} alt="Création corrigée par génération IA" className="max-h-48 w-full rounded-md border object-contain" /><figcaption className="text-xs">Après · nouvelle génération</figcaption></figure>
+                  </div>
+                ) : null}
+              </section>
               <div>
                 <Label>Quantité</Label>
                 <Input
@@ -532,6 +620,10 @@ export default function PrintComposerDialog({
 
             <div className="space-y-4">
               {(preparedDocument || plannedDocument) && selectedVariant ? <PrintProof document={(preparedDocument || plannedDocument)!} product={selectedVariant} approved={approved} /> : null}
+              {exportError ? <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                Contrôle serveur refusé : {exportError} La zone verte représente la marge de sécurité des textes et logos,
+                au-delà du seul fond perdu. Vous pouvez générer une nouvelle version avec davantage de recul ci-contre.
+              </p> : null}
               {previewUrl ? <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="block text-sm font-semibold underline">Consulter le PDF contrôlé (lien temporaire)</a> : null}
               {exportId && !approved ? <label className="flex items-start gap-3 rounded-xl border p-3 text-sm">
                 <input type="checkbox" checked={proofAcknowledged} onChange={event => setProofAcknowledged(event.target.checked)} className="mt-1" />

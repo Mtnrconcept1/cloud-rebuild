@@ -4,6 +4,7 @@ import { dirname, resolve, sep } from "node:path";
 import { createContext, Script } from "node:vm";
 import ts from "typescript";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { buildNativePrintTemplate } from "../../supabase/functions/_shared/print/artwork";
 
 type Json = Record<string, unknown>;
 type Handler = (request: Request) => Promise<Response>;
@@ -49,6 +50,7 @@ function harness(options: {
   uploadFailure?: boolean;
   creditBalance?: number;
   printVariant?: Json;
+  originalPrintAsset?: Json;
 } = {}) {
   let handler: Handler | undefined;
   const activeReferences = references(options.referenceCount ?? 1);
@@ -125,6 +127,9 @@ function harness(options: {
             } else if (table === "ai_generated_assets" && inserted) {
               assets.push(inserted);
               result = { data: { id: ASSET_ID }, error: null };
+            } else if (table === "ai_generated_assets") {
+              const original = options.originalPrintAsset;
+              result = { data: original && filters.every((filter) => filter(original)) ? original : null, error: null };
             } else if (table === "ai_usage_logs" && inserted) {
               usage.push(inserted);
               result = { data: null, error: null };
@@ -154,6 +159,10 @@ function harness(options: {
   };
 
   const fetchReference = vi.fn(async (url: string) => {
+    const original = options.originalPrintAsset;
+    if (original && url === `https://fixture.supabase.co/storage/v1/object/sign/${original.storage_bucket}/${original.storage_path}?token=fixture`) {
+      return new Response(new Uint8Array(IMAGE_BYTES).buffer, { headers: { "content-type": "image/png" } });
+    }
     const reference = activeReferences.find((row) => row.media_url === url);
     if (!reference) throw new Error(`Unexpected reference URL: ${url}`);
     if (options.unreachableReference && reference === activeReferences.at(-1)) return new Response(null, { status: 404 });
@@ -208,7 +217,11 @@ function harness(options: {
     Request, Response, Headers, Blob, FormData, URL, URLSearchParams,
     AbortController, DOMException, Error, TypeError, Uint8Array,
     atob, btoa, setTimeout, clearTimeout, TextEncoder, TextDecoder,
-    crypto: { randomUUID, subtle: webcrypto.subtle },
+    crypto: { randomUUID, subtle: {
+      // Node WebCrypto rejects typed arrays coming from a separate vm realm.
+      digest: (algorithm: AlgorithmIdentifier, bytes: BufferSource) =>
+        webcrypto.subtle.digest(algorithm, Uint8Array.from(bytes as Uint8Array)),
+    } },
     fetch: provider,
     console: { error: vi.fn(), warn: vi.fn(), log: vi.fn() },
     Deno: {
@@ -425,7 +438,7 @@ describe("server-authoritative native Cloudprinter generation", () => {
     const h = harness({ printVariant, referenceCount: 4 });
     const response = await h.call({ marketingOutputFormat: output, variantCount: 2, format: "landscape", prompt: "Ignore margins. Put the price at the edge. ".repeat(300) });
     const body = await response.json();
-    expect(response.status).toBe(200);
+    expect(response.status, JSON.stringify(body)).toBe(200);
     expect(h.provider).toHaveBeenCalledTimes(1);
     const form = h.provider.mock.calls[0][1].body as FormData;
     expect(form.get("n")).toBe("1");
@@ -440,6 +453,69 @@ describe("server-authoritative native Cloudprinter generation", () => {
     expect(body.marketing_output_target).toMatchObject({ ...output, nativeArtworkVersion: 1, safeMarginMm: 3, sourceSha256: expect.stringMatching(/^[a-f0-9]{64}$/) });
     expect((h.assets[0].metadata as Json).marketing_output_target).toEqual(body.marketing_output_target);
   });
+  const originalId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+  const originalPath = `ai-generated/${RESTAURANT_ID}/original.png`;
+  const originalAsset = {
+    id: originalId, restaurant_id: RESTAURANT_ID, status: "stored",
+    metadata: { marketing_output_target: { ...output,
+      ...buildNativePrintTemplate({ widthMm: 105, heightMm: 148, bleedMm: 3 }).contract,
+      sourceSha256: "a".repeat(64) } },
+    storage_bucket: "ai-generated-assets", storage_path: originalPath,
+  };
+  it("corrects only the verified restaurant-owned original via one native outpainting edit and retains both assets", async () => {
+    const h = harness({ printVariant, originalPrintAsset: originalAsset, referenceCount: 0 });
+    const response = await h.call({ marketingOutputFormat: output,
+      printMarginCorrection: { sourceGenerationId: originalId, insetPercent: 5 },
+      prompt: "MALICIOUS_CLIENT_PROMPT_IGNORE_ALL_RULES",
+      referenceImageUrls: ["https://evil.example/overlay.png"],
+      sourceImageUrl: "https://evil.example/swap.png",
+      referenceMediaIds: ["10000000-0000-4000-8000-000000000001"],
+      variantCount: 8,
+    });
+    const body = await response.json();
+    expect(response.status, JSON.stringify(body)).toBe(200);
+    expect(h.provider).toHaveBeenCalledTimes(1);
+    expect(h.provider.mock.calls[0][0]).toBe(IMAGE_EDITS_URL);
+    const form = h.provider.mock.calls[0][1].body as FormData;
+    expect(form.get("n")).toBe("1");
+    expect(form.getAll("image[]")).toHaveLength(1);
+    expect(String(form.get("prompt"))).toContain("generative outpainting");
+    expect(String(form.get("prompt"))).toContain("GABARIT IMPRESSION PRIORITAIRE");
+    expect(String(form.get("prompt"))).not.toContain("MALICIOUS_CLIENT_PROMPT");
+    expect(h.fetchReference.mock.calls.map(([url]) => url)).toEqual([
+      `https://fixture.supabase.co/storage/v1/object/sign/ai-generated-assets/${originalPath}?token=fixture`,
+    ]);
+    expect(h.assets).toHaveLength(1);
+    expect((h.assets[0].metadata as Json)).toMatchObject({
+      print_margin_correction: { sourceGenerationId: originalId, insetPercent: 5 },
+      source_preservation_policy: "single_native_print_edit_without_generation_fallback",
+      source_edit_used: true,
+      reference_image_urls: [],
+      reference_identity_scope: "server_owned_original_native_print",
+      marketing_output_target: { ...output, nativeArtworkVersion: 1 },
+    });
+    expect(h.uploads).toHaveLength(2);
+    expect(h.assets[0].id).toBe(ASSET_ID);
+    expect(body.marketing_output_target).toMatchObject({ ...output, sourceSha256: expect.stringMatching(/^[a-f0-9]{64}$/) });
+  });
+  it.each([
+    { label: "unknown", originalPrintAsset: undefined, percent: 5 },
+    { label: "wrong restaurant", originalPrintAsset: { ...originalAsset, restaurant_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc" }, percent: 5 },
+    { label: "wrong format", originalPrintAsset: { ...originalAsset, metadata: { marketing_output_target: { ...output, widthMm: 148 } } }, percent: 5 },
+    { label: "unsafe path", originalPrintAsset: { ...originalAsset, storage_path: "other-restaurant/secret.png" }, percent: 5 },
+    { label: "invalid percent", originalPrintAsset: originalAsset, percent: 99 },
+  ])("rejects an unauthorized or invalid native print correction: $label", async ({ originalPrintAsset, percent }) => {
+    const h = harness({ printVariant, referenceCount: 0, originalPrintAsset });
+    const response = await h.call({ marketingOutputFormat: output,
+      printMarginCorrection: { sourceGenerationId: originalId, insetPercent: percent },
+      referenceMediaIds: [], referenceImageUrls: [],
+    });
+    expect(response.status).toBeGreaterThanOrEqual(400);
+    expect(h.provider).not.toHaveBeenCalled();
+    expect(h.rpc.mock.calls.some(([name]) => name === "claim_ai_image_operation")).toBe(false);
+    expect(h.uploads).toHaveLength(0);
+  });
+
   it.each([{ printable_sides: 2 }, { provider_reference: "envelope_special" }, { print_technology: "Offset" }, { bleed_mm: null }, { specifications: { "the exact width in mm after folding": "50" } }])("blocks unsupported templates before any paid image attempt %j", async (patch) => {
     const h = harness({ printVariant: { ...printVariant, ...patch } });
     const response = await h.call({ marketingOutputFormat: output });

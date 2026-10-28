@@ -1,7 +1,8 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { buildNativePrintTemplate } from "../../supabase/functions/_shared/print/artwork";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const fixtures = vi.hoisted(() => ({ assets: [] as any[], media: [] as any[], catalog: [] as any[], exportCall: vi.fn(), filters: [] as string[][] }));
+const fixtures = vi.hoisted(() => ({ assets: [] as any[], media: [] as any[], catalog: [] as any[], exportCall: vi.fn(), generateImage: vi.fn(), filters: [] as string[][] }));
 const toast = vi.hoisted(() => vi.fn());
 vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast }) }));
 vi.mock("@/integrations/supabase/client", () => ({ getSupabase: () => ({
@@ -25,6 +26,7 @@ vi.mock("@/integrations/supabase/client", () => ({ getSupabase: () => ({
 vi.mock("@/lib/print/client", () => ({ getPrintCatalog: async () => ({ products: fixtures.catalog }),
   createPrintExport: fixtures.exportCall, approvePrintExport: vi.fn(), createPrintQuote: vi.fn() }));
 vi.mock("@/lib/print/checkout", () => ({ createPrintCheckout: vi.fn() }));
+vi.mock("@/lib/ai/tokAiClient", () => ({ generateTokDishImage: fixtures.generateImage }));
 vi.mock("@/components/dashboard/marketing-print/PrintProof", () => ({ default: () => <div>BAT</div> }));
 import PrintComposerDialog from "@/components/dashboard/marketing-print/PrintComposerDialog";
 
@@ -41,6 +43,7 @@ beforeEach(() => {
   fixtures.assets = [];
   fixtures.media = [];
   fixtures.filters = [];
+  fixtures.generateImage.mockReset();
   vi.stubGlobal("Image", class {
     naturalWidth = 2048; naturalHeight = 3072; onload?: () => void;
     set src(_value: string) { queueMicrotask(() => this.onload?.()); }
@@ -86,4 +89,37 @@ describe("print composer follows the generated creation", () => {
       expect(screen.queryByRole("button", { name: /générer le BAT/ })).toBeNull();
       expect(fixtures.exportCall).not.toHaveBeenCalled();
     });
+});
+
+it("keeps the original image and shows an editable generative margin correction without bypassing BAT", async () => {
+  const originalId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+  const correctedId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+  const a6 = { ...a4, widthMm: 105, heightMm: 148 };
+  const target = {
+    destination: "print", providerProductId: a6.providerProductId, widthMm: a6.widthMm,
+    heightMm: a6.heightMm, bleedMm: a6.bleedMm,
+    ...buildNativePrintTemplate(a6).contract, sourceSha256: "a".repeat(64),
+  };
+  fixtures.catalog = [{ id: "flyer", slug: "flyer", displayName: "Flyer", category: "flyer", variants: [a6] }];
+  fixtures.assets = [asset(originalId, target)];
+  fixtures.generateImage.mockImplementation(async () => {
+    fixtures.assets.push(asset(correctedId, { ...target, sourceSha256: "b".repeat(64) }));
+    return { assetId: correctedId };
+  });
+  render(<PrintComposerDialog restaurantId="restaurant" initialSourceGenerationId={originalId} open showTrigger={false} />);
+  await screen.findByText("Format et orientation verrouillés sur la création générée.");
+  const correction = screen.getByRole("button", { name: /Générer une version avec fond perdu étendu/ });
+  expect((correction as HTMLButtonElement).disabled).toBe(false);
+  fireEvent.click(screen.getByRole("button", { name: "7 %" }));
+  fireEvent.click(correction);
+  await screen.findByTestId("print-margin-comparison");
+  expect(fixtures.generateImage).toHaveBeenCalledWith(expect.objectContaining({
+    assetType: "campaign_visual", marketingAssetMode: true, marketingOutputFormat: target,
+    printMarginCorrection: { sourceGenerationId: originalId, insetPercent: 7 },
+    variantCount: 1,
+  }));
+  expect(screen.getByAltText("Création originale avant correction")).toBeTruthy();
+  expect(screen.getByAltText("Création corrigée par génération IA")).toBeTruthy();
+  expect(fixtures.assets.map((item) => item.id)).toContain(originalId);
+  expect(screen.getByRole("button", { name: /générer le BAT/i })).toBeTruthy();
 });
