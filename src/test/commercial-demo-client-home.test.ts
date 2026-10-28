@@ -41,8 +41,8 @@ describe("commercial demo real client dashboard home", () => {
     expect(clientHome).toContain('to={clientTarget(`/commande/');
   });
 
-  it("hides both sign-out controls while the shared commercial session is embedded", () => {
-    expect(clientLayout.match(/!commercialDemoFrame \? \(/g)).toHaveLength(2);
-    expect(clientLayout.match(/<SignOutButton/g)).toHaveLength(2);
+  it("hides all three sign-out controls while the shared commercial session is embedded", () => {
+    expect(clientLayout.match(/!commercialDemoFrame \? \(/g)).toHaveLength(3);
+    expect(clientLayout.match(/<SignOutButton/g)).toHaveLength(3);
   });
 });

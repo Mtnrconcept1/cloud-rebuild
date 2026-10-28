@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `5598c5245984c3418f1f75b7b1f09786b3900843bd7239bbb3b7c9948ca3db75`
+- Empreinte SHA-256 des sources indexées : `99c987d590fe48783ccd9aeaa58cd34630130395980bcad57032393e2f648801`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 236 |
 | edgeFunctions | 122 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4218 |
+| exportedSymbols | 4219 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 585 |
-| modules | 1896 |
+| modules | 1898 |
 | pages | 133 |
 | pathLiterals | 943 |
 | publicAssets | 737 |
 | publicEntries | 772 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19615 |
-| repositoryFiles | 3797 |
+| records | 19621 |
+| repositoryFiles | 3800 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1517,9 +1517,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/tok-connect | 11 | [src/App.tsx:693](../../src/App.tsx#L693) |
 | /admin/tok-printer | 5 | [src/App.tsx:682](../../src/App.tsx#L682) |
 | /admin/utilisateurs | 7 | [src/App.tsx:671](../../src/App.tsx#L671) |
-| /admin/utilisateurs?tab=applications | 3 | [src/components/admin/AdminMobileNavigation.tsx:69](../../src/components/admin/AdminMobileNavigation.tsx#L69) |
-| /admin/utilisateurs?tab=commercials | 3 | [src/components/admin/AdminMobileNavigation.tsx:68](../../src/components/admin/AdminMobileNavigation.tsx#L68) |
-| /admin/utilisateurs?tab=couriers | 3 | [src/components/admin/AdminMobileNavigation.tsx:70](../../src/components/admin/AdminMobileNavigation.tsx#L70) |
+| /admin/utilisateurs?tab=applications | 3 | [src/components/admin/AdminMobileNavigation.tsx:70](../../src/components/admin/AdminMobileNavigation.tsx#L70) |
+| /admin/utilisateurs?tab=commercials | 3 | [src/components/admin/AdminMobileNavigation.tsx:69](../../src/components/admin/AdminMobileNavigation.tsx#L69) |
+| /admin/utilisateurs?tab=couriers | 3 | [src/components/admin/AdminMobileNavigation.tsx:71](../../src/components/admin/AdminMobileNavigation.tsx#L71) |
 | /advisor | 2 | [src/lib/commercialDemoAi.ts:293](../../src/lib/commercialDemoAi.ts#L293) |
 | /aide | 15 | [scripts/prerender-seo.mjs:1137](../../scripts/prerender-seo.mjs#L1137) |
 | /aligro-catalog-sync | 1 | [src/test/supplier-catalog-sync.test.ts:82](../../src/test/supplier-catalog-sync.test.ts#L82) |
@@ -1604,10 +1604,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commandes | 45 | [scripts/prerender-seo.mjs:1271](../../scripts/prerender-seo.mjs#L1271) |
 | /commandes/facture | 1 | [src/test/customer-workspace-routes.test.ts:29](../../src/test/customer-workspace-routes.test.ts#L29) |
 | /comments | 1 | [src/test/marketing-instagram-graph.test.ts:84](../../src/test/marketing-instagram-graph.test.ts#L84) |
-| /commercial | 52 | [scripts/application-index-core.mjs:171](../../scripts/application-index-core.mjs#L171) |
+| /commercial | 54 | [scripts/application-index-core.mjs:171](../../scripts/application-index-core.mjs#L171) |
 | /commercial/ | 4 | [src/App.tsx:324](../../src/App.tsx#L324) |
 | /commercial/anything | 1 | [src/test/commercial-domain-isolation.test.ts:177](../../src/test/commercial-domain-isolation.test.ts#L177) |
-| /commercial/comptabilite | 10 | [src/App.tsx:436](../../src/App.tsx#L436) |
+| /commercial/comptabilite | 11 | [src/App.tsx:436](../../src/App.tsx#L436) |
 | /commercial/demo-live | 31 | [src/App.tsx:546](../../src/App.tsx#L546) |
 | /commercial/demo-live/ | 1 | [src/test/commercial-domain-isolation.test.ts:185](../../src/test/commercial-domain-isolation.test.ts#L185) |
 | /commercial/demo-live/evil | 1 | [src/test/commercial-domain-isolation.test.ts:124](../../src/test/commercial-domain-isolation.test.ts#L124) |
@@ -1782,7 +1782,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /guide/plateforme | 2 | [src/App.tsx:708](../../src/App.tsx#L708) |
 | /guide/restaurateur | 3 | [src/App.tsx:707](../../src/App.tsx#L707) |
 | /healthz | 2 | [src/test/application-search-index.test.ts:103](../../src/test/application-search-index.test.ts#L103) |
-| /help.png | 1 | [src/components/help/ChefHelpButton.tsx:36](../../src/components/help/ChefHelpButton.tsx#L36) |
+| /help.png | 1 | [src/components/help/ChefHelpButton.tsx:40](../../src/components/help/ChefHelpButton.tsx#L40) |
 | /help@tok_bot | 1 | [src/test/telegram-codex-request.test.ts:23](../../src/test/telegram-codex-request.test.ts#L23) |
 | /higgsfield/tok-intro-desktop.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:55](../../src/test/mobile-logo-intro.test.tsx#L55) |
 | /higgsfield/tok-intro-mobile.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:24](../../src/test/mobile-logo-intro.test.tsx#L24) |
@@ -7077,14 +7077,14 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 91 |
 | documentation | 6 |
 | edge-function-source | 251 |
-| frontend-component | 306 |
+| frontend-component | 307 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
 | frontend-source | 36 |
 | public-asset | 7 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 788 |
+| test | 789 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -8812,7 +8812,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (316)</summary>
+<details><summary>frontend-component (318)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8921,6 +8921,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/dashboard/CustomerWorkspacePages.css`
 - `src/components/dashboard/DailyDishAiPanel.tsx`
 - `src/components/dashboard/DashboardIllustrationMedia.tsx`
+- `src/components/dashboard/DashboardMenu.css`
+- `src/components/dashboard/DashboardMenuHeader.tsx`
 - `src/components/dashboard/DashboardPageHero.tsx`
 - `src/components/dashboard/DirectReservationChannelsCard.tsx`
 - `src/components/dashboard/GoldenTokPanel.tsx`
@@ -10402,7 +10404,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (788)</summary>
+<details><summary>test (789)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10530,6 +10532,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/commercial-consent-confirmation.test.ts`
 - `src/test/commercial-consent-page.test.ts`
 - `src/test/commercial-contract-generation.test.ts`
+- `src/test/commercial-dashboard-menu.test.tsx`
 - `src/test/commercial-demo-active-tools.test.ts`
 - `src/test/commercial-demo-actualites-isolation.test.ts`
 - `src/test/commercial-demo-ai-creation-scope.test.ts`

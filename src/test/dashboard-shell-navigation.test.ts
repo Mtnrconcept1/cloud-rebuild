@@ -130,7 +130,8 @@ describe("dashboard shell navigation", () => {
     expect(layout).toContain('className="max-w-[6.25rem] truncate text-sm font-semibold"');
     expect(layout).toContain('data-testid="restaurant-mobile-menu-panel"');
     expect(layout).toContain('side="left"');
-    expect(layout).toContain("tok-mobile-menu-header");
+    expect(layout).toContain("<DashboardMenuHeader");
+    expect(read("src/components/dashboard/DashboardMenuHeader.tsx")).toContain("tok-menu-header");
     expect(layout).toContain("tok-mobile-menu-footer");
     expect(layout).toContain("pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]");
     expect(layout).not.toContain("fixed inset-x-0 bottom-0 z-[40]");
