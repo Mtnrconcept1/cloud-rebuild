@@ -26,6 +26,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Respect simultaneous changes to this PR branch; never force-push.
+          git fetch origin fix/tok-mailing-da-editorial-posters-20261028
+          git checkout -B fix/tok-mailing-da-editorial-posters-20261028 FETCH_HEAD
           git rm -- .github/workflows/tok-email-index-1010-temp.yml
           pnpm docs:application-index
           pnpm generate:error-code-map
