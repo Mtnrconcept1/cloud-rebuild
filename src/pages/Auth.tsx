@@ -1012,6 +1012,17 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   }, []);
 
   useEffect(() => {
+    if (
+      !isLogin &&
+      roleMode === "restaurateur" &&
+      legalAccepted &&
+      !commissionConsentDraft
+    ) {
+      setLegalAccepted(false);
+    }
+  }, [commissionConsentDraft, isLogin, legalAccepted, roleMode]);
+
+  useEffect(() => {
     if (searchParams.get("mode") === "recovery") {
       setPasswordRecoveryMode(true);
       setIsLogin(true);
@@ -3416,6 +3427,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                   setForgotPassword(false);
                   setLegalAccepted(false);
                   setLegalAcceptanceDraft(false);
+                  setCommissionConsentDraft(false);
                 }}
                 className="text-sm text-muted-foreground transition-colors hover:text-primary"
               >
