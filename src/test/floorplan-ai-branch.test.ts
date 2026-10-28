@@ -81,6 +81,27 @@ describe("floorplan AI branch authorization", () => {
   it("fails closed with a sanitized error on database lookup failure", async () => {
     await expect(harness(branches, true).run(first)).rejects.toMatchObject({ status: 503, message: "branch_lookup_failed" });
   });
+  it("uses only service-role RPCs to persist AI idempotency records outside the exposed schema", () => {
+    const migration = read("supabase/migrations/20261028194500_floorplan_ai_idempotency_rpc.sql");
+    expect(source).toContain('.rpc("floorplan_ai_read_operation"');
+    expect(source).toContain('.rpc("floorplan_ai_save_operation"');
+    expect(source).not.toContain('.schema("private")');
+    expect(source).toContain('if (req.method !== "POST")');
+    expect(source).toContain('"floorplan_idempotency_unavailable"');
+    for (const fn of ["floorplan_ai_read_operation", "floorplan_ai_save_operation"]) {
+      expect(migration).toContain(`CREATE OR REPLACE FUNCTION public.${fn}(`);
+      expect(migration).toContain(`GRANT EXECUTE ON FUNCTION public.${fn}(`);
+      expect(migration).toContain("TO service_role;");
+    }
+    expect(migration.match(/SECURITY DEFINER/g)).toHaveLength(2);
+    expect(migration.match(/SET search_path = ''/g)).toHaveLength(2);
+    expect(migration.match(/FROM PUBLIC, anon, authenticated;/g)).toHaveLength(2);
+    expect(migration).not.toContain("TO authenticated;");
+    expect(migration).not.toContain("TO anon;");
+    expect(migration).toContain("floorplan_ai_request_conflict");
+    expect(migration).toContain("ON CONFLICT (actor_id, branch_id, operation_kind, request_id) DO NOTHING");
+  });
+
   it("checks restaurant ownership and branch scope before idempotency, credits and provider requests", () => {
     const handler = source.slice(source.indexOf("Deno.serve("));
     const ownerCheck = handler.indexOf("await requireRestaurantAccess(");

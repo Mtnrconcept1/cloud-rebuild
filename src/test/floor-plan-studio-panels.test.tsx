@@ -286,6 +286,7 @@ describe("studio AI assistant", () => {
     expect(endpoint).toBe("floorplan-ai");
     expect(request.body.restaurantId).toBe("restaurant-1");
     expect(request.body.branchId).toBe("22222222-2222-4222-8222-222222222222");
+    expect(request.body.requestId).toMatch(/^(?:[0-9a-f-]{36}|floorplan-\d+-\d+)$/);
     expect(request.body.prompt).toContain("24 places au total");
     expect(request.body.prompt).toContain("davantage de places");
     expect(request.body.prompt).toContain("120 unités du canevas");

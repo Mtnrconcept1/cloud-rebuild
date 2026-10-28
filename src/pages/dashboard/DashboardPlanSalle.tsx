@@ -59,7 +59,7 @@ import ServiceBoard from "@/components/floor-plan/ServiceBoard";
 import StudioCanvas from "@/components/floor-plan/StudioCanvas";
 import {
   clampFloorPlanZoom,
-  getFloorPlanWidthFitScale,
+  getFloorPlanContainScale,
 } from "@/components/floor-plan/useFloorPlanZoomViewport";
 import StudioInspector from "@/components/floor-plan/StudioInspector";
 import StudioPalette from "@/components/floor-plan/StudioPalette";
@@ -1404,9 +1404,13 @@ export default function DashboardPlanSalle() {
   const syncCanvasSizeFromViewport = useCallback(
     (width: number, height: number) => {
       if (width <= 0 || height <= 0) return;
-      // Fit the plan to the full width, not the shorter viewport height.
-      // Service and Aménagement already provide vertical scrolling.
-      const nextScale = getFloorPlanWidthFitScale(width, CANVAS_WIDTH);
+      // The full room must fit on both axes; user zoom can still scroll.
+      const nextScale = getFloorPlanContainScale(
+        width,
+        height,
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+      );
       setCanvasScale((current) =>
         Math.abs(current - nextScale) < 0.001 ? current : nextScale,
       );
@@ -4735,7 +4739,7 @@ export default function DashboardPlanSalle() {
       contentWidth="full"
       mainClassName="p-2 pb-16 sm:p-3 md:p-3 md:pb-3"
     >
-      <div className="tok-floorplan-workspace fp-workspace flex min-h-[calc(100dvh-6rem)] flex-col gap-2 xl:h-[calc(100dvh-5rem)] xl:min-h-[780px] xl:overflow-hidden">
+      <div className="tok-floorplan-workspace fp-workspace flex min-h-0 min-w-0 flex-col gap-2 xl:h-[calc(100dvh-5rem)] xl:overflow-hidden">
         <header className="tok-editorial-header tok-floorplan-header fp-header shrink-0">
           <div className="tok-floorplan-hero-grid">
             <div className="tok-floorplan-hero-copy min-w-0">
@@ -5142,7 +5146,7 @@ export default function DashboardPlanSalle() {
                 savingVariant={saveFloorPlanVariantMutation.isPending}
               />
             ) : isTemplateMode ? (
-              <div className="grid min-h-0 flex-1 gap-2 xl:grid-cols-[minmax(0,1fr)_370px] 2xl:grid-cols-[minmax(0,1fr)_400px] xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden">
+              <div className="grid min-h-0 min-w-0 flex-1 gap-2 xl:grid-cols-[minmax(0,1fr)_370px] 2xl:grid-cols-[minmax(0,1fr)_400px] xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden">
                 <StudioCanvas
                   showGrid={showGrid}
                   snapToGrid={snapToGrid}
@@ -5371,7 +5375,7 @@ export default function DashboardPlanSalle() {
                 </div>
               </div>
             ) : (
-              <div className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px] xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden">
+              <div className="grid min-h-0 min-w-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_340px] xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden">
                 <ServiceBoard
                   selectedSector={selectedSector}
                   subtitle={`${formatDashboardDateHeading(referenceDate)} · ${filteredReservations.length} réservation(s)`}

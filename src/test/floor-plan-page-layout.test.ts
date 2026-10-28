@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
-import { getFloorPlanWidthFitScale } from "@/components/floor-plan/useFloorPlanZoomViewport";
+import { getFloorPlanContainScale } from "@/components/floor-plan/useFloorPlanZoomViewport";
 
 // Source-contract checks ignore formatting; behavior is exercised by the
 // dashboard integration and component tests.
@@ -72,7 +72,7 @@ describe("floor plan page layout", () => {
     expectCode(page).toContain('<DashboardLayout contentWidth="full"');
     expectCode(page).toContain('mainClassName="p-2 pb-16 sm:p-3 md:p-3 md:pb-3"');
     expectCode(page).toContain(
-      "xl:h-[calc(100dvh-5rem)] xl:min-h-[780px] xl:overflow-hidden",
+      "xl:h-[calc(100dvh-5rem)] xl:overflow-hidden",
     );
     expectCode(page).toContain(
       "xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden",
@@ -92,28 +92,39 @@ describe("floor plan page layout", () => {
     expect(queue).toContain("onReservationHandlePointerDown");
   });
 
-  it("fills the canvas horizontally regardless of the limited visible height", () => {
+  it("contains the complete floor plan on desktop, tablet and mobile without cropping", () => {
     const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
     const studio = readSource("src/components/floor-plan/StudioCanvas.tsx");
     const service = readSource("src/components/floor-plan/ServiceBoard.tsx");
-
-    // This was the reported regression: a 1090px-wide viewport with only
-    // 390px of visible height rendered a 534px-wide room and a blank right half.
-    const availableWidth = 1090;
-    const scale = getFloorPlanWidthFitScale(availableWidth, 1040);
-    expect(1040 * scale).toBeCloseTo(availableWidth, 5);
-    expect(760 * scale).toBeGreaterThan(390);
-    expect(getFloorPlanWidthFitScale(360, 1040) * 1040).toBeCloseTo(360, 5);
-    expect(getFloorPlanWidthFitScale(0, 1040)).toBe(1);
-    expect(getFloorPlanWidthFitScale(900, 0)).toBe(1);
-    expect(getFloorPlanWidthFitScale(Number.NaN, 1040)).toBe(1);
-
-    expectCode(page).toContain("getFloorPlanWidthFitScale(width, CANVAS_WIDTH)");
-    expectCode(page).not.toContain("Math.min(width / CANVAS_WIDTH, height / CANVAS_HEIGHT)");
-    expectCode(studio).toContain("mx-auto overflow-hidden");
-    expectCode(service).toContain("mx-auto overflow-hidden");
-    expectCode(studio).toContain("overflow-auto overscroll-contain");
-    expectCode(service).toContain("overflow-auto overscroll-contain");
+    const roomWidth = 1040;
+    const roomHeight = 760;
+    for (const [name, viewportWidth, viewportHeight] of [
+      ["desktop short", 1090, 390],
+      ["desktop tall", 1090, 740],
+      ["tablet landscape", 850, 540],
+      ["tablet portrait", 700, 620],
+      ["mobile", 350, 280],
+      ["small mobile", 288, 208],
+    ] as const) {
+      const scale = getFloorPlanContainScale(viewportWidth, viewportHeight, roomWidth, roomHeight);
+      expect(scale, name).toBeGreaterThan(0);
+      expect(roomWidth * scale, name).toBeLessThanOrEqual(viewportWidth - 10);
+      expect(roomHeight * scale, name).toBeLessThanOrEqual(viewportHeight - 10);
+      expect(roomWidth * scale / (roomHeight * scale), name).toBeCloseTo(roomWidth / roomHeight);
+    }
+    expect(getFloorPlanContainScale(1090, 390, roomWidth, roomHeight) * roomHeight).toBeLessThan(390);
+    expect(getFloorPlanContainScale(0, 390, roomWidth, roomHeight)).toBe(1);
+    expect(getFloorPlanContainScale(390, 0, roomWidth, roomHeight)).toBe(1);
+    expect(getFloorPlanContainScale(Number.NaN, 390, roomWidth, roomHeight)).toBe(1);
+    expect(getFloorPlanContainScale(900, 700, 0, roomHeight)).toBe(1);
+    expectCode(page).toContain("getFloorPlanContainScale(width, height, CANVAS_WIDTH, CANVAS_HEIGHT)");
+    expectCode(page).not.toContain("getFloorPlanWidthFitScale");
+    expectCode(page).not.toContain("xl:min-h-[780px]");
+    for (const canvas of [studio, service]) {
+      expectCode(canvas).toContain("m-auto shrink-0 overflow-hidden");
+      expectCode(canvas).toContain("flex min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain");
+      expectCode(canvas).toContain("useLayoutEffect");
+    }
   });
 
   it("uses a purpose-built illustrated hero without hiding the operational actions", () => {
