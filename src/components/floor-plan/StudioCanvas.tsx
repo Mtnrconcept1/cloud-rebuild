@@ -315,7 +315,7 @@ export default function StudioCanvas({
           }}
         >
           <div
-            className="overflow-hidden"
+            className="mx-auto overflow-hidden"
             style={{
               width: canvasWidth * canvasZoom * canvasScale,
               height: canvasHeight * canvasZoom * canvasScale,
@@ -537,7 +537,7 @@ export default function StudioCanvas({
               type="button"
               className="!w-12 text-xs font-semibold"
               onClick={resetZoom}
-              title="Ajuster à l'écran"
+              title="Ajuster à la largeur du canevas"
             >
               {canvasZoomLabel}
             </button>
