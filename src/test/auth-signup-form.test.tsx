@@ -9,6 +9,8 @@ vi.mock('@/components/launch/LaunchGateProvider', () => ({ useLaunchGate: () => 
 import Auth from "@/pages/Auth";
 
 class ResizeObserverMock {
+  constructor(readonly callback: ResizeObserverCallback) {}
+
   observe = vi.fn();
   unobserve = vi.fn();
   disconnect = vi.fn();

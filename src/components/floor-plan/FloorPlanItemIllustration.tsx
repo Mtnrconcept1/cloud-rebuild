@@ -4,15 +4,22 @@ import type {
   FloorPlanItemKind,
   FloorPlanSeatPlacement,
   FloorPlanSeatType,
+  FloorPlanTableFinish,
   FloorPlanTableShape,
+  FloorPlanVisualVariant,
 } from "@/lib/floorPlan";
 import { cn } from "@/lib/utils";
 import DynamicTableSvg from "./DynamicTableSvg";
-import { BuffetSvg as EventBuffetSvg, CakeTableSvg, DancefloorSvg, DjBoothSvg, SofaSvg, StageSvg } from "./EventFurnitureSvg";
-import { FLOOR_PLAN_ASSETS } from "./floorPlanAssets";
+import { getResolvedFloorPlanDimensions } from "@/lib/floorPlan";
+import { DancefloorSvg, DjBoothSvg, StageSvg } from "./EventFurnitureSvg";
+import { FloorPlanAssetSprite } from "./FloorPlanAssetSprite";
+import {
+  getFloorPlanAssetAspectRatio,
+  getFloorPlanItemAssetId,
+} from "./floorPlanAssets";
 import { FLOOR_PLAN_PREVIEW_TILE_CLASS } from "./floorPlanSheet";
 
-type FloorPlanItemIllustrationProps = {
+export type FloorPlanItemIllustrationProps = {
   kind: FloorPlanItemKind;
   shape?: FloorPlanTableShape;
   className?: string;
@@ -28,235 +35,140 @@ type FloorPlanItemIllustrationProps = {
   cornerBenchHorizontal?: number;
   cornerBenchVertical?: number;
   cornerBenchDepth?: number;
+  visualVariant?: FloorPlanVisualVariant;
+  finish?: FloorPlanTableFinish;
 };
 
-function SvgAsset({
-  assetId,
-  x,
-  y,
-  width,
-  height,
-  rotation,
-  preserveAspectRatio = "xMidYMid meet",
-}: {
-  assetId: keyof typeof FLOOR_PLAN_ASSETS;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation?: number;
-  preserveAspectRatio?: string;
-}) {
-  const asset = FLOOR_PLAN_ASSETS[assetId];
-  const centerX = x + width / 2;
-  const centerY = y + height / 2;
-
-  return (
-    <image
-      href={asset.src}
-      x={x}
-      y={y}
-      width={width}
-      height={height}
-      preserveAspectRatio={preserveAspectRatio}
-      transform={rotation == null ? undefined : `rotate(${rotation} ${centerX} ${centerY})`}
-    />
-  );
-}
-
-function ChairSvg() {
-  return <SvgAsset assetId="chair" x={42} y={8} width={116} height={124} />;
-}
-
-function StoolSvg() {
-  return <SvgAsset assetId="stool" x={48} y={10} width={104} height={120} />;
-}
-
-function RoundTableSvg() {
-  return <SvgAsset assetId="round-table-angled" x={40} y={10} width={120} height={120} />;
-}
-
-function RectTableSvg() {
-  return <SvgAsset assetId="rect-table-top" x={42} y={10} width={116} height={120} preserveAspectRatio="none" />;
-}
-
-function BarSvg() {
-  return <SvgAsset assetId="bar-top" x={18} y={48} width={164} height={48} preserveAspectRatio="none" />;
-}
-
-function CornerBenchSvg() {
-  return <SvgAsset assetId="corner-bench" x={20} y={10} width={160} height={120} preserveAspectRatio="none" />;
-}
-
-function BanquetteSvg() {
-  return <SvgAsset assetId="banquette-straight" x={22} y={10} width={156} height={120} preserveAspectRatio="none" />;
-}
-
-function BoothSvg() {
+function BoothSvg({ finish }: { finish?: FloorPlanTableFinish }) {
   return (
     <>
-      <SvgAsset assetId="banquette-end" x={18} y={18} width={36} height={102} preserveAspectRatio="none" />
-      <SvgAsset assetId="banquette-end" x={146} y={18} width={36} height={102} rotation={180} preserveAspectRatio="none" />
-      <SvgAsset assetId="rect-table-top" x={60} y={30} width={80} height={84} preserveAspectRatio="none" />
+      <FloorPlanAssetSprite
+        assetId="banquette-straight"
+        x={-38}
+        y={56}
+        width={136}
+        height={40}
+        rotation={270}
+        fit="stretch"
+      />
+      <FloorPlanAssetSprite
+        assetId="banquette-straight"
+        x={122}
+        y={56}
+        width={136}
+        height={40}
+        rotation={90}
+        fit="stretch"
+      />
+      <FloorPlanAssetSprite
+        assetId="square-table-top"
+        x={66}
+        y={24}
+        width={88}
+        height={104}
+        fit="stretch"
+        finish={finish}
+      />
     </>
   );
 }
 
-function HostStandSvg() {
-  return <SvgAsset assetId="host-stand" x={44} y={8} width={112} height={124} />;
-}
-
-function DividerSvg() {
-  return <SvgAsset assetId="divider-open" x={50} y={6} width={100} height={128} />;
-}
-
-function PlantSvg() {
-  return <SvgAsset assetId="plant" x={40} y={8} width={120} height={124} />;
-}
-
-function ServiceStationSvg() {
-  return <SvgAsset assetId="service-station" x={24} y={26} width={152} height={88} preserveAspectRatio="none" />;
-}
-
-function ItemSvg({
-  kind,
-  shape,
-  capacity,
-  seatType,
-  seatPlacements,
-  cornerBenchCorners,
-  cornerBenchConfigs,
-  tableWidth,
-  tableHeight,
-  cornerBenchHorizontal,
-  cornerBenchVertical,
-  cornerBenchDepth,
-}: {
-  kind: FloorPlanItemKind;
-  shape?: FloorPlanTableShape;
-  capacity?: number;
-  seatType?: FloorPlanSeatType;
-  seatPlacements?: FloorPlanSeatPlacement[];
-  cornerBenchCorners?: FloorPlanCornerBenchCorner[];
-  cornerBenchConfigs?: FloorPlanCornerBenchConfig[];
-  tableWidth?: number;
-  tableHeight?: number;
-  cornerBenchHorizontal?: number;
-  cornerBenchVertical?: number;
-  cornerBenchDepth?: number;
-}) {
-  if (kind === "table") {
-    if (capacity && capacity > 0) {
-      return (
-        <DynamicTableSvg
-          shape={shape || "rect"}
-          capacity={capacity}
-          seatType={seatType}
-          seatPlacements={seatPlacements}
-          cornerBenchCorners={cornerBenchCorners}
-          cornerBenchConfigs={cornerBenchConfigs}
-          tableWidth={tableWidth}
-          tableHeight={tableHeight}
-          cornerBenchHorizontal={cornerBenchHorizontal}
-          cornerBenchVertical={cornerBenchVertical}
-          cornerBenchDepth={cornerBenchDepth}
-        />
-      );
-    }
-
-    return shape === "round" ? <RoundTableSvg /> : <RectTableSvg />;
-  }
-
-  switch (kind) {
-    case "chair":
-      return <ChairSvg />;
-    case "stool":
-      return <StoolSvg />;
-    case "bar":
-      return <BarSvg />;
-    case "corner-bench":
-      return <CornerBenchSvg />;
-    case "banquette":
-      return <BanquetteSvg />;
-    case "booth":
-      return <BoothSvg />;
-    case "host-stand":
-      return <HostStandSvg />;
-    case "divider":
-      return <DividerSvg />;
-    case "plant":
-      return <PlantSvg />;
-    case "service-station":
-      return <ServiceStationSvg />;
-    case "sofa":
-      return <SofaSvg />;
-    case "dancefloor":
-      return <DancefloorSvg />;
-    case "dj-booth":
-      return <DjBoothSvg />;
-    case "stage":
-      return <StageSvg />;
-    case "buffet":
-      return <EventBuffetSvg />;
-    case "cake-table":
-      return <CakeTableSvg />;
-    default:
-      return <RectTableSvg />;
-  }
-}
-
 export function FloorPlanItemIllustration({
-  kind,
-  shape = "rect",
   className,
   decorative = true,
   preserveAspectRatio = "xMidYMid meet",
-  capacity,
-  seatType,
-  seatPlacements,
-  cornerBenchCorners,
-  cornerBenchConfigs,
-  tableWidth,
-  tableHeight,
-  cornerBenchHorizontal,
-  cornerBenchVertical,
-  cornerBenchDepth,
+  shape = "rect",
+  ...props
 }: FloorPlanItemIllustrationProps) {
+  const dynamic = props.kind === "table" && (props.capacity || 0) > 0;
+  const dynamicProps = { ...props, shape, capacity: props.capacity || 1 };
+  const resolved = dynamic
+    ? getResolvedFloorPlanDimensions({
+        ...dynamicProps,
+        capacity: Math.max(1, Math.min(32, Math.round(dynamicProps.capacity))),
+      })
+    : null;
+  const assetId = getFloorPlanItemAssetId({ ...props, shape });
+  const naturalRatio = assetId
+    ? getFloorPlanAssetAspectRatio(assetId)
+    : 200 / 140;
+  // The viewBox follows the actual footprint. A 200×140 viewBox stretched into
+  // every item used to squash circular tables and give chairs inconsistent scale.
+  const width =
+    resolved?.footprintWidth ??
+    (assetId
+      ? props.tableWidth || naturalRatio * 100
+      : props.kind === "booth"
+        ? 220
+        : 200);
+  const height =
+    resolved?.footprintHeight ??
+    (assetId ? props.tableHeight || 100 : props.kind === "booth" ? 152 : 140);
+  const adaptable =
+    (props.kind === "table" && shape === "rect") ||
+    props.kind === "banquette" ||
+    props.kind === "sofa" ||
+    props.kind === "bar" ||
+    props.visualVariant === "wall" ||
+    props.visualVariant === "window";
+
   return (
     <svg
-      viewBox="0 0 200 140"
-      className={cn("block h-full w-full", className)}
+      viewBox={`0 0 ${width} ${height}`}
+      className={cn("block h-full w-full overflow-visible", className)}
       fill="none"
       role={decorative ? "presentation" : "img"}
       aria-hidden={decorative}
-      preserveAspectRatio={preserveAspectRatio}
+      preserveAspectRatio={
+        preserveAspectRatio === "none" && !adaptable && !dynamic
+          ? "xMidYMid meet"
+          : preserveAspectRatio
+      }
+      overflow="visible"
+      data-floor-plan-illustration={props.kind}
     >
-      <ItemSvg
-        kind={kind}
-        shape={shape}
-        capacity={capacity}
-        seatType={seatType}
-        seatPlacements={seatPlacements}
-        cornerBenchCorners={cornerBenchCorners}
-        cornerBenchConfigs={cornerBenchConfigs}
-        tableWidth={tableWidth}
-        tableHeight={tableHeight}
-        cornerBenchHorizontal={cornerBenchHorizontal}
-        cornerBenchVertical={cornerBenchVertical}
-        cornerBenchDepth={cornerBenchDepth}
-      />
+      {dynamic ? (
+        <DynamicTableSvg
+          {...dynamicProps}
+          viewportWidth={width}
+          viewportHeight={height}
+        />
+      ) : assetId ? (
+        <FloorPlanAssetSprite
+          assetId={assetId}
+          x={0}
+          y={0}
+          width={width}
+          height={height}
+          fit={adaptable ? "stretch" : "contain"}
+          finish={props.kind === "table" ? props.finish : undefined}
+        />
+      ) : props.kind === "booth" ? (
+        <BoothSvg finish={props.finish} />
+      ) : props.kind === "dancefloor" ? (
+        <DancefloorSvg />
+      ) : props.kind === "dj-booth" ? (
+        <DjBoothSvg />
+      ) : props.kind === "stage" ? (
+        <StageSvg />
+      ) : null}
     </svg>
   );
 }
 
 export function FloorPlanPresetIcon({
-  kind,
-  shape = "rect",
   className,
-}: Pick<FloorPlanItemIllustrationProps, "kind" | "shape" | "className">) {
+  ...props
+}: FloorPlanItemIllustrationProps) {
   return (
-    <div className={cn("flex h-16 w-16 items-center justify-center rounded-[22px] border p-2 shadow-sm", FLOOR_PLAN_PREVIEW_TILE_CLASS, className)}>
-      <FloorPlanItemIllustration kind={kind} shape={shape} className="block h-full w-full" />
+    <div
+      className={cn(
+        "flex h-16 w-16 items-center justify-center rounded-[22px] border p-2 shadow-sm",
+        FLOOR_PLAN_PREVIEW_TILE_CLASS,
+        className,
+      )}
+    >
+      <FloorPlanItemIllustration {...props} className="block h-full w-full" />
     </div>
   );
 }

@@ -1,5 +1,8 @@
 import type { Database, Json } from "@/integrations/supabase/types";
-import { reservationsOverlap, type FloorPlanTableLayout } from "@/lib/floorPlan";
+import {
+  reservationsOverlap,
+  type FloorPlanTableLayout,
+} from "@/lib/floorPlan";
 
 import { FLOOR_PLAN_TONE_CLASS } from "./floorPlanTones";
 
@@ -66,7 +69,13 @@ export type ReservationTableRecommendation = {
 // The server is the authority on conflicts: any shorter value here makes the
 // client offer placements the save then refuses as overlapping.
 const DEFAULT_OCCUPATION_MINUTES = 120;
-const RELEASED_RESERVATION_STATUSES = new Set(["cancelled", "canceled", "no_show", "completed", "archived"]);
+const RELEASED_RESERVATION_STATUSES = new Set([
+  "cancelled",
+  "canceled",
+  "no_show",
+  "completed",
+  "archived",
+]);
 
 const isJsonRecord = (value: Json): value is Record<string, Json> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -77,6 +86,40 @@ export function getSafeTime(value: string | null | undefined) {
 
 export function getReservationCustomerLabel(reservation: ServiceReservation) {
   return reservation.customer?.full_name || "Client sans nom";
+}
+
+export function getReservationStatusLabel(status: string | null | undefined) {
+  const labels: Record<string, string> = {
+    pending: "À confirmer",
+    confirmed: "Confirmée",
+    arrived: "Arrivée",
+    seated: "Installée",
+    installed: "Installée",
+    occupied: "En salle",
+    order_taken: "Commande prise",
+    served: "Servie",
+    dessert: "Dessert",
+    bill_requested: "Addition demandée",
+    no_show: "Absente",
+    completed: "Terminée",
+    archived: "Archivée",
+    cancelled: "Annulée",
+    canceled: "Annulée",
+  };
+  return labels[String(status || "pending").toLowerCase()] || "Autre statut";
+}
+
+export function isReservationInService(reservation: ServiceReservation) {
+  return [
+    "arrived",
+    "seated",
+    "installed",
+    "occupied",
+    "order_taken",
+    "served",
+    "dessert",
+    "bill_requested",
+  ].includes(String(reservation.status || "pending").toLowerCase());
 }
 
 // Rendu dans le châssis (files d'attente, tiroir de table) : suit le thème.
@@ -116,15 +159,21 @@ function getReservationMetadataRecord(reservation: ReservationRow) {
 
 export function getReservationMiamzPriority(reservation: ReservationRow) {
   const metadata = getReservationMetadataRecord(reservation);
-  const rawPriority = metadata.miamz_priority_score
-    ?? (isJsonRecord(metadata.miamz) ? metadata.miamz.reservation_priority_score : null);
+  const rawPriority =
+    metadata.miamz_priority_score ??
+    (isJsonRecord(metadata.miamz)
+      ? metadata.miamz.reservation_priority_score
+      : null);
   const priority = Number(rawPriority);
   return Number.isFinite(priority) ? Math.max(0, Math.round(priority)) : 0;
 }
 
 export function getReservationMiamzPriorityLabel(reservation: ReservationRow) {
   const metadata = getReservationMetadataRecord(reservation);
-  if (typeof metadata.miamz_priority_label === "string" && metadata.miamz_priority_label.trim()) {
+  if (
+    typeof metadata.miamz_priority_label === "string" &&
+    metadata.miamz_priority_label.trim()
+  ) {
     return metadata.miamz_priority_label.trim();
   }
 
@@ -133,7 +182,9 @@ export function getReservationMiamzPriorityLabel(reservation: ReservationRow) {
 
 function getReservationFeature(reservation: ReservationRow) {
   const explicitFeature = normalizeReservationFeature(reservation.feature);
-  const metadataFeature = normalizeReservationFeature(getReservationMetadataRecord(reservation).feature);
+  const metadataFeature = normalizeReservationFeature(
+    getReservationMetadataRecord(reservation).feature,
+  );
 
   if (metadataFeature) return metadataFeature;
   if (explicitFeature) return explicitFeature;
@@ -145,7 +196,8 @@ export function isZeroAttenteReservation(reservation: ReservationRow) {
 }
 
 export function getReservationSpecialRequest(reservation: ReservationRow) {
-  const specialRequests = (reservation as Record<string, unknown>).special_requests;
+  const specialRequests = (reservation as Record<string, unknown>)
+    .special_requests;
   if (typeof specialRequests === "string" && specialRequests.trim()) {
     return specialRequests.trim();
   }
@@ -187,7 +239,10 @@ export function getCompactReservationCustomerLabel(
     return parts[0].slice(0, 10);
   }
 
-  return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() || "").join("");
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("");
 }
 
 export function scoreReservationPlacement({
@@ -203,7 +258,10 @@ export function scoreReservationPlacement({
 }): ReservationPlacementScore {
   const partySize = Math.max(0, Number(reservation.party_size || 0));
   const capacity = Math.max(0, Number(table.capacity || 0));
-  const load = Math.max(0, Math.max(currentTableLoad, currentTableReservations.length));
+  const load = Math.max(
+    0,
+    Math.max(currentTableLoad, currentTableReservations.length),
+  );
   const reasons: string[] = [];
 
   if (capacity <= 0) {
@@ -251,7 +309,10 @@ export function scoreReservationPlacement({
     reasons.push("Garde une option groupe");
   }
 
-  const rotationGap = getClosestRotationGapMinutes(reservation, currentTableReservations);
+  const rotationGap = getClosestRotationGapMinutes(
+    reservation,
+    currentTableReservations,
+  );
   if (rotationGap !== null && rotationGap < 30) {
     score -= 16;
     reasons.push("Rotation serree");
@@ -293,8 +354,14 @@ export function getRecommendedTableByReservation({
 }: {
   reservations: ServiceReservation[];
   tables: ServiceDraftTable[];
-  getReservationDropState: (reservationId: string, tableId: string) => ReservationDropState;
-  getPlacementScore: (reservation: ServiceReservation, table: ServiceDraftTable) => ReservationPlacementScore;
+  getReservationDropState: (
+    reservationId: string,
+    tableId: string,
+  ) => ReservationDropState;
+  getPlacementScore: (
+    reservation: ServiceReservation,
+    table: ServiceDraftTable,
+  ) => ReservationPlacementScore;
 }) {
   const recommendations = new Map<string, ReservationTableRecommendation>();
 
@@ -305,12 +372,13 @@ export function getRecommendedTableByReservation({
         table,
         ...getPlacementScore(reservation, table),
       }))
-      .sort((left, right) => (
-        right.score - left.score
-        || left.wastedSeats - right.wastedSeats
-        || left.table.capacity - right.table.capacity
-        || left.table.table_number.localeCompare(right.table.table_number, "fr")
-      ))[0];
+      .sort(
+        (left, right) =>
+          right.score - left.score ||
+          left.wastedSeats - right.wastedSeats ||
+          left.table.capacity - right.table.capacity ||
+          left.table.table_number.localeCompare(right.table.table_number, "fr"),
+      )[0];
 
     if (best) {
       recommendations.set(reservation.id, best);
@@ -363,17 +431,20 @@ export function planAutomaticPlacement({
 
   const queue = [...reservations]
     .filter((reservation) => !working[reservation.id])
-    .sort((left, right) => (
-      Number(right.party_size || 0) - Number(left.party_size || 0)
-      || getSafeTime(left.time).localeCompare(getSafeTime(right.time))
-      || left.id.localeCompare(right.id)
-    ));
+    .sort(
+      (left, right) =>
+        Number(right.party_size || 0) - Number(left.party_size || 0) ||
+        getSafeTime(left.time).localeCompare(getSafeTime(right.time)) ||
+        left.id.localeCompare(right.id),
+    );
 
   queue.forEach((reservation) => {
     const preferredTableId = preferredTableByUserId?.get(reservation.user_id);
-    if (preferredTableId
-      && tables.some((table) => table.id === preferredTableId)
-      && canPlace(reservation.id, preferredTableId, working)) {
+    if (
+      preferredTableId &&
+      tables.some((table) => table.id === preferredTableId) &&
+      canPlace(reservation.id, preferredTableId, working)
+    ) {
       working[reservation.id] = preferredTableId;
       placed[reservation.id] = preferredTableId;
       return;
@@ -381,13 +452,17 @@ export function planAutomaticPlacement({
 
     const best = tables
       .filter((table) => canPlace(reservation.id, table.id, working))
-      .map((table) => ({ table, ...getPlacementScore(reservation, table, working) }))
-      .sort((left, right) => (
-        right.score - left.score
-        || left.wastedSeats - right.wastedSeats
-        || left.table.capacity - right.table.capacity
-        || left.table.table_number.localeCompare(right.table.table_number, "fr")
-      ))[0];
+      .map((table) => ({
+        table,
+        ...getPlacementScore(reservation, table, working),
+      }))
+      .sort(
+        (left, right) =>
+          right.score - left.score ||
+          left.wastedSeats - right.wastedSeats ||
+          left.table.capacity - right.table.capacity ||
+          left.table.table_number.localeCompare(right.table.table_number, "fr"),
+      )[0];
 
     if (!best) return;
 
@@ -399,8 +474,9 @@ export function planAutomaticPlacement({
 }
 
 function getReservationDurationMinutes(reservation: ServiceReservation) {
-  const rawDuration = getReservationMetadataRecord(reservation).duration_minutes
-    ?? getReservationMetadataRecord(reservation).durationMinutes;
+  const rawDuration =
+    getReservationMetadataRecord(reservation).duration_minutes ??
+    getReservationMetadataRecord(reservation).durationMinutes;
   const duration = Number(rawDuration);
   if (Number.isFinite(duration) && duration > 0) {
     return Math.max(30, Math.round(duration));
@@ -415,10 +491,10 @@ function getClosestRotationGapMinutes(
   reservation: ServiceReservation,
   tableReservations: ServiceReservation[],
 ) {
-  const sameDateReservations = tableReservations.filter((candidate) => (
-    candidate.id !== reservation.id
-    && candidate.date === reservation.date
-  ));
+  const sameDateReservations = tableReservations.filter(
+    (candidate) =>
+      candidate.id !== reservation.id && candidate.date === reservation.date,
+  );
   if (sameDateReservations.length === 0) return null;
 
   const start = getReservationMinutesFromDayStart(reservation);
@@ -427,12 +503,14 @@ function getClosestRotationGapMinutes(
 
   sameDateReservations.forEach((candidate) => {
     const candidateStart = getReservationMinutesFromDayStart(candidate);
-    const candidateEnd = candidateStart + getReservationDurationMinutes(candidate);
-    const gap = candidateEnd <= start
-      ? start - candidateEnd
-      : candidateStart >= end
-        ? candidateStart - end
-        : 0;
+    const candidateEnd =
+      candidateStart + getReservationDurationMinutes(candidate);
+    const gap =
+      candidateEnd <= start
+        ? start - candidateEnd
+        : candidateStart >= end
+          ? candidateStart - end
+          : 0;
 
     closestGap = closestGap === null ? gap : Math.min(closestGap, gap);
   });
@@ -441,7 +519,9 @@ function getClosestRotationGapMinutes(
 }
 
 function getReservationMinutesFromDayStart(reservation: ServiceReservation) {
-  const [rawHour = "0", rawMinute = "0"] = getSafeTime(reservation.time).split(":");
+  const [rawHour = "0", rawMinute = "0"] = getSafeTime(reservation.time).split(
+    ":",
+  );
   const hour = Number.parseInt(rawHour, 10) || 0;
   const minute = Number.parseInt(rawMinute, 10) || 0;
   return hour * 60 + minute;
@@ -451,7 +531,10 @@ function getDateMinutesFromDayStart(date: Date) {
   return date.getHours() * 60 + date.getMinutes();
 }
 
-function isSameServiceDate(reservationDate: string | null | undefined, now: Date) {
+function isSameServiceDate(
+  reservationDate: string | null | undefined,
+  now: Date,
+) {
   if (!reservationDate) return false;
 
   const year = now.getFullYear();
@@ -462,54 +545,72 @@ function isSameServiceDate(reservationDate: string | null | undefined, now: Date
 
 function addMinutesToTime(time: string | null | undefined, minutes: number) {
   const [rawHour = "0", rawMinute = "0"] = getSafeTime(time).split(":");
-  const total = (Number.parseInt(rawHour, 10) || 0) * 60
-    + (Number.parseInt(rawMinute, 10) || 0)
-    + minutes;
+  const total =
+    (Number.parseInt(rawHour, 10) || 0) * 60 +
+    (Number.parseInt(rawMinute, 10) || 0) +
+    minutes;
   const normalized = ((total % 1440) + 1440) % 1440;
   const hour = String(Math.floor(normalized / 60)).padStart(2, "0");
   const minute = String(normalized % 60).padStart(2, "0");
   return `${hour}:${minute}`;
 }
 
-function getMinutesUntilEstimatedRelease(reservation: ServiceReservation, now: Date) {
+function getMinutesUntilEstimatedRelease(
+  reservation: ServiceReservation,
+  now: Date,
+) {
   if (!isSameServiceDate(reservation.date, now)) return null;
-  return getReservationMinutesFromDayStart(reservation)
-    + DEFAULT_OCCUPATION_MINUTES
-    - getDateMinutesFromDayStart(now);
+  return (
+    getReservationMinutesFromDayStart(reservation) +
+    DEFAULT_OCCUPATION_MINUTES -
+    getDateMinutesFromDayStart(now)
+  );
 }
 
 function isBlockingReservation(reservation: ServiceReservation) {
-  return !RELEASED_RESERVATION_STATUSES.has(String(reservation.status || "").toLowerCase());
+  return !RELEASED_RESERVATION_STATUSES.has(
+    String(reservation.status || "").toLowerCase(),
+  );
 }
 
 function getOverlappingAssignmentCount(assignments: ServiceReservation[]) {
   const blockingAssignments = assignments.filter(isBlockingReservation);
   let overlapCount = 0;
 
-  for (let leftIndex = 0; leftIndex < blockingAssignments.length; leftIndex += 1) {
+  for (
+    let leftIndex = 0;
+    leftIndex < blockingAssignments.length;
+    leftIndex += 1
+  ) {
     const left = blockingAssignments[leftIndex];
     if (!left.date) continue;
 
-    for (let rightIndex = leftIndex + 1; rightIndex < blockingAssignments.length; rightIndex += 1) {
+    for (
+      let rightIndex = leftIndex + 1;
+      rightIndex < blockingAssignments.length;
+      rightIndex += 1
+    ) {
       const right = blockingAssignments[rightIndex];
       if (!right.date) continue;
 
-      if (reservationsOverlap(
-        {
-          id: left.id,
-          date: left.date,
-          time: left.time,
-          partySize: Number(left.party_size || 0),
-          status: left.status,
-        },
-        {
-          id: right.id,
-          date: right.date,
-          time: right.time,
-          partySize: Number(right.party_size || 0),
-          status: right.status,
-        },
-      )) {
+      if (
+        reservationsOverlap(
+          {
+            id: left.id,
+            date: left.date,
+            time: left.time,
+            partySize: Number(left.party_size || 0),
+            status: left.status,
+          },
+          {
+            id: right.id,
+            date: right.date,
+            time: right.time,
+            partySize: Number(right.party_size || 0),
+            status: right.status,
+          },
+        )
+      ) {
         overlapCount += 1;
       }
     }
@@ -534,7 +635,8 @@ export function getTableServiceState({
       key: "furniture",
       label: "Mobilier",
       detail: null,
-      haloClass: "bg-slate-300/55 shadow-[0_22px_55px_-42px_rgba(15,23,42,0.55)]",
+      haloClass:
+        "bg-slate-300/55 shadow-[0_22px_55px_-42px_rgba(15,23,42,0.55)]",
       chipClass: "border-slate-300 bg-slate-100 text-slate-700",
     };
   }
@@ -544,7 +646,8 @@ export function getTableServiceState({
       key: "free",
       label: "Libre",
       detail: null,
-      haloClass: "bg-emerald-200/45 shadow-[0_28px_65px_-40px_rgba(16,185,129,0.35)]",
+      haloClass:
+        "bg-emerald-200/45 shadow-[0_28px_65px_-40px_rgba(16,185,129,0.35)]",
       chipClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
     };
   }
@@ -556,7 +659,8 @@ export function getTableServiceState({
       key: "conflict",
       label: "Conflit horaire",
       detail: `${blockingAssignments.length} réservations`,
-      haloClass: "bg-rose-400/65 shadow-[0_28px_70px_-34px_rgba(225,29,72,0.55)]",
+      haloClass:
+        "bg-rose-400/65 shadow-[0_28px_70px_-34px_rgba(225,29,72,0.55)]",
       chipClass: "border-rose-400 bg-rose-50 text-rose-800",
     };
   }
@@ -569,7 +673,8 @@ export function getTableServiceState({
       key: "no-show",
       label: "No-show",
       detail: getSafeTime(primary.time),
-      haloClass: "bg-rose-300/55 shadow-[0_28px_65px_-38px_rgba(244,63,94,0.45)]",
+      haloClass:
+        "bg-rose-300/55 shadow-[0_28px_65px_-38px_rgba(244,63,94,0.45)]",
       chipClass: "border-rose-300 bg-rose-50 text-rose-700",
     };
   }
@@ -579,19 +684,35 @@ export function getTableServiceState({
       key: "arrived",
       label: "Arrive",
       detail: getSafeTime(primary.time),
-      haloClass: "bg-sky-300/55 shadow-[0_28px_65px_-38px_rgba(14,165,233,0.45)]",
+      haloClass:
+        "bg-sky-300/55 shadow-[0_28px_65px_-38px_rgba(14,165,233,0.45)]",
       chipClass: "border-sky-300 bg-sky-50 text-sky-700",
     };
   }
 
-  if (["seated", "installed", "occupied", "order_taken", "served", "dessert", "bill_requested"].includes(status)) {
+  if (
+    [
+      "seated",
+      "installed",
+      "occupied",
+      "order_taken",
+      "served",
+      "dessert",
+      "bill_requested",
+    ].includes(status)
+  ) {
     const minutesUntilRelease = getMinutesUntilEstimatedRelease(primary, now);
-    if (minutesUntilRelease !== null && minutesUntilRelease >= 0 && minutesUntilRelease <= 15) {
+    if (
+      minutesUntilRelease !== null &&
+      minutesUntilRelease >= 0 &&
+      minutesUntilRelease <= 15
+    ) {
       return {
         key: "soon-free",
         label: "Bientot libre",
         detail: `lib. ~${addMinutesToTime(primary.time, DEFAULT_OCCUPATION_MINUTES)}`,
-        haloClass: "bg-lime-300/55 shadow-[0_28px_65px_-38px_rgba(132,204,22,0.42)]",
+        haloClass:
+          "bg-lime-300/55 shadow-[0_28px_65px_-38px_rgba(132,204,22,0.42)]",
         chipClass: "border-lime-300 bg-lime-50 text-lime-800",
       };
     }
@@ -600,7 +721,8 @@ export function getTableServiceState({
       key: "occupied",
       label: "Occupee",
       detail: `lib. ~${addMinutesToTime(primary.time, DEFAULT_OCCUPATION_MINUTES)}`,
-      haloClass: "bg-orange-300/60 shadow-[0_28px_65px_-38px_rgba(249,115,22,0.42)]",
+      haloClass:
+        "bg-orange-300/60 shadow-[0_28px_65px_-38px_rgba(249,115,22,0.42)]",
       chipClass: "border-orange-300 bg-orange-50 text-orange-800",
     };
   }
@@ -610,20 +732,23 @@ export function getTableServiceState({
       key: "zero-attente",
       label: "Zéro Attente",
       detail: getSafeTime(primary.time),
-      haloClass: "bg-teal-300/55 shadow-[0_28px_65px_-38px_rgba(20,184,166,0.45)]",
+      haloClass:
+        "bg-teal-300/55 shadow-[0_28px_65px_-38px_rgba(20,184,166,0.45)]",
       chipClass: "border-teal-300 bg-teal-50 text-teal-700",
     };
   }
 
   const delayMinutes = isSameServiceDate(primary.date, now)
-    ? getDateMinutesFromDayStart(now) - getReservationMinutesFromDayStart(primary)
+    ? getDateMinutesFromDayStart(now) -
+      getReservationMinutesFromDayStart(primary)
     : 0;
   if (delayMinutes >= 15 && ["confirmed", "pending"].includes(status)) {
     return {
       key: "late",
       label: "Retard",
       detail: `${delayMinutes} min`,
-      haloClass: "bg-rose-300/55 shadow-[0_28px_65px_-38px_rgba(244,63,94,0.42)]",
+      haloClass:
+        "bg-rose-300/55 shadow-[0_28px_65px_-38px_rgba(244,63,94,0.42)]",
       chipClass: "border-rose-300 bg-rose-50 text-rose-700",
     };
   }
@@ -632,7 +757,8 @@ export function getTableServiceState({
     key: "upcoming",
     label: "Reservee",
     detail: getSafeTime(primary.time),
-    haloClass: "bg-amber-300/55 shadow-[0_28px_65px_-38px_rgba(245,158,11,0.4)]",
+    haloClass:
+      "bg-amber-300/55 shadow-[0_28px_65px_-38px_rgba(245,158,11,0.4)]",
     chipClass: "border-amber-300 bg-amber-50 text-amber-800",
   };
 }
