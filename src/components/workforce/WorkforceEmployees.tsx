@@ -1,15 +1,16 @@
 import { useState, type FormEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Mail, RefreshCw, UserPlus, UserRoundCheck, UserRoundX } from "lucide-react";
+import { Mail, Pencil, RefreshCw, UserPlus, UserRoundCheck, UserRoundX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
-  employeeName, workforceInvitationEmail, workforceInvitationNotice, workforceInvitationState,
+  dateIsValid, employeeName, workforceInvitationEmail, workforceInvitationNotice, workforceInvitationState, workforceZurichClock,
   type WorkforceEmployee, type WorkforceInvitationResult, type WorkforceInvitationState,
 } from "@/lib/tokWorkforce";
 import {
@@ -37,11 +38,47 @@ export default function WorkforceEmployees({ restaurantId }: { restaurantId: str
   const [email, setEmail] = useState("");
   const [hours, setHours] = useState("42");
   const [cost, setCost] = useState("0");
+  const [vacation, setVacation] = useState("20");
+  const [startDate, setStartDate] = useState(() => workforceZurichClock().date);
+  const [endDate, setEndDate] = useState("");
   const [role, setRole] = useState<"employee" | "manager">("employee");
   const [inviteOnCreate, setInviteOnCreate] = useState(false);
   const [invitationTarget, setInvitationTarget] = useState<{
     employee: WorkforceEmployee; mode: "invite" | "revoke"; returnFocus: HTMLButtonElement;
   } | null>(null);
+  const [editing, setEditing] = useState<WorkforceEmployee | null>(null);
+  const [draft, setDraft] = useState({ first_name: "", last_name: "", email: "", hours: "42", vacation: "20", cost: "0", role: "employee", start_date: "", end_date: "" });
+
+  const validateContract = (days: string, start: string, end: string) => {
+    if (!Number.isInteger(Number(days)) || Number(days) < 0 || Number(days) > 60) throw new Error("Le droit annuel doit être compris entre 0 et 60 jours entiers.");
+    if (!dateIsValid(start) || (end && !dateIsValid(end)) || (end && end < start)) throw new Error("Vérifiez les dates du contrat. La date de début est requise.");
+  };
+  const edit = useMutation({
+    mutationFn: async () => {
+      if (!editing || editing.restaurant_id !== restaurantId) throw new Error("Fiche indisponible. Actualisez l’équipe.");
+      if (!draft.first_name.trim() || !draft.last_name.trim() || draft.first_name.length > 100 || draft.last_name.length > 100) throw new Error("Renseignez un prénom et un nom valides.");
+      if (!Number.isFinite(+draft.hours) || +draft.hours < 0 || +draft.hours > 60 || !Number.isFinite(+draft.cost) || +draft.cost < 0 || +draft.cost > 10000) throw new Error("Vérifiez les heures contractuelles et le coût horaire.");
+      validateContract(draft.vacation, draft.start_date, draft.end_date);
+      if (!["employee", "manager"].includes(draft.role)) throw new Error("Fonction invalide.");
+      const emailValue = draft.email.trim() ? workforceInvitationEmail(draft.email) : null;
+      const patch = {
+        first_name: draft.first_name.trim(), last_name: draft.last_name.trim(), email: emailValue,
+        contracted_hours_per_week: +draft.hours, vacation_days_per_year: +draft.vacation,
+        hourly_cost_chf: +draft.cost, role: draft.role, started_on: draft.start_date, ended_on: draft.end_date || null,
+      };
+      let query = workforceDb().from("tok_workforce_employees").update(patch).eq("restaurant_id", restaurantId).eq("id", editing.id);
+      if (editing.updated_at) query = query.eq("updated_at", editing.updated_at);
+      const { data, error } = await query.select("id").single();
+      if (error) throw new Error("La fiche n’a pas été enregistrée. Elle a peut-être changé : actualisez l’équipe puis réessayez. " + error.message);
+      if (data?.id !== editing.id) throw new Error("La modification n’a pas pu être confirmée.");
+    },
+    onSuccess: () => { setEditing(null); void refresh(); toast({ title: "Fiche collaborateur modifiée" }); },
+  });
+  const openEditor = (employee: WorkforceEmployee) => {
+    edit.reset();
+    setDraft({ first_name: employee.first_name, last_name: employee.last_name, email: employee.email || "", hours: String(employee.contracted_hours_per_week), vacation: String(employee.vacation_days_per_year), cost: String(employee.hourly_cost_chf || 0), role: employee.role, start_date: employee.started_on || workforceZurichClock().date, end_date: employee.ended_on || "" });
+    setEditing(employee);
+  };
 
   const create = useMutation({
     mutationFn: async () => {
@@ -50,9 +87,11 @@ export default function WorkforceEmployees({ restaurantId }: { restaurantId: str
       if (!Number.isFinite(contracted) || contracted < 0 || contracted > 60) throw new Error("Heures contractuelles invalides.");
       const normalizedEmail = (email.trim() || inviteOnCreate) ? workforceInvitationEmail(email) : null;
       if (!Number.isFinite(Number(cost)) || Number(cost) < 0 || Number(cost) > 10000) throw new Error("Coût horaire invalide.");
+      validateContract(vacation, startDate, endDate);
       const { data, error } = await workforceDb().from("tok_workforce_employees").insert({
         restaurant_id: restaurantId, first_name: first.trim(), last_name: last.trim(),
         email: normalizedEmail, contracted_hours_per_week: contracted, hourly_cost_chf: Number(cost), role,
+        vacation_days_per_year: Number(vacation), started_on: startDate, ended_on: endDate || null,
       }).select("*").single();
       if (error) throw error;
       if (!data?.id) throw new Error("La création de la fiche n’a pas été confirmée.");
@@ -137,6 +176,7 @@ export default function WorkforceEmployees({ restaurantId }: { restaurantId: str
                 <div className="min-w-0">
                   <p className="break-words font-semibold">{employeeName(employee)}</p>
                   <p className="break-all text-xs text-muted-foreground">{employee.email || "Sans adresse e-mail"} · {employee.contracted_hours_per_week} h/semaine · {employee.hourly_cost_chf || 0} CHF/h</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{employee.vacation_days_per_year} jours de vacances/an{employee.started_on ? " · Depuis le " + employee.started_on : ""}{employee.ended_on ? " · Jusqu’au " + employee.ended_on : ""}</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <Badge variant={employee.is_active ? "secondary" : "outline"}>{employee.is_active ? (employee.role === "manager" ? "Responsable" : "Employé") : "Inactif"}</Badge>
                     <Badge variant={state === "failed" ? "destructive" : state === "linked" ? "secondary" : "outline"}>{label}</Badge>
@@ -149,6 +189,7 @@ export default function WorkforceEmployees({ restaurantId }: { restaurantId: str
                   {deliveryPending ? <p className="mt-2 text-xs text-muted-foreground">L’e-mail n’est pas encore confirmé comme envoyé. Le suivi s’actualise automatiquement.</p> : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" aria-label={"Modifier la fiche de " + employeeName(employee)} onClick={() => openEditor(employee)}><Pencil className="mr-2 h-4 w-4" aria-hidden="true" />Modifier</Button>
                   <Button size="sm" disabled={accessUnavailable || deliveryPending || create.isPending || invitations.isPending || invitations.isError}
                     aria-label={(invitation ? "Renvoyer l’invitation à " : "Inviter ") + employeeName(employee)}
                     onClick={event => setInvitationTarget({ employee, mode: "invite", returnFocus: event.currentTarget })}>
@@ -174,7 +215,6 @@ export default function WorkforceEmployees({ restaurantId }: { restaurantId: str
               </section>
             );
           })}
-          {employees.length >= 200 ? <p className="text-sm text-muted-foreground">Les 200 premières fiches sont affichées.</p> : null}
         </CardContent>
       </Card>
       <Card className="h-fit rounded-2xl border-primary/25">
@@ -193,6 +233,9 @@ export default function WorkforceEmployees({ restaurantId }: { restaurantId: str
                 </div>
               </div>
               <div><Label htmlFor="wf-hours">Heures contractuelles par semaine</Label><Input id="wf-hours" type="number" step="0.5" min="0" max="60" required value={hours} onChange={event => setHours(event.target.value)} /></div>
+              <div><Label htmlFor="wf-vacation">Vacances annuelles (jours)</Label><Input id="wf-vacation" type="number" min="0" max="60" step="1" required value={vacation} onChange={event => setVacation(event.target.value)} /></div>
+              <div><Label htmlFor="wf-start-date">Début du contrat</Label><Input id="wf-start-date" type="date" required value={startDate} onChange={event => setStartDate(event.target.value)} /></div>
+              <div><Label htmlFor="wf-end-date">Fin du contrat (facultatif)</Label><Input id="wf-end-date" type="date" min={startDate || undefined} value={endDate} onChange={event => setEndDate(event.target.value)} /></div>
               <div><Label htmlFor="wf-cost">Coût horaire indicatif (CHF/h)</Label><Input id="wf-cost" type="number" step="0.05" min="0" max="10000" required value={cost} onChange={event => setCost(event.target.value)} /></div>
               <div><Label htmlFor="wf-role">Fonction</Label><select id="wf-role" className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={role} onChange={event => setRole(event.target.value as "employee" | "manager")}>
                 <option value="employee">Employé</option><option value="manager">Responsable d’équipe</option>
@@ -209,6 +252,26 @@ export default function WorkforceEmployees({ restaurantId }: { restaurantId: str
           mode={invitationTarget.mode} returnFocus={invitationTarget.returnFocus} onClose={() => setInvitationTarget(null)}
         />
       ) : null}
+      {editing ? <Dialog open onOpenChange={open => { if (!open && !edit.isPending) setEditing(null); }}>
+        <DialogContent hideCloseButton={edit.isPending} className="sm:max-w-xl">
+          <DialogHeader><DialogTitle>Modifier {employeeName(editing)}</DialogTitle><DialogDescription>Identité, contrat et rôle dans cet établissement. L’enregistrement n’envoie aucune invitation.</DialogDescription></DialogHeader>
+          <form aria-label="Modifier le collaborateur" onSubmit={event => { event.preventDefault(); if (!edit.isPending) edit.mutate(); }}>
+            <fieldset disabled={edit.isPending} className="grid gap-3 sm:grid-cols-2">
+              <div><Label htmlFor="wf-edit-first">Prénom</Label><Input id="wf-edit-first" required maxLength={100} value={draft.first_name} onChange={e => setDraft({ ...draft, first_name: e.target.value })} /></div>
+              <div><Label htmlFor="wf-edit-last">Nom</Label><Input id="wf-edit-last" required maxLength={100} value={draft.last_name} onChange={e => setDraft({ ...draft, last_name: e.target.value })} /></div>
+              <div className="sm:col-span-2"><Label htmlFor="wf-edit-email">E-mail de contact</Label><Input id="wf-edit-email" type="email" maxLength={254} disabled={!!editing.user_id} value={draft.email} onChange={e => setDraft({ ...draft, email: e.target.value })} />{editing.user_id ? <p className="mt-1 text-xs text-muted-foreground">Cette adresse est liée au compte TOK du collaborateur.</p> : <p className="mt-1 text-xs text-muted-foreground">Après un changement d’adresse, utilisez « Inviter » pour envoyer une nouvelle invitation.</p>}</div>
+              <div><Label htmlFor="wf-edit-hours">Heures contractuelles par semaine</Label><Input id="wf-edit-hours" type="number" required min={0} max={60} step="0.5" value={draft.hours} onChange={e => setDraft({ ...draft, hours: e.target.value })} /></div>
+              <div><Label htmlFor="wf-edit-vacation">Vacances annuelles (jours)</Label><Input id="wf-edit-vacation" type="number" required min={0} max={60} step={1} value={draft.vacation} onChange={e => setDraft({ ...draft, vacation: e.target.value })} /></div>
+              <div><Label htmlFor="wf-edit-start">Début du contrat</Label><Input id="wf-edit-start" type="date" required value={draft.start_date} onChange={e => setDraft({ ...draft, start_date: e.target.value })} /></div>
+              <div><Label htmlFor="wf-edit-end">Fin du contrat</Label><Input id="wf-edit-end" type="date" min={draft.start_date || undefined} value={draft.end_date} onChange={e => setDraft({ ...draft, end_date: e.target.value })} /></div>
+              <div><Label htmlFor="wf-edit-cost">Coût horaire indicatif (CHF/h)</Label><Input id="wf-edit-cost" type="number" required min={0} max={10000} step="0.05" value={draft.cost} onChange={e => setDraft({ ...draft, cost: e.target.value })} /></div>
+              <div><Label htmlFor="wf-edit-role">Fonction</Label><select id="wf-edit-role" className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={draft.role} onChange={e => setDraft({ ...draft, role: e.target.value })}><option value="employee">Employé</option><option value="manager">Responsable d’équipe</option></select></div>
+            </fieldset>
+            {edit.error ? <p role="alert" className="my-3 text-sm text-destructive">{edit.error.message}</p> : null}
+            <DialogFooter className="mt-5"><Button type="button" variant="outline" disabled={edit.isPending} onClick={() => setEditing(null)}>Annuler</Button><Button type="submit" disabled={edit.isPending}>{edit.isPending ? "Enregistrement…" : "Enregistrer les modifications"}</Button></DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog> : null}
     </div>
   );
 }

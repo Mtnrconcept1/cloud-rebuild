@@ -13,7 +13,7 @@ export function getWorkforceContinuationTarget(rawTarget: string | null | undefi
   if (typeof rawTarget !== "string" || rawTarget.length > 200
     || Array.from(rawTarget).some((character) => character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127)
     || /[\\#]/.test(rawTarget)
-    || !rawTarget.startsWith(`${WORKFORCE_SELF_PATH}?`)) {
+    || (!rawTarget.startsWith(`${WORKFORCE_SELF_PATH}?`) && !rawTarget.startsWith(`${WORKFORCE_MANAGEMENT_PATH}?`))) {
     return null;
   }
 
@@ -24,7 +24,7 @@ export function getWorkforceContinuationTarget(rawTarget: string | null | undefi
     return null;
   }
 
-  return `${WORKFORCE_SELF_PATH}?${new URLSearchParams({ restaurant: entries[0][1].toLowerCase() })}`;
+  return `${url.pathname}?${new URLSearchParams({ restaurant: entries[0][1].toLowerCase() })}`;
 }
 
 /** Preserve the existing callback and signup operation; never forward arbitrary redirects. */

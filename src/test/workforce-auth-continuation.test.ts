@@ -18,6 +18,7 @@ describe("employee invitation authentication continuation", () => {
     expect(getWorkforceContinuationTarget(WORKFORCE_SELF_PATH)).toBe(WORKFORCE_SELF_PATH);
     expect(getWorkforceContinuationTarget("/equipe/gestion")).toBe("/equipe/gestion");
     expect(getWorkforceContinuationTarget(invitationTarget)).toBe(invitationTarget);
+    expect(getWorkforceContinuationTarget("/equipe/gestion?restaurant=" + restaurantId)).toBe("/equipe/gestion?restaurant=" + restaurantId);
     const upperId = "ABCDEFAB-1234-5678-9ABC-ABCDEF123456";
     expect(getWorkforceContinuationTarget(WORKFORCE_SELF_PATH + "?restaurant=" + upperId))
       .toBe(WORKFORCE_SELF_PATH + "?restaurant=" + upperId.toLowerCase());
@@ -25,7 +26,7 @@ describe("employee invitation authentication continuation", () => {
 
   it.each([
     null, undefined, "", "/dashboard", "/equipe", "/equipe/mon-espace/",
-    "/equipe/mon-espace/settings", "/equipe/gestion?restaurant=" + restaurantId,
+    "/equipe/mon-espace/settings", "/equipe/gestion?restaurant=invalid", "/equipe/gestion?restaurant=" + restaurantId + "&admin=1",
     "https://attacker.example" + invitationTarget,
     "https://www.thetok.ch" + invitationTarget,
     "//attacker.example" + invitationTarget,

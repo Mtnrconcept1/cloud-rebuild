@@ -1,5 +1,8 @@
 project_id = "wwcrtyoueexyxkkikaos"
 
+[functions.tok-workforce-assistant]
+verify_jwt = false
+
 # -----------------------------------------------------------------------------
 # Edge function auth policy.
 #

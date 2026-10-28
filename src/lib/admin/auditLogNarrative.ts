@@ -136,6 +136,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "analyze-restaurant-image": "l’analyse IA d’une image de restaurant",
   "floorplan-ai": "la génération IA d’un plan de salle",
   "restaurant-advisor": "les recommandations IA au restaurateur",
+  "tok-workforce-assistant": "les suggestions de planning et de répartition des services de TOK Équipe",
   "discover-thefork-official-sites": "la recherche des sites officiels des restaurants issus de TheFork",
   "enrich-thefork-images": "l’enrichissement des photos des restaurants issus de TheFork",
   "verify-directory-image-truth": "la vérification des photos de l’annuaire auprès de leurs sources officielles",
