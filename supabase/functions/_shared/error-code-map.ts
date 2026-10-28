@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 471 error codes mapped from supabase/functions/**.
+// 477 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -195,6 +195,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
       "line": 396
+    }
+  ],
+  "ai_response_unavailable": [
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 91
     }
   ],
   "ai_service_error": [
@@ -1609,6 +1615,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/restaurant-advisor/index.ts",
       "line": 146
+    },
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 49
     }
   ],
   "invalid_request_body": [
@@ -2493,6 +2503,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/daily-dish-ai/index.ts",
       "line": 1288
+    },
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 47
     }
   ],
   "reservation_cancellation_reconciliation_required": [
@@ -3549,6 +3563,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 1584
     },
     {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 45
+    },
+    {
       "file": "supabase/functions/_shared/auth.ts",
       "line": 246
     },
@@ -3579,10 +3597,6 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
       "line": 1353
-    },
-    {
-      "file": "supabase/functions/ai-restaurant-agent/index.ts",
-      "line": 192
     }
   ],
   "unexpected_reasoning_effort": [
@@ -3721,6 +3735,56 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
       "line": 207
+    }
+  ],
+  "workforce_access_denied": [
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 56
+    }
+  ],
+  "workforce_access_unavailable": [
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 55
+    }
+  ],
+  "workforce_context_changed": [
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 20
+    }
+  ],
+  "workforce_context_unavailable": [
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 17
+    },
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 28
+    },
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 63
+    }
+  ],
+  "workforce_period_too_large": [
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 19
+    },
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 25
+    },
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 34
+    },
+    {
+      "file": "supabase/functions/tok-workforce-assistant/index.ts",
+      "line": 76
     }
   ]
 };

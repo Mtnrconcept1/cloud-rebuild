@@ -3,7 +3,7 @@ import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { PropsWithChildren } from "react";
 import {
-  useWorkforceAbsences, useWorkforceEmployees, useWorkforceEntriesInRange, useWorkforceRequests, useWorkforceShifts,
+  fetchWorkforceRows, workforceQueryMatchesRestaurant, useWorkforceAbsences, useWorkforceEmployees, useWorkforceEntriesInRange, useWorkforceRequests, useWorkforceShifts,
 } from "@/hooks/useTokWorkforce";
 
 const mocks = vi.hoisted(() => ({ from: vi.fn(), filters: [] as { table: string; column: string; value: unknown }[], orders: [] as string[] }));
@@ -21,6 +21,7 @@ beforeEach(() => {
   mocks.orders = [];
   mocks.from.mockImplementation((table: string) => {
     const filters = new Map<string, unknown>();
+    let offset = 0;
     let limit = Infinity;
     const rows = Array.from({ length: 1001 }, (_, index) => ({
       id: "row-" + index, restaurant_id: "restaurant-1",
@@ -34,8 +35,10 @@ beforeEach(() => {
       lte: () => query,
       order: (column: string) => { mocks.orders.push(column); return query; },
       limit: (value: number) => { limit = value; return query; },
-      then: (resolve: (value: { data: typeof rows; error: null }) => unknown) =>
-        Promise.resolve({ data: rows.filter(row => [...filters].every(([key, value]) => row[key as keyof typeof row] === value)).slice(0, limit), error: null }).then(resolve),
+      range: (from: number, to: number) => { offset = from; limit = to - from + 1; return query; },
+      abortSignal: () => query,
+      then: (resolve: (value: { data: typeof rows; error: null; count: number }) => unknown) =>
+        Promise.resolve({ data: rows.filter(row => [...filters].every(([key, value]) => row[key as keyof typeof row] === value)).slice(offset, offset + limit), count: rows.filter(row => [...filters].every(([key, value]) => row[key as keyof typeof row] === value)).length, error: null }).then(resolve),
     };
     return query;
   });
@@ -78,8 +81,42 @@ describe("TOK Équipe — requêtes personnelles", () => {
   it("conserve la lecture de l’équipe et un ordre stable identique à celui des invitations", async () => {
     const { result } = renderHook(() => useWorkforceEmployees("restaurant-1", true), { wrapper: wrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toHaveLength(200);
-    expect(mocks.orders).toEqual(["last_name", "id"]);
+    expect(result.current.data).toHaveLength(1001);
+    expect(mocks.orders).toEqual(["last_name", "id", "last_name", "id", "last_name", "id"]);
     expect(mocks.filters.some(filter => filter.column === "employee_id")).toBe(false);
+  });
+});
+
+
+describe("TOK Équipe — données complètes et invalidation", () => {
+  it("refuse un total tronqué lorsque le plafond explicite est dépassé", async () => {
+    await expect(fetchWorkforceRows("restaurant-1", "tok_workforce_time_entries", {limit:500})).rejects.toThrow("trop de données");
+  });
+  it("refuse un total doublonné si une ligne change de position entre deux pages de même taille totale", async () => {
+    mocks.from.mockImplementation(() => {
+      const query = {
+        select: () => query,
+        eq: () => query,
+        order: () => query,
+        range: async (offset: number) => ({
+          data: offset === 0
+            ? Array.from({length:500}, (_, index) => ({id:"row-"+index}))
+            : [{id:"row-499"}],
+          count:501,
+          error:null,
+        }),
+      };
+      return query;
+    });
+    await expect(fetchWorkforceRows("restaurant-1", "tok_workforce_time_entries"))
+      .rejects.toThrow("Les données ont changé pendant le chargement");
+  });
+  it("actualise tous les parcours du restaurant sans toucher un autre établissement", () => {
+    expect(workforceQueryMatchesRestaurant(["tok-workforce","tok_workforce_shifts","restaurant-1"],"restaurant-1")).toBe(true);
+    expect(workforceQueryMatchesRestaurant(["workforce-self-exchanges","restaurant-1","employee-1"],"restaurant-1")).toBe(true);
+    expect(workforceQueryMatchesRestaurant(["workforce-clock-overview","restaurant-1"],"restaurant-1")).toBe(true);
+    expect(workforceQueryMatchesRestaurant(["tok-workforce","tok_workforce_shifts","restaurant-2"],"restaurant-1")).toBe(false);
+    expect(workforceQueryMatchesRestaurant(["workforce-self-exchanges","restaurant-2"],"restaurant-1")).toBe(false);
+    expect(workforceQueryMatchesRestaurant(["orders","restaurant-1"],"restaurant-1")).toBe(false);
   });
 });

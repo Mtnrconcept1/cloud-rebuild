@@ -20,23 +20,36 @@
 .tok-workforce-shift { border: 1px solid #f0d5be; border-radius: 9px; background: #ffecd9; padding: 9px; cursor: grab; }
 .tok-workforce-shift > strong { display: block; font-weight: 600; text-align: center; font-size: 12px; white-space: nowrap; }
 .tok-workforce-shift > small { text-align: center; }
+.tok-workforce-shift-notes { margin: 6px 0; font-size: 11px; overflow-wrap: anywhere; white-space: pre-wrap; }
 .tok-workforce-shift[data-status="confirmed"], .tok-workforce-shift[data-status="completed"] { border-color: #d9e3c8; background: #e8efdc; }
 .tok-workforce-shift[data-status="cancelled"] { border-color: #edc9c4; background: #fff0ee; }
 .tok-workforce-shift-status, .tok-workforce-shift-actions { display: flex; gap: 5px; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 10px; }
 .tok-workforce-shift-status button { color: #9d4214; text-decoration: underline; text-underline-offset: 3px; }
 .tok-workforce-shift-actions button:first-child { color: hsl(var(--muted-foreground)); text-decoration: underline; text-underline-offset: 3px; }
-.tok-workforce-shift button { min-height: 25px; }
+.tok-workforce-shift button { min-height: 32px; }
 .tok-workforce-shift button:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
 .tok-workforce-shift button:disabled { opacity: .5; }
 .tok-workforce-absence { margin: 0; border-radius: 8px; padding: 8px; text-align: center; background: #fff0ce; color: #8a6218; font-size: 11px; }
+.tok-workforce-absence[data-type="vacation"] { background: #e0ebff; color: #245393; }
+.tok-workforce-absence[data-type="sick"] { background: #ffedd7; color: #944c13; }
+.tok-workforce-absence[data-type="holiday"] { background: #e3efd9; color: #3d6628; }
+.tok-workforce-add-shift { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 36px; border-radius: 7px; border: 1px dashed hsl(var(--border)); color: hsl(var(--muted-foreground)); }
+.tok-workforce-add-shift:hover:not(:disabled) { color: hsl(var(--primary)); background: hsl(var(--primary) / .06); }
+.tok-workforce-add-shift:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.tok-workforce-add-shift:disabled { opacity: .4; cursor: not-allowed; }
 .tok-workforce-day-empty { display: block; padding: 12px 0; text-align: center; color: hsl(var(--muted-foreground)); }
 .dark .tok-workforce-shift { border-color: #6d4c33; background: #412c1e; }
 .dark .tok-workforce-shift[data-status="confirmed"], .dark .tok-workforce-shift[data-status="completed"] { border-color: #51623d; background: #2d3924; }
 .dark .tok-workforce-shift[data-status="cancelled"] { border-color: #71463e; background: #492922; }
 .dark .tok-workforce-shift-status button { color: #ffc29b; }
 .dark .tok-workforce-absence { background: #463619; color: #ffdd92; }
+.dark .tok-workforce-absence[data-type="vacation"] { background: #233551; color: #c0d7ff; }
+.dark .tok-workforce-absence[data-type="sick"] { background: #51351f; color: #ffce9f; }
+.dark .tok-workforce-absence[data-type="holiday"] { background: #2e4224; color: #ceecb8; }
 
 @media (max-width: 639px) {
   .tok-workforce-week th:first-child { width: 148px; }
   .tok-workforce-week { min-width: 1028px; }
+  .tok-workforce-shift button, .tok-workforce-add-shift { min-height: 44px; }
+  .tok-workforce-shift-actions button:last-child { min-width: 44px; }
 }

@@ -519,6 +519,9 @@ export async function assertLaunchRequestAllowed(actor: RequestActor, req: Reque
   // Only the routed function name, never an appended path, query, header or body.
   const endpoint = path.split("/").filter(Boolean)[0] || "";
   if (["submit-signup-application", "delete-account", "contact-support"].includes(endpoint)) return;
+  // Employee accounts may have only the global client role. This endpoint
+  // verifies an active workforce manager/owner scope before reading any data.
+  if (endpoint === "tok-workforce-assistant") return;
   if (actor.roles.includes("restaurateur") && [
     "create-checkout", "payment-attempt-status", "cancel-payment-attempt",
     "manage-restaurant-subscription", "ai-image-enhance", "analyze-restaurant-image",

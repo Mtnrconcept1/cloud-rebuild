@@ -412,4 +412,5 @@ SELECT pg_temp.assert_true(
  AND (SELECT count(*)=3 FROM public.email_queue),
  'duplicate recipient rejection rolls back personnel update and email');
 \ir tok_workforce_launch_smoke.sql
+\ir tok_workforce_integrity_smoke.sql
 SELECT 'TOK WORKFORCE POSTGRES SMOKE PASSED (including invitation delivery, claim, expiry, revocation and RLS)' AS result;
