@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7aa22617339d7d89cda907323ed1fa97275516481ff3e402d81dfbe5d9d0eeb3`
+- Empreinte SHA-256 des sources indexées : `2e30feb024f76c34b47d0a8bb1dff5709e26c51884aa3f33bed85621a3e65519`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,14 +45,14 @@
 | publicEntries | 746 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19442 |
-| repositoryFiles | 3753 |
+| records | 19444 |
+| repositoryFiles | 3754 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 33 |
+| workflows | 34 |
 
 ## État distant observé
 
@@ -1551,7 +1551,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /campaign-studio | 1 | [src/test/dashboard-design-preview-export.test.tsx:62](../../src/test/dashboard-design-preview-export.test.tsx#L62) |
 | /carte | 2 | [supabase/functions/enrich-directory-cuisines/index.ts:95](../../supabase/functions/enrich-directory-cuisines/index.ts#L95) |
 | /cgu | 22 | [scripts/prerender-seo.mjs:1226](../../scripts/prerender-seo.mjs#L1226) |
-| /chef2.png | 3 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
+| /chef2.png | 4 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
 | /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:672](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L672) |
 | /chefs-table | 27 | [scripts/prerender-seo.mjs:1049](../../scripts/prerender-seo.mjs#L1049) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
@@ -1992,7 +1992,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /inventory/partners/{partnerId}/merchants/{merchantId}/availability:replace | 1 | [supabase/functions/google-actions-center-sync/index.ts:52](../../supabase/functions/google-actions-center-sync/index.ts#L52) |
 | /launch | 1 | [src/components/launch/LaunchArtwork.tsx:51](../../src/components/launch/LaunchArtwork.tsx#L51) |
 | /logo.png | 1 | [src/test/workspace-layout-controls.test.tsx:23](../../src/test/workspace-layout-controls.test.tsx#L23) |
-| /logotok.png | 9 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
+| /logotok.png | 10 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
 | /logout?scope=local | 1 | [server/marketingBff.ts:823](../../server/marketingBff.ts#L823) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:30](../../src/hooks/useTokLogo.ts#L30) |
 | /marketing | 34 | [scripts/application-index-core.mjs:168](../../scripts/application-index-core.mjs#L168) |
@@ -6885,6 +6885,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
 | TOK Connect security regression | deno-edge-check, deno-transport, postgres-security | [.github/workflows/tok-connect-security.yml](../../.github/workflows/tok-connect-security.yml) |
+| Temporary TOK Email Index Synchronization PR 1010 | regenerate | [.github/workflows/tok-email-index-1010-temp.yml](../../.github/workflows/tok-email-index-1010-temp.yml) |
 | TOK Workforce PostgreSQL Integration | migration-and-tenant-isolation | [.github/workflows/tok-workforce-postgres.yml](../../.github/workflows/tok-workforce-postgres.yml) |
 
 ### Dépendances
@@ -7672,7 +7673,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (33)</summary>
+<details><summary>ci-workflow (34)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -7706,6 +7707,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
 - `.github/workflows/tok-connect-security.yml`
+- `.github/workflows/tok-email-index-1010-temp.yml`
 - `.github/workflows/tok-workforce-postgres.yml`
 
 </details>
