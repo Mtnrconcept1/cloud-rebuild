@@ -212,7 +212,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
 
   return (
     <div className="tok-workspace-shell tok-hospitality-workspace tok-client-shell min-h-screen bg-background" style={getTokHeroStyle(getCustomerDashboardVisual(pathname, search)?.hero)}>
-      <aside className="tok-workspace-sidebar tok-client-sidebar hidden shrink-0 md:flex">
+      <aside className="tok-dashboard-menu tok-workspace-sidebar tok-client-sidebar hidden shrink-0 md:flex">
         <div className="tok-workspace-brand">
           <Link to="/" aria-label="TOK — Accueil du site" className="tok-workspace-logo-link">
             <img src={logoSrc} alt="TOK" width={178} height={116} className="tok-workspace-logo" />
@@ -238,6 +238,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
               <summary>Changer d’espace <ChevronDown className="h-3.5 w-3.5" /></summary>
               <RoleSpaceMenuSection className="mb-3" />
             </details>
+            <ChefHelpButton surface="client" menuCard />
             <SignOutButton className="w-full justify-start rounded-xl px-3 py-2.5 text-sm font-medium" />
           </div>
         ) : null}
@@ -261,11 +262,16 @@ export default function CustomerDashboardLayout({ children }: { children: React.
         </WorkspaceToolbar>
         <CustomerMobileNavigation
           shortcuts={mobileItems.map((item) => renderItem(item, true))}
+          footer={!commercialDemoFrame ? (close) => <div className="tok-menu-footer">
+            <RoleSpaceMenuSection onNavigate={close} />
+            <ChefHelpButton surface="client" menuCard onOpen={close} />
+            <SignOutButton className="w-full justify-start" onSignedOut={close} />
+          </div> : undefined}
           currentPage={currentMobilePage && !mobileDestinations.includes(currentMobilePage.to) ? currentMobilePage.label : undefined}
         >
           {visibleSections.map((section) => (
-            <section key={section.label} className="mb-5 space-y-1">
-              <h2 className="px-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">{section.label}</h2>
+            <section key={section.label} className="tok-menu-section mb-5 space-y-1">
+              <h2 className="tok-menu-section-title">{section.label}</h2>
               {section.items.map((item) => renderItem(item))}
             </section>
           ))}

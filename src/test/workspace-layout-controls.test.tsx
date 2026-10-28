@@ -89,7 +89,7 @@ describe("customer workspace toolbar integration", () => {
     const cart = screen.getByRole("link", { name: "Mon panier, 2 articles" });
     expect(cart).toHaveAttribute("href", "/panier");
     expect(within(cart).getByText("2")).toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "Help ! Ouvrir le chat IA" }));
+    fireEvent.click(within(screen.getByRole("banner")).getByRole("button", { name: "Help ! Ouvrir le chat IA" }));
     expect(state.openHelpChat).toHaveBeenCalledExactlyOnceWith({ surface: "client" });
 
     state.itemCount = 1;
@@ -123,7 +123,7 @@ describe("restaurant workspace tool access integration", () => {
     const panel = screen.getByTestId("restaurant-mobile-menu-panel");
     expect(panel).toBeVisible();
     expect(within(panel).getByRole("heading", { name: "Menu principal" })).toBeVisible();
-    expect(within(panel).getAllByText("La Table d’Octobre")).toHaveLength(2);
+    expect(within(panel).getAllByText("La Table d’Octobre")).toHaveLength(1);
     expect(within(panel).getByRole("navigation", { name: "Navigation mobile de l’espace restaurateur" })).toBeVisible();
     expect(within(panel).getByRole("link", { name: "Vue d'ensemble" })).toHaveAttribute("aria-current", "page");
     expect(within(panel).getByRole("button", { name: "Help ! Ouvrir le chat IA" })).toBeVisible();

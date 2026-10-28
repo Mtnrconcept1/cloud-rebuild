@@ -1,13 +1,15 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
+import DashboardMenuHeader from "./DashboardMenuHeader";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-export default function CustomerMobileNavigation({ shortcuts, children, currentPage }: {
+export default function CustomerMobileNavigation({ shortcuts, children, currentPage, footer }: {
   shortcuts: ReactNode;
   children: ReactNode;
   currentPage?: string;
+  footer?: ReactNode | ((close: () => void) => ReactNode);
 }) {
   const [open, setOpen] = useState(false);
   const { pathname, search } = useLocation();
@@ -15,22 +17,19 @@ export default function CustomerMobileNavigation({ shortcuts, children, currentP
 
   return (
     <nav aria-label="Navigation mobile de l’espace client" className="tok-client-mobile-nav px-3 pt-3 md:hidden">
-      <div className="grid grid-cols-5 gap-1">
+      <div className="grid grid-cols-4 gap-1">
         {shortcuts}
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button type="button" variant="ghost" className="flex h-auto min-h-16 min-w-0 flex-col gap-1 rounded-2xl px-1 py-2 text-[11px]" aria-label="Tous les services de mon espace">
+            <Button type="button" variant="ghost" className="tok-menu-hamburger" aria-label="Ouvrir le menu client" data-testid="customer-mobile-menu-trigger">
               <Menu className="h-5 w-5" aria-hidden="true" />Menu
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[min(90vw,360px)] overflow-y-auto pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]">
-            <SheetHeader className="mb-5 text-left">
-              <SheetTitle>Mon espace</SheetTitle>
-              <SheetDescription>Retrouvez votre activité, vos avantages et tous les services TOK.</SheetDescription>
-            </SheetHeader>
-            <div onClick={(event) => {
+          <SheetContent side="left" className="tok-dashboard-menu tok-mobile-dashboard-menu" data-testid="customer-mobile-menu-panel">
+            <DashboardMenuHeader space="Espace client" description="Retrouvez votre activité, vos avantages et tous les services TOK." />
+            <div data-sheet-scroll-area className="tok-menu-scroll" onClick={(event) => {
               if ((event.target as HTMLElement).closest("a")) setOpen(false);
-            }}>{children}</div>
+            }}><nav aria-label="Tous les services de l’espace client">{children}</nav>{typeof footer === "function" ? footer(() => setOpen(false)) : footer}</div>
           </SheetContent>
         </Sheet>
       </div>

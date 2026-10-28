@@ -1,3 +1,4 @@
+import DashboardMenuHeader from "@/components/dashboard/DashboardMenuHeader";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -33,7 +34,7 @@ import ChefHelpButton from "@/components/help/ChefHelpButton";
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import SignOutButton from "@/components/auth/SignOutButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
@@ -170,8 +171,8 @@ function AdminNavItems({
   return (
     <>
       {sections.map((section) => (
-        <div key={section.title}>
-          <p className="px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground dark:text-slate-400">
+        <div key={section.title} className="tok-menu-section">
+          <p className="tok-menu-section-title">
             {section.title}
           </p>
           {section.items.map((item) => {
@@ -182,7 +183,7 @@ function AdminNavItems({
                 to={item.to}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
+                  "tok-workspace-nav-link flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
                   isActive
                     ? "bg-primary/10 text-primary shadow-sm dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] shadow-sm"
                     : "hover:bg-muted dark:text-slate-200 dark:hover:bg-[#102044]/72",
@@ -353,19 +354,11 @@ export default function AdminMobileNavigation() {
             </span>
           </Button>
         </SheetTrigger>
-        <SheetContent className="flex h-[100dvh] flex-col overflow-hidden p-0 dark:border-border dark:bg-card">
-          <SheetHeader className="border-b px-6 pb-4 pr-14 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
-            <SheetTitle>Administration</SheetTitle>
-            <SheetDescription>
-              Navigation rapide vers les onglets du back-office TOK.
-            </SheetDescription>
-          </SheetHeader>
+        <SheetContent side="left" className="tok-dashboard-menu tok-mobile-dashboard-menu">
+          <DashboardMenuHeader space="Espace administration" description="Navigation des outils du back-office TOK." />
           <div data-sheet-scroll-area className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-4">
             <div className="mb-4">
               <RoleSpaceMenuSection onNavigate={() => setMobileMenuOpen(false)} />
-            </div>
-            <div className="mb-4">
-              <ChefHelpButton surface="admin" onOpen={() => setMobileMenuOpen(false)} />
             </div>
             <nav className="flex flex-col gap-1 pb-4">
               <AdminNavItems
@@ -376,7 +369,8 @@ export default function AdminMobileNavigation() {
                 pendingSignupApplicationsCount={pendingSignupApplicationsCount}
                 openSupportIncidentCount={openSupportIncidentCount}
               />
-              <div className="mt-3 border-t pt-3">
+              <div className="tok-menu-footer mt-3 border-t pt-3">
+                <ChefHelpButton menuCard surface="admin" onOpen={() => setMobileMenuOpen(false)} />
                 <SignOutButton
                   onSignedOut={() => setMobileMenuOpen(false)}
                   className="w-full justify-start rounded-xl px-3"

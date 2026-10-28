@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import { openHelpChat, type HelpChatSurface } from "@/lib/helpChat";
 import { cn } from "@/lib/utils";
 
@@ -5,6 +6,7 @@ type ChefHelpButtonProps = {
   surface: HelpChatSurface;
   collapsed?: boolean;
   compact?: boolean;
+  menuCard?: boolean;
   className?: string;
   onOpen?: () => void;
 };
@@ -13,6 +15,7 @@ export default function ChefHelpButton({
   surface,
   collapsed = false,
   compact = false,
+  menuCard = false,
   className,
   onOpen,
 }: ChefHelpButtonProps) {
@@ -29,6 +32,7 @@ export default function ChefHelpButton({
       className={cn(
         "group relative flex items-center justify-center overflow-visible bg-transparent text-left transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60",
         compact || collapsed ? "h-16 w-16 rounded-full p-0.5" : "min-h-[7.5rem] w-full rounded-[1.45rem] py-2 sm:min-h-[8.5rem]",
+        menuCard && "tok-menu-help",
         className,
       )}
     >
@@ -42,6 +46,10 @@ export default function ChefHelpButton({
           compact || collapsed ? "h-full max-h-20 w-full max-w-20" : "h-28 w-28 sm:h-32 sm:w-32",
         )}
       />
+      {menuCard && !compact && !collapsed ? <>
+        <span className="tok-menu-help-copy"><strong>Besoin d’aide ?</strong><span>Contacter l’assistance</span></span>
+        <ChevronRight className="tok-menu-help-arrow" aria-hidden="true" />
+      </> : null}
     </button>
   );
 }
