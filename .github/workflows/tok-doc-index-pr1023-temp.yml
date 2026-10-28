@@ -1,0 +1,73 @@
+# TEMPORAIRE : ce fichier se supprime lui-même dans le commit généré.
+# Objectif : exécuter le générateur canonique sans toucher aux protections CI.
+name: TOK Doc Index Regeneration PR 1023
+on:
+  push:
+    branches:
+      - docs/agents-tok-operating-standard-20261028
+permissions:
+  contents: write
+concurrency:
+  group: tok-doc-index-pr1023
+  cancel-in-progress: false
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branche dédiée
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Guard exact branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "Mtnrconcept1/cloud-rebuild"
+          test "$GITHUB_REF" = "refs/heads/docs/agents-tok-operating-standard-20261028"
+      - name: Node 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - name: Activer pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - name: Installer les dépendances sans modifier lockfile
+        run: pnpm install --frozen-lockfile
+      - name: Retirer ce workflow temporaire de l'index git
+        run: git rm -- .github/workflows/tok-doc-index-pr1023-temp.yml
+      - name: Générer les trois sorties canoniques
+        run: |
+          pnpm run docs:application-index
+          pnpm run docs:application-index:check
+      - name: Vérifier les fichiers générés et le diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          mapfile -t actual < <(git diff --cached --name-only)
+          expected=(
+            .github/workflows/tok-doc-index-pr1023-temp.yml
+            docs/architecture/TOK_APPLICATION_REFERENCE.md
+            docs/architecture/tok-application-search-index.json
+            src/data/tok-user-guide-catalog.generated.ts
+          )
+          printf 'Diff: %s\n' "${actual[@]}"
+          if [[ "${#actual[@]}" -ne "${#expected[@]}" ]]; then
+            echo "::error::Le diff n'a pas exactement les quatre chemins attendus"
+            exit 1
+          fi
+          for i in "${!expected[@]}"; do
+            if [[ "${actual[i]}" != "${expected[i]}" ]]; then
+              echo "::error::Chemin inattendu: ${actual[i]}"
+              exit 1
+            fi
+          done
+      - name: Commit sur la branche uniquement
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(index): synchroniser les index canoniques avec AGENTS.md"
+          git push origin HEAD:refs/heads/docs/agents-tok-operating-standard-20261028
