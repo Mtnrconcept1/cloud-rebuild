@@ -78,7 +78,6 @@ REGLES CRITIQUES COMPTAGE (priorite absolue):
 type FloorplanAction = "generate" | "optimize" | "suggest-furniture" | "custom" | "image-import";
 
 type ReservationRow = { party_size: number | null };
-type ExistingOperationRow = { response: Record<string, unknown> | null };
 
 type ImagePayload = {
   dataUrl: string;
@@ -1295,7 +1294,6 @@ Deno.serve(async (req) => {
         action,
         restaurantId,
         requestId,
-        rid: log.rid,
         hasImage: Boolean(image),
         canvasWidth,
         canvasHeight,

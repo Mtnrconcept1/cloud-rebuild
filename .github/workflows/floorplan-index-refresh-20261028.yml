@@ -1,0 +1,36 @@
+name: Temporary floorplan application-index refresh
+on:
+  push:
+    branches:
+      - fix/floorplan-contain-ai-auth-20261028
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+          persist-credentials: true
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Remove temporary workflow BEFORE calculating index digest
+        run: |
+          rm .github/workflows/floorplan-index-refresh-20261028.yml
+          git add -u .github/workflows/floorplan-index-refresh-20261028.yml
+      - run: pnpm run docs:application-index
+      - run: pnpm run docs:application-index:check
+      - name: Commit generated index and self-removal
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'chore(floorplan): refresh canonical application index'
+          git push origin HEAD:fix/floorplan-contain-ai-auth-20261028
