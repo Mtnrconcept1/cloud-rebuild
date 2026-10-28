@@ -1,3 +1,4 @@
+import DashboardMenuHeader from "@/components/dashboard/DashboardMenuHeader";
 import "@/components/dashboard/WorkspaceDesign.css";
 import "@/components/dashboard/RestaurantWorkspacePages.css";
 import { useJourneyFocus } from "@/hooks/useJourneyFocus";
@@ -41,7 +42,7 @@ import {
   Clock3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   canAccessRestaurantDashboardRoute,
@@ -181,7 +182,7 @@ function RestaurantSelector({ collapsed = false }: { collapsed?: boolean }) {
         <Store className="h-4 w-4 text-primary" />
         {!collapsed && (
           <>
-            <span className="ml-2 flex-1 text-left truncate">{selected?.name}</span>
+            <span className="tok-menu-establishment ml-2 min-w-0 flex-1 text-left"><span>Établissement</span><strong>{selected?.name || "Choisir un restaurant"}</strong></span>
             <ChevronDown className={cn("h-4 w-4", open && "rotate-180")} />
           </>
         )}
@@ -418,7 +419,7 @@ export default function DashboardLayout({
         ref={sidebarRef}
         data-collapsed={collapsed}
         className={cn(
-          "tok-workspace-sidebar tok-dashboard-sidebar hidden overflow-y-auto overscroll-contain border-r bg-sidebar transition-all md:sticky md:top-0 md:flex md:h-[100dvh] md:shrink-0 md:self-start md:flex-col",
+          "tok-dashboard-menu tok-workspace-sidebar tok-dashboard-sidebar hidden overflow-y-auto overscroll-contain border-r bg-sidebar transition-all md:sticky md:top-0 md:flex md:h-[100dvh] md:shrink-0 md:self-start md:flex-col",
           collapsed ? "w-[80px]" : "w-72"
         )}
       >
@@ -456,7 +457,7 @@ export default function DashboardLayout({
 
         {!commercialDemoFrame ? (
           <div className="tok-workspace-sidebar-footer mt-auto border-t px-3 py-3 dark:border-[#5f7aad]/28">
-            <ChefHelpButton surface="restaurant" collapsed={collapsed} />
+            <ChefHelpButton surface="restaurant" menuCard collapsed={collapsed} />
             <SignOutButton
               iconOnly={collapsed}
               className={cn(
@@ -514,25 +515,9 @@ export default function DashboardLayout({
           <SheetContent
             side="left"
             data-testid="restaurant-mobile-menu-panel"
-            className="tok-mobile-dashboard-menu flex h-[100dvh] w-[min(23rem,calc(100vw-0.75rem))] flex-col overflow-hidden border-r p-0 dark:border-border dark:bg-card"
+            className="tok-dashboard-menu tok-mobile-dashboard-menu flex h-[100dvh] w-[min(23rem,calc(100vw-0.75rem))] flex-col overflow-hidden border-r p-0 dark:border-border dark:bg-card"
           >
-            <SheetHeader className="tok-mobile-menu-header border-b px-5 pb-4 pr-16 pt-[calc(env(safe-area-inset-top,0px)+1rem)] text-left">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="tok-mobile-menu-brandmark" aria-hidden="true">
-                  <img src={logoSrc} alt="" width={58} height={44} />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Espace restaurateur</span>
-                  <SheetTitle className="mt-1 truncate pr-0 text-xl">Menu principal</SheetTitle>
-                </span>
-              </div>
-              <SheetDescription className="tok-mobile-menu-context mt-3 flex min-w-0 items-center gap-2">
-                <Store className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                <span className="truncate font-semibold text-foreground">{selectedRestaurantName}</span>
-                <span aria-hidden="true">·</span>
-                <span className="truncate">{activeNavItem?.label ?? "Vue d’ensemble"}</span>
-              </SheetDescription>
-            </SheetHeader>
+            <DashboardMenuHeader space="Espace restaurateur" description={`Navigation du restaurant ${selectedRestaurantName}.`} />
             <div data-sheet-scroll-area className="tok-mobile-menu-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pb-4 pt-4">
               <RestaurantSelector />
               <nav aria-label="Navigation mobile de l’espace restaurateur" className="tok-mobile-navigation flex flex-col gap-1 pb-4">
@@ -551,16 +536,16 @@ export default function DashboardLayout({
                   <RoleSpaceMenuSection onNavigate={() => setMobileMenuOpen(false)} />
                 </div>
               ) : null}
+              {!commercialDemoFrame ? (
+                <div className="tok-mobile-menu-footer border-t px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-3">
+                  <ChefHelpButton surface="restaurant" menuCard onOpen={() => setMobileMenuOpen(false)} />
+                  <SignOutButton
+                    onSignedOut={() => setMobileMenuOpen(false)}
+                    className="w-full justify-start rounded-xl px-3"
+                  />
+                </div>
+              ) : null}
             </div>
-            {!commercialDemoFrame ? (
-              <div className="tok-mobile-menu-footer border-t px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-3">
-                <ChefHelpButton surface="restaurant" onOpen={() => setMobileMenuOpen(false)} />
-                <SignOutButton
-                  onSignedOut={() => setMobileMenuOpen(false)}
-                  className="w-full justify-start rounded-xl px-3"
-                />
-              </div>
-            ) : null}
           </SheetContent>
         </Sheet>
       </div>

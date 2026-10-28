@@ -1,3 +1,4 @@
+import DashboardMenuHeader from "@/components/dashboard/DashboardMenuHeader";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Bell, Bike, Coins, LayoutDashboard, LogOut, Menu, UserRound } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -15,7 +16,7 @@ import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useRealtimeNotifications, type RealtimeNotification } from "@/hooks/useRealtimeNotifications";
 import { useAuth } from "@/lib/auth-context";
@@ -64,22 +65,7 @@ function CourierNavContent({
 }: CourierNavContentProps) {
   return (
     <>
-      <div className="px-3 py-2">
-        <p className="text-xs font-bold uppercase tracking-[0.24em] text-primary">Operations</p>
-        <h2 className="font-display text-lg font-semibold">Espace Livreur</h2>
-      </div>
-
-      {!isCommercialDemoFrame ? (
-        <>
-          <div className="px-1 pb-2">
-            <ChefHelpButton surface="courier" onOpen={onNavigate} />
-          </div>
-
-          <div className="px-1 pb-2">
-            <RoleSpaceMenuSection onNavigate={onNavigate} />
-          </div>
-        </>
-      ) : null}
+      <p className="tok-menu-section-title">Pilotage</p>
 
       {visibleNavItems.map((item) => (
         <Link
@@ -88,7 +74,7 @@ function CourierNavContent({
           aria-current={pathname === item.to ? "page" : undefined}
           onClick={onNavigate}
           className={cn(
-            "flex items-center gap-3 min-h-11 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+            "tok-workspace-nav-link flex items-center gap-3 min-h-11 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
             pathname === item.to
               ? "bg-primary text-primary-foreground shadow-sm"
               : "text-foreground hover:bg-muted",
@@ -101,8 +87,11 @@ function CourierNavContent({
       ))}
 
       {!isCommercialDemoFrame ? (
-        <div className="mt-3 border-t pt-3">
+        <div className="tok-menu-footer mt-3 border-t pt-3">
+          <RoleSpaceMenuSection onNavigate={onNavigate} />
+          <ChefHelpButton surface="courier" menuCard onOpen={onNavigate} />
           <button
+            aria-label="Déconnexion"
             onClick={onSignOut}
             className="flex w-full items-center gap-3 min-h-11 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
           >
@@ -219,7 +208,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
 
       <div className="container flex flex-col gap-6 px-3 py-6 pb-28 sm:px-4 sm:py-8 sm:pb-28 md:flex-row md:gap-8 md:pb-8">
         <aside className="hidden w-full shrink-0 md:block md:w-72">
-          <div className="tok-workspace-sidebar sticky top-24 flex flex-col gap-2 rounded-2xl border bg-card p-4">
+          <div className="tok-dashboard-menu tok-workspace-sidebar sticky top-24 flex flex-col gap-2 rounded-2xl border bg-card p-4">
             <CourierNavContent
               pathname={pathname}
               visibleNavItems={visibleNavItems}
@@ -278,14 +267,9 @@ export default function CourierDashboardLayout({ children }: { children: React.R
               </span>
             </Button>
           </SheetTrigger>
-          <SheetContent className="flex h-[100dvh] flex-col overflow-hidden p-0 dark:border-border dark:bg-card">
-            <SheetHeader className="border-b px-6 pb-4 pr-14 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
-              <SheetTitle>Espace Livreur</SheetTitle>
-              <SheetDescription>
-                Navigation rapide vers les missions, les gains et le profil coursier.
-              </SheetDescription>
-            </SheetHeader>
-            <div data-sheet-scroll-area className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-4">
+          <SheetContent side="left" className="tok-dashboard-menu tok-mobile-dashboard-menu">
+            <DashboardMenuHeader space="Espace livreur" description="Navigation vers les missions, les gains et le profil coursier." />
+          <div data-sheet-scroll-area className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-4">
               <nav className="flex flex-col gap-1 pb-4">
                 <CourierNavContent
                   pathname={pathname}
