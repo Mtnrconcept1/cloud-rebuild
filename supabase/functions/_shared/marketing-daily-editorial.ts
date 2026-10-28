@@ -1,4 +1,14 @@
-import { TOK_MARKETING_BRAND_VERSION, TOK_MARKETING_REFERENCES } from "./marketing-brand.ts";
+import {
+  TOK_MARKETING_BRAND_VERSION,
+  TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT,
+  TOK_MARKETING_REFERENCES,
+} from "./marketing-brand.ts";
+
+/** The daily format is fixed at 1024 × 1280 px (see readDailyJpegDimensions). */
+const DAILY_IMAGE_WIDTH = 1024;
+const DAILY_IMAGE_HEIGHT = 1280;
+/** Restaurateur landing page; publication adds the UTM parameters to this link. */
+export const DAILY_CAPTION_URL = "https://www.thetok.ch/restaurateurs/geneve";
 
 const DAY_MS = 86_400_000;
 const EDITORIAL_EPOCH = Date.parse("2026-10-19T00:00:00.000Z");
@@ -207,16 +217,20 @@ export function buildDailyMarketingBrief(localDate: string, recentTitles: string
   }, preferredTitle);
   const title = subject.titles[titleIndex];
   const sceneIndex = modulo(dayIndex, SCENE_VARIATIONS.length);
+  const safeX = Math.ceil(DAILY_IMAGE_WIDTH * TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT / 100);
+  const safeY = Math.ceil(DAILY_IMAGE_HEIGHT * TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT / 100);
   const caption = [
     title,
     subject.captions[modulo(subjectRound, subject.captions.length)],
-    "Restaurateurs à Genève : découvrez TOK sur thetok.ch.",
+    `Restaurateurs à Genève : découvrez TOK sur ${DAILY_CAPTION_URL}`,
     `#TOK #RestaurateursGeneve #Geneve #RestaurantGeneve ${subject.hashtag}`,
     // No third-party @ mention: these posts feature TOK capabilities, not a
     // verified restaurant or partner. Never invent affiliation for distribution.
   ].join("\n\n");
   const visualPrompt = [
     `Publication Instagram quotidienne TOK du ${localDate}. Audience : restaurateurs francophones. Format 4:5.`,
+    // Models copy the corner placement of the references; concrete pixels are followed more reliably than percentages.
+    `Pour cette image de ${DAILY_IMAGE_WIDTH} × ${DAILY_IMAGE_HEIGHT} px : logo principal, titre et pied thetok.ch entièrement dans le rectangle x ${safeX}–${DAILY_IMAGE_WIDTH - safeX} px, y ${safeY}–${DAILY_IMAGE_HEIGHT - safeY} px. Ne pas reprendre la position du logo dans le coin des références si elle sort de ce rectangle.`,
     `Sujet : ${subject.label}. Un seul bénéfice, exprimé par le titre exact suivant : ${JSON.stringify(title)}.`,
     "Textes autorisés : le titre exact, TOK et la bulle Miamz! dans le logo, thetok.ch discret en pied. Ne générer aucun autre texte. La légende reste hors de l'image.",
     `Famille visuelle imposée : ${family.id} — ${family.direction}`,

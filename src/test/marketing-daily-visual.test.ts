@@ -6,7 +6,12 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { TOK_MARKETING_REFERENCES } from "../../supabase/functions/_shared/marketing-brand";
 import { TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT, TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT } from "../../supabase/functions/_shared/marketing-brand";
 import { buildDailyMarketingBrief } from "../../supabase/functions/_shared/marketing-daily-editorial";
-import { DAILY_VISUAL_CHECKS, readDailyJpegDimensions } from "../../supabase/functions/_shared/marketing-visual-quality";
+import {
+  DAILY_VISUAL_CHECKS,
+  dailyMarginsAreSafe,
+  measureDailyMargins,
+  readDailyJpegDimensions,
+} from "../../supabase/functions/_shared/marketing-visual-quality";
 
 const brief = buildDailyMarketingBrief("2026-10-19");
 const runId = "33333333-3333-4333-8333-333333333333";
@@ -21,7 +26,8 @@ beforeAll(() => {
 });
 
 type Mode = "created" | "recovered" | "missing400" | "storage500" | "multiple" | "grid" | "typo" | "square" | "review500" | "incomplete" | "malformed" | "missing-master" | "changed-master"
-  | "margins" | "recovered-margins" | "contrast" | "missing-margins" | "nonboolean-margins";
+  | "margins" | "recovered-margins" | "contrast" | "missing-margins" | "fractional-box" | "footer-null" | "footer-edge"
+  | "model-margins" | "image-quota" | "image-rate" | "review-quota";
 function mockNetwork(mode: Mode = "created") {
   Object.defineProperty(Blob.prototype, "arrayBuffer", { configurable: true, writable: true, value: function (this: Blob) {
     return new Promise<ArrayBuffer>((resolve, reject) => {
@@ -47,12 +53,15 @@ function mockNetwork(mode: Mode = "created") {
       return new Response(readFileSync(resolve(process.cwd(), `public${reference.path}`)));
     }
     if (url === "https://api.openai.com/v1/images/edits") {
+      if (mode === "image-quota") return Response.json({ error: { code: "insufficient_quota", message: "private" } }, { status: 429 });
+      if (mode === "image-rate") return Response.json({ error: { code: "rate_limit_exceeded", message: "private" } }, { status: 429 });
       const form = request?.body as FormData;
       expect(form.get("n")).toBe("1");
       expect(form.get("size")).toBe("1024x1280");
       expect(form.getAll("image[]")).toHaveLength(TOK_MARKETING_REFERENCES.length);
       expect(form.get("prompt")).toContain(brief.expectedTitle);
       expect(form.get("prompt")).toContain(`à au moins ${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} % de chacun des quatre bords`);
+      expect(form.get("prompt")).toContain("dans le rectangle x 123–901 px, y 154–1126 px");
       const encoded = mode === "square"
         ? jpeg.encode({ width: 100, height: 100, data: Buffer.alloc(100 * 100 * 4, 255) }, 10).data
         : imageBytes;
@@ -61,13 +70,25 @@ function mockNetwork(mode: Mode = "created") {
     }
     expect(url).toBe("https://api.openai.com/v1/responses");
     if (mode === "review500") return new Response("provider details must stay private", { status: 503 });
-    const checks: Record<string, unknown> = Object.fromEntries(DAILY_VISUAL_CHECKS.map((key) => [key, true]));
+    if (mode === "review-quota") return Response.json({ error: { type: "insufficient_quota" } }, { status: 429 });
+    const checks: Record<string, unknown> = Object.fromEntries(DAILY_VISUAL_CHECKS
+      .filter((key) => key !== "safe_margins").map((key) => [key, true]));
     if (mode === "grid") checks.single_visual = false;
-    if (mode === "margins" || mode === "recovered-margins") checks.safe_margins = false;
     if (mode === "contrast") checks.text_legible = false;
-    if (mode === "missing-margins") delete checks.safe_margins;
-    if (mode === "nonboolean-margins") checks.safe_margins = "true";
-    const text = mode === "malformed" ? "not JSON" : JSON.stringify({ checks,
+    if (mode === "model-margins") checks.safe_margins = true;
+    // Measured in pixels of the 1024 x 1280 image; the code applies the 6 % rule.
+    const layout: Record<string, unknown> = {
+      logo: { left: 140, top: 170, right: 360, bottom: 390 },
+      title: { left: 140, top: 420, right: 880, bottom: 640 },
+      footer: { left: 440, top: 1080, right: 600, bottom: 1110 },
+    };
+    // The validated 20 October post: logo 45 px from the left and top edges.
+    if (mode === "margins" || mode === "recovered-margins") layout.logo = { left: 45, top: 45, right: 280, bottom: 280 };
+    if (mode === "missing-margins") delete layout.title;
+    if (mode === "fractional-box") layout.logo = { left: 140.5, top: 170, right: 360, bottom: 390 };
+    if (mode === "footer-null") layout.footer = null;
+    if (mode === "footer-edge") layout.footer = { left: 440, top: 1230, right: 600, bottom: 1262 };
+    const text = mode === "malformed" ? "not JSON" : JSON.stringify({ checks, layout,
       observed_title: mode === "typo" ? "Vos reservation. Bien organisées." : brief.expectedTitle.replace(". ", ".\n"),
       reason: "Composition unique et titre conforme aux références TOK." });
     return Response.json({ status: mode === "incomplete" ? "incomplete" : "completed",
@@ -96,15 +117,21 @@ describe("daily native image and pixel review", () => {
     expect(images).toHaveLength(TOK_MARKETING_REFERENCES.length + 1);
     expect(images.at(-1).image_url).toBe(`data:image/jpeg;base64,${Buffer.from(imageBytes).toString("base64")}`);
     const instructions = review.input[1].content.find((item: { type: string }) => item.type === "input_text").text;
-    expect(instructions).toContain(`marge d'au moins ${TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT} %`);
-    const marginRule = instructions.split("\n").find((line: string) => line.startsWith("safe_margins ="));
+    expect(instructions).toContain(`La marge minimale de ${TOK_MARKETING_REVIEW_SAFE_MARGIN_PERCENT} %`);
+    const marginRule = instructions.split("\n").find((line: string) => line.startsWith("layout ="));
     expect(marginRule).not.toContain(`${TOK_MARKETING_GENERATION_SAFE_MARGIN_PERCENT} %`);
     expect(marginRule).not.toContain("contraste");
+    expect(marginRule).toContain("de cette image de 1024 × 1280 px");
     expect(marginRule).toContain("62 px à gauche et à droite");
     expect(marginRule).toContain("77 px en haut et en bas");
-    expect(marginRule).toContain("le titre et le pied thetok.ch");
+    expect(marginRule).toContain("footer = pied thetok.ch, ou null s'il est absent");
     expect(marginRule).toContain("son liseré et sa bulle Miamz!");
-    expect(marginRule).toContain("Les fonds, photographies, arches et filets décoratifs peuvent atteindre les bords");
+    expect(marginRule).toContain("vérifiée par le code à partir de ces boîtes");
+    expect(marginRule).toContain("Les fonds, photographies, arches et filets décoratifs ne sont pas mesurés");
+    expect(review.text.format.schema.required).toEqual(["checks", "layout", "observed_title", "reason"]);
+    expect(review.text.format.schema.properties.checks.required).not.toContain("safe_margins");
+    expect(result.quality.checks.safe_margins).toBe(true);
+    expect(result.quality.margins).toEqual({ left: 140, top: 170, right: 144, bottom: 170 });
     expect(instructions).toContain("text_legible = lisible à taille de téléphone, bon contraste, aucun mot corrompu");
     // The reviewer must permit the exact brand elements requested from generation,
     // while still transcribing only the headline for the strict title comparison.
@@ -133,7 +160,10 @@ describe("daily native image and pixel review", () => {
     ["missing-master", "marketing_image_response_invalid"], ["changed-master", "marketing_brand_reference_changed"],
     ["margins", "marketing_daily_quality_safe_margins"], ["recovered-margins", "marketing_daily_quality_safe_margins"],
     ["contrast", "marketing_daily_quality_text_legible"], ["missing-margins", "marketing_daily_review_invalid"],
-    ["nonboolean-margins", "marketing_daily_quality_safe_margins"],
+    ["fractional-box", "marketing_daily_review_invalid"], ["footer-edge", "marketing_daily_quality_safe_margins"],
+    ["model-margins", "marketing_daily_review_invalid"],
+    ["image-quota", "marketing_daily_image_quota_exhausted"], ["image-rate", "marketing_daily_image_rate_limited"],
+    ["review-quota", "marketing_daily_review_quota_exhausted"],
   ] as const)("rejects %s without uploading or silently accepting a fallback", async (mode, error) => {
     const fetcher = mockNetwork(mode);
     const upload = vi.fn();
@@ -148,6 +178,26 @@ describe("daily native image and pixel review", () => {
       expect(fetcher.mock.calls.filter(([url]) => url.endsWith("/images/edits"))).toHaveLength(1);
       expect(fetcher.mock.calls.filter(([url]) => url.endsWith("/responses"))).toHaveLength(1);
     }
+  });
+
+  it("accepts a post without the optional thetok.ch footer when the logo and title keep their margins", async () => {
+    mockNetwork("footer-null");
+    const client = { storage: { from: () => ({ upload: vi.fn().mockResolvedValue({ error: null }), getPublicUrl: () => ({ data: { publicUrl: imageUrl } }) }) } };
+    const { generateDailyMarketingVisual } = await import("../../supabase/functions/_shared/marketing-daily-visual");
+    expect(await generateDailyMarketingVisual(client, options)).toMatchObject({ source: "created",
+      quality: { checks: { safe_margins: true }, margins: { left: 140, top: 170, right: 144, bottom: 640 } } });
+  });
+
+  it("applies the 6 % rule to the measured boxes, exactly at the 62 px and 77 px limits", () => {
+    const dimensions = { width: 1024, height: 1280 };
+    const margins = measureDailyMargins([
+      { left: 62, top: 77, right: 300, bottom: 300 },
+      { left: 100, top: 400, right: 962, bottom: 1203 },
+    ], dimensions);
+    expect(margins).toEqual({ left: 62, top: 77, right: 62, bottom: 77 });
+    expect(dailyMarginsAreSafe(margins, dimensions)).toBe(true);
+    expect(dailyMarginsAreSafe({ ...margins, left: 61 }, dimensions)).toBe(false);
+    expect(dailyMarginsAreSafe({ ...margins, bottom: 76 }, dimensions)).toBe(false);
   });
 
   it("recognizes Supabase's explicit missing-key response, without treating other storage errors as absence", async () => {

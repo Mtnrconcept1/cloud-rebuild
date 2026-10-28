@@ -1,7 +1,12 @@
 import { decodeBoundedImageBase64, readBoundedImageBody } from "./ai-image-response.ts";
 import type { DailyMarketingBrief } from "./marketing-daily-editorial.ts";
 import { buildTokMarketingImageForm, loadTokMarketingReferences } from "./marketing-visual.ts";
-import { DAILY_IMAGE_MAX_BYTES, inspectTokDailyImage, type DailyImageQuality } from "./marketing-visual-quality.ts";
+import {
+  DAILY_IMAGE_MAX_BYTES,
+  dailyProviderFailureCode,
+  inspectTokDailyImage,
+  type DailyImageQuality,
+} from "./marketing-visual-quality.ts";
 
 export type DailyVisualStorageClient = {
   storage: { from: (bucket: string) => {
@@ -41,10 +46,7 @@ async function requestDailyImage(brief: DailyMarketingBrief, apiKey: string, tim
     const response = await fetch("https://api.openai.com/v1/images/edits", {
       method: "POST", headers: { Authorization: `Bearer ${apiKey}` }, body, signal: controller.signal,
     });
-    if (!response.ok) {
-      void response.body?.cancel().catch(() => {});
-      throw new Error(`marketing_daily_image_http_${response.status}`);
-    }
+    if (!response.ok) throw new Error(await dailyProviderFailureCode(response, "marketing_daily_image", timeoutMs));
     const bytes = await readBoundedImageBody(response, 12_000_000, timeoutMs);
     let payload: { data?: Array<{ b64_json?: unknown }> };
     try { payload = JSON.parse(new TextDecoder().decode(bytes)); } catch { throw new Error("marketing_daily_image_invalid"); }
