@@ -1,102 +1,286 @@
-export type FloorPlanAssetId =
-  | "chair"
-  | "stool"
-  | "banquette-end"
-  | "banquette-straight"
-  | "corner-bench"
-  | "divider-open"
-  | "divider-hedge"
-  | "plant"
-  | "round-table-angled"
-  | "round-table-top"
-  | "rect-table-top"
-  | "bar-top"
-  | "host-stand"
-  | "service-station"
-  | "planter-banquette";
+import type {
+  FloorPlanItemKind,
+  FloorPlanTableFinish,
+  FloorPlanTableShape,
+  FloorPlanVisualVariant,
+} from "@/lib/floorPlan";
 
-type FloorPlanAsset = {
+/** Real transparent assets from the approved TOK floor-plan pack.
+ * Visible bounds are measured at alpha >= 128. The full image is retained so
+ * normalizing the furniture never crops its soft shadows or translucent glass.
+ * See public/floor-plan/manifest.json for source hashes and conversion settings.
+ */
+export type FloorPlanAssetBounds = readonly [
+  left: number,
+  top: number,
+  right: number,
+  bottom: number,
+];
+
+export type FloorPlanAsset = {
   src: string;
   width: number;
   height: number;
+  visibleBounds: FloorPlanAssetBounds;
 };
 
-const buildAssetPath = (filename: string) => encodeURI(`/plan salle/${filename}`);
-
-export const FLOOR_PLAN_ASSETS: Record<FloorPlanAssetId, FloorPlanAsset> = {
-  chair: {
-    src: buildAssetPath("plan-de-salle_0000_Calque-1.png"),
-    width: 151,
-    height: 194,
-  },
-  stool: {
-    src: buildAssetPath("generated-stool.png"),
-    width: 220,
-    height: 220,
-  },
-  "banquette-end": {
-    src: buildAssetPath("plan-de-salle_0002_Calque-15.png"),
-    width: 58,
-    height: 179,
-  },
-  "planter-banquette": {
-    src: buildAssetPath("plan-de-salle_0003_Calque-3.png"),
-    width: 269,
-    height: 272,
-  },
-  plant: {
-    src: buildAssetPath("plan-de-salle_0004_Calque-4.png"),
-    width: 162,
-    height: 169,
-  },
-  "divider-open": {
-    src: buildAssetPath("plan-de-salle_0005_Calque-5.png"),
-    width: 141,
-    height: 246,
-  },
-  "divider-hedge": {
-    src: buildAssetPath("plan-de-salle_0006_Calque-6.png"),
-    width: 137,
-    height: 250,
-  },
-  "round-table-angled": {
-    src: buildAssetPath("plan-de-salle_0008_Calque-8.png"),
-    width: 136,
-    height: 165,
-  },
-  "corner-bench": {
-    src: buildAssetPath("plan-de-salle_0009_Calque-10.png"),
-    width: 162,
-    height: 135,
-  },
-  "banquette-straight": {
-    src: buildAssetPath("plan-de-salle_0010_Calque-11.png"),
-    width: 71,
-    height: 112,
-  },
-  "bar-top": {
-    src: buildAssetPath("plan-de-salle_0012_Supprimer-les-modifications-de-l\u2019outil.png"),
-    width: 369,
-    height: 91,
-  },
-  "host-stand": {
-    src: buildAssetPath("generated-host-stand.png"),
-    width: 240,
-    height: 240,
-  },
-  "service-station": {
-    src: buildAssetPath("generated-service-station.png"),
-    width: 320,
-    height: 220,
+const assets = {
+  "round-table-duo": {
+    src: "/floor-plan/01_table-ronde-duo.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [91, 88, 675, 663],
   },
   "round-table-top": {
-    src: buildAssetPath("plan-de-salle_0013_Calque-14.png"),
-    width: 149,
-    height: 149,
+    src: "/floor-plan/02_table-ronde-quatre.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [83, 81, 686, 688],
+  },
+  "square-table-top": {
+    src: "/floor-plan/03_table-carree.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [133, 145, 636, 623],
   },
   "rect-table-top": {
-    src: buildAssetPath("plan-de-salle_0014_Calque-12.png"),
-    width: 164,
-    height: 176,
+    src: "/floor-plan/04_table-rectangulaire.webp",
+    width: 768,
+    height: 384,
+    visibleBounds: [64, 80, 704, 302],
   },
+  "high-table-top": {
+    src: "/floor-plan/05_table-haute-ronde.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [77, 74, 689, 686],
+  },
+  chair: {
+    src: "/floor-plan/06_chaise-sable.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [115, 130, 652, 623],
+  },
+  stool: {
+    src: "/floor-plan/07_tabouret-sauge.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [158, 152, 609, 610],
+  },
+  "banquette-straight": {
+    src: "/floor-plan/08_banquette-droite-sauge.webp",
+    width: 768,
+    height: 384,
+    visibleBounds: [76, 82, 692, 307],
+  },
+  "corner-bench": {
+    src: "/floor-plan/09_banquette-angle-sauge.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [91, 108, 695, 681],
+  },
+  "service-station": {
+    src: "/floor-plan/10_console-service-bois.webp",
+    width: 768,
+    height: 384,
+    visibleBounds: [104, 120, 664, 264],
+  },
+  wall: {
+    src: "/floor-plan/11_mur-droit.webp",
+    width: 768,
+    height: 384,
+    visibleBounds: [52, 158, 716, 226],
+  },
+  "wall-corner": {
+    src: "/floor-plan/12_mur-angle.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [83, 83, 685, 685],
+  },
+  door: {
+    src: "/floor-plan/13_porte-ouverte.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [138, 141, 638, 650],
+  },
+  window: {
+    src: "/floor-plan/14_fenetre-module.webp",
+    width: 768,
+    height: 256,
+    visibleBounds: [54, 103, 715, 151],
+  },
+  "divider-open": {
+    src: "/floor-plan/15_cloison-vitree.webp",
+    width: 768,
+    height: 278,
+    visibleBounds: [52, 115, 717, 169],
+  },
+  plant: {
+    src: "/floor-plan/16_plante-grande.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [65, 25, 728, 705],
+  },
+  "table-plant": {
+    src: "/floor-plan/17_plante-table.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [193, 171, 590, 585],
+  },
+  planter: {
+    src: "/floor-plan/18_jardiniere-rectangulaire.webp",
+    width: 768,
+    height: 279,
+    visibleBounds: [81, 31, 686, 220],
+  },
+  parasol: {
+    src: "/floor-plan/19_parasol-terrasse.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [38, 47, 730, 726],
+  },
+  "cake-table": {
+    src: "/floor-plan/20_presentoir-gateau.webp",
+    width: 768,
+    height: 768,
+    visibleBounds: [112, 109, 655, 654],
+  },
+  buffet: {
+    src: "/floor-plan/21_buffet-reception.webp",
+    width: 768,
+    height: 320,
+    visibleBounds: [91, 63, 677, 248],
+  },
+  "bar-top": {
+    src: "/floor-plan/22_comptoir-mobile.webp",
+    width: 768,
+    height: 384,
+    visibleBounds: [83, 99, 686, 282],
+  },
+} satisfies Record<string, FloorPlanAsset>;
+
+// Keep the existing semantic IDs for saved furniture and external consumers.
+export const FLOOR_PLAN_ASSETS = {
+  ...assets,
+  "banquette-end": assets["banquette-straight"],
+  "divider-hedge": assets.planter,
+  "round-table-angled": assets["round-table-top"],
+  "host-stand": assets["bar-top"],
+  "planter-banquette": assets.planter,
 };
+
+export type FloorPlanAssetId = keyof typeof FLOOR_PLAN_ASSETS;
+
+const TABLETOP_ASSETS: ReadonlySet<FloorPlanAssetId> = new Set([
+  "round-table-duo",
+  "round-table-top",
+  "round-table-angled",
+  "square-table-top",
+  "rect-table-top",
+  "high-table-top",
+]);
+
+/** Render-only finishes: keep the source grain and alpha, never tint furniture. */
+export function getFloorPlanTableFinishFilter(
+  assetId: FloorPlanAssetId,
+  finish?: FloorPlanTableFinish,
+) {
+  if (!TABLETOP_ASSETS.has(assetId)) return undefined;
+  if (finish === "natural") return "saturate(0.55) brightness(1.06)";
+  if (finish === "walnut")
+    return "sepia(0.2) saturate(0.72) brightness(0.62) contrast(1.08)";
+  return undefined;
+}
+
+export function getFloorPlanAssetAspectRatio(assetId: FloorPlanAssetId) {
+  const [left, top, right, bottom] = FLOOR_PLAN_ASSETS[assetId].visibleBounds;
+  return (right - left) / (bottom - top);
+}
+
+export type FloorPlanAssetRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+export type FloorPlanAssetFit = "contain" | "stretch";
+
+/**
+ * Size and center the visible furniture, rather than the transparent PNG canvas.
+ * Returning the full bitmap rectangle keeps every shadow pixel outside the body.
+ */
+export function getFloorPlanAssetRect(
+  asset: FloorPlanAsset,
+  target: FloorPlanAssetRect,
+  fit: FloorPlanAssetFit = "contain",
+): FloorPlanAssetRect {
+  const [left, top, right, bottom] = asset.visibleBounds;
+  const visibleWidth = right - left;
+  const visibleHeight = bottom - top;
+  const containScale = Math.min(
+    target.width / visibleWidth,
+    target.height / visibleHeight,
+  );
+  const scaleX = fit === "stretch" ? target.width / visibleWidth : containScale;
+  const scaleY =
+    fit === "stretch" ? target.height / visibleHeight : containScale;
+
+  return {
+    x: target.x + (target.width - visibleWidth * scaleX) / 2 - left * scaleX,
+    y: target.y + (target.height - visibleHeight * scaleY) / 2 - top * scaleY,
+    width: asset.width * scaleX,
+    height: asset.height * scaleY,
+  };
+}
+
+const VARIANT_ASSETS: Record<FloorPlanVisualVariant, FloorPlanAssetId> = {
+  wall: "wall",
+  "wall-corner": "wall-corner",
+  door: "door",
+  window: "window",
+  "table-plant": "table-plant",
+  planter: "planter",
+  parasol: "parasol",
+  "high-table": "high-table-top",
+};
+
+export function getFloorPlanItemAssetId({
+  kind,
+  shape,
+  capacity,
+  visualVariant,
+  tableWidth,
+  tableHeight,
+}: {
+  kind: FloorPlanItemKind;
+  shape?: FloorPlanTableShape;
+  capacity?: number;
+  visualVariant?: FloorPlanVisualVariant;
+  tableWidth?: number;
+  tableHeight?: number;
+}): FloorPlanAssetId | null {
+  if (visualVariant) return VARIANT_ASSETS[visualVariant];
+  if (kind === "table") {
+    if (shape === "round")
+      return capacity && capacity <= 2 ? "round-table-duo" : "round-table-top";
+    const ratio = tableWidth && tableHeight ? tableWidth / tableHeight : 1;
+    return ratio >= 0.75 && ratio <= 1.33
+      ? "square-table-top"
+      : "rect-table-top";
+  }
+  const assetByKind: Partial<Record<FloorPlanItemKind, FloorPlanAssetId>> = {
+    chair: "chair",
+    stool: "stool",
+    bar: "bar-top",
+    "corner-bench": "corner-bench",
+    banquette: "banquette-straight",
+    "host-stand": "host-stand",
+    divider: "divider-open",
+    plant: "plant",
+    "service-station": "service-station",
+    sofa: "banquette-straight",
+    buffet: "buffet",
+    "cake-table": "cake-table",
+  };
+  return assetByKind[kind] ?? null;
+}

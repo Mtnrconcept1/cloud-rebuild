@@ -1,8 +1,36 @@
-import { createRef } from "react";
+import { createRef, type ComponentProps } from "react";
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import StudioCanvas from "@/components/floor-plan/StudioCanvas";
+
+function canvasProps(
+  overrides: Partial<ComponentProps<typeof StudioCanvas>> = {},
+): ComponentProps<typeof StudioCanvas> {
+  return {
+    selectedSector: "Salle",
+    canvasWidth: 1040,
+    canvasHeight: 760,
+    canvasZoom: 1,
+    canvasZoomLabel: "100%",
+    canvasRef: createRef<HTMLDivElement>(),
+    canvasViewportRef: createRef<HTMLDivElement>(),
+    visibleTables: [],
+    selectedTableId: null,
+    draggingTableId: null,
+    onTablePress: vi.fn(),
+    onCanvasBackgroundPress: vi.fn(),
+    onStartDraggingTable: vi.fn(),
+    onStartResizingTable: vi.fn(),
+    onStartRotatingTable: vi.fn(),
+    onUpdateCanvasZoom: vi.fn(),
+    onCanvasViewportResize: vi.fn(),
+    onNudgeTable: vi.fn(),
+    onDeleteTable: vi.fn(),
+    getRenderedFrame: () => ({ x: 80, y: 90, w: 84, h: 84 }),
+    ...overrides,
+  };
+}
 
 describe("StudioCanvas", () => {
   it("renders a full-size responsive work canvas for the floor plan editor", () => {
@@ -26,6 +54,7 @@ describe("StudioCanvas", () => {
         onStartResizingTable={vi.fn()}
         onStartRotatingTable={vi.fn()}
         onUpdateCanvasZoom={vi.fn()}
+        onCanvasViewportResize={vi.fn()}
         getRenderedFrame={() => ({ x: 80, y: 90, w: 84, h: 84 })}
       />,
     );
@@ -40,11 +69,11 @@ describe("StudioCanvas", () => {
     });
   });
 
-  it("keeps zoom-out as a decrement and recentering does not reset the zoom", () => {
+  it("reduces zoom with its named control and fits the room again when recentering", () => {
     const onUpdateCanvasZoom = vi.fn();
     const canvasRef = createRef<HTMLDivElement>();
     const canvasViewportRef = createRef<HTMLDivElement>();
-    const { getByText, container } = render(
+    const { getByRole } = render(
       <StudioCanvas
         selectedSector="Salle"
         canvasWidth={1040}
@@ -62,19 +91,22 @@ describe("StudioCanvas", () => {
         onStartResizingTable={vi.fn()}
         onStartRotatingTable={vi.fn()}
         onUpdateCanvasZoom={onUpdateCanvasZoom}
+        onCanvasViewportResize={vi.fn()}
         getRenderedFrame={() => ({ x: 80, y: 90, w: 84, h: 84 })}
       />,
     );
 
-    const zoomOutButton = container.querySelector(".rounded-2xl button");
+    const zoomOutButton = getByRole("button", { name: "Réduire le zoom" });
     expect(zoomOutButton).not.toBeNull();
 
     fireEvent.click(zoomOutButton as Element);
     expect(onUpdateCanvasZoom).toHaveBeenCalledWith(0.58);
 
     onUpdateCanvasZoom.mockClear();
-    fireEvent.click(getByText("Recentrer"));
-    expect(onUpdateCanvasZoom).not.toHaveBeenCalled();
+    fireEvent.click(
+      getByRole("button", { name: "Recentrer et ajuster le plan" }),
+    );
+    expect(onUpdateCanvasZoom).toHaveBeenCalledWith(1);
   });
 
   it("starts dragging furniture from the whole object surface", () => {
@@ -117,15 +149,22 @@ describe("StudioCanvas", () => {
         onStartResizingTable={vi.fn()}
         onStartRotatingTable={vi.fn()}
         onUpdateCanvasZoom={vi.fn()}
+        onCanvasViewportResize={vi.fn()}
         getRenderedFrame={() => ({ x: 80, y: 90, w: 84, h: 84 })}
       />,
     );
     const furnitureSurface = container.querySelector('[style*="cursor: grab"]');
 
     expect(furnitureSurface).not.toBeNull();
-    fireEvent.pointerDown(furnitureSurface as Element, { clientX: 90, clientY: 100 });
+    fireEvent.pointerDown(furnitureSurface as Element, {
+      clientX: 90,
+      clientY: 100,
+    });
 
-    expect(onStartDraggingTable).toHaveBeenCalledWith(expect.anything(), "plant");
+    expect(onStartDraggingTable).toHaveBeenCalledWith(
+      expect.anything(),
+      "plant",
+    );
   });
 
   it("starts dragging reservable tables from the whole object surface", () => {
@@ -168,13 +207,17 @@ describe("StudioCanvas", () => {
         onStartResizingTable={vi.fn()}
         onStartRotatingTable={vi.fn()}
         onUpdateCanvasZoom={vi.fn()}
+        onCanvasViewportResize={vi.fn()}
         getRenderedFrame={() => ({ x: 80, y: 90, w: 176, h: 112 })}
       />,
     );
     const tableSurface = container.querySelector('[style*="cursor: grab"]');
 
     expect(tableSurface).not.toBeNull();
-    fireEvent.pointerDown(tableSurface as Element, { clientX: 96, clientY: 104 });
+    fireEvent.pointerDown(tableSurface as Element, {
+      clientX: 96,
+      clientY: 104,
+    });
 
     expect(onStartDraggingTable).toHaveBeenCalledWith(expect.anything(), "t1");
   });
@@ -218,12 +261,21 @@ describe("StudioCanvas", () => {
         onStartResizingTable={vi.fn()}
         onStartRotatingTable={vi.fn()}
         onUpdateCanvasZoom={vi.fn()}
+        onCanvasViewportResize={vi.fn()}
         getRenderedFrame={() => ({ x: 80, y: 90, w: 8, h: 6 })}
       />,
     );
 
-    expect(container.querySelector('[style*="left: 66px"][style*="width: 36px"][style*="height: 36px"]')).not.toBeNull();
-    expect(container.querySelector('[style*="left: 14px"][style*="width: 8px"][style*="height: 6px"]')).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[style*="left: 66px"][style*="width: 36px"][style*="height: 36px"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[style*="left: 14px"][style*="width: 8px"][style*="height: 6px"]',
+      ),
+    ).not.toBeNull();
   });
 
   it("nudges and deletes the selected object from the keyboard", () => {
@@ -269,6 +321,7 @@ describe("StudioCanvas", () => {
         onUpdateCanvasZoom={vi.fn()}
         onNudgeTable={onNudgeTable}
         onDeleteTable={onDeleteTable}
+        onCanvasViewportResize={vi.fn()}
         getRenderedFrame={() => ({ x: 80, y: 90, w: 8, h: 6 })}
       />,
     );
@@ -281,5 +334,94 @@ describe("StudioCanvas", () => {
     expect(onNudgeTable).toHaveBeenNthCalledWith(1, "plant", 1, 0);
     expect(onNudgeTable).toHaveBeenNthCalledWith(2, "plant", 0, -10);
     expect(onDeleteTable).toHaveBeenCalledWith("plant");
+  });
+
+  it("keeps a locked object selectable while suppressing dragging, resizing, rotation and keyboard edits", () => {
+    const props = canvasProps({
+      selectedTableId: "plant",
+      visibleTables: [
+        {
+          id: "plant",
+          table_number: "Plante",
+          capacity: 0,
+          is_active: true,
+          sector: "Salle",
+          layout: {
+            x: 80,
+            y: 90,
+            w: 84,
+            h: 84,
+            rotation: 0,
+            shape: "round",
+            kind: "plant",
+            seatLabels: [],
+            locked: true,
+          },
+        },
+      ],
+    });
+    const { getByRole, queryByRole } = render(<StudioCanvas {...props} />);
+    const object = getByRole("button", {
+      name: "Sélectionner Plante, verrouillé",
+    });
+
+    fireEvent.click(object);
+    fireEvent.keyDown(object, { key: "Enter" });
+    fireEvent.pointerDown(object, { clientX: 90, clientY: 100 });
+    fireEvent.keyDown(object, { key: "ArrowRight" });
+    fireEvent.keyDown(object, { key: "Delete" });
+
+    expect(props.onTablePress).toHaveBeenCalledTimes(2);
+    expect(props.onTablePress).toHaveBeenLastCalledWith("plant");
+    expect(props.onStartDraggingTable).not.toHaveBeenCalled();
+    expect(props.onStartResizingTable).not.toHaveBeenCalled();
+    expect(props.onStartRotatingTable).not.toHaveBeenCalled();
+    expect(props.onNudgeTable).not.toHaveBeenCalled();
+    expect(props.onDeleteTable).not.toHaveBeenCalled();
+    expect(queryByRole("button", { name: /Redimensionner Plante/ })).toBeNull();
+    expect(queryByRole("button", { name: "Tourner Plante" })).toBeNull();
+  });
+
+  it("applies the grid display and magnetism settings independently", () => {
+    const props = canvasProps({
+      showGrid: false,
+      snapToGrid: false,
+      onShowGridChange: vi.fn(),
+      onSnapToGridChange: vi.fn(),
+    });
+    const { container, getByRole, rerender } = render(
+      <StudioCanvas {...props} />,
+    );
+    const stage = container.querySelector('[data-floor-plan-canvas="stage"]');
+    expect(stage?.querySelector('[style*="background-image"]')).toBeNull();
+    expect(getByRole("button", { name: "Grille" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(getByRole("button", { name: "Magnétisme" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+
+    fireEvent.click(getByRole("button", { name: "Grille" }));
+    expect(props.onShowGridChange).toHaveBeenCalledWith(true);
+    expect(props.onSnapToGridChange).not.toHaveBeenCalled();
+    fireEvent.click(getByRole("button", { name: "Magnétisme" }));
+    expect(props.onSnapToGridChange).toHaveBeenCalledWith(true);
+
+    rerender(<StudioCanvas {...props} showGrid snapToGrid />);
+    expect(stage?.querySelector('[style*="background-image"]')).not.toBeNull();
+    expect(getByRole("button", { name: "Grille" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(getByRole("button", { name: "Magnétisme" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    fireEvent.click(getByRole("button", { name: "Grille" }));
+    fireEvent.click(getByRole("button", { name: "Magnétisme" }));
+    expect(props.onShowGridChange).toHaveBeenLastCalledWith(false);
+    expect(props.onSnapToGridChange).toHaveBeenLastCalledWith(false);
   });
 });

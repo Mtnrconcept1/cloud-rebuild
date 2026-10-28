@@ -1,7 +1,19 @@
-import { CalendarClock, CreditCard, Receipt, Star, Table2, UserRound } from "lucide-react";
+import {
+  CalendarClock,
+  CreditCard,
+  Receipt,
+  Star,
+  Table2,
+  UserRound,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 import { FLOOR_PLAN_TONE_CLASS } from "./floorPlanTones";
@@ -23,6 +34,7 @@ import {
   type ServiceReservation,
   getReservationCustomerLabel,
   getReservationStatusTone,
+  getReservationStatusLabel,
   getSafeTime,
   getShortDateLabel,
   isZeroAttenteReservation,
@@ -59,7 +71,10 @@ type TableContextDrawerProps = {
   selectedReservationPreorderItems: ReservationPreorderItem[];
   selectedReservationSpecialRequest: string | null;
   selectedPairDropState: ReservationDropState | null;
-  compatibleTables: Array<{ table: ServiceDraftTable; placement: ReservationPlacementScore }>;
+  compatibleTables: Array<{
+    table: ServiceDraftTable;
+    placement: ReservationPlacementScore;
+  }>;
   compatibleReservations: ServiceReservation[];
   onOpenChange: (open: boolean) => void;
   onClearSelection: () => void;
@@ -96,7 +111,10 @@ function getPreorderTotal(items: ReservationPreorderItem[]) {
   let hasTotal = false;
 
   for (const item of items) {
-    if (typeof item.totalPrice === "number" && Number.isFinite(item.totalPrice)) {
+    if (
+      typeof item.totalPrice === "number" &&
+      Number.isFinite(item.totalPrice)
+    ) {
       total += item.totalPrice;
       hasTotal = true;
     }
@@ -121,15 +139,22 @@ function CompactSection({
   children: ReactNode;
 }) {
   return (
-    <AccordionItem value={value} className="overflow-hidden rounded-[22px] border border-border bg-card px-4 shadow-sm">
+    <AccordionItem
+      value={value}
+      className="overflow-hidden rounded-xl border border-stone-200/80 bg-white px-4 dark:border-border dark:bg-card"
+    >
       <AccordionTrigger className="py-3 text-left outline-none hover:no-underline focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0">
         <div className="flex min-w-0 flex-1 items-center gap-3 pr-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-muted text-foreground">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-stone-50 text-stone-600 dark:bg-muted dark:text-foreground">
             {icon}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-foreground">{title}</p>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
+            <p className="truncate text-sm font-semibold text-foreground">
+              {title}
+            </p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {subtitle}
+            </p>
           </div>
           <span className="max-w-[42vw] truncate text-right text-xs font-semibold text-foreground sm:max-w-[220px]">
             {summary}
@@ -167,59 +192,80 @@ export default function TableContextDrawer({
   onSetPreferredTable,
   preferredTablePending = false,
 }: TableContextDrawerProps) {
-  const title = selectedReservation && selectedTable
-    ? `${selectedTable.table_number} · ${getReservationCustomerLabel(selectedReservation)}`
-    : selectedTable
-      ? `Table ${selectedTable.table_number}`
-      : selectedReservation
-        ? getReservationCustomerLabel(selectedReservation)
-        : "Contexte service";
+  const title =
+    selectedReservation && selectedTable
+      ? `${selectedTable.table_number} · ${getReservationCustomerLabel(selectedReservation)}`
+      : selectedTable
+        ? `Table ${selectedTable.table_number}`
+        : selectedReservation
+          ? getReservationCustomerLabel(selectedReservation)
+          : "Contexte service";
   const compatibleTablesSummary = getShortListLabel(
-    compatibleTables.map(({ table, placement }) => `${table.table_number} (${placement.score}/100)`),
+    compatibleTables.map(
+      ({ table, placement }) =>
+        `${table.table_number} (${placement.score}/100)`,
+    ),
     "Aucune table",
   );
   const compatibleReservationsSummary = getShortListLabel(
-    compatibleReservations.map((reservation) => `${getReservationCustomerLabel(reservation)} ${getSafeTime(reservation.time)}`),
+    compatibleReservations.map(
+      (reservation) =>
+        `${getReservationCustomerLabel(reservation)} ${getSafeTime(reservation.time)}`,
+    ),
     "Aucune suggestion",
   );
   const tableAssignmentsSummary = getShortListLabel(
-    selectedTableAssignments.map((reservation) => `${getReservationCustomerLabel(reservation)} ${getSafeTime(reservation.time)}`),
+    selectedTableAssignments.map(
+      (reservation) =>
+        `${getReservationCustomerLabel(reservation)} ${getSafeTime(reservation.time)}`,
+    ),
     "Aucun planning",
   );
   const preorderTotal = getPreorderTotal(selectedReservationPreorderItems);
   const formattedPreorderTotal = formatCurrency(preorderTotal);
-  const preorderSummary = selectedReservationPreorderItems.length > 0
-    ? `${selectedReservationPreorderItems.length} produit(s)${formattedPreorderTotal ? ` · ${formattedPreorderTotal}` : ""}`
-    : "Aucun produit";
+  const preorderSummary =
+    selectedReservationPreorderItems.length > 0
+      ? `${selectedReservationPreorderItems.length} produit(s)${formattedPreorderTotal ? ` · ${formattedPreorderTotal}` : ""}`
+      : "Aucun produit";
   const paymentSummary = selectedReservationPaymentDetails
     ? `${selectedReservationPaymentDetails.isPaid ? "Payé" : "À régler"} · ${formatCurrency(selectedReservationPaymentDetails.totalAmount) || "Montant inconnu"}`
     : "Aucun paiement";
-  const bestCompatibleTable = selectedReservation && compatibleTables.length > 0 ? compatibleTables[0] : null;
+  const bestCompatibleTable =
+    selectedReservation && compatibleTables.length > 0
+      ? compatibleTables[0]
+      : null;
 
   // « Attitrer » se lit depuis la table où le client est effectivement posé :
   // c'est le geste naturel du service. À défaut, la table sélectionnée.
-  const habitTable = selectedReservationAssignedTable
-    ?? (selectedTableIsReservable ? selectedTable : null);
-  const isHabitTablePreferred = !!habitTable && preferredTableId === habitTable.id;
+  const habitTable =
+    selectedReservationAssignedTable ??
+    (selectedTableIsReservable ? selectedTable : null);
+  const isHabitTablePreferred =
+    !!habitTable && preferredTableId === habitTable.id;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[960px] flex-col gap-0 overflow-hidden rounded-[28px] border border-border bg-background p-0 shadow-2xl sm:max-h-[760px] sm:rounded-[28px]">
-        <DialogHeader className="shrink-0 px-5 pb-2 pt-5 pr-12 text-left sm:px-6 sm:pr-12">
-          <DialogTitle className="text-xl text-foreground">{title}</DialogTitle>
+      <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-[600px] flex-col gap-0 overflow-hidden rounded-2xl border border-stone-200 bg-[#fbfaf8] p-0 shadow-2xl dark:border-border dark:bg-background sm:left-auto sm:right-4 sm:top-4 sm:h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-2rem)] sm:max-w-[520px] sm:translate-x-0 sm:translate-y-0">
+        <DialogHeader className="shrink-0 border-b border-stone-200/70 bg-white px-5 pb-4 pt-5 pr-12 text-left dark:border-border dark:bg-card sm:px-6 sm:pr-12">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+            Service · Détails
+          </p>
+          <DialogTitle className="font-serif text-2xl font-semibold tracking-tight text-stone-900 dark:text-foreground">
+            {title}
+          </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Actions rapides pour le service. La sélection active reste au premier plan sans inspecteur permanent.
+            Placement, préférences et informations de la réservation.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-2 sm:px-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-2 pt-4 sm:px-6">
           <div className="space-y-3 pb-3">
-            {(selectedReservation || selectedTable) ? (
-              <div className="grid gap-3 lg:grid-cols-2">
+            {selectedReservation || selectedTable ? (
+              <div className="grid gap-3">
                 {selectedReservation ? (
-                  <div className="rounded-[22px] border border-border bg-card px-4 py-3 shadow-sm">
+                  <div className="rounded-xl border border-stone-200/80 border-l-[3px] border-l-primary bg-white px-4 py-4 dark:border-border dark:border-l-primary dark:bg-card">
                     <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-muted text-foreground">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-50 text-primary dark:bg-primary/10">
                         <UserRound className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
@@ -228,28 +274,57 @@ export default function TableContextDrawer({
                             {getReservationCustomerLabel(selectedReservation)}
                           </p>
                           {isZeroAttenteReservation(selectedReservation) ? (
-                            <Badge className={cn("border", FLOOR_PLAN_TONE_CLASS.teal)}>Zéro Attente</Badge>
+                            <Badge
+                              className={cn(
+                                "border",
+                                FLOOR_PLAN_TONE_CLASS.teal,
+                              )}
+                            >
+                              Zéro Attente
+                            </Badge>
                           ) : null}
                           {preferredTableId ? (
-                            <Badge className={cn("gap-1 border", FLOOR_PLAN_TONE_CLASS.amber)}>
+                            <Badge
+                              className={cn(
+                                "gap-1 border",
+                                FLOOR_PLAN_TONE_CLASS.amber,
+                              )}
+                            >
                               <Star className="h-3 w-3 fill-current" />
                               Habitué
                             </Badge>
                           ) : null}
-                          <Badge className={cn("border", getReservationStatusTone(selectedReservation.status))}>
-                            {selectedReservation.status || "pending"}
+                          <Badge
+                            className={cn(
+                              "border",
+                              getReservationStatusTone(
+                                selectedReservation.status,
+                              ),
+                            )}
+                          >
+                            {getReservationStatusLabel(
+                              selectedReservation.status,
+                            )}
                           </Badge>
                         </div>
                         <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                          <span>{getShortDateLabel(selectedReservation.date)}</span>
+                          <span>
+                            {getShortDateLabel(selectedReservation.date)}
+                          </span>
                           <span>{getSafeTime(selectedReservation.time)}</span>
                           <span>{selectedReservation.party_size} pers.</span>
                           {selectedReservationAssignedTable ? (
-                            <Badge variant="outline" className="border-border bg-muted text-foreground">
+                            <Badge
+                              variant="outline"
+                              className="border-border bg-muted text-foreground"
+                            >
                               {selectedReservationAssignedTable.table_number}
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className={cn(FLOOR_PLAN_TONE_CLASS.amber)}>
+                            <Badge
+                              variant="outline"
+                              className={cn(FLOOR_PLAN_TONE_CLASS.amber)}
+                            >
                               Sans table
                             </Badge>
                           )}
@@ -258,37 +333,44 @@ export default function TableContextDrawer({
                     </div>
 
                     {selectedReservationSpecialRequest ? (
-                      <div className="mt-3 line-clamp-2 rounded-2xl border border-dashed border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+                      <div className="mt-3 break-words rounded-lg bg-amber-50/80 px-3 py-2.5 text-sm leading-relaxed text-stone-700 dark:bg-amber-500/10 dark:text-amber-100">
                         {selectedReservationSpecialRequest}
                       </div>
                     ) : null}
-
                   </div>
                 ) : null}
 
                 {selectedTable ? (
-                  <div className="rounded-[22px] border border-border bg-card px-4 py-3 shadow-sm">
+                  <div className="rounded-xl border border-stone-200/80 bg-white px-4 py-3 dark:border-border dark:bg-card">
                     <div className="flex items-start gap-3">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-muted text-foreground">
                         <Table2 className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate text-base font-semibold text-foreground">{selectedTable.table_number}</p>
+                          <p className="truncate text-base font-semibold text-foreground">
+                            {selectedTable.table_number}
+                          </p>
                           {selectedTableIsReservable ? (
-                            <Badge variant="outline" className="border-border bg-muted text-foreground">
+                            <Badge
+                              variant="outline"
+                              className="border-border bg-muted text-foreground"
+                            >
                               {selectedTable.capacity} couverts
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="border-border bg-muted text-foreground">
+                            <Badge
+                              variant="outline"
+                              className="border-border bg-muted text-foreground"
+                            >
                               Mobilier
                             </Badge>
                           )}
                         </div>
                         <p className="mt-1.5 text-sm text-muted-foreground">
                           {selectedTableAssignments.length > 0
-                            ? `${selectedTableAssignments.length} réservation(s) visibles sur cette table.`
-                            : "Aucune réservation visible sur cette table."}
+                            ? `${selectedTableAssignments.length} réservation(s) sur cette table.`
+                            : "Aucune réservation sur cette table."}
                         </p>
                       </div>
                     </div>
@@ -298,32 +380,53 @@ export default function TableContextDrawer({
             ) : null}
 
             {selectedReservation && bestCompatibleTable ? (
-              <div className="rounded-[24px] border border-primary/25 bg-[linear-gradient(135deg,hsl(var(--primary)/0.12),hsl(var(--card)))] p-4 shadow-sm">
+              <div className="rounded-xl border border-orange-200 bg-orange-50/60 p-4 dark:border-primary/25 dark:bg-primary/10">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge className={cn("border", FLOOR_PLAN_TONE_CLASS.orange)}>Table recommandee</Badge>
-                      <Badge variant="outline" className="border-border bg-card text-foreground">
+                      <Badge
+                        className={cn("border", FLOOR_PLAN_TONE_CLASS.orange)}
+                      >
+                        Table recommandée
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="border-border bg-card text-foreground"
+                      >
                         Score {bestCompatibleTable.placement.score}/100
                       </Badge>
                     </div>
                     <div className="mt-2 flex flex-wrap items-baseline gap-2">
-                      <p className="text-lg font-bold text-foreground">{bestCompatibleTable.table.table_number}</p>
-                      <p className="text-sm text-muted-foreground">{bestCompatibleTable.table.capacity} couverts</p>
+                      <p className="text-lg font-bold text-foreground">
+                        {bestCompatibleTable.table.table_number}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {bestCompatibleTable.table.capacity} couverts
+                      </p>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                      {bestCompatibleTable.placement.reasons.slice(0, 3).map((reason) => (
-                        <span key={reason} className="rounded-full border border-primary/20 bg-card px-2 py-1 text-xs font-medium text-foreground">
-                          {reason}
-                        </span>
-                      ))}
+                      {bestCompatibleTable.placement.reasons
+                        .slice(0, 3)
+                        .map((reason) => (
+                          <span
+                            key={reason}
+                            className="rounded-full border border-primary/20 bg-card px-2 py-1 text-xs font-medium text-foreground"
+                          >
+                            {reason}
+                          </span>
+                        ))}
                     </div>
                   </div>
                   <Button
                     type="button"
                     className="h-10 shrink-0 rounded-2xl"
                     aria-label={`Affecter table recommandee ${bestCompatibleTable.table.table_number}`}
-                    onClick={() => onAssignReservationToTable(selectedReservation.id, bestCompatibleTable.table.id)}
+                    onClick={() =>
+                      onAssignReservationToTable(
+                        selectedReservation.id,
+                        bestCompatibleTable.table.id,
+                      )
+                    }
                   >
                     Affecter {bestCompatibleTable.table.table_number}
                   </Button>
@@ -347,12 +450,25 @@ export default function TableContextDrawer({
                         type="button"
                         variant="outline"
                         className="h-auto justify-between gap-3 rounded-2xl border-border px-4 py-3 text-left"
-                        onClick={() => onAssignReservationToTable(selectedReservation.id, table.id)}
+                        onClick={() =>
+                          onAssignReservationToTable(
+                            selectedReservation.id,
+                            table.id,
+                          )
+                        }
                       >
                         <span className="min-w-0">
                           <span className="flex min-w-0 items-center gap-2">
-                            <span className="truncate font-semibold">{table.table_number}</span>
-                            <Badge variant="outline" className={cn("shrink-0", FLOOR_PLAN_TONE_CLASS.orange)}>
+                            <span className="truncate font-semibold">
+                              {table.table_number}
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "shrink-0",
+                                FLOOR_PLAN_TONE_CLASS.orange,
+                              )}
+                            >
                               {placement.score}/100
                             </Badge>
                           </span>
@@ -360,14 +476,18 @@ export default function TableContextDrawer({
                             {placement.reasons[0] || `${table.capacity} couv.`}
                           </span>
                         </span>
-                        <span className="shrink-0 text-xs text-muted-foreground">{table.capacity} couv.</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {table.capacity} couv.
+                        </span>
                       </Button>
                     ))}
                   </div>
                 </CompactSection>
               ) : null}
 
-              {selectedTable && selectedTableIsReservable && compatibleReservations.length > 0 ? (
+              {selectedTable &&
+              selectedTableIsReservable &&
+              compatibleReservations.length > 0 ? (
                 <CompactSection
                   value="compatible-reservations"
                   icon={<UserRound className="h-4 w-4" />}
@@ -382,11 +502,19 @@ export default function TableContextDrawer({
                         type="button"
                         variant="outline"
                         className="h-auto justify-between rounded-2xl border-border px-4 py-3 text-left"
-                        onClick={() => onAssignReservationToTable(reservation.id, selectedTable.id)}
+                        onClick={() =>
+                          onAssignReservationToTable(
+                            reservation.id,
+                            selectedTable.id,
+                          )
+                        }
                       >
-                        <span className="font-semibold">{getReservationCustomerLabel(reservation)}</span>
+                        <span className="font-semibold">
+                          {getReservationCustomerLabel(reservation)}
+                        </span>
                         <span className="text-xs text-muted-foreground">
-                          {getSafeTime(reservation.time)} · {reservation.party_size} pers.
+                          {getSafeTime(reservation.time)} ·{" "}
+                          {reservation.party_size} pers.
                         </span>
                       </Button>
                     ))}
@@ -398,7 +526,7 @@ export default function TableContextDrawer({
                 <CompactSection
                   value="table-planning"
                   icon={<CalendarClock className="h-4 w-4" />}
-                  title="Planning visible sur cette table"
+                  title="Planning de la table"
                   subtitle="Réservations déjà liées à la table."
                   summary={tableAssignmentsSummary}
                 >
@@ -410,8 +538,12 @@ export default function TableContextDrawer({
                         className="flex items-center justify-between rounded-2xl border border-border bg-muted/50 px-4 py-3 text-left transition-colors hover:bg-muted"
                         onClick={() => onSelectReservation(reservation.id)}
                       >
-                        <span className="font-medium text-foreground">{getReservationCustomerLabel(reservation)}</span>
-                        <span className="text-sm text-muted-foreground">{getSafeTime(reservation.time)}</span>
+                        <span className="font-medium text-foreground">
+                          {getReservationCustomerLabel(reservation)}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {getSafeTime(reservation.time)}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -427,16 +559,23 @@ export default function TableContextDrawer({
                   summary={paymentSummary}
                 >
                   <div className="flex flex-wrap gap-2">
-                    <Badge className={cn(
-                      "border",
-                      selectedReservationPaymentDetails.isPaid
-                        ? FLOOR_PLAN_TONE_CLASS.emerald
-                        : FLOOR_PLAN_TONE_CLASS.amber,
-                    )}>
-                      {selectedReservationPaymentDetails.isPaid ? "Payé" : "À régler"}
+                    <Badge
+                      className={cn(
+                        "border",
+                        selectedReservationPaymentDetails.isPaid
+                          ? FLOOR_PLAN_TONE_CLASS.emerald
+                          : FLOOR_PLAN_TONE_CLASS.amber,
+                      )}
+                    >
+                      {selectedReservationPaymentDetails.isPaid
+                        ? "Payé"
+                        : "À régler"}
                     </Badge>
                     {selectedReservationPaymentDetails.paymentMethod ? (
-                      <Badge variant="outline" className="border-border bg-muted text-muted-foreground">
+                      <Badge
+                        variant="outline"
+                        className="border-border bg-muted text-muted-foreground"
+                      >
                         {selectedReservationPaymentDetails.paymentMethod}
                       </Badge>
                     ) : null}
@@ -446,21 +585,24 @@ export default function TableContextDrawer({
                     <div className="flex items-center justify-between gap-3">
                       <span>Montant</span>
                       <span className="font-semibold text-foreground">
-                        {formatCurrency(selectedReservationPaymentDetails.totalAmount) || "Non renseigné"}
+                        {formatCurrency(
+                          selectedReservationPaymentDetails.totalAmount,
+                        ) || "Non renseigné"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span>Instrument</span>
                       <span className="text-right font-medium text-foreground">
-                        {selectedReservationPaymentDetails.cardLabel || "Non renseigné"}
+                        {selectedReservationPaymentDetails.cardLabel ||
+                          "Non renseigné"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <span>Référence</span>
                       <span className="text-right font-medium text-foreground">
-                        {selectedReservationPaymentDetails.orderReference
-                          || selectedReservationPaymentDetails.checkoutSessionId
-                          || "Non renseignée"}
+                        {selectedReservationPaymentDetails.orderReference ||
+                          selectedReservationPaymentDetails.checkoutSessionId ||
+                          "Non renseignée"}
                       </span>
                     </div>
                   </div>
@@ -477,16 +619,24 @@ export default function TableContextDrawer({
                 >
                   <div className="space-y-2">
                     {selectedReservationPreorderItems.map((item, index) => (
-                      <div key={`${item.menuItemId || item.name}-${index}`} className="rounded-2xl border border-border bg-muted px-3 py-3">
+                      <div
+                        key={`${item.menuItemId || item.name}-${index}`}
+                        className="rounded-2xl border border-border bg-muted px-3 py-3"
+                      >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="font-medium text-foreground">{item.name}</p>
+                            <p className="font-medium text-foreground">
+                              {item.name}
+                            </p>
                             <p className="text-sm text-muted-foreground">
-                              {item.quantity} x {formatCurrency(item.unitPrice) || "Prix indisponible"}
+                              {item.quantity} x{" "}
+                              {formatCurrency(item.unitPrice) ||
+                                "Prix indisponible"}
                             </p>
                           </div>
                           <span className="shrink-0 text-sm font-semibold text-foreground">
-                            {formatCurrency(item.totalPrice) || "Prix indisponible"}
+                            {formatCurrency(item.totalPrice) ||
+                              "Prix indisponible"}
                           </span>
                         </div>
                       </div>
@@ -495,25 +645,23 @@ export default function TableContextDrawer({
                 </CompactSection>
               ) : null}
             </Accordion>
-
-            {(selectedReservation || selectedTable) ? <Separator className="bg-border" /> : null}
-
-            {selectedReservation || selectedTable ? (
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <CalendarClock className="h-4 w-4" />
-                <span>La modale reste contextuelle: elle disparaît dès que vous fermez la sélection active.</span>
-              </div>
-            ) : null}
           </div>
         </div>
 
-        <DialogFooter className="shrink-0 border-t border-border px-5 pb-4 pt-3 sm:px-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            {selectedReservation && selectedTable && selectedTableIsReservable ? (
+        <DialogFooter className="shrink-0 border-t border-stone-200 bg-white px-5 pb-4 pt-3 dark:border-border dark:bg-card sm:px-6">
+          <div className="flex w-full flex-wrap gap-2 [&>button]:min-h-11 [&>button]:flex-1 [&>button]:whitespace-normal [&>button]:rounded-lg [&>button]:text-xs">
+            {selectedReservation &&
+            selectedTable &&
+            selectedTableIsReservable ? (
               <Button
                 type="button"
                 className="h-9 rounded-xl"
-                onClick={() => onAssignReservationToTable(selectedReservation.id, selectedTable.id)}
+                onClick={() =>
+                  onAssignReservationToTable(
+                    selectedReservation.id,
+                    selectedTable.id,
+                  )
+                }
                 disabled={!selectedPairDropState?.ok}
               >
                 {selectedPairDropState?.ok
@@ -527,12 +675,19 @@ export default function TableContextDrawer({
                 variant={isHabitTablePreferred ? "secondary" : "outline"}
                 className="h-9 rounded-xl"
                 disabled={preferredTablePending}
-                onClick={() => onSetPreferredTable(
-                  selectedReservation.user_id,
-                  isHabitTablePreferred ? null : habitTable.id,
-                )}
+                onClick={() =>
+                  onSetPreferredTable(
+                    selectedReservation.user_id,
+                    isHabitTablePreferred ? null : habitTable.id,
+                  )
+                }
               >
-                <Star className={cn("mr-2 h-4 w-4", isHabitTablePreferred && "fill-current")} />
+                <Star
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    isHabitTablePreferred && "fill-current",
+                  )}
+                />
                 {isHabitTablePreferred
                   ? `Ne plus attitrer ${habitTable.table_number}`
                   : `Toujours ${habitTable.table_number} pour ce client`}
@@ -543,7 +698,10 @@ export default function TableContextDrawer({
                 type="button"
                 variant="outline"
                 className="h-9 rounded-xl"
-                onClick={() => selectedReservation && onReleaseReservation(selectedReservation.id)}
+                onClick={() =>
+                  selectedReservation &&
+                  onReleaseReservation(selectedReservation.id)
+                }
               >
                 Retirer de la table
               </Button>
@@ -558,7 +716,12 @@ export default function TableContextDrawer({
                 Garder {selectedTable.table_number}
               </Button>
             ) : null}
-            <Button type="button" variant="secondary" className="h-9 rounded-xl" onClick={onClearSelection}>
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-9 rounded-xl"
+              onClick={onClearSelection}
+            >
               Fermer la sélection
             </Button>
           </div>

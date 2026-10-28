@@ -151,7 +151,9 @@ describe("commercial demo restaurant tool adapters", () => {
     expect(crm).toContain("buildCommercialDemoCrmRows(commercialDemoFrame.snapshot)");
     expect(reviews).toContain("buildCommercialDemoReviewSeeds(commercialDemoFrame.snapshot)");
     expect(floorPlan).toContain("commercialDemoFrame.snapshot.reservations.map");
-    expect(floorPlan).toContain("writeCommercialDemoToolState(commercialDemoFrame.config.sessionId, \"floor-plan-tables\"");
+    expect(floorPlan).toMatch(
+      /writeCommercialDemoToolState\(\s*commercialDemoFrame\.config\.sessionId,\s*"floor-plan-tables",\s*tables,?\s*\)/,
+    );
     expect(floorPlan).toContain("askCommercialDemoAi");
     expect(floorPlan).toContain("parseCommercialDemoAiJson");
     expect(floorPlan).toContain("selectedId={isCommercialDemo ? null : selectedId}");
@@ -160,8 +162,20 @@ describe("commercial demo restaurant tool adapters", () => {
     expect(reviews.indexOf("if (isCommercialDemo && commercialDemoFrame)")).toBeLessThan(
       reviews.indexOf("const response = await runRestaurantAgent"),
     );
-    expect(serviceBoard).toContain('const canConfirm = primaryStatus === "pending"');
-    expect(serviceBoard).toContain('const canSeat = primaryStatus === "confirmed" || primaryStatus === "arrived"');
+    const confirmAction = serviceBoard.match(
+      /\{\s*selectedStatus\s*===\s*"pending"\s*\?\s*\(([\s\S]*?)\)\s*:\s*null\s*\}/,
+    );
+    expect(confirmAction, "Only a pending reservation can be confirmed").not.toBeNull();
+    expect(confirmAction?.[1]).toMatch(
+      /onReservationStatusChange\(\s*selectedPrimary\.id,\s*"confirmed",?\s*\)/,
+    );
+    const seatAction = serviceBoard.match(
+      /\{\s*\[\s*"confirmed",\s*"arrived"\s*\]\.includes\(\s*selectedStatus\s*\)\s*\?\s*\(([\s\S]*?)\)\s*:\s*null\s*\}/,
+    );
+    expect(seatAction, "Only confirmed or arrived reservations can be seated").not.toBeNull();
+    expect(seatAction?.[1]).toMatch(
+      /onReservationStatusChange\(\s*selectedPrimary\.id,\s*"seated",?\s*\)/,
+    );
     expect(billing).toContain('feature: "ai_support_chat"');
     expect(billing).toContain("Désactivé par l'admin");
     expect(ownerRestaurants.indexOf("if (isCommercialDemoFrame && commercialDemoFrame && effectiveDemoRestaurantId)")).toBeLessThan(

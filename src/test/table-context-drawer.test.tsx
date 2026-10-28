@@ -2,9 +2,14 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import TableContextDrawer from "@/components/floor-plan/TableContextDrawer";
-import type { ServiceDraftTable, ServiceReservation } from "@/components/floor-plan/serviceShared";
+import type {
+  ServiceDraftTable,
+  ServiceReservation,
+} from "@/components/floor-plan/serviceShared";
 
-function reservation(overrides: Partial<ServiceReservation> = {}): ServiceReservation {
+function reservation(
+  overrides: Partial<ServiceReservation> = {},
+): ServiceReservation {
   return {
     id: "r1",
     user_id: "u1",
@@ -67,8 +72,22 @@ describe("TableContextDrawer", () => {
         selectedReservationSpecialRequest={null}
         selectedPairDropState={null}
         compatibleTables={[
-          { table: bestTable, placement: { score: 96, wastedSeats: 0, reasons: ["Capacité parfaite", "Rotation confortable"] } },
-          { table: fallbackTable, placement: { score: 68, wastedSeats: 4, reasons: ["4 place(s) libres"] } },
+          {
+            table: bestTable,
+            placement: {
+              score: 96,
+              wastedSeats: 0,
+              reasons: ["Capacité parfaite", "Rotation confortable"],
+            },
+          },
+          {
+            table: fallbackTable,
+            placement: {
+              score: 68,
+              wastedSeats: 4,
+              reasons: ["4 place(s) libres"],
+            },
+          },
         ]}
         compatibleReservations={[]}
         onOpenChange={vi.fn()}
@@ -80,13 +99,15 @@ describe("TableContextDrawer", () => {
       />,
     );
 
-    expect(screen.getByText("Table recommandee")).toBeInTheDocument();
+    expect(screen.getByText("Table recommandée")).toBeInTheDocument();
     expect(screen.getByText("T4")).toBeInTheDocument();
     expect(screen.getByText("Score 96/100")).toBeInTheDocument();
     expect(screen.getByText("Capacité parfaite")).toBeInTheDocument();
     expect(screen.getByText("Rotation confortable")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Affecter table recommandee T4" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Affecter table recommandee T4" }),
+    );
 
     expect(onAssignReservationToTable).toHaveBeenCalledWith("r1", "t4");
   });

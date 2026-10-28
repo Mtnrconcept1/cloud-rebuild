@@ -49,7 +49,9 @@ describe("floor plan helpers", () => {
   });
 
   it("offers a compact rectangular two-seat table preset for image imports", () => {
-    const rectTwo = FLOOR_PLAN_PRESETS.find((preset) => preset.id === "table-rect-2");
+    const rectTwo = FLOOR_PLAN_PRESETS.find(
+      (preset) => preset.id === "table-rect-2",
+    );
 
     expect(rectTwo).toMatchObject({
       category: "table",
@@ -99,7 +101,16 @@ describe("floor plan helpers", () => {
     const smallRound = getMinimumTableSize(2, "round");
     const largeRound = getMinimumTableSize(8, "round");
     const fitted = ensureFloorPlanLayoutFitsCapacity(
-      { x: 40, y: 40, w: 120, h: 120, rotation: 0, shape: "rect", seatLabels: [1, 1], kind: "table" },
+      {
+        x: 40,
+        y: 40,
+        w: 120,
+        h: 120,
+        rotation: 0,
+        shape: "rect",
+        seatLabels: [1, 1],
+        kind: "table",
+      },
       10,
       "rect",
     );
@@ -113,7 +124,16 @@ describe("floor plan helpers", () => {
 
   it("keeps furniture non reservable with zero inner seats", () => {
     const plantLayout = ensureFloorPlanLayoutFitsCapacity(
-      { x: 40, y: 40, w: 20, h: 20, rotation: 0, shape: "round", seatLabels: [1], kind: "plant" },
+      {
+        x: 40,
+        y: 40,
+        w: 20,
+        h: 20,
+        rotation: 0,
+        shape: "round",
+        seatLabels: [1],
+        kind: "plant",
+      },
       0,
       "round",
       "plant",
@@ -121,19 +141,41 @@ describe("floor plan helpers", () => {
 
     expect(isReservableFloorPlanItem(plantLayout.kind)).toBe(false);
     expect(plantLayout.seatLabels).toEqual([]);
-    expect(plantLayout.w).toBeGreaterThanOrEqual(getMinimumTableSize(0, "round", "plant").w);
-    expect(plantLayout.h).toBeGreaterThanOrEqual(getMinimumTableSize(0, "round", "plant").h);
+    expect(plantLayout.w).toBeGreaterThanOrEqual(
+      getMinimumTableSize(0, "round", "plant").w,
+    );
+    expect(plantLayout.h).toBeGreaterThanOrEqual(
+      getMinimumTableSize(0, "round", "plant").h,
+    );
   });
 
   it("keeps furniture resize free on each axis like an image", () => {
     const plant = ensureFloorPlanLayoutFitsCapacity(
-      { x: 40, y: 40, w: 144, h: 108, rotation: 0, shape: "round", seatLabels: [], kind: "plant" },
+      {
+        x: 40,
+        y: 40,
+        w: 144,
+        h: 108,
+        rotation: 0,
+        shape: "round",
+        seatLabels: [],
+        kind: "plant",
+      },
       0,
       "round",
       "plant",
     );
     const divider = ensureFloorPlanLayoutFitsCapacity(
-      { x: 40, y: 40, w: 320, h: 120, rotation: 0, shape: "rect", seatLabels: [], kind: "divider" },
+      {
+        x: 40,
+        y: 40,
+        w: 320,
+        h: 120,
+        rotation: 0,
+        shape: "rect",
+        seatLabels: [],
+        kind: "divider",
+      },
       0,
       "rect",
       "divider",
@@ -156,13 +198,31 @@ describe("floor plan helpers", () => {
 
   it("allows furniture to be reduced to compact icon-scale sizes", () => {
     const plant = ensureFloorPlanLayoutFitsCapacity(
-      { x: 40, y: 40, w: 28, h: 28, rotation: 0, shape: "round", seatLabels: [], kind: "plant" },
+      {
+        x: 40,
+        y: 40,
+        w: 28,
+        h: 28,
+        rotation: 0,
+        shape: "round",
+        seatLabels: [],
+        kind: "plant",
+      },
       0,
       "round",
       "plant",
     );
     const divider = ensureFloorPlanLayoutFitsCapacity(
-      { x: 40, y: 40, w: 24, h: 8, rotation: 0, shape: "rect", seatLabels: [], kind: "divider" },
+      {
+        x: 40,
+        y: 40,
+        w: 24,
+        h: 8,
+        rotation: 0,
+        shape: "rect",
+        seatLabels: [],
+        kind: "divider",
+      },
       0,
       "rect",
       "divider",
@@ -176,7 +236,16 @@ describe("floor plan helpers", () => {
 
   it("allows furniture to shrink down to a one-pixel logical footprint", () => {
     const plant = resizeFloorPlanLayoutToFootprint(
-      { x: 40, y: 40, w: 84, h: 84, rotation: 0, shape: "round", seatLabels: [], kind: "plant" },
+      {
+        x: 40,
+        y: 40,
+        w: 84,
+        h: 84,
+        rotation: 0,
+        shape: "round",
+        seatLabels: [],
+        kind: "plant",
+      },
       0,
       1,
       1,
@@ -190,7 +259,16 @@ describe("floor plan helpers", () => {
 
   it("allows reservable tables to shrink down to a one-pixel logical footprint", () => {
     const table = resizeFloorPlanLayoutToFootprint(
-      { x: 40, y: 40, w: 176, h: 112, rotation: 0, shape: "rect", seatLabels: [1, 1, 1, 1], kind: "table" },
+      {
+        x: 40,
+        y: 40,
+        w: 176,
+        h: 112,
+        rotation: 0,
+        shape: "rect",
+        seatLabels: [1, 1, 1, 1],
+        kind: "table",
+      },
       4,
       1,
       1,
@@ -242,7 +320,16 @@ describe("floor plan helpers", () => {
 
   it("resizes table footprints without recalculating the inner drawing", () => {
     const layout = ensureFloorPlanLayoutFitsCapacity(
-      { x: 40, y: 40, w: 176, h: 112, rotation: 0, shape: "rect", seatLabels: [1, 1, 1, 1], kind: "table" },
+      {
+        x: 40,
+        y: 40,
+        w: 176,
+        h: 112,
+        rotation: 0,
+        shape: "rect",
+        seatLabels: [1, 1, 1, 1],
+        kind: "table",
+      },
       4,
       "rect",
     );
@@ -257,7 +344,14 @@ describe("floor plan helpers", () => {
       footprintHeight: layout.h,
     });
 
-    const resized = resizeFloorPlanLayoutToFootprint(layout, 4, layout.w * 2, layout.h, "rect", "table");
+    const resized = resizeFloorPlanLayoutToFootprint(
+      layout,
+      4,
+      layout.w * 2,
+      layout.h,
+      "rect",
+      "table",
+    );
 
     expect(resized.w).toBe(layout.w * 2);
     expect(resized.h).toBe(layout.h);
@@ -302,7 +396,16 @@ describe("floor plan helpers", () => {
         capacity: 4,
         is_active: true,
         sector: "Salle",
-        layout: { x: 120, y: 90, w: 160, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1, 1, 1] },
+        layout: {
+          x: 120,
+          y: 90,
+          w: 160,
+          h: 100,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1, 1, 1],
+        },
       },
       {
         id: "right",
@@ -310,7 +413,16 @@ describe("floor plan helpers", () => {
         capacity: 2,
         is_active: true,
         sector: "Salle",
-        layout: { x: 420, y: 250, w: 120, h: 90, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+        layout: {
+          x: 420,
+          y: 250,
+          w: 120,
+          h: 90,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1],
+        },
       },
     ];
 
@@ -350,8 +462,12 @@ describe("floor plan helpers", () => {
     expect(resizedScale).toBeLessThan(1);
     expect(resizedRight.x).toBeGreaterThan(resizedAnchor.x);
     expect(resizedRight.y).toBeGreaterThan(resizedAnchor.y);
-    expect(resizedRight.x + resizedRight.w).toBeLessThanOrEqual(780 - Math.round(46 * (780 / 1040)));
-    expect(resizedRight.y + resizedRight.h).toBeLessThanOrEqual(570 - Math.round(46 * (570 / 760)));
+    expect(resizedRight.x + resizedRight.w).toBeLessThanOrEqual(
+      780 - Math.round(46 * (780 / 1040)),
+    );
+    expect(resizedRight.y + resizedRight.h).toBeLessThanOrEqual(
+      570 - Math.round(46 * (570 / 760)),
+    );
     expect(fullRight.x).toBeGreaterThan(fullAnchor.x);
     expect(fullRight.y).toBeGreaterThan(fullAnchor.y);
   });
@@ -396,12 +512,28 @@ describe("floor plan helpers", () => {
       seatLabels: [1, 1, 1, 1],
     };
 
-    expect(getLogicalFloorPlanPositionFromRenderedFrame(layout, -999, -999, 1.25, 1040, 680)).toEqual({
+    expect(
+      getLogicalFloorPlanPositionFromRenderedFrame(
+        layout,
+        -999,
+        -999,
+        1.25,
+        1040,
+        680,
+      ),
+    ).toEqual({
       x: 46,
       y: 46,
     });
 
-    const bottomRight = getLogicalFloorPlanPositionFromRenderedFrame(layout, 99999, 99999, 1.25, 1040, 680);
+    const bottomRight = getLogicalFloorPlanPositionFromRenderedFrame(
+      layout,
+      99999,
+      99999,
+      1.25,
+      1040,
+      680,
+    );
     expect(bottomRight.x).toBeCloseTo(1040 - layout.w - 46, 5);
     expect(bottomRight.y).toBeCloseTo(760 - layout.h - 46, 5);
   });
@@ -414,7 +546,16 @@ describe("floor plan helpers", () => {
         capacity: 2,
         is_active: true,
         sector: "Salle",
-        layout: { x: 1400, y: 900, w: 160, h: 120, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+        layout: {
+          x: 1400,
+          y: 900,
+          w: 160,
+          h: 120,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1],
+        },
       },
     ];
 
@@ -445,7 +586,11 @@ describe("floor plan helpers", () => {
     };
 
     const clampedTopLeft = clampFloorPlanLayout(layout, 800, 560);
-    const clampedBottomRight = clampFloorPlanLayout({ ...layout, y: 9999 }, 800, 560);
+    const clampedBottomRight = clampFloorPlanLayout(
+      { ...layout, y: 9999 },
+      800,
+      560,
+    );
 
     expect(clampedTopLeft.x).toBe(1040 - 46 - layout.w);
     expect(clampedTopLeft.y).toBe(46);
@@ -467,8 +612,22 @@ describe("floor plan helpers", () => {
 
     const frame = getRenderedFloorPlanFrame(layout, 0.5, 800, 585);
     const renderInset = Math.round(46 * (800 / 1040));
-    const topLeft = getLogicalFloorPlanPositionFromRenderedFrame(layout, renderInset, renderInset, 0.5, 800, 585);
-    const logical = getLogicalFloorPlanPositionFromRenderedFrame(layout, frame.x, frame.y, 0.5, 800, 585);
+    const topLeft = getLogicalFloorPlanPositionFromRenderedFrame(
+      layout,
+      renderInset,
+      renderInset,
+      0.5,
+      800,
+      585,
+    );
+    const logical = getLogicalFloorPlanPositionFromRenderedFrame(
+      layout,
+      frame.x,
+      frame.y,
+      0.5,
+      800,
+      585,
+    );
 
     expect(frame.x + frame.w).toBeCloseTo(800 - renderInset, 5);
     expect(frame.y + frame.h).toBeCloseTo(585 - renderInset, 5);
@@ -493,12 +652,23 @@ describe("floor plan helpers", () => {
       seatLabels: [],
     };
 
-    const frame = getRenderedFloorPlanFrame(layout, 1, canvasWidth, canvasHeight);
-    const effectiveZoom = resolveFloorPlanViewportZoom(1, canvasWidth, canvasHeight);
+    const frame = getRenderedFloorPlanFrame(
+      layout,
+      1,
+      canvasWidth,
+      canvasHeight,
+    );
+    const effectiveZoom = resolveFloorPlanViewportZoom(
+      1,
+      canvasWidth,
+      canvasHeight,
+    );
 
     expect(frame.w).toBeCloseTo(layout.w * effectiveZoom, 5);
     expect(frame.h).toBeCloseTo(layout.h * effectiveZoom, 5);
-    expect(frame.x + frame.w).toBeGreaterThanOrEqual(canvasWidth - roomInset - 0.5);
+    expect(frame.x + frame.w).toBeGreaterThanOrEqual(
+      canvasWidth - roomInset - 0.5,
+    );
     expect(frame.x + frame.w).toBeLessThanOrEqual(canvasWidth - roomInset);
     expect(frame.y + frame.h).toBeCloseTo(canvasHeight - roomInset, 5);
   });
@@ -517,7 +687,12 @@ describe("floor plan helpers", () => {
       seatLabels: [],
     };
 
-    const frame = getRenderedFloorPlanFrame(layout, 0.5, canvasWidth, canvasHeight);
+    const frame = getRenderedFloorPlanFrame(
+      layout,
+      0.5,
+      canvasWidth,
+      canvasHeight,
+    );
     const logical = getLogicalFloorPlanPositionFromRenderedFrame(
       layout,
       canvasWidth - 46 - frame.w,
@@ -543,7 +718,16 @@ describe("floor plan helpers", () => {
         capacity: 2,
         is_active: false,
         sector: "Salle",
-        layout: { x: 40, y: 40, w: 120, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+        layout: {
+          x: 40,
+          y: 40,
+          w: 120,
+          h: 100,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1],
+        },
       },
       {
         id: "other-sector",
@@ -551,7 +735,16 @@ describe("floor plan helpers", () => {
         capacity: 2,
         is_active: true,
         sector: "Terrasse",
-        layout: { x: 40, y: 40, w: 120, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+        layout: {
+          x: 40,
+          y: 40,
+          w: 120,
+          h: 100,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1],
+        },
       },
       {
         id: "b",
@@ -559,7 +752,16 @@ describe("floor plan helpers", () => {
         capacity: 4,
         is_active: true,
         sector: "Salle",
-        layout: { x: 80, y: 80, w: 140, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1, 1, 1] },
+        layout: {
+          x: 80,
+          y: 80,
+          w: 140,
+          h: 100,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1, 1, 1],
+        },
       },
       {
         id: "plant",
@@ -567,7 +769,16 @@ describe("floor plan helpers", () => {
         capacity: 0,
         is_active: true,
         sector: "Salle",
-        layout: { x: 90, y: 90, w: 84, h: 84, rotation: 0, shape: "round" as const, kind: "plant" as const, seatLabels: [] },
+        layout: {
+          x: 90,
+          y: 90,
+          w: 84,
+          h: 84,
+          rotation: 0,
+          shape: "round" as const,
+          kind: "plant" as const,
+          seatLabels: [],
+        },
       },
       {
         id: "a",
@@ -575,7 +786,16 @@ describe("floor plan helpers", () => {
         capacity: 2,
         is_active: true,
         sector: "Salle",
-        layout: { x: 100, y: 100, w: 120, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+        layout: {
+          x: 100,
+          y: 100,
+          w: 120,
+          h: 100,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1],
+        },
       },
     ];
 
@@ -587,17 +807,33 @@ describe("floor plan helpers", () => {
     });
     const hitFrame = model.framesById.get("a");
 
-    expect(model.visibleItems.map((table) => table.id)).toEqual(["a", "b", "plant"]);
-    expect(model.visibleReservableItems.map((table) => table.id)).toEqual(["a", "b"]);
+    expect(model.visibleItems.map((table) => table.id)).toEqual([
+      "a",
+      "b",
+      "plant",
+    ]);
+    expect(model.visibleReservableItems.map((table) => table.id)).toEqual([
+      "a",
+      "b",
+    ]);
     expect(model.visibleFurnitureCount).toBe(1);
     expect(model.visibleReservableIdSet.has("a")).toBe(true);
     expect(model.visibleReservableIdSet.has("plant")).toBe(false);
     expect(model.framesById.has("other-sector")).toBe(false);
-    expect(model.reservableHitTargets.visual.map((target) => target.item.id)).toEqual(["b", "a"]);
-    expect(model.reservableHitTargets.interactive.map((target) => target.item.id)).toEqual(["b", "a"]);
+    expect(
+      model.reservableHitTargets.visual.map((target) => target.item.id),
+    ).toEqual(["b", "a"]);
+    expect(
+      model.reservableHitTargets.interactive.map((target) => target.item.id),
+    ).toEqual(["b", "a"]);
     expect(hitFrame).toBeDefined();
     expect(model.getRenderedFrame(tables[4])).toBe(hitFrame);
-    expect(model.getReservableItemAtPoint((hitFrame?.x || 0) + 4, (hitFrame?.y || 0) + 4)?.id).toBe("b");
+    expect(
+      model.getReservableItemAtPoint(
+        (hitFrame?.x || 0) + 4,
+        (hitFrame?.y || 0) + 4,
+      )?.id,
+    ).toBe("b");
   });
 
   it("keeps zoomed visible furniture inside the brown surface", () => {
@@ -608,7 +844,16 @@ describe("floor plan helpers", () => {
         capacity: 4,
         is_active: true,
         sector: "Salle",
-        layout: { x: 80, y: 70, w: 160, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1, 1, 1] },
+        layout: {
+          x: 80,
+          y: 70,
+          w: 160,
+          h: 100,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1, 1, 1],
+        },
       },
       {
         id: "right",
@@ -616,7 +861,16 @@ describe("floor plan helpers", () => {
         capacity: 2,
         is_active: true,
         sector: "Salle",
-        layout: { x: 320, y: 190, w: 120, h: 90, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+        layout: {
+          x: 320,
+          y: 190,
+          w: 120,
+          h: 90,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1],
+        },
       },
     ];
 
@@ -647,7 +901,16 @@ describe("floor plan helpers", () => {
         capacity: 2,
         is_active: true,
         sector: "Salle",
-        layout: { x: 120, y: 80, w: 8, h: 6, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+        layout: {
+          x: 120,
+          y: 80,
+          w: 8,
+          h: 6,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1],
+        },
       },
     ];
     const model = buildFloorPlanViewportModel(tables, {
@@ -659,8 +922,15 @@ describe("floor plan helpers", () => {
     const frame = model.getRenderedFrame(tables[0]);
     const interactiveFrame = getFloorPlanInteractiveFrame(frame);
 
-    expect(model.getReservableItemAtPoint(interactiveFrame.x + 2, interactiveFrame.y + 2)?.id).toBe("tiny");
-    expect(model.getReservableItemAtPoint(frame.x - 4, frame.y - 4)?.id).toBe("tiny");
+    expect(
+      model.getReservableItemAtPoint(
+        interactiveFrame.x + 2,
+        interactiveFrame.y + 2,
+      )?.id,
+    ).toBe("tiny");
+    expect(model.getReservableItemAtPoint(frame.x - 4, frame.y - 4)?.id).toBe(
+      "tiny",
+    );
   });
 
   it("prefers a visual table hit over another table's expanded interactive fringe", () => {
@@ -671,7 +941,16 @@ describe("floor plan helpers", () => {
         capacity: 4,
         is_active: true,
         sector: "Salle",
-        layout: { x: 120, y: 80, w: 120, h: 90, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1, 1, 1] },
+        layout: {
+          x: 120,
+          y: 80,
+          w: 120,
+          h: 90,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1, 1, 1],
+        },
       },
       {
         id: "tiny",
@@ -679,7 +958,16 @@ describe("floor plan helpers", () => {
         capacity: 2,
         is_active: true,
         sector: "Salle",
-        layout: { x: 122, y: 82, w: 8, h: 6, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+        layout: {
+          x: 122,
+          y: 82,
+          w: 8,
+          h: 6,
+          rotation: 0,
+          shape: "rect" as const,
+          kind: "table" as const,
+          seatLabels: [1, 1],
+        },
       },
     ];
     const model = buildFloorPlanViewportModel(tables, {
@@ -690,23 +978,52 @@ describe("floor plan helpers", () => {
     });
     const tinyFrame = model.getRenderedFrame(tables[1]);
 
-    expect(model.getReservableItemAtPoint(tinyFrame.x + 12, tinyFrame.y + 8)?.id).toBe("large");
+    expect(
+      model.getReservableItemAtPoint(tinyFrame.x + 12, tinyFrame.y + 8)?.id,
+    ).toBe("large");
   });
 
   it("updates one floor plan item layout without replacing unchanged arrays", () => {
     const tableA = {
       id: "a",
-      layout: { x: 16, y: 16, w: 120, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+      layout: {
+        x: 16,
+        y: 16,
+        w: 120,
+        h: 100,
+        rotation: 0,
+        shape: "rect" as const,
+        kind: "table" as const,
+        seatLabels: [1, 1],
+      },
     };
     const tableB = {
       id: "b",
-      layout: { x: 80, y: 80, w: 120, h: 100, rotation: 0, shape: "rect" as const, kind: "table" as const, seatLabels: [1, 1] },
+      layout: {
+        x: 80,
+        y: 80,
+        w: 120,
+        h: 100,
+        rotation: 0,
+        shape: "rect" as const,
+        kind: "table" as const,
+        seatLabels: [1, 1],
+      },
     };
     const items = [tableA, tableB];
 
-    const same = updateFloorPlanItemLayoutById(items, "a", (layout) => ({ ...layout }));
-    const missing = updateFloorPlanItemLayoutById(items, "missing", (layout) => ({ ...layout, x: 200 }));
-    const changed = updateFloorPlanItemLayoutById(items, "a", (layout) => ({ ...layout, x: 120 }));
+    const same = updateFloorPlanItemLayoutById(items, "a", (layout) => ({
+      ...layout,
+    }));
+    const missing = updateFloorPlanItemLayoutById(
+      items,
+      "missing",
+      (layout) => ({ ...layout, x: 200 }),
+    );
+    const changed = updateFloorPlanItemLayoutById(items, "a", (layout) => ({
+      ...layout,
+      x: 120,
+    }));
 
     expect(same).toBe(items);
     expect(missing).toBe(items);
@@ -721,21 +1038,25 @@ describe("floor plan helpers", () => {
       capacity: 2,
       shape: "rect",
       seatPlacements: [],
-      cornerBenchConfigs: [{
-        corner: "top-left",
-        horizontalSeats: 1,
-        verticalSeats: 1,
-      } as never],
+      cornerBenchConfigs: [
+        {
+          corner: "top-left",
+          horizontalSeats: 1,
+          verticalSeats: 1,
+        } as never,
+      ],
     });
     const fiveSeatCorner = getResolvedFloorPlanDimensions({
       capacity: 2,
       shape: "rect",
       seatPlacements: [],
-      cornerBenchConfigs: [{
-        corner: "top-left",
-        horizontalSeats: 3,
-        verticalSeats: 2,
-      } as never],
+      cornerBenchConfigs: [
+        {
+          corner: "top-left",
+          horizontalSeats: 3,
+          verticalSeats: 2,
+        } as never,
+      ],
     });
 
     expect(twoSeatCorner.capacity).toBe(2);
@@ -748,68 +1069,115 @@ describe("floor plan helpers", () => {
       horizontalSeats: 3,
       verticalSeats: 2,
     });
-    expect(fiveSeatCorner.cornerBenchConfigs[0].horizontal).toBeGreaterThan(twoSeatCorner.cornerBenchConfigs[0].horizontal);
-    expect(fiveSeatCorner.cornerBenchConfigs[0].vertical).toBeGreaterThan(twoSeatCorner.cornerBenchConfigs[0].vertical);
+    expect(fiveSeatCorner.cornerBenchConfigs[0].horizontal).toBeGreaterThan(
+      twoSeatCorner.cornerBenchConfigs[0].horizontal,
+    );
+    expect(fiveSeatCorner.cornerBenchConfigs[0].vertical).toBeGreaterThan(
+      twoSeatCorner.cornerBenchConfigs[0].vertical,
+    );
   });
 
-  it("renders corner bench seats below the table image with the same height as the corner", () => {
-    const markup = renderToStaticMarkup(createElement(DynamicTableSvg, {
-      shape: "rect",
-      capacity: 4,
-      seatType: "corner-bench",
-      seatPlacements: [],
-      cornerBenchConfigs: [{
-        corner: "top-left",
-        horizontal: 144,
-        vertical: 86,
-        depth: 56,
-        horizontalSeats: 2,
-        verticalSeats: 2,
-      }],
-    }));
+  it("renders the corner-bench regions below the table with continuous arms of consistent depth", () => {
+    const markup = renderToStaticMarkup(
+      createElement(DynamicTableSvg, {
+        shape: "rect",
+        capacity: 4,
+        seatType: "corner-bench",
+        seatPlacements: [],
+        cornerBenchConfigs: [
+          {
+            corner: "top-left",
+            horizontal: 144,
+            vertical: 86,
+            depth: 56,
+            horizontalSeats: 2,
+            verticalSeats: 2,
+          },
+        ],
+      }),
+    );
     const images = getRenderedImageAttributes(markup);
-    const tableIndex = images.findIndex((image) => image.href.includes("plan-de-salle_0014_Calque-12.png"));
-    const cornerIndex = images.findIndex((image) => image.href.includes("plan-de-salle_0009_Calque-10.png"));
-    const straightSeatIndices = images
-      .map((image, index) => image.href.includes("plan-de-salle_0010_Calque-11.png") ? index : -1)
+    const tableIndex = images.findIndex((image) =>
+      /0[34]_table-/.test(image.href),
+    );
+    const cornerIndices = images
+      .map((image, index) =>
+        image.href.includes("09_banquette-angle-sauge.webp") ? index : -1,
+      )
       .filter((index) => index >= 0);
-    const straightSeatImages = images.filter((image) => image.href.includes("plan-de-salle_0010_Calque-11.png"));
-    const horizontalSeatImage = straightSeatImages[0];
-    const cornerImage = images[cornerIndex];
+    const document = new DOMParser().parseFromString(
+      `<svg>${markup}</svg>`,
+      "image/svg+xml",
+    );
+    const corner = document.querySelector(
+      '[data-floor-plan-corner="top-left"]',
+    );
+    const elbow = corner?.querySelector('[data-bench-section="0-0"]');
+    const horizontalArm = corner?.querySelector('[data-bench-section="0-1"]');
+    const verticalArm = corner?.querySelector('[data-bench-section="1-0"]');
+    const number = (element: Element | null | undefined, attribute: string) =>
+      Number(element?.getAttribute(attribute));
 
     expect(tableIndex).toBeGreaterThanOrEqual(0);
-    expect(cornerIndex).toBeGreaterThanOrEqual(0);
-    expect(cornerIndex).toBeLessThan(tableIndex);
-    expect(cornerImage.href).toContain("plan-de-salle_0009_Calque-10.png");
-    expect(straightSeatImages).toHaveLength(2);
-    straightSeatIndices.forEach((straightSeatIndex) => {
-      expect(straightSeatIndex).toBeLessThan(tableIndex);
-    });
-    straightSeatImages.forEach((straightSeatImage) => {
-      expect(straightSeatImage.height).toBe(cornerImage.height);
-    });
-    expect(horizontalSeatImage.y).toBe(cornerImage.y);
-    expect((horizontalSeatImage.x || 0) + (horizontalSeatImage.width || 0)).toBeCloseTo(cornerImage.x || 0, 5);
+    expect(cornerIndices).toHaveLength(4);
+    cornerIndices.forEach((index) => expect(index).toBeLessThan(tableIndex));
+    expect(corner).not.toBeNull();
+    expect(corner?.getAttribute("data-bench-depth")).toBe("56");
+    expect(elbow).not.toBeNull();
+    expect(horizontalArm).not.toBeNull();
+    expect(verticalArm).not.toBeNull();
+    expect(number(horizontalArm, "height")).toBe(number(elbow, "height"));
+    expect(number(verticalArm, "width")).toBe(number(elbow, "width"));
+    expect(number(horizontalArm, "x")).toBeCloseTo(
+      number(elbow, "x") + number(elbow, "width"),
+      5,
+    );
+    expect(number(verticalArm, "y")).toBeCloseTo(
+      number(elbow, "y") + number(elbow, "height"),
+      5,
+    );
   });
 
   it("detects overlapping reservations on the same service window", () => {
-    expect(reservationsOverlap(
-      { id: "a", date: "2026-03-30", time: "19:00", partySize: 2 },
-      { id: "b", date: "2026-03-30", time: "20:30", partySize: 4 },
-    )).toBe(true);
+    expect(
+      reservationsOverlap(
+        { id: "a", date: "2026-03-30", time: "19:00", partySize: 2 },
+        { id: "b", date: "2026-03-30", time: "20:30", partySize: 4 },
+      ),
+    ).toBe(true);
 
-    expect(reservationsOverlap(
-      { id: "a", date: "2026-03-30", time: "19:00", partySize: 2 },
-      { id: "b", date: "2026-03-30", time: "21:30", partySize: 4 },
-    )).toBe(false);
+    expect(
+      reservationsOverlap(
+        { id: "a", date: "2026-03-30", time: "19:00", partySize: 2 },
+        { id: "b", date: "2026-03-30", time: "21:30", partySize: 4 },
+      ),
+    ).toBe(false);
   });
 
   it("summarizes floor plan service health for placement issues", () => {
     const summary = getFloorPlanHealthSummary({
       tables: [
-        { id: "t1", tableNumber: "T1", capacity: 2, isActive: true, kind: "table" },
-        { id: "t2", tableNumber: "T2", capacity: 4, isActive: false, kind: "table" },
-        { id: "plant", tableNumber: "Plante", capacity: 0, isActive: true, kind: "plant" },
+        {
+          id: "t1",
+          tableNumber: "T1",
+          capacity: 2,
+          isActive: true,
+          kind: "table",
+        },
+        {
+          id: "t2",
+          tableNumber: "T2",
+          capacity: 4,
+          isActive: false,
+          kind: "table",
+        },
+        {
+          id: "plant",
+          tableNumber: "Plante",
+          capacity: 0,
+          isActive: true,
+          kind: "plant",
+        },
       ],
       reservations: [
         { id: "r1", partySize: 3, assignedTableId: "t1" },
@@ -830,13 +1198,43 @@ describe("floor plan helpers", () => {
   it("flags overlapping reservations assigned to the same table", () => {
     const summary = getFloorPlanHealthSummary({
       tables: [
-        { id: "t1", tableNumber: "T1", capacity: 4, isActive: true, kind: "table" },
-        { id: "t2", tableNumber: "T2", capacity: 4, isActive: true, kind: "table" },
+        {
+          id: "t1",
+          tableNumber: "T1",
+          capacity: 4,
+          isActive: true,
+          kind: "table",
+        },
+        {
+          id: "t2",
+          tableNumber: "T2",
+          capacity: 4,
+          isActive: true,
+          kind: "table",
+        },
       ],
       reservations: [
-        { id: "r1", partySize: 2, assignedTableId: "t1", date: "2026-03-30", time: "19:00" },
-        { id: "r2", partySize: 2, assignedTableId: "t1", date: "2026-03-30", time: "20:00" },
-        { id: "r3", partySize: 4, assignedTableId: "t2", date: "2026-03-30", time: "21:30" },
+        {
+          id: "r1",
+          partySize: 2,
+          assignedTableId: "t1",
+          date: "2026-03-30",
+          time: "19:00",
+        },
+        {
+          id: "r2",
+          partySize: 2,
+          assignedTableId: "t1",
+          date: "2026-03-30",
+          time: "20:00",
+        },
+        {
+          id: "r3",
+          partySize: 4,
+          assignedTableId: "t2",
+          date: "2026-03-30",
+          time: "21:30",
+        },
       ],
     });
 
@@ -848,8 +1246,20 @@ describe("floor plan helpers", () => {
   it("marks the floor plan service ready when all reservations fit active tables", () => {
     const summary = getFloorPlanHealthSummary({
       tables: [
-        { id: "t1", tableNumber: "T1", capacity: 2, isActive: true, kind: "table" },
-        { id: "t2", tableNumber: "T2", capacity: 4, isActive: true, kind: "table" },
+        {
+          id: "t1",
+          tableNumber: "T1",
+          capacity: 2,
+          isActive: true,
+          kind: "table",
+        },
+        {
+          id: "t2",
+          tableNumber: "T2",
+          capacity: 4,
+          isActive: true,
+          kind: "table",
+        },
       ],
       reservations: [
         { id: "r1", partySize: 2, assignedTableId: "t1" },
