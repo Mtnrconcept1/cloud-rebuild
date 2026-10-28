@@ -6,6 +6,7 @@ import {
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { getEffectiveFeatureFlagSet } from "../_shared/feature-flags.ts";
 import {
   SLOT_MAX_ATTEMPTS_PER_DAY,
   SLOT_RULE_VERSION,
@@ -137,6 +138,11 @@ Deno.serve(async (req) => {
   try {
     actor = await authenticateRequest(req, { allowServiceRole: false });
     assertClientActor(actor);
+
+    const activeFlags = await getEffectiveFeatureFlagSet(actor.adminClient);
+    if (!activeFlags.has("daily-slot-machine")) {
+      throw new HttpError(403, "Machine à sous désactivée");
+    }
 
     if (req.method === "GET") {
       const status = await getSpinStatus(actor, spinDate);

@@ -23,6 +23,8 @@ const FEATURE_DEFINITIONS: Record<string, FeatureDefinition> = {
   commandes: { defaultEnabled: true, dependsOn: ["livraison"] },
   "anti-gaspi": { defaultEnabled: true, dependsOn: ["emporter"] },
   "ventes-flash": { defaultEnabled: true },
+  "plinko-welcome": { defaultEnabled: false },
+  "daily-slot-machine": { defaultEnabled: false },
   "zero-attente": { defaultEnabled: true, dependsOn: ["reservation", "sur-place"] },
 };
 

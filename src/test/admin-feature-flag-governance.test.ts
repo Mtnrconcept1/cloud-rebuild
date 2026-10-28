@@ -83,5 +83,9 @@ describe("admin feature flag governance", () => {
     expect(page).toContain("Raison obligatoire");
     expect(page).toContain("applyFeatureFlagPreset");
     expect(page).toContain("flagAuditLogs");
+    expect(adminHome).toContain("Jeux clients");
+    expect(adminHome).toContain('flag.name === "plinko-welcome"');
+    expect(adminHome).toContain('flag.name === "daily-slot-machine"');
+    expect(adminHome).toContain("setFlagState");
   });
 });

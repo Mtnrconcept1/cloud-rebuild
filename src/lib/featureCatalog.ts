@@ -342,6 +342,20 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     group: "client_features",
     routeTargets: ["/points-cadeau"],
   },
+  {
+    name: "plinko-welcome",
+    label: "Plinko de bienvenue",
+    description: "Active le Plinko gratuit proposé aux visiteurs et la réclamation des gains.",
+    defaultEnabled: false,
+    group: "client_features",
+  },
+  {
+    name: "daily-slot-machine",
+    label: "Machine à sous quotidienne",
+    description: "Active la machine à sous Miamz et ses trois essais quotidiens pour les clients éligibles.",
+    defaultEnabled: false,
+    group: "client_features",
+  },
 {
   name: "customer-memory",
   label: "TOK Customer Memory",

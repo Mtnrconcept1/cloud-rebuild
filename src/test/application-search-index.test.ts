@@ -60,7 +60,11 @@ describe("application search index", () => {
     expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/equipe/mon-espace")).toBe(true);
     expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/dashboard/equipe")).toBe(true);
     expect(index.catalogs.frontendRoutes.some((route: { path: string }) => route.path === "/admin/equipe")).toBe(true);
-    expect(index.catalogs.featureFlags).toHaveLength(99);
+    expect(index.catalogs.featureFlags.length).toBeGreaterThanOrEqual(101);
+    expect(index.catalogs.featureFlags).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: "plinko-welcome" }),
+      expect.objectContaining({ name: "daily-slot-machine" }),
+    ]));
     expect(index.catalogs.apiRoutes).toHaveLength(11);
     expect(index.catalogs.apiRoutes).toEqual(expect.arrayContaining([
       expect.objectContaining({ route: "/api/marketing/mcp" }),

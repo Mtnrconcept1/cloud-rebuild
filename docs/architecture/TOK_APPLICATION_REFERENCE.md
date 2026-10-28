@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `d1945ed5599cce160d7f98c58f67e5cf57622ce120db2a74aeee9ec3cbe4bcab`
+- Empreinte SHA-256 des sources indexées : `60ba52b896f0d2e74e9d589b4314733cfcc158c7747e7df4b432f22c212632ca`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -33,11 +33,11 @@
 | edgeFunctions | 123 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 4246 |
-| featureFlags | 99 |
+| featureFlags | 101 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 586 |
+| migrations | 587 |
 | modules | 1909 |
 | pages | 133 |
 | pathLiterals | 946 |
@@ -45,8 +45,8 @@
 | publicEntries | 772 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19704 |
-| repositoryFiles | 3816 |
+| records | 19708 |
+| repositoryFiles | 3817 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -103,7 +103,7 @@ GitHub Actions : contrôles, synchronisation, déploiement et opérations planif
 | Groupe | Flags |
 | --- | --- |
 | admin_tools | 24 |
-| client_features | 23 |
+| client_features | 25 |
 | courier | 5 |
 | journeys | 5 |
 | payments | 6 |
@@ -253,9 +253,9 @@ GitHub Actions : contrôles, synchronisation, déploiement et opérations planif
 | `/guide/restaurateur` | public | Navigate | — | — | /aide | [src/App.tsx:709](../../src/App.tsx#L709) |
 | `/guide/plateforme` | public | Navigate | — | — | /aide | [src/App.tsx:710](../../src/App.tsx#L710) |
 | `*` | system | NotFound | — | — | — | [src/App.tsx:711](../../src/App.tsx#L711) |
-| `/marketing/login` | marketing | MarketingLogin | — | — | — | [src/App.tsx:757](../../src/App.tsx#L757) |
-| `/marketing` | marketing | MarketingProtectedRoute, MarketingWorkspace | MarketingProtectedRoute | — | — | [src/App.tsx:758](../../src/App.tsx#L758) |
-| `/marketing/*` | marketing | Navigate | — | — | /marketing | [src/App.tsx:766](../../src/App.tsx#L766) |
+| `/marketing/login` | marketing | MarketingLogin | — | — | — | [src/App.tsx:759](../../src/App.tsx#L759) |
+| `/marketing` | marketing | MarketingProtectedRoute, MarketingWorkspace | MarketingProtectedRoute | — | — | [src/App.tsx:760](../../src/App.tsx#L760) |
+| `/marketing/*` | marketing | Navigate | — | — | /marketing | [src/App.tsx:768](../../src/App.tsx#L768) |
 
 ## Routage Vercel, domaines et middleware
 
@@ -1423,7 +1423,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | / | 287 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 8 | [src/test/admin-crm-theme-csp.test.ts:27](../../src/test/admin-crm-theme-csp.test.ts#L27) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
-| /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:100](../../src/test/application-search-index.test.ts#L100) |
+| /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:104](../../src/test/application-search-index.test.ts#L104) |
 | /.well-known/apple-app-site-association-extra | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
 | /.well-known/assetlinks.json | 3 | [scripts/mobile-verify.mjs:262](../../scripts/mobile-verify.mjs#L262) |
 | /.well-known/oauth-protected-resource | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
@@ -1508,8 +1508,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/restaurants | 13 | [src/App.tsx:670](../../src/App.tsx#L670) |
 | /admin/restaurants/google-business | 7 | [src/App.tsx:672](../../src/App.tsx#L672) |
 | /admin/security-center | 8 | [src/App.tsx:692](../../src/App.tsx#L692) |
-| /admin/security-center?view=audit | 1 | [src/pages/admin/AdminHome.tsx:841](../../src/pages/admin/AdminHome.tsx#L841) |
-| /admin/security-center?view=guardian | 1 | [src/pages/admin/AdminHome.tsx:248](../../src/pages/admin/AdminHome.tsx#L248) |
+| /admin/security-center?view=audit | 1 | [src/pages/admin/AdminHome.tsx:912](../../src/pages/admin/AdminHome.tsx#L912) |
+| /admin/security-center?view=guardian | 1 | [src/pages/admin/AdminHome.tsx:250](../../src/pages/admin/AdminHome.tsx#L250) |
 | /admin/sinistres | 8 | [src/App.tsx:689](../../src/App.tsx#L689) |
 | /admin/sinistres?incident= | 2 | [src/test/notifications-sinistres-governance.test.ts:202](../../src/test/notifications-sinistres-governance.test.ts#L202) |
 | /admin/sinistres?incident=incident-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:33](../../src/test/notifications-sinistres-governance.test.ts#L33) |
@@ -1535,8 +1535,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/marketing/launch | 2 | [src/marketing/marketingBffClient.ts:16](../../src/marketing/marketingBffClient.ts#L16) |
 | /api/marketing/login | 1 | [src/marketing/marketingBffClient.ts:9](../../src/marketing/marketingBffClient.ts#L9) |
 | /api/marketing/logout | 1 | [src/marketing/marketingBffClient.ts:12](../../src/marketing/marketingBffClient.ts#L12) |
-| /api/marketing/mcp | 1 | [src/test/application-search-index.test.ts:66](../../src/test/application-search-index.test.ts#L66) |
-| /api/marketing/mcp-link | 2 | [src/test/application-search-index.test.ts:67](../../src/test/application-search-index.test.ts#L67) |
+| /api/marketing/mcp | 1 | [src/test/application-search-index.test.ts:70](../../src/test/application-search-index.test.ts#L70) |
+| /api/marketing/mcp-link | 2 | [src/test/application-search-index.test.ts:71](../../src/test/application-search-index.test.ts#L71) |
 | /api/marketing/mfa/enroll | 1 | [src/marketing/marketingBffClient.ts:10](../../src/marketing/marketingBffClient.ts#L10) |
 | /api/marketing/mfa/verify | 4 | [src/marketing/marketingBffClient.ts:11](../../src/marketing/marketingBffClient.ts#L11) |
 | /api/marketing/orchestrator | 7 | [src/marketing/marketingBffClient.ts:14](../../src/marketing/marketingBffClient.ts#L14) |
@@ -1674,7 +1674,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1255](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1255) |
 | /dashboard/notifications | 16 | [src/App.tsx:627](../../src/App.tsx#L627) |
 | /dashboard/offres | 7 | [src/App.tsx:643](../../src/App.tsx#L643) |
-| /dashboard/pack | 2 | [src/test/feature-flags.test.ts:120](../../src/test/feature-flags.test.ts#L120) |
+| /dashboard/pack | 2 | [src/test/feature-flags.test.ts:132](../../src/test/feature-flags.test.ts#L132) |
 | /dashboard/performances | 9 | [src/App.tsx:634](../../src/App.tsx#L634) |
 | /dashboard/photos | 19 | [src/App.tsx:646](../../src/App.tsx#L646) |
 | /dashboard/plan-de-salle | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:211](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L211) |
@@ -1784,7 +1784,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /guide | 6 | [src/App.tsx:708](../../src/App.tsx#L708) |
 | /guide/plateforme | 2 | [src/App.tsx:710](../../src/App.tsx#L710) |
 | /guide/restaurateur | 3 | [src/App.tsx:709](../../src/App.tsx#L709) |
-| /healthz | 2 | [src/test/application-search-index.test.ts:103](../../src/test/application-search-index.test.ts#L103) |
+| /healthz | 2 | [src/test/application-search-index.test.ts:107](../../src/test/application-search-index.test.ts#L107) |
 | /help.png | 1 | [src/components/help/ChefHelpButton.tsx:40](../../src/components/help/ChefHelpButton.tsx#L40) |
 | /help@tok_bot | 1 | [src/test/telegram-codex-request.test.ts:23](../../src/test/telegram-codex-request.test.ts#L23) |
 | /higgsfield/tok-intro-desktop.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:55](../../src/test/mobile-logo-intro.test.tsx#L55) |
@@ -2052,13 +2052,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /marketing | 34 | [scripts/application-index-core.mjs:168](../../scripts/application-index-core.mjs#L168) |
 | /marketing-public | 1 | [src/test/marketing-domain-isolation.test.ts:25](../../src/test/marketing-domain-isolation.test.ts#L25) |
 | /marketing/ | 1 | [src/App.tsx:327](../../src/App.tsx#L327) |
-| /marketing/* | 2 | [src/App.tsx:766](../../src/App.tsx#L766) |
+| /marketing/* | 2 | [src/App.tsx:768](../../src/App.tsx#L768) |
 | /marketing/../admin | 1 | [src/test/marketing-login-navigation.test.tsx:97](../../src/test/marketing-login-navigation.test.tsx#L97) |
 | /marketing/brand/tok-v3/culinary.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:12](../../src/test/marketing-brand-gallery.test.tsx#L12) |
 | /marketing/brand/tok-v3/instagram-profile.jpeg | 4 | [src/test/marketing-brand-gallery.test.tsx:11](../../src/test/marketing-brand-gallery.test.tsx#L11) |
 | /marketing/brand/tok-v3/studio-chef.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:13](../../src/test/marketing-brand-gallery.test.tsx#L13) |
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
-| /marketing/login | 28 | [src/App.tsx:757](../../src/App.tsx#L757) |
+| /marketing/login | 28 | [src/App.tsx:759](../../src/App.tsx#L759) |
 | /marketing?view=calendar | 1 | [src/test/marketing-login-navigation.test.tsx:105](../../src/test/marketing-login-navigation.test.tsx#L105) |
 | /marketing?view=calendar#access_token=secret | 1 | [src/test/marketing-login-navigation.test.tsx:98](../../src/test/marketing-login-navigation.test.tsx#L98) |
 | /marketing?view=calendar&campaignId=../../admin&itemId=javascript:bad&from=2026-02-31&to=2026-99-10&page=9007199254740992 | 1 | [src/test/marketing-review-navigation.test.tsx:90](../../src/test/marketing-review-navigation.test.tsx#L90) |
@@ -2081,7 +2081,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /mon-compte-facturation | 1 | [src/test/dashboard-design-preview-export.test.tsx:68](../../src/test/dashboard-design-preview-export.test.tsx#L68) |
 | /mon-espace | 45 | [scripts/prerender-seo.mjs:1274](../../scripts/prerender-seo.mjs#L1274) |
 | /mon-espace-public | 1 | [src/test/customer-workspace-routes.test.ts:29](../../src/test/customer-workspace-routes.test.ts#L29) |
-| /mon-espace?source=pwa-shortcut | 1 | [src/test/application-search-index.test.ts:127](../../src/test/application-search-index.test.ts#L127) |
+| /mon-espace?source=pwa-shortcut | 1 | [src/test/application-search-index.test.ts:131](../../src/test/application-search-index.test.ts#L131) |
 | /multi-restaurant | 16 | [scripts/prerender-seo.mjs:1089](../../scripts/prerender-seo.mjs#L1089) |
 | /multi-stop | 13 | [scripts/prerender-seo.mjs:1097](../../scripts/prerender-seo.mjs#L1097) |
 | /notification/partners/{partnerId}/bookings:notify | 1 | [supabase/functions/google-actions-center-sync/index.ts:60](../../supabase/functions/google-actions-center-sync/index.ts#L60) |
@@ -2132,7 +2132,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/ | 2 | [scripts/harden-seo-crawl.mjs:118](../../scripts/harden-seo-crawl.mjs#L118) |
 | /r/:slug | 3 | [src/App.tsx:586](../../src/App.tsx#L586) |
 | /r/:slug/reserver | 2 | [src/App.tsx:585](../../src/App.tsx#L585) |
-| /readyz | 3 | [src/test/application-search-index.test.ts:103](../../src/test/application-search-index.test.ts#L103) |
+| /readyz | 3 | [src/test/application-search-index.test.ts:107](../../src/test/application-search-index.test.ts#L107) |
 | /recherche | 85 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
 | /recherche#cuisines | 1 | [src/test/app-page-navigation.test.tsx:29](../../src/test/app-page-navigation.test.tsx#L29) |
 | /recherche?city=Lausanne | 1 | [src/test/restaurant-search-preview.test.tsx:91](../../src/test/restaurant-search-preview.test.tsx#L91) |
@@ -2346,9 +2346,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /v1/territories?limit=200 | 1 | [scripts/app-store-availability-submit-v5.mjs:91](../../scripts/app-store-availability-submit-v5.mjs#L91) |
 | /v2/appAvailabilities | 2 | [scripts/app-store-availability-submit-v5.mjs:120](../../scripts/app-store-availability-submit-v5.mjs#L120) |
 | /v3/BatchAvailabilityLookup/ | 2 | [src/test/google-actions-center-readiness.test.ts:47](../../src/test/google-actions-center-readiness.test.ts#L47) |
-| /v3/CreateBooking/ | 3 | [src/test/application-search-index.test.ts:111](../../src/test/application-search-index.test.ts#L111) |
+| /v3/CreateBooking/ | 3 | [src/test/application-search-index.test.ts:115](../../src/test/application-search-index.test.ts#L115) |
 | /v3/GetBookingStatus/ | 2 | [src/test/google-actions-center-readiness.test.ts:50](../../src/test/google-actions-center-readiness.test.ts#L50) |
-| /v3/HealthCheck/ | 4 | [src/test/application-search-index.test.ts:199](../../src/test/application-search-index.test.ts#L199) |
+| /v3/HealthCheck/ | 4 | [src/test/application-search-index.test.ts:203](../../src/test/application-search-index.test.ts#L203) |
 | /v3/ListBookings/ | 2 | [src/test/google-actions-center-readiness.test.ts:51](../../src/test/google-actions-center-readiness.test.ts#L51) |
 | /v3/UpdateBooking/ | 2 | [src/test/google-actions-center-readiness.test.ts:49](../../src/test/google-actions-center-readiness.test.ts#L49) |
 | /v3/feeds/availability | 2 | [src/test/google-actions-center-readiness.test.ts:99](../../src/test/google-actions-center-readiness.test.ts#L99) |
@@ -2583,72 +2583,74 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 | tok-connect-webhooks | TOK Connect Webhooks | client_features | true | — | tok-connect | Active les webhooks sortants signes pour partenaires approuves. | [src/lib/featureCatalog.ts:321](../../src/lib/featureCatalog.ts#L321) |
 | tok-connect-autopilot | TOK Connect Autopilot | client_features | false | — | tok-connect | Garde les actions autonomes hors production v1. | [src/lib/featureCatalog.ts:329](../../src/lib/featureCatalog.ts#L329) |
 | points-cadeau | Points cadeau | client_features | false | /points-cadeau | — | Active la page de fidélité et d'utilisation des points cadeau. | [src/lib/featureCatalog.ts:337](../../src/lib/featureCatalog.ts#L337) |
-| customer-memory | TOK Customer Memory | client_features | true | /memoire-tok | — | Active la mémoire client explicite et consentie ainsi que son inférence IA. | [src/lib/featureCatalog.ts:345](../../src/lib/featureCatalog.ts#L345) |
-| commercial-prospection | Prospection commerciale | admin_tools | true | /commercial, /commercial/prospection, /commercial/demo-live | — | Expose la carte terrain et le suivi des restaurants visités par les commerciaux TOK. | [src/lib/featureCatalog.ts:353](../../src/lib/featureCatalog.ts#L353) |
-| campagnes-pub | Campagnes pub | restaurant_dashboard | true | — | — | Active les mises en avant sponsorisées et la gestion des campagnes. | [src/lib/featureCatalog.ts:361](../../src/lib/featureCatalog.ts#L361) |
-| performances | Performances | restaurant_dashboard | true | — | — | Active les vues de performance et comparaison restaurateur. | [src/lib/featureCatalog.ts:368](../../src/lib/featureCatalog.ts#L368) |
-| dashboard-restaurateur | Dashboard restaurateur | restaurant_dashboard | true | — | — | Expose l'entrée du dashboard restaurateur et ses sections internes. | [src/lib/featureCatalog.ts:375](../../src/lib/featureCatalog.ts#L375) |
-| dashboard-campaign-studio | Dashboard: Campaign Studio IA | restaurant_dashboard | true | /dashboard/campaign-studio | dashboard-restaurateur | Expose la génération et la préparation de campagnes marketing assistées par IA. | [src/lib/featureCatalog.ts:383](../../src/lib/featureCatalog.ts#L383) |
-| dashboard-overview | Dashboard: Vue d'ensemble | restaurant_dashboard | true | /dashboard | dashboard-restaurateur | Affiche la page d'accueil du dashboard restaurateur. | [src/lib/featureCatalog.ts:392](../../src/lib/featureCatalog.ts#L392) |
-| dashboard-advisor | Dashboard: Assistant IA | restaurant_dashboard | true | /dashboard/advisor, /dashboard/recommandations | dashboard-restaurateur | Expose l'assistant IA du dashboard restaurateur. | [src/lib/featureCatalog.ts:401](../../src/lib/featureCatalog.ts#L401) |
-| ai_support_chat | IA support client | client_features | true | — | — | Active le chat support IA client avec escalade humaine et tickets audités. | [src/lib/featureCatalog.ts:410](../../src/lib/featureCatalog.ts#L410) |
-| ai_menu_optimizer | IA optimisation menu | restaurant_dashboard | true | — | dashboard-restaurateur | Active l'optimisation des menus, descriptions et traductions côté restaurateur. | [src/lib/featureCatalog.ts:417](../../src/lib/featureCatalog.ts#L417) |
-| ai_marketing_campaigns | IA campagnes marketing | restaurant_dashboard | true | — | dashboard-restaurateur | Active les brouillons de campagnes et contenus promotionnels IA. | [src/lib/featureCatalog.ts:425](../../src/lib/featureCatalog.ts#L425) |
-| ai_photo_enhancer | IA photos incluses | restaurant_dashboard | true | — | dashboard-restaurateur | Active les recommandations et briefs d'amélioration photo. | [src/lib/featureCatalog.ts:433](../../src/lib/featureCatalog.ts#L433) |
-| ai_sales_insights | IA analyse des ventes | restaurant_dashboard | true | — | dashboard-restaurateur | Expose l'Assistant IA restaurateur, les analyses de ventes et les recommandations marge. | [src/lib/featureCatalog.ts:441](../../src/lib/featureCatalog.ts#L441) |
-| ai_accounting_insights | IA comptabilité admin | admin_tools | true | /admin/compta/ia | admin-compta | Expose les synthèses comptables, anomalies, prévisions et coût IA côté admin. | [src/lib/featureCatalog.ts:449](../../src/lib/featureCatalog.ts#L449) |
-| ai_admin_monitoring | IA monitoring admin | admin_tools | true | /admin/ai-operations | — | Expose le monitoring IA sécurité, performance, coûts et incidents. | [src/lib/featureCatalog.ts:458](../../src/lib/featureCatalog.ts#L458) |
-| admin_dashboard_ai_chat | IA chat dashboard admin | admin_tools | true | — | admin-operations-center, ai_admin_monitoring | Active le chat IA admin privilegie avec analyse des donnees et logs du back-office. | [src/lib/featureCatalog.ts:466](../../src/lib/featureCatalog.ts#L466) |
-| ai_premium_image_generation | IA image premium | restaurant_dashboard | false | — | dashboard-restaurateur, ai_photo_enhancer | Active la génération image premium réservée aux abonnements supérieurs. | [src/lib/featureCatalog.ts:474](../../src/lib/featureCatalog.ts#L474) |
-| dashboard-restaurant | Dashboard: Mon restaurant | restaurant_dashboard | true | /dashboard/restaurant | dashboard-restaurateur | Expose l'édition de la fiche restaurant et des capacités locales. | [src/lib/featureCatalog.ts:482](../../src/lib/featureCatalog.ts#L482) |
-| dashboard-menu | Dashboard: Menu | restaurant_dashboard | true | /dashboard/menu | dashboard-restaurateur | Expose la gestion du menu restaurateur. | [src/lib/featureCatalog.ts:491](../../src/lib/featureCatalog.ts#L491) |
-| daily-dish-ai | IA Plat du jour | restaurant_dashboard | true | /dashboard/menu | dashboard-restaurateur, dashboard-menu, ai_menu_optimizer, ai_photo_enhancer, ai_sales_insights | Trois propositions quotidiennes avec recherche fournisseurs, coûts, recette et publication PhotoPro. | [src/lib/featureCatalog.ts:500](../../src/lib/featureCatalog.ts#L500) |
-| dashboard-photos | Dashboard: Photos | restaurant_dashboard | true | /dashboard/photos | dashboard-restaurateur | Expose la gestion des photos du restaurant. | [src/lib/featureCatalog.ts:509](../../src/lib/featureCatalog.ts#L509) |
-| dashboard-commandes | Dashboard: Commandes et retraits | restaurant_dashboard | true | /dashboard/commandes | dashboard-restaurateur | Conserve le suivi des retraits et des commandes existantes, indépendamment de la création de nouvelles livraisons. | [src/lib/featureCatalog.ts:518](../../src/lib/featureCatalog.ts#L518) |
-| dashboard-reservations | Dashboard: Reservations | restaurant_dashboard | true | /dashboard/reservations | dashboard-restaurateur, reservation | Expose la vue réservations du dashboard restaurateur. | [src/lib/featureCatalog.ts:527](../../src/lib/featureCatalog.ts#L527) |
-| dashboard-performances | Dashboard: Performances | restaurant_dashboard | true | /dashboard/performances, /dashboard/compta | dashboard-restaurateur, performances | Expose la page performances du dashboard restaurateur. | [src/lib/featureCatalog.ts:536](../../src/lib/featureCatalog.ts#L536) |
-| dashboard-comparaison | Dashboard: Comparaison | restaurant_dashboard | true | /dashboard/comparaison | dashboard-restaurateur, performances | Expose la page comparaison du dashboard restaurateur. | [src/lib/featureCatalog.ts:545](../../src/lib/featureCatalog.ts#L545) |
-| dashboard-avis | Dashboard: Avis | restaurant_dashboard | true | /dashboard/avis | dashboard-restaurateur | Expose la vue d'avis clients du dashboard restaurateur. | [src/lib/featureCatalog.ts:554](../../src/lib/featureCatalog.ts#L554) |
-| dashboard-campagne-overview | Dashboard: Campagnes | restaurant_dashboard | true | /dashboard/campagne-overview | dashboard-restaurateur, campagnes-pub | Expose la vue synthese des campagnes publicitaires. | [src/lib/featureCatalog.ts:563](../../src/lib/featureCatalog.ts#L563) |
-| dashboard-reseaux-sociaux | Dashboard: Reseaux sociaux | restaurant_dashboard | true | /dashboard/reseaux-sociaux | dashboard-restaurateur, campagnes-pub | Expose les activations réseaux sociaux côté restaurateur. | [src/lib/featureCatalog.ts:572](../../src/lib/featureCatalog.ts#L572) |
-| dashboard-actualites | Dashboard: Actualités | restaurant_dashboard | true | /dashboard/actualites | dashboard-restaurateur | Expose la publication et le suivi des posts du fil social. | [src/lib/featureCatalog.ts:581](../../src/lib/featureCatalog.ts#L581) |
-| dashboard-campagnes | Dashboard: Campagnes avancees | restaurant_dashboard | true | /dashboard/campagnes | dashboard-restaurateur, campagnes-pub | Expose l'édition complète des campagnes sponsorisées. | [src/lib/featureCatalog.ts:590](../../src/lib/featureCatalog.ts#L590) |
-| dashboard-crm | Dashboard: CRM clients | restaurant_dashboard | true | /dashboard/crm | dashboard-restaurateur, commandes, emporter, reservation | Expose le CRM restaurateur base sur les commandes, reservations et habitudes client. | [src/lib/featureCatalog.ts:599](../../src/lib/featureCatalog.ts#L599) |
-| dashboard-factures | Dashboard: Factures | restaurant_dashboard | true | /dashboard/factures, /dashboard/factures/entrees, /dashboard/factures/sorties | dashboard-restaurateur | Expose la vue factures et paiements restaurateur. | [src/lib/featureCatalog.ts:609](../../src/lib/featureCatalog.ts#L609) |
-| dashboard-factures-parametres | Dashboard: Paramètres de facturation | restaurant_dashboard | true | /dashboard/factures/parametres | dashboard-restaurateur | Expose les paramètres de facturation restaurateur. | [src/lib/featureCatalog.ts:618](../../src/lib/featureCatalog.ts#L618) |
-| dashboard-billing | Dashboard: Mon compte/Facturation | restaurant_dashboard | true | /dashboard/mon-compte-facturation | dashboard-restaurateur | Expose le compte restaurateur, l'abonnement, l'upgrade et le suivi des crédits. | [src/lib/featureCatalog.ts:627](../../src/lib/featureCatalog.ts#L627) |
-| dashboard-offres | Dashboard: Anti-gaspi | restaurant_dashboard | true | /dashboard/offres | dashboard-restaurateur, anti-gaspi | Expose la gestion anti-gaspi côté restaurateur. | [src/lib/featureCatalog.ts:636](../../src/lib/featureCatalog.ts#L636) |
-| dashboard-ventes-flash | Dashboard: Ventes flash | restaurant_dashboard | true | /dashboard/ventes-flash | dashboard-restaurateur, ventes-flash | Expose la gestion des ventes flash côté restaurateur. | [src/lib/featureCatalog.ts:645](../../src/lib/featureCatalog.ts#L645) |
-| dashboard-formules | Dashboard: Formules | restaurant_dashboard | true | /dashboard/formules | dashboard-restaurateur | Expose la gestion des formules et menus. | [src/lib/featureCatalog.ts:654](../../src/lib/featureCatalog.ts#L654) |
-| dashboard-service | Dashboard: Pilotage de service | restaurant_dashboard | true | /dashboard/service | dashboard-restaurateur | Expose le pilotage des réservations et du service du restaurant. | [src/lib/featureCatalog.ts:663](../../src/lib/featureCatalog.ts#L663) |
-| dashboard-plan-salle | Dashboard: Plan de salle | restaurant_dashboard | true | /dashboard/plan-salle | dashboard-restaurateur, reservation | Expose le plan de salle, l'édition des tables et l'affectation des réservations. | [src/lib/featureCatalog.ts:672](../../src/lib/featureCatalog.ts#L672) |
-| dashboard-support | Dashboard: Support | restaurant_dashboard | true | /dashboard/support | dashboard-restaurateur | Expose l'aide et le support restaurateur. | [src/lib/featureCatalog.ts:681](../../src/lib/featureCatalog.ts#L681) |
-| dashboard-tok-connect | Dashboard: TOK Connect | restaurant_dashboard | true | /dashboard/tok-connect | dashboard-restaurateur, tok-connect | Expose les consentements partenaires TOK Connect par restaurant. | [src/lib/featureCatalog.ts:690](../../src/lib/featureCatalog.ts#L690) |
-| dashboard-promotions | Dashboard: Promotions | restaurant_dashboard | true | /dashboard/promotions | dashboard-restaurateur | Expose la page promotions restaurateur. | [src/lib/featureCatalog.ts:699](../../src/lib/featureCatalog.ts#L699) |
-| espace-livreur | Dashboard coursier | courier | false | — | — | Expose l'entrée du dashboard coursier et ses routes dédiées. | [src/lib/featureCatalog.ts:708](../../src/lib/featureCatalog.ts#L708) |
-| courier-home | Coursier: Vue d'ensemble | courier | false | /courier | espace-livreur | Expose la page d'accueil du dashboard livreur. | [src/lib/featureCatalog.ts:716](../../src/lib/featureCatalog.ts#L716) |
-| courier-jobs | Coursier: Missions | courier | false | /courier/jobs | espace-livreur | Expose la gestion des missions coursier. | [src/lib/featureCatalog.ts:725](../../src/lib/featureCatalog.ts#L725) |
-| courier-earnings | Coursier: Gains | courier | false | /courier/earnings | espace-livreur | Expose le suivi des gains coursier. | [src/lib/featureCatalog.ts:734](../../src/lib/featureCatalog.ts#L734) |
-| courier-profile | Coursier: Profil | courier | false | /courier/profile | espace-livreur | Expose le profil coursier et ses validations. | [src/lib/featureCatalog.ts:743](../../src/lib/featureCatalog.ts#L743) |
-| admin-support-resolution | Admin: Résolution IA | admin_tools | true | /admin/support-resolution | — | Expose l'assistance IA à l'analyse et à la résolution des incidents support. | [src/lib/featureCatalog.ts:752](../../src/lib/featureCatalog.ts#L752) |
-| admin-guardian | Admin: Guardian IA | admin_tools | true | /admin/guardian, /admin/security-center | — | Expose l'analyse IA de santé, sécurité et incidents de la plateforme. | [src/lib/featureCatalog.ts:761](../../src/lib/featureCatalog.ts#L761) |
-| admin-marketing-operations | Admin: Centre marketing | admin_tools | true | /marketing | — | Pilote le calendrier, les campagnes, les audiences, les automatisations, les envois et leurs résultats depuis un espace admin isolé. | [src/lib/featureCatalog.ts:770](../../src/lib/featureCatalog.ts#L770) |
-| admin-restaurants | Admin: Restaurants | admin_tools | true | /admin/restaurants, /admin/restaurants/google-business | — | Expose la gestion admin des restaurants. | [src/lib/featureCatalog.ts:779](../../src/lib/featureCatalog.ts#L779) |
-| admin-utilisateurs | Admin: Utilisateurs | admin_tools | true | /admin/utilisateurs | — | Expose la gestion admin des utilisateurs et des roles. | [src/lib/featureCatalog.ts:787](../../src/lib/featureCatalog.ts#L787) |
-| admin-avis | Admin: Avis | admin_tools | true | /admin/avis | — | Expose la moderation des avis. | [src/lib/featureCatalog.ts:795](../../src/lib/featureCatalog.ts#L795) |
-| admin-catalog | Admin: Catalogue | admin_tools | true | /admin/catalog | — | Expose le catalogue central et ses taxonomies. | [src/lib/featureCatalog.ts:803](../../src/lib/featureCatalog.ts#L803) |
-| admin-loyalty | Admin: Fidélité | admin_tools | true | /admin/loyalty | — | Expose la configuration fidélité et abonnement. | [src/lib/featureCatalog.ts:811](../../src/lib/featureCatalog.ts#L811) |
-| admin-drops | Admin: Drops | admin_tools | true | /admin/drops | — | Expose la gestion des drops et ventes flash admin. | [src/lib/featureCatalog.ts:819](../../src/lib/featureCatalog.ts#L819) |
-| admin-notifications | Admin: Notifications | admin_tools | true | /admin/notifications | — | Expose la gestion des notifications et campagnes. | [src/lib/featureCatalog.ts:827](../../src/lib/featureCatalog.ts#L827) |
-| admin-platform-config | Admin: Configuration plateforme | admin_tools | true | /admin/platform | — | Expose le panneau de configuration plateforme et la gouvernance des feature flags. | [src/lib/featureCatalog.ts:835](../../src/lib/featureCatalog.ts#L835) |
-| admin-operations-center | Admin: Operations Center | admin_tools | true | /admin/commandes-reservations, /admin/sinistres | — | Expose la supervision admin des commandes, reservations, remboursements et dispatch. | [src/lib/featureCatalog.ts:844](../../src/lib/featureCatalog.ts#L844) |
-| admin-tok-connect | Admin: TOK Connect | admin_tools | true | /admin/tok-connect | tok-connect | Expose la supervision des partenaires, scopes, quotas et webhooks TOK Connect. | [src/lib/featureCatalog.ts:853](../../src/lib/featureCatalog.ts#L853) |
-| admin-actualites | Admin: Actualités sociales | admin_tools | true | /admin/actualites | — | Expose la moderation du fil social. | [src/lib/featureCatalog.ts:862](../../src/lib/featureCatalog.ts#L862) |
-| admin-crm | Admin: CRM clients | admin_tools | true | /admin/crm | — | Expose la segmentation client et les signaux commerciaux du CRM TOK. | [src/lib/featureCatalog.ts:870](../../src/lib/featureCatalog.ts#L870) |
-| admin-audit | Admin: Audit | admin_tools | true | /admin/audit, /admin/security-center | — | Expose les journaux d'audit et les exécutions Edge. | [src/lib/featureCatalog.ts:878](../../src/lib/featureCatalog.ts#L878) |
-| admin-packs | Admin: Abonnements restaurateur | admin_tools | true | /admin/packs | — | Expose la supervision admin des abonnements restaurateur et des droits dashboard. | [src/lib/featureCatalog.ts:886](../../src/lib/featureCatalog.ts#L886) |
-| admin-compta | Admin: Comptabilite | admin_tools | true | /admin/compta, /admin/compta/entrees, /admin/compta/sorties | — | Expose l'outil de rapprochement financier et le suivi des commissions 10% / reversements 90%. | [src/lib/featureCatalog.ts:894](../../src/lib/featureCatalog.ts#L894) |
-| coming-soon | Animation de lancement · verrou client | admin_tools | false | /coming-soon | — | Verrou client : seul le flag désactivé ouvre l’application, même à zéro. Lorsque activé, redirige toutes les pages publiques vers la page Coming Soon. Les dashboards admin, restaurateur, coursier et l'authentification restent accessibles. | [src/lib/featureCatalog.ts:902](../../src/lib/featureCatalog.ts#L902) |
+| plinko-welcome | Plinko de bienvenue | client_features | false | — | — | Active le Plinko gratuit proposé aux visiteurs et la réclamation des gains. | [src/lib/featureCatalog.ts:345](../../src/lib/featureCatalog.ts#L345) |
+| daily-slot-machine | Machine à sous quotidienne | client_features | false | — | — | Active la machine à sous Miamz et ses trois essais quotidiens pour les clients éligibles. | [src/lib/featureCatalog.ts:352](../../src/lib/featureCatalog.ts#L352) |
+| customer-memory | TOK Customer Memory | client_features | true | /memoire-tok | — | Active la mémoire client explicite et consentie ainsi que son inférence IA. | [src/lib/featureCatalog.ts:359](../../src/lib/featureCatalog.ts#L359) |
+| commercial-prospection | Prospection commerciale | admin_tools | true | /commercial, /commercial/prospection, /commercial/demo-live | — | Expose la carte terrain et le suivi des restaurants visités par les commerciaux TOK. | [src/lib/featureCatalog.ts:367](../../src/lib/featureCatalog.ts#L367) |
+| campagnes-pub | Campagnes pub | restaurant_dashboard | true | — | — | Active les mises en avant sponsorisées et la gestion des campagnes. | [src/lib/featureCatalog.ts:375](../../src/lib/featureCatalog.ts#L375) |
+| performances | Performances | restaurant_dashboard | true | — | — | Active les vues de performance et comparaison restaurateur. | [src/lib/featureCatalog.ts:382](../../src/lib/featureCatalog.ts#L382) |
+| dashboard-restaurateur | Dashboard restaurateur | restaurant_dashboard | true | — | — | Expose l'entrée du dashboard restaurateur et ses sections internes. | [src/lib/featureCatalog.ts:389](../../src/lib/featureCatalog.ts#L389) |
+| dashboard-campaign-studio | Dashboard: Campaign Studio IA | restaurant_dashboard | true | /dashboard/campaign-studio | dashboard-restaurateur | Expose la génération et la préparation de campagnes marketing assistées par IA. | [src/lib/featureCatalog.ts:397](../../src/lib/featureCatalog.ts#L397) |
+| dashboard-overview | Dashboard: Vue d'ensemble | restaurant_dashboard | true | /dashboard | dashboard-restaurateur | Affiche la page d'accueil du dashboard restaurateur. | [src/lib/featureCatalog.ts:406](../../src/lib/featureCatalog.ts#L406) |
+| dashboard-advisor | Dashboard: Assistant IA | restaurant_dashboard | true | /dashboard/advisor, /dashboard/recommandations | dashboard-restaurateur | Expose l'assistant IA du dashboard restaurateur. | [src/lib/featureCatalog.ts:415](../../src/lib/featureCatalog.ts#L415) |
+| ai_support_chat | IA support client | client_features | true | — | — | Active le chat support IA client avec escalade humaine et tickets audités. | [src/lib/featureCatalog.ts:424](../../src/lib/featureCatalog.ts#L424) |
+| ai_menu_optimizer | IA optimisation menu | restaurant_dashboard | true | — | dashboard-restaurateur | Active l'optimisation des menus, descriptions et traductions côté restaurateur. | [src/lib/featureCatalog.ts:431](../../src/lib/featureCatalog.ts#L431) |
+| ai_marketing_campaigns | IA campagnes marketing | restaurant_dashboard | true | — | dashboard-restaurateur | Active les brouillons de campagnes et contenus promotionnels IA. | [src/lib/featureCatalog.ts:439](../../src/lib/featureCatalog.ts#L439) |
+| ai_photo_enhancer | IA photos incluses | restaurant_dashboard | true | — | dashboard-restaurateur | Active les recommandations et briefs d'amélioration photo. | [src/lib/featureCatalog.ts:447](../../src/lib/featureCatalog.ts#L447) |
+| ai_sales_insights | IA analyse des ventes | restaurant_dashboard | true | — | dashboard-restaurateur | Expose l'Assistant IA restaurateur, les analyses de ventes et les recommandations marge. | [src/lib/featureCatalog.ts:455](../../src/lib/featureCatalog.ts#L455) |
+| ai_accounting_insights | IA comptabilité admin | admin_tools | true | /admin/compta/ia | admin-compta | Expose les synthèses comptables, anomalies, prévisions et coût IA côté admin. | [src/lib/featureCatalog.ts:463](../../src/lib/featureCatalog.ts#L463) |
+| ai_admin_monitoring | IA monitoring admin | admin_tools | true | /admin/ai-operations | — | Expose le monitoring IA sécurité, performance, coûts et incidents. | [src/lib/featureCatalog.ts:472](../../src/lib/featureCatalog.ts#L472) |
+| admin_dashboard_ai_chat | IA chat dashboard admin | admin_tools | true | — | admin-operations-center, ai_admin_monitoring | Active le chat IA admin privilegie avec analyse des donnees et logs du back-office. | [src/lib/featureCatalog.ts:480](../../src/lib/featureCatalog.ts#L480) |
+| ai_premium_image_generation | IA image premium | restaurant_dashboard | false | — | dashboard-restaurateur, ai_photo_enhancer | Active la génération image premium réservée aux abonnements supérieurs. | [src/lib/featureCatalog.ts:488](../../src/lib/featureCatalog.ts#L488) |
+| dashboard-restaurant | Dashboard: Mon restaurant | restaurant_dashboard | true | /dashboard/restaurant | dashboard-restaurateur | Expose l'édition de la fiche restaurant et des capacités locales. | [src/lib/featureCatalog.ts:496](../../src/lib/featureCatalog.ts#L496) |
+| dashboard-menu | Dashboard: Menu | restaurant_dashboard | true | /dashboard/menu | dashboard-restaurateur | Expose la gestion du menu restaurateur. | [src/lib/featureCatalog.ts:505](../../src/lib/featureCatalog.ts#L505) |
+| daily-dish-ai | IA Plat du jour | restaurant_dashboard | true | /dashboard/menu | dashboard-restaurateur, dashboard-menu, ai_menu_optimizer, ai_photo_enhancer, ai_sales_insights | Trois propositions quotidiennes avec recherche fournisseurs, coûts, recette et publication PhotoPro. | [src/lib/featureCatalog.ts:514](../../src/lib/featureCatalog.ts#L514) |
+| dashboard-photos | Dashboard: Photos | restaurant_dashboard | true | /dashboard/photos | dashboard-restaurateur | Expose la gestion des photos du restaurant. | [src/lib/featureCatalog.ts:523](../../src/lib/featureCatalog.ts#L523) |
+| dashboard-commandes | Dashboard: Commandes et retraits | restaurant_dashboard | true | /dashboard/commandes | dashboard-restaurateur | Conserve le suivi des retraits et des commandes existantes, indépendamment de la création de nouvelles livraisons. | [src/lib/featureCatalog.ts:532](../../src/lib/featureCatalog.ts#L532) |
+| dashboard-reservations | Dashboard: Reservations | restaurant_dashboard | true | /dashboard/reservations | dashboard-restaurateur, reservation | Expose la vue réservations du dashboard restaurateur. | [src/lib/featureCatalog.ts:541](../../src/lib/featureCatalog.ts#L541) |
+| dashboard-performances | Dashboard: Performances | restaurant_dashboard | true | /dashboard/performances, /dashboard/compta | dashboard-restaurateur, performances | Expose la page performances du dashboard restaurateur. | [src/lib/featureCatalog.ts:550](../../src/lib/featureCatalog.ts#L550) |
+| dashboard-comparaison | Dashboard: Comparaison | restaurant_dashboard | true | /dashboard/comparaison | dashboard-restaurateur, performances | Expose la page comparaison du dashboard restaurateur. | [src/lib/featureCatalog.ts:559](../../src/lib/featureCatalog.ts#L559) |
+| dashboard-avis | Dashboard: Avis | restaurant_dashboard | true | /dashboard/avis | dashboard-restaurateur | Expose la vue d'avis clients du dashboard restaurateur. | [src/lib/featureCatalog.ts:568](../../src/lib/featureCatalog.ts#L568) |
+| dashboard-campagne-overview | Dashboard: Campagnes | restaurant_dashboard | true | /dashboard/campagne-overview | dashboard-restaurateur, campagnes-pub | Expose la vue synthese des campagnes publicitaires. | [src/lib/featureCatalog.ts:577](../../src/lib/featureCatalog.ts#L577) |
+| dashboard-reseaux-sociaux | Dashboard: Reseaux sociaux | restaurant_dashboard | true | /dashboard/reseaux-sociaux | dashboard-restaurateur, campagnes-pub | Expose les activations réseaux sociaux côté restaurateur. | [src/lib/featureCatalog.ts:586](../../src/lib/featureCatalog.ts#L586) |
+| dashboard-actualites | Dashboard: Actualités | restaurant_dashboard | true | /dashboard/actualites | dashboard-restaurateur | Expose la publication et le suivi des posts du fil social. | [src/lib/featureCatalog.ts:595](../../src/lib/featureCatalog.ts#L595) |
+| dashboard-campagnes | Dashboard: Campagnes avancees | restaurant_dashboard | true | /dashboard/campagnes | dashboard-restaurateur, campagnes-pub | Expose l'édition complète des campagnes sponsorisées. | [src/lib/featureCatalog.ts:604](../../src/lib/featureCatalog.ts#L604) |
+| dashboard-crm | Dashboard: CRM clients | restaurant_dashboard | true | /dashboard/crm | dashboard-restaurateur, commandes, emporter, reservation | Expose le CRM restaurateur base sur les commandes, reservations et habitudes client. | [src/lib/featureCatalog.ts:613](../../src/lib/featureCatalog.ts#L613) |
+| dashboard-factures | Dashboard: Factures | restaurant_dashboard | true | /dashboard/factures, /dashboard/factures/entrees, /dashboard/factures/sorties | dashboard-restaurateur | Expose la vue factures et paiements restaurateur. | [src/lib/featureCatalog.ts:623](../../src/lib/featureCatalog.ts#L623) |
+| dashboard-factures-parametres | Dashboard: Paramètres de facturation | restaurant_dashboard | true | /dashboard/factures/parametres | dashboard-restaurateur | Expose les paramètres de facturation restaurateur. | [src/lib/featureCatalog.ts:632](../../src/lib/featureCatalog.ts#L632) |
+| dashboard-billing | Dashboard: Mon compte/Facturation | restaurant_dashboard | true | /dashboard/mon-compte-facturation | dashboard-restaurateur | Expose le compte restaurateur, l'abonnement, l'upgrade et le suivi des crédits. | [src/lib/featureCatalog.ts:641](../../src/lib/featureCatalog.ts#L641) |
+| dashboard-offres | Dashboard: Anti-gaspi | restaurant_dashboard | true | /dashboard/offres | dashboard-restaurateur, anti-gaspi | Expose la gestion anti-gaspi côté restaurateur. | [src/lib/featureCatalog.ts:650](../../src/lib/featureCatalog.ts#L650) |
+| dashboard-ventes-flash | Dashboard: Ventes flash | restaurant_dashboard | true | /dashboard/ventes-flash | dashboard-restaurateur, ventes-flash | Expose la gestion des ventes flash côté restaurateur. | [src/lib/featureCatalog.ts:659](../../src/lib/featureCatalog.ts#L659) |
+| dashboard-formules | Dashboard: Formules | restaurant_dashboard | true | /dashboard/formules | dashboard-restaurateur | Expose la gestion des formules et menus. | [src/lib/featureCatalog.ts:668](../../src/lib/featureCatalog.ts#L668) |
+| dashboard-service | Dashboard: Pilotage de service | restaurant_dashboard | true | /dashboard/service | dashboard-restaurateur | Expose le pilotage des réservations et du service du restaurant. | [src/lib/featureCatalog.ts:677](../../src/lib/featureCatalog.ts#L677) |
+| dashboard-plan-salle | Dashboard: Plan de salle | restaurant_dashboard | true | /dashboard/plan-salle | dashboard-restaurateur, reservation | Expose le plan de salle, l'édition des tables et l'affectation des réservations. | [src/lib/featureCatalog.ts:686](../../src/lib/featureCatalog.ts#L686) |
+| dashboard-support | Dashboard: Support | restaurant_dashboard | true | /dashboard/support | dashboard-restaurateur | Expose l'aide et le support restaurateur. | [src/lib/featureCatalog.ts:695](../../src/lib/featureCatalog.ts#L695) |
+| dashboard-tok-connect | Dashboard: TOK Connect | restaurant_dashboard | true | /dashboard/tok-connect | dashboard-restaurateur, tok-connect | Expose les consentements partenaires TOK Connect par restaurant. | [src/lib/featureCatalog.ts:704](../../src/lib/featureCatalog.ts#L704) |
+| dashboard-promotions | Dashboard: Promotions | restaurant_dashboard | true | /dashboard/promotions | dashboard-restaurateur | Expose la page promotions restaurateur. | [src/lib/featureCatalog.ts:713](../../src/lib/featureCatalog.ts#L713) |
+| espace-livreur | Dashboard coursier | courier | false | — | — | Expose l'entrée du dashboard coursier et ses routes dédiées. | [src/lib/featureCatalog.ts:722](../../src/lib/featureCatalog.ts#L722) |
+| courier-home | Coursier: Vue d'ensemble | courier | false | /courier | espace-livreur | Expose la page d'accueil du dashboard livreur. | [src/lib/featureCatalog.ts:730](../../src/lib/featureCatalog.ts#L730) |
+| courier-jobs | Coursier: Missions | courier | false | /courier/jobs | espace-livreur | Expose la gestion des missions coursier. | [src/lib/featureCatalog.ts:739](../../src/lib/featureCatalog.ts#L739) |
+| courier-earnings | Coursier: Gains | courier | false | /courier/earnings | espace-livreur | Expose le suivi des gains coursier. | [src/lib/featureCatalog.ts:748](../../src/lib/featureCatalog.ts#L748) |
+| courier-profile | Coursier: Profil | courier | false | /courier/profile | espace-livreur | Expose le profil coursier et ses validations. | [src/lib/featureCatalog.ts:757](../../src/lib/featureCatalog.ts#L757) |
+| admin-support-resolution | Admin: Résolution IA | admin_tools | true | /admin/support-resolution | — | Expose l'assistance IA à l'analyse et à la résolution des incidents support. | [src/lib/featureCatalog.ts:766](../../src/lib/featureCatalog.ts#L766) |
+| admin-guardian | Admin: Guardian IA | admin_tools | true | /admin/guardian, /admin/security-center | — | Expose l'analyse IA de santé, sécurité et incidents de la plateforme. | [src/lib/featureCatalog.ts:775](../../src/lib/featureCatalog.ts#L775) |
+| admin-marketing-operations | Admin: Centre marketing | admin_tools | true | /marketing | — | Pilote le calendrier, les campagnes, les audiences, les automatisations, les envois et leurs résultats depuis un espace admin isolé. | [src/lib/featureCatalog.ts:784](../../src/lib/featureCatalog.ts#L784) |
+| admin-restaurants | Admin: Restaurants | admin_tools | true | /admin/restaurants, /admin/restaurants/google-business | — | Expose la gestion admin des restaurants. | [src/lib/featureCatalog.ts:793](../../src/lib/featureCatalog.ts#L793) |
+| admin-utilisateurs | Admin: Utilisateurs | admin_tools | true | /admin/utilisateurs | — | Expose la gestion admin des utilisateurs et des roles. | [src/lib/featureCatalog.ts:801](../../src/lib/featureCatalog.ts#L801) |
+| admin-avis | Admin: Avis | admin_tools | true | /admin/avis | — | Expose la moderation des avis. | [src/lib/featureCatalog.ts:809](../../src/lib/featureCatalog.ts#L809) |
+| admin-catalog | Admin: Catalogue | admin_tools | true | /admin/catalog | — | Expose le catalogue central et ses taxonomies. | [src/lib/featureCatalog.ts:817](../../src/lib/featureCatalog.ts#L817) |
+| admin-loyalty | Admin: Fidélité | admin_tools | true | /admin/loyalty | — | Expose la configuration fidélité et abonnement. | [src/lib/featureCatalog.ts:825](../../src/lib/featureCatalog.ts#L825) |
+| admin-drops | Admin: Drops | admin_tools | true | /admin/drops | — | Expose la gestion des drops et ventes flash admin. | [src/lib/featureCatalog.ts:833](../../src/lib/featureCatalog.ts#L833) |
+| admin-notifications | Admin: Notifications | admin_tools | true | /admin/notifications | — | Expose la gestion des notifications et campagnes. | [src/lib/featureCatalog.ts:841](../../src/lib/featureCatalog.ts#L841) |
+| admin-platform-config | Admin: Configuration plateforme | admin_tools | true | /admin/platform | — | Expose le panneau de configuration plateforme et la gouvernance des feature flags. | [src/lib/featureCatalog.ts:849](../../src/lib/featureCatalog.ts#L849) |
+| admin-operations-center | Admin: Operations Center | admin_tools | true | /admin/commandes-reservations, /admin/sinistres | — | Expose la supervision admin des commandes, reservations, remboursements et dispatch. | [src/lib/featureCatalog.ts:858](../../src/lib/featureCatalog.ts#L858) |
+| admin-tok-connect | Admin: TOK Connect | admin_tools | true | /admin/tok-connect | tok-connect | Expose la supervision des partenaires, scopes, quotas et webhooks TOK Connect. | [src/lib/featureCatalog.ts:867](../../src/lib/featureCatalog.ts#L867) |
+| admin-actualites | Admin: Actualités sociales | admin_tools | true | /admin/actualites | — | Expose la moderation du fil social. | [src/lib/featureCatalog.ts:876](../../src/lib/featureCatalog.ts#L876) |
+| admin-crm | Admin: CRM clients | admin_tools | true | /admin/crm | — | Expose la segmentation client et les signaux commerciaux du CRM TOK. | [src/lib/featureCatalog.ts:884](../../src/lib/featureCatalog.ts#L884) |
+| admin-audit | Admin: Audit | admin_tools | true | /admin/audit, /admin/security-center | — | Expose les journaux d'audit et les exécutions Edge. | [src/lib/featureCatalog.ts:892](../../src/lib/featureCatalog.ts#L892) |
+| admin-packs | Admin: Abonnements restaurateur | admin_tools | true | /admin/packs | — | Expose la supervision admin des abonnements restaurateur et des droits dashboard. | [src/lib/featureCatalog.ts:900](../../src/lib/featureCatalog.ts#L900) |
+| admin-compta | Admin: Comptabilite | admin_tools | true | /admin/compta, /admin/compta/entrees, /admin/compta/sorties | — | Expose l'outil de rapprochement financier et le suivi des commissions 10% / reversements 90%. | [src/lib/featureCatalog.ts:908](../../src/lib/featureCatalog.ts#L908) |
+| coming-soon | Animation de lancement · verrou client | admin_tools | false | /coming-soon | — | Verrou client : seul le flag désactivé ouvre l’application, même à zéro. Lorsque activé, redirige toutes les pages publiques vers la page Coming Soon. Les dashboards admin, restaurateur, coursier et l'authentification restent accessibles. | [src/lib/featureCatalog.ts:916](../../src/lib/featureCatalog.ts#L916) |
 
 ## Pages frontend
 
@@ -6845,6 +6847,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261028044351 Tok Workforce Integrity And Workflows | 679 | 32 | [supabase/migrations/20261028044351_tok_workforce_integrity_and_workflows.sql:1](../../supabase/migrations/20261028044351_tok_workforce_integrity_and_workflows.sql#L1) |
 | 20261028045849 Advisor Secure Attachments | 388 | 6 | [supabase/migrations/20261028045849_advisor_secure_attachments.sql:1](../../supabase/migrations/20261028045849_advisor_secure_attachments.sql#L1) |
 | 20261028132220 Tok Welcome Plinko | 218 | 11 | [supabase/migrations/20261028132220_tok_welcome_plinko.sql:1](../../supabase/migrations/20261028132220_tok_welcome_plinko.sql#L1) |
+| 20261028160000 Admin Game Feature Flags | 23 | 0 | [supabase/migrations/20261028160000_admin_game_feature_flags.sql:1](../../supabase/migrations/20261028160000_admin_game_feature_flags.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7791,7 +7794,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (586)</summary>
+<details><summary>database-migration (587)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8379,6 +8382,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261028044351_tok_workforce_integrity_and_workflows.sql`
 - `supabase/migrations/20261028045849_advisor_secure_attachments.sql`
 - `supabase/migrations/20261028132220_tok_welcome_plinko.sql`
+- `supabase/migrations/20261028160000_admin_game_feature_flags.sql`
 
 </details>
 

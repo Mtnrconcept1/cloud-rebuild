@@ -7,6 +7,7 @@ const slotRules = readFileSync("supabase/functions/daily-slot-spin/rules.ts", "u
 const initialMigration = readFileSync("supabase/migrations/20260624223726_daily_miamz_slot_machine.sql", "utf8");
 const threeAttemptsMigration = readFileSync("supabase/migrations/20260625034551_daily_slot_three_attempts.sql", "utf8");
 const hardeningMigration = readFileSync("supabase/migrations/20260719103746_harden_daily_slot_idempotency.sql", "utf8");
+const gameFlagsMigration = readFileSync("supabase/migrations/20261028160000_admin_game_feature_flags.sql", "utf8");
 const demoHardeningMigration = readFileSync("supabase/demo-migrations/20260719103746_harden_daily_slot_idempotency.sql", "utf8");
 const component = readFileSync("src/components/DailyMiamzSlotMachine.tsx", "utf8");
 const slotTemplate = readFileSync("public/tok-slot-machine/index.html", "utf8");
@@ -151,10 +152,19 @@ describe("daily Miamz slot machine", () => {
 
   it("mounts only for eligible client users", () => {
     expect(appShell).toContain("DailyMiamzSlotMachine");
-    expect(appShell).toContain("<DailyMiamzSlotMachine />");
+    expect(appShell).toContain('activeFeatures.has("daily-slot-machine")');
     expect(component).toContain('role === "client"');
     expect(component).toContain("hasPrivilegedRole");
     expect(component).toContain("Trois essais quotidiens");
+  });
+
+  it("honors the audited admin kill switch in both the UI and Edge Function", () => {
+    expect(gameFlagsMigration).toContain("'daily-slot-machine'");
+    expect(gameFlagsMigration).toContain("'plinko-welcome'");
+    expect(gameFlagsMigration).toContain("ON CONFLICT (name) DO UPDATE");
+    expect(edgeFunction).toContain("getEffectiveFeatureFlagSet");
+    expect(edgeFunction).toContain('activeFlags.has("daily-slot-machine")');
+    expect(edgeFunction).toContain("Machine à sous désactivée");
   });
 
   it("keeps primary asset paths case-exact for Vercel/Linux", () => {

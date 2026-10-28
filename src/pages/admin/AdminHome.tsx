@@ -11,6 +11,7 @@ import {
   Crown,
   DollarSign,
   FileText,
+  Gamepad2,
   Layers,
   MessageSquareText,
   MapPin,
@@ -43,6 +44,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures, useFeatureFlags } from "@/lib/featureFlags";
 import { Switch } from "@/components/ui/switch";
@@ -311,6 +313,7 @@ function getOrderCity(row: any) {
 
 export default function AdminHome() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const activeFeatures = useActiveFeatures();
   const { role } = useAuth();
   const { unreadNotifications } = useNotificationCenter(50, { realtime: true });
@@ -321,6 +324,11 @@ export default function AdminHome() {
   const comingSoonFlag = flags.find((f) => f.name === "coming-soon");
   const comingSoonActive = comingSoonFlag?.explicitEnabled ?? false;
   const [comingSoonToggling, setComingSoonToggling] = useState(false);
+  const gameFlags = [
+    flags.find((flag) => flag.name === "plinko-welcome"),
+    flags.find((flag) => flag.name === "daily-slot-machine"),
+  ].filter((flag): flag is NonNullable<typeof flag> => Boolean(flag));
+  const [gameToggling, setGameToggling] = useState<string | null>(null);
 
   const { data: stats } = useQuery({
     queryKey: ["admin-stats"],
@@ -661,6 +669,69 @@ export default function AdminHome() {
             />
             <span className="text-sm font-medium">{comingSoonActive ? "Actif" : "Inactif"}</span>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-orange-200 bg-orange-50/50">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Gamepad2 className="h-5 w-5 text-orange-600" />
+            <CardTitle>Jeux clients</CardTitle>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Activez ou désactivez immédiatement les jeux promotionnels visibles par les clients.
+          </p>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2">
+          {gameFlags.map((flag) => (
+            <div key={flag.name} className="flex items-center justify-between gap-4 rounded-xl border bg-background p-4">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-semibold">{flag.label}</p>
+                  <Badge variant={flag.effectiveEnabled ? "secondary" : "outline"}>
+                    {flag.effectiveEnabled ? "Actif" : "Inactif"}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{flag.description}</p>
+              </div>
+              <Switch
+                aria-label={`${flag.explicitEnabled ? "Désactiver" : "Activer"} ${flag.label}`}
+                checked={flag.explicitEnabled}
+                disabled={flagsLoading || gameToggling !== null}
+                onCheckedChange={async (checked) => {
+                  setGameToggling(flag.name);
+                  try {
+                    const result = await setFlagState(
+                      flag.id,
+                      checked,
+                      `${checked ? "Activation" : "Désactivation"} de ${flag.label} depuis l'accueil admin`,
+                    );
+                    toast(result.success
+                      ? {
+                          title: checked ? "Jeu activé" : "Jeu désactivé",
+                          description: `${flag.label} est maintenant ${checked ? "accessible" : "indisponible"}.`,
+                        }
+                      : {
+                          title: "Modification impossible",
+                          description: result.error || "Le réglage n'a pas pu être enregistré.",
+                          variant: "destructive",
+                        });
+                  } catch {
+                    toast({
+                      title: "Modification impossible",
+                      description: "Le réglage n'a pas pu être enregistré.",
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setGameToggling(null);
+                  }
+                }}
+              />
+            </div>
+          ))}
+          {!flagsLoading && gameFlags.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Les réglages des jeux sont indisponibles.</p>
+          ) : null}
         </CardContent>
       </Card>
 

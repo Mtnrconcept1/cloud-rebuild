@@ -111,7 +111,19 @@ describe("feature flag catalog", () => {
     expect(fallbackFlags.find((flag) => flag.name === "commandes")?.effectiveEnabled).toBe(false);
     expect(fallbackFlags.find((flag) => flag.name === "admin-platform-config")?.effectiveEnabled).toBe(false);
     expect(fallbackFlags.find((flag) => flag.name === "dashboard-commandes")?.effectiveEnabled).toBe(false);
+    expect(fallbackFlags.find((flag) => flag.name === "plinko-welcome")?.effectiveEnabled).toBe(false);
+    expect(fallbackFlags.find((flag) => flag.name === "daily-slot-machine")?.effectiveEnabled).toBe(false);
     expect(fallbackFlags.filter((flag) => flag.critical).every((flag) => !flag.effectiveEnabled)).toBe(true);
+  });
+
+  it("keeps both client games independently controllable", () => {
+    const flags = resolveFlags(buildRows({
+      "plinko-welcome": true,
+      "daily-slot-machine": false,
+    }));
+
+    expect(flags.find((flag) => flag.name === "plinko-welcome")?.effectiveEnabled).toBe(true);
+    expect(flags.find((flag) => flag.name === "daily-slot-machine")?.effectiveEnabled).toBe(false);
   });
 
   it("ne connait plus la route Mon pack", () => {
