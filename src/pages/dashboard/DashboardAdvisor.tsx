@@ -46,6 +46,7 @@ import {
   ADVISOR_MAX_ATTACHMENTS,
   ADVISOR_MAX_TOTAL_BYTES,
   prepareAdvisorAttachmentFiles,
+  getAdvisorEditErrorMessage,
   toAdvisorAttachmentPlanPayload,
   type AdvisorPreparedAttachment,
 } from "@/lib/advisorAttachments";
@@ -791,7 +792,9 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
         setMessages(completed);
         setHistoryEntries(saveAdvisorHistoryEntry(advisorHistoryStorageScope, restaurant.id, completed));
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Modification indisponible";
+        const errorMessage = selectedAttachments.length > 0
+          ? getAdvisorEditErrorMessage(error)
+          : error instanceof Error ? error.message : "Modification indisponible";
         toast({ title: "Modification non préparée", description: errorMessage, variant: "destructive" });
         setMessages((current) => current.filter((message) => message !== userMsg));
       } finally {
@@ -903,7 +906,9 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
     } catch (error) {
       toast({
         title: "La modification n'a pas été appliquée",
-        description: error instanceof Error ? error.message : "Erreur inconnue",
+        description: proposal.attachment_manifest?.length
+          ? getAdvisorEditErrorMessage(error)
+          : error instanceof Error ? error.message : "Erreur inconnue",
         variant: "destructive",
       });
     } finally {
