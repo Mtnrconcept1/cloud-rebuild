@@ -393,11 +393,11 @@ describe("DashboardPlanSalle — vraie page, données mémoire", () => {
     const originalRpc = previewSupabase.rpc.bind(previewSupabase);
     const rpc = vi
       .spyOn(previewSupabase, "rpc")
-      .mockImplementation(async (name, args) => {
-        if (name === "restaurant_save_floor_plan_assignments") {
-          await assignmentWrite;
-        }
-        return originalRpc(name, args);
+      .mockImplementation((name, args) => {
+        const request = originalRpc(name, args);
+        return name === "restaurant_save_floor_plan_assignments"
+          ? request.waitFor(assignmentWrite)
+          : request;
       });
 
     try {

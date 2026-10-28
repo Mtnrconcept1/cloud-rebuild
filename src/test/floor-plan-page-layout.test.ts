@@ -91,6 +91,19 @@ describe("floor plan page layout", () => {
     expect(queue).toContain("onReservationHandlePointerDown");
   });
 
+  it("uses a purpose-built illustrated hero without hiding the operational actions", () => {
+    const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
+    const styles = readSource("src/components/dashboard/RestaurantWorkspacePages.css");
+
+    expect(page).toContain("tok-floorplan-hero-grid");
+    expect(page).toContain("Organisation de salle");
+    expect(page).toContain("DASHBOARD_ILLUSTRATIONS.restaurantFloorPlan");
+    expect(page).toContain("Préparez les tables, placez les réservations");
+    expect(page).toContain("tok-floorplan-actions");
+    expect(styles).toContain('grid-template-areas: "copy art" "actions actions"');
+    expect(styles).toContain(".tok-floorplan-hero-illustration");
+  });
+
   it("preserves the floor plan persistence and assignment contracts", () => {
     const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
 
@@ -100,6 +113,20 @@ describe("floor plan page layout", () => {
     expectCode(page).toContain("scoreReservationPlacement");
     expectCode(page).toContain("saveMutation.mutate");
     expectCode(page).toContain("lastAutoSavedLayoutSignatureRef");
+    expectCode(page).toContain(
+      "runFloorPlanSaveWithTimeout(async (saveSignal)",
+    );
+    expect(page.match(/\.abortSignal\(saveSignal\)/g)).toHaveLength(6);
+  });
+
+  it("restores the floor plan visibility for browser printing", () => {
+    const styles = readSource(
+      "src/components/floor-plan/FloorPlanWorkspace.css",
+    );
+
+    expect(styles).toContain("body .fp-workspace *");
+    expect(styles).toContain("visibility: visible !important");
+    expect(styles).toContain("print-color-adjust: exact");
   });
 
   it("does not re-arm an auto-save the server already refused", () => {

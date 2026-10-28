@@ -249,6 +249,11 @@
   }
 }
 @media print {
+  body .fp-workspace,
+  body .fp-workspace * {
+    visibility: visible !important;
+  }
+
   body:has(.fp-workspace) nav,
   body:has(.fp-workspace) aside,
   body:has(.fp-workspace) header:not(.fp-header),
@@ -266,6 +271,8 @@
     box-shadow: none;
     height: auto !important;
     overflow: visible !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
   .fp-canvas {
     height: 80vh !important;

@@ -1,7 +1,7 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "14eaad551a5a364d344488a54b0d475263518b5f54499123f556c5f64cc378f1",
+  "sourceDigest": "1e5fa47b89f0056dbf01d09f908517e967a571d6e0f84894ea1169df944263c7",
   "routeCount": 143,
   "toolCount": 122
 } as const;
@@ -2055,8 +2055,7 @@ export const TOK_USER_GUIDE_TOOLS = [
       "create"
     ],
     "integrations": [
-      "stripe",
-      "supabase"
+      "stripe"
     ]
   },
   {
@@ -2723,8 +2722,7 @@ export const TOK_USER_GUIDE_TOOLS = [
     ],
     "actions": [],
     "integrations": [
-      "stripe",
-      "supabase"
+      "stripe"
     ]
   },
   {
@@ -2748,9 +2746,7 @@ export const TOK_USER_GUIDE_TOOLS = [
       "OPTIONS"
     ],
     "actions": [],
-    "integrations": [
-      "supabase"
-    ]
+    "integrations": []
   },
   {
     "name": "provision-commercial-demo-project-session",
@@ -2907,8 +2903,7 @@ export const TOK_USER_GUIDE_TOOLS = [
     ],
     "actions": [],
     "integrations": [
-      "stripe",
-      "supabase"
+      "stripe"
     ]
   },
   {
@@ -2919,8 +2914,7 @@ export const TOK_USER_GUIDE_TOOLS = [
     ],
     "actions": [],
     "integrations": [
-      "stripe",
-      "supabase"
+      "stripe"
     ]
   },
   {

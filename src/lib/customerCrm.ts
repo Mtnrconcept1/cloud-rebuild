@@ -35,6 +35,9 @@ export type CustomerCrmProfile = {
   favoriteCuisines: string[];
   crmScore: number;
   totalMatchingCount: number;
+  source?: "platform" | "imported";
+  marketingConsentStatus?: "unknown" | "opted_in" | "opted_out";
+  notes?: string | null;
 };
 
 export type CustomerCrmInsights = {
@@ -123,6 +126,59 @@ export function normalizeCustomerCrmProfile(row: Record<string, unknown>): Custo
     favoriteCuisines: readStringArray(row.favorite_cuisines),
     crmScore: Math.max(0, Math.min(100, Math.round(readNumber(row.crm_score)))),
     totalMatchingCount: Math.round(readNumber(row.total_matching_count)),
+    source: "platform",
+    marketingConsentStatus: "unknown",
+    notes: null,
+  };
+}
+
+export function normalizeImportedCustomerCrmProfile(row: Record<string, unknown>): CustomerCrmProfile {
+  const id = readString(row.id) || "unknown";
+  const firstName = readString(row.first_name);
+  const lastName = readString(row.last_name);
+  const fullName = readString(row.full_name)
+    || [firstName, lastName].filter(Boolean).join(" ")
+    || readString(row.email)
+    || readString(row.phone)
+    || "Contact importé";
+  const consent = row.marketing_consent_status === "opted_in" || row.marketing_consent_status === "opted_out"
+    ? row.marketing_consent_status
+    : "unknown";
+  const createdAt = readString(row.created_at);
+
+  return {
+    userId: `imported:${id}`,
+    firstName,
+    lastName,
+    fullName,
+    email: readString(row.email),
+    phone: readString(row.phone),
+    city: readString(row.city),
+    address: readString(row.address),
+    avatarUrl: null,
+    loyaltyPoints: 0,
+    totalOrders: 0,
+    totalReservations: 0,
+    restaurantsCount: 1,
+    totalSpent: 0,
+    avgOrderValue: 0,
+    firstSeenAt: createdAt,
+    lastActivityAt: createdAt,
+    lastOrderAt: null,
+    lastReservationAt: null,
+    lastRestaurantName: readString(row.restaurant_name),
+    preferredChannel: "unknown",
+    preferredService: "unknown",
+    preferredWeekday: null,
+    favoriteOrderHour: null,
+    favoriteReservationHour: null,
+    favoriteItems: [],
+    favoriteCuisines: [],
+    crmScore: 0,
+    totalMatchingCount: Math.round(readNumber(row.total_matching_count)),
+    source: "imported",
+    marketingConsentStatus: consent,
+    notes: readString(row.notes),
   };
 }
 
@@ -211,6 +267,7 @@ export function buildCustomerCrmInsights(profile: CustomerCrmProfile): CustomerC
   const orderHour = getPreferredHourLabel(profile.favoriteOrderHour);
   const reservationHour = getPreferredHourLabel(profile.favoriteReservationHour);
 
+  if (profile.source === "imported") segments.push("Contact importé");
   if (profile.crmScore >= 75) segments.push("Client prioritaire");
   if (profile.totalSpent >= 300) segments.push("Forte valeur");
   if (profile.preferredChannel === "orders") segments.push("Commande recurrente");
@@ -219,7 +276,9 @@ export function buildCustomerCrmInsights(profile: CustomerCrmProfile): CustomerC
   if (inactiveDays >= 60 && Number.isFinite(inactiveDays)) segments.push("A reactiver");
   if (profile.loyaltyPoints >= 1000) segments.push("Fidelite elevee");
 
-  if (inactiveDays >= 60 && Number.isFinite(inactiveDays)) {
+  if (profile.source === "imported" && profile.marketingConsentStatus === "unknown") {
+    nextBestActions.push("Collecter un consentement marketing explicite avant toute campagne.");
+  } else if (inactiveDays >= 60 && Number.isFinite(inactiveDays)) {
     nextBestActions.push("Envoyer une offre de retour limitee dans le temps.");
   }
   if (profile.favoriteItems.length > 0) {
@@ -270,6 +329,8 @@ type CustomerCrmExportColumn = {
 };
 
 const CUSTOMER_CRM_EXPORT_COLUMNS: CustomerCrmExportColumn[] = [
+  { header: "Source", kind: "text", getValue: (profile) => profile.source === "imported" ? "Import assistant TOK" : "Activité TOK" },
+  { header: "Consentement marketing", kind: "text", getValue: (profile) => profile.marketingConsentStatus === "opted_in" ? "Accepté" : profile.marketingConsentStatus === "opted_out" ? "Refusé" : "Inconnu" },
   { header: "Nom complet", kind: "text", getValue: (profile) => profile.fullName },
   { header: "Prénom", kind: "text", getValue: (profile) => profile.firstName },
   { header: "Nom", kind: "text", getValue: (profile) => profile.lastName },
@@ -277,6 +338,7 @@ const CUSTOMER_CRM_EXPORT_COLUMNS: CustomerCrmExportColumn[] = [
   { header: "Téléphone", kind: "phone", getValue: (profile) => profile.phone },
   { header: "Ville", kind: "text", getValue: (profile) => profile.city },
   { header: "Adresse", kind: "text", getValue: (profile) => profile.address },
+  { header: "Notes import", kind: "text", getValue: (profile) => profile.notes },
   { header: "Restaurant recent", kind: "text", getValue: (profile) => profile.lastRestaurantName },
   { header: "Score CRM", kind: "number", getValue: (profile) => profile.crmScore },
   { header: "Segment principal", kind: "text", getValue: (_profile, insights) => insights.profileLabel },
@@ -309,10 +371,12 @@ const CUSTOMER_CRM_EXPORT_COLUMNS: CustomerCrmExportColumn[] = [
 
 function csvCell(value: unknown, kind: CustomerCrmExportKind = "text") {
   const rawValue = value === null || value === undefined ? "" : String(value);
-  if (kind === "phone" && /^(\+|0)/.test(rawValue) && /^[+\d\s()./-]+$/.test(rawValue)) {
-    return `"=""${rawValue.replace(/"/g, '""')}"""`;
-  }
-  return `"${rawValue.replace(/"/g, '""')}"`;
+  // Quoted CSV cells still execute leading =, +, -, @ formulas in Excel/LibreOffice.
+  // Prefix an apostrophe, including for phone numbers beginning with + or 0.
+  const dangerousPrefix = /^[\s\uFEFF]*[=+@-]/.test(rawValue);
+  const preservePhone = kind === "phone" && /^(?:\+|0)/.test(rawValue);
+  const safeValue = dangerousPrefix || preservePhone ? `'${rawValue}` : rawValue;
+  return `"${safeValue.replace(/"/g, '""')}"`;
 }
 
 function csvList(values: string[]) {

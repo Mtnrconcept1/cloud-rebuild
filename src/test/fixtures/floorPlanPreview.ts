@@ -224,7 +224,12 @@ class MemoryQuery implements PromiseLike<Response> {
   private maximum = Infinity;
   private orderBy: Array<{ column: string; ascending: boolean }> = [];
   private conflicts = ["id"];
+  private signal: AbortSignal | null = null;
   constructor(private table: string) {}
+  abortSignal(signal: AbortSignal) {
+    this.signal = signal;
+    return this;
+  }
   select() {
     return this;
   }
@@ -351,8 +356,44 @@ class MemoryQuery implements PromiseLike<Response> {
     fulfilled?: ((value: Response) => TResult1 | PromiseLike<TResult1>) | null,
     rejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
   ): PromiseLike<TResult1 | TResult2> {
+    if (this.signal?.aborted) {
+      return Promise.reject(
+        this.signal.reason ?? new DOMException("Aborted", "AbortError"),
+      ).then(fulfilled, rejected);
+    }
     return Promise.resolve()
       .then(() => this.execute())
+      .then(fulfilled, rejected);
+  }
+}
+
+class MemoryRpcQuery implements PromiseLike<Response> {
+  private gate: Promise<void> = Promise.resolve();
+  private signal: AbortSignal | null = null;
+
+  constructor(private execute: () => Response) {}
+
+  abortSignal(signal: AbortSignal) {
+    this.signal = signal;
+    return this;
+  }
+
+  waitFor(gate: Promise<void>) {
+    this.gate = gate;
+    return this;
+  }
+
+  then<TResult1 = Response, TResult2 = never>(
+    fulfilled?: ((value: Response) => TResult1 | PromiseLike<TResult1>) | null,
+    rejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): PromiseLike<TResult1 | TResult2> {
+    return this.gate
+      .then(() => {
+        if (this.signal?.aborted) {
+          throw this.signal.reason ?? new DOMException("Aborted", "AbortError");
+        }
+        return this.execute();
+      })
       .then(fulfilled, rejected);
   }
 }
@@ -374,53 +415,55 @@ export const previewSupabase = {
         ),
       ),
   },
-  async rpc(name: string, args: Record<string, unknown>) {
-    if (name === "get_reservation_customers")
-      return response(previewState.rows.profiles);
-    previewState.operations.push({
-      table: name,
-      operation: "rpc",
-      rejected: previewState.rejectWrites,
-    });
-    if (previewState.rejectWrites)
-      return response(
-        null,
-        new Error(
-          "Refus de sauvegarde simulé pour vérifier la conservation du brouillon.",
-        ),
-      );
-    if (name === "restaurant_save_floor_plan_assignments") {
-      for (const [reservationId, tableId] of Object.entries(
-        args.p_assignments as Record<string, string | null>,
-      )) {
-        previewState.rows.reservation_slots =
-          previewState.rows.reservation_slots.filter(
-            (slot) => slot.reservation_id !== reservationId,
-          );
-        if (tableId)
-          previewState.rows.reservation_slots.push({
-            id: `slot-${reservationId}`,
-            reservation_id: reservationId,
-            table_id: tableId,
-          });
+  rpc(name: string, args: Record<string, unknown>) {
+    return new MemoryRpcQuery(() => {
+      if (name === "get_reservation_customers")
+        return response(previewState.rows.profiles);
+      previewState.operations.push({
+        table: name,
+        operation: "rpc",
+        rejected: previewState.rejectWrites,
+      });
+      if (previewState.rejectWrites)
+        return response(
+          null,
+          new Error(
+            "Refus de sauvegarde simulé pour vérifier la conservation du brouillon.",
+          ),
+        );
+      if (name === "restaurant_save_floor_plan_assignments") {
+        for (const [reservationId, tableId] of Object.entries(
+          args.p_assignments as Record<string, string | null>,
+        )) {
+          previewState.rows.reservation_slots =
+            previewState.rows.reservation_slots.filter(
+              (slot) => slot.reservation_id !== reservationId,
+            );
+          if (tableId)
+            previewState.rows.reservation_slots.push({
+              id: `slot-${reservationId}`,
+              reservation_id: reservationId,
+              table_id: tableId,
+            });
+        }
+        return response({ ok: true });
       }
-      return response({ ok: true });
-    }
-    if (name === "update_restaurant_reservation_status_safe") {
-      const reservation = previewState.rows.reservations.find(
-        (row) => row.id === args.p_reservation_id,
-      );
-      if (!reservation)
+      if (name === "update_restaurant_reservation_status_safe") {
+        const reservation = previewState.rows.reservations.find(
+          (row) => row.id === args.p_reservation_id,
+        );
+        if (!reservation)
+          return response([
+            { updated: false, error_message: "Réservation fictive introuvable." },
+          ]);
+        reservation.status = args.p_status;
         return response([
-          { updated: false, error_message: "Réservation fictive introuvable." },
+          { updated: true, error_code: null, error_message: null },
         ]);
-      reservation.status = args.p_status;
-      return response([
-        { updated: true, error_code: null, error_message: null },
-      ]);
-    }
-    if (name === "restaurant_set_preferred_table")
-      return response({ ok: true });
-    return response(null, new Error(`RPC non simulée : ${name}`));
+      }
+      if (name === "restaurant_set_preferred_table")
+        return response({ ok: true });
+      return response(null, new Error(`RPC non simulée : ${name}`));
+    });
   },
 };

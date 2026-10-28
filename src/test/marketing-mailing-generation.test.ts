@@ -71,11 +71,31 @@ describe("mailing Edge generation boundary", () => {
     const result = await response.json();
     expect(spies.allocate).toHaveBeenCalledTimes(1);
     expect(spies.image).toHaveBeenCalledTimes(4);
+    expect(spies.image.mock.calls.every(([, options]) => options.format === "9:16")).toBe(true);
+    expect(String(spies.image.mock.calls[0][1].prompt)).toContain("CORPS COURT :");
     expect(result).toMatchObject({ assetCount: 4, pendingUploadCount: 0, missingVisualCount: 0 });
     expect(result.bundle.items.map((item: { content: { visual_url: string } }) => item.content.visual_url)).toEqual([
       "https://assets.example/campaign-0.jpg", "https://assets.example/campaign-1.jpg",
       "https://assets.example/campaign-2.jpg", "https://assets.example/campaign-3.jpg",
     ]);
+  });
+  it("keeps full mailing body in the draft while limiting poster copy to one readable sentence", async () => {
+    const longBody = "Préparez votre menu de saison et informez vos convives. " +
+      "L'application permet de partager des actualités liées à votre établissement. ".repeat(8) +
+      "Fin du texte commercial, à conserver hors de l'affiche.";
+    spies.generate.mockImplementationOnce(async ({ mailingOptions }: { mailingOptions: MailingOptions }) => {
+      const plan = generatedPlan(mailingOptions);
+      plan.items[0].content.body = longBody;
+      return { plan, model: "test", usage: {}, estimatedCostChf: 0 };
+    });
+    const response = await generate(1, "generated");
+    expect(response.status).toBe(200);
+    const result = await response.json();
+    expect(result.bundle.items[0].content.body).toBe(longBody);
+    const imageBrief = String(spies.image.mock.calls[0][1].prompt);
+    expect(imageBrief).toContain("CORPS COURT : Préparez votre menu de saison et informez vos convives.");
+    expect(imageBrief).not.toContain("Fin du texte commercial");
+    expect(spies.image.mock.calls[0][1].format).toBe("9:16");
   });
   it("keeps generated-image failures visible without discarding the copy", async () => {
     spies.image.mockRejectedValue(new Error("provider failure"));

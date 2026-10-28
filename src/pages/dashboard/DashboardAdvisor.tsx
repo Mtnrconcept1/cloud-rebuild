@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 import {
   BarChart3,
   Bot,
   Camera,
-  PencilLine,
+  FileSpreadsheet,
+  FileText,
   History,
+  Paperclip,
+  PencilLine,
   Megaphone,
   RotateCcw,
   Send,
@@ -13,6 +16,7 @@ import {
   Trash2,
   TrendingUp,
   User,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import ReactMarkdown, { defaultUrlTransform, type UrlTransform } from "react-markdown";
@@ -37,6 +41,15 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
+import {
+  ADVISOR_ATTACHMENT_ACCEPT,
+  ADVISOR_MAX_ATTACHMENTS,
+  ADVISOR_MAX_TOTAL_BYTES,
+  prepareAdvisorAttachmentFiles,
+  getAdvisorEditErrorMessage,
+  toAdvisorAttachmentPlanPayload,
+  type AdvisorPreparedAttachment,
+} from "@/lib/advisorAttachments";
 import { getSupabase } from "@/integrations/supabase/client";
 import {
   appendRestaurantAdvisorConversationMessages,
@@ -425,6 +438,8 @@ export default function DashboardAdvisor() {
   const [editMode, setEditMode] = useState(false);
   const [pendingEdit, setPendingEdit] = useState<RestaurantEditProposal | null>(null);
   const [photoPreview, setPhotoPreview] = useState<{ taskId: string; assetId: string; url: string } | null>(null);
+  const [attachments, setAttachments] = useState<AdvisorPreparedAttachment[]>([]);
+  const [isPreparingAttachments, setIsPreparingAttachments] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -441,13 +456,18 @@ export default function DashboardAdvisor() {
   const [toolInstructions, setToolInstructions] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
   const mountedRef = useRef(true);
 
   const restaurant = selectedId
     ? { id: selectedId, name: restaurants.find((item) => item.id === selectedId)?.name || "Mon restaurant" }
     : null;
   const restaurantId = restaurant?.id;
-  useEffect(() => { setPendingEdit(null); setPhotoPreview(null); }, [restaurantId]);
+  useEffect(() => {
+    setPendingEdit(null);
+    setPhotoPreview(null);
+    setAttachments([]);
+  }, [restaurantId]);
   // A visual stored while the tab was away is re-attached instead of being lost.
   useAiCreationRecovery(restaurantId);
   const advisorHistoryStorageScope = demoAiRuntime
@@ -627,6 +647,56 @@ export default function DashboardAdvisor() {
     };
   }, [commercialDemoFrame, isCommercialDemo, restaurantId, toast]);
 
+  const handleAttachmentSelection = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.currentTarget.files || []);
+    event.currentTarget.value = "";
+    if (!files.length) return;
+    if (isCommercialDemo) {
+      toast({
+        title: "Pièces jointes indisponibles en Démo",
+        description: "Utilisez un compte restaurateur réel pour importer des documents ou des images.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (pendingEdit) {
+      toast({
+        title: "Confirmez ou annulez la proposition actuelle",
+        description: "Les fichiers associés à une proposition ne peuvent pas être remplacés pendant sa validation.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsPreparingAttachments(true);
+    try {
+      const prepared = await prepareAdvisorAttachmentFiles(files);
+      setAttachments(prepared);
+      setEditMode(true);
+      const warningCount = prepared.reduce((sum, attachment) => sum + attachment.warnings.length, 0);
+      toast({
+        title: `${prepared.length} pièce${prepared.length > 1 ? "s" : ""} jointe${prepared.length > 1 ? "s" : ""} prête${prepared.length > 1 ? "s" : ""}`,
+        description: warningCount
+          ? `${warningCount} ligne ou feuille a été ignorée pour des raisons de sécurité. Vérifiez la proposition avant confirmation.`
+          : "Le fichier reste en mémoire et aucune modification ne sera appliquée sans votre confirmation.",
+      });
+    } catch (error) {
+      setAttachments([]);
+      toast({
+        title: "Pièce jointe refusée",
+        description: error instanceof Error ? error.message : "Le fichier ne peut pas être utilisé.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPreparingAttachments(false);
+    }
+  };
+
+  const removeAttachment = (attachmentId: string) => {
+    if (pendingEdit || isLoading) return;
+    setAttachments((current) => current.filter((attachment) => attachment.id !== attachmentId));
+  };
+
   const streamChat = async (allMessages: Message[]) => {
     if (!restaurant) return "";
 
@@ -672,23 +742,45 @@ export default function DashboardAdvisor() {
   };
 
   const handleSend = async (text?: string) => {
-    const messageText = text || input.trim();
-    if (!messageText || isLoading || !restaurant) return;
+    const messageText = (text || input.trim()).trim();
+    const selectedAttachments = attachments;
+    if ((!messageText && selectedAttachments.length === 0) || isLoading || isPreparingAttachments || !restaurant) return;
 
-    const userMsg: Message = { role: "user", content: messageText };
+    const fallbackPrompt = selectedAttachments.some((attachment) => attachment.kind === "crm_contacts")
+      ? "Importer cette liste de contacts dans le CRM du restaurant."
+      : "Utiliser ces pièces jointes pour proposer une modification contrôlée du restaurant.";
+    const effectivePrompt = messageText || fallbackPrompt;
+    const attachmentKinds = selectedAttachments.reduce<Record<string, number>>((counts, attachment) => {
+      const label = attachment.kind === "crm_contacts" ? "liste CRM" : attachment.kind === "pdf" ? "PDF" : "image";
+      counts[label] = (counts[label] || 0) + 1;
+      return counts;
+    }, {});
+    const attachmentLabel = selectedAttachments.length
+      ? `
+
+Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.length > 1 ? "s" : ""} : ${Object.entries(attachmentKinds)
+        .map(([label, count]) => `${count} ${label}${count > 1 && label === "image" ? "s" : ""}`)
+        .join(", ")}`
+      : "";
+    const userMsg: Message = { role: "user", content: `${effectivePrompt}${attachmentLabel}` };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
     // Editing is always a separate, explicit two-step action. Natural-language edit
-    // requests open a review card, never execute a write merely by sending a message.
-    const requestsEdit = /\b(modifi\w*|chang\w*|mets?\b|mettre\b|ajout\w*|corrig\w*|supprim\w*|remplac\w*|renomm\w*|g[ée]n[èe]r\w*|cr[ée]\w*|photograph\w*)/i.test(messageText);
+    // requests and every attachment open a review card; sending never executes a write.
+    const requestsEdit = selectedAttachments.length > 0
+      || /\b(modifi\w*|chang\w*|mets?\b|mettre\b|ajout\w*|corrig\w*|supprim\w*|remplac\w*|renomm\w*|g[ée]n[èe]r\w*|cr[ée]\w*|photograph\w*|import\w*)/i.test(effectivePrompt);
     if (!isCommercialDemo && (editMode || requestsEdit)) {
       setPendingEdit(null);
       setPhotoPreview(null);
       try {
-        const proposal = await proposeRestaurantEdit({ restaurantId: restaurant.id, prompt: messageText });
+        const proposal = await proposeRestaurantEdit({
+          restaurantId: restaurant.id,
+          prompt: effectivePrompt,
+          attachments: selectedAttachments.map(toAdvisorAttachmentPlanPayload),
+        });
         if (!mountedRef.current) return;
         setPendingEdit(proposal);
         const assistantMsg: Message = {
@@ -700,7 +792,9 @@ export default function DashboardAdvisor() {
         setMessages(completed);
         setHistoryEntries(saveAdvisorHistoryEntry(advisorHistoryStorageScope, restaurant.id, completed));
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Modification indisponible";
+        const errorMessage = selectedAttachments.length > 0
+          ? getAdvisorEditErrorMessage(error)
+          : error instanceof Error ? error.message : "Modification indisponible";
         toast({ title: "Modification non préparée", description: errorMessage, variant: "destructive" });
         setMessages((current) => current.filter((message) => message !== userMsg));
       } finally {
@@ -713,10 +807,7 @@ export default function DashboardAdvisor() {
       const assistantReply = await streamChat(newMessages);
       if (assistantReply.trim()) {
         const assistantMsg: Message = { role: "assistant", content: assistantReply };
-        const completedMessages = [
-          ...newMessages,
-          assistantMsg,
-        ];
+        const completedMessages = [...newMessages, assistantMsg];
         setHistoryEntries(saveAdvisorHistoryEntry(advisorHistoryStorageScope, restaurant.id, completedMessages));
 
         if (!isCommercialDemo) try {
@@ -735,7 +826,6 @@ export default function DashboardAdvisor() {
             });
             setActiveConversationId(conversationId);
           }
-
           void refreshAdvisorHistoryEntries(restaurant.id);
         } catch {
           // Local history remains available if backend persistence is temporarily unavailable.
@@ -744,12 +834,7 @@ export default function DashboardAdvisor() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
       toast({ title: "Erreur", description: errorMessage, variant: "destructive" });
-      setMessages((prev) => {
-        if (prev[prev.length - 1]?.role === "user") {
-          return prev.slice(0, -1);
-        }
-        return prev;
-      });
+      setMessages((prev) => prev[prev.length - 1]?.role === "user" ? prev.slice(0, -1) : prev);
     } finally {
       setIsLoading(false);
     }
@@ -758,8 +843,17 @@ export default function DashboardAdvisor() {
   const handleConfirmEdit = async () => {
     const proposal = pendingEdit;
     if (!proposal || !restaurant || proposal.restaurantId !== restaurant.id || isLoading || isCommercialDemo) return;
+    const attachmentPayloads = attachments.map(toAdvisorAttachmentPlanPayload);
     setIsLoading(true);
-    setActiveTool(proposal.target === "dish_photo" ? "Génération de la photo" : "Modification du restaurant");
+    setActiveTool(
+      proposal.target === "dish_photo"
+        ? "Génération de la photo"
+        : proposal.target === "crm_contacts_import"
+          ? "Import sécurisé du CRM"
+          : proposal.target === "uploaded_dish_photo"
+            ? "Association de la photo au plat"
+            : "Modification du restaurant",
+    );
     try {
       let assetId: string | undefined;
       if (proposal.target === "dish_photo" && (!photoPreview || photoPreview.taskId !== proposal.taskId)) {
@@ -787,16 +881,24 @@ export default function DashboardAdvisor() {
         return;
       }
       if (proposal.target === "dish_photo") assetId = photoPreview?.assetId;
-      await applyRestaurantEdit({ restaurantId: restaurant.id, taskId: proposal.taskId, assetId });
+      await applyRestaurantEdit({
+        restaurantId: restaurant.id,
+        taskId: proposal.taskId,
+        assetId,
+        attachments: proposal.attachment_manifest?.length ? attachmentPayloads : undefined,
+      });
       if (!mountedRef.current) return;
       setPendingEdit(null);
       setPhotoPreview(null);
+      setAttachments([]);
       void queryClient.invalidateQueries();
+      const completionMessage = proposal.target === "crm_contacts_import"
+        ? `${proposal.contact_count || 0} contact${(proposal.contact_count || 0) > 1 ? "s" : ""} importé${(proposal.contact_count || 0) > 1 ? "s" : ""} dans le CRM. Le consentement marketing reste inconnu jusqu'à une collecte séparée.`
+        : proposal.target === "uploaded_dish_photo"
+          ? `La photo importée est maintenant associée au plat **${proposal.subject_name}**.`
+          : `Modification enregistrée dans **${proposal.subject_name}**. Le dashboard va afficher les nouvelles données.`;
       setMessages((current) => {
-        const updated = [...current, {
-          role: "assistant" as const,
-          content: "Modification enregistrée dans **" + proposal.subject_name + "**. Le dashboard va afficher les nouvelles données.",
-        }];
+        const updated = [...current, { role: "assistant" as const, content: completionMessage }];
         setHistoryEntries(saveAdvisorHistoryEntry(advisorHistoryStorageScope, restaurant.id, updated));
         return updated;
       });
@@ -804,13 +906,22 @@ export default function DashboardAdvisor() {
     } catch (error) {
       toast({
         title: "La modification n'a pas été appliquée",
-        description: error instanceof Error ? error.message : "Erreur inconnue",
+        description: proposal.attachment_manifest?.length
+          ? getAdvisorEditErrorMessage(error)
+          : error instanceof Error ? error.message : "Erreur inconnue",
         variant: "destructive",
       });
     } finally {
       setActiveTool(null);
       setIsLoading(false);
     }
+  };
+
+  const cancelPendingEdit = () => {
+    if (isLoading) return;
+    setPendingEdit(null);
+    setPhotoPreview(null);
+    setAttachments([]);
   };
 
   const handleQuickTool = async (tool: QuickTool, payload?: PreparedToolPayload) => {
@@ -1033,6 +1144,7 @@ export default function DashboardAdvisor() {
     setActiveConversationId(null);
     setPendingEdit(null);
     setPhotoPreview(null);
+    setAttachments([]);
     setPreparationTool(null);
     setSelectedPhotoIds([]);
     setSelectedDishIds([]);
@@ -1047,6 +1159,7 @@ export default function DashboardAdvisor() {
     setActiveConversationId(entry.backendConversationId || null);
     setPendingEdit(null);
     setPhotoPreview(null);
+    setAttachments([]);
     setPreparationTool(null);
     setSelectedPhotoIds([]);
     setSelectedDishIds([]);
@@ -1274,12 +1387,42 @@ export default function DashboardAdvisor() {
         </div>
 
         {pendingEdit && pendingEdit.restaurantId === restaurant.id && (
-          <Card className="mb-3 max-h-80 shrink-0 space-y-2 overflow-y-auto border-primary/50 bg-primary/5 p-3">
-            <p className="text-sm font-semibold">Modification à confirmer — {pendingEdit.subject_name}</p>
-            <p className="text-xs text-muted-foreground">{pendingEdit.summary}</p>
-            <p className="text-xs"><strong>Champ :</strong> {pendingEdit.field}</p>
-            <p className="text-xs break-words"><strong>Actuellement :</strong> {String(pendingEdit.previous_value ?? "Non renseigné")}</p>
-            <p className="text-xs break-words"><strong>Proposé :</strong> {pendingEdit.target === "dish_photo" ? "Nouvelle photographie culinaire générée par IA" : pendingEdit.value}</p>
+          <Card className="mb-3 max-h-96 shrink-0 space-y-3 overflow-y-auto border-primary/50 bg-primary/5 p-3">
+            <div>
+              <p className="text-sm font-semibold">Modification à confirmer — {pendingEdit.subject_name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{pendingEdit.summary}</p>
+            </div>
+
+            {pendingEdit.target === "crm_contacts_import" ? (
+              <div className="space-y-2 rounded-xl border bg-background/80 p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <FileSpreadsheet className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-semibold">
+                    {pendingEdit.contact_count || 0} contact{(pendingEdit.contact_count || 0) > 1 ? "s" : ""} prêt{(pendingEdit.contact_count || 0) > 1 ? "s" : ""} à importer
+                  </p>
+                  <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900">
+                    Consentement marketing inconnu
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  L'import exige une authentification à deux facteurs et un abonnement Premium ou Elite. Aucun contact ne sera utilisé pour une campagne sans consentement collecté séparément.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1 text-xs">
+                <p><strong>Champ :</strong> {pendingEdit.field}</p>
+                <p className="break-words"><strong>Actuellement :</strong> {String(pendingEdit.previous_value ?? "Non renseigné")}</p>
+                <p className="break-words">
+                  <strong>Proposé :</strong>{" "}
+                  {pendingEdit.target === "dish_photo"
+                    ? "Nouvelle photographie culinaire générée par IA"
+                    : pendingEdit.target === "uploaded_dish_photo"
+                      ? "Associer la photo importée à ce plat"
+                      : pendingEdit.value}
+                </p>
+              </div>
+            )}
+
             {pendingEdit.target === "dish_photo" && (
               <>
                 <p className="text-xs text-muted-foreground">La génération d'image consommera des crédits IA. Vous pourrez vérifier le résultat avant de l'associer au plat.</p>
@@ -1288,33 +1431,102 @@ export default function DashboardAdvisor() {
                 )}
               </>
             )}
+
+            {pendingEdit.target === "uploaded_dish_photo" && attachments.find((attachment) => attachment.id === pendingEdit.value)?.dataUrl ? (
+              <img
+                src={attachments.find((attachment) => attachment.id === pendingEdit.value)?.dataUrl}
+                alt={`Photo importée pour ${pendingEdit.subject_name}`}
+                className="max-h-44 w-auto rounded-lg border object-contain"
+              />
+            ) : null}
+
             <div className="flex flex-wrap gap-2">
               <Button type="button" size="sm" disabled={isLoading} onClick={() => void handleConfirmEdit()}>
-                {pendingEdit.target === "dish_photo" ? (photoPreview?.taskId === pendingEdit.taskId ? "Associer cette photo au plat" : "Générer une photo") : "Confirmer la modification"}
+                {pendingEdit.target === "dish_photo"
+                  ? (photoPreview?.taskId === pendingEdit.taskId ? "Associer cette photo au plat" : "Générer une photo")
+                  : pendingEdit.target === "uploaded_dish_photo"
+                    ? "Associer cette image au plat"
+                    : pendingEdit.target === "crm_contacts_import"
+                      ? `Importer ${pendingEdit.contact_count || 0} contacts`
+                      : "Confirmer la modification"}
               </Button>
-              <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={() => { setPendingEdit(null); setPhotoPreview(null); }}>
+              <Button type="button" size="sm" variant="outline" disabled={isLoading} onClick={cancelPendingEdit}>
                 Annuler
               </Button>
             </div>
           </Card>
         )}
         <div className="shrink-0 border-t pt-4">
+          {attachments.length > 0 ? (
+            <div className="mb-3 flex flex-wrap gap-2" aria-label="Pièces jointes sélectionnées">
+              {attachments.map((attachment) => {
+                const AttachmentIcon = attachment.kind === "crm_contacts" ? FileSpreadsheet : attachment.kind === "pdf" ? FileText : Camera;
+                return (
+                  <div key={attachment.id} className="flex max-w-full items-center gap-2 rounded-xl border bg-muted/40 px-3 py-2 text-xs">
+                    {attachment.kind === "image" && attachment.dataUrl ? (
+                      <img src={attachment.dataUrl} alt="" className="h-8 w-8 rounded-md object-cover" />
+                    ) : (
+                      <AttachmentIcon className="h-4 w-4 shrink-0 text-primary" />
+                    )}
+                    <span className="min-w-0">
+                      <span className="block max-w-52 truncate font-medium">{attachment.fileName}</span>
+                      <span className="block text-muted-foreground">
+                        {attachment.kind === "crm_contacts" ? `${attachment.contacts?.length || 0} contacts` : `${Math.ceil(attachment.sizeBytes / 1024)} Ko`}
+                      </span>
+                    </span>
+                    {!pendingEdit ? (
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(attachment.id)}
+                        className="rounded-md p-1 text-muted-foreground hover:bg-background hover:text-foreground"
+                        aria-label={`Retirer ${attachment.fileName}`}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+
+          <input
+            ref={attachmentInputRef}
+            type="file"
+            multiple
+            accept={ADVISOR_ATTACHMENT_ACCEPT}
+            className="hidden"
+            onChange={(event) => void handleAttachmentSelection(event)}
+            disabled={isLoading || isPreparingAttachments || Boolean(pendingEdit) || isCommercialDemo}
+          />
           <div className="flex items-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => attachmentInputRef.current?.click()}
+              disabled={isLoading || isPreparingAttachments || Boolean(pendingEdit) || isCommercialDemo}
+              aria-label="Joindre une image ou un document"
+              title="Joindre une image, un PDF ou une liste CSV/XLS/XLSX"
+              className="h-12 w-12 shrink-0"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
             <Textarea
               ref={textareaRef}
               value={input}
               onChange={(event) => setInput(event.target.value)}
               maxLength={4000}
               onKeyDown={handleKeyDown}
-              placeholder={editMode ? "Demandez une modification du profil, du menu ou une photo de plat..." : "Posez une question ou demandez une modification de votre restaurant..."}
+              placeholder={editMode ? "Demandez une modification du profil, du menu ou une photo de plat..." : "Posez une question ou joignez un document à analyser..."}
               className="max-h-32 min-h-[48px] resize-none"
               rows={1}
-              disabled={isLoading}
+              disabled={isLoading || Boolean(pendingEdit)}
             />
             <Button
               type="button"
               onClick={() => handleSend()}
-              disabled={!input.trim() || isLoading || !restaurant}
+              disabled={(!input.trim() && attachments.length === 0) || isLoading || isPreparingAttachments || Boolean(pendingEdit) || !restaurant}
               size="icon"
               aria-label="Envoyer le message"
               className="h-12 w-12 shrink-0 bg-gradient-to-br from-violet-500 to-indigo-600 hover:opacity-90"
@@ -1323,7 +1535,7 @@ export default function DashboardAdvisor() {
             </Button>
           </div>
           <p className="mt-2 text-center text-[10px] text-muted-foreground">
-            L'IA analyse les donnees des 30 derniers jours de votre restaurant.
+            Ne joignez pas de secrets, mots de passe, clés API, documents bancaires, médicaux ou d'identité. Maximum {ADVISOR_MAX_ATTACHMENTS} fichiers et {Math.round(ADVISOR_MAX_TOTAL_BYTES / 1024 / 1024)} Mo au total. Toute action reste soumise à confirmation.
           </p>
         </div>
         <Dialog open={Boolean(preparationTool)} onOpenChange={(open) => { if (!open) closeToolPreparation(); }}>

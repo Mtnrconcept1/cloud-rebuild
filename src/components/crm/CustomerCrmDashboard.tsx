@@ -46,6 +46,7 @@ import {
   getPreferredHourLabel,
   getPreferredServiceLabel,
   normalizeCustomerCrmProfile,
+  normalizeImportedCustomerCrmProfile,
   type CustomerCrmProfile,
 } from "@/lib/customerCrm";
 
@@ -87,6 +88,44 @@ type CrmSortDirection = "desc" | "asc";
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Erreur de chargement CRM.";
+}
+
+function isImportedCrmRpcMissing(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const code = (error as { code?: unknown }).code;
+  // During staggered deployments, the additive RPC can arrive after the frontend.
+  // Never hide authorization failures: only missing-function errors get this fallback.
+  return code === "PGRST202" || code === "42883";
+}
+
+function getCrmProfileDedupeKey(profile: CustomerCrmProfile) {
+  if (profile.email) return `email:${profile.email.trim().toLowerCase()}`;
+  if (profile.phone) return `phone:${profile.phone.replace(/\D/g, "")}`;
+  return `id:${profile.userId}`;
+}
+
+function mergeCrmProfiles(platformProfiles: CustomerCrmProfile[], importedProfiles: CustomerCrmProfile[]) {
+  const merged = [...platformProfiles];
+  const seen = new Set(platformProfiles.map(getCrmProfileDedupeKey));
+  for (const profile of importedProfiles) {
+    const key = getCrmProfileDedupeKey(profile);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(profile);
+  }
+  const platformTotal = platformProfiles[0]?.totalMatchingCount || platformProfiles.length;
+  const importedTotal = importedProfiles[0]?.totalMatchingCount || importedProfiles.length;
+  const totalMatchingCount = Math.max(merged.length, platformTotal + importedTotal - (platformProfiles.length + importedProfiles.length - merged.length));
+  return merged.map((profile) => ({ ...profile, totalMatchingCount }));
+}
+
+function ImportedContactBadge({ profile }: { profile: CustomerCrmProfile }) {
+  if (profile.source !== "imported") return null;
+  return (
+    <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900">
+      Importé · consentement {profile.marketingConsentStatus === "opted_in" ? "accepté" : profile.marketingConsentStatus === "opted_out" ? "refusé" : "inconnu"}
+    </Badge>
+  );
 }
 
 function getDormant(profile: CustomerCrmProfile) {
@@ -217,6 +256,7 @@ function CustomerCard({ profile, surface }: { profile: CustomerCrmProfile; surfa
             </div>
             <div className="flex flex-wrap gap-1.5">
               <Badge variant="secondary">{insights.profileLabel}</Badge>
+              <ImportedContactBadge profile={profile} />
               <Badge variant="outline">{getPreferredChannelLabel(profile.preferredChannel)}</Badge>
               <Badge variant="outline">{getPreferredServiceLabel(profile.preferredService)}</Badge>
               {surface === "admin" && profile.lastRestaurantName ? (
@@ -327,6 +367,7 @@ function CustomerCompactRow({ profile, surface }: { profile: CustomerCrmProfile;
           </div>
           <div className="flex flex-wrap gap-1.5">
             <Badge variant="secondary">{insights.profileLabel}</Badge>
+            <ImportedContactBadge profile={profile} />
             <Badge variant="outline">{getPreferredChannelLabel(profile.preferredChannel)}</Badge>
             <Badge variant="outline">{getPreferredServiceLabel(profile.preferredService)}</Badge>
             {surface === "admin" && profile.lastRestaurantName ? (
@@ -379,6 +420,7 @@ function CustomerGalleryCard({ profile, surface }: { profile: CustomerCrmProfile
 
       <div className="mt-3 flex flex-wrap gap-1.5">
         <Badge variant="secondary">{insights.profileLabel}</Badge>
+        <ImportedContactBadge profile={profile} />
         <Badge variant="outline">{getPreferredChannelLabel(profile.preferredChannel)}</Badge>
         {surface === "admin" && profile.lastRestaurantName ? (
           <Badge variant="outline">{profile.lastRestaurantName}</Badge>
@@ -453,15 +495,27 @@ export default function CustomerCrmDashboard({
             profile.city,
           ].some((value) => value?.toLocaleLowerCase("fr").includes(normalizedSearch)));
       }
-      const { data, error } = await (supabase.rpc as any)("get_customer_crm_profiles", {
+      const platformRequest = (supabase.rpc as any)("get_customer_crm_profiles", {
         p_restaurant_id: restaurantId,
         p_search: search.trim() || null,
         p_limit: CRM_FETCH_LIMIT,
         p_offset: 0,
       });
-
-      if (error) throw error;
-      return ((data || []) as Record<string, unknown>[]).map(normalizeCustomerCrmProfile);
+      const importedRequest = restaurantId
+        ? (supabase.rpc as any)("get_restaurant_crm_imported_contacts", {
+            p_restaurant_id: restaurantId,
+            p_search: search.trim() || null,
+            p_limit: CRM_FETCH_LIMIT,
+            p_offset: 0,
+          })
+        : Promise.resolve({ data: [], error: null });
+      const [platformResult, importedResult] = await Promise.all([platformRequest, importedRequest]);
+      if (platformResult.error) throw platformResult.error;
+      if (importedResult.error && !isImportedCrmRpcMissing(importedResult.error)) throw importedResult.error;
+      return mergeCrmProfiles(
+        ((platformResult.data || []) as Record<string, unknown>[]).map(normalizeCustomerCrmProfile),
+        ((importedResult.data || []) as Record<string, unknown>[]).map(normalizeImportedCustomerCrmProfile),
+      );
     },
     enabled: surface === "admin" || Boolean(restaurantId),
   });
@@ -501,7 +555,7 @@ export default function CustomerCrmDashboard({
     ? "Vue globale des clients qui commandent ou reservent sur TOK, avec segmentation commerciale et habitudes detectees."
     : isCommercialDemo
       ? "Profil client construit uniquement à partir des commandes et réservations de cette session Démo isolée."
-      : "Clients issus des commandes et reservations de votre restaurant, enrichis par leurs habitudes et preferences detectees.";
+      : "Clients issus des commandes et réservations, complétés par les contacts importés avec un consentement clairement séparé.";
 
   async function fetchAllExportProfiles() {
     if (isCommercialDemo && commercialDemoFrame) {
@@ -514,8 +568,7 @@ export default function CustomerCrmDashboard({
       );
     }
 
-    const collected: CustomerCrmProfile[] = [];
-
+    const platformProfiles: CustomerCrmProfile[] = [];
     for (let offset = 0; offset < CRM_EXPORT_MAX_ROWS; offset += CRM_EXPORT_PAGE_SIZE) {
       const { data, error } = await (supabase.rpc as any)("get_customer_crm_profiles", {
         p_restaurant_id: restaurantId,
@@ -523,19 +576,37 @@ export default function CustomerCrmDashboard({
         p_limit: CRM_EXPORT_PAGE_SIZE,
         p_offset: offset,
       });
-
       if (error) throw error;
-
       const page = ((data || []) as Record<string, unknown>[]).map(normalizeCustomerCrmProfile);
-      collected.push(...page);
-
+      platformProfiles.push(...page);
       if (page.length < CRM_EXPORT_PAGE_SIZE) break;
       const total = page[0]?.totalMatchingCount || 0;
-      if (total > 0 && collected.length >= total) break;
+      if (total > 0 && platformProfiles.length >= total) break;
+    }
+
+    const importedProfiles: CustomerCrmProfile[] = [];
+    if (restaurantId) {
+      for (let offset = 0; offset < CRM_EXPORT_MAX_ROWS; offset += CRM_EXPORT_PAGE_SIZE) {
+        const { data, error } = await (supabase.rpc as any)("get_restaurant_crm_imported_contacts", {
+          p_restaurant_id: restaurantId,
+          p_search: search.trim() || null,
+          p_limit: CRM_EXPORT_PAGE_SIZE,
+          p_offset: offset,
+        });
+        if (error) {
+          if (isImportedCrmRpcMissing(error)) break;
+          throw error;
+        }
+        const page = ((data || []) as Record<string, unknown>[]).map(normalizeImportedCustomerCrmProfile);
+        importedProfiles.push(...page);
+        if (page.length < CRM_EXPORT_PAGE_SIZE) break;
+        const total = page[0]?.totalMatchingCount || 0;
+        if (total > 0 && importedProfiles.length >= total) break;
+      }
     }
 
     return sortCrmProfiles(
-      collected.filter((profile) => filterBySegment(profile, segment)),
+      mergeCrmProfiles(platformProfiles, importedProfiles).filter((profile) => filterBySegment(profile, segment)),
       sortBy,
       sortDirection,
     );

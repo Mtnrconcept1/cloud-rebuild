@@ -137,6 +137,7 @@ import {
 } from "@/lib/dashboardTimeRange";
 import { formatRestaurantPaymentMethod } from "@/lib/dashboardPayments";
 import { getFloorPlanHealthSummary } from "@/lib/floorPlanHealth";
+import { runFloorPlanSaveWithTimeout } from "@/lib/floorPlanSave";
 import {
   createFloorPlanFrameScheduler,
   createFloorPlanPointerMoveScheduler,
@@ -3023,15 +3024,16 @@ export default function DashboardPlanSalle() {
         return { ...draftAssignments };
       }
 
-      const persistAssignments = async (
-        tempIdToPersistedId: Map<string, string>,
-      ) => {
-        const normalizedAssignments = Object.fromEntries(
-          Object.entries(draftAssignments).map(([reservationId, tableId]) => [
-            reservationId,
-            tableId ? tempIdToPersistedId.get(tableId) || tableId : null,
-          ]),
-        ) as Record<string, string | null>;
+      return runFloorPlanSaveWithTimeout(async (saveSignal) => {
+        const persistAssignments = async (
+          tempIdToPersistedId: Map<string, string>,
+        ) => {
+          const normalizedAssignments = Object.fromEntries(
+            Object.entries(draftAssignments).map(([reservationId, tableId]) => [
+              reservationId,
+              tableId ? tempIdToPersistedId.get(tableId) || tableId : null,
+            ]),
+          ) as Record<string, string | null>;
         const persistedAssignments = Object.fromEntries(
           reservationSlots.map((slot) => [slot.reservation_id, slot.table_id]),
         ) as Record<string, string | null>;
@@ -3063,7 +3065,7 @@ export default function DashboardPlanSalle() {
                 ? "Sauvegarde template plan de salle"
                 : "Sauvegarde plan de salle du jour",
             },
-          );
+          ).abortSignal(saveSignal);
           if (error) throw error;
         }
 
@@ -3089,7 +3091,8 @@ export default function DashboardPlanSalle() {
             const { error } = await supabase
               .from("reservation_tables" as any)
               .update(payload)
-              .eq("id", table.id);
+              .eq("id", table.id)
+              .abortSignal(saveSignal);
             if (error) throw error;
             tempIdToPersistedId.set(table.id, table.id);
           } else {
@@ -3097,6 +3100,7 @@ export default function DashboardPlanSalle() {
               .from("reservation_tables" as any)
               .insert(payload)
               .select("id")
+              .abortSignal(saveSignal)
               .single();
             if (error) throw error;
             tempIdToPersistedId.set(
@@ -3123,7 +3127,8 @@ export default function DashboardPlanSalle() {
           const { error } = await supabase
             .from("reservation_tables" as any)
             .delete()
-            .in("id", removedIds);
+            .in("id", removedIds)
+            .abortSignal(saveSignal);
           if (error) throw error;
         }
 
@@ -3180,7 +3185,8 @@ export default function DashboardPlanSalle() {
         const { error } = await supabase
           .from("reservation_table_layout_overrides" as any)
           .delete()
-          .in("id", overrideIdsToDelete);
+          .in("id", overrideIdsToDelete)
+          .abortSignal(saveSignal);
         if (error) throw error;
       }
 
@@ -3189,16 +3195,18 @@ export default function DashboardPlanSalle() {
           .from("reservation_table_layout_overrides" as any)
           .upsert(overridesToUpsert, {
             onConflict: "reservation_table_id,service_date",
-          });
+          })
+          .abortSignal(saveSignal);
         if (error) throw error;
       }
 
-      return persistAssignments(
-        new Map(draftTables.map((table) => [table.id, table.id])),
-      );
+        return persistAssignments(
+          new Map(draftTables.map((table) => [table.id, table.id])),
+        );
+      });
     },
-    onSuccess: async (_data, options) => {
-      await Promise.all([
+    onSuccess: (_data, options) => {
+      void Promise.all([
         queryClient.invalidateQueries({
           queryKey: ["floor-plan-tables", selectedBranchId],
         }),
@@ -4725,33 +4733,42 @@ export default function DashboardPlanSalle() {
       mainClassName="p-2 pb-24 sm:p-3 md:p-4"
     >
       <div className="tok-floorplan-workspace fp-workspace flex min-h-[calc(100vh-2rem)] flex-col gap-3 xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden">
-        <header className="fp-header shrink-0">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="mb-1 text-[10px] font-semibold uppercase tracking-[.18em] text-muted-foreground">
-                Organisation du restaurant
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="font-display text-[28px] font-semibold tracking-tight sm:text-[32px]">
-                  Plan de salle
-                </h1>
+        <header className="tok-editorial-header tok-floorplan-header fp-header shrink-0">
+          <div className="tok-floorplan-hero-grid">
+            <div className="tok-floorplan-hero-copy min-w-0">
+              <span className="tok-floorplan-eyebrow">
+                <LayoutPanelTop className="h-4 w-4" aria-hidden="true" />
+                Organisation de salle
+              </span>
+              <div className="tok-floorplan-heading-row">
+                <h1>Plan de salle</h1>
                 <span
                   aria-live="polite"
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium",
+                    "tok-floorplan-save-status rounded-full border px-2.5 py-1 text-[11px] font-semibold",
                     saveStatus.tone,
                   )}
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
                   {saveStatus.label}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {selectedRestaurant?.name || "Sélectionnez un restaurant"}
+              <p className="tok-floorplan-description">
+                Préparez les tables, placez les réservations et gardez le
+                service lisible d’un seul regard.
               </p>
+              <span className="tok-floorplan-restaurant">
+                <Store className="h-4 w-4" aria-hidden="true" />
+                {selectedRestaurant?.name || "Sélectionnez un restaurant"}
+              </span>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center rounded-xl border border-border bg-card p-0.5">
+
+            <DashboardIllustrationMedia
+              illustration={DASHBOARD_ILLUSTRATIONS.restaurantFloorPlan}
+              className="tok-floorplan-hero-illustration bg-transparent"
+            />
+
+            <div className="tok-floorplan-actions flex min-w-0 flex-wrap items-center gap-2">
+              <div className="flex items-center rounded-xl border border-border bg-card p-1">
                 <Button
                   type="button"
                   variant="ghost"

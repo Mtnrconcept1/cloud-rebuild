@@ -1,4 +1,5 @@
 import type { GeneratedOutputFormat } from "../../../supabase/functions/_shared/print/source-format";
+import type { AdvisorAttachmentPlanPayload } from "@/lib/advisorAttachments";
 import { getSupabase } from "@/integrations/supabase/client";
 import type { TokImageModel, TokImageOutputResolution } from "@/lib/ai/imagePricing";
 import { SUPABASE_URL } from "@/lib/env";
@@ -77,17 +78,42 @@ export type RestaurantEditProposal = {
   status: "draft";
   title: string;
   summary: string;
-  target: "restaurant" | "menu_item" | "ai_profile" | "restaurant_settings" | "dish_photo";
+  target:
+    | "restaurant"
+    | "menu_item"
+    | "ai_profile"
+    | "restaurant_settings"
+    | "dish_photo"
+    | "uploaded_dish_photo"
+    | "crm_contacts_import";
   record_id: string;
   field: string;
   value: string;
   previous_value: unknown;
   subject_name: string;
+  contact_count?: number;
+  attachment_manifest?: Array<{
+    attachmentId: string;
+    kind: string;
+    fileName: string;
+    mimeType: string;
+    sizeBytes: number;
+    contentSha256: string;
+    contactCount: number;
+  }>;
 };
 
-export function proposeRestaurantEdit(request: { restaurantId: string; prompt: string }) {
+export function proposeRestaurantEdit(request: {
+  restaurantId: string;
+  prompt: string;
+  attachments?: AdvisorAttachmentPlanPayload[];
+}) {
+  const singleAttachment = request.attachments?.length === 1 ? request.attachments[0] : undefined;
   return invokeTokAiFunction<RestaurantEditProposal>("ai-restaurant-editor", {
-    ...request, mode: "plan",
+    ...request,
+    attachments: singleAttachment ? undefined : request.attachments,
+    attachment: singleAttachment,
+    mode: "plan",
   });
 }
 
@@ -95,10 +121,18 @@ export function applyRestaurantEdit(request: {
   restaurantId: string;
   taskId: string;
   assetId?: string;
+  attachments?: AdvisorAttachmentPlanPayload[];
 }) {
-  return invokeTokAiFunction<{ status: "applied"; taskId: string; target: string; field: string }>(
+  const singleAttachment = request.attachments?.length === 1 ? request.attachments[0] : undefined;
+  const mode = request.assetId ? "apply_photo" : request.attachments?.length ? "apply_attachment" : "apply";
+  return invokeTokAiFunction<{ status: "applied"; taskId: string; target: string; field: string; importResult?: JsonRecord }>(
     "ai-restaurant-editor",
-    { ...request, mode: request.assetId ? "apply_photo" : "apply" },
+    {
+      ...request,
+      attachments: singleAttachment ? undefined : request.attachments,
+      attachment: singleAttachment,
+      mode,
+    },
   );
 }
 

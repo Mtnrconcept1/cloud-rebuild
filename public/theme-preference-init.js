@@ -1,5 +1,8 @@
 // Run from the same origin before React, without relaxing the script-src CSP.
 (() => {
+  // Hide SEO prerender content only in JS-capable browsers until React mounts.
+  document.documentElement.classList.add("tok-app-booting");
+
   const shouldKeepLightTheme = () => {
     try {
       return window.localStorage.getItem("theme") !== "dark";

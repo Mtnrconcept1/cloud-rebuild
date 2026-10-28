@@ -6,12 +6,12 @@ const service = readFileSync(resolve(process.cwd(), "src/pages/dashboard/Dashboa
 const heroStart = service.indexOf("<DashboardPageHero");
 const heroEnd = service.indexOf("/>", heroStart);
 const hero = service.slice(heroStart, heroEnd);
-const serviceCardStart = service.indexOf('<CardContent className="space-y-4">');
+const serviceCardStart = service.indexOf('<CardContent className="tok-service-period-content min-w-0 space-y-4">');
 const advancedStart = service.indexOf("<Collapsible", serviceCardStart);
 const advancedEnd = service.indexOf("</Collapsible>", advancedStart);
 const dailyControls = service.slice(serviceCardStart, advancedStart);
 const advancedControls = service.slice(advancedStart, advancedEnd);
-const saveActionStart = service.indexOf('<div className="flex justify-end">', advancedEnd);
+const saveActionStart = service.indexOf('<div className="tok-service-save flex justify-end">', advancedEnd);
 const saveAction = service.slice(saveActionStart, service.indexOf("</div>", saveActionStart) + 6);
 
 describe("restaurant service dashboard layout", () => {
@@ -19,7 +19,8 @@ describe("restaurant service dashboard layout", () => {
     expect(service).toContain("[grid-template-columns:repeat(auto-fit,minmax(min(26rem,100%),1fr))]");
     expect(service).toContain("[grid-template-columns:repeat(auto-fit,minmax(min(20rem,100%),1fr))]");
     expect(service).toContain("grid items-start gap-4");
-    expect(service).toContain("min-[420px]:grid-cols-2");
+    expect(service).toContain("tok-service-control-grid grid gap-3 sm:grid-cols-2");
+    expect(service).not.toContain("min-[420px]:grid-cols-2");
     expect(service).not.toContain('className="grid gap-4 lg:grid-cols-2"');
   });
 
