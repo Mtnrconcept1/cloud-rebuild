@@ -52,11 +52,11 @@ describe("Marketing Studio Cloudprinter destination", () => {
       marketingAssetMode: true,
     });
 
-    expect(printRequest.prompt).toContain("MARGE DE SÉCURITÉ IMPRESSION");
+    expect(printRequest.prompt).toContain("GABARIT IMPRESSION PRIORITAIRE");
     expect(printRequest.prompt).toContain("5 mm");
-    expect(printRequest.prompt).toContain("AUCUN texte");
-    expect(printRequest.prompt).toContain("fond perdu");
-    expect(printRequest.prompt).toContain("fonds, textures, motifs ou images de fond");
+    expect(printRequest.prompt).toContain("AUCUN calque");
+    expect(printRequest.prompt).toContain("fonds perdus");
+    expect(printRequest.prompt).toContain("fonds et décors sans information essentielle");
 
     const story = DIGITAL_MARKETING_OUTPUT_TARGETS.find((target) => target.id === "social-story");
     if (!story) throw new Error("story target missing");
@@ -67,8 +67,8 @@ describe("Marketing Studio Cloudprinter destination", () => {
       format: "portrait",
       marketingAssetMode: true,
     });
-    expect(digitalRequest.prompt).not.toContain("MARGE DE SÉCURITÉ IMPRESSION");
-    expect(digitalRequest.prompt).not.toContain("AUCUN texte");
+    expect(digitalRequest.prompt).not.toContain("GABARIT IMPRESSION PRIORITAIRE");
+    expect(digitalRequest.prompt).not.toContain("AUCUN calque");
   });
 
   it("publishes the provider-backed target list so the Studio can replace generic print supports", () => {

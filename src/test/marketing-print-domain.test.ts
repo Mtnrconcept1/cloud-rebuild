@@ -25,32 +25,16 @@ function documentWith(overrides: Partial<Parameters<typeof createMarketingPrintD
     background: {
       url: "https://example.supabase.co/storage/v1/object/sign/restaurant-images/visual.jpg?token=abc",
       mimeType: "image/jpeg",
-      widthPx: 2000,
-      heightPx: 2800,
+      widthPx: 2464,
+      heightPx: 3456,
     },
-    texts: [
-      {
-        id: "title",
-        kind: "title",
-        text: "Brunch du dimanche",
-        x: 0.1,
-        y: 0.1,
-        width: 0.8,
-        height: 0.12,
-        align: "center",
-        fontSizeMm: 7,
-        weight: "bold",
-        color: "#ffffff",
-      },
-    ],
-    qr: { value: "https://www.thetok.ch/reserver", x: 0.7, y: 0.7, size: 0.18 },
     orientation: "portrait",
     ...overrides,
   });
 }
 
 describe("TheTok Print preflight", () => {
-  it("accepts a high-resolution structured A5 composition", () => {
+  it("accepts native A5 artwork with no post-generation additions", () => {
     const result = runPrintPreflight(documentWith(), a5Spec);
 
     expect(result.ready).toBe(true);
@@ -74,41 +58,13 @@ describe("TheTok Print preflight", () => {
     expect(result.blocking.some((issue) => issue.code === "resolution_too_low")).toBe(true);
   });
 
-  it("blocks factual text placed inside the cut-risk margin", () => {
-    const document = documentWith({
-      texts: [
-        {
-          id: "price",
-          kind: "price",
-          text: "CHF 39.–",
-          x: 0,
-          y: 0.05,
-          width: 0.25,
-          height: 0.1,
-          fontSizeMm: 6,
-          weight: "bold",
-          color: "#ffffff",
-        },
-      ],
-    });
-
-    const result = runPrintPreflight(document, a5Spec);
-
-    expect(result.ready).toBe(false);
-    expect(result.blocking.some((issue) => issue.code === "text_outside_safe_area")).toBe(true);
+  it("rejects added title/price/logo/QR at the document constructor", () => {
+    expect(() => documentWith({ texts: [{ id: "price", kind: "price", text: "CHF 39", x: .2, y: .2, width: .4, height: .1 }] })).toThrow("PRINT_NATIVE_ARTWORK_ONLY");
+    expect(() => documentWith({ qr: { value: "https://www.thetok.ch", x: .2, y: .2, size: .2 } })).toThrow("PRINT_NATIVE_ARTWORK_ONLY");
   });
-
-  it("blocks a fake or undersized QR code before BAT generation", () => {
-    const invalidUrl = runPrintPreflight(
-      documentWith({ qr: { value: "not-a-url", x: 0.7, y: 0.7, size: 0.18 } }),
-      a5Spec,
-    );
-    const tooSmall = runPrintPreflight(
-      documentWith({ qr: { value: "https://www.thetok.ch", x: 0.7, y: 0.7, size: 0.05 } }),
-      a5Spec,
-    );
-
-    expect(invalidUrl.blocking.some((issue) => issue.code === "qr_invalid")).toBe(true);
-    expect(tooSmall.blocking.some((issue) => issue.code === "qr_too_small")).toBe(true);
+  it("also blocks crafted documents bypassing the constructor", () => {
+    const document = documentWith();
+    document.qr = { value: "https://www.thetok.ch", x: .2, y: .2, size: .2 };
+    expect(runPrintPreflight(document, a5Spec).blocking.some(x => x.code === "artwork_overlays_forbidden")).toBe(true);
   });
 });

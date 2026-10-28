@@ -1,3 +1,5 @@
+import { hasArtworkOverlays } from "../../../supabase/functions/_shared/print/artwork";
+
 export type PrintImageAsset = {
   url: string;
   mimeType: "image/jpeg" | "image/png" | "image/webp";
@@ -33,8 +35,8 @@ export type PrintRenderingMetadata = {
   sourceWidthPx: number;
   sourceHeightPx: number;
   upscaleFactor: number;
-  cropMode: "cover";
-  strategy: "high_quality_resample";
+  cropMode: "none";
+  strategy: "native_artwork";
 };
 
 export type MarketingPrintDocument = {
@@ -94,6 +96,7 @@ export function createMarketingPrintDocument(input: {
   rendering?: PrintRenderingMetadata | null;
   orientation?: "portrait" | "landscape" | "square";
 }): MarketingPrintDocument {
+  if (hasArtworkOverlays(input)) throw new Error("PRINT_NATIVE_ARTWORK_ONLY");
   return {
     version: 1,
     title: input.title.trim() || "Création Marketing Studio",
@@ -105,7 +108,7 @@ export function createMarketingPrintDocument(input: {
     rendering: input.rendering || null,
     layout: {
       orientation: input.orientation || "portrait",
-      backgroundPosition: "cover",
+      backgroundPosition: "contain",
       overlayOpacity: 0,
     },
   };

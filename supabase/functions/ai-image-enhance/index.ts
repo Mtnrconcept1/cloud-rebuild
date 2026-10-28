@@ -1,5 +1,7 @@
+import { sha256Hex } from "../_shared/print/security.ts";
+import { buildNativePrintTemplate, buildNativePrintInstructions, type NativePrintTemplate } from "../_shared/print/artwork.ts";
 import { readGeneratedOutputFormat, matchesGeneratedPrintFormat, generatedPrintOrientation } from "../_shared/print/source-format.ts";
-import { isSinglePagePrintProduct } from "../_shared/print/catalog.ts";
+import { isSinglePagePrintProduct, isNativeArtworkProduct } from "../_shared/print/catalog.ts";
 import {
   HttpError,
   authenticateRequest,
@@ -1359,22 +1361,31 @@ Deno.serve(async (req) => {
     restaurantId = maybeUuid(body.restaurantId);
     const assetType = normalizeAssetType(body.assetType);
     const marketingAssetMode = assetType === "campaign_visual" && body.marketingAssetMode === true;
-    const marketingOutputFormat = marketingAssetMode
+    let printTemplate: NativePrintTemplate | null = null;
+    let marketingOutputFormat = marketingAssetMode
       ? readGeneratedOutputFormat(body.marketingOutputFormat) : null;
     if (marketingAssetMode && body.marketingOutputFormat != null && !marketingOutputFormat) {
       throw new HttpError(400, "Format de sortie invalide");
     }
     if (marketingOutputFormat?.destination === "print") {
       const { data: variant, error } = await actor.adminClient.from("print_provider_products")
-        .select("id, width_mm, height_mm, bleed_mm, printable_sides, specifications, print_products!inner(category, active)")
+        .select("id, provider_reference, print_technology, width_mm, height_mm, bleed_mm, safe_margin_mm, printable_sides, specifications, print_products!inner(category, active)")
         .eq("id", marketingOutputFormat.providerProductId).eq("active", true)
         .eq("print_products.active", true)
         .not("print_product_id", "is", null).maybeSingle();
       if (error) throw error;
-      if (!variant || !isSinglePagePrintProduct(variant, variant.print_products as any) || !matchesGeneratedPrintFormat(marketingOutputFormat, {
+      if (!variant || !isSinglePagePrintProduct(variant, variant.print_products as any) || !isNativeArtworkProduct(variant, variant.print_products as any) || !matchesGeneratedPrintFormat(marketingOutputFormat, {
         providerProductId: variant.id, widthMm: Number(variant.width_mm),
         heightMm: Number(variant.height_mm), bleedMm: Number(variant.bleed_mm),
       })) throw new HttpError(409, "Format d’impression indisponible ou modifié");
+      try {
+        printTemplate = buildNativePrintTemplate({ widthMm: variant.width_mm, heightMm: variant.height_mm,
+          bleedMm: variant.bleed_mm, safeMarginMm: variant.safe_margin_mm });
+      } catch {
+        throw new HttpError(409, "Gabarit natif ou résolution d’impression non pris en charge");
+      }
+      marketingOutputFormat = { ...marketingOutputFormat, ...printTemplate.contract };
+
     }
     const rawPrompt = sanitizeText(body.prompt || body.objective || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT);
     const prompt = marketingAssetMode
@@ -1388,10 +1399,11 @@ Deno.serve(async (req) => {
     const format = normalizeFormat(marketingOutputFormat?.destination === "print"
       ? generatedPrintOrientation(marketingOutputFormat)
       : body.format);
+    if (printTemplate) format.size = `${printTemplate.widthPx}x${printTemplate.heightPx}`;
     const imageModel = normalizeImageModel(body.imageModel ?? body.model);
     const imageModelCreditMultiplier = getImageModelCreditMultiplier(imageModel);
     const outputConfig = getImageOutputConfig(format, body.outputResolution, imageModel);
-    const variantCount = clampVariantCount(body.variantCount);
+    const variantCount = printTemplate ? 1 : clampVariantCount(body.variantCount);
     const billableImageCount = Math.max(1, variantCount);
     const requestedOutputCreditUnits = outputConfig.creditUnits * billableImageCount;
     const generateImage = body.generateImage !== false;
@@ -1497,7 +1509,9 @@ Deno.serve(async (req) => {
       ].join("\n").slice(0, 7000);
     const activeGenerationSeed = generationSeed || createGenerationSeed();
     generationSeed = activeGenerationSeed;
-    const finalPrompt = appendGenerationSeedToPrompt(baseFinalPrompt, activeGenerationSeed);
+    // Append AFTER any brief truncation. Neither a long brief nor client margins can remove the server template.
+    const printSafePrompt = printTemplate ? `${baseFinalPrompt}\n\n${buildNativePrintInstructions(printTemplate)}` : baseFinalPrompt;
+    const finalPrompt = appendGenerationSeedToPrompt(printSafePrompt, activeGenerationSeed);
 
     let imageResponse: unknown;
     if (marketingAssetMode) {
@@ -1561,6 +1575,9 @@ Deno.serve(async (req) => {
 
     const imageUsage = extractImageUsage(imageResponse);
     const imageBytes = await extractGeneratedImageBytes(imageResponse);
+    if (printTemplate && marketingOutputFormat) {
+      marketingOutputFormat = { ...marketingOutputFormat, sourceSha256: await sha256Hex(imageBytes) };
+    }
     const stored = await storeGeneratedImage(actor, restaurantId, imageBytes, operation);
     usedImageOptions = usedImageOptions || imageOptions;
     const actualOutputCostUsd = getOpenAIOutputCostUsd(usedImageOptions.size, usedImageOptions.quality);

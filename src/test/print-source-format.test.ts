@@ -35,8 +35,8 @@ describe("generated visual print format", () => {
     setMarketingOutputSession({ destination: "print", targets: [target], target });
     const request = applyMarketingOutputTargetToImageRequest({ restaurantId: "r", prompt: "Flyer", marketingAssetMode: true });
     setMarketingOutputSession({ destination: "digital", targets: DIGITAL_MARKETING_OUTPUT_TARGETS, target: DIGITAL_MARKETING_OUTPUT_TARGETS[0] });
-    expect(request.marketingOutputFormat).toEqual(format);
-    expect(readGeneratedOutputFormat(request.marketingOutputFormat)).toEqual(format);
+    expect(request.marketingOutputFormat).toMatchObject({ ...format, nativeArtworkVersion: 1, safeMarginMm: 5 });
+    expect(readGeneratedOutputFormat(request.marketingOutputFormat)).toEqual(request.marketingOutputFormat);
     expect(applyMarketingOutputTargetToImageRequest({ restaurantId: "r", prompt: "Social", marketingAssetMode: true }).marketingOutputFormat)
       .toEqual({ destination: "digital" });
   });

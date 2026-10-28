@@ -1,7 +1,11 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { resolveWorldArt, reverseWorldCoordinates } from "@/lib/homeWorldHero";
 
 describe("TOK worldwide home illustrations", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("uses native Lisbon mobile and desktop files", () => {
     const art = resolveWorldArt("Lisboa, Portugal");
     expect(art?.desktop).toMatch(/lisbonne.*desktop.*webp/);
@@ -17,6 +21,37 @@ describe("TOK worldwide home illustrations", () => {
     const fetcher = vi.spyOn(globalThis, "fetch");
     await expect(reverseWorldCoordinates({ latitude: 1000, longitude: 10 })).resolves.toBeNull();
     expect(fetcher).not.toHaveBeenCalled();
-    fetcher.mockRestore();
+  });
+
+  it("resolves the location returned by the reverse-geocoding provider", async () => {
+    const fetcher = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({
+      city: "Geneva",
+      countryCode: "CH",
+    })));
+
+    await expect(reverseWorldCoordinates({ latitude: 46.21, longitude: 6.23 })).resolves.toEqual({
+      city: "Geneva",
+      country: "CH",
+    });
+    const url = new URL(String(fetcher.mock.calls[0][0]));
+    expect(url.origin).toBe("https://api.bigdatacloud.net");
+    expect(url.pathname).toBe("/data/reverse-geocode-client");
+    expect(url.searchParams.get("latitude")).toBe("46.21");
+    expect(url.searchParams.get("longitude")).toBe("6.23");
+  });
+
+  it("keeps failed network or CSP requests nonfatal for the homepage", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("Failed to fetch"));
+
+    await expect(reverseWorldCoordinates({ latitude: 46.21, longitude: 6.23 })).resolves.toBeNull();
+  });
+
+  it.each([
+    ["HTTP error", () => new Response(null, { status: 503 })],
+    ["invalid JSON", () => new Response("not-json")],
+  ])("keeps a provider %s nonfatal for the homepage", async (_label, response) => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(response());
+
+    await expect(reverseWorldCoordinates({ latitude: 46.21, longitude: 6.23 })).resolves.toBeNull();
   });
 });

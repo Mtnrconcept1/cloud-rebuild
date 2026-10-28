@@ -80,6 +80,13 @@ export async function renderMarketingOutputBlob(input: {
   if (!sourceWidth || !sourceHeight) throw new Error("MARKETING_OUTPUT_SOURCE_DIMENSIONS_MISSING");
 
   const plan = calculateMarketingOutputPlan(sourceWidth, sourceHeight, input.target);
+  if (input.target.destination === "print") {
+    if (plan.quality === "upscale_blocked") throw new Error("PRINT_NATIVE_ARTWORK_INVALID_REGENERATE");
+    if (sourceBlob.type !== "image/png" && sourceBlob.type !== "image/jpeg") throw new Error("PRINT_NATIVE_FORMAT_UNSUPPORTED");
+    return { blob: sourceBlob, mimeType: sourceBlob.type as MarketingOutputMimeType,
+      widthPx: sourceWidth, heightPx: sourceHeight, sourceWidthPx: sourceWidth, sourceHeightPx: sourceHeight,
+      upscaleFactor: 1, quality: plan.quality };
+  }
   const canvas = document.createElement("canvas");
   canvas.width = targetDimensions.widthPx;
   canvas.height = targetDimensions.heightPx;
@@ -125,7 +132,7 @@ export async function downloadMarketingOutput(input: {
   try {
     const anchor = document.createElement("a");
     anchor.href = objectUrl;
-    anchor.download = marketingOutputFileName(input.baseName, input.target, extension);
+    anchor.download = marketingOutputFileName(input.baseName, { ...input.target, widthPx: rendered.widthPx, heightPx: rendered.heightPx }, extension);
     anchor.rel = "noopener";
     document.body.appendChild(anchor);
     anchor.click();

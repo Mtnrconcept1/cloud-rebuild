@@ -1,3 +1,5 @@
+import { buildNativePrintTemplate, nativePrintContractMatches, hasArtworkOverlays, NATIVE_ARTWORK_VERSION } from "../_shared/print/artwork.ts";
+import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { matchesGeneratedPrintFormat } from "../_shared/print/source-format.ts";
 import {
   HttpError,
@@ -11,7 +13,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { buildPrintPdf } from "../_shared/print/pdf.ts";
-import { isSinglePagePrintProduct } from "../_shared/print/catalog.ts";
+import { isSinglePagePrintProduct, isNativeArtworkProduct } from "../_shared/print/catalog.ts";
 
 const BUCKET = "print-production-files";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -27,6 +29,7 @@ function requireUuid(value: unknown, field: string) {
 }
 
 function numberOr(value: unknown, fallback: number) {
+  if (value === null || value === undefined || value === "") return fallback;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
@@ -80,7 +83,12 @@ Deno.serve(async (req) => {
       if (existingError) throw existingError;
       if (!existing) throw new HttpError(404, "Export impression introuvable");
       const pf = asRecord(existing.preflight);
-      if (pf.ready !== true) throw new HttpError(409, "Le préflight doit être valide avant approbation");
+      if (body.proofAcknowledged !== true) throw new HttpError(400, "Vérifiez le PDF, les marges, les textes et la résolution avant d’approuver ce BAT.");
+      if (!["ready", "approved"].includes(existing.status) || !existing.production_storage_path
+        || pf.ready !== true || pf.nativeArtworkVersion !== NATIVE_ARTWORK_VERSION
+        || asRecord(pf.artworkReview).ready !== true || !/^[a-f0-9]{64}$/.test(String(pf.sourceSha256 || ""))) {
+        throw new HttpError(409, "Un nouveau BAT natif contrôlé doit être généré avant approbation");
+      }
 
       const { data: approved, error: approvalError } = await adminClient
         .from("print_exports")
@@ -92,6 +100,7 @@ Deno.serve(async (req) => {
         })
         .eq("id", exportId)
         .eq("restaurant_id", restaurantId)
+        .in("status", ["ready", "approved"])
         .select("id, status, preflight, production_storage_path")
         .single();
       if (approvalError) throw approvalError;
@@ -117,7 +126,8 @@ Deno.serve(async (req) => {
 
     if (action !== "create") throw new HttpError(400, "Action impression invalide");
     const providerProductId = requireUuid(body.providerProductId, "providerProductId");
-    const documentPayload = asRecord(body.document);
+    let documentPayload = asRecord(body.document);
+    if (hasArtworkOverlays(documentPayload)) throw new HttpError(422, "PRINT_NATIVE_ARTWORK_ONLY");
 
     const { data: providerProduct, error: providerError } = await adminClient
       .from("print_provider_products")
@@ -129,29 +139,53 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (providerError) throw providerError;
     if (!providerProduct) throw new HttpError(404, "Variante d’impression indisponible");
-    if (!isSinglePagePrintProduct(providerProduct, providerProduct.print_products as any)) {
-      throw new HttpError(409, "Ce support nécessite plusieurs pages ou faces et ne peut pas recevoir un visuel unique");
+    if (!isSinglePagePrintProduct(providerProduct, providerProduct.print_products as any) || !isNativeArtworkProduct(providerProduct, providerProduct.print_products as any)) {
+      throw new HttpError(409, "Ce support exige un gabarit spécial, plusieurs faces ou un procédé non pris en charge par le visuel natif");
     }
 
+    let template: ReturnType<typeof buildNativePrintTemplate>;
+    try {
+      template = buildNativePrintTemplate({ widthMm: providerProduct.width_mm, heightMm: providerProduct.height_mm,
+        bleedMm: providerProduct.bleed_mm, safeMarginMm: providerProduct.safe_margin_mm });
+    } catch { throw new HttpError(409, "Spécifications fournisseur incomplètes ou incompatibles avec un visuel natif"); }
     const spec = {
       widthMm: numberOr(providerProduct.width_mm, 0),
       heightMm: numberOr(providerProduct.height_mm, 0),
       bleedMm: Math.max(0, numberOr(providerProduct.bleed_mm, 0)),
-      safeMarginMm: Math.max(0, numberOr(providerProduct.safe_margin_mm, 3)),
+      safeMarginMm: template.safeMarginMm,
+      minimumDpi: template.minimumDpi, recommendedDpi: template.recommendedDpi,
       printTechnology: typeof providerProduct.print_technology === "string" ? providerProduct.print_technology : null,
     };
     if (!(spec.widthMm > 0 && spec.heightMm > 0)) throw new HttpError(409, "Spécifications fournisseur incomplètes");
 
     const sourceGenerationId = requireUuid(documentPayload.sourceGenerationId, "sourceGenerationId");
     const { data: source, error: sourceError } = await adminClient.from("ai_generated_assets")
-      .select("metadata").eq("id", sourceGenerationId).eq("restaurant_id", restaurantId)
+      .select("metadata, storage_bucket, storage_path, title").eq("id", sourceGenerationId).eq("restaurant_id", restaurantId)
       .eq("status", "stored").maybeSingle();
     if (sourceError) throw sourceError;
     if (!source || !matchesGeneratedPrintFormat(asRecord(source.metadata).marketing_output_target, {
       providerProductId, widthMm: spec.widthMm, heightMm: spec.heightMm, bleedMm: spec.bleedMm,
     })) throw new HttpError(409, "Le support doit correspondre au format enregistré lors de la génération du visuel");
 
-    const built = await buildPrintPdf({ document: documentPayload, spec });
+    const savedFormat = asRecord(asRecord(source.metadata).marketing_output_target);
+    if (!nativePrintContractMatches(savedFormat, template) || !/^[a-f0-9]{64}$/.test(String(savedFormat.sourceSha256 || ""))) {
+      throw new HttpError(409, "Cette création précède le gabarit natif actuel. Régénérez-la avec le support sélectionné.");
+    }
+    const bucket = String(source.storage_bucket || "");
+    const sourcePath = String(source.storage_path || "");
+    if (!/^[a-zA-Z0-9_-]+$/.test(bucket) || !sourcePath.startsWith(`ai-generated/${restaurantId}/`) || sourcePath.includes("..")) {
+      throw new HttpError(409, "Original natif d’impression indisponible");
+    }
+    // Ignore browser URL/dimensions. Sign only the original asset owned by this restaurant.
+    const { data: original, error: signingError } = await adminClient.storage.from(bucket).createSignedUrl(sourcePath, 120);
+    if (signingError || !original?.signedUrl) throw new HttpError(503, "Original natif d’impression indisponible");
+    documentPayload = { version: 1, sourceGenerationId, title: String(source.title || "Création Marketing Studio").slice(0, 160),
+      background: { url: original.signedUrl, mimeType: "image/png", widthPx: template.widthPx, heightPx: template.heightPx },
+      texts: [], qr: null, logo: null, layout: { backgroundPosition: "contain", overlayOpacity: 0 } };
+    const limiter = createRateLimiter(adminClient, "print-export");
+    await limiter.consume(`user:${actor.userId}`, { maxRequests: 5, windowSeconds: 600 });
+    await limiter.consume(`restaurant:${restaurantId}`, { maxRequests: 10, windowSeconds: 600 });
+    const built = await buildPrintPdf({ document: documentPayload, spec, expectedSourceSha256: String(savedFormat.sourceSha256) });
     const documentId = crypto.randomUUID();
     const exportId = crypto.randomUUID();
     const path = `${restaurantId}/${documentId}/${exportId}/production.pdf`;
@@ -173,7 +207,8 @@ Deno.serve(async (req) => {
         title: String(documentPayload.title || "Création Marketing Studio").slice(0, 160),
         version: 1,
         status: "ready",
-        document: documentPayload,
+        document: { ...documentPayload, background: { ...asRecord(documentPayload.background), url: null,
+          storageBucket: bucket, storagePath: sourcePath } },
       });
       if (documentError) throw documentError;
       documentInserted = true;
