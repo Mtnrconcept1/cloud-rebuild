@@ -242,6 +242,12 @@ Les deux smokes ont été exécutés sur PostgreSQL 17.10 natif dans une base je
 
 La suite complète locale ci-dessous a été exécutée sur la base `070aecdf`. Après intégration de `837705c6`, **7 fichiers et 121 tests ont réussi** sur les parcours d’authentification, continuation, portail employé, gestion, routage et index. Les checks GitHub portent sur le SHA final de la PR.
 
+Le [premier passage GitHub complet](https://github.com/Mtnrconcept1/cloud-rebuild/actions/runs/40639263815), sur `d6093d9e`, a validé **les quatre lots de tests : 5 519 tests réussis et 2 ignorés**, ainsi que les workflows PostgreSQL/concurrence, tests modifiés, sécurité TOK Connect et confirmation de consentement. Son contrôle qualité a ensuite signalé la dépendance de production préexistante `zod@3.25.76` au titre de [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5).
+
+Le correctif de livraison met cette seule dépendance racine à la [version officielle 4.6.7](https://github.com/colinhacks/zod/releases/tag/v4.6.7), avec son lockfile. Aucun import ou schéma Zod n’a été trouvé dans les 1 889 fichiers source/configuration inspectés ; OpenAI 6.39.1 accepte ce peer v4. Le resolver de formulaires inutilisé et la chaîne Puppeteer/Chromium-BiDi de développement restent hors de cette correction. Un futur usage du resolver avec Zod 4 devra utiliser une version compatible. Aucun advisory n’est ignoré et le gate existant `pnpm audit --prod --audit-level high` est conservé.
+
+Après ce correctif, **l’audit de production signale zéro vulnérabilité sur 397 dépendances**, le typecheck réussit et le build de production réussit en **52,41 secondes**. La CI est relancée sur le nouveau commit de la PR ; les résultats définitifs restent attachés à son SHA de tête.
+
 | Contrôle | Résultat local / portée | Commande ou preuve |
 |---|---|---|
 | Suite applicative complète | 759 fichiers réussis, 1 fichier avec un échec d’index, 1 fichier ignoré ; **5 508 tests réussis, 1 échec d’index, 2 tests ignorés**. Le seul échec compare un index généré avant le dernier ajustement de typage Deno. | `corepack pnpm exec vitest run --maxWorkers=4` ; 421,49 s. |
@@ -254,7 +260,8 @@ La suite complète locale ci-dessous a été exécutée sur la base `070aecdf`. 
 | PostgreSQL 17.10 natif | Même smoke réussi, puis concurrence réelle réussie. | `ALL NATIVE SQL ASSERTIONS PASSED: 20 chunks` et `TOK WORKFORCE CONCURRENCY POSTGRES SMOKE PASSED`. |
 | Lint global | Réussi : 0 erreur ; 23 avertissements préexistants hors fichiers de ce lot. | `corepack pnpm lint`. |
 | TypeScript frontend final | Réussi, code de sortie 0. | `corepack pnpm run typecheck`. |
-| Build frontend de production | Réussi, 5 164 modules transformés, 1 min 32 s. Avertissement existant sur certains bundles volumineux. | `corepack pnpm build`, configuration publique Supabase injectée uniquement au processus. |
+| Build frontend de production | Réussi après le correctif Zod, 5 164 modules transformés, 52,41 s. Avertissement existant sur certains bundles volumineux. | `corepack pnpm build`, configuration publique Supabase injectée uniquement au processus. |
+| Audit des dépendances de production | Réussi après mise à jour de la dépendance racine Zod : 0 vulnérabilité, 397 dépendances. | `corepack pnpm audit --prod --audit-level high --json` ; critère du gate inchangé. |
 | Typage réel Edge | Réussi avec Deno officiel 2.9.6, checksum vérifié ; lock et cache temporaires. | Commande ci-dessous. |
 | Cohérence du diff | Contrôle UTF-8, liens documentaires et espaces du diff. | `git diff --cached --check` et index déterministe. |
 | `supabase:doctor:all` dans le worktree | Échec expliqué : absence des fichiers d’environnement et du lien CLI locaux. Aucune opération de production exécutée. | Préflight et doctor du pipeline à conserver avant déploiement. |
