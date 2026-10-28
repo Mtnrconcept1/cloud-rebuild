@@ -310,6 +310,9 @@ describe("native marketing image generation", () => {
     expect(form.get("n")).toBe("1");
     expect(form.get("model")).toBe("gpt-image-2");
     expect(form.get("prompt")).toContain("Annonce la carte de chasse");
+    expect(form.get("prompt")).toContain("generation_seed: fixture-marketing");
+    expect(form.get("prompt")).not.toContain("GABARIT IMPRESSION PRIORITAIRE");
+    expect(body.generation_seed).toBe("fixture-marketing");
     const files = form.getAll("image[]") as File[];
     expect(files).toHaveLength(referenceCount);
     const sentBytes = await Promise.all(files.map(readBlob));
@@ -432,6 +435,8 @@ describe("server-authoritative native Cloudprinter generation", () => {
     expect(String(form.get("prompt"))).toContain("GABARIT IMPRESSION PRIORITAIRE");
     expect(String(form.get("prompt"))).toContain("111×154 mm");
     expect(String(form.get("prompt"))).toContain("3 mm À L'INTÉRIEUR");
+    expect(String(form.get("prompt"))).toContain("generation_seed: fixture-marketing");
+    expect(body.generation_seed).toBe("fixture-marketing");
     expect(body.marketing_output_target).toMatchObject({ ...output, nativeArtworkVersion: 1, safeMarginMm: 3, sourceSha256: expect.stringMatching(/^[a-f0-9]{64}$/) });
     expect((h.assets[0].metadata as Json).marketing_output_target).toEqual(body.marketing_output_target);
   });

@@ -150,7 +150,7 @@ function getEffectiveBias(
   locationBias: AddressLocationBias | undefined,
   preferredCity: string | undefined,
   browserLocationBias: AddressLocationBias | null,
-) {
+): AddressLocationBias | null {
   if (locationBias && isFiniteCoordinate(locationBias.latitude) && isFiniteCoordinate(locationBias.longitude)) {
     return locationBias;
   }
@@ -162,50 +162,80 @@ function getEffectiveBias(
     return browserLocationBias;
   }
 
-  return DEFAULT_ADDRESS_BIAS;
+  return null;
 }
 
-function isPreferredCountry(country: string | undefined, countryCode: string | undefined, preferredCountry: string) {
-  const normalizedCountry = normalizeForMatching(country);
+function isPreferredCountry(
+  country: string | undefined,
+  countryCode: string | undefined,
+  preferredCountry: string | undefined,
+) {
   const normalizedPreferredCountry = normalizeForMatching(preferredCountry);
-  const normalizedCountryCode = normalizeForMatching(countryCode);
+  if (!normalizedPreferredCountry) return false;
 
-  return (
-    normalizedCountryCode === "ch" ||
-    normalizedCountry === "suisse" ||
-    normalizedCountry === "switzerland" ||
-    normalizedCountry === "schweiz" ||
-    Boolean(normalizedPreferredCountry && normalizedCountry === normalizedPreferredCountry)
-  );
+  const normalizedCountry = normalizeForMatching(country);
+  const normalizedCountryCode = normalizeForMatching(countryCode);
+  const prefersSwitzerland = ["suisse", "switzerland", "schweiz", "ch"].includes(normalizedPreferredCountry);
+
+  if (prefersSwitzerland) {
+    return (
+      normalizedCountryCode === "ch" ||
+      normalizedCountry === "suisse" ||
+      normalizedCountry === "switzerland" ||
+      normalizedCountry === "schweiz"
+    );
+  }
+
+  return normalizedCountry === normalizedPreferredCountry || normalizedCountryCode === normalizedPreferredCountry;
+}
+
+function getTextMatchScore(query: string, suggestion: Omit<Suggestion, "localScore" | "sourceIndex">) {
+  const normalizedQuery = normalizeForMatching(query);
+  if (!normalizedQuery) return 0;
+
+  const city = normalizeForMatching(suggestion.city);
+  const name = normalizeForMatching(suggestion.name);
+  const street = normalizeForMatching(suggestion.street);
+  const country = normalizeForMatching(suggestion.country);
+  const fullAddress = normalizeForMatching(suggestion.full_address);
+
+  if (city === normalizedQuery || name === normalizedQuery || country === normalizedQuery) return 7000;
+  if (city.startsWith(normalizedQuery) || name.startsWith(normalizedQuery) || street.startsWith(normalizedQuery)) return 3200;
+  if (city.includes(normalizedQuery) || name.includes(normalizedQuery) || street.includes(normalizedQuery)) return 2200;
+  if (fullAddress.includes(normalizedQuery)) return 1600;
+
+  return 0;
 }
 
 function scoreSuggestion(
   suggestion: Omit<Suggestion, "localScore" | "sourceIndex">,
-  effectiveBias: AddressLocationBias,
+  query: string,
+  effectiveBias: AddressLocationBias | null,
   preferredCity: string | undefined,
-  preferredCountry: string,
+  preferredCountry: string | undefined,
 ) {
-  let score = 0;
-  const preferredCityMatch = normalizeForMatching(preferredCity || effectiveBias.city);
+  let score = getTextMatchScore(query, suggestion);
+  const preferredCityMatch = normalizeForMatching(preferredCity || effectiveBias?.city);
   const city = normalizeForMatching(suggestion.city);
-  const countryMatches = isPreferredCountry(suggestion.country, suggestion.countryCode, preferredCountry);
   const distanceKm = getDistanceKm(effectiveBias, suggestion.latitude, suggestion.longitude);
 
-  if (preferredCityMatch && city === preferredCityMatch) score += 1800;
-  else if (preferredCityMatch && city.includes(preferredCityMatch)) score += 1200;
+  if (preferredCityMatch && city === preferredCityMatch) score += 900;
+  else if (preferredCityMatch && city.includes(preferredCityMatch)) score += 500;
 
   if (distanceKm !== null) {
-    if (distanceKm <= 5) score += 1200;
-    else if (distanceKm <= 15) score += 1000;
-    else if (distanceKm <= 40) score += 800;
-    else if (distanceKm <= 80) score += 550;
-    else if (distanceKm <= 150) score += 250;
-    else score -= Math.min(700, Math.round(distanceKm / 3));
+    if (distanceKm <= 5) score += 500;
+    else if (distanceKm <= 15) score += 400;
+    else if (distanceKm <= 40) score += 300;
+    else if (distanceKm <= 80) score += 200;
+    else if (distanceKm <= 150) score += 100;
+    else score -= Math.min(250, Math.round(distanceKm / 20));
   }
 
-  score += countryMatches ? 650 : -650;
-  if (suggestion.street) score += 80;
-  if (suggestion.housenumber) score += 40;
+  if (preferredCountry) {
+    score += isPreferredCountry(suggestion.country, suggestion.countryCode, preferredCountry) ? 300 : -150;
+  }
+  if (suggestion.street) score += 40;
+  if (suggestion.housenumber) score += 20;
 
   return { score, distanceKm };
 }
@@ -237,7 +267,7 @@ export default function AddressAutocomplete({
   mode = "address",
   hideIcon = false,
   preferredCity,
-  preferredCountry = "Suisse",
+  preferredCountry,
   locationBias,
 }: AddressAutocompleteProps) {
   const [inputValue, setInputValue] = useState(value);
@@ -306,9 +336,12 @@ export default function AddressAutocomplete({
   }, [locationBias, preferredCity]);
 
   const fetchSuggestions = async (query: string) => {
-    if (query.length < 3) {
+    const normalizedQuery = query.trim();
+    if (normalizedQuery.length < 3) {
       setSuggestions([]);
+      setIsOpen(false);
       setIsLoading(false);
+      setError(null);
       return;
     }
 
@@ -321,12 +354,14 @@ export default function AddressAutocomplete({
 
     try {
       const params = new URLSearchParams({
-        q: query,
+        q: normalizedQuery,
         limit: String(ADDRESS_SEARCH_LIMIT),
         lang: "fr",
       });
-      params.set("lat", formatCoordinate(effectiveBias.latitude as number));
-      params.set("lon", formatCoordinate(effectiveBias.longitude as number));
+      if (effectiveBias && isFiniteCoordinate(effectiveBias.latitude) && isFiniteCoordinate(effectiveBias.longitude)) {
+        params.set("lat", formatCoordinate(effectiveBias.latitude));
+        params.set("lon", formatCoordinate(effectiveBias.longitude));
+      }
 
       const response = await fetch(
         `/api/photon?${params.toString()}`,
@@ -369,7 +404,7 @@ export default function AddressAutocomplete({
               ? [postcode, properties.country].filter(Boolean).join(" ")
               : properties.country || undefined,
           };
-          const localRank = scoreSuggestion(baseSuggestion, effectiveBias, preferredCity, preferredCountry);
+          const localRank = scoreSuggestion(baseSuggestion, normalizedQuery, effectiveBias, preferredCity, preferredCountry);
 
           return {
             ...baseSuggestion,
@@ -387,7 +422,9 @@ export default function AddressAutocomplete({
       setIsOpen(true);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
-      setError("Erreur de recherche");
+      setSuggestions([]);
+      setIsOpen(true);
+      setError("Recherche d’adresse indisponible");
     } finally {
       if (abortControllerRef.current === controller) setIsLoading(false);
     }
@@ -397,9 +434,12 @@ export default function AddressAutocomplete({
     const newValue = event.target.value;
     setInputValue(newValue);
     onValueChange?.(newValue);
+    setSuggestions([]);
+    setError(null);
+    setIsOpen(newValue.trim().length >= 3);
 
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => fetchSuggestions(newValue), 400);
+    debounceTimerRef.current = setTimeout(() => fetchSuggestions(newValue), 350);
   };
 
   const handleSelect = (suggestion: Suggestion) => {
@@ -464,7 +504,7 @@ export default function AddressAutocomplete({
             ) : null}
             {error ? <li className="px-3 py-2 text-sm font-medium text-destructive">{error}</li> : null}
             {!isLoading && !error && suggestions.length === 0 && inputValue.length >= 3 ? (
-              <li className="px-3 py-2 text-sm text-muted-foreground">Aucun resultat trouve</li>
+              <li className="px-3 py-2 text-sm text-muted-foreground">Aucun résultat trouvé</li>
             ) : null}
             {suggestions.map((suggestion) => (
               <li

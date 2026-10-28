@@ -1,4 +1,7 @@
-import AddressAutocomplete, { type AddressSelection } from "@/components/AddressAutocomplete";
+import AddressAutocomplete, {
+  type AddressLocationBias,
+  type AddressSelection,
+} from "@/components/AddressAutocomplete";
 
 export type CitySelection = AddressSelection & {
   city: string;
@@ -14,6 +17,8 @@ interface CityAutocompleteProps {
   id?: string;
   disabled?: boolean;
   hideIcon?: boolean;
+  preferredCountry?: string;
+  locationBias?: AddressLocationBias;
 }
 
 export default function CityAutocomplete({
@@ -26,6 +31,8 @@ export default function CityAutocomplete({
   id,
   disabled,
   hideIcon,
+  preferredCountry,
+  locationBias,
 }: CityAutocompleteProps) {
   return (
     <AddressAutocomplete
@@ -42,6 +49,8 @@ export default function CityAutocomplete({
       inputClassName={inputClassName}
       disabled={disabled}
       hideIcon={hideIcon}
+      preferredCountry={preferredCountry}
+      locationBias={locationBias}
     />
   );
 }

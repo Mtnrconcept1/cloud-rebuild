@@ -90,7 +90,7 @@ describe("TOK photo studio persistence", () => {
     expect(aiImageFunction).toContain("function resolveGenerationSeed");
     expect(aiImageFunction).toContain("function appendGenerationSeedToPrompt");
     expect(aiImageFunction).toContain("body.generationSeed ?? body.generation_seed ?? body.seed");
-    expect(aiImageFunction).toContain("const finalPrompt = appendGenerationSeedToPrompt(baseFinalPrompt, activeGenerationSeed)");
+    expect(aiImageFunction).toContain("const finalPrompt = appendGenerationSeedToPrompt(printSafePrompt, activeGenerationSeed)");
     expect(aiImageFunction).toContain("generation_seed: activeGenerationSeed");
   });
 
