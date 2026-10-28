@@ -20,6 +20,15 @@ describe("native generative print margin correction", () => {
       expect(() => readPrintMarginCorrection(request)).toThrow("PRINT_MARGIN_CORRECTION_INVALID");
     }
   });
+  it("validates the live frame geometry and rejects manipulated client coordinates", () => {
+    const input = { sourceGenerationId, insetPercent: 5 as const,
+      frame: { scalePercent: 80, offsetXPercent: 0, offsetYPercent: 0 } };
+    expect(readPrintMarginCorrection(input)).toEqual(input);
+    expect(readPrintMarginCorrection({ ...input, frame: { scalePercent: 95, offsetXPercent: 20, offsetYPercent: 20 } })).toBeTruthy();
+    expect(() => readPrintMarginCorrection({ ...input, frame: { ...input.frame, scalePercent: 120 } })).toThrow("PRINT_MARGIN_FRAME_INVALID");
+    expect(() => readPrintMarginCorrection({ ...input, frame: { ...input.frame, offsetXPercent: Number.NaN } })).toThrow("PRINT_MARGIN_FRAME_INVALID");
+    expect(buildPrintMarginCorrectionPrompt(5, input.frame)).toContain("80%");
+  });
   it("requires native outpainting and preserving all embedded words, prices and logos", () => {
     const prompt = buildPrintMarginCorrectionPrompt(5);
     expect(prompt).toContain("5%");
