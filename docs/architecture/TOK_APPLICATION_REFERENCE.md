@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `62e66d51563ebf90975bb68b92576338f2f38ffc51e7209566e882088b64a3b7`
+- Empreinte SHA-256 des sources indexées : `953ba2880365eda46cd390d834a49ca06b68e9b4924a4ffb776dd374c0beea59`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 237 |
 | edgeFunctions | 123 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4261 |
+| exportedSymbols | 4266 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 587 |
-| modules | 1914 |
+| modules | 1916 |
 | pages | 133 |
 | pathLiterals | 946 |
 | publicAssets | 737 |
 | publicEntries | 772 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19735 |
-| repositoryFiles | 3822 |
+| records | 19744 |
+| repositoryFiles | 3824 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2314,7 +2314,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-one | 29 | [scripts/prerender-seo.mjs:559](../../scripts/prerender-seo.mjs#L559) |
 | /tok-one?status=success | 1 | [src/test/security-url-helpers.test.ts:62](../../src/test/security-url-helpers.test.ts#L62) |
 | /tok-pulse | 11 | [scripts/prerender-seo.mjs:1247](../../scripts/prerender-seo.mjs#L1247) |
-| /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:91](../../supabase/functions/ai-image-enhance/index.ts#L91) |
+| /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:92](../../supabase/functions/ai-image-enhance/index.ts#L92) |
 | /tok-slot-machine/index.html?v=20261028 | 1 | [src/components/DailyMiamzSlotMachine.tsx:16](../../src/components/DailyMiamzSlotMachine.tsx#L16) |
 | /tok_connect_mcp_action_idempotency | 2 | [server/marketingBff.ts:2605](../../server/marketingBff.ts#L2605) |
 | /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
@@ -7082,7 +7082,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 278 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 861 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 862 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 73 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7095,7 +7095,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 229 |
 | automation-script | 91 |
 | documentation | 6 |
-| edge-function-source | 253 |
+| edge-function-source | 254 |
 | frontend-component | 310 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
@@ -7103,7 +7103,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 798 |
+| test | 799 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -8581,7 +8581,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (253)</summary>
+<details><summary>edge-function-source (254)</summary>
 
 - `supabase/functions/_shared/advisor-attachment-policy.ts`
 - `supabase/functions/_shared/advisor-attachments.ts`
@@ -8655,6 +8655,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/print/artwork.ts`
 - `supabase/functions/_shared/print/catalog.ts`
 - `supabase/functions/_shared/print/cloudprinter.ts`
+- `supabase/functions/_shared/print/margin-correction.ts`
 - `supabase/functions/_shared/print/options.ts`
 - `supabase/functions/_shared/print/pdf.ts`
 - `supabase/functions/_shared/print/pricing.ts`
@@ -10437,7 +10438,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (798)</summary>
+<details><summary>test (799)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10941,6 +10942,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/print-catalog-admin-pagination.test.tsx`
 - `src/test/print-composer-source-format.test.tsx`
 - `src/test/print-export-source-format.test.ts`
+- `src/test/print-margin-correction.test.ts`
 - `src/test/print-native-proof.test.tsx`
 - `src/test/print-orchestrator-runtime.test.ts`
 - `src/test/print-pdf-dimensions.test.ts`
