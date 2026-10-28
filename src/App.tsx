@@ -718,7 +718,9 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <OrderConflictDialog />
         </Suspense> : null
       ) : null}
-      {!commercialDemoFrame && pathname === "/" ? <DailyMiamzSlotMachine /> : null}
+      {!commercialDemoFrame && pathname === "/" && activeFeatures.has("daily-slot-machine") ? (
+        <DailyMiamzSlotMachine />
+      ) : null}
       {showLaunchClientChrome && !commercialDemoFrame && activeFeatures.has("plinko-welcome") ? (
         <Suspense fallback={null}><WelcomePlinko arrivedAt={plinkoArrivalAt.current} /></Suspense>
       ) : null}
