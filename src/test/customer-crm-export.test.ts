@@ -48,17 +48,32 @@ describe("buildCustomerCrmCsv", () => {
 
     expect(csv).toContain('"Nom complet";"Prénom";"Nom";"Email"');
     expect(csv).toContain('"Raph Test";"Raph";"Test";"raph@example.com"');
-    expect(csv).toContain('"=""022 123 45 67"""');
-    expect(csv).toContain('"=""+41 79 000 00 00"""');
+    expect(csv).toContain('"\'022 123 45 67"');
+    expect(csv).toContain('"\'+41 79 000 00 00"');
+    expect(csv).not.toContain('"=""+41 79 000 00 00"""');
     expect(csv).toContain('"123.45";"41.15"');
     expect(csv).toContain('"Pizza ""speciale""; menu x2"');
+  });
+
+  it("neutralizes malicious spreadsheet formulas in newly imported CRM data", () => {
+    const csv = buildCustomerCrmCsv([profile({
+      source: "imported",
+      marketingConsentStatus: "unknown",
+      fullName: "=HYPERLINK(\"https://attacker.example\",\"click\")",
+      notes: "@SUM(A1:B2)",
+      address: "+cmd|' /C calc'!A0",
+    })]);
+    expect(csv).toContain('"\'=HYPERLINK(""https://attacker.example"",""click"")"');
+    expect(csv).toContain('"\'@SUM(A1:B2)"');
+    expect(csv).toContain('"\'+cmd|');
+    expect(csv).toContain('"Inconnu"');
   });
 
   it("exports Excel XML with autofilter and text-formatted phone cells", () => {
     const xls = buildCustomerCrmXls([profile({ phone: "022 123 45 67" })]);
 
     expect(xls).toContain('<?xml version="1.0" encoding="UTF-8"?>');
-    expect(xls).toContain('<AutoFilter x:Range="R1C1:R2C28"');
+    expect(xls).toContain('<AutoFilter x:Range="R1C1:R2C31"');
     expect(xls).toContain('<Worksheet ss:Name="CRM clients">');
     expect(xls).toContain('<Cell ss:StyleID="Text"><Data ss:Type="String">022 123 45 67</Data></Cell>');
     expect(xls).toContain('Pizza &quot;speciale&quot;; menu x2');

@@ -32,7 +32,7 @@ describe("restaurant AI controlled edits", () => {
     expect(page).toContain("Confirmer la modification");
     expect(page).toContain("isCommercialDemo");
     expect(client).toContain('mode: "plan"');
-    expect(client).toContain('mode: request.assetId ? "apply_photo" : "apply"');
+    expect(client).toContain('request.attachments?.length ? "apply_attachment" : "apply"');
   });
 
   it("does not expose financial fields, ownership, arbitrary tables, or direct URLs", () => {
