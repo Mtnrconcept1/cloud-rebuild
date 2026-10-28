@@ -92,3 +92,8 @@
 .tok-dashboard-menu.tok-workspace-sidebar .tok-menu-help { gap: 8px; padding: 10px; }
 .tok-dashboard-menu.tok-workspace-sidebar .tok-menu-help img { width: 62px; height: 48px; }
 .tok-dashboard-menu .tok-workspace-nav-link[aria-current="page"] :is(svg, .text-muted-foreground) { color: inherit; }
+/* Preserve the 80px desktop rail when its labels are collapsed. */
+.tok-dashboard-menu.tok-workspace-sidebar[data-collapsed="true"] .tok-workspace-restaurant-selector > button { min-height: 44px; gap: 0; padding: 4px; }
+.tok-dashboard-menu.tok-workspace-sidebar[data-collapsed="true"] .tok-workspace-restaurant-selector > button > svg:first-child { flex-basis: 36px; width: 36px; height: 36px; padding: 7px; }
+.tok-dashboard-menu.tok-workspace-sidebar[data-collapsed="true"] .tok-menu-help { gap: 0; padding: 4px; }
+.tok-dashboard-menu.tok-workspace-sidebar[data-collapsed="true"] .tok-menu-help img { width: 44px; height: 44px; }
