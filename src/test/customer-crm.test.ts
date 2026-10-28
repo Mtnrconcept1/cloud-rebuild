@@ -10,6 +10,7 @@ import {
 import {
   findPendingCrmMfaFactor,
   findVerifiedCrmMfaFactor,
+  findVerifiedOtherMfaFactor,
   isCrmMfaFactor,
   isValidCrmRecoveryCode,
   isValidCrmTotpCode,
@@ -165,6 +166,9 @@ describe("customer CRM", () => {
 
     expect(findVerifiedCrmMfaFactor({ all: [marketing], totp: [marketing] })).toBeNull();
     expect(findVerifiedCrmMfaFactor({ all: [marketing, legacy] })).toEqual(legacy);
+    expect(findVerifiedOtherMfaFactor({ all: [marketing], totp: [marketing] })).toEqual(marketing);
+    expect(findVerifiedOtherMfaFactor({ all: [{ ...marketing, status: "unverified" }] })).toBeNull();
+    expect(findVerifiedOtherMfaFactor({ all: [{ ...marketing, friendly_name: "TOK CRM" }] })).toBeNull();
   });
 
   it("keeps six-digit authenticator codes separate from eight-digit recovery codes", () => {

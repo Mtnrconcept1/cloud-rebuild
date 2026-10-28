@@ -65,6 +65,17 @@ export function findVerifiedCrmMfaFactor(factors?: CrmMfaFactorList | null) {
     || null;
 }
 
+/**
+ * A verified factor from another TOK workspace is not a CRM factor, but it
+ * must be challenged to reach AAL2 before enrolling an additional CRM TOTP.
+ * Never auto-revoke or treat it as a recovered TOK CRM factor.
+ */
+export function findVerifiedOtherMfaFactor(factors?: CrmMfaFactorList | null) {
+  return getUniqueFactors(factors)
+    .filter(isTotpFactor)
+    .find((candidate) => candidate.status === "verified" && !isCrmMfaFactor(candidate)) || null;
+}
+
 export function findPendingCrmMfaFactor(factors?: CrmMfaFactorList | null) {
   const availableFactors = getUniqueFactors(factors).filter(isTotpFactor);
   return availableFactors.find((candidate) => (
