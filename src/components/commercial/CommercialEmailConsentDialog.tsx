@@ -150,12 +150,13 @@ function ConsentSession({ prospect, onOpenChange }: { prospect: Prospect; onOpen
       {!loading && error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
       {!loading && !context && <Button type="button" variant="outline" onClick={() => setReload(value => value + 1)}>Réessayer le chargement</Button>}
       {!loading && receipt ? <section className="space-y-4 text-sm">
-        <h3 className="font-semibold">{receipt.confirmation_required ? consentStatusLabel(receipt) : "Consentement enregistré dans Marketing TOK"}</h3>
+        <h3 className="font-semibold">{receipt.confirmation_state && receipt.confirmation_state !== "legacy" ? consentStatusLabel(receipt) : "Consentement enregistré dans Marketing TOK"}</h3>
         <p>Accord signé par <strong>{receipt.signer_name}</strong> ({receipt.signer_role}) pour <strong>{receipt.restaurant_name}</strong>, le {formatDate(receipt.signed_at)}.</p>
         <p className="break-all">Adresse renseignée : <strong>{receipt.email}</strong></p>
-        {receipt.confirmation_required && receipt.confirmation_state === "pending" && <p className="rounded-lg bg-primary/5 p-3">La copie de cette autorisation et la signature seront envoyées à cette adresse. Le restaurateur ouvre le lien reçu puis clique sur <strong>JE CONSENS</strong>. Aucun nouveau droit de campagne n’est accordé avant sa confirmation.</p>}
+        {receipt.confirmation_state === "pending" && <p className="rounded-lg bg-primary/5 p-3">Le consentement signé autorise déjà les e-mails prévus par ce texte, sous réserve des autres règles marketing. La copie et la signature seront envoyées à cette adresse. Le restaurateur peut ouvrir le reçu puis cliquer sur <strong>JE CONSENS</strong>. Ce clic facultatif ajoute une seconde preuve et déclenche un e-mail de double confirmation.</p>}
         {consentDeliveryLabel(receipt.email_delivery_state) && <p role="status">{consentDeliveryLabel(receipt.email_delivery_state)}</p>}
         {receipt.confirmed_at && <p>Confirmation depuis la boîte : {formatDate(receipt.confirmed_at)}.</p>}
+        {receipt.acknowledgement_delivery_state && <p role="status">Accusé de double confirmation : {consentDeliveryLabel(receipt.acknowledgement_delivery_state)}</p>}
         <p className="rounded-lg border p-3">{receipt.withdrawn ? "Autorisation retirée : cette preuve ne réactive aucun droit d’envoi." : receipt.email_eligible ? "Consentement e-mail actif. Les contrôles de campagne, de fréquence et de délivrabilité restent applicables." : "L’accord est conservé, mais les règles marketing actuelles bloquent l’envoi à cette adresse."}</p>
         <DocumentText value={receipt.document} />
         <img src={receipt.signature_data} alt="Signature manuscrite enregistrée du restaurateur" className="w-full rounded-lg border bg-white" />
@@ -183,7 +184,7 @@ function ConsentSession({ prospect, onOpenChange }: { prospect: Prospect; onOpen
             <div className="sticky -bottom-6 space-y-2 border-t bg-background pb-4 pt-3">
               <Button type="submit" className="h-auto min-h-11 w-full whitespace-normal py-3" disabled={!canSubmit}>{busy ? "Enregistrement…" : "J’approuve et je signe mon consentement"}</Button>
               {uncertain && <Button type="button" variant="outline" className="w-full" disabled={busy} onClick={reset}>Recharger le texte et recommencer</Button>}
-              <p className="text-xs text-muted-foreground">La signature déclenche un e-mail contenant cette autorisation et votre signature. Confirmez ensuite avec JE CONSENS pour autoriser les campagnes. Aucun abonnement ni achat.</p>
+              <p className="text-xs text-muted-foreground">La signature déclenche un e-mail contenant cette autorisation et votre signature. Votre consentement signé autorise déjà ces campagnes. JE CONSENS ajoute une confirmation complémentaire et un e-mail récapitulatif. Aucun abonnement ni achat.</p>
             </div>
           </form>
         </>}

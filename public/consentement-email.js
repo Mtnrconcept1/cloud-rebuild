@@ -9,7 +9,7 @@
   const format = value => value ? new Date(value).toLocaleString('fr-CH', { timeZone: 'Europe/Zurich' }) : '—';
   function showError(message) { byId('error').hidden = false; put('error', message); }
   function display(value) {
-    const labels = { pending: 'En attente de confirmation', confirmed: 'Confirmé par e-mail', withdrawn: 'Retiré ou bloqué', superseded: 'Remplacé par une nouvelle demande', expired: 'Lien de confirmation expiré' };
+    const labels = { pending: 'Consentement signé — confirmation complémentaire possible', confirmed: 'Confirmé par e-mail', withdrawn: 'Retiré ou bloqué', superseded: 'Remplacé par une nouvelle demande', expired: 'Lien de confirmation expiré' };
     if (!value || !labels[value.state] || !value.document) throw new Error('Réponse du service non valide. Réessayez.');
     const d = value.document;
     put('status', labels[value.state]); put('restaurant', value.restaurant_name);
@@ -21,12 +21,20 @@
       byId('signature').src = value.signature_data; byId('signature').hidden = false;
     } else { byId('signature').hidden = true; byId('signature').removeAttribute('src'); }
     put('reference', `Version : ${d.version} · Référence : ${value.receipt_id}\nEmpreinte de preuve : ${value.proof_hash}`);
+    const acknowledgement = {
+      queued: 'L’accusé de double confirmation est en file d’envoi.',
+      processing: 'L’envoi de l’accusé de double confirmation est en cours.',
+      retry: 'Une nouvelle tentative d’envoi de l’accusé est prévue ; votre confirmation est déjà enregistrée.',
+      sent: 'L’accusé de double confirmation a été accepté par le service d’envoi.',
+      failed: 'L’envoi de l’accusé a échoué ; votre double confirmation reste enregistrée.',
+      cancelled: 'L’envoi de l’accusé a été annulé ; le reçu conserve vos choix.'
+    }[value.acknowledgement_delivery_state] || 'Votre double confirmation est enregistrée.';
     const instructions = {
-      pending: 'En cliquant sur JE CONSENS, vous confirmez personnellement l’autorisation ci-dessus pour cette adresse e-mail. Sans ce clic, cette demande n’autorise aucune campagne.',
-      confirmed: value.email_eligible ? 'Votre accord est confirmé. Cette adresse est autorisée pour les campagnes TOK prévues par le texte accepté. Aucun message commercial n’est envoyé par ce clic.' : 'Votre accord est conservé. Vos préférences ou les autres règles marketing bloquent actuellement l’envoi.',
+      pending: value.email_eligible ? 'Votre signature autorise déjà les e-mails TOK prévus par ce texte. JE CONSENS ajoute une confirmation complémentaire et déclenche un e-mail récapitulatif. Cette étape est facultative.' : 'Votre consentement signé est conservé, mais vos préférences ou les autres règles marketing bloquent actuellement l’envoi. JE CONSENS ajoute seulement une preuve complémentaire et ne contourne pas ces règles.',
+      confirmed: (value.email_eligible ? 'Votre consentement signé est maintenant également confirmé par e-mail. Aucun message commercial n’est envoyé par ce clic. ' : 'Votre accord est conservé. Vos préférences ou les autres règles marketing bloquent actuellement l’envoi. ') + acknowledgement,
       withdrawn: 'Cette demande ne permet plus de vous envoyer des campagnes. Un ancien lien ne peut pas réactiver une opposition.',
       superseded: 'Une demande plus récente remplace ce lien. Utilisez le dernier e-mail reçu. Vous pouvez toujours retirer votre autorisation pour cette même adresse.',
-      expired: 'Le délai de confirmation est dépassé. Demandez une nouvelle autorisation au commercial TOK. Aucun accord supplémentaire n’a été activé.',
+      expired: value.email_eligible ? 'Le lien de confirmation complémentaire a expiré. Votre consentement signé reste actif et autorise les e-mails prévus. Vous pouvez le retirer à tout moment.' : 'Le lien complémentaire a expiré. Votre consentement signé est conservé, mais les autres règles marketing bloquent actuellement l’envoi.',
     };
     put('instruction', instructions[value.state]);
     byId('confirm').hidden = value.state !== 'pending';

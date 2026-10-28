@@ -16,7 +16,7 @@ SELECT pg_temp.check_error('SELECT public.commercial_consent_email_payload(gen_r
 SELECT set_config('test.double',pg_temp.sign_confirm('double@example.com','00000000-0000-4000-8000-000000000201')::text,false);
 SELECT pg_temp.check_ok(current_setting('test.double')::jsonb->>'confirmation_state'='pending','signature stays pending');
 SELECT pg_temp.check_ok(current_setting('test.double')::jsonb->'withdrawn'='false'::jsonb,'pending signature is not a withdrawal');
-SELECT pg_temp.check_ok(current_setting('test.double')::jsonb->'email_eligible'='false'::jsonb,'signature cannot grant campaigns');
+SELECT pg_temp.check_ok(current_setting('test.double')::jsonb->'email_eligible'='true'::jsonb,'explicit signature grants email campaigns before mailbox approval');
 SELECT pg_temp.check_ok(current_setting('test.double')::jsonb->'email_verified'='false'::jsonb,'mailbox not yet verified');
 SELECT pg_temp.check_ok(NOT(current_setting('test.double')::jsonb ? 'token_hash'),'no confirmation hash exposed to collector');
 SELECT pg_temp.check_ok(pg_temp.sign_confirm('double@example.com','00000000-0000-4000-8000-000000000201')->>'receipt_id'=current_setting('test.double')::jsonb->>'receipt_id','same signature retry returns original');
@@ -24,11 +24,11 @@ RESET ROLE;
 SELECT pg_temp.check_ok((SELECT count(*)=1 FROM public.commercial_email_confirmations WHERE email='double@example.com'),'one confirmation for retried signature');
 SELECT pg_temp.check_ok((SELECT count(*)=1 FROM public.email_queue WHERE to_email='double@example.com'),'one transactional outbox row');
 SELECT pg_temp.check_ok((SELECT status='consent_pending' AND body_html IS NULL AND body_text IS NULL AND NOT(metadata ? 'token') FROM public.email_queue WHERE to_email='double@example.com'),'old generic worker cannot claim the consent outbox');
-SELECT pg_temp.check_ok((SELECT lawful_basis='none' AND NOT public.marketing_contact_is_eligible(id,'email') FROM public.marketing_contacts WHERE email_normalized='double@example.com'),'no lawful basis granted on capture');
-SELECT pg_temp.check_ok((SELECT count(*)=0 FROM public.marketing_lawful_basis_evidence WHERE source_reference=current_setting('test.double')::jsonb->>'receipt_id'),'no granted/reaffirmed event before mailbox approval');
--- Reimport cannot bypass the authoritative private gate, even with another legal basis.
-UPDATE public.marketing_contacts SET lawful_basis='legitimate_interest',metadata=metadata||'{"lawful_basis_evidence":{"source":"test","note":"Imported fixture for gating regression"}}'::jsonb WHERE email_normalized='double@example.com';
-SELECT pg_temp.check_ok((SELECT NOT public.marketing_contact_is_eligible(id,'email') AND NOT public.marketing_contact_is_eligible(id,'manual_email') FROM public.marketing_contacts WHERE email_normalized='double@example.com'),'reimport does not bypass pending confirmation');
+SELECT pg_temp.check_ok((SELECT lawful_basis='consent' AND public.marketing_contact_is_eligible(id,'email') FROM public.marketing_contacts WHERE email_normalized='double@example.com'),'signed consent is the lawful basis before mailbox approval');
+SELECT pg_temp.check_ok((SELECT count(*)=1 FROM public.marketing_lawful_basis_evidence WHERE source_reference=current_setting('test.double')::jsonb->>'receipt_id'),'one signed basis event before mailbox approval');
+-- Mailbox metadata does not replace the signed proof or invent verified-mail status.
+SELECT pg_temp.check_ok((SELECT consent_at=(SELECT signed_at FROM public.commercial_email_consent_receipts WHERE id=(current_setting('test.double')::jsonb->>'receipt_id')::uuid) FROM public.marketing_contacts WHERE email_normalized='double@example.com'),'consent date is the signature date');
+SELECT pg_temp.check_ok(current_setting('test.double')::jsonb->'confirmation_required'='false'::jsonb,'mailbox confirmation is optional for signed consent');
 SELECT set_config('test.queue',(SELECT queue_id::text FROM public.commercial_email_confirmations WHERE email='double@example.com'),false);
 SET ROLE service_role;
 SELECT pg_temp.check_error($q$UPDATE public.commercial_email_confirmations SET confirmed_at=now()$q$,'42501','no direct service table write');
@@ -44,7 +44,29 @@ SELECT pg_temp.check_error($q$SELECT public.commercial_consent_public_action(rep
 RESET ROLE;
 SELECT pg_temp.check_ok((SELECT email_verified=false FROM public.commercial_email_consent_receipts WHERE id=(current_setting('test.double')::jsonb->>'receipt_id')::uuid),'original signature is unchanged');
 SELECT pg_temp.check_ok((SELECT count(*)=1 FROM public.audit_log WHERE action='commercial_consent_mail_confirmed' AND entity_id=(current_setting('test.double')::jsonb->>'receipt_id')::uuid),'confirmation audit exactly once');
-SELECT pg_temp.check_ok((SELECT count(*)=1 FROM public.marketing_lawful_basis_evidence WHERE source_reference=current_setting('test.double')::jsonb->>'receipt_id'),'one confirmation basis event');
+SELECT pg_temp.check_ok((SELECT count(*)=1 FROM public.marketing_lawful_basis_evidence WHERE source_reference=current_setting('test.double')::jsonb->>'receipt_id'),'mailbox approval preserves the original signed basis evidence');
+SELECT pg_temp.check_ok((SELECT consent_at=(SELECT signed_at FROM public.commercial_email_consent_receipts WHERE id=(current_setting('test.double')::jsonb->>'receipt_id')::uuid) AND consent_source='commercial_restaurateur_signature_v4' FROM public.marketing_contacts WHERE email_normalized='double@example.com'),'mailbox approval never replaces signed source or date');
+SELECT pg_temp.check_ok((SELECT count(*)=1 FROM public.commercial_email_acknowledgements WHERE receipt_id=(current_setting('test.double')::jsonb->>'receipt_id')::uuid),'one final acknowledgement for repeated confirmation');
+SELECT pg_temp.check_ok((SELECT count(*)=2 FROM public.email_queue WHERE to_email='double@example.com'),'exactly two messages: signed receipt and final acknowledgement');
+SELECT set_config('test.ack_queue',(SELECT queue_id::text FROM public.commercial_email_acknowledgements WHERE receipt_id=(current_setting('test.double')::jsonb->>'receipt_id')::uuid),false);
+SET ROLE service_role;
+SELECT pg_temp.check_error('UPDATE public.commercial_email_acknowledgements SET attempts=0','42501','service cannot alter acknowledgement directly');
+SELECT pg_temp.check_ok(public.commercial_consent_email_payload(current_setting('test.ack_queue')::uuid)->>'mail_kind'='acknowledgement','second message is a final acknowledgement');
+SELECT pg_temp.check_ok(public.commercial_consent_email_payload(current_setting('test.ack_queue')::uuid)->>'confirmation_queue_id'=current_setting('test.queue'),'ack uses the original private receipt link');
+SELECT set_config('test.ack_claim',public.commercial_claim_consent_email(current_setting('test.ack_queue')::uuid,repeat('a',64),repeat('c',64))::text,false);
+SELECT pg_temp.check_ok(current_setting('test.ack_claim')::jsonb->>'lease_token' IS NOT NULL,'final acknowledgement claimed');
+SELECT pg_temp.check_ok(public.commercial_claim_consent_email(current_setting('test.ack_queue')::uuid,repeat('a',64),repeat('c',64)) IS NULL,'concurrent acknowledgement claim is rejected');
+SELECT pg_temp.check_ok(public.commercial_settle_consent_email(current_setting('test.ack_queue')::uuid,(current_setting('test.ack_claim')::jsonb->>'lease_token')::uuid,NULL,'provider_http_503'),'ack failure is recorded');
+RESET ROLE;
+SELECT pg_temp.check_ok((SELECT public.marketing_contact_is_eligible(id,'email') FROM public.marketing_contacts WHERE email_normalized='double@example.com'),'failed acknowledgement does not undo consent');
+UPDATE public.commercial_email_acknowledgements SET retry_after=now()-interval '1 minute' WHERE queue_id=current_setting('test.ack_queue')::uuid;
+SET ROLE service_role;
+SELECT public.commercial_recover_consent_emails();
+SELECT set_config('test.ack_claim',public.commercial_claim_consent_email(current_setting('test.ack_queue')::uuid,repeat('a',64),repeat('c',64))::text,false);
+SELECT pg_temp.check_ok(current_setting('test.ack_claim')::jsonb->>'lease_token' IS NOT NULL,'same acknowledgement retries after recovery');
+SELECT public.commercial_settle_consent_email(current_setting('test.ack_queue')::uuid,(current_setting('test.ack_claim')::jsonb->>'lease_token')::uuid,'ack-provider-id',NULL);
+SELECT pg_temp.check_ok(public.commercial_claim_consent_email(current_setting('test.ack_queue')::uuid,repeat('a',64),repeat('c',64)) IS NULL,'delivered acknowledgement cannot be sent again');
+RESET ROLE;
 SET ROLE authenticated;
 SELECT pg_temp.check_ok(public.commercial_get_email_consent_receipt((current_setting('test.double')::jsonb->>'receipt_id')::uuid)->'email_verified'='true'::jsonb,'combined receipt records mailbox confirmation');
 SELECT pg_temp.check_error($q$SELECT public.commercial_consent_public_action(repeat('a',64),'withdraw')$q$,'42501','withdrawal RPC not directly callable by commercial');
@@ -83,6 +105,7 @@ UPDATE public.commercial_email_confirmations SET requested_at=now()-interval '3 
 ALTER TABLE public.commercial_email_confirmations ENABLE TRIGGER commercial_confirmation_protect;
 SET ROLE service_role;
 SELECT pg_temp.check_error($q$SELECT public.commercial_consent_public_action(repeat('d',64),'confirm')$q$,'22023','expired confirmation denied');
+SELECT pg_temp.check_ok(public.commercial_consent_public_action(repeat('d',64),'view')->'email_eligible'='true'::jsonb,'expired optional link does not revoke signed consent');
 SELECT public.commercial_recover_consent_emails();
 SELECT pg_temp.check_ok(public.commercial_claim_consent_email(current_setting('test.retry_queue')::uuid,repeat('f',64),repeat('b',64)) IS NOT NULL,'same-token same-payload retry accepted');
 RESET ROLE;
@@ -104,7 +127,7 @@ SET ROLE anon;
 SELECT pg_temp.check_error($q$SELECT public.commercial_consent_public_action(repeat('a',64),'view')$q$,'42501','public clients cannot bypass Edge boundary');
 SELECT pg_temp.check_error('SELECT * FROM public.commercial_email_confirmations','42501','anonymous confirmation table protected');
 RESET ROLE;
-SELECT 'PASS: mailbox confirmation, outbox, service boundary, immutable evidence, opt-out, expiry, idempotency and retry assertions';
+SELECT 'PASS: signature eligibility, optional mailbox confirmation, outbox, service boundary, immutable evidence, opt-out, expiry, idempotency and retry assertions';
 
 -- Upgrading an imported prospect is email-only, even when broad notification preferences exist.
 INSERT INTO public.marketing_contacts(email,phone,user_id,contact_type,lawful_basis,display_name,metadata)
@@ -122,3 +145,15 @@ RESET ROLE;
 SELECT pg_temp.check_ok((SELECT public.marketing_contact_is_eligible(id,'email') AND NOT public.marketing_contact_is_eligible(id,'push') AND NOT public.marketing_contact_is_eligible(id,'in_app') AND NOT public.marketing_contact_is_eligible(id,'manual_call') FROM public.marketing_contacts WHERE email_normalized='imported-scope@example.com'),'mailbox approval never grants another channel to an imported prospect');
 UPDATE public.notification_preferences SET channels='{"email":false,"push":true,"in_app":true}' WHERE user_id='00000000-0000-4000-8000-000000000005';
 SELECT pg_temp.check_ok((SELECT NOT public.marketing_contact_is_eligible(id,'email') FROM public.marketing_contacts WHERE email_normalized='imported-scope@example.com'),'mailbox approval does not override email preferences');
+
+-- A pending acknowledgement is cancelled by a withdrawal before the worker claims it.
+SET ROLE service_role;
+SELECT public.commercial_consent_public_action(repeat('9',64),'withdraw');
+RESET ROLE;
+SELECT pg_temp.check_ok((SELECT a.delivery_state='cancelled' AND q.status='cancelled' FROM public.commercial_email_acknowledgements a JOIN public.email_queue q ON q.id=a.queue_id JOIN public.commercial_email_confirmations c ON c.receipt_id=a.receipt_id WHERE c.email='imported-scope@example.com'),'withdrawal cancels pending final acknowledgement');
+SET ROLE authenticated;
+SELECT pg_temp.check_error('SELECT * FROM public.commercial_email_acknowledgements','42501','commercial cannot read acknowledgement transport');
+RESET ROLE;
+SET ROLE anon;
+SELECT pg_temp.check_error('SELECT * FROM public.commercial_email_acknowledgements','42501','anonymous acknowledgement table protected');
+RESET ROLE;

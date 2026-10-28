@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b5db400afc6a24d7a34ed61c96b5aa11ca994244f711ba05f6cf5871d9641b0f`
+- Empreinte SHA-256 des sources indexées : `0883a19da134f17dc4814a1585fd56312c9e11a3a94413bf95c4b174ca937fa7`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,7 +28,7 @@
 | apiRoutes | 11 |
 | cronJobs | 37 |
 | databaseContract | 231 |
-| databaseObjects | 3078 |
+| databaseObjects | 3084 |
 | documents | 228 |
 | edgeFunctions | 121 |
 | edgeHttpRoutes | 20 |
@@ -45,7 +45,7 @@
 | publicEntries | 742 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 118 |
-| records | 19036 |
+| records | 19040 |
 | repositoryFiles | 3699 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -2709,7 +2709,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (881)</summary>
+<details><summary>function (884)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3004,7 +3004,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.claim_tok_connect_webhook_deliveries` (1 définition(s))
 - `public.cleanup_expired_groups` (1 définition(s))
 - `public.close_due_match_groups` (2 définition(s))
+- `public.commercial_acknowledgement_protect` (1 définition(s))
 - `public.commercial_build_signature_snapshot` (3 définition(s))
+- `public.commercial_claim_consent_acknowledgement` (1 définition(s))
 - `public.commercial_claim_consent_email` (1 définition(s))
 - `public.commercial_configure_email_consent_controller` (1 définition(s))
 - `public.commercial_confirmation_protect` (1 définition(s))
@@ -3046,6 +3048,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.commercial_record_signed_email_consent_v2` (2 définition(s))
 - `public.commercial_recover_consent_emails` (1 définition(s))
 - `public.commercial_refusal_reason_codes_valid` (2 définition(s))
+- `public.commercial_settle_consent_acknowledgement` (1 définition(s))
 - `public.commercial_settle_consent_email` (1 définition(s))
 - `public.commercial_signature_commission_chf` (1 définition(s))
 - `public.commercial_sprint_bonus_chf` (1 définition(s))
@@ -3595,7 +3598,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (726)</summary>
+<details><summary>index (727)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3669,6 +3672,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `commercial_demo_reservations_owner_created_idx` (1 définition(s))
 - `commercial_demo_reservations_restaurant_idx` (1 définition(s))
 - `commercial_demo_reservations_session_date_idx` (1 définition(s))
+- `commercial_email_ack_recovery_idx` (1 définition(s))
 - `commercial_email_confirmation_current_idx` (1 définition(s))
 - `commercial_email_confirmation_rate_idx` (1 définition(s))
 - `commercial_email_confirmation_recovery_idx` (1 définition(s))
@@ -5137,7 +5141,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (390)</summary>
+<details><summary>table (391)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5207,6 +5211,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.commercial_demo_reservations` (1 définition(s))
 - `public.commercial_demo_shared_restaurant` (1 définition(s))
 - `public.commercial_earning_events` (1 définition(s))
+- `public.commercial_email_acknowledgements` (1 définition(s))
 - `public.commercial_email_confirmations` (1 définition(s))
 - `public.commercial_email_consent_receipts` (1 définition(s))
 - `public.commercial_prospect_catalog` (1 définition(s))
@@ -5532,7 +5537,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (268)</summary>
+<details><summary>trigger (269)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -5556,6 +5561,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `block_commercial_demo_side_effect_row` (1 définition(s))
 - `block_commercial_demo_social_side_effect_row` (1 définition(s))
 - `capture_signup_application_draft_on_auth_user` (1 définition(s))
+- `commercial_acknowledgement_protect` (1 définition(s))
 - `commercial_confirmation_protect` (1 définition(s))
 - `commercial_confirmation_revoke_contact` (1 définition(s))
 - `commercial_consent_immutable` (1 définition(s))
@@ -6701,7 +6707,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261027161000 Commercial Signed Email Consent | 288 | 14 | [supabase/migrations/20261027161000_commercial_signed_email_consent.sql:1](../../supabase/migrations/20261027161000_commercial_signed_email_consent.sql#L1) |
 | 20261027161330 Native Tok Contact Permissions | 102 | 12 | [supabase/migrations/20261027161330_native_tok_contact_permissions.sql:1](../../supabase/migrations/20261027161330_native_tok_contact_permissions.sql#L1) |
 | 20261027180000 Restaurant Menu Cards | 311 | 13 | [supabase/migrations/20261027180000_restaurant_menu_cards.sql:1](../../supabase/migrations/20261027180000_restaurant_menu_cards.sql#L1) |
-| 20261027221840 Commercial Email Confirmation | 437 | 18 | [supabase/migrations/20261027221840_commercial_email_confirmation.sql:1](../../supabase/migrations/20261027221840_commercial_email_confirmation.sql#L1) |
+| 20261027221840 Commercial Email Confirmation | 591 | 24 | [supabase/migrations/20261027221840_commercial_email_confirmation.sql:1](../../supabase/migrations/20261027221840_commercial_email_confirmation.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7149,7 +7155,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Refonte TOK — application réelle en preview | 8 | [docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md:1](../../docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md#L1) |
 | TOK marketing publication repair | 6 | [docs/superpowers/plans/2026-10-11-marketing-publication-repair.md:1](../../docs/superpowers/plans/2026-10-11-marketing-publication-repair.md#L1) |
 | Consentement restaurateur dans le Cockpit commercial | 8 | [docs/superpowers/plans/2026-10-27-commercial-consent.md:1](../../docs/superpowers/plans/2026-10-27-commercial-consent.md#L1) |
-| Confirmation e-mail du consentement commercial — plan | 7 | [docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md:1](../../docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md#L1) |
+| Consentement signé immédiat et confirmation e-mail complémentaire | 5 | [docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md:1](../../docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md#L1) |
 | Facturation des réservations (5.-/resa) & détection anti-fraude | 26 | [docs/superpowers/specs/2026-04-17-reservation-billing-design.md:1](../../docs/superpowers/specs/2026-04-17-reservation-billing-design.md#L1) |
 | Refonte compta: accueil + entrees/sorties | 52 | [docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md:1](../../docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md#L1) |
 | Lisibilite dashboard: factures, reservations et commandes | 39 | [docs/superpowers/specs/2026-04-21-dashboard-readability-design.md:1](../../docs/superpowers/specs/2026-04-21-dashboard-readability-design.md#L1) |

@@ -31,6 +31,39 @@ CREATE UNIQUE INDEX IF NOT EXISTS commercial_email_confirmation_current_idx ON p
 CREATE INDEX IF NOT EXISTS commercial_email_confirmation_recovery_idx ON public.commercial_email_confirmations(delivery_state,retry_after,lease_until) WHERE delivery_state IN ('retry','processing');
 CREATE INDEX IF NOT EXISTS commercial_email_confirmation_rate_idx ON public.commercial_email_confirmations(email,requested_at DESC);
 
+-- Separate transport for the final acknowledgement. One row per explicit mailbox approval.
+CREATE TABLE IF NOT EXISTS public.commercial_email_acknowledgements (
+ receipt_id uuid PRIMARY KEY REFERENCES public.commercial_email_confirmations(receipt_id),
+ queue_id uuid UNIQUE NOT NULL REFERENCES public.email_queue(id),
+ created_at timestamptz NOT NULL DEFAULT now(),
+ expires_at timestamptz NOT NULL DEFAULT (now()+interval '48 hours'),
+ delivery_state text NOT NULL DEFAULT 'queued' CHECK(delivery_state IN ('queued','processing','retry','sent','failed','cancelled')),
+ payload_hash text CHECK(payload_hash ~ '^[a-f0-9]{64}$'),
+ attempts integer NOT NULL DEFAULT 0 CHECK(attempts BETWEEN 0 AND 5),
+ first_attempt_at timestamptz, retry_after timestamptz, lease_token uuid, lease_until timestamptz,
+ provider_message_id text, error_code text,
+ CHECK(expires_at>created_at)
+);
+ALTER TABLE public.commercial_email_acknowledgements ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.commercial_email_acknowledgements FROM PUBLIC,anon,authenticated,service_role;
+GRANT SELECT ON public.commercial_email_acknowledgements TO service_role;
+CREATE INDEX IF NOT EXISTS commercial_email_ack_recovery_idx ON public.commercial_email_acknowledgements(delivery_state,retry_after,lease_until)
+ WHERE delivery_state IN ('retry','processing');
+CREATE OR REPLACE FUNCTION public.commercial_acknowledgement_protect()
+RETURNS trigger LANGUAGE plpgsql SET search_path='' AS $$
+BEGIN
+ IF NEW.receipt_id IS DISTINCT FROM OLD.receipt_id OR NEW.queue_id IS DISTINCT FROM OLD.queue_id
+ OR NEW.created_at IS DISTINCT FROM OLD.created_at OR NEW.expires_at IS DISTINCT FROM OLD.expires_at
+ OR (OLD.payload_hash IS NOT NULL AND NEW.payload_hash IS DISTINCT FROM OLD.payload_hash)
+ THEN RAISE EXCEPTION 'consent_acknowledgement_is_immutable' USING ERRCODE='42501'; END IF;
+ RETURN NEW;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.commercial_acknowledgement_protect() FROM PUBLIC,anon,authenticated,service_role;
+DROP TRIGGER IF EXISTS commercial_acknowledgement_protect ON public.commercial_email_acknowledgements;
+CREATE TRIGGER commercial_acknowledgement_protect BEFORE UPDATE ON public.commercial_email_acknowledgements
+ FOR EACH ROW EXECUTE FUNCTION public.commercial_acknowledgement_protect();
+
 CREATE OR REPLACE FUNCTION public.commercial_confirmation_protect()
 RETURNS trigger LANGUAGE plpgsql SET search_path='' AS $$
 BEGIN
@@ -64,6 +97,11 @@ BEGIN
    UPDATE public.email_queue q SET status='cancelled',error='consent_revoked'
      FROM public.commercial_email_confirmations c WHERE c.contact_id=NEW.id AND q.id=c.queue_id
      AND q.status IN ('queued','consent_pending','processing','failed');
+   UPDATE public.commercial_email_acknowledgements a SET delivery_state='cancelled',error_code='consent_revoked'
+     FROM public.commercial_email_confirmations c WHERE c.contact_id=NEW.id AND a.receipt_id=c.receipt_id AND a.delivery_state<>'sent';
+   UPDATE public.email_queue q SET status='cancelled',error='consent_revoked'
+     FROM public.commercial_email_acknowledgements a JOIN public.commercial_email_confirmations c ON c.receipt_id=a.receipt_id
+     WHERE c.contact_id=NEW.id AND q.id=a.queue_id AND q.status IN ('queued','consent_pending','processing','failed');
  END IF;
  RETURN NEW;
 END;
@@ -76,9 +114,9 @@ CREATE TRIGGER commercial_confirmation_revoke_contact AFTER UPDATE OF email,opte
 CREATE OR REPLACE FUNCTION public.commercial_consent_document()
 RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
   SELECT jsonb_build_object(
-    'version', 'tok-b2b-mail-confirmation-v3-2026-10-27',
+    'version', 'tok-b2b-signed-plus-mail-v4-2026-10-28',
     'controller', s.controller, 'address', s.address, 'contact', s.email,
-    'text', 'Je déclare être habilité(e) à utiliser l’adresse professionnelle indiquée pour le restaurant renseigné. J’autorise le responsable identifié ci-dessus à m’envoyer par e-mail des présentations, propositions de démonstration, nouveautés et offres commerciales relatives aux services TOK pour les restaurateurs. Je signe personnellement cette demande et demande l’envoi, à cette adresse, de sa copie et de ma signature. Mon adresse ne sera autorisée pour les campagnes qu’après ma confirmation explicite « JE CONSENS » depuis l’e-mail reçu. La simple ouverture du lien ne confirme rien. Cet accord est libre et facultatif : il n’engage aucun abonnement, achat ou paiement. Il ne couvre ni les appels, ni les SMS, ni la prospection de tiers. Je peux le retirer à tout moment et sans frais, par le lien de désabonnement de chaque e-mail commercial ou en écrivant à l’adresse de contact ci-dessus.',
+    'text', 'Je déclare être habilité(e) à utiliser l’adresse professionnelle indiquée pour le restaurant renseigné. J’autorise le responsable identifié ci-dessus à m’envoyer par e-mail des présentations, propositions de démonstration, nouveautés et offres commerciales relatives aux services TOK pour les restaurateurs. Je signe personnellement cette demande et demande l’envoi, à cette adresse, de sa copie et de ma signature. Mon consentement signé autorise dès maintenant les e-mails commerciaux décrits ci-dessus, sous réserve de mes préférences et oppositions. Le clic explicite « JE CONSENS » depuis l’e-mail reçu est une confirmation complémentaire, facultative ; il ajoute une seconde preuve et déclenche l’envoi d’un accusé de double confirmation. La simple ouverture du lien ne confirme rien. L’absence de confirmation ou l’expiration de ce lien ne retire pas mon consentement signé. Cet accord est libre et facultatif : il n’engage aucun abonnement, achat ou paiement. Il ne couvre ni les appels, ni les SMS, ni la prospection de tiers. Je peux le retirer à tout moment et sans frais, par le lien de désabonnement de chaque e-mail commercial ou en écrivant à l’adresse de contact ci-dessus.',
     'privacy', 'Le nom du restaurant, vos nom et fonction, votre adresse e-mail, le texte accepté, le tracé de signature, la date serveur et l’identifiant du commercial collecteur sont conservés pour gérer votre consentement et en documenter la preuve. Les données sont réservées aux personnes TOK habilitées ; le consentement et les éventuelles oppositions sont transmis au module Marketing TOK. Le retrait bloque les futurs envois ; la preuve peut être conservée dans la mesure nécessaire à la justification des choix et aux obligations applicables. Vous pouvez demander accès, rectification ou effacement au contact indiqué ci-dessus, sous réserve des obligations de conservation. La confirmation par e-mail documente l’accès au lien personnel envoyé à cette boîte, pas l’identité civile ni les pouvoirs du signataire. Signature électronique simple, sans certificat qualifié. Le lien de confirmation expire après 48 heures. Une copie et la signature transitent via notre prestataire d’envoi Resend ; ne transférez pas ce lien personnel. Les informations complémentaires sur les prestataires et les transferts figurent dans la politique de confidentialité TOK.'
   ) FROM public.tok_consent_settings s WHERE s.id IS TRUE;
 $$;
@@ -91,10 +129,10 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
     AND CASE
       WHEN p_channel IN ('email','manual_email') THEN
         c.email_normalized IS NOT NULL
-        -- Private gate cannot be cleared by a contact import or editable metadata.
+        -- Private revocation/recipient gate is independent of optional mailbox confirmation.
         AND NOT EXISTS (SELECT 1 FROM public.commercial_email_confirmations confirmation
           WHERE confirmation.contact_id=c.id AND confirmation.superseded_at IS NULL
-            AND (confirmation.confirmed_at IS NULL OR confirmation.revoked_at IS NOT NULL
+            AND (confirmation.revoked_at IS NOT NULL
               OR confirmation.email IS DISTINCT FROM c.email_normalized))
         AND COALESCE((c.metadata ->> 'email_suppressed')::boolean, false) IS FALSE
         AND (c.lawful_basis IN ('consent','existing_customer') OR (c.lawful_basis = 'legitimate_interest' AND c.contact_type IN ('restaurant_prospect','restaurant_lead')))
@@ -127,7 +165,7 @@ BEGIN
     'signature_data', r.signature_data, 'approval_method', r.approval_method,
     'captured_by', r.captured_by, 'submission_hash', r.submission_hash, 'hash_format', 'PostgreSQL jsonb::text SHA-256',
     'email_verified', confirmation.confirmed_at IS NOT NULL, 'evidence_quality', 'system_event',
-    'confirmation_required', confirmation.receipt_id IS NOT NULL,
+    'confirmation_required', false,
     'confirmation_state', CASE WHEN confirmation.receipt_id IS NULL THEN 'legacy'
       WHEN confirmation.superseded_at IS NOT NULL THEN 'superseded'
       WHEN confirmation.revoked_at IS NOT NULL THEN 'withdrawn'
@@ -135,6 +173,7 @@ BEGIN
       WHEN confirmation.expires_at<=now() THEN 'expired' ELSE 'pending' END,
     'confirmed_at', confirmation.confirmed_at, 'confirmation_expires_at', confirmation.expires_at,
     'email_delivery_state', confirmation.delivery_state, 'email_delivery_error', confirmation.error_code,
+    'acknowledgement_delivery_state', (SELECT a.delivery_state FROM public.commercial_email_acknowledgements a WHERE a.receipt_id=r.id),
     'email_eligible', coalesce(c.email_normalized = r.email AND c.opted_out_at IS NULL
       AND c.suppression_reason IS NULL AND c.lifecycle_status <> 'opted_out'
       AND public.marketing_contact_is_eligible(c.id, 'email'), false),
@@ -160,7 +199,8 @@ BEGIN
     v_latest := jsonb_build_object('receipt_id',v_id,'signed_at',v_latest->'signed_at','email',v_latest->'email',
       'email_eligible',v_latest->'email_eligible','withdrawn',v_latest->'withdrawn',
       'confirmation_required',v_latest->'confirmation_required','confirmation_state',v_latest->'confirmation_state',
-      'confirmed_at',v_latest->'confirmed_at','email_delivery_state',v_latest->'email_delivery_state');
+      'confirmed_at',v_latest->'confirmed_at','email_delivery_state',v_latest->'email_delivery_state',
+      'acknowledgement_delivery_state',v_latest->'acknowledgement_delivery_state');
   END IF;
   RETURN jsonb_build_object('document',v_doc,'document_hash',CASE WHEN v_doc IS NOT NULL THEN encode(extensions.digest(v_doc::text,'sha256'),'hex') END,
     'is_admin',v_admin,'latest',v_latest);
@@ -240,24 +280,37 @@ BEGIN
     v_doc->>'version',v_doc->>'text',v_doc,v_hash,v_submission,
     encode(extensions.digest(jsonb_build_object('receipt_id',v_receipt,'submission_hash',v_submission,'document',v_doc,'captured_by',v_actor,'signed_at',v_time)::text,'sha256'),'hex'),
     p_signature_data,true,v_actor,v_time);
-  -- Only the outbox and private gate are created here. No grant before mailbox confirmation.
+  -- The signed consent grants email permission; mailbox approval is a separate, optional proof.
   UPDATE public.commercial_email_confirmations SET superseded_at=v_time,
     delivery_state=CASE WHEN delivery_state='sent' THEN 'sent' ELSE 'cancelled' END
     WHERE contact_id=v_contact.id AND superseded_at IS NULL;
   UPDATE public.email_queue q SET status='cancelled',error='consent_superseded'
     FROM public.commercial_email_confirmations c WHERE c.contact_id=v_contact.id
     AND c.superseded_at IS NOT NULL AND q.id=c.queue_id AND q.status IN ('queued','consent_pending','processing','failed');
+  UPDATE public.commercial_email_acknowledgements a SET delivery_state='cancelled',error_code='consent_superseded'
+    FROM public.commercial_email_confirmations c WHERE c.contact_id=v_contact.id AND c.superseded_at IS NOT NULL
+      AND a.receipt_id=c.receipt_id AND a.delivery_state<>'sent';
+  UPDATE public.email_queue q SET status='cancelled',error='consent_superseded'
+    FROM public.commercial_email_acknowledgements a JOIN public.commercial_email_confirmations c ON c.receipt_id=a.receipt_id
+    WHERE c.contact_id=v_contact.id AND c.superseded_at IS NOT NULL AND q.id=a.queue_id
+      AND q.status IN ('queued','consent_pending','processing','failed');
   INSERT INTO public.email_queue(id,to_email,subject,status,metadata)
-    VALUES(v_queue,v_email,'TOK — Confirmez votre autorisation : JE CONSENS','consent_pending',
+    VALUES(v_queue,v_email,'TOK — Votre consentement signé et sa confirmation complémentaire','consent_pending',
       jsonb_build_object('kind','commercial_email_consent_confirmation','receipt_id',v_receipt));
   INSERT INTO public.commercial_email_confirmations(receipt_id,contact_id,email,queue_id,requested_at,expires_at)
     VALUES(v_receipt,v_contact.id,v_email,v_queue,v_time,v_time+interval '48 hours');
-  UPDATE public.marketing_contacts SET metadata=metadata||jsonb_build_object(
-    'commercial_email_consent_receipt_id',v_receipt,'commercial_email_consent_only',v_scope,
-    'commercial_email_confirmation_pending',true) WHERE id=v_contact.id;
+  PERFORM set_config('app.marketing_lawful_basis_context',jsonb_build_object(
+    'source','commercial_restaurateur_signature_v4',
+    'note','Consentement e-mail personnel signé en présence ; reçu privé '||v_receipt::text||'. Confirmation de boîte complémentaire, non requise. Identité et boîte non vérifiées.',
+    'recorded_at',v_time,'quality','system_event','source_system','commercial_cockpit','source_reference',v_receipt::text)::text,true);
+  UPDATE public.marketing_contacts SET lawful_basis='consent',consent_source='commercial_restaurateur_signature_v4',consent_at=v_time,
+    metadata=(metadata-'commercial_email_confirmed_at')||jsonb_build_object(
+      'commercial_email_consent_receipt_id',v_receipt,'commercial_email_consent_only',v_scope,
+      'commercial_email_confirmation_pending',true) WHERE id=v_contact.id;
+  PERFORM set_config('app.marketing_lawful_basis_context',v_context,true);
   INSERT INTO public.audit_log(id,user_id,action,entity_type,entity_id,new_data,created_at)
     VALUES(gen_random_uuid(),v_actor,'commercial_consent_mail_requested','commercial_email_consent_receipts',v_receipt,
-      jsonb_build_object('queue_id',v_queue,'document_hash',v_hash,'campaign_authorized',false),v_time);
+      jsonb_build_object('queue_id',v_queue,'document_hash',v_hash,'campaign_authorized',public.marketing_contact_is_eligible(v_contact.id,'email')),v_time);
   RETURN public.commercial_get_email_consent_receipt(v_receipt);
 END;
 $$;
@@ -272,10 +325,91 @@ RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
  JOIN public.email_queue q ON q.id=c.queue_id
  WHERE c.queue_id=p_queue_id AND q.to_email=r.email AND c.email=r.email
  AND q.metadata->>'kind'='commercial_email_consent_confirmation'
+ AND q.metadata->>'receipt_id'=r.id::text
+ UNION ALL
+ SELECT jsonb_build_object('receipt_id',r.id,'queue_id',a.queue_id,'confirmation_queue_id',c.queue_id,
+ 'mail_kind','acknowledgement','confirmed_at',c.confirmed_at,'email',r.email,'restaurant_name',r.restaurant_name,
+ 'signer_name',r.signer_name,'signer_role',r.signer_role,'signed_at',r.signed_at,'signature_data',r.signature_data,
+ 'document',r.document,'proof_hash',r.proof_hash,'expires_at',c.expires_at)
+ FROM public.commercial_email_acknowledgements a JOIN public.commercial_email_confirmations c ON c.receipt_id=a.receipt_id
+ JOIN public.commercial_email_consent_receipts r ON r.id=c.receipt_id JOIN public.email_queue q ON q.id=a.queue_id
+ WHERE a.queue_id=p_queue_id AND c.confirmed_at IS NOT NULL AND q.to_email=r.email AND c.email=r.email
+ AND q.metadata->>'kind'='commercial_email_consent_confirmation' AND q.metadata->>'phase'='acknowledgement'
  AND q.metadata->>'receipt_id'=r.id::text;
 $$;
 REVOKE ALL ON FUNCTION public.commercial_consent_email_payload(uuid) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.commercial_consent_email_payload(uuid) TO service_role;
+
+-- The final acknowledgement shares the worker, but has its own stable queue id and retry lease.
+CREATE OR REPLACE FUNCTION public.commercial_claim_consent_acknowledgement(p_queue_id uuid,p_token_hash text,p_payload_hash text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE a public.commercial_email_acknowledgements%ROWTYPE; c public.commercial_email_confirmations%ROWTYPE;
+ m public.marketing_contacts%ROWTYPE; v_lease uuid:=gen_random_uuid();
+BEGIN
+ IF p_token_hash IS NULL OR p_token_hash!~'^[a-f0-9]{64}$' OR p_payload_hash IS NULL OR p_payload_hash!~'^[a-f0-9]{64}$' THEN
+   RAISE EXCEPTION 'consent_delivery_invalid' USING ERRCODE='22023'; END IF;
+ SELECT * INTO a FROM public.commercial_email_acknowledgements WHERE queue_id=p_queue_id;
+ IF NOT FOUND THEN RETURN NULL; END IF;
+ SELECT * INTO c FROM public.commercial_email_confirmations WHERE receipt_id=a.receipt_id;
+ SELECT * INTO m FROM public.marketing_contacts WHERE id=c.contact_id FOR UPDATE;
+ SELECT * INTO c FROM public.commercial_email_confirmations WHERE receipt_id=a.receipt_id FOR UPDATE;
+ SELECT * INTO a FROM public.commercial_email_acknowledgements WHERE queue_id=p_queue_id FOR UPDATE;
+ IF a.delivery_state NOT IN ('queued','retry') OR a.retry_after>now() THEN RETURN NULL; END IF;
+ IF c.confirmed_at IS NULL OR c.token_hash IS DISTINCT FROM p_token_hash OR c.revoked_at IS NOT NULL
+ OR c.superseded_at IS NOT NULL OR a.expires_at<=now() OR m.email_normalized IS DISTINCT FROM c.email
+ OR m.opted_out_at IS NOT NULL OR m.lifecycle_status='opted_out' OR m.suppression_reason IS NOT NULL
+ OR coalesce(m.metadata->>'email_suppressed','false') NOT IN ('false','0','') THEN
+   UPDATE public.commercial_email_acknowledgements SET delivery_state='cancelled',error_code='consent_not_sendable' WHERE receipt_id=a.receipt_id;
+   UPDATE public.email_queue SET status='cancelled',error='consent_not_sendable' WHERE id=p_queue_id;
+   RETURN NULL;
+ END IF;
+ IF a.attempts>=5 OR a.first_attempt_at<=now()-interval '23 hours'
+ OR (a.payload_hash IS NOT NULL AND a.payload_hash<>p_payload_hash) THEN
+   UPDATE public.commercial_email_acknowledgements SET delivery_state='failed',error_code='consent_delivery_retry_closed' WHERE receipt_id=a.receipt_id;
+   UPDATE public.email_queue SET status='failed',error='consent_delivery_retry_closed' WHERE id=p_queue_id;
+   RETURN NULL;
+ END IF;
+ PERFORM 1 FROM public.email_queue WHERE id=p_queue_id AND status='consent_pending' AND to_email=c.email
+ AND metadata->>'kind'='commercial_email_consent_confirmation' AND metadata->>'phase'='acknowledgement'
+ AND metadata->>'receipt_id'=c.receipt_id::text FOR UPDATE;
+ IF NOT FOUND THEN RETURN NULL; END IF;
+ UPDATE public.commercial_email_acknowledgements SET payload_hash=p_payload_hash,delivery_state='processing',attempts=attempts+1,
+ first_attempt_at=coalesce(first_attempt_at,now()),lease_token=v_lease,lease_until=now()+interval '2 minutes',retry_after=NULL,error_code=NULL
+ WHERE receipt_id=a.receipt_id;
+ UPDATE public.email_queue SET status='processing',error=NULL WHERE id=p_queue_id;
+ RETURN jsonb_build_object('lease_token',v_lease);
+END;
+$$;
+REVOKE ALL ON FUNCTION public.commercial_claim_consent_acknowledgement(uuid,text,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.commercial_claim_consent_acknowledgement(uuid,text,text) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.commercial_settle_consent_acknowledgement(p_queue_id uuid,p_lease_token uuid,p_provider_id text,p_error text)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE a public.commercial_email_acknowledgements%ROWTYPE; c public.commercial_email_confirmations%ROWTYPE; v_state text; v_error text;
+BEGIN
+ SELECT * INTO a FROM public.commercial_email_acknowledgements WHERE queue_id=p_queue_id FOR UPDATE;
+ IF NOT FOUND OR a.lease_token IS DISTINCT FROM p_lease_token OR p_lease_token IS NULL THEN RETURN false; END IF;
+ IF p_provider_id IS NOT NULL AND (length(p_provider_id) NOT BETWEEN 1 AND 200 OR p_provider_id~'[[:cntrl:]]') THEN
+   RAISE EXCEPTION 'consent_delivery_invalid' USING ERRCODE='22023'; END IF;
+ SELECT * INTO c FROM public.commercial_email_confirmations WHERE receipt_id=a.receipt_id;
+ v_error:=CASE WHEN p_error~'^(provider_http_[0-9]{3}|provider_not_configured|provider_network_error|provider_reference_missing)$' THEN p_error ELSE 'consent_delivery_error' END;
+ v_state:=CASE WHEN p_provider_id IS NOT NULL THEN 'sent'
+ WHEN c.revoked_at IS NOT NULL OR c.superseded_at IS NOT NULL OR a.expires_at<=now() THEN 'cancelled'
+ WHEN a.attempts<5 AND a.first_attempt_at>now()-interval '23 hours' THEN 'retry' ELSE 'failed' END;
+ UPDATE public.commercial_email_acknowledgements SET delivery_state=v_state,provider_message_id=coalesce(provider_message_id,p_provider_id),
+ error_code=CASE WHEN p_provider_id IS NULL THEN v_error ELSE NULL END,lease_token=NULL,lease_until=NULL,
+ retry_after=CASE WHEN v_state='retry' THEN now()+make_interval(secs=>least(3600,60*(2^a.attempts)::int)) END WHERE receipt_id=a.receipt_id;
+ UPDATE public.email_queue SET status=CASE WHEN v_state='retry' THEN 'failed' ELSE v_state END,
+ sent_at=CASE WHEN p_provider_id IS NOT NULL THEN coalesce(sent_at,now()) ELSE sent_at END,
+ provider_message_id=coalesce(provider_message_id,p_provider_id),error=CASE WHEN p_provider_id IS NULL THEN v_error ELSE NULL END WHERE id=p_queue_id;
+ INSERT INTO public.audit_log(id,action,entity_type,entity_id,new_data,created_at)
+ VALUES(gen_random_uuid(),'commercial_consent_acknowledgement_settled','commercial_email_consent_receipts',a.receipt_id,
+ jsonb_build_object('state',v_state,'attempt',a.attempts,'provider_accepted',p_provider_id IS NOT NULL),now());
+ RETURN true;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.commercial_settle_consent_acknowledgement(uuid,uuid,text,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.commercial_settle_consent_acknowledgement(uuid,uuid,text,text) TO service_role;
 
 CREATE OR REPLACE FUNCTION public.commercial_claim_consent_email(p_queue_id uuid,p_token_hash text,p_payload_hash text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
@@ -283,6 +417,9 @@ DECLARE c public.commercial_email_confirmations%ROWTYPE; m public.marketing_cont
 BEGIN
  IF p_token_hash IS NULL OR p_token_hash!~'^[a-f0-9]{64}$' OR p_payload_hash IS NULL OR p_payload_hash!~'^[a-f0-9]{64}$' THEN
  RAISE EXCEPTION 'consent_delivery_invalid' USING ERRCODE='22023'; END IF;
+ IF EXISTS(SELECT 1 FROM public.commercial_email_acknowledgements WHERE queue_id=p_queue_id) THEN
+   RETURN public.commercial_claim_consent_acknowledgement(p_queue_id,p_token_hash,p_payload_hash);
+ END IF;
  SELECT * INTO c FROM public.commercial_email_confirmations WHERE queue_id=p_queue_id;
  IF NOT FOUND THEN RETURN NULL; END IF;
  -- All mutating paths lock the contact first, then confirmation, then queue.
@@ -321,6 +458,9 @@ CREATE OR REPLACE FUNCTION public.commercial_settle_consent_email(p_queue_id uui
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE c public.commercial_email_confirmations%ROWTYPE; v_state text; v_error text;
 BEGIN
+ IF EXISTS(SELECT 1 FROM public.commercial_email_acknowledgements WHERE queue_id=p_queue_id) THEN
+   RETURN public.commercial_settle_consent_acknowledgement(p_queue_id,p_lease_token,p_provider_id,p_error);
+ END IF;
  SELECT * INTO c FROM public.commercial_email_confirmations WHERE queue_id=p_queue_id FOR UPDATE;
  IF NOT FOUND OR c.lease_token IS DISTINCT FROM p_lease_token OR p_lease_token IS NULL THEN RETURN false; END IF;
  IF p_provider_id IS NOT NULL AND (length(p_provider_id) NOT BETWEEN 1 AND 200 OR p_provider_id~'[[:cntrl:]]') THEN
@@ -346,7 +486,7 @@ GRANT EXECUTE ON FUNCTION public.commercial_settle_consent_email(uuid,uuid,text,
 
 CREATE OR REPLACE FUNCTION public.commercial_recover_consent_emails()
 RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
-DECLARE c public.commercial_email_confirmations%ROWTYPE; v_state text; v_count integer:=0;
+DECLARE c public.commercial_email_confirmations%ROWTYPE; a public.commercial_email_acknowledgements%ROWTYPE; v_state text; v_count integer:=0;
 BEGIN
  FOR c IN SELECT * FROM public.commercial_email_confirmations
  WHERE (delivery_state='retry' AND retry_after<=now()) OR (delivery_state='processing' AND lease_until<now())
@@ -358,6 +498,18 @@ BEGIN
    UPDATE public.email_queue SET status=CASE WHEN v_state='queued' THEN 'consent_pending' ELSE v_state END WHERE id=c.queue_id;
    v_count:=v_count+1;
  END LOOP;
+ FOR a IN SELECT * FROM public.commercial_email_acknowledgements
+ WHERE (delivery_state='retry' AND retry_after<=now()) OR (delivery_state='processing' AND lease_until<now())
+ ORDER BY created_at LIMIT 20 FOR UPDATE SKIP LOCKED LOOP
+   -- No contact lock here: recovery only readies a job, claim rechecks recipient/oppositions.
+   SELECT * INTO c FROM public.commercial_email_confirmations WHERE receipt_id=a.receipt_id;
+   v_state:=CASE WHEN c.revoked_at IS NOT NULL OR c.superseded_at IS NOT NULL OR a.expires_at<=now() THEN 'cancelled'
+     WHEN a.attempts>=5 OR a.first_attempt_at<=now()-interval '23 hours' THEN 'failed' ELSE 'queued' END;
+   UPDATE public.commercial_email_acknowledgements SET delivery_state=v_state,lease_token=NULL,lease_until=NULL,retry_after=NULL,
+     error_code=CASE WHEN v_state='failed' THEN 'consent_delivery_retry_closed' ELSE error_code END WHERE receipt_id=a.receipt_id;
+   UPDATE public.email_queue SET status=CASE WHEN v_state='queued' THEN 'consent_pending' ELSE v_state END WHERE id=a.queue_id;
+   v_count:=v_count+1;
+ END LOOP;
  RETURN v_count;
 END;
 $$;
@@ -367,7 +519,7 @@ GRANT EXECUTE ON FUNCTION public.commercial_recover_consent_emails() TO service_
 CREATE OR REPLACE FUNCTION public.commercial_consent_public_action(p_token_hash text,p_action text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE c public.commercial_email_confirmations%ROWTYPE; m public.marketing_contacts%ROWTYPE; r public.commercial_email_consent_receipts%ROWTYPE;
- v_state text; v_context text:=coalesce(current_setting('app.marketing_lawful_basis_context',true),'');
+ v_state text; v_ack_queue uuid; v_context text:=coalesce(current_setting('app.marketing_lawful_basis_context',true),'');
 BEGIN
  IF p_token_hash IS NULL OR p_token_hash!~'^[a-f0-9]{64}$' OR p_action IS NULL OR p_action NOT IN ('view','confirm','withdraw') THEN
  RAISE EXCEPTION 'consent_link_invalid' USING ERRCODE='22023'; END IF;
@@ -388,13 +540,14 @@ BEGIN
    IF c.confirmed_at IS NULL THEN
      IF c.expires_at<=now() THEN RAISE EXCEPTION 'consent_link_expired' USING ERRCODE='22023'; END IF;
      UPDATE public.commercial_email_confirmations SET confirmed_at=now() WHERE receipt_id=c.receipt_id;
-     PERFORM set_config('app.marketing_lawful_basis_context',jsonb_build_object(
-       'source','commercial_restaurateur_mail_confirmation_v3','note','Confirmation explicite JE CONSENS depuis le lien privé envoyé à la boîte. Signature liée au reçu '||c.receipt_id::text||'. Identité civile non vérifiée.',
-       'recorded_at',now(),'quality','system_event','source_system','commercial_cockpit','source_reference',c.receipt_id::text)::text,true);
-     UPDATE public.marketing_contacts SET lawful_basis='consent',consent_source='commercial_restaurateur_mail_confirmation_v3',consent_at=now(),
-       metadata=metadata||jsonb_build_object('commercial_email_confirmation_pending',false,'commercial_email_confirmed_at',now(),
-         'commercial_email_consent_receipt_id',c.receipt_id) WHERE id=c.contact_id;
-     PERFORM set_config('app.marketing_lawful_basis_context',v_context,true);
+     -- Preserve the original signed source and date. This is a second proof, not the first permission.
+     UPDATE public.marketing_contacts SET metadata=metadata||jsonb_build_object(
+       'commercial_email_confirmation_pending',false,'commercial_email_confirmed_at',now()) WHERE id=c.contact_id;
+     v_ack_queue:=gen_random_uuid();
+     INSERT INTO public.email_queue(id,to_email,subject,status,metadata)
+       VALUES(v_ack_queue,c.email,'TOK — Votre double confirmation est enregistrée','consent_pending',
+         jsonb_build_object('kind','commercial_email_consent_confirmation','phase','acknowledgement','receipt_id',c.receipt_id));
+     INSERT INTO public.commercial_email_acknowledgements(receipt_id,queue_id) VALUES(c.receipt_id,v_ack_queue);
      INSERT INTO public.audit_log(id,action,entity_type,entity_id,new_data,created_at)
        VALUES(gen_random_uuid(),'commercial_consent_mail_confirmed','commercial_email_consent_receipts',c.receipt_id,
        jsonb_build_object('document_hash',r.document_hash,'method','mailbox_link_explicit_post','identity_verified',false),now());
@@ -424,7 +577,8 @@ BEGIN
  RETURN jsonb_build_object('state',v_state,'receipt_id',c.receipt_id,'email',c.email,'restaurant_name',r.restaurant_name,
  'signer_name',r.signer_name,'signer_role',r.signer_role,'signed_at',r.signed_at,'document',r.document,'signature_data',r.signature_data,
  'proof_hash',r.proof_hash,'confirmed_at',c.confirmed_at,'expires_at',c.expires_at,
- 'email_eligible',v_state='confirmed' AND public.marketing_contact_is_eligible(c.contact_id,'email'));
+ 'acknowledgement_delivery_state',(SELECT delivery_state FROM public.commercial_email_acknowledgements WHERE receipt_id=c.receipt_id),
+ 'email_eligible',v_state IN ('pending','confirmed','expired') AND public.marketing_contact_is_eligible(c.contact_id,'email'));
 END;
 $$;
 REVOKE ALL ON FUNCTION public.commercial_consent_public_action(text,text) FROM PUBLIC,anon,authenticated;
@@ -432,5 +586,5 @@ GRANT EXECUTE ON FUNCTION public.commercial_consent_public_action(text,text) TO 
 
 -- Existing authenticated RPC grants remain; helper and transport functions stay server-only.
 REVOKE ALL ON FUNCTION public.commercial_consent_document() FROM PUBLIC,anon,authenticated;
-COMMENT ON TABLE public.commercial_email_confirmations IS 'Mailbox confirmation and bounded transactional outbox state. Raw tokens are not stored. Only an explicit capability POST grants new marketing email consent; original signature remains immutable.';
+COMMENT ON TABLE public.commercial_email_confirmations IS 'Mailbox confirmation and bounded transactional outbox state. Raw tokens are not stored. Signed permission is immediate; an explicit mailbox POST adds a second proof and one acknowledgement. Original signature remains immutable.';
 COMMIT;

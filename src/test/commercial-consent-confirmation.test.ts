@@ -22,6 +22,22 @@ describe("e-mail transactionnel du consentement", () => {
     expect(mail.html).not.toContain("?token="); expect(mail.html).toContain("Retirer mon autorisation");
     expect(mail.attachments).toEqual([{ filename: "signature-TOK.png", content: proof.signature_data.slice(22), content_type: "image/png", content_id: "tok-signature" }]);
   });
+  it("annonce la signature déjà valable sans exiger le clic pour les campagnes", () => {
+    const mail = buildConsentMail(proof, token, "TOK <test@example.com>");
+    expect(mail.text).toContain("Votre signature autorise déjà");
+    expect(mail.text).toContain("confirmation complémentaire");
+    expect(mail.text).not.toContain("Sans confirmation");
+  });
+  it("envoie un accusé final distinct avec les deux dates, sans demander de troisième confirmation", () => {
+    const confirmed = { ...proof, mail_kind: "acknowledgement" as const, confirmed_at: "2026-10-27T13:00:00Z" };
+    const mail = buildConsentMail(confirmed, token, "TOK <test@example.com>");
+    expect(mail.subject).toBe("TOK — Votre double confirmation est enregistrée");
+    expect(mail.text).toContain(confirmed.confirmed_at.replace("Z", ".000Z"));
+    expect(mail.text).toContain("Signature enregistrée");
+    expect(mail.html).toContain("CONSULTER MON REÇU");
+    expect(mail.html).not.toContain(">JE CONSENS</a>");
+    expect(mail.attachments[0].content_id).toBe("tok-signature");
+  });
   it("refuse un autre format de signature et une capacité malformée", () => {
     expect(() => buildConsentMail({ ...proof, signature_data: "data:image/svg+xml,<svg>" }, token, "TOK <test@example.com>")).toThrow();
     expect(() => buildConsentMail(proof, "broken", "TOK <test@example.com>")).toThrow();
@@ -50,6 +66,22 @@ describe("e-mail transactionnel du consentement", () => {
     const mail = JSON.parse(String(init.body)); expect(mail.to).toEqual([proof.email]); expect(mail.attachments[0].content_id).toBe("tok-signature");
     expect(h.calls[1].args.p_token_hash).toMatch(/^[a-f0-9]{64}$/);
     expect(h.calls.at(-1)?.args).toMatchObject({ p_lease_token: id, p_provider_id: "provider-acceptance", p_error: null });
+  });
+  it("l’accusé final garde le lien initial mais possède sa propre clé d’envoi", async () => {
+    const ackId = "00000000-0000-4000-8000-000000000222";
+    const ackProof = { ...proof, queue_id: ackId, confirmation_queue_id: id, mail_kind: "acknowledgement", confirmed_at: "2026-10-27T13:00:00Z" };
+    const rpc = vi.fn(async (name: string) => ({ data: name === "commercial_consent_email_payload" ? ackProof : name === "commercial_claim_consent_email" ? { lease_token: id } : true, error: null }));
+    const send = vi.fn(async () => new Response(JSON.stringify({ id: "ack-provider" })));
+    expect(await deliverConsentEmail({ rpc, queueId: ackId, secret: "server-secret-only", apiKey: "provider-secret", from: "TOK <test@example.com>", fetcher: send })).toBe("sent");
+    const [, init] = send.mock.calls[0] as unknown as [string, RequestInit];
+    const mail = JSON.parse(String(init.body));
+    expect(mail.subject).toContain("double confirmation");
+    expect(mail.html).toContain("#token=" + await confirmationToken("server-secret-only", id));
+    expect((init.headers as Record<string,string>)["Idempotency-Key"]).toBe("tok:commercial-consent:" + ackId);
+    expect(rpc.mock.calls.some(call => call[0] === "commercial_consent_public_action")).toBe(false);
+  });
+  it("refuse un accusé final sans date de confirmation réelle", () => {
+    expect(() => buildConsentMail({ ...proof, mail_kind: "acknowledgement" }, token, "TOK <test@example.com>")).toThrow();
   });
   it("ne double pas un mail déjà réclamé et ne contourne pas un refus serveur", async () => {
     const h = harness({ claim: null }); expect(await h.deliver()).toBe("skipped"); expect(h.send).not.toHaveBeenCalled();

@@ -107,13 +107,13 @@ describe("consentement personnel du restaurateur", () => {
 });
 
 
-describe("confirmation requise avant campagnes", () => {
- const pending = { ...receipt, email_eligible: false, confirmation_required: true, confirmation_state: "pending", confirmed_at: null, email_delivery_state: "queued" };
- it("affiche l’attente et l’envoi sans annoncer une adresse autorisée", async () => {
+describe("signature autorisante et confirmation complémentaire", () => {
+ const pending = { ...receipt, email_eligible: true, confirmation_required: false, confirmation_state: "pending", confirmed_at: null, email_delivery_state: "queued" };
+ it("affiche le consentement signé actif avant le clic de confirmation complémentaire", async () => {
    mocks.rpc.mockImplementation(async (name: string) => ({ data: name === "commercial_get_email_consent_context" ? context : pending, error: null }));
    render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={prospect} />); await fill();
    fireEvent.click(screen.getByRole("button", { name: "J’approuve et je signe mon consentement" }));
-   await screen.findByText("En attente de confirmation par e-mail");
+   await screen.findByText("Consentement signé actif — e-mail non confirmé");
    expect(screen.getByText(/file d’envoi/)).toBeInTheDocument();
    expect(screen.queryByText(/Adresse autorisée/)).not.toBeInTheDocument();
    expect(screen.getByText(/JE CONSENS/)).toBeInTheDocument();
@@ -123,18 +123,18 @@ describe("confirmation requise avant campagnes", () => {
    mocks.rpc.mockImplementation(async (name: string) => ({ data: name === "commercial_get_email_consent_context" ? context : pending, error: null }));
    render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={prospect} />); await fill();
    fireEvent.click(screen.getByRole("button", { name: "J’approuve et je signe mon consentement" }));
-   await screen.findByText("En attente de confirmation par e-mail");
+   await screen.findByText("Consentement signé actif — e-mail non confirmé");
    mocks.rpc.mockResolvedValue({ data: { ...pending, confirmation_state: "confirmed", email_eligible: true, email_verified: true, confirmed_at: "2026-10-27T20:00:00Z", email_delivery_state: "sent" }, error: null });
    fireEvent.click(screen.getByRole("button", { name: "Actualiser la confirmation" }));
-   await screen.findByText("Consentement e-mail actif");
+   await screen.findByText("Consentement signé et confirmé par e-mail");
    expect(screen.getByText(/Confirmation depuis la boîte/)).toBeInTheDocument();
    expect(mocks.rpc.mock.calls.at(-1)?.[0]).toBe("commercial_get_email_consent_receipt");
  });
- it("annonce l’échec d’envoi sans activer la campagne", async () => {
+ it("annonce l’échec d’envoi sans annuler le consentement signé", async () => {
    mocks.rpc.mockImplementation(async (name: string) => ({ data: name === "commercial_get_email_consent_context" ? context : { ...pending, email_delivery_state: "failed" }, error: null }));
    render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={prospect} />); await fill();
    fireEvent.click(screen.getByRole("button", { name: "J’approuve et je signe mon consentement" }));
    await screen.findByText(/Échec de l’envoi/);
-   expect(screen.queryByText("Consentement e-mail actif")).not.toBeInTheDocument();
+   expect(screen.getByText("Consentement signé actif — e-mail non confirmé")).toBeInTheDocument();
  });
 });

@@ -19,6 +19,7 @@ export type ConsentSummary = {
   confirmation_expires_at?: string | null;
   email_delivery_state?: "queued" | "processing" | "retry" | "sent" | "failed" | "cancelled" | null;
   email_delivery_error?: string | null;
+  acknowledgement_delivery_state?: ConsentSummary["email_delivery_state"];
 };
 export type ConsentContext = {
   document: ConsentDocument | null;
@@ -105,6 +106,9 @@ function parseSummary(value: unknown): ConsentSummary {
   if (v.confirmation_state !== undefined && !["legacy", "pending", "confirmed", "withdrawn", "superseded", "expired"].includes(String(v.confirmation_state))) throw new Error("consent_response_invalid");
   if (v.confirmed_at !== undefined && v.confirmed_at !== null && (typeof v.confirmed_at !== "string" || !Number.isFinite(Date.parse(v.confirmed_at)))) throw new Error("consent_response_invalid");
   if (v.confirmation_required === true && (v.confirmation_state === undefined || (v.email_eligible && v.confirmation_state !== "confirmed"))) throw new Error("consent_response_invalid");
+  for (const key of ["email_delivery_state", "acknowledgement_delivery_state"]) {
+    if (v[key] !== undefined && v[key] !== null && !["queued", "processing", "retry", "sent", "failed", "cancelled"].includes(String(v[key]))) throw new Error("consent_response_invalid");
+  }
   return v as ConsentSummary;
 }
 export function parseConsentContext(value: unknown): ConsentContext {
@@ -121,16 +125,18 @@ export function parseConsentReceipt(value: unknown): ConsentReceipt {
   return { ...v, ...summary, document: parseDocument(v.document) } as ConsentReceipt;
 }
 
-/** A recorded signature is not a campaign authorization while mailbox approval is pending. */
+/** Signed permission and mailbox confirmation are distinct; use server eligibility for sending. */
 export function consentStatusLabel(receipt: ConsentSummary): string {
   if (receipt.withdrawn || receipt.confirmation_state === "withdrawn") return "Autorisation retirée";
   if (receipt.confirmation_state === "superseded") return "Remplacée par une nouvelle demande";
-  if (receipt.confirmation_state === "expired") return "Lien de confirmation expiré";
-  if (receipt.confirmation_required && receipt.confirmation_state !== "confirmed") return "En attente de confirmation par e-mail";
-  return receipt.email_eligible ? "Consentement e-mail actif" : "Envoi bloqué par les règles marketing";
+  if (!receipt.email_eligible) return "Envoi bloqué par les règles marketing";
+  if (receipt.confirmation_state === "confirmed") return "Consentement signé et confirmé par e-mail";
+  if (receipt.confirmation_state === "expired") return "Consentement signé actif — lien complémentaire expiré";
+  if (receipt.confirmation_state === "pending") return "Consentement signé actif — e-mail non confirmé";
+  return "Consentement e-mail actif";
 }
 export function consentDeliveryLabel(state: ConsentSummary["email_delivery_state"]): string | null {
-  return state ? ({ queued: "E-mail de confirmation en file d’envoi.", processing: "Envoi de l’e-mail en cours.",
+  return state ? ({ queued: "E-mail de confirmation complémentaire en file d’envoi.", processing: "Envoi de l’e-mail en cours.",
     retry: "L’envoi a échoué ; une nouvelle tentative automatique est prévue.", sent: "E-mail accepté par le service d’envoi. Vérifiez aussi les courriers indésirables.",
-    failed: "Échec de l’envoi : contactez TOK avant de refaire signer une demande.", cancelled: "Envoi annulé : aucun nouveau droit de campagne n’est accordé." })[state] : null;
+    failed: "Échec de l’envoi : contactez TOK avant de refaire signer une demande.", cancelled: "Envoi annulé. Le statut du consentement signé est indiqué séparément." })[state] : null;
 }

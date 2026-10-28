@@ -114,7 +114,12 @@ try {
    await Promise.all([1,2,3].map(()=>execute('psql',['-X','-v','ON_ERROR_STOP=1','-At','-c',"SET ROLE service_role; SELECT public.commercial_consent_public_action(repeat('1',64),'confirm');"],{encoding:'utf8'})));
    assert.equal(psql("SELECT count(*) FROM public.audit_log WHERE action='commercial_consent_mail_confirmed' AND entity_id=(SELECT receipt_id FROM public.commercial_email_confirmations WHERE email='double-concurrency@example.com');").trim(),'1');
    assert.equal(psql("SELECT public.marketing_contact_is_eligible(id,'email') FROM public.marketing_contacts WHERE email_normalized='double-concurrency@example.com';").trim(),'t');
-   console.log('PASS: double confirmation concurrency; one outbox and one approval audit for three simultaneous requests.');
+   assert.equal(psql("SELECT count(*) FROM public.email_queue WHERE to_email='double-concurrency@example.com';").trim(),'2');
+   assert.equal(psql("SELECT count(*) FROM public.commercial_email_acknowledgements a JOIN public.commercial_email_confirmations c ON c.receipt_id=a.receipt_id WHERE c.email='double-concurrency@example.com';").trim(),'1');
+   const ackQueue=psql("SELECT a.queue_id FROM public.commercial_email_acknowledgements a JOIN public.commercial_email_confirmations c ON c.receipt_id=a.receipt_id WHERE c.email='double-concurrency@example.com';").trim();
+   const claims=await Promise.all([1,2,3].map(()=>execute('psql',['-X','-v','ON_ERROR_STOP=1','-At','-c',`SET ROLE service_role; SELECT public.commercial_claim_consent_email('${ackQueue}',repeat('1',64),repeat('3',64));`],{encoding:'utf8'})));
+   assert.equal(claims.filter(r=>r.stdout.includes('lease_token')).length,1);
+   console.log('PASS: signed permission, three simultaneous approvals produce one final acknowledgement, three concurrent mail workers acquire one lease.');
  }
 
 } catch(error) { if(error.stderr)console.error(String(error.stderr));throw error; }
