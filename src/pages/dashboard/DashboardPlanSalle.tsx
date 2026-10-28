@@ -4731,9 +4731,9 @@ export default function DashboardPlanSalle() {
   return (
     <DashboardLayout
       contentWidth="full"
-      mainClassName="p-2 pb-24 sm:p-3 md:p-4"
+      mainClassName="p-2 pb-16 sm:p-3 md:p-3 md:pb-3"
     >
-      <div className="tok-floorplan-workspace fp-workspace flex min-h-[calc(100vh-2rem)] flex-col gap-3 xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden">
+      <div className="tok-floorplan-workspace fp-workspace flex min-h-[calc(100dvh-6rem)] flex-col gap-2 xl:h-[calc(100dvh-5rem)] xl:min-h-[780px] xl:overflow-hidden">
         <header className="tok-editorial-header tok-floorplan-header fp-header shrink-0">
           <div className="tok-floorplan-hero-grid">
             <div className="tok-floorplan-hero-copy min-w-0">
@@ -4768,6 +4768,8 @@ export default function DashboardPlanSalle() {
               className="tok-floorplan-hero-illustration bg-transparent"
             />
 
+          </div>
+          <div className="tok-floorplan-toolbar">
             <div className="tok-floorplan-actions flex min-w-0 flex-wrap items-center gap-2">
               <div className="flex items-center rounded-xl border border-border bg-card p-1">
                 <Button
@@ -4826,8 +4828,6 @@ export default function DashboardPlanSalle() {
                 {saveMutation.isPending ? "Sauvegarde…" : "Enregistrer"}
               </Button>
             </div>
-          </div>
-          <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-border">
             <div
               className="fp-nav !border-0"
               role="tablist"
@@ -4869,7 +4869,7 @@ export default function DashboardPlanSalle() {
                 Service
               </button>
             </div>
-            <div className="mb-2 flex flex-wrap items-center gap-1.5">
+            <div className="tok-floorplan-shortcuts flex flex-wrap items-center gap-1.5">
               {isTemplateMode ? (
                 <>
                   <Button
@@ -4965,8 +4965,8 @@ export default function DashboardPlanSalle() {
         ) : null}
 
         {selectedBranch ? (
-          <div className="flex min-h-0 flex-1 flex-col gap-3 xl:overflow-hidden">
-            <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 pb-1">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 xl:overflow-hidden">
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
               <div className="fp-room-tabs flex min-w-0 max-w-full items-center gap-1.5 overflow-x-auto pb-1">
                 {branches.length > 1 ? (
                   <Select
@@ -5140,7 +5140,7 @@ export default function DashboardPlanSalle() {
                 savingVariant={saveFloorPlanVariantMutation.isPending}
               />
             ) : isTemplateMode ? (
-              <div className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1fr)_340px] xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden">
+              <div className="grid min-h-0 flex-1 gap-2 xl:grid-cols-[minmax(0,1fr)_370px] 2xl:grid-cols-[minmax(0,1fr)_400px] xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden">
                 <StudioCanvas
                   showGrid={showGrid}
                   snapToGrid={snapToGrid}
@@ -5198,7 +5198,7 @@ export default function DashboardPlanSalle() {
 
                 <div
                   id="floor-plan-studio-tools"
-                  className="min-h-[460px] scroll-mt-3 xl:min-h-0"
+                  className="min-h-[460px] min-w-0 scroll-mt-3 xl:min-h-0"
                 >
                   <Tabs
                     value={toolPanelTab}

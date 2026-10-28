@@ -218,7 +218,7 @@ export default function StudioPalette({
     <nav
       aria-label="Catégories de mobilier"
       className={cn(
-        "grid grid-cols-3 gap-1.5",
+        "grid grid-cols-3 gap-1.5 2xl:grid-cols-4",
         expanded && "lg:flex lg:flex-col lg:gap-1",
       )}
     >
@@ -271,7 +271,7 @@ export default function StudioPalette({
   const catalogue = activePresets.length ? (
     <div
       className={cn(
-        "grid grid-cols-2 gap-2",
+        "grid grid-cols-2 gap-2 2xl:grid-cols-3",
         expanded && "gap-3 xl:grid-cols-3",
       )}
     >

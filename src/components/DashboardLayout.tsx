@@ -413,7 +413,7 @@ export default function DashboardLayout({
   });
 
   return (
-    <div className="tok-workspace-shell tok-hospitality-workspace tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row">
+    <div className={cn("tok-workspace-shell tok-hospitality-workspace tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row", pathname === "/dashboard/plan-salle" && "tok-floorplan-shell")}>
       {/* SIDEBAR */}
       <aside
         ref={sidebarRef}
