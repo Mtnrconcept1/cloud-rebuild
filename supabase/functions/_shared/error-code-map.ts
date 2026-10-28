@@ -822,25 +822,25 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "commission_invalid_server_snapshot": [
     {
       "file": "supabase/functions/stripe-worker/index.ts",
-      "line": 480
+      "line": 479
     }
   ],
   "commission_reservation_no_longer_honored": [
     {
       "file": "supabase/functions/stripe-worker/index.ts",
-      "line": 493
+      "line": 492
     }
   ],
   "commission_reservation_verification_failed": [
     {
       "file": "supabase/functions/stripe-worker/index.ts",
-      "line": 489
+      "line": 488
     }
   ],
   "commission_subscription_not_active": [
     {
       "file": "supabase/functions/stripe-worker/index.ts",
-      "line": 502
+      "line": 501
     }
   ],
   "consent_check_unavailable": [
