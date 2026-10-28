@@ -310,7 +310,7 @@ export default function Index() {
   };
 
   const { data: progressiveOffers = [] } = useQuery({
-    queryKey: [...progressiveOffersBaseQuery.queryKey, geolocationQueryKey, demoSessionKey],
+    queryKey: [...progressiveOffersBaseQuery.queryKey, demoSessionKey],
     queryFn: async () => {
       if (isCommercialDemoClient) return [] as ProgressiveReservationOffer[];
       const { data, error } = await (supabase.from(PROGRESSIVE_OFFERS_TABLE as any) as any)
@@ -347,7 +347,7 @@ export default function Index() {
       const restaurant = getProgressiveOfferRestaurant(offer) as any;
       return Boolean(String(restaurant?.image_url || "").trim());
     });
-    const localizedOffers = userCoordinates
+    const nearbyOffers = userCoordinates
       ? imageBackedOffers.filter((offer) => {
         const restaurant = getProgressiveOfferRestaurant(offer) as any;
         return Boolean(restaurant) && isRestaurantWithinRadius(
@@ -356,9 +356,12 @@ export default function Index() {
           HOME_NEARBY_RADIUS_KM,
         );
       })
-      : imageBackedOffers;
+      : [];
 
-    return selectDailyProgressiveOffers(localizedOffers, {
+    // Geolocation must not remove the whole section after the initial render.
+    // Prefer nearby offers, but retain eligible offers when none are within 5 km.
+    const candidateOffers = nearbyOffers.length > 0 ? nearbyOffers : imageBackedOffers;
+    return selectDailyProgressiveOffers(candidateOffers, {
       reservationDate: todayServiceDate,
       maxOffers: 3,
     });
