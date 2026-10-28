@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8fa6c13d6d1212fe212b612fd0853004d4ed1a18de479f087bca48562a086755`
+- Empreinte SHA-256 des sources indexées : `766dec0828e1587db1834296e7748a5dd2671aea4a89d3a93a9bf6cd86e60bf7`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 237 |
 | edgeFunctions | 123 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4270 |
+| exportedSymbols | 4271 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 587 |
-| modules | 1916 |
+| modules | 1917 |
 | pages | 133 |
 | pathLiterals | 946 |
 | publicAssets | 737 |
 | publicEntries | 772 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19748 |
-| repositoryFiles | 3824 |
+| records | 19751 |
+| repositoryFiles | 3825 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7082,7 +7082,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 278 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 862 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 863 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 73 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7096,7 +7096,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 91 |
 | documentation | 6 |
 | edge-function-source | 254 |
-| frontend-component | 310 |
+| frontend-component | 311 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
 | frontend-source | 36 |
@@ -8840,7 +8840,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (322)</summary>
+<details><summary>frontend-component (323)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8973,6 +8973,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/dashboard/marketing-print/MarketingOutputControls.tsx`
 - `src/components/dashboard/marketing-print/MarketingStudioPrintCatalogBridge.tsx`
 - `src/components/dashboard/marketing-print/PrintComposerDialog.tsx`
+- `src/components/dashboard/marketing-print/PrintMarginFramingEditor.tsx`
 - `src/components/dashboard/marketing-print/PrintOrderDetails.tsx`
 - `src/components/dashboard/marketing-print/PrintOrdersPanel.tsx`
 - `src/components/dashboard/marketing-print/PrintProof.tsx`
