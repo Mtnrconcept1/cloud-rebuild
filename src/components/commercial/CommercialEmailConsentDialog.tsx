@@ -8,12 +8,19 @@ import { getSupabase } from "@/integrations/supabase/client";
 import WorkforceSignaturePad from "@/components/workforce/WorkforceSignaturePad";
 import {
   consentErrorMessage, consentStatusLabel, consentDeliveryLabel, normalizeConsentEmail, parseConsentContext, parseConsentReceipt,
-  validateConsentFields, type ConsentContext, type ConsentDocument, type ConsentFields, type ConsentReceipt,
+  validateConsentFields, validConsentEmail, type ConsentContext, type ConsentDocument, type ConsentFields, type ConsentReceipt,
 } from "@/lib/commercialEmailConsent";
 
-type Prospect = { sourceObjectId: number; name: string; email?: string | null };
+type Prospect = {
+  sourceObjectId: number; name: string; email?: string | null;
+  address?: string | null; postalCode?: string | null; locality?: string | null; commune?: string | null;
+};
 type Props = { open: boolean; onOpenChange: (open: boolean) => void; prospect: Prospect | null };
-const emptyFields = (): ConsentFields => ({ email: "", emailAgain: "", signerName: "", signerRole: "", signature: null, consented: false });
+function prefilledFields(sourceEmail?: string | null): ConsentFields {
+  const email = typeof sourceEmail === "string" && validConsentEmail(sourceEmail) ? normalizeConsentEmail(sourceEmail) : "";
+  // Contact details are a convenience, never an approval or an identity assertion.
+  return { email, emailAgain: email, signerName: "", signerRole: "", signature: null, consented: false };
+}
 const formatDate = (value: string) => new Date(value).toLocaleString("fr-CH", { timeZone: "Europe/Zurich" });
 
 async function rpc(name: string, args: Record<string, unknown>): Promise<unknown> {
@@ -68,7 +75,7 @@ function ControllerSettings({ context, sourceObjectId, onSaved, setBusy }: {
 
 function ConsentSession({ prospect, onOpenChange }: { prospect: Prospect; onOpenChange: Props["onOpenChange"] }) {
   const [context, setContext] = useState<ConsentContext | null>(null);
-  const [fields, setFields] = useState<ConsentFields>(emptyFields);
+  const [fields, setFields] = useState<ConsentFields>(() => prefilledFields(prospect.email));
   const [receipt, setReceipt] = useState<ConsentReceipt | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -101,7 +108,7 @@ function ConsentSession({ prospect, onOpenChange }: { prospect: Prospect; onOpen
     setPadKey(current => current + 1); setError(null);
   }
   function reset() {
-    setFields(emptyFields()); setPadKey(key => key + 1); setReceipt(null); setUncertain(false);
+    setFields(prefilledFields(prospect.email)); setPadKey(key => key + 1); setReceipt(null); setUncertain(false);
     frozenSubmission.current = null; requestId.current = crypto.randomUUID(); setReload(value => value + 1);
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -139,6 +146,8 @@ function ConsentSession({ prospect, onOpenChange }: { prospect: Prospect; onOpen
     const link = document.createElement("a"); link.href = url; link.download = `TOK-consentement-${receipt.receipt_id}.json`; link.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+  const sourceEmail = prefilledFields(prospect.email).email;
+  const restaurantAddress = [prospect.address, [prospect.postalCode, prospect.locality || prospect.commune].filter(Boolean).join(" ")].filter(Boolean).join(", ");
   const canSubmit = !!context?.document && validateConsentFields(fields) === null && !busy;
   return <Dialog open onOpenChange={next => { if (!busy) onOpenChange(next); }}>
     <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl">
@@ -164,21 +173,41 @@ function ConsentSession({ prospect, onOpenChange }: { prospect: Prospect; onOpen
         <p className="break-all text-xs text-muted-foreground">Référence : {receipt.receipt_id}<br />Empreinte de preuve : {receipt.proof_hash}</p>
         <div className="flex flex-wrap gap-2"><Button type="button" onClick={downloadReceipt}>Télécharger la preuve</Button><Button type="button" variant="outline" disabled={busy} onClick={() => showReceipt(receipt.receipt_id)}>Actualiser la confirmation</Button><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Terminer</Button></div>
       </section> : !loading && context && <div className="space-y-4">
-        {context.is_admin && <ControllerSettings key={context.document_hash ?? "setup"} context={context} sourceObjectId={prospect.sourceObjectId} onSaved={value => { setContext(value); setFields(emptyFields()); setPadKey(key => key + 1); setError(null); }} setBusy={setBusy} />}
+        {context.is_admin && <ControllerSettings key={context.document_hash ?? "setup"} context={context} sourceObjectId={prospect.sourceObjectId} onSaved={value => { setContext(value); setFields(prefilledFields(prospect.email)); setPadKey(key => key + 1); setError(null); }} setBusy={setBusy} />}
         {!context.document ? <p className="rounded-lg border p-4 text-sm">L’identité professionnelle de TOK doit être renseignée par un administrateur avant la première signature. Aucune adresse ni signature n’est enregistrée ici tant que cette étape n’est pas terminée.</p> : <>
           {context.latest && <div className="rounded-lg border p-3 text-sm"><p>Dernier accord enregistré : {formatDate(context.latest.signed_at)} — {consentStatusLabel(context.latest)}.</p><Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => showReceipt(context.latest!.receipt_id)}>Voir l’accord enregistré</Button></div>}
           <form onSubmit={submit} className="space-y-4">
-            <p className="rounded-lg bg-primary/5 p-3 text-sm"><strong>{prospect.name}</strong><br />Commercial : remettez l’appareil au restaurateur pour qu’il lise, approuve et signe lui-même.</p>
+            <p className="rounded-lg bg-primary/5 p-3 text-sm">Commercial : vérifiez les coordonnées puis remettez l’appareil au restaurateur pour qu’il lise, approuve et signe lui-même.</p>
             <fieldset disabled={busy || uncertain} className="space-y-4">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div><Label htmlFor="tok-consent-email">E-mail professionnel</Label><Input id="tok-consent-email" type="email" autoComplete="off" required value={fields.email} onChange={e => edit("email", e.target.value)} maxLength={254} /></div>
-                <div><Label htmlFor="tok-consent-email-again">Confirmez l’e-mail</Label><Input id="tok-consent-email-again" type="email" autoComplete="off" required value={fields.emailAgain} onChange={e => edit("emailAgain", e.target.value)} maxLength={254} /></div>
-                <div><Label htmlFor="tok-consent-name">Votre prénom et nom</Label><Input id="tok-consent-name" required value={fields.signerName} onChange={e => edit("signerName", e.target.value)} maxLength={160} /></div>
-                <div><Label htmlFor="tok-consent-role">Votre fonction</Label><Input id="tok-consent-role" required value={fields.signerRole} onChange={e => edit("signerRole", e.target.value)} maxLength={100} /></div>
-              </div>
-              <DocumentText value={context.document} />
-              <label className="flex items-start gap-3 rounded-xl border p-4 text-sm leading-relaxed"><Checkbox disabled={busy || uncertain} checked={fields.consented} onCheckedChange={value => setFields(current => ({ ...current, consented: value === true }))} /><span>Je suis le représentant du restaurant indiqué. J’ai lu l’autorisation et <strong>j’accepte personnellement de recevoir les e-mails commerciaux TOK décrits ci-dessus</strong>. Mon accord reste facultatif et révocable.</span></label>
-              <div className="space-y-2"><p className="text-sm font-semibold">Votre signature</p><WorkforceSignaturePad key={padKey} onChange={signature => setFields(current => ({ ...current, signature }))} disabled={busy || uncertain} /></div>
+              <section aria-labelledby="tok-consent-document-heading" className="space-y-3">
+                <h3 id="tok-consent-document-heading" className="text-base font-semibold">Autorisation préremplie</h3>
+                <div className="rounded-xl border p-4 text-sm">
+                  <p className="font-semibold">{prospect.name}</p>
+                  {restaurantAddress && <p className="mt-1 text-muted-foreground">{restaurantAddress}</p>}
+                  <p className="mt-2 text-xs text-muted-foreground">Établissement repris de la fiche restaurant. Le texte ci-dessous est chargé depuis TOK.</p>
+                </div>
+                <DocumentText value={context.document} />
+              </section>
+              <section aria-labelledby="tok-consent-email-heading" className="space-y-3 rounded-xl border p-4">
+                <h3 id="tok-consent-email-heading" className="text-base font-semibold">E-mail du restaurateur</h3>
+                <p id="tok-consent-email-help" className="text-sm text-muted-foreground">{sourceEmail ? "L’adresse de la fiche est préremplie à l’ouverture. Vérifiez-la avec le restaurateur ; les deux champs restent modifiables." : "Aucune adresse e-mail valide sur cette fiche. Vous pouvez la saisir manuellement dans les deux champs ci-dessous."}</p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div><Label htmlFor="tok-consent-email">E-mail professionnel</Label><Input id="tok-consent-email" type="email" inputMode="email" autoComplete="off" autoCapitalize="none" spellCheck={false} aria-describedby="tok-consent-email-help" placeholder="exemple@restaurant.ch" required value={fields.email} onChange={e => edit("email", e.target.value)} maxLength={254} /></div>
+                  <div><Label htmlFor="tok-consent-email-again">Confirmez l’e-mail</Label><Input id="tok-consent-email-again" type="email" inputMode="email" autoComplete="off" autoCapitalize="none" spellCheck={false} placeholder="exemple@restaurant.ch" required value={fields.emailAgain} onChange={e => edit("emailAgain", e.target.value)} maxLength={254} /></div>
+                </div>
+                <p className="text-xs text-muted-foreground">L’autorisation et la signature seront envoyées à cette adresse après validation. Le préremplissage seul n’autorise aucun envoi.</p>
+              </section>
+              <section aria-labelledby="tok-consent-signature-heading" className="space-y-4 rounded-xl border-2 border-primary/20 bg-primary/5 p-4">
+                <h3 id="tok-consent-signature-heading" className="text-base font-semibold">Signature du restaurateur</h3>
+                <p className="text-sm text-muted-foreground">Bloc à remplir et à signer personnellement par le restaurateur ou son représentant habilité, avec le doigt ou la souris.</p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div><Label htmlFor="tok-consent-name">Votre prénom et nom</Label><Input id="tok-consent-name" autoComplete="off" required value={fields.signerName} onChange={e => edit("signerName", e.target.value)} maxLength={160} /></div>
+                  <div><Label htmlFor="tok-consent-role">Votre fonction</Label><Input id="tok-consent-role" autoComplete="off" required value={fields.signerRole} onChange={e => edit("signerRole", e.target.value)} maxLength={100} /></div>
+                </div>
+                <label className="flex items-start gap-3 rounded-xl border bg-background p-4 text-sm leading-relaxed"><Checkbox disabled={busy || uncertain} checked={fields.consented} onCheckedChange={value => setFields(current => ({ ...current, consented: value === true }))} /><span>Je suis le représentant du restaurant indiqué. J’ai vérifié l’adresse e-mail, lu l’autorisation et <strong>j’accepte personnellement de recevoir les e-mails commerciaux TOK décrits ci-dessus</strong>. Mon accord reste facultatif et révocable.</span></label>
+                <WorkforceSignaturePad key={padKey} onChange={signature => setFields(current => ({ ...current, signature }))} disabled={busy || uncertain} />
+                <p className="text-xs text-muted-foreground">La signature reste vierge à chaque nouvelle autorisation. Toute correction des coordonnées exige de signer à nouveau.</p>
+              </section>
             </fieldset>
             {uncertain && <p className="text-xs text-muted-foreground">La demande signée est figée pour éviter toute modification après envoi. Réessayez la même demande ou recommencez avec une nouvelle signature.</p>}
             <div className="sticky -bottom-6 space-y-2 border-t bg-background pb-4 pt-3">

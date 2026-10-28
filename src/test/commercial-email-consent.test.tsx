@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, cleanup } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, cleanup, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CommercialEmailConsentDialog from "@/components/commercial/CommercialEmailConsentDialog";
 import { validateConsentFields, consentErrorMessage } from "@/lib/commercialEmailConsent";
@@ -45,12 +45,78 @@ describe("consentement personnel du restaurateur", () => {
   expect(consentErrorMessage({ message: "contact_suppressed_reconsent_requires_independent_verification" })).toMatch(/opposition/);
   expect(consentErrorMessage({ message: "raw database secret", details: "secret" })).not.toContain("secret");
  });
- it("n’utilise ni adresse annuaire préremplie, ni case cochée", async () => {
+ it("préremplit l’adresse de la fiche sans accord ni signature automatique", async () => {
   render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={prospect} />);
-  expect(await screen.findByLabelText("E-mail professionnel")).toHaveValue("");
+  expect(await screen.findByLabelText("E-mail professionnel")).toHaveValue(prospect.email);
+  expect(screen.getByLabelText("Confirmez l’e-mail")).toHaveValue(prospect.email);
   expect(screen.getByRole("checkbox")).not.toBeChecked();
   expect(screen.getByRole("button", { name: "J’approuve et je signe mon consentement" })).toBeDisabled();
   expect(mocks.rpc.mock.calls.filter(c => c[0] === "commercial_record_signed_email_consent_v2")).toHaveLength(0);
+ });
+
+ it("sépare l’autorisation préremplie, l’e-mail et la signature du restaurateur", async () => {
+  render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={{ ...prospect, address: "Rue de test 5", postalCode: "1200", locality: "Genève" }} />);
+  const authorization = await screen.findByRole("region", { name: "Autorisation préremplie" });
+  expect(within(authorization).getByText(prospect.name)).toBeInTheDocument();
+  expect(within(authorization).getByText("Rue de test 5, 1200 Genève")).toBeInTheDocument();
+  expect(within(authorization).getByText(document.text)).toBeInTheDocument();
+  expect(within(screen.getByRole("region", { name: "E-mail du restaurateur" })).getByLabelText("E-mail professionnel")).toHaveValue(prospect.email);
+  const signature = screen.getByRole("region", { name: "Signature du restaurateur" });
+  expect(within(signature).getByText("Tracer la signature de test")).toBeInTheDocument();
+  expect(within(signature).getByLabelText("Votre prénom et nom")).toHaveValue("");
+  expect(within(signature).getByLabelText("Votre fonction")).toHaveValue("");
+ });
+ it.each([undefined, null, "", "   ", "pas-un-email", "x@-invalid.ch"])("permet une saisie manuelle si la fiche ne contient pas d’adresse valide : %s", async email => {
+  render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={{ ...prospect, email }} />);
+  expect(await screen.findByLabelText("E-mail professionnel")).toHaveValue("");
+  expect(screen.getByLabelText("Confirmez l’e-mail")).toHaveValue("");
+  expect(screen.getByText(/saisir manuellement/i)).toBeInTheDocument();
+  await fill();
+  fireEvent.click(screen.getByRole("button", { name: "J’approuve et je signe mon consentement" }));
+  await waitFor(() => expect(mocks.rpc).toHaveBeenCalledWith("commercial_record_signed_email_consent_v2", expect.objectContaining({ p_email: fields.email })));
+ });
+ it("normalise l’adresse existante sans inventer le signataire", async () => {
+  render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={{ ...prospect, email: "  CONTACT@EXAMPLE.COM  " }} />);
+  expect(await screen.findByLabelText("E-mail professionnel")).toHaveValue("contact@example.com");
+  expect(screen.getByLabelText("Confirmez l’e-mail")).toHaveValue("contact@example.com");
+  expect(screen.getByLabelText("Votre prénom et nom")).toHaveValue("");
+  expect(screen.getByLabelText("Votre fonction")).toHaveValue("");
+ });
+ it("enregistre l’adresse de la fiche sans exiger une nouvelle saisie", async () => {
+  render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={prospect} />);
+  fireEvent.change(await screen.findByLabelText("Votre prénom et nom"), { target: { value: fields.signerName } });
+  fireEvent.change(screen.getByLabelText("Votre fonction"), { target: { value: fields.signerRole } });
+  fireEvent.click(screen.getByRole("checkbox"));
+  expect(screen.getByRole("button", { name: "J’approuve et je signe mon consentement" })).toBeDisabled();
+  fireEvent.click(screen.getByText("Tracer la signature de test"));
+  fireEvent.click(screen.getByRole("button", { name: "J’approuve et je signe mon consentement" }));
+  await waitFor(() => expect(mocks.rpc).toHaveBeenCalledWith("commercial_record_signed_email_consent_v2", expect.objectContaining({ p_email: prospect.email, p_explicit_consent: true })));
+ });
+ it("une correction d’e-mail efface l’accord et exige une nouvelle signature", async () => {
+  render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={prospect} />); await fill();
+  fireEvent.change(screen.getByLabelText("E-mail professionnel"), { target: { value: "corrige@example.com" } });
+  expect(screen.getByRole("checkbox")).not.toBeChecked();
+  fireEvent.change(screen.getByLabelText("Confirmez l’e-mail"), { target: { value: "corrige@example.com" } });
+  fireEvent.click(screen.getByRole("checkbox"));
+  expect(screen.getByRole("button", { name: "J’approuve et je signe mon consentement" })).toBeDisabled();
+  fireEvent.click(screen.getByText("Tracer la signature de test"));
+  fireEvent.click(screen.getByRole("button", { name: "J’approuve et je signe mon consentement" }));
+  await waitFor(() => expect(mocks.rpc).toHaveBeenCalledWith("commercial_record_signed_email_consent_v2", expect.objectContaining({ p_email: "corrige@example.com" })));
+ });
+ it("ne remplace pas une saisie manuelle lors d’une actualisation de la même fiche", async () => {
+  const { rerender } = render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={prospect} />); await fill();
+  rerender(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={{ ...prospect, email: "actualise@example.com" }} />);
+  expect(screen.getByLabelText("E-mail professionnel")).toHaveValue(fields.email);
+  expect(screen.getByLabelText("Confirmez l’e-mail")).toHaveValue(fields.emailAgain);
+ });
+ it("utilise l’adresse du nouveau restaurant et aucune approbation du précédent", async () => {
+  const { rerender } = render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={prospect} />); await fill();
+  rerender(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={{ sourceObjectId: 2, name: "Restaurant B", email: "b@example.com" }} />);
+  expect(await screen.findByLabelText("E-mail professionnel")).toHaveValue("b@example.com");
+  expect(screen.getByLabelText("Confirmez l’e-mail")).toHaveValue("b@example.com");
+  expect(screen.getByLabelText("Votre prénom et nom")).toHaveValue("");
+  expect(screen.getByRole("checkbox")).not.toBeChecked();
+  expect(screen.getByRole("button", { name: "J’approuve et je signe mon consentement" })).toBeDisabled();
  });
  it("enregistre directement la signature du restaurateur comme consentement e-mail", async () => {
   render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={prospect} />); await fill();
@@ -72,7 +138,7 @@ describe("consentement personnel du restaurateur", () => {
   const { rerender } = render(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={prospect} />); await fill();
   rerender(<CommercialEmailConsentDialog open={false} onOpenChange={vi.fn()} prospect={prospect} />);
   rerender(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={prospect} />);
-  expect(await screen.findByLabelText("E-mail professionnel")).toHaveValue(""); expect(screen.getByRole("checkbox")).not.toBeChecked();
+  expect(await screen.findByLabelText("E-mail professionnel")).toHaveValue(prospect.email); expect(screen.getByRole("checkbox")).not.toBeChecked();
   await fill();
   rerender(<CommercialEmailConsentDialog open onOpenChange={vi.fn()} prospect={{ sourceObjectId: 2, name: "Restaurant B" }} />);
   expect(await screen.findByLabelText("E-mail professionnel")).toHaveValue(""); expect(screen.getByRole("checkbox")).not.toBeChecked();

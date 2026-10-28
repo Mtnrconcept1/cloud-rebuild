@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f902a725924917b0971914dd0f86c5e83e7eda51aacc8655519840ba68db3498`
+- Empreinte SHA-256 des sources indexées : `3a0bd279727122a8b9fe7358f22ad312ae775f89f7e60c6711a2fed8001b86cf`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,7 +29,7 @@
 | cronJobs | 37 |
 | databaseContract | 231 |
 | databaseObjects | 3096 |
-| documents | 228 |
+| documents | 229 |
 | edgeFunctions | 121 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 4066 |
@@ -45,8 +45,8 @@
 | publicEntries | 743 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 119 |
-| records | 19122 |
-| repositoryFiles | 3708 |
+| records | 19129 |
+| repositoryFiles | 3709 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7173,6 +7173,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | TOK marketing publication repair | 6 | [docs/superpowers/plans/2026-10-11-marketing-publication-repair.md:1](../../docs/superpowers/plans/2026-10-11-marketing-publication-repair.md#L1) |
 | Consentement restaurateur dans le Cockpit commercial | 8 | [docs/superpowers/plans/2026-10-27-commercial-consent.md:1](../../docs/superpowers/plans/2026-10-27-commercial-consent.md#L1) |
 | Consentement signé immédiat et confirmation e-mail complémentaire | 5 | [docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md:1](../../docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md#L1) |
+| Préremplissage du consentement restaurateur — plan et décision | 5 | [docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md:1](../../docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md#L1) |
 | Facturation des réservations (5.-/resa) & détection anti-fraude | 26 | [docs/superpowers/specs/2026-04-17-reservation-billing-design.md:1](../../docs/superpowers/specs/2026-04-17-reservation-billing-design.md#L1) |
 | Refonte compta: accueil + entrees/sorties | 52 | [docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md:1](../../docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md#L1) |
 | Lisibilite dashboard: factures, reservations et commandes | 39 | [docs/superpowers/specs/2026-04-21-dashboard-readability-design.md:1](../../docs/superpowers/specs/2026-04-21-dashboard-readability-design.md#L1) |
@@ -8241,7 +8242,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (180)</summary>
+<details><summary>documentation (181)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8390,6 +8391,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/superpowers/plans/2026-10-11-marketing-publication-repair.md`
 - `docs/superpowers/plans/2026-10-27-commercial-consent.md`
 - `docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md`
+- `docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md`
 - `docs/superpowers/specs/2026-04-17-reservation-billing-design.md`
 - `docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md`
 - `docs/superpowers/specs/2026-04-21-dashboard-readability-design.md`
