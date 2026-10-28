@@ -17,7 +17,7 @@ const guardedSlugs = [
   "stripe-subscription-reconcile",
   "stripe-worker",
 ] as const;
-const unnecessaryTypeImport = /import\\s*["']jsr:@supabase\\/functions-js\\/edge-runtime\\.d\\.ts["']\\s*;?/;
+const unnecessaryTypeImport = "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 describe("Supabase Edge Function type-only bundling", () => {
   it("does not fetch a JSR type-only dependency during a production bundle", () => {
@@ -25,7 +25,7 @@ describe("Supabase Edge Function type-only bundling", () => {
       .filter((entry) => entry.isDirectory() && entry.name !== "_shared")
       .filter((entry) => {
         try {
-          return unnecessaryTypeImport.test(readFileSync(join(functionRoot, entry.name, "index.ts"), "utf8"));
+          return readFileSync(join(functionRoot, entry.name, "index.ts"), "utf8").includes(unnecessaryTypeImport);
         } catch {
           return false;
         }
@@ -38,7 +38,7 @@ describe("Supabase Edge Function type-only bundling", () => {
     for (const slug of guardedSlugs) {
       const source = readFileSync(join(functionRoot, slug, "index.ts"), "utf8");
       expect(source).toContain("Deno.serve(");
-      expect(source).not.toMatch(unnecessaryTypeImport);
+      expect(source).not.toContain(unnecessaryTypeImport);
       // These slugs don't use Supabase.ai, which is what functions-js provides type hints for.
       expect(source).not.toContain("Supabase.ai.");
     }
