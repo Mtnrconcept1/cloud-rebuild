@@ -57,6 +57,7 @@ Avant mise en ligne, contrôler dans un navigateur réel : comparaison aux réf�
 ## Résultats de validation finale
 
 - Tests du domaine et de synchronisation de la carte d'erreurs : **204 réussis dans 19 fichiers**, en mode production.
+- Correctif des gardes de démo, contrats du plan et interactions Service : **40 réussis dans 6 fichiers**, en mode production.
 - TypeScript global : **réussi**, aucune erreur.
 - ESLint global : **réussi**, zéro erreur ; 23 warnings préexistants sur des fichiers hors refonte.
 - Index applicatif : **régénéré et contrôle réussi**.
@@ -67,8 +68,11 @@ Avant mise en ligne, contrôler dans un navigateur réel : comparaison aux réf�
 
 Commandes de qualité utilisées : `node node_modules/eslint/bin/eslint.js .`, `node node_modules/typescript/bin/tsc -p tsconfig.typecheck.json --noEmit --pretty false`, `node node_modules/vitest/vitest.mjs run --mode production <19 fichiers>`, et `node scripts/generate-application-index.mjs --check`. Le build reproduit successivement toutes les commandes du script `build:prod`, avec les variables publiques fictives de CI.
 
+La CI de la PR #1005 sur `0d3b7210` a relevé des assertions de source dépendant d'un appel sur une seule ligne et d'anciens noms de variables du panneau Service. Le test `commercial-demo-restaurant-tools.test.ts` accepte désormais le formatage multi-ligne de l'appel de stockage et vérifie les blocs réels `pending → confirmed` et `confirmed/arrived → seated`, ainsi que leurs mutations sur la réservation sélectionnée. Ce correctif adapte les gardes à l'interface existante sans changement fonctionnel.
+
 ## Fichiers modifiés
 
+Liste exhaustive : **62 fichiers**.
 
 - `docs/architecture/TOK_APPLICATION_REFERENCE.md`
 - `docs/architecture/tok-application-search-index.json`
@@ -119,6 +123,7 @@ Commandes de qualité utilisées : `node node_modules/eslint/bin/eslint.js .`, `
 - `src/lib/floorPlan.ts`
 - `src/lib/floorPlanStudio.ts`
 - `src/pages/dashboard/DashboardPlanSalle.tsx`
+- `src/test/commercial-demo-restaurant-tools.test.ts`
 - `src/test/dashboard-floor-plan-integration.test.tsx`
 - `src/test/fixtures/floorPlanPreview.ts`
 - `src/test/floor-plan-assets.test.tsx`
