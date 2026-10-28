@@ -258,7 +258,10 @@ jobs:
 
   configure_project_domains:
     needs: validation
-    if: ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' }}
+    if: >-
+      ${{ vars.PRODUCTION_DEPLOY_ENABLED == 'true' &&
+          needs.validation.result == 'success' &&
+          needs.validation.outputs.deploy_frontend == 'true' }}
     runs-on: ubuntu-latest
     environment: production
 
@@ -884,13 +887,12 @@ jobs:
             exit 0
           fi
 
-          require_success "configure_project_domains" "$DOMAIN_RESULT"
-
           if [[ "$HAS_DEPLOYABLE_CHANGES" == "true" ]]; then
             require_success "preflight" "$PREFLIGHT_RESULT"
           fi
 
           if [[ "$FRONTEND_REQUIRED" == "true" ]]; then
+            require_success "configure_project_domains" "$DOMAIN_RESULT"
             require_success "build_frontend" "$BUILD_RESULT"
             require_success "deploy_frontend" "$FRONTEND_RESULT"
             require_success "attach_marketing_domain" "$MARKETING_DOMAIN_RESULT"

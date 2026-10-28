@@ -65,6 +65,7 @@ jobs:
       run_lint: ${{ steps.impact.outputs.run_lint }}
       run_typecheck: ${{ steps.impact.outputs.run_typecheck }}
       run_build: ${{ steps.impact.outputs.run_build }}
+      check_migration_versions: ${{ steps.impact.outputs.check_migration_versions }}
       run_worker_tests: ${{ steps.impact.outputs.run_worker_tests }}
       dependency_audit: ${{ steps.impact.outputs.dependency_audit }}
       install_required: ${{ steps.impact.outputs.install_required }}
@@ -112,22 +113,6 @@ jobs:
       # version. Le controle compare donc la branche au main courant, pas a la
       # base sur laquelle elle a ete ouverte. Seul l'arbre est lu, jamais
       # l'historique : la profondeur 1 suffit.
-      - name: Fetch default branch for migration comparison
-        shell: bash
-        env:
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-        run: |
-          set -euo pipefail
-          if ! git fetch --no-tags --depth=1 origin \
-            "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"; then
-            echo "::warning::Default branch unavailable; the migration version guard will skip the comparison."
-          fi
-
-      - name: Guard migration version collisions
-        env:
-          CI_MIGRATION_BASE_REF: origin/${{ github.event.repository.default_branch }}
-        run: node scripts/ci-migration-version-guard.mjs
-
       - name: Detect validation and deployment impact
         id: impact
         env:
@@ -136,6 +121,25 @@ jobs:
           CI_FORCE_FULL: ${{ inputs.force_full }}
           CI_FORCE_DEPLOY: ${{ inputs.force_deploy }}
         run: node scripts/ci-change-plan.mjs
+
+      - name: Fetch default branch for migration comparison
+        if: ${{ steps.impact.outputs.check_migration_versions == 'true' }}
+        shell: bash
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          if ! git fetch --no-tags --depth=1 origin \
+            "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"; then
+            echo "::error::Migration version comparison unavailable. Refusing to skip the guard."
+            exit 1
+          fi
+
+      - name: Guard migration version collisions
+        if: ${{ steps.impact.outputs.check_migration_versions == 'true' }}
+        env:
+          CI_MIGRATION_BASE_REF: origin/${{ github.event.repository.default_branch }}
+        run: node scripts/ci-migration-version-guard.mjs
 
       - name: Reject unsupported Supabase deployment paths
         if: ${{ steps.impact.outputs.unsupported_supabase == 'true' }}
