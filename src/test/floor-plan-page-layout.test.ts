@@ -69,9 +69,9 @@ describe("floor plan page layout", () => {
     );
 
     expectCode(page).toContain('<DashboardLayout contentWidth="full"');
-    expectCode(page).toContain('mainClassName="p-2 pb-24 sm:p-3 md:p-4"');
+    expectCode(page).toContain('mainClassName="p-2 pb-16 sm:p-3 md:p-3 md:pb-3"');
     expectCode(page).toContain(
-      "xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden",
+      "xl:h-[calc(100dvh-5rem)] xl:min-h-[780px] xl:overflow-hidden",
     );
     expectCode(page).toContain(
       "xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden",
@@ -100,8 +100,24 @@ describe("floor plan page layout", () => {
     expect(page).toContain("DASHBOARD_ILLUSTRATIONS.restaurantFloorPlan");
     expect(page).toContain("Préparez les tables, placez les réservations");
     expect(page).toContain("tok-floorplan-actions");
-    expect(styles).toContain('grid-template-areas: "copy art" "actions actions"');
+    expect(styles).toContain('grid-template-areas: "copy art"');
+    expect(page).toContain("tok-floorplan-toolbar");
     expect(styles).toContain(".tok-floorplan-hero-illustration");
+  });
+
+  it("gives the desktop editor a wider canvas and a three-column furniture library without changing the sidebar on other pages", () => {
+    const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
+    const palette = readSource("src/components/floor-plan/StudioPalette.tsx");
+    const shell = readSource("src/components/DashboardLayout.tsx");
+    const styles = readSource("src/components/floor-plan/FloorPlanWorkspace.css");
+
+    expectCode(page).toContain("xl:grid-cols-[minmax(0,1fr)_370px]");
+    expectCode(page).toContain("2xl:grid-cols-[minmax(0,1fr)_400px]");
+    expectCode(palette).toContain("2xl:grid-cols-3");
+    expectCode(palette).toContain('data-floor-plan-library="compact"');
+    expectCode(shell).toContain('pathname === "/dashboard/plan-salle" && "tok-floorplan-shell"');
+    expect(styles).toContain(".tok-hospitality-workspace.tok-floorplan-shell .tok-workspace-sidebar:not([data-collapsed=\"true\"])");
+    expect(styles).toContain(".fp-nav button[aria-selected=\"true\"]");
   });
 
   it("preserves the floor plan persistence and assignment contracts", () => {

@@ -8,7 +8,7 @@
   background: #f7f5f0;
   border: 1px solid var(--fp-border);
   border-radius: 20px;
-  padding: 18px;
+  padding: 12px;
   box-shadow: 0 6px 28px #4b36200a;
 }
 .fp-workspace h1,
@@ -31,35 +31,35 @@
   background: transparent;
   border: 0;
   box-shadow: none;
-  padding: 0 2px 14px;
+}
+@media (min-width: 640px) {
+  .tok-hospitality-workspace .tok-floorplan-eyebrow { display: none; }
 }
 .fp-nav {
   display: flex;
-  gap: 22px;
-  border-bottom: 1px solid var(--fp-border);
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: #ede8e0;
 }
 .fp-nav button {
   position: relative;
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
-  min-height: 46px;
-  color: #8c8277;
-  font-size: 13px;
-  font-weight: 550;
-  padding: 0 4px 12px;
+  min-height: 38px;
+  color: #81756c;
+  font-size: 12px;
+  font-weight: 650;
+  padding: 6px 11px;
+  border-radius: 9px;
 }
 .fp-nav button[aria-selected="true"] {
-  color: var(--fp-orange);
-}
-.fp-nav button[aria-selected="true"]::after {
-  content: "";
-  position: absolute;
-  height: 2px;
-  background: var(--fp-orange);
-  bottom: -1px;
-  left: 0;
-  right: 0;
+  background: #fff0e6;
+  color: #dc5a2d;
+  box-shadow: 0 1px 3px #65462e12;
 }
 .fp-room-tabs {
   scrollbar-width: thin;
@@ -98,8 +98,9 @@
 .fp-canvas {
   border-color: var(--fp-border);
   background: #fcfbf8;
-  box-shadow: none;
+  box-shadow: 0 3px 18px #4b36200a;
 }
+.fp-canvas > div:first-child { padding-block: 9px; }
 .fp-canvas-tools {
   background: #fffefbf2;
   border: 1px solid #e7e0d3;
@@ -136,7 +137,7 @@
   background: #fffefa;
   border: 1px solid var(--fp-border);
   border-radius: 14px;
-  box-shadow: none;
+  box-shadow: 0 3px 18px #4b362008;
 }
 .fp-dialog {
   color: #332e29;
@@ -231,17 +232,32 @@
 .dark .fp-workspace .fp-panel .fp-stat strong {
   color: #40372e;
 }
+@media (min-width: 1440px) {
+  /* Only the floor-plan editor gains the narrow navigation rail. */
+  .tok-hospitality-workspace.tok-floorplan-shell .tok-workspace-sidebar:not([data-collapsed="true"]) {
+    width: 196px;
+    padding-inline: 8px;
+  }
+  .tok-floorplan-shell .tok-workspace-logo {
+    width: 116px;
+    height: 80px;
+  }
+  .tok-floorplan-shell .tok-workspace-logo-link > span { font-size: 15px; }
+}
 @media (max-width: 767px) {
   .fp-workspace {
     padding: 12px;
     border-radius: 14px;
   }
   .fp-nav {
-    gap: 16px;
+    gap: 4px;
+    width: max-content;
+    max-width: 100%;
   }
   .fp-nav button {
     min-height: 44px;
     font-size: 12px;
+    padding-inline: 9px;
   }
   .fp-canvas-tools button {
     height: 42px;
