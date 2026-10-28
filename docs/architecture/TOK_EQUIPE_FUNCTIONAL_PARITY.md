@@ -2,7 +2,7 @@
 
 ## 1. Périmètre et état de livraison
 
-Cette matrice compare la cartographie du dépôt `mtnrconcept/swiss-time-tracker`, au commit **`7cab98100ae189b7eec1234a7cbc6b49db2f95b7`**, avec le code TOK préparé le **28 octobre 2026** sur la branche **`feat/tok-equipe-swisstime-20261028`**, mise à jour depuis `main` au commit `070aecdfb2a8cca59191d329034c380117abf1ab`.
+Cette matrice compare la cartographie du dépôt `mtnrconcept/swiss-time-tracker`, au commit **`7cab98100ae189b7eec1234a7cbc6b49db2f95b7`**, avec le code TOK préparé le **28 octobre 2026** sur la branche **`feat/tok-equipe-swisstime-20261028`**, mise à jour depuis `main` au commit `070aecdfb2a8cca59191d329034c380117abf1ab`. La PR #1004 intègre ensuite la base `main` `837705c65cedfbfb3406fe9542e4afdf66020938` et régénère ses index.
 
 Elle décrit les parcours reliés dans la branche applicative destinée à la PR. **Elle n’atteste ni le déploiement de cette branche, ni l’application en production de la nouvelle migration SQL, ni le déploiement de l’Edge Function `tok-workforce-assistant`.** Les fichiers de test constituent les preuves de comportement à exécuter ; le statut final de la CI et du déploiement relève de la livraison de la PR.
 

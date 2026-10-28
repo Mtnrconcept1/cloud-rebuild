@@ -242,9 +242,14 @@ function signRestaurantContract() {
 }
 
 function acceptLegalTerms() {
-  fireEvent.click(screen.getByLabelText(/J'accepte les CGU/i));
+  const generalTerms = screen.getByLabelText(/J'accepte les CGU/i);
+  if (generalTerms.getAttribute("aria-checked") !== "true") {
+    fireEvent.click(generalTerms);
+  }
   const commissionConsent = screen.queryByLabelText(/J'autorise le prélèvement automatique/i);
-  if (commissionConsent) fireEvent.click(commissionConsent);
+  if (commissionConsent && commissionConsent.getAttribute("aria-checked") !== "true") {
+    fireEvent.click(commissionConsent);
+  }
   fireEvent.click(
     screen.getByRole("button", { name: "Accepter et continuer" }),
   );
@@ -455,6 +460,59 @@ describe("Auth signup form", () => {
     expect(screen.getByText("Conditions acceptées")).toBeInTheDocument();
   });
 
+  it("requests explicit debit consent after switching from client to restaurateur without losing the form", async () => {
+    await renderAuth("/auth?type=client");
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
+    fireEvent.click(screen.getByLabelText(/J'accepte les CGU/i));
+    fireEvent.click(screen.getByRole("button", { name: "Accepter et continuer" }));
+    fireEvent.change(screen.getByLabelText("Nom complet"), { target: { value: "Marie Dupont" } });
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "restaurant@example.com" } });
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Restaurateur" }), { button: 0, ctrlKey: false });
+
+    const dialog = await screen.findByRole("dialog", { name: "Accepter les conditions générales" });
+    const mandate = screen.getByLabelText(/J'autorise le prélèvement automatique/i);
+    const acceptButton = screen.getByRole("button", { name: "Accepter et continuer" });
+    expect(screen.getByRole("tab", { name: "Restaurateur" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByText("Conditions acceptées")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Nom du responsable")).toHaveValue("Marie Dupont");
+    expect(screen.getByLabelText("Email")).toHaveValue("restaurant@example.com");
+    expect(screen.getByLabelText(/J'accepte les CGU/i)).toBeChecked();
+    expect(mandate).not.toBeChecked();
+    expect(acceptButton).toBeDisabled();
+
+    fireEvent.click(acceptButton);
+    expect(dialog).toBeInTheDocument();
+    expect(supabaseMocks.signUp).not.toHaveBeenCalled();
+
+    fireEvent.click(mandate);
+    expect(mandate).toBeChecked();
+    expect(dialog).toBeInTheDocument();
+    expect(acceptButton).toBeEnabled();
+    expect(supabaseMocks.signUp).not.toHaveBeenCalled();
+
+    fireEvent.click(acceptButton);
+    expect(screen.queryByRole("dialog", { name: "Accepter les conditions générales" })).not.toBeInTheDocument();
+    expect(screen.getByText("Conditions acceptées")).toBeInTheDocument();
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Client" }), { button: 0, ctrlKey: false });
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Restaurateur" }), { button: 0, ctrlKey: false });
+    expect(screen.queryByRole("dialog", { name: "Accepter les conditions générales" })).not.toBeInTheDocument();
+  });
+
+  it("clears debit authorization when starting a new signup after returning to login", async () => {
+    await renderAuth("/auth?type=restaurateur");
+    acceptLegalTerms();
+    fireEvent.click(screen.getByRole("button", { name: "Déjà un compte ? Se connecter" }));
+    fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
+
+    expect(screen.getByRole("dialog", { name: "Accepter les conditions générales" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/J'accepte les CGU/i)).not.toBeChecked();
+    expect(screen.getByLabelText(/J'autorise le prélèvement automatique/i)).not.toBeChecked();
+    expect(screen.getByRole("button", { name: "Accepter et continuer" })).toBeDisabled();
+    expect(supabaseMocks.signUp).not.toHaveBeenCalled();
+  });
+
   it("lets the user refuse the legal terms and return to login", async () => {
     await renderAuth("/auth?type=client");
 
@@ -603,7 +661,7 @@ describe("Auth signup form", () => {
     expect(supabaseMocks.signUp).not.toHaveBeenCalled();
   });
 
-  it("keeps the pending restaurateur signed in after submitting the verification dossier", async () => {
+  it.each(["direct", "after-client-consent"] as const)("keeps the pending restaurateur signed in after submitting the verification dossier (%s)", async (entry) => {
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
       beginPath: vi.fn(),
       clearRect: vi.fn(),
@@ -649,8 +707,13 @@ describe("Auth signup form", () => {
       error: null,
     });
 
-    const { container } = await renderAuth("/auth?type=restaurateur");
-    await screen.findByText("TOK Starter");
+    const { container } = await renderAuth(entry === "direct" ? "/auth?type=restaurateur" : "/auth?type=client");
+    if (entry === "after-client-consent") {
+      fireEvent.click(screen.getByRole("button", { name: "Pas encore de compte ? S'inscrire" }));
+      acceptLegalTerms();
+      fireEvent.mouseDown(screen.getByRole("tab", { name: "Restaurateur" }), { button: 0, ctrlKey: false });
+      await screen.findByRole("dialog", { name: "Accepter les conditions générales" });
+    }
     await screen.findByText("TOK Starter");
 
     fireEvent.change(screen.getByLabelText("Nom du responsable"), {
@@ -1002,6 +1065,60 @@ describe("Auth signup form", () => {
     expect(
       screen.getByRole("button", { name: "Finaliser mon dossier" }),
     ).toBeEnabled();
+  });
+
+  it.each([false, true])("restores debit consent from an incomplete server signup draft (mandate=%s)", async (hasSavedMandate) => {
+    const operationId = "incomplete-restaurant-signup";
+    authContextMocks.user = {
+      id: "restaurant-user-id",
+      email: "restaurant@example.com",
+      user_metadata: {
+        full_name: "Restaurateur Test",
+        signup_intent: "restaurateur",
+      },
+    };
+    authContextMocks.session = { access_token: "confirmed-session" };
+    supabaseMocks.from.mockImplementation((table: string) => {
+      if (table !== "signup_application_drafts") return mockSupabaseTable(table);
+      const builder = {
+        select: vi.fn(() => builder),
+        eq: vi.fn(() => builder),
+        gt: vi.fn(() => builder),
+        maybeSingle: vi.fn(() => Promise.resolve({
+          data: {
+            operation_id: operationId,
+            requested_role: "restaurateur",
+            status: "ready",
+            safe_payload: {
+              city: "Genève",
+              legal_terms_accepted_at: "2026-10-28T08:00:00.000Z",
+              ...(hasSavedMandate ? { commission_auto_debit_consent_version: "v1" } : {}),
+            },
+          },
+          error: null,
+        })),
+      };
+      return builder;
+    });
+
+    await renderAuth("/auth?confirmed=1");
+    await waitFor(() => expect(screen.getByLabelText("Ville")).toHaveValue("Genève"));
+    expect(recoveryMocks.load).toHaveBeenCalledWith(operationId);
+    expect(screen.getByLabelText("Téléphone")).toHaveValue("");
+
+    if (hasSavedMandate) {
+      expect(screen.getByText("Conditions acceptées")).toBeInTheDocument();
+      expect(screen.queryByRole("dialog", { name: "Accepter les conditions générales" })).not.toBeInTheDocument();
+    } else {
+      expect(screen.getByRole("dialog", { name: "Accepter les conditions générales" })).toBeInTheDocument();
+      expect(screen.queryByText("Conditions acceptées")).not.toBeInTheDocument();
+      expect(screen.getByLabelText(/J'autorise le prélèvement automatique/i)).not.toBeChecked();
+      expect(screen.getByRole("button", { name: "Accepter et continuer" })).toBeDisabled();
+    }
+
+    expect(supabaseMocks.signUp).not.toHaveBeenCalled();
+    expect(supabaseMocks.upload).not.toHaveBeenCalled();
+    expect(supabaseMocks.rpc).not.toHaveBeenCalledWith("sync_signup_application", expect.anything());
   });
 
   it("lets users resend the signup confirmation email", async () => {

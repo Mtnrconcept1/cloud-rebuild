@@ -2,7 +2,7 @@
 
 ## 1. État de la livraison
 
-Ce dossier décrit le lot préparé sur la branche `feat/tok-equipe-swisstime-20261028`, initialement issue de `7d34670974e81a1ea13090296ec3c14e1e311f98`. Avant le commit de livraison, la base a été actualisée sans conflit sur `main` à `070aecdfb2a8cca59191d329034c380117abf1ab` (PR Cloudprinter #999), par avance rapide. Le dossier distingue le code vérifié localement, les vérifications de publication et les éléments déjà actifs en production.
+Ce dossier décrit le lot préparé sur la branche `feat/tok-equipe-swisstime-20261028`, initialement issue de `7d34670974e81a1ea13090296ec3c14e1e311f98`. Avant le commit de livraison, la base a été actualisée sur `main` à `070aecdfb2a8cca59191d329034c380117abf1ab` (PR Cloudprinter #999). La PR #1004 intègre également `837705c65cedfbfb3406fe9542e4afdf66020938` (inscription restaurateur et CSP, PR #1002) ; les trois conflits d’index générés ont été résolus par régénération après intégration des sources. Le dossier distingue le code vérifié localement, les vérifications de publication et les éléments déjà actifs en production.
 
 **Le nouveau code applicatif, la migration d’intégrité et l’Edge Function `tok-workforce-assistant` ne sont pas encore déployés à la date de rédaction.** Les tests locaux ne constituent pas une preuve de déploiement. Les références exactes du commit, de la PR et des exécutions GitHub figurent dans le compte rendu de livraison et dans la PR de la branche ; les preuves locales et la liste complète des fichiers sont consignées ci-dessous.
 
@@ -50,7 +50,7 @@ La branche et ses contrôles fournissent la référence versionnée de la livrai
 |---|---|
 | Branche | [`feat/tok-equipe-swisstime-20261028`](https://github.com/Mtnrconcept1/cloud-rebuild/tree/feat/tok-equipe-swisstime-20261028) |
 | Comparaison avec main | [Diff de livraison](https://github.com/Mtnrconcept1/cloud-rebuild/compare/main...feat/tok-equipe-swisstime-20261028) |
-| PR et CI | [PR associée à la branche](https://github.com/Mtnrconcept1/cloud-rebuild/pulls?q=is%3Apr+head%3Afeat%2Ftok-equipe-swisstime-20261028) ; vérifier le SHA de tête dans l’onglet Checks. |
+| PR et CI | [PR #1004](https://github.com/Mtnrconcept1/cloud-rebuild/pull/1004) ; vérifier le SHA de tête dans l’onglet Checks. |
 | Liste complète des fichiers | Section 11, extraite du staging de livraison. |
 | Déploiement Supabase / Edge | Non réalisé dans ce lot. |
 | Déploiement frontend | Non réalisé dans ce lot. |
@@ -240,6 +240,8 @@ Les deux smokes ont été exécutés sur PostgreSQL 17.10 natif dans une base je
 
 ## 10. Vérifications de livraison
 
+La suite complète locale ci-dessous a été exécutée sur la base `070aecdf`. Après intégration de `837705c6`, **7 fichiers et 121 tests ont réussi** sur les parcours d’authentification, continuation, portail employé, gestion, routage et index. Les checks GitHub portent sur le SHA final de la PR.
+
 | Contrôle | Résultat local / portée | Commande ou preuve |
 |---|---|---|
 | Suite applicative complète | 759 fichiers réussis, 1 fichier avec un échec d’index, 1 fichier ignoré ; **5 508 tests réussis, 1 échec d’index, 2 tests ignorés**. Le seul échec compare un index généré avant le dernier ajustement de typage Deno. | `corepack pnpm exec vitest run --maxWorkers=4` ; 421,49 s. |
@@ -276,7 +278,7 @@ Les premières tentatives de suite globale dans le sandbox n’autorisaient pas 
 
 ## 11. Liste complète des fichiers du lot
 
-Cette liste porte sur le diff du lot Équipe par rapport à la base `070aecdfb2a8cca59191d329034c380117abf1ab`. Les fichiers Cloudprinter intégrés depuis main sont hors de ce diff. `A` signifie ajouté ; `M`, modifié.
+Cette liste porte sur le diff du lot Équipe par rapport à la base `837705c65cedfbfb3406fe9542e4afdf66020938`. Les fichiers Cloudprinter, Auth et CSP intégrés depuis main sont hors de ce diff. `A` signifie ajouté ; `M`, modifié.
 
 | État | Fichier |
 |---|---|
