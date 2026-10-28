@@ -1,0 +1,51 @@
+name: TOK CI — temporary canonical index refresh
+
+on:
+  pull_request:
+    types: [synchronize]
+    paths:
+      - ".github/workflows/tok-ci-proportional-index-refresh.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  regenerate:
+    name: Regenerate canonical references and remove temporary workflow
+    if: ${{ github.event.pull_request.number == 1025 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'codex/tok-ci-proportional-checks-20261028' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout dedicated PR branch
+        uses: actions/checkout@v6
+        with:
+          ref: codex/tok-ci-proportional-checks-20261028
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Remove temporary workflow before computing canonical digest
+        run: git rm -- .github/workflows/tok-ci-proportional-index-refresh.yml
+      - name: Regenerate and verify generated reference files
+        run: |
+          pnpm run docs:application-index
+          pnpm run docs:application-index:check
+      - name: Commit only regenerated references and workflow removal
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(index): refresh canonical references after CI regression test"
+          git push origin HEAD:refs/heads/codex/tok-ci-proportional-checks-20261028
