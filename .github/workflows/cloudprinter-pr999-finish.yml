@@ -1,0 +1,142 @@
+name: Cloudprinter PR999 isolated validation
+
+on:
+  push:
+    branches: [fix/cloudprinter-pr999-ci-repair-20261028]
+    paths: [.github/workflows/cloudprinter-pr999-finish.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_ANON_KEY: ci-public-placeholder
+      VITE_SUPABASE_PUBLISHABLE_KEY: ci-public-placeholder
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fb712c7c93a757540e03f8fc2808e0276abea846
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Merge the verified current main without changing any remote ref
+        run: |
+          set -euo pipefail
+          git config user.name mtnrconcept
+          git config user.email 149347251+mtnrconcept@users.noreply.github.com
+          git switch -c fix/cloudprinter-pr999-checked
+          git status --short
+          git fetch origin 7d34670974e81a1ea13090296ec3c14e1e311f98
+          git merge --no-commit --no-ff 7d34670974e81a1ea13090296ec3c14e1e311f98 || {
+            python3 - <<'PY'
+          import subprocess
+          generated = {'docs/architecture/TOK_APPLICATION_REFERENCE.md','docs/architecture/tok-application-search-index.json','src/data/tok-user-guide-catalog.generated.ts'}
+          conflicts = subprocess.check_output(['git','diff','--name-only','--diff-filter=U']).decode().splitlines()
+          assert conflicts and set(conflicts) <= generated, conflicts
+          subprocess.run(['git','checkout','--ours','--',*conflicts],check=True)
+          subprocess.run(['git','add','--',*conflicts],check=True)
+          PY
+          }
+          mkdir -p /tmp/pr999-final
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply the exact locally verified test corrections
+        run: |
+          python3 - <<'PY'
+          import hashlib, pathlib
+          path = pathlib.Path('src/test/photo-studio-persistence.test.ts')
+          assert hashlib.sha256(path.read_bytes()).hexdigest() == '1409ffc4f85def8077d3f5c721ac00e269598c188a6631d5a16c0e051e6ee42f'
+          source = path.read_text()
+          old = 'expect(aiImageFunction).toContain("const finalPrompt = appendGenerationSeedToPrompt(baseFinalPrompt, activeGenerationSeed)");'
+          new = 'expect(aiImageFunction).toContain("const finalPrompt = appendGenerationSeedToPrompt(printSafePrompt, activeGenerationSeed)");'
+          assert source.count(old) == 1
+          path.write_text(source.replace(old,new))
+          assert hashlib.sha256(path.read_bytes()).hexdigest() == 'bca0934757e5321dea62cf197b7269c82640d33cfc7856d83f16efb6512595f2'
+          path = pathlib.Path('src/test/ai-image-marketing-generation.test.ts')
+          assert hashlib.sha256(path.read_bytes()).hexdigest() == '0928d25bb0b644d1ce2ffccaf362d6ae8a85b30f06fec485b66b8331c1ed7638'
+          source = path.read_text()
+          old = '    expect(form.get("prompt")).toContain("Annonce la carte de chasse");'
+          new = old + '\n    expect(form.get("prompt")).toContain("generation_seed: fixture-marketing");\n    expect(form.get("prompt")).not.toContain("GABARIT IMPRESSION PRIORITAIRE");\n    expect(body.generation_seed).toBe("fixture-marketing");'
+          assert source.count(old) == 1
+          source = source.replace(old,new)
+          old = '    expect(String(form.get("prompt"))).toContain("3 mm À L\'INTÉRIEUR");'
+          new = old + '\n    expect(String(form.get("prompt"))).toContain("generation_seed: fixture-marketing");\n    expect(body.generation_seed).toBe("fixture-marketing");'
+          assert source.count(old) == 1
+          path.write_text(source.replace(old,new))
+          assert hashlib.sha256(path.read_bytes()).hexdigest() == 'e878512ee4d55c6c4b6a507559e6be45dfe1b16a448f255771968183b19e4356'
+          PY
+      - name: Regenerate error map and canonical application references
+        run: |
+          set -euo pipefail
+          pnpm run generate:error-code-map
+          echo '1df0be16f2a0e67e8869b54ec55424d852c6c147662a6f94faa20374c8ef6060  supabase/functions/_shared/error-code-map.ts' | sha256sum -c -
+          pnpm run docs:application-index
+          pnpm run docs:application-index:check | tee /tmp/pr999-final/index-check.log
+          git add -- src/test/photo-studio-persistence.test.ts src/test/ai-image-marketing-generation.test.ts supabase/functions/_shared/error-code-map.ts docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+      - name: Test print, seed persistence, incident mapping and concurrent main changes
+        run: |
+          set -euo pipefail
+          pnpm exec vitest run --mode production src/test/*print*.test.ts* src/test/photo-studio-persistence.test.ts src/test/incident-evidence-depth.test.ts src/test/ai-image-marketing-generation.test.ts src/test/marketing-output-geometry.test.ts src/test/address-autocomplete-location-bias.test.tsx src/test/commercial-email-consent.test.tsx | tee /tmp/pr999-final/tests.log
+      - name: Lint and typecheck the integrated repository
+        run: |
+          set -euo pipefail
+          pnpm lint > /tmp/pr999-final/lint.log 2>&1
+          pnpm typecheck > /tmp/pr999-final/typecheck.log 2>&1
+      - name: Export verified Git objects and complete source files without updating branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64, hashlib, json, os, pathlib, subprocess, urllib.request, zipfile
+          repo = os.environ['GITHUB_REPOSITORY']
+          assert repo.lower() == 'mtnrconcept1/cloud-rebuild'
+          head = 'fb712c7c93a757540e03f8fc2808e0276abea846'
+          main = '7d34670974e81a1ea13090296ec3c14e1e311f98'
+          def git(*args): return subprocess.check_output(['git',*args]).decode().strip()
+          assert git('rev-parse','HEAD') == head
+          assert git('rev-parse','MERGE_HEAD') == main
+          assert not git('diff','--name-only')
+          paths = git('diff','--cached','--name-only',head).splitlines()
+          allowed = {'src/test/photo-studio-persistence.test.ts','src/test/ai-image-marketing-generation.test.ts','supabase/functions/_shared/error-code-map.ts','docs/architecture/TOK_APPLICATION_REFERENCE.md','docs/architecture/tok-application-search-index.json','src/data/tok-user-guide-catalog.generated.ts','src/components/AddressAutocomplete.tsx','src/components/CityAutocomplete.tsx','src/test/address-autocomplete-location-bias.test.tsx'}
+          assert set(paths) == allowed, paths
+          headers = {'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'}
+          def post(endpoint, data):
+              request = urllib.request.Request(f'https://api.github.com/repos/{repo}/git/{endpoint}',data=json.dumps(data).encode(),headers=headers,method='POST')
+              with urllib.request.urlopen(request,timeout=30) as response: return json.load(response)
+          entries = []
+          checksums = {}
+          for path in paths:
+              raw = pathlib.Path(path).read_bytes()
+              sha = hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              blob = post('blobs',{'content':base64.b64encode(raw).decode(),'encoding':'base64'})
+              assert blob['sha'] == sha
+              entries.append({'path':path,'mode':'100644','type':'blob','sha':sha})
+              checksums[path] = hashlib.sha256(raw).hexdigest()
+          tree = post('trees',{'base_tree':git('rev-parse',head+'^{tree}'),'tree':entries})
+          assert tree['sha'] == git('write-tree')
+          changed = git('diff','--cached','--name-only',main).splitlines()
+          assert not any(path.startswith('.github/') for path in changed)
+          out = pathlib.Path('/tmp/pr999-final')
+          (out/'manifest.json').write_text(json.dumps({'head':head,'main':main,'tree':tree['sha'],'run':os.environ['GITHUB_RUN_ID'],'entries':entries,'sha256':checksums,'changedFiles':changed},indent=2))
+          (out/'files-modified.txt').write_text('\n'.join(changed)+'\n')
+          (out/'ci-repair.patch').write_text(subprocess.check_output(['git','diff','--cached',head,'--',*sorted(allowed-{'src/components/AddressAutocomplete.tsx','src/components/CityAutocomplete.tsx','src/test/address-autocomplete-location-bias.test.tsx'})]).decode())
+          with zipfile.ZipFile(out/'complete-source-files.zip','w',zipfile.ZIP_DEFLATED) as archive:
+              for path in changed: archive.write(path,path)
+          print('Verified final tree:',tree['sha'],'; PR files:',len(changed))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cloudprinter-pr999-final-validation
+          path: /tmp/pr999-final/
+          retention-days: 3
