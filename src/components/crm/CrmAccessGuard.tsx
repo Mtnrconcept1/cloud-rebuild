@@ -14,6 +14,9 @@ import {
   findVerifiedCrmMfaFactor,
   getCrmMfaFactorId,
   isCrmMfaFactor,
+  isValidCrmRecoveryCode,
+  isValidCrmTotpCode,
+  sanitizeCrmMfaNumericCode,
   type CrmMfaFactor,
 } from "@/lib/crmMfa";
 
@@ -317,8 +320,8 @@ export default function CrmAccessGuard({
   };
 
   const confirmMfaRecovery = async () => {
-    const code = recoveryCode.replace(/\s+/g, "");
-    if (!recoveryChallengeId || code.length !== 8) return;
+    const code = recoveryCode.trim();
+    if (!recoveryChallengeId || !isValidCrmRecoveryCode(code)) return;
 
     setBusy(true);
     setRecoveryState("confirming");
@@ -362,8 +365,8 @@ export default function CrmAccessGuard({
   const verifyCode = async () => {
     const mfa = getMfaApi();
     const factorId = getFactorId(factor);
-    const code = verificationCode.replace(/\s+/g, "");
-    if (!mfa || !factorId || !challengeId || code.length < 6) return;
+    const code = verificationCode.trim();
+    if (!mfa || !factorId || !challengeId || !isValidCrmTotpCode(code)) return;
 
     setBusy(true);
     setMessage(null);
@@ -419,7 +422,7 @@ export default function CrmAccessGuard({
   };
 
   const canSubmitCode = useMemo(
-    () => verificationCode.replace(/\s+/g, "").length >= 6 && Boolean(challengeId) && !busy,
+    () => isValidCrmTotpCode(verificationCode) && Boolean(challengeId) && !busy,
     [busy, challengeId, verificationCode],
   );
 
@@ -570,15 +573,19 @@ export default function CrmAccessGuard({
           {state === "challenge" || (state === "setup" && challengeId) ? (
             <div className="mt-4 space-y-3">
               <label className="text-sm font-medium" htmlFor="crm-mfa-code">
-                Code de vérification
+                Code à 6 chiffres de votre application d'authentification
               </label>
+              <p className="text-xs text-muted-foreground">
+                Le code de récupération reçu par e-mail comporte 8 chiffres et se saisit dans le formulaire de récupération ci-dessous.
+              </p>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Input
                   id="crm-mfa-code"
                   value={verificationCode}
-                  onChange={(event) => setVerificationCode(event.target.value)}
+                  onChange={(event) => setVerificationCode(sanitizeCrmMfaNumericCode(event.target.value, 6))}
                   inputMode="numeric"
                   autoComplete="one-time-code"
+                  maxLength={6}
                   placeholder="123456"
                 />
                 <Button type="button" onClick={verifyCode} disabled={!canSubmitCode} className="sm:shrink-0">
@@ -656,9 +663,10 @@ export default function CrmAccessGuard({
                     </p>
                     <Input
                       value={recoveryCode}
-                      onChange={(event) => setRecoveryCode(event.target.value)}
+                      onChange={(event) => setRecoveryCode(sanitizeCrmMfaNumericCode(event.target.value, 8))}
                       inputMode="numeric"
                       autoComplete="one-time-code"
+                      maxLength={8}
                       placeholder="12345678"
                       aria-label="Code de récupération CRM"
                     />
@@ -667,7 +675,7 @@ export default function CrmAccessGuard({
                         type="button"
                         size="sm"
                         onClick={confirmMfaRecovery}
-                        disabled={busy || recoveryCode.replace(/\s+/g, "").length !== 8}
+                        disabled={busy || !isValidCrmRecoveryCode(recoveryCode)}
                         className="gap-2 sm:flex-1"
                       >
                         {recoveryState === "confirming" ? (

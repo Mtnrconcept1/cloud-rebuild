@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `c51b146b4dcfa93526a92427d86fbad099820005ce4d37139e8bd8279913827e`
+- Empreinte SHA-256 des sources indexées : `51a6ef54b0178cc9593366cf79fca2f47eaec888ae63c185bdb9c36d135ddc84`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 228 |
 | edgeFunctions | 121 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4056 |
+| exportedSymbols | 4059 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 583 |
-| modules | 1846 |
+| modules | 1848 |
 | pages | 133 |
-| pathLiterals | 899 |
+| pathLiterals | 900 |
 | publicAssets | 713 |
-| publicEntries | 742 |
+| publicEntries | 743 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 119 |
-| records | 19104 |
-| repositoryFiles | 3705 |
+| records | 19113 |
+| repositoryFiles | 3707 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1360,6 +1360,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /sitemap-pages.xml | platform | [public/sitemap-pages.xml](../../public/sitemap-pages.xml) |
 | /sitemap-restaurants.xml | platform | [public/sitemap-restaurants.xml](../../public/sitemap-restaurants.xml) |
 | /sitemap.xml | platform | [public/sitemap.xml](../../public/sitemap.xml) |
+| /theme-preference-init.js | other | [public/theme-preference-init.js](../../public/theme-preference-init.js) |
 | /tok-reference-food-webp/tok-reference-food-01.webp | media | [public/tok-reference-food-webp/tok-reference-food-01.webp](../../public/tok-reference-food-webp/tok-reference-food-01.webp) |
 | /tok-reference-food-webp/tok-reference-food-02.webp | media | [public/tok-reference-food-webp/tok-reference-food-02.webp](../../public/tok-reference-food-webp/tok-reference-food-02.webp) |
 | /tok-reference-food-webp/tok-reference-food-03.webp | media | [public/tok-reference-food-webp/tok-reference-food-03.webp](../../public/tok-reference-food-webp/tok-reference-food-03.webp) |
@@ -1388,8 +1389,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 281 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
-| /(.*) | 5 | [src/test/daily-slot-machine-security.test.ts:48](../../src/test/daily-slot-machine-security.test.ts#L48) |
+| / | 282 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| /(.*) | 6 | [src/test/admin-crm-theme-csp.test.ts:27](../../src/test/admin-crm-theme-csp.test.ts#L27) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:100](../../src/test/application-search-index.test.ts#L100) |
 | /.well-known/apple-app-site-association-extra | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
@@ -1454,7 +1455,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/compta/entrees | 8 | [src/App.tsx:680](../../src/App.tsx#L680) |
 | /admin/compta/ia | 5 | [src/App.tsx:682](../../src/App.tsx#L682) |
 | /admin/compta/sorties | 8 | [src/App.tsx:681](../../src/App.tsx#L681) |
-| /admin/crm | 4 | [src/App.tsx:675](../../src/App.tsx#L675) |
+| /admin/crm | 11 | [src/App.tsx:675](../../src/App.tsx#L675) |
+| /admin/crm?external=1 | 1 | [src/test/auth-post-login-routing.test.ts:18](../../src/test/auth-post-login-routing.test.ts#L18) |
 | /admin/drops | 4 | [src/App.tsx:672](../../src/App.tsx#L672) |
 | /admin/equipe | 5 | [src/App.tsx:666](../../src/App.tsx#L666) |
 | /admin/guardian | 10 | [src/App.tsx:686](../../src/App.tsx#L686) |
@@ -1660,7 +1662,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /equipe/ | 1 | [src/pages/Auth.tsx:1130](../../src/pages/Auth.tsx#L1130) |
 | /equipe/gestion | 10 | [src/App.tsx:573](../../src/App.tsx#L573) |
 | /equipe/gestion/private | 1 | [src/test/workforce-auth-continuation.test.ts:99](../../src/test/workforce-auth-continuation.test.ts#L99) |
-| /equipe/gestion?next=/admin | 1 | [src/test/auth-post-login-routing.test.ts:62](../../src/test/auth-post-login-routing.test.ts#L62) |
+| /equipe/gestion?next=/admin | 1 | [src/test/auth-post-login-routing.test.ts:70](../../src/test/auth-post-login-routing.test.ts#L70) |
 | /equipe/gestion?restaurant= | 1 | [src/test/workforce-auth-continuation.test.ts:28](../../src/test/workforce-auth-continuation.test.ts#L28) |
 | /equipe/mon-espace | 13 | [src/App.tsx:572](../../src/App.tsx#L572) |
 | /equipe/mon-espace/ | 1 | [src/test/workforce-auth-continuation.test.ts:27](../../src/test/workforce-auth-continuation.test.ts#L27) |
@@ -1668,13 +1670,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /equipe/mon-espace/settings | 1 | [src/test/workforce-auth-continuation.test.ts:28](../../src/test/workforce-auth-continuation.test.ts#L28) |
 | /equipe/mon-espace? | 1 | [src/test/workforce-auth-continuation.test.ts:33](../../src/test/workforce-auth-continuation.test.ts#L33) |
 | /equipe/mon-espace?restaurant= | 2 | [src/test/MyWorkforce.test.tsx:33](../../src/test/MyWorkforce.test.tsx#L33) |
-| /equipe/mon-espace?restaurant=10000000-0000-4000-8000-000000000001 | 1 | [src/test/auth-post-login-routing.test.ts:52](../../src/test/auth-post-login-routing.test.ts#L52) |
-| /equipe/mon-espace?restaurant=10000000-0000-4000-8000-000000000001&next=/admin | 1 | [src/test/auth-post-login-routing.test.ts:61](../../src/test/auth-post-login-routing.test.ts#L61) |
-| /equipe/mon-espace?restaurant=invalid | 1 | [src/test/auth-post-login-routing.test.ts:60](../../src/test/auth-post-login-routing.test.ts#L60) |
+| /equipe/mon-espace?restaurant=10000000-0000-4000-8000-000000000001 | 1 | [src/test/auth-post-login-routing.test.ts:60](../../src/test/auth-post-login-routing.test.ts#L60) |
+| /equipe/mon-espace?restaurant=10000000-0000-4000-8000-000000000001&next=/admin | 1 | [src/test/auth-post-login-routing.test.ts:69](../../src/test/auth-post-login-routing.test.ts#L69) |
+| /equipe/mon-espace?restaurant=invalid | 1 | [src/test/auth-post-login-routing.test.ts:68](../../src/test/auth-post-login-routing.test.ts#L68) |
 | /equipe/mon-espace?restaurant=not-a-uuid | 1 | [src/test/workforce-auth-continuation.test.ts:34](../../src/test/workforce-auth-continuation.test.ts#L34) |
 | /equipe\mon-espace?restaurant= | 1 | [src/test/workforce-auth-continuation.test.ts:39](../../src/test/workforce-auth-continuation.test.ts#L39) |
 | /espace-client | 4 | [scripts/prerender-seo.mjs:1276](../../scripts/prerender-seo.mjs#L1276) |
-| /espaces | 28 | [scripts/prerender-seo.mjs:1282](../../scripts/prerender-seo.mjs#L1282) |
+| /espaces | 31 | [scripts/prerender-seo.mjs:1282](../../scripts/prerender-seo.mjs#L1282) |
 | /factors | 1 | [server/marketingBff.ts:874](../../server/marketingBff.ts#L874) |
 | /factures | 1 | [src/test/dashboard-design-preview-export.test.tsx:66](../../src/test/dashboard-design-preview-export.test.tsx#L66) |
 | /factures/entrees | 1 | [src/test/dashboard-design-preview-export.test.tsx:66](../../src/test/dashboard-design-preview-export.test.tsx#L66) |
@@ -2020,7 +2022,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /oauth | 2 | [scripts/prerender-seo.mjs:1281](../../scripts/prerender-seo.mjs#L1281) |
 | /oauth/:endpoint(register\|authorize\|token) | 1 | [src/test/tok-connect-public-actions.test.ts:69](../../src/test/tok-connect-public-actions.test.ts#L69) |
 | /oauth/consent | 8 | [src/App.tsx:461](../../src/App.tsx#L461) |
-| /oauth/consent?authorization_id=authorization-123 | 3 | [src/test/auth-post-login-routing.test.ts:21](../../src/test/auth-post-login-routing.test.ts#L21) |
+| /oauth/consent?authorization_id=authorization-123 | 3 | [src/test/auth-post-login-routing.test.ts:29](../../src/test/auth-post-login-routing.test.ts#L29) |
 | /oauth/unknown | 1 | [src/test/tok-connect-oauth-routing.test.ts:10](../../src/test/tok-connect-oauth-routing.test.ts#L10) |
 | /offres | 1 | [src/test/dashboard-design-preview-export.test.tsx:60](../../src/test/dashboard-design-preview-export.test.tsx#L60) |
 | /orders/add | 4 | [src/test/cloudprinter-edge-runtime.test.ts:133](../../src/test/cloudprinter-edge-runtime.test.ts#L133) |
@@ -2321,7 +2323,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | delivery | /recherche | 2 | [src/pages/Recherche.tsx:247](../../src/pages/Recherche.tsx#L247) |
 | demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:85](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L85) |
 | demo_session_id | — | 4 | [src/components/commercial/CommercialDemoActorWorkspace.tsx:88](../../src/components/commercial/CommercialDemoActorWorkspace.tsx#L88) |
-| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2381](../../src/pages/Auth.tsx#L2381) |
+| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2384](../../src/pages/Auth.tsx#L2384) |
 | fields | — | 2 | [src/test/marketing-instagram-graph.test.ts:15](../../src/test/marketing-instagram-graph.test.ts#L15) |
 | fields[appScreenshotSets] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:205](../../scripts/app-store-connect-upload-screenshots.mjs#L205) |
 | fields[appScreenshots] | — | 2 | [scripts/app-store-connect-upload-screenshots.mjs:237](../../scripts/app-store-connect-upload-screenshots.mjs#L237) |
@@ -6957,7 +6959,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Stripe | 278 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 843 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 70 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 71 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
@@ -6973,10 +6975,10 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | frontend-hook | 25 |
 | frontend-page | 133 |
 | frontend-source | 35 |
-| public-asset | 5 |
+| public-asset | 6 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 762 |
+| test | 763 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -9260,7 +9262,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (742)</summary>
+<details><summary>public-asset (743)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -9981,6 +9983,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/sitemap-pages.xml`
 - `public/sitemap-restaurants.xml`
 - `public/sitemap.xml`
+- `public/theme-preference-init.js`
 - `public/tok-reference-food-webp/tok-reference-food-01.webp`
 - `public/tok-reference-food-webp/tok-reference-food-02.webp`
 - `public/tok-reference-food-webp/tok-reference-food-03.webp`
@@ -10220,7 +10223,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (762)</summary>
+<details><summary>test (763)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10257,6 +10260,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/admin-compta-actions.test.ts`
 - `src/test/admin-compta-governance.test.ts`
 - `src/test/admin-courier-validation.test.ts`
+- `src/test/admin-crm-theme-csp.test.ts`
 - `src/test/admin-dashboard-rls-visibility.test.ts`
 - `src/test/admin-demo-entity-management.test.ts`
 - `src/test/admin-destructive-actions.test.ts`

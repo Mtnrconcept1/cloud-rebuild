@@ -28,13 +28,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Tok" />
-  <script>
-    if (localStorage.getItem("theme") !== "dark") {
-      new MutationObserver(() => {
-        if (localStorage.getItem("theme") !== "dark") document.documentElement.classList.remove("dark");
-      }).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    }
-  </script>
+  <script src="/theme-preference-init.js"></script>
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="TOK" />

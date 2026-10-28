@@ -13,6 +13,21 @@ export type CrmMfaFactorList = {
 
 export const CRM_MFA_FRIENDLY_NAME = "TOK CRM";
 
+// Marketing uses a separate authenticator and must not replace a recovered CRM factor.
+const OTHER_WORKSPACE_MFA_FACTOR_NAMES = new Set(["TheTOK Marketing"]);
+
+export function sanitizeCrmMfaNumericCode(value: string, digits: 6 | 8) {
+  return value.replace(/\D/g, "").slice(0, digits);
+}
+
+export function isValidCrmTotpCode(value: string) {
+  return /^\d{6}$/.test(value);
+}
+
+export function isValidCrmRecoveryCode(value: string) {
+  return /^\d{8}$/.test(value);
+}
+
 export function getCrmMfaFactorId(factor: CrmMfaFactor | null) {
   return factor?.id || factor?.factor_id || "";
 }
@@ -44,7 +59,10 @@ export function findVerifiedCrmMfaFactor(factors?: CrmMfaFactorList | null) {
     .filter(isTotpFactor)
     .filter((candidate) => candidate.status === "verified");
 
-  return verifiedFactors.find(isCrmMfaFactor) || verifiedFactors[0] || null;
+  return verifiedFactors.find(isCrmMfaFactor)
+    // Preserve generic legacy factors, but never fall back to Marketing's factor.
+    || verifiedFactors.find((candidate) => !OTHER_WORKSPACE_MFA_FACTOR_NAMES.has(candidate.friendly_name?.trim() || ""))
+    || null;
 }
 
 export function findPendingCrmMfaFactor(factors?: CrmMfaFactorList | null) {
