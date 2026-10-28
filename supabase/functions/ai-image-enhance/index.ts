@@ -1,6 +1,6 @@
 import { sha256Hex } from "../_shared/print/security.ts";
 import { buildNativePrintTemplate, buildNativePrintInstructions, nativePrintContractMatches, type NativePrintTemplate } from "../_shared/print/artwork.ts";
-import { readPrintMarginCorrection, buildPrintMarginCorrectionPrompt } from "../_shared/print/margin-correction.ts";
+import { readPrintMarginCorrection, buildPrintMarginCorrectionPrompt, isPrintFrameReady } from "../_shared/print/margin-correction.ts";
 import { readGeneratedOutputFormat, matchesGeneratedPrintFormat, generatedPrintOrientation } from "../_shared/print/source-format.ts";
 import { isSinglePagePrintProduct, isNativeArtworkProduct } from "../_shared/print/catalog.ts";
 import {
@@ -1397,8 +1397,12 @@ Deno.serve(async (req) => {
     if (printMarginCorrection && (!marketingAssetMode || marketingOutputFormat?.destination !== "print" || !printTemplate)) {
       throw new HttpError(400, "La correction des marges nécessite un visuel d’impression natif");
     }
+    if (printMarginCorrection?.frame && printTemplate && !isPrintFrameReady(printMarginCorrection.frame,
+      printTemplate.safeArea.left * 100, printTemplate.safeArea.top * 100)) {
+      throw new HttpError(400, "Le cadre choisi sort de la zone de sécurité du support");
+    }
     const rawPrompt = printMarginCorrection
-      ? buildPrintMarginCorrectionPrompt(printMarginCorrection.insetPercent)
+      ? buildPrintMarginCorrectionPrompt(printMarginCorrection.insetPercent, printMarginCorrection.frame)
       : sanitizeText(body.prompt || body.objective || PREMIUM_SOURCE_IMAGE_EDIT_PROMPT);
     const prompt = marketingAssetMode
       ? rawPrompt
@@ -1723,7 +1727,7 @@ Deno.serve(async (req) => {
         dish_name: dishName,
         format: format.label,
         print_margin_correction: printMarginCorrection
-          ? { sourceGenerationId: printMarginCorrection.sourceGenerationId, insetPercent: printMarginCorrection.insetPercent }
+          ? { sourceGenerationId: printMarginCorrection.sourceGenerationId, insetPercent: printMarginCorrection.insetPercent, frame: printMarginCorrection.frame ?? null }
           : null,
         source_preservation_policy: printMarginCorrection
           ? "single_native_print_edit_without_generation_fallback"

@@ -110,12 +110,12 @@ it("keeps the original image and shows an editable generative margin correction 
   await screen.findByText("Format et orientation verrouillés sur la création générée.");
   const correction = screen.getByRole("button", { name: /Générer une version avec fond perdu étendu/ });
   expect((correction as HTMLButtonElement).disabled).toBe(false);
-  fireEvent.click(screen.getByRole("button", { name: "7 %" }));
+  fireEvent.change(screen.getByRole("spinbutton", { name: "Taille (%)" }), { target: { value: "78" } });
   fireEvent.click(correction);
   await screen.findByTestId("print-margin-comparison");
   expect(fixtures.generateImage).toHaveBeenCalledWith(expect.objectContaining({
     assetType: "campaign_visual", marketingAssetMode: true, marketingOutputFormat: target,
-    printMarginCorrection: { sourceGenerationId: originalId, insetPercent: 7 },
+    printMarginCorrection: { sourceGenerationId: originalId, insetPercent: 5, frame: { scalePercent: 78, offsetXPercent: 0, offsetYPercent: 0 } },
     variantCount: 1,
   }));
   expect(screen.getByAltText("Création originale avant correction")).toBeTruthy();

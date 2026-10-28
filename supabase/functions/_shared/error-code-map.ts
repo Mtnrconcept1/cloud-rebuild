@@ -1436,7 +1436,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_credit_reservation_mismatch": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1654
+      "line": 1658
     }
   ],
   "image_edit_timeout": [
@@ -1464,7 +1464,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_generation_required": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1426
+      "line": 1430
     }
   ],
   "image_id_required": [
@@ -1518,7 +1518,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1574
+      "line": 1578
     }
   ],
   "image_request_rejected": [
@@ -1960,7 +1960,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1568
+      "line": 1572
     }
   ],
   "match_group_authorization_session_missing": [
@@ -2968,7 +2968,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1425
+      "line": 1429
     },
     {
       "file": "supabase/functions/ai-restaurant-agent/index.ts",

@@ -1,6 +1,6 @@
 import { buildNativePrintTemplate, nativePrintContractMatches } from "../../../../supabase/functions/_shared/print/artwork";
 import { readGeneratedOutputFormat, matchesGeneratedPrintFormat, type GeneratedOutputFormat } from "../../../../supabase/functions/_shared/print/source-format";
-import { PRINT_MARGIN_INSET_OPTIONS, type PrintMarginInsetPercent } from "../../../../supabase/functions/_shared/print/margin-correction";
+import { DEFAULT_PRINT_FRAME, isPrintFrameReady, type PrintFrame } from "../../../../supabase/functions/_shared/print/margin-correction";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -24,6 +24,7 @@ import {
 import { createPrintCheckout } from "@/lib/print/checkout";
 import { generateTokDishImage } from "@/lib/ai/tokAiClient";
 import PrintProof from "./PrintProof";
+import PrintMarginFramingEditor from "./PrintMarginFramingEditor";
 import { CreditCard, Loader2, Printer, RefreshCw, WandSparkles } from "lucide-react";
 
 const supabase = getSupabase();
@@ -251,7 +252,7 @@ export default function PrintComposerDialog({
   const proofRevision = useRef(0);
   const [proofAcknowledged, setProofAcknowledged] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [marginInsetPercent, setMarginInsetPercent] = useState<PrintMarginInsetPercent>(5);
+  const [printFrame, setPrintFrame] = useState<PrintFrame>(DEFAULT_PRINT_FRAME);
   const [retouchedFrom, setRetouchedFrom] = useState<PrintableAsset | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(250);
@@ -283,6 +284,7 @@ export default function PrintComposerDialog({
     setProofAcknowledged(false);
     setPreviewUrl(null);
     setRetouchedFrom(null);
+    setPrintFrame(DEFAULT_PRINT_FRAME);
     setExportError(null);
     Promise.all([
       loadPrintableAssets(restaurantId, initialSourceGenerationId),
@@ -374,9 +376,14 @@ export default function PrintComposerDialog({
   }, [selectedAsset, selectedVariant]);
 
   const preflight = plannedDocument && selectedVariant ? runPrintPreflight(plannedDocument, selectedVariant) : null;
+  const frameReady = selectedVariant ? (() => {
+    try { const template = buildNativePrintTemplate(selectedVariant);
+      return isPrintFrameReady(printFrame, template.safeArea.left * 100, template.safeArea.top * 100);
+    } catch { return false; }
+  })() : false;
 
   async function correctMargins() {
-    if (!selectedAsset?.sourceGenerationId || !selectedVariant || !nativeContractValid || working !== null) return;
+    if (!selectedAsset?.sourceGenerationId || !selectedVariant || !nativeContractValid || working !== null || !frameReady) return;
     if (!selectedAsset.outputFormat?.sourceSha256) return;
     const revision = proofRevision.current;
     const original = selectedAsset;
@@ -390,7 +397,7 @@ export default function PrintComposerDialog({
         assetType: "campaign_visual",
         marketingAssetMode: true,
         marketingOutputFormat: selectedAsset.outputFormat,
-        printMarginCorrection: { sourceGenerationId: original.sourceGenerationId, insetPercent: marginInsetPercent },
+        printMarginCorrection: { sourceGenerationId: original.sourceGenerationId, insetPercent: 5, frame: printFrame },
         prompt: "Correction native des marges pour impression",
         outputResolution: "print",
         variantCount: 1,
@@ -554,18 +561,13 @@ export default function PrintComposerDialog({
                   L’IA recule légèrement la composition et prolonge naturellement la photo et les décors sur les bords.
                   L’original est conservé.
                 </p>
-                <div className="flex flex-wrap gap-2" role="group" aria-label="Recul génératif">
-                  {PRINT_MARGIN_INSET_OPTIONS.map((percent) => (
-                    <Button key={percent} type="button" size="sm" variant={marginInsetPercent === percent ? "default" : "outline"}
-                      aria-pressed={marginInsetPercent === percent}
-                      disabled={working !== null || approved}
-                      onClick={() => setMarginInsetPercent(percent)}>
-                      {percent} %
-                    </Button>
-                  ))}
-                </div>
+                {selectedAsset && selectedVariant ? (
+                  <PrintMarginFramingEditor key={selectedAsset.id} imageUrl={selectedAsset.url} title={selectedAsset.name}
+                    product={selectedVariant} value={printFrame} onChange={setPrintFrame}
+                    disabled={working !== null || approved} />
+                ) : null}
                 <Button type="button" variant="outline" className="w-full gap-2" onClick={() => void correctMargins()}
-                  disabled={working !== null || approved || !nativeContractValid || !selectedAsset?.sourceGenerationId || !selectedAsset.outputFormat?.sourceSha256}>
+                  disabled={working !== null || approved || !frameReady || !nativeContractValid || !selectedAsset?.sourceGenerationId || !selectedAsset.outputFormat?.sourceSha256}>
                   {working === "correct" ? <Loader2 className="h-4 w-4 animate-spin" /> : <WandSparkles className="h-4 w-4" />}
                   {working === "correct" ? "Génération des marges en cours…" : "Générer une version avec fond perdu étendu"}
                 </Button>
