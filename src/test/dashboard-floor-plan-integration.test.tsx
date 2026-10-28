@@ -95,6 +95,13 @@ async function renderPage() {
 }
 
 beforeEach(() => {
+  // Keep the service clock deterministic. At 20:15–20:30, T01 legitimately
+  // switches from Occupée to Bientôt libre and otherwise breaks unrelated tests.
+  // Only Date is mocked: React Query, waitFor, and auto-save keep real timers.
+  const serviceClock = new Date();
+  serviceClock.setHours(16, 0, 0, 0);
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(serviceClock);
   resetFloorPlanPreview();
   toast.mockClear();
   fetchMock = vi.fn(() =>
@@ -109,8 +116,9 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   client?.clear();
-  expect(fetchMock).not.toHaveBeenCalled();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
+  expect(fetchMock).not.toHaveBeenCalled();
 });
 
 describe("DashboardPlanSalle — vraie page, données mémoire", () => {
