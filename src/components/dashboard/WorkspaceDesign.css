@@ -126,6 +126,69 @@
 .tok-hospitality-workspace .tok-workspace-role-switch > summary::-webkit-details-marker { display: none; }
 .tok-hospitality-workspace .tok-workspace-role-switch[open] > summary svg { transform: rotate(180deg); }
 
+/* Mobile restaurant navigation: compact trigger, calm brand header and full-size touch targets. */
+.tok-hospitality-workspace .tok-mobile-menu-trigger__copy { display: flex; }
+.tok-mobile-dashboard-menu {
+  border-color: #e5d9cc;
+  background:
+    radial-gradient(circle at 12% 0%, rgb(255 234 216 / 88%) 0 9rem, transparent 18rem),
+    linear-gradient(180deg, #fffdfb 0%, #f6f0e8 100%);
+  color: #241c16;
+}
+.tok-mobile-dashboard-menu .tok-mobile-menu-header { border-color: #eadfd3; background: rgb(255 253 251 / 82%); }
+.tok-mobile-dashboard-menu .tok-mobile-menu-brandmark {
+  display: grid;
+  width: 54px;
+  height: 46px;
+  flex: 0 0 54px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #eadfd3;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgb(67 43 23 / 7%);
+}
+.tok-mobile-dashboard-menu .tok-mobile-menu-brandmark img { width: 48px; height: 38px; object-fit: contain; }
+.tok-mobile-dashboard-menu .tok-mobile-menu-context {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 11px;
+  border: 1px solid #eadfd3;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 72%);
+  color: #74675d;
+  font-size: 12px;
+}
+.tok-mobile-dashboard-menu .tok-workspace-restaurant-selector { margin-bottom: 10px; padding-inline: 0; }
+.tok-mobile-dashboard-menu .tok-workspace-restaurant-selector > button { min-height: 48px; border-radius: 14px; background: rgb(255 255 255 / 82%); }
+.tok-mobile-dashboard-menu .tok-workspace-nav-section { margin-top: 7px; padding-top: 7px; border-color: #e3d8cc; }
+.tok-mobile-dashboard-menu .tok-workspace-nav-heading { min-height: 44px; padding-inline: 10px; color: #695d53; font-size: 11px; }
+.tok-mobile-dashboard-menu .tok-workspace-nav-items { display: grid; gap: 3px; padding-top: 4px; }
+.tok-mobile-dashboard-menu .tok-workspace-nav-link { min-height: 48px; margin: 0; padding: 11px 12px; border-radius: 13px; color: #4e453e; font-size: 14px; }
+.tok-mobile-dashboard-menu .tok-workspace-nav-link[aria-current="page"] { background: linear-gradient(120deg, #f15d22, #ef7d32); color: #fff; box-shadow: 0 9px 22px rgb(216 74 19 / 19%); }
+.tok-mobile-dashboard-menu .tok-mobile-menu-space-switch { border-color: #e3d8cc; }
+.tok-mobile-dashboard-menu .tok-mobile-menu-footer {
+  display: grid;
+  gap: 7px;
+  border-color: #e3d8cc;
+  background: rgb(255 253 251 / 94%);
+  box-shadow: 0 -10px 28px rgb(67 43 23 / 5%);
+}
+.tok-mobile-dashboard-menu .tok-mobile-menu-footer > * { min-height: 44px; }
+.dark .tok-mobile-dashboard-menu {
+  border-color: #514337;
+  background: radial-gradient(circle at 12% 0%, rgb(112 56 29 / 36%) 0 9rem, transparent 18rem), #241f1b;
+  color: #f7ecdf;
+}
+.dark .tok-mobile-dashboard-menu :is(.tok-mobile-menu-header, .tok-mobile-menu-footer) { border-color: #514337; background: rgb(40 33 26 / 94%); }
+.dark .tok-mobile-dashboard-menu .tok-mobile-menu-context,
+.dark .tok-mobile-dashboard-menu .tok-workspace-restaurant-selector > button { border-color: #514337; background: rgb(53 43 35 / 78%); color: #eadfd3; }
+.dark .tok-mobile-dashboard-menu .tok-mobile-menu-brandmark { border-color: #514337; background: #fff7ed; }
+.dark .tok-mobile-dashboard-menu .tok-workspace-nav-section,
+.dark .tok-mobile-dashboard-menu .tok-mobile-menu-space-switch { border-color: #514337; }
+.dark .tok-mobile-dashboard-menu .tok-workspace-nav-heading { color: #c9b8a8; }
+.dark .tok-mobile-dashboard-menu .tok-workspace-nav-link { color: #eadfd3; }
+
 /* Toolbar: a single quiet horizontal control plane. */
 .tok-hospitality-workspace .tok-workspace-toolbar {
   position: sticky;
@@ -419,6 +482,8 @@
 @media (min-width: 640px) and (max-width: 767px) { .tok-hospitality-workspace { --workspace-gutter: 24px; } }
 
 @media (max-width: 420px) {
+  .tok-hospitality-workspace .tok-mobile-menu-trigger { width: 56px; min-width: 56px; padding-right: 6px; }
+  .tok-hospitality-workspace .tok-mobile-menu-trigger__copy { display: none; }
   .tok-hospitality-workspace .tok-hospitality-summary-layout,
   .tok-hospitality-workspace .tok-dashboard-hero[data-has-stats="false"] .tok-hospitality-summary-layout { grid-template-columns: minmax(0, 1fr) 104px; gap: 8px; }
   .tok-hospitality-workspace .tok-hospitality-summary-layout > [data-dashboard-illustration],

@@ -3478,19 +3478,32 @@ export default function DashboardPlanSalle() {
   return (
     <DashboardLayout contentWidth="full" mainClassName="p-2 pb-24 sm:p-3 md:p-4">
       <div className="tok-floorplan-workspace flex min-h-[calc(100vh-2rem)] flex-col gap-3 xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden">
-        <header className="tok-editorial-header tok-floorplan-header shrink-0 rounded-2xl border border-border bg-card px-3 py-3 shadow-sm sm:px-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="font-display text-xl font-bold tracking-tight text-foreground sm:text-2xl">Plan de salle</h1>
-                <span aria-live="polite" className={cn("hidden rounded-full border px-2.5 py-1 text-[11px] font-semibold sm:inline-flex", saveStatus.tone)}>
+        <header className="tok-editorial-header tok-floorplan-header shrink-0">
+          <div className="tok-floorplan-hero-grid">
+            <div className="tok-floorplan-hero-copy min-w-0">
+              <span className="tok-floorplan-eyebrow">
+                <LayoutPanelTop className="h-4 w-4" aria-hidden="true" />
+                Organisation de salle
+              </span>
+              <div className="tok-floorplan-heading-row">
+                <h1>Plan de salle</h1>
+                <span aria-live="polite" className={cn("tok-floorplan-save-status rounded-full border px-2.5 py-1 text-[11px] font-semibold", saveStatus.tone)}>
                   {saveStatus.label}
                 </span>
               </div>
-              <p className="mt-1 truncate text-sm text-muted-foreground">
-                {selectedRestaurant?.name || "Sélectionnez un restaurant"}
+              <p className="tok-floorplan-description">
+                Préparez les tables, placez les réservations et gardez le service lisible d’un seul regard.
               </p>
+              <span className="tok-floorplan-restaurant">
+                <Store className="h-4 w-4" aria-hidden="true" />
+                {selectedRestaurant?.name || "Sélectionnez un restaurant"}
+              </span>
             </div>
+
+            <DashboardIllustrationMedia
+              illustration={DASHBOARD_ILLUSTRATIONS.restaurantFloorPlan}
+              className="tok-floorplan-hero-illustration bg-transparent"
+            />
 
             <div className="tok-floorplan-actions flex min-w-0 flex-wrap items-center gap-2">
               {/*

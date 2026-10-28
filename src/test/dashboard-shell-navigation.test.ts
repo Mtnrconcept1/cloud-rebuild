@@ -112,7 +112,7 @@ describe("dashboard shell navigation", () => {
 
   it("keeps the mobile trigger label readable on its light card surface", () => {
     const layout = read("src/components/DashboardLayout.tsx");
-    const triggerClass = layout.match(/pointer-events-auto h-16 max-w-\[10\.75rem\][^"\n]+/)?.[0];
+    const triggerClass = layout.match(/tok-mobile-menu-trigger pointer-events-auto h-14 max-w-\[11rem\][^"\n]+/)?.[0];
     expect(triggerClass).toContain("bg-card");
     expect(triggerClass).toContain("text-foreground");
     expect(triggerClass).not.toContain("text-white");
@@ -123,12 +123,15 @@ describe("dashboard shell navigation", () => {
 
     expect(layout).toContain("fixed left-[calc(env(safe-area-inset-left,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[40] md:hidden");
     expect(layout).toContain('data-testid="restaurant-mobile-menu-trigger"');
-    expect(layout).toContain("h-16 max-w-[10.75rem] rounded-[1.45rem]");
-    expect(layout).toContain("flex h-11 w-11 shrink-0 items-center justify-center rounded-[1rem]");
+    expect(layout).toContain("h-14 max-w-[11rem] rounded-[1.15rem]");
+    expect(layout).toContain("flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.9rem]");
     expect(layout).toContain("text-[10px] font-semibold uppercase tracking-[0.28em] text-primary");
-    expect(layout).toContain("Resto");
+    expect(layout).toContain("Menu");
     expect(layout).toContain('className="max-w-[6.25rem] truncate text-sm font-semibold"');
-    expect(layout).toContain('<span className="sr-only">{activeNavItem?.label ?? "Ouvrir le menu"}</span>');
+    expect(layout).toContain('data-testid="restaurant-mobile-menu-panel"');
+    expect(layout).toContain('side="left"');
+    expect(layout).toContain("tok-mobile-menu-header");
+    expect(layout).toContain("tok-mobile-menu-footer");
     expect(layout).toContain("pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]");
     expect(layout).not.toContain("fixed inset-x-0 bottom-0 z-[40]");
     expect(layout).not.toContain("h-[calc(env(safe-area-inset-bottom,0px)+5.5rem)] md:hidden");
