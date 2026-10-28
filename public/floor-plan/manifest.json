@@ -1,0 +1,479 @@
+{
+  "version": 1,
+  "sourcePack": "tok-floorplan-transparent-assets",
+  "processing": {
+    "format": "WebP",
+    "maxDimension": 768,
+    "resample": "Pillow LANCZOS",
+    "quality": 86,
+    "method": 6,
+    "alphaQuality": 100,
+    "crop": false,
+    "backgroundAdded": false,
+    "geometry": "visible alpha >= 128; full image including shadows retained"
+  },
+  "assets": [
+    {
+      "key": "round-table-duo",
+      "file": "01_table-ronde-duo.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        91,
+        88,
+        675,
+        663
+      ],
+      "bytes": 66210,
+      "source": "png/01_table-ronde-duo.png",
+      "sourceSha256": "653c52e6f0379d1863b73dab4b6c4569ca2c85f449a44d56867ecb24c4f8dcd0",
+      "sourceBoundsAlpha128": [
+        148,
+        144,
+        1102,
+        1082
+      ]
+    },
+    {
+      "key": "round-table-top",
+      "file": "02_table-ronde-quatre.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        83,
+        81,
+        686,
+        688
+      ],
+      "bytes": 47026,
+      "source": "png/02_table-ronde-quatre.png",
+      "sourceSha256": "b04b47c99d58d5c403d1a331a524dbe1d58699c3bf9a18babf895c7fadc0040e",
+      "sourceBoundsAlpha128": [
+        135,
+        132,
+        1119,
+        1123
+      ]
+    },
+    {
+      "key": "square-table-top",
+      "file": "03_table-carree.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        133,
+        145,
+        636,
+        623
+      ],
+      "bytes": 51224,
+      "source": "png/03_table-carree.png",
+      "sourceSha256": "74905bca0588b4cf5fb40e6173d14be9e1796853b34ecc8e38020c3fa39edb38",
+      "sourceBoundsAlpha128": [
+        217,
+        237,
+        1038,
+        1016
+      ]
+    },
+    {
+      "key": "rect-table-top",
+      "file": "04_table-rectangulaire.webp",
+      "width": 768,
+      "height": 384,
+      "visibleBounds": [
+        64,
+        80,
+        704,
+        302
+      ],
+      "bytes": 27026,
+      "source": "png/04_table-rectangulaire.png",
+      "sourceSha256": "262e7c6a8d0e74f8b8c43a80e5ec22e8e8276dfc25f2afac6c325dc4644d6a55",
+      "sourceBoundsAlpha128": [
+        147,
+        185,
+        1627,
+        697
+      ]
+    },
+    {
+      "key": "high-table-top",
+      "file": "05_table-haute-ronde.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        77,
+        74,
+        689,
+        686
+      ],
+      "bytes": 52126,
+      "source": "png/05_table-haute-ronde.png",
+      "sourceSha256": "2c2b61fb1a6dd7667f5a0ec850e2845fee66b651a6dd41a981efda3632410b44",
+      "sourceBoundsAlpha128": [
+        126,
+        120,
+        1124,
+        1120
+      ]
+    },
+    {
+      "key": "chair",
+      "file": "06_chaise-sable.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        115,
+        130,
+        652,
+        623
+      ],
+      "bytes": 83960,
+      "source": "png/06_chaise-sable.png",
+      "sourceSha256": "300ae989c5f850b607bad2990594f5fe52a3e83cd0a6cdd3b50a7e4693ca2c63",
+      "sourceBoundsAlpha128": [
+        189,
+        213,
+        1065,
+        1017
+      ]
+    },
+    {
+      "key": "stool",
+      "file": "07_tabouret-sauge.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        158,
+        152,
+        609,
+        610
+      ],
+      "bytes": 67118,
+      "source": "png/07_tabouret-sauge.png",
+      "sourceSha256": "25d44ce1aa8d8bae68befbdc3e890863681d63a5cd1b1f3062dfe26b34742c81",
+      "sourceBoundsAlpha128": [
+        257,
+        248,
+        995,
+        997
+      ]
+    },
+    {
+      "key": "banquette-straight",
+      "file": "08_banquette-droite-sauge.webp",
+      "width": 768,
+      "height": 384,
+      "visibleBounds": [
+        76,
+        82,
+        692,
+        307
+      ],
+      "bytes": 25524,
+      "source": "png/08_banquette-droite-sauge.png",
+      "sourceSha256": "02a6797cb494b156eceb20cdf82c066f742bd30a201b2e071079ba811448f91e",
+      "sourceBoundsAlpha128": [
+        176,
+        189,
+        1599,
+        710
+      ]
+    },
+    {
+      "key": "corner-bench",
+      "file": "09_banquette-angle-sauge.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        91,
+        108,
+        695,
+        681
+      ],
+      "bytes": 65028,
+      "source": "png/09_banquette-angle-sauge.png",
+      "sourceSha256": "d8462cdcb36c4b4062ee9c3016131d4ff4699a5a40fc6c4db476478723aed7ba",
+      "sourceBoundsAlpha128": [
+        149,
+        176,
+        1134,
+        1112
+      ]
+    },
+    {
+      "key": "service-station",
+      "file": "10_console-service-bois.webp",
+      "width": 768,
+      "height": 384,
+      "visibleBounds": [
+        104,
+        120,
+        664,
+        264
+      ],
+      "bytes": 29494,
+      "source": "png/10_console-service-bois.png",
+      "sourceSha256": "576d480812650316c5ac16e76f4a29098f771a822f012e9ca6d5e6a89c6c01bb",
+      "sourceBoundsAlpha128": [
+        240,
+        278,
+        1535,
+        609
+      ]
+    },
+    {
+      "key": "wall",
+      "file": "11_mur-droit.webp",
+      "width": 768,
+      "height": 384,
+      "visibleBounds": [
+        52,
+        158,
+        716,
+        226
+      ],
+      "bytes": 19072,
+      "source": "png/11_mur-droit.png",
+      "sourceSha256": "a0a249d536f3bcdae92351423c5993262ca50230126d981d200c0461c1e6cebf",
+      "sourceBoundsAlpha128": [
+        121,
+        364,
+        1653,
+        523
+      ]
+    },
+    {
+      "key": "wall-corner",
+      "file": "12_mur-angle.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        83,
+        83,
+        685,
+        685
+      ],
+      "bytes": 45788,
+      "source": "png/12_mur-angle.png",
+      "sourceSha256": "e655f89abb52bc16c0804e05889856a99c8a4961de9a0117a13e73ff49b28c59",
+      "sourceBoundsAlpha128": [
+        135,
+        136,
+        1118,
+        1118
+      ]
+    },
+    {
+      "key": "door",
+      "file": "13_porte-ouverte.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        138,
+        141,
+        638,
+        650
+      ],
+      "bytes": 31884,
+      "source": "png/13_porte-ouverte.png",
+      "sourceSha256": "b34f05087216bb69e25ab45ee317680c08aa555acccd9a98f8fc5ae4975a24f0",
+      "sourceBoundsAlpha128": [
+        225,
+        230,
+        1041,
+        1062
+      ]
+    },
+    {
+      "key": "window",
+      "file": "14_fenetre-module.webp",
+      "width": 768,
+      "height": 256,
+      "visibleBounds": [
+        54,
+        103,
+        715,
+        151
+      ],
+      "bytes": 9526,
+      "source": "png/14_fenetre-module.png",
+      "sourceSha256": "3dd55ede753a6935a5daa94161a009ef5e24a4a6088fb60ab0f10fdf4d785193",
+      "sourceBoundsAlpha128": [
+        152,
+        293,
+        2021,
+        427
+      ]
+    },
+    {
+      "key": "divider-open",
+      "file": "15_cloison-vitree.webp",
+      "width": 768,
+      "height": 278,
+      "visibleBounds": [
+        52,
+        115,
+        717,
+        169
+      ],
+      "bytes": 13980,
+      "source": "png/15_cloison-vitree.png",
+      "sourceSha256": "4f574c4460e3e0dd5ef2053d8dc9728994ed00ca4e7a685dda19adb37bc89e13",
+      "sourceBoundsAlpha128": [
+        140,
+        311,
+        1945,
+        459
+      ]
+    },
+    {
+      "key": "plant",
+      "file": "16_plante-grande.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        65,
+        25,
+        728,
+        705
+      ],
+      "bytes": 96548,
+      "source": "png/16_plante-grande.png",
+      "sourceSha256": "b3fd6aa2f9e7aecd296a6cf25941128bb2478221a88a9507eddeb2af0c0082f2",
+      "sourceBoundsAlpha128": [
+        107,
+        41,
+        1189,
+        1151
+      ]
+    },
+    {
+      "key": "table-plant",
+      "file": "17_plante-table.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        193,
+        171,
+        590,
+        585
+      ],
+      "bytes": 43754,
+      "source": "png/17_plante-table.png",
+      "sourceSha256": "1c7f32f9281f946b866ba853263c209429e8db5c94922715656d9f6df201b8c0",
+      "sourceBoundsAlpha128": [
+        315,
+        278,
+        964,
+        955
+      ]
+    },
+    {
+      "key": "planter",
+      "file": "18_jardiniere-rectangulaire.webp",
+      "width": 768,
+      "height": 279,
+      "visibleBounds": [
+        81,
+        31,
+        686,
+        220
+      ],
+      "bytes": 58450,
+      "source": "png/18_jardiniere-rectangulaire.png",
+      "sourceSha256": "f50a12d8b3b84e5af209e4e6dfcd718f0dc6bea7b4914477e884f0eca27b0b14",
+      "sourceBoundsAlpha128": [
+        219,
+        83,
+        1860,
+        597
+      ]
+    },
+    {
+      "key": "parasol",
+      "file": "19_parasol-terrasse.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        38,
+        47,
+        730,
+        726
+      ],
+      "bytes": 46310,
+      "source": "png/19_parasol-terrasse.png",
+      "sourceSha256": "8d7a9e023000b969e791446343796d828ac0de6d56ed205bf97bc3b8edf3a5e1",
+      "sourceBoundsAlpha128": [
+        62,
+        77,
+        1192,
+        1185
+      ]
+    },
+    {
+      "key": "cake-table",
+      "file": "20_presentoir-gateau.webp",
+      "width": 768,
+      "height": 768,
+      "visibleBounds": [
+        112,
+        109,
+        655,
+        654
+      ],
+      "bytes": 53234,
+      "source": "png/20_presentoir-gateau.png",
+      "sourceSha256": "44429f4b2688f124cf2083aef0c349c774aa9b833f3c29a7e51da74cc698080d",
+      "sourceBoundsAlpha128": [
+        183,
+        179,
+        1070,
+        1068
+      ]
+    },
+    {
+      "key": "buffet",
+      "file": "21_buffet-reception.webp",
+      "width": 768,
+      "height": 320,
+      "visibleBounds": [
+        91,
+        63,
+        677,
+        248
+      ],
+      "bytes": 51732,
+      "source": "png/21_buffet-reception.png",
+      "sourceSha256": "81971b83a43d29683077e214142f2d672f9c64933029e825e02438ca85795299",
+      "sourceBoundsAlpha128": [
+        230,
+        159,
+        1712,
+        627
+      ]
+    },
+    {
+      "key": "bar-top",
+      "file": "22_comptoir-mobile.webp",
+      "width": 768,
+      "height": 384,
+      "visibleBounds": [
+        83,
+        99,
+        686,
+        282
+      ],
+      "bytes": 20278,
+      "source": "png/22_comptoir-mobile.png",
+      "sourceSha256": "7ad5449da260dd69a30467a3c2f7096bc584097db9d6a6ccf009326efff47d67",
+      "sourceBoundsAlpha128": [
+        192,
+        229,
+        1585,
+        651
+      ]
+    }
+  ]
+}

@@ -3,20 +3,38 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-const readSource = (relativePath: string) => (
-  readFileSync(join(process.cwd(), relativePath), "utf8")
-);
+// Source-contract checks ignore formatting; behavior is exercised by the
+// dashboard integration and component tests.
+function expectCode(source: string) {
+  const normalize = (value: string) =>
+    value.replace(/\s+/g, "").replace(/,([)\]}])/g, "$1");
+  const contains = (fragment: string) =>
+    normalize(source).includes(normalize(fragment));
+  return {
+    toContain: (fragment: string) =>
+      expect(contains(fragment), `Missing code: ${fragment}`).toBe(true),
+    not: {
+      toContain: (fragment: string) =>
+        expect(contains(fragment), `Unexpected code: ${fragment}`).toBe(false),
+    },
+  };
+}
+
+const readSource = (relativePath: string) =>
+  readFileSync(join(process.cwd(), relativePath), "utf8");
 
 describe("floor plan page layout", () => {
   it("keeps the daily service focused on the plan and one compact client list", () => {
     const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
-    const queue = readSource("src/components/floor-plan/SimpleReservationQueue.tsx");
+    const queue = readSource(
+      "src/components/floor-plan/SimpleReservationQueue.tsx",
+    );
 
-    expect(page).toContain("<ServiceBoard");
-    expect(page).toContain("<SimpleReservationQueue");
-    expect(page).toContain("Placer automatiquement");
-    expect(page).toContain('id="floor-plan-reservation-queue"');
-    expect(page).not.toContain("<DockableFloorPlanPanel");
+    expectCode(page).toContain("<ServiceBoard");
+    expectCode(page).toContain("<SimpleReservationQueue");
+    expectCode(page).toContain("Placer automatiquement");
+    expectCode(page).toContain('id="floor-plan-reservation-queue"');
+    expectCode(page).not.toContain("<DockableFloorPlanPanel");
     expect(queue).toContain("À placer");
     expect(queue).toContain("recommendedTablesByReservationId");
     expect(queue).not.toContain("Timeline");
@@ -24,34 +42,49 @@ describe("floor plan page layout", () => {
     expect(queue).not.toContain("Replier");
   });
 
-  it("keeps configuration canvas-first with only add and settings tabs", () => {
+  it("keeps the editor canvas-first and exposes dedicated professional workspaces", () => {
     const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
 
-    expect(page).toContain("<StudioCanvas");
-    expect(page).toContain("<StudioPalette");
-    expect(page).toContain("<StudioInspector");
-    expect(page).toContain('value="library"');
-    expect(page).toContain('value="inspector"');
-    expect(page).toContain('id="floor-plan-studio-tools"');
-    expect(page).toContain('aria-label="Sauver variante"');
-    expect(page).not.toContain("Aperçu");
+    expectCode(page).toContain("<StudioCanvas");
+    expectCode(page).toContain("<StudioPalette");
+    expectCode(page).toContain("<StudioInspector");
+    expectCode(page).toContain('value="library"');
+    expectCode(page).toContain('value="inspector"');
+    expectCode(page).toContain('id="floor-plan-studio-tools"');
+    expectCode(page).toContain('aria-label="Sauver variante"');
+    expectCode(page).toContain("<FloorPlanSpaces");
+    expectCode(page).toContain("Aménagement");
+    expectCode(page).toContain("Bibliothèque de mobilier");
+    expectCode(page).toContain("Assistant d'aménagement");
   });
 
   it("retains the responsive full-width canvas and safe touch interactions", () => {
     const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
     const canvas = readSource("src/components/floor-plan/StudioCanvas.tsx");
-    const serviceBoard = readSource("src/components/floor-plan/ServiceBoard.tsx");
-    const queue = readSource("src/components/floor-plan/SimpleReservationQueue.tsx");
+    const serviceBoard = readSource(
+      "src/components/floor-plan/ServiceBoard.tsx",
+    );
+    const queue = readSource(
+      "src/components/floor-plan/SimpleReservationQueue.tsx",
+    );
 
-    expect(page).toContain('<DashboardLayout contentWidth="full"');
-    expect(page).toContain('mainClassName="p-2 pb-24 sm:p-3 md:p-4"');
-    expect(page).toContain("xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden");
-    expect(page).toContain("xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden");
-    expect(page).toContain("syncCanvasSizeFromViewport");
-    expect(page).toContain("onCanvasViewportResize={syncCanvasSizeFromViewport}");
-    expect(page).toContain("revealResponsivePanel");
-    expect(page).toContain("Clients ({unassignedVisibleReservations.length} à placer)");
-    expect(canvas).toContain("new ResizeObserver(notifySize)");
+    expectCode(page).toContain('<DashboardLayout contentWidth="full"');
+    expectCode(page).toContain('mainClassName="p-2 pb-24 sm:p-3 md:p-4"');
+    expectCode(page).toContain(
+      "xl:h-[calc(100vh-2rem)] xl:min-h-0 xl:overflow-hidden",
+    );
+    expectCode(page).toContain(
+      "xl:auto-rows-[minmax(0,1fr)] xl:overflow-hidden",
+    );
+    expectCode(page).toContain("syncCanvasSizeFromViewport");
+    expectCode(page).toContain(
+      "onCanvasViewportResize={syncCanvasSizeFromViewport}",
+    );
+    expectCode(page).toContain("revealResponsivePanel");
+    expectCode(page).toContain(
+      "Clients ({unassignedVisibleReservations.length} à placer)",
+    );
+    expectCode(canvas).toContain("new ResizeObserver(notifySize)");
     expect(serviceBoard).toContain("new ResizeObserver(notifySize)");
     expect(serviceBoard).toContain("touch-manipulation");
     expect(queue).toContain('role="button"');
@@ -61,12 +94,12 @@ describe("floor plan page layout", () => {
   it("preserves the floor plan persistence and assignment contracts", () => {
     const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
 
-    expect(page).toContain("restaurant_save_floor_plan_assignments");
-    expect(page).toContain("getReservationDropStateForAssignments");
-    expect(page).toContain("reservationsOverlap");
-    expect(page).toContain("scoreReservationPlacement");
-    expect(page).toContain("saveMutation.mutate");
-    expect(page).toContain("lastAutoSavedLayoutSignatureRef");
+    expectCode(page).toContain("restaurant_save_floor_plan_assignments");
+    expectCode(page).toContain("getReservationDropStateForAssignments");
+    expectCode(page).toContain("reservationsOverlap");
+    expectCode(page).toContain("scoreReservationPlacement");
+    expectCode(page).toContain("saveMutation.mutate");
+    expectCode(page).toContain("lastAutoSavedLayoutSignatureRef");
   });
 
   it("does not re-arm an auto-save the server already refused", () => {
@@ -76,40 +109,58 @@ describe("floor plan page layout", () => {
     // the mutation while the draft stays dirty. Forgetting the refused
     // signature would replay the same doomed save every 900ms and bury the
     // restaurateur under destructive toasts.
-    const errorHandler = page.slice(page.indexOf("onError: (error: Error, options) => {"));
-    const errorHandlerBody = errorHandler.slice(0, errorHandler.indexOf("toast({"));
+    const errorHandler = page.slice(
+      page.indexOf("onError: (error: Error, options) => {"),
+    );
+    const errorHandlerBody = errorHandler.slice(
+      0,
+      errorHandler.indexOf("toast({"),
+    );
 
-    expect(errorHandlerBody).toContain("lastAutoSavedLayoutSignatureRef.current = options.layoutSignature ?? null;");
-    expect(errorHandlerBody).not.toContain("lastAutoSavedLayoutSignatureRef.current = null;");
+    expectCode(errorHandlerBody).toContain(
+      "lastAutoSavedLayoutSignatureRef.current = options.layoutSignature ?? null;",
+    );
+    expectCode(errorHandlerBody).not.toContain(
+      "lastAutoSavedLayoutSignatureRef.current = null;",
+    );
     // Switching branch, date or edit mode must still forget it: that is a new
     // context, not a refused one.
-    expect(page).toContain("}, [editMode, referenceDate, selectedBranchId]);");
+    expectCode(page).toContain(
+      "}, [editMode, referenceDate, selectedBranchId]);",
+    );
   });
 
   it("never leaves a dirty editing mode without persisting first", () => {
     const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
 
-    expect(page).toContain("const enterTemplateEditing = async");
-    expect(page).toContain("const finishTemplateEditing = async");
-    expect(page).toContain("await saveMutation.mutateAsync");
-    expect(page).toContain("void enterTemplateEditing()");
-    expect(page).toContain("void finishTemplateEditing()");
-    expect(page).not.toContain('onClick={() => setEditMode("service")}');
-    expect(page).not.toContain('onClick={() => setEditMode("template")}');
-    expect(page).toContain("disabled={saveMutation.isPending || (isTemplateMode ? templateDirty : serviceDirty)}");
-    expect(page).toContain("disabled={saveMutation.isPending || templateDirty}");
-    expect(page).toContain("disabled={saveMutation.isPending || serviceDirty}");
+    expectCode(page).toContain("const enterTemplateEditing = async");
+    expectCode(page).toContain("const finishTemplateEditing = async");
+    expectCode(page).toContain("await saveMutation.mutateAsync");
+    expectCode(page).toContain("void enterTemplateEditing()");
+    expectCode(page).toContain("void finishTemplateEditing()");
+    expectCode(page).not.toContain('onClick={() => setEditMode("service")}');
+    expectCode(page).not.toContain('onClick={() => setEditMode("template")}');
+    expectCode(page).toContain(
+      "disabled={saveMutation.isPending || (isTemplateMode ? templateDirty : serviceDirty)}",
+    );
+    expectCode(page).toContain(
+      "disabled={saveMutation.isPending || templateDirty}",
+    );
+    expectCode(page).toContain(
+      "disabled={saveMutation.isPending || serviceDirty}",
+    );
   });
 
   it("tracks every template change and exposes a coherent save state", () => {
     const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
 
-    expect(page).toContain("const templateDirty = useMemo");
-    expect(page).toContain("persistedTemplateSignature");
-    expect(page).toContain("draftTemplateSignature");
-    expect(page).toContain('label: "Template modifié"');
-    expect(page).toContain('serviceDirty ? "Enregistrer puis modifier" : "Modifier la salle"');
-    expect(page).toContain('templateDirty ? "Enregistrer et terminer" : "Terminer"');
+    expectCode(page).toContain("const templateDirty = useMemo");
+    expectCode(page).toContain("persistedTemplateSignature");
+    expectCode(page).toContain("draftTemplateSignature");
+    expectCode(page).toContain('label: "Modifications non enregistrées"');
+    expectCode(page).toContain('label: "Plan enregistré"');
+    expectCode(page).toContain(
+      'templateDirty ? "Enregistrer le plan puis ouvrir le service"',
+    );
   });
-
 });

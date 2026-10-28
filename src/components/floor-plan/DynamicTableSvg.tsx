@@ -6,24 +6,22 @@ import {
   type FloorPlanRoundSeatZone,
   type FloorPlanSeatPlacement,
   type FloorPlanSeatType,
+  type FloorPlanTableFinish,
   type FloorPlanTableShape,
+  type FloorPlanVisualVariant,
   getResolvedFloorPlanDimensions,
 } from "@/lib/floorPlan";
 import { type SeatPosition } from "./seatPositioning";
-import { FLOOR_PLAN_ASSETS } from "./floorPlanAssets";
+import {
+  FLOOR_PLAN_ASSETS,
+  getFloorPlanAssetAspectRatio,
+  getFloorPlanAssetRect,
+} from "./floorPlanAssets";
+import { FloorPlanAssetSprite } from "./FloorPlanAssetSprite";
 
-const VIEWBOX_WIDTH = 200;
-const VIEWBOX_HEIGHT = 140;
-const VIEWBOX_PADDING = 6;
 const RECT_CORNER_GAP = 10;
-const CORNER_BENCH_BASE_HORIZONTAL = 92;
-const CORNER_BENCH_BASE_VERTICAL = 86;
-const CORNER_BENCH_SEAT_SPAN = 52;
-const CORNER_BENCH_ASPECT_RATIO = 162 / 135;
-const STRAIGHT_BENCH_ASPECT_RATIO = 71 / 112;
-const CORNER_BENCH_INNER_X_RATIO = 55 / 162;
-const CORNER_BENCH_INNER_Y_RATIO = 115 / 135;
-
+const CHAIR_DEPTH = 35;
+const STOOL_DEPTH = 28;
 const ROUND_ZONE_POLAR_ANGLES: Record<FloorPlanRoundSeatZone, number> = {
   north: -90,
   "north-east": -45,
@@ -34,8 +32,15 @@ const ROUND_ZONE_POLAR_ANGLES: Record<FloorPlanRoundSeatZone, number> = {
   west: 180,
   "north-west": 225,
 };
+const SIDE_ROTATIONS: Record<FloorPlanRectSeatZone, number> = {
+  top: 0,
+  right: 90,
+  bottom: 180,
+  left: 270,
+};
 
-type DynamicTableSvgProps = {
+type TableRect = { x: number; y: number; w: number; h: number };
+export type DynamicTableSvgProps = {
   shape: FloorPlanTableShape;
   capacity: number;
   seatType?: FloorPlanSeatType;
@@ -47,302 +52,33 @@ type DynamicTableSvgProps = {
   cornerBenchHorizontal?: number;
   cornerBenchVertical?: number;
   cornerBenchDepth?: number;
+  visualVariant?: FloorPlanVisualVariant;
+  finish?: FloorPlanTableFinish;
+  viewportWidth?: number;
+  viewportHeight?: number;
 };
 
-function SvgAsset({
-  assetId,
-  x,
-  y,
-  width,
-  height,
-  rotation,
-  rotationCenterX,
-  rotationCenterY,
-  preserveAspectRatio = "none",
-  opacity = 1,
-}: {
-  assetId: keyof typeof FLOOR_PLAN_ASSETS;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation?: number;
-  rotationCenterX?: number;
-  rotationCenterY?: number;
-  preserveAspectRatio?: string;
-  opacity?: number;
-}) {
-  const asset = FLOOR_PLAN_ASSETS[assetId];
-  const centerX = rotationCenterX ?? (x + width / 2);
-  const centerY = rotationCenterY ?? (y + height / 2);
-
-  return (
-    <image
-      href={asset.src}
-      x={x}
-      y={y}
-      width={width}
-      height={height}
-      opacity={opacity}
-      preserveAspectRatio={preserveAspectRatio}
-      transform={rotation == null ? undefined : `rotate(${rotation} ${centerX} ${centerY})`}
-    />
-  );
-}
-
-function ChairRound({ pos, r }: { pos: SeatPosition; r: number }) {
-  const width = r * 2.6;
-  const height = r * 3.1;
-
-  return (
-    <SvgAsset
-      assetId="chair"
-      x={pos.x - width / 2}
-      y={pos.y - height / 2}
-      width={width}
-      height={height}
-      rotation={pos.angleDeg}
-      preserveAspectRatio="xMidYMid meet"
-    />
-  );
-}
-
-function StoolRound({ pos, r }: { pos: SeatPosition; r: number }) {
-  const size = r * 2.45;
-
-  return (
-    <SvgAsset
-      assetId="stool"
-      x={pos.x - size / 2}
-      y={pos.y - size / 2}
-      width={size}
-      height={size}
-      rotation={pos.angleDeg}
-      preserveAspectRatio="xMidYMid meet"
-    />
-  );
-}
-
-function BenchRoundArc({
-  pos,
-  r,
-  arcSpan,
-  depth,
-}: {
-  pos: SeatPosition;
-  r: number;
-  arcSpan: number;
-  depth: number;
-}) {
-  const centerAngle = ((pos.angleDeg - 90) * Math.PI) / 180;
-  const arcWidth = Math.max(depth * 2.1, r * arcSpan * (Math.PI / 180));
-  const centerRadius = Math.max(0, r - depth * 0.42);
-  const centerX = pos.x + centerRadius * Math.cos(centerAngle);
-  const centerY = pos.y + centerRadius * Math.sin(centerAngle);
-
-  return (
-    <SvgAsset
-      assetId="banquette-straight"
-      x={centerX - arcWidth / 2}
-      y={centerY - depth / 2}
-      width={arcWidth}
-      height={depth}
-      rotation={pos.angleDeg}
-    />
-  );
-}
-
-function CornerBenchShape({
-  config,
-  tableRect,
-  scale,
-}: {
-  config: FloorPlanCornerBenchConfig;
-  tableRect: { x: number; y: number; w: number; h: number };
-  scale: number;
-}) {
-  const { x, y, w, h } = tableRect;
-  const { corner, depth } = config;
-  const horizontalSeats = Math.max(1, Math.round(config.horizontalSeats || 1));
-  const verticalSeats = Math.max(1, Math.round(config.verticalSeats || 1));
-  const baseVertical = CORNER_BENCH_BASE_VERTICAL * scale;
-  const cornerHeight = baseVertical + depth;
-  const cornerWidth = cornerHeight * CORNER_BENCH_ASPECT_RATIO;
-  const moduleHeight = cornerHeight;
-  const moduleWidth = Math.max(CORNER_BENCH_SEAT_SPAN * scale, moduleHeight * STRAIGHT_BENCH_ASPECT_RATIO);
-  const innerX = cornerWidth * CORNER_BENCH_INNER_X_RATIO;
-  const innerY = cornerHeight * CORNER_BENCH_INNER_Y_RATIO;
-  const extraHorizontalSeats = Math.max(0, horizontalSeats - 1);
-  const extraVerticalSeats = Math.max(0, verticalSeats - 1);
-  const placementByCorner: Record<FloorPlanCornerBenchCorner, { x: number; y: number; scaleX: number; scaleY: number }> = {
-    "top-left": {
-      x,
-      y,
-      scaleX: -1,
-      scaleY: 1,
-    },
-    "top-right": {
-      x: x + w,
-      y,
-      scaleX: 1,
-      scaleY: 1,
-    },
-    "bottom-right": {
-      x: x + w,
-      y: y + h,
-      scaleX: 1,
-      scaleY: -1,
-    },
-    "bottom-left": {
-      x,
-      y: y + h,
-      scaleX: -1,
-      scaleY: -1,
-    },
-  };
-  const placement = placementByCorner[corner];
-  const horizontalModules = Array.from({ length: extraHorizontalSeats }, (_, index) => {
-    return { x: -(index + 1) * moduleWidth, y: 0, width: moduleWidth, height: moduleHeight };
+function getDynamicTableDimensions(props: DynamicTableSvgProps) {
+  return getResolvedFloorPlanDimensions({
+    ...props,
+    capacity: Math.max(1, Math.min(32, Math.round(props.capacity || 1))),
   });
-  const verticalModules = Array.from({ length: extraVerticalSeats }, (_, index) => {
-    return {
-      x: cornerWidth - moduleHeight,
-      y: cornerHeight + index * moduleWidth,
-      width: moduleWidth,
-      height: moduleHeight,
-    };
-  });
-  const groupTransform = [
-    `translate(${placement.x} ${placement.y})`,
-    `scale(${placement.scaleX} ${placement.scaleY})`,
-    `translate(${-innerX} ${-innerY})`,
-  ].join(" ");
-
-  return (
-    <g transform={groupTransform}>
-      <SvgAsset
-        assetId="corner-bench"
-        x={0}
-        y={0}
-        width={cornerWidth}
-        height={cornerHeight}
-      />
-      {horizontalModules.map((module, index) => (
-        <SvgAsset
-          key={`${corner}-horizontal-${index}`}
-          assetId="banquette-straight"
-          x={module.x}
-          y={module.y}
-          width={module.width}
-          height={module.height}
-        />
-      ))}
-      {verticalModules.map((module, index) => (
-        <g
-          key={`${corner}-vertical-${index}`}
-          transform={`translate(${module.x + module.height} ${module.y}) rotate(90)`}
-        >
-          <SvgAsset
-            assetId="banquette-straight"
-            x={0}
-            y={0}
-            width={module.width}
-            height={module.height}
-          />
-        </g>
-      ))}
-    </g>
-  );
 }
 
-function RectBenchStrip({
-  side,
-  tableRect,
-  offset,
-  startInset,
-  endInset,
-  length,
-  depth,
-}: {
-  side: FloorPlanRectSeatZone;
-  tableRect: { x: number; y: number; w: number; h: number };
-  offset: number;
-  startInset: number;
-  endInset: number;
-  length: number;
-  depth: number;
-}) {
-  if (side === "top" || side === "bottom") {
-    const available = Math.max(24, tableRect.w - startInset - endInset);
-    const width = Math.min(length, available);
-    const height = depth;
-    const x = tableRect.x + startInset + (available - width) / 2;
-    const y = side === "top"
-      ? tableRect.y - offset - height / 2
-      : tableRect.y + tableRect.h + offset - height / 2;
-
-    return (
-      <SvgAsset
-        assetId="banquette-straight"
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        rotation={side === "top" ? 0 : 180}
-      />
-    );
-  }
-
-  const available = Math.max(24, tableRect.h - startInset - endInset);
-  const width = depth;
-  const height = Math.min(length, available);
-  const x = side === "left"
-    ? tableRect.x - offset - width / 2
-    : tableRect.x + tableRect.w + offset - width / 2;
-  const y = tableRect.y + startInset + (available - height) / 2;
-
-  return (
-    <SvgAsset
-      assetId="banquette-straight"
-      x={x}
-      y={y}
-      width={width}
-      height={height}
-      rotation={side === "left" ? 270 : 90}
-    />
-  );
-}
-
-function Seat({
-  pos,
-  seatType,
-  seatSize,
-}: {
-  pos: SeatPosition;
-  seatType: "chair" | "stool";
-  seatSize: number;
-}) {
-  return seatType === "stool"
-    ? <StoolRound pos={pos} r={seatSize} />
-    : <ChairRound pos={pos} r={seatSize} />;
-}
-
-function getScaledFrame(resolved: FloorPlanResolvedDimensions) {
-  const availableWidth = VIEWBOX_WIDTH - VIEWBOX_PADDING * 2;
-  const availableHeight = VIEWBOX_HEIGHT - VIEWBOX_PADDING * 2;
+function getScaledFrame(
+  resolved: FloorPlanResolvedDimensions,
+  width: number,
+  height: number,
+  padding: number,
+) {
   const scale = Math.min(
-    availableWidth / resolved.footprintWidth,
-    availableHeight / resolved.footprintHeight,
+    (width - padding * 2) / resolved.footprintWidth,
+    (height - padding * 2) / resolved.footprintHeight,
   );
-  const renderWidth = resolved.footprintWidth * scale;
-  const renderHeight = resolved.footprintHeight * scale;
-  const originX = (VIEWBOX_WIDTH - renderWidth) / 2;
-  const originY = (VIEWBOX_HEIGHT - renderHeight) / 2;
-
+  const originX = (width - resolved.footprintWidth * scale) / 2;
+  const originY = (height - resolved.footprintHeight * scale) / 2;
   return {
     scale,
-    originX,
-    originY,
     tableRect: {
       x: originX + resolved.paddingLeft * scale,
       y: originY + resolved.paddingTop * scale,
@@ -352,72 +88,44 @@ function getScaledFrame(resolved: FloorPlanResolvedDimensions) {
   };
 }
 
-function getRectCornerInset(
-  side: FloorPlanRectSeatZone,
-  cornerBenchConfigs: FloorPlanCornerBenchConfig[],
-) {
-  const findCorner = (corner: FloorPlanCornerBenchCorner) => cornerBenchConfigs.find((config) => config.corner === corner);
-
-  if (side === "top") {
-    return {
-      start: (findCorner("top-left")?.horizontal || 0) + RECT_CORNER_GAP,
-      end: (findCorner("top-right")?.horizontal || 0) + RECT_CORNER_GAP,
-    };
-  }
-  if (side === "bottom") {
-    return {
-      start: (findCorner("bottom-left")?.horizontal || 0) + RECT_CORNER_GAP,
-      end: (findCorner("bottom-right")?.horizontal || 0) + RECT_CORNER_GAP,
-    };
-  }
-  if (side === "left") {
-    return {
-      start: (findCorner("top-left")?.vertical || 0) + RECT_CORNER_GAP,
-      end: (findCorner("bottom-left")?.vertical || 0) + RECT_CORNER_GAP,
-    };
-  }
-  return {
-    start: (findCorner("top-right")?.vertical || 0) + RECT_CORNER_GAP,
-    end: (findCorner("bottom-right")?.vertical || 0) + RECT_CORNER_GAP,
-  };
+function Seat({
+  pos,
+  type,
+  scale,
+}: {
+  pos: SeatPosition;
+  type: "chair" | "stool";
+  scale: number;
+}) {
+  const height = (type === "stool" ? STOOL_DEPTH : CHAIR_DEPTH) * scale;
+  const width = height * getFloorPlanAssetAspectRatio(type);
+  // Both source sprites face down at 0°. Rotations point the seat toward the table.
+  return (
+    <FloorPlanAssetSprite
+      assetId={type}
+      x={pos.x - width / 2}
+      y={pos.y - height / 2}
+      width={width}
+      height={height}
+      rotation={pos.angleDeg}
+    />
+  );
 }
 
-function createRectSidePositions(
-  count: number,
-  side: FloorPlanRectSeatZone,
-  tableRect: { x: number; y: number; w: number; h: number },
-  offset: number,
-  startInset: number,
-  endInset: number,
+function getSeatOffset(
+  type: FloorPlanSeatPlacement["type"],
+  depth: number | undefined,
+  scale: number,
 ) {
-  const positions: SeatPosition[] = [];
-  if (count <= 0) return positions;
-
-  const isHorizontal = side === "top" || side === "bottom";
-  const totalSpan = isHorizontal ? tableRect.w : tableRect.h;
-  const availableSpan = Math.max(16, totalSpan - startInset - endInset);
-  const step = availableSpan / (count + 1);
-
-  for (let index = 0; index < count; index += 1) {
-    const t = startInset + step * (index + 1);
-
-    if (side === "top") {
-      positions.push({ x: tableRect.x + t, y: tableRect.y - offset, angleDeg: 0, side });
-      continue;
-    }
-    if (side === "bottom") {
-      positions.push({ x: tableRect.x + t, y: tableRect.y + tableRect.h + offset, angleDeg: 180, side });
-      continue;
-    }
-    if (side === "left") {
-      positions.push({ x: tableRect.x - offset, y: tableRect.y + t, angleDeg: 270, side });
-      continue;
-    }
-
-    positions.push({ x: tableRect.x + tableRect.w + offset, y: tableRect.y + t, angleDeg: 90, side });
-  }
-
-  return positions;
+  return (
+    (type === "bench"
+      ? depth || 26
+      : type === "stool"
+        ? STOOL_DEPTH
+        : CHAIR_DEPTH) *
+    scale *
+    0.36
+  );
 }
 
 function createRoundZonePositions(
@@ -425,185 +133,379 @@ function createRoundZonePositions(
   count: number,
   cx: number,
   cy: number,
-  orbitRadius: number,
-) {
-  if (count <= 0) return [] as SeatPosition[];
-
-  const centerPolarDeg = ROUND_ZONE_POLAR_ANGLES[zone];
+  orbit: number,
+): SeatPosition[] {
   const spread = count === 1 ? 0 : Math.min(44, Math.max(18, 12 + count * 7));
-  const startDeg = centerPolarDeg - spread / 2;
+  const first = ROUND_ZONE_POLAR_ANGLES[zone] - spread / 2;
   const step = count <= 1 ? 0 : spread / (count - 1);
-
-  return Array.from({ length: count }, (_, index) => {
-    const polarDeg = startDeg + step * index;
-    const polarRad = (polarDeg * Math.PI) / 180;
+  return Array.from({ length: Math.max(0, count) }, (_, index) => {
+    const angle = first + step * index;
     return {
-      x: cx + orbitRadius * Math.cos(polarRad),
-      y: cy + orbitRadius * Math.sin(polarRad),
-      angleDeg: polarDeg + 90,
+      x: cx + orbit * Math.cos((angle * Math.PI) / 180),
+      y: cy + orbit * Math.sin((angle * Math.PI) / 180),
+      angleDeg: angle + 90,
     };
   });
 }
 
-function DynamicRoundTable({ resolved }: { resolved: FloorPlanResolvedDimensions }) {
-  const { scale, originX, originY } = getScaledFrame(resolved);
-  const cx = originX + (resolved.footprintWidth * scale) / 2;
-  const cy = originY + (resolved.footprintHeight * scale) / 2;
-  const tableRadius = (resolved.tableWidth * scale) / 2;
-  const orbitRadius = tableRadius + resolved.paddingTop * scale * 0.54;
-  const seatSize = Math.max(8.5, Math.min(16, resolved.paddingTop * scale * 0.4));
+function getRectCornerInset(
+  side: FloorPlanRectSeatZone,
+  configs: FloorPlanCornerBenchConfig[],
+  scale: number,
+) {
+  const pair: Record<
+    FloorPlanRectSeatZone,
+    [FloorPlanCornerBenchCorner, FloorPlanCornerBenchCorner]
+  > = {
+    top: ["top-left", "top-right"],
+    right: ["top-right", "bottom-right"],
+    bottom: ["bottom-left", "bottom-right"],
+    left: ["top-left", "bottom-left"],
+  };
+  const dimension =
+    side === "top" || side === "bottom" ? "horizontal" : "vertical";
+  const [start, end] = pair[side].map(
+    (corner) =>
+      ((configs.find((config) => config.corner === corner)?.[dimension] || 0) +
+        RECT_CORNER_GAP) *
+      scale,
+  );
+  return { start, end };
+}
 
+function createRectSidePositions(
+  count: number,
+  side: FloorPlanRectSeatZone,
+  rect: TableRect,
+  offset: number,
+  start: number,
+  end: number,
+): SeatPosition[] {
+  const horizontal = side === "top" || side === "bottom";
+  const span = horizontal ? rect.w : rect.h;
+  const available = Math.max(0, span - start - end);
+  return Array.from({ length: Math.max(0, count) }, (_, index) => {
+    const position =
+      available > 0
+        ? start + (available * (index + 1)) / (count + 1)
+        : span / 2;
+    return {
+      x: horizontal
+        ? rect.x + position
+        : side === "left"
+          ? rect.x - offset
+          : rect.x + rect.w + offset,
+      y: horizontal
+        ? side === "top"
+          ? rect.y - offset
+          : rect.y + rect.h + offset
+        : rect.y + position,
+      angleDeg: SIDE_ROTATIONS[side],
+      side,
+    };
+  });
+}
+
+function RectBenchStrip({
+  side,
+  rect,
+  start,
+  end,
+  length,
+  depth,
+}: {
+  side: FloorPlanRectSeatZone;
+  rect: TableRect;
+  start: number;
+  end: number;
+  length: number;
+  depth: number;
+}) {
+  const horizontal = side === "top" || side === "bottom";
+  const available = Math.max(
+    depth,
+    (horizontal ? rect.w : rect.h) - start - end,
+  );
+  const span = Math.min(length, available);
+  const offset = depth * 0.36;
+  const cx = horizontal
+    ? rect.x + start + available / 2
+    : side === "left"
+      ? rect.x - offset
+      : rect.x + rect.w + offset;
+  const cy = horizontal
+    ? side === "top"
+      ? rect.y - offset
+      : rect.y + rect.h + offset
+    : rect.y + start + available / 2;
+  // Start from a horizontal bench, then rotate. Swapping its width/height before
+  // rotation would turn a side bench across the table and distort its backrest.
+  return (
+    <FloorPlanAssetSprite
+      assetId="banquette-straight"
+      x={cx - span / 2}
+      y={cy - depth / 2}
+      width={span}
+      height={depth}
+      fit="stretch"
+      rotation={SIDE_ROTATIONS[side]}
+    />
+  );
+}
+
+/**
+ * Resize the two arms independently. Splitting the real L-shaped sprite at the
+ * inside elbow preserves the seat depth as a longer arm is requested. The four
+ * source regions include the complete transparent padding and shadow pixels.
+ */
+function CornerBenchShape({
+  config,
+  tableRect,
+  scale,
+}: {
+  config: FloorPlanCornerBenchConfig;
+  tableRect: TableRect;
+  scale: number;
+}) {
+  const asset = FLOOR_PLAN_ASSETS["corner-bench"];
+  const baseDepth = 56;
+  const baseHorizontal = 92;
+  const baseVertical = 86;
+  const imageRect = getFloorPlanAssetRect(
+    asset,
+    {
+      x: 0,
+      y: 0,
+      width: baseDepth + baseHorizontal,
+      height: baseDepth + baseVertical,
+    },
+    "stretch",
+  );
+  const sourceX = [imageRect.x, baseDepth, imageRect.x + imageRect.width];
+  const sourceY = [imageRect.y, baseDepth, imageRect.y + imageRect.height];
+  const sx = [config.depth / baseDepth, config.horizontal / baseHorizontal];
+  const sy = [config.depth / baseDepth, config.vertical / baseVertical];
+  const targetX = [
+    imageRect.x * sx[0],
+    config.depth,
+    config.depth + (sourceX[2] - baseDepth) * sx[1],
+  ];
+  const targetY = [
+    imageRect.y * sy[0],
+    config.depth,
+    config.depth + (sourceY[2] - baseDepth) * sy[1],
+  ];
+  const isRight = config.corner.endsWith("right");
+  const isBottom = config.corner.startsWith("bottom");
+  const anchorX = tableRect.x + (isRight ? tableRect.w : 0);
+  const anchorY = tableRect.y + (isBottom ? tableRect.h : 0);
+  const offset = config.depth + RECT_CORNER_GAP;
+
+  return (
+    <g
+      data-floor-plan-corner={config.corner}
+      data-bench-depth={config.depth}
+      data-horizontal-span={config.horizontal}
+      data-vertical-span={config.vertical}
+      transform={`translate(${anchorX} ${anchorY}) scale(${isRight ? -scale : scale} ${isBottom ? -scale : scale}) translate(${-offset} ${-offset})`}
+    >
+      {[0, 1].flatMap((row) =>
+        [0, 1].map((column) => (
+          <svg
+            key={`${row}-${column}`}
+            data-bench-section={`${row}-${column}`}
+            x={targetX[column]}
+            y={targetY[row]}
+            width={targetX[column + 1] - targetX[column]}
+            height={targetY[row + 1] - targetY[row]}
+            viewBox={`${sourceX[column]} ${sourceY[row]} ${sourceX[column + 1] - sourceX[column]} ${sourceY[row + 1] - sourceY[row]}`}
+            preserveAspectRatio="none"
+            overflow="hidden"
+          >
+            <image
+              data-floor-plan-asset="corner-bench"
+              href={asset.src}
+              {...imageRect}
+              preserveAspectRatio="none"
+              style={{ pointerEvents: "none" }}
+            />
+          </svg>
+        )),
+      )}
+    </g>
+  );
+}
+
+function DynamicRoundTable({
+  resolved,
+  scale,
+  tableRect,
+  visualVariant,
+  finish,
+}: {
+  resolved: FloorPlanResolvedDimensions;
+  scale: number;
+  tableRect: TableRect;
+  visualVariant?: FloorPlanVisualVariant;
+  finish?: FloorPlanTableFinish;
+}) {
+  const cx = tableRect.x + tableRect.w / 2;
+  const cy = tableRect.y + tableRect.h / 2;
+  const radius = tableRect.w / 2;
+  const assetId =
+    visualVariant === "high-table"
+      ? "high-table-top"
+      : resolved.capacity <= 2
+        ? "round-table-duo"
+        : "round-table-top";
   return (
     <>
       {resolved.seatPlacements.map((placement) => {
         const zone = placement.zone as FloorPlanRoundSeatZone;
+        const orbit =
+          radius + getSeatOffset(placement.type, placement.benchDepth, scale);
         if (placement.type === "bench") {
-          const circumference = 2 * Math.PI * orbitRadius;
-          const arcSpan = Math.min(42, ((placement.benchLength || 52) / circumference) * 360);
-          const depth = Math.max(10, (placement.benchDepth || 22) * scale * 0.62);
+          const [pos] = createRoundZonePositions(zone, 1, cx, cy, orbit);
+          const width = (placement.benchLength || 60) * scale;
+          const height = (placement.benchDepth || 26) * scale;
           return (
-            <BenchRoundArc
+            <FloorPlanAssetSprite
               key={`${zone}-bench`}
-              pos={{ x: cx, y: cy, angleDeg: ROUND_ZONE_POLAR_ANGLES[zone] + 90 }}
-              r={orbitRadius}
-              arcSpan={arcSpan}
-              depth={depth}
+              assetId="banquette-straight"
+              x={pos.x - width / 2}
+              y={pos.y - height / 2}
+              width={width}
+              height={height}
+              rotation={pos.angleDeg}
+              fit="stretch"
             />
           );
         }
-
-        return createRoundZonePositions(zone, placement.count, cx, cy, orbitRadius).map((position, index) => (
+        return createRoundZonePositions(
+          zone,
+          placement.count,
+          cx,
+          cy,
+          orbit,
+        ).map((pos, index) => (
           <Seat
             key={`${zone}-${placement.type}-${index}`}
-            pos={position}
-            seatType={placement.type === "stool" ? "stool" : "chair"}
-            seatSize={seatSize}
+            pos={pos}
+            type={placement.type === "stool" ? "stool" : "chair"}
+            scale={scale}
           />
         ));
       })}
-
-      <SvgAsset
-        assetId="round-table-top"
-        x={cx - tableRadius}
-        y={cy - tableRadius}
-        width={tableRadius * 2}
-        height={tableRadius * 2}
-        preserveAspectRatio="xMidYMid meet"
+      <FloorPlanAssetSprite
+        assetId={assetId}
+        x={tableRect.x}
+        y={tableRect.y}
+        width={tableRect.w}
+        height={tableRect.h}
+        finish={finish}
       />
     </>
   );
 }
 
-function DynamicRectTable({ resolved }: { resolved: FloorPlanResolvedDimensions }) {
-  const { scale, tableRect } = getScaledFrame(resolved);
-  const seatSize = Math.max(8, Math.min(14, Math.min(tableRect.w, tableRect.h) * 0.12));
-
+function DynamicRectTable({
+  resolved,
+  scale,
+  tableRect,
+  finish,
+}: {
+  resolved: FloorPlanResolvedDimensions;
+  scale: number;
+  tableRect: TableRect;
+  finish?: FloorPlanTableFinish;
+}) {
+  const ratio = tableRect.w / tableRect.h;
+  const square = ratio >= 0.75 && ratio <= 1.33;
+  const portrait = !square && tableRect.h > tableRect.w;
+  const width = portrait ? tableRect.h : tableRect.w;
+  const height = portrait ? tableRect.w : tableRect.h;
   return (
     <>
       {resolved.seatPlacements.map((placement) => {
         const side = placement.zone as FloorPlanRectSeatZone;
-        const insets = getRectCornerInset(side, resolved.cornerBenchConfigs.map((config) => ({
-          ...config,
-          horizontal: config.horizontal * scale,
-          vertical: config.vertical * scale,
-          depth: config.depth * scale,
-        })));
-        const offsetBySide: Record<FloorPlanRectSeatZone, number> = {
-          top: resolved.paddingTop * scale * 0.54,
-          right: resolved.paddingRight * scale * 0.54,
-          bottom: resolved.paddingBottom * scale * 0.54,
-          left: resolved.paddingLeft * scale * 0.54,
-        };
-
+        const { start, end } = getRectCornerInset(
+          side,
+          resolved.cornerBenchConfigs,
+          scale,
+        );
         if (placement.type === "bench") {
           return (
             <RectBenchStrip
               key={`${side}-bench`}
               side={side}
-              tableRect={tableRect}
-              offset={offsetBySide[side]}
-              startInset={insets.start}
-              endInset={insets.end}
+              rect={tableRect}
+              start={start}
+              end={end}
               length={(placement.benchLength || 60) * scale}
-              depth={(placement.benchDepth || 22) * scale}
+              depth={(placement.benchDepth || 26) * scale}
             />
           );
         }
-
         return createRectSidePositions(
           placement.count,
           side,
           tableRect,
-          offsetBySide[side],
-          insets.start,
-          insets.end,
-        ).map((position, index) => (
+          getSeatOffset(placement.type, undefined, scale),
+          start,
+          end,
+        ).map((pos, index) => (
           <Seat
             key={`${side}-${placement.type}-${index}`}
-            pos={position}
-            seatType={placement.type === "stool" ? "stool" : "chair"}
-            seatSize={seatSize}
+            pos={pos}
+            type={placement.type === "stool" ? "stool" : "chair"}
+            scale={scale}
           />
         ));
       })}
-
       {resolved.cornerBenchConfigs.map((config) => (
         <CornerBenchShape
           key={config.corner}
-          config={{
-            ...config,
-            horizontal: config.horizontal * scale,
-            vertical: config.vertical * scale,
-            depth: config.depth * scale,
-          }}
+          config={config}
           tableRect={tableRect}
           scale={scale}
         />
       ))}
-
-      <SvgAsset
-        assetId="rect-table-top"
-        x={tableRect.x}
-        y={tableRect.y}
-        width={tableRect.w}
-        height={tableRect.h}
+      <FloorPlanAssetSprite
+        assetId={square ? "square-table-top" : "rect-table-top"}
+        x={tableRect.x + (tableRect.w - width) / 2}
+        y={tableRect.y + (tableRect.h - height) / 2}
+        width={width}
+        height={height}
+        fit="stretch"
+        rotation={portrait ? 90 : undefined}
+        finish={finish}
       />
     </>
   );
 }
 
-export default function DynamicTableSvg({
-  shape,
-  capacity,
-  seatType = "chair",
-  seatPlacements,
-  cornerBenchCorners,
-  cornerBenchConfigs,
-  tableWidth,
-  tableHeight,
-  cornerBenchHorizontal,
-  cornerBenchVertical,
-  cornerBenchDepth,
-}: DynamicTableSvgProps) {
-  const resolved = getResolvedFloorPlanDimensions({
-    capacity: Math.max(1, Math.min(32, Math.round(capacity || 1))),
-    shape,
-    seatType,
-    seatPlacements,
-    cornerBenchCorners,
-    cornerBenchConfigs,
-    tableWidth,
-    tableHeight,
-    cornerBenchHorizontal,
-    cornerBenchVertical,
-    cornerBenchDepth,
-  });
-
-  return (
-    <>
-      {shape === "round"
-        ? <DynamicRoundTable resolved={resolved} />
-        : <DynamicRectTable resolved={resolved} />}
-    </>
+export default function DynamicTableSvg(props: DynamicTableSvgProps) {
+  const resolved = getDynamicTableDimensions(props);
+  const { scale, tableRect } = getScaledFrame(
+    resolved,
+    props.viewportWidth ?? 200,
+    props.viewportHeight ?? 140,
+    props.viewportWidth == null ? 6 : 0,
+  );
+  return props.shape === "round" ? (
+    <DynamicRoundTable
+      resolved={resolved}
+      scale={scale}
+      tableRect={tableRect}
+      visualVariant={props.visualVariant}
+      finish={props.finish}
+    />
+  ) : (
+    <DynamicRectTable
+      resolved={resolved}
+      scale={scale}
+      tableRect={tableRect}
+      finish={props.finish}
+    />
   );
 }

@@ -5,6 +5,23 @@ import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
 
+// Source-contract checks ignore formatting; behavior is exercised by the
+// dashboard integration and component tests.
+function expectCode(source: string) {
+  const normalize = (value: string) =>
+    value.replace(/\s+/g, "").replace(/,([)\]}])/g, "$1");
+  const contains = (fragment: string) =>
+    normalize(source).includes(normalize(fragment));
+  return {
+    toContain: (fragment: string) =>
+      expect(contains(fragment), `Missing code: ${fragment}`).toBe(true),
+    not: {
+      toContain: (fragment: string) =>
+        expect(contains(fragment), `Unexpected code: ${fragment}`).toBe(false),
+    },
+  };
+}
+
 function read(path: string) {
   return readFileSync(resolve(root, path), "utf8");
 }
@@ -14,22 +31,37 @@ function latestMigrationContaining(pattern: RegExp) {
   const matches = readdirSync(migrationsDir)
     .filter((name) => name.endsWith(".sql"))
     .sort()
-    .filter((name) => pattern.test(readFileSync(resolve(migrationsDir, name), "utf8")));
+    .filter((name) =>
+      pattern.test(readFileSync(resolve(migrationsDir, name), "utf8")),
+    );
   expect(matches.length).toBeGreaterThan(0);
-  return readFileSync(resolve(migrationsDir, matches[matches.length - 1]), "utf8");
+  return readFileSync(
+    resolve(migrationsDir, matches[matches.length - 1]),
+    "utf8",
+  );
 }
 
 describe("automatic floor-plan image import", () => {
   it("persists saved floor-plan variants with owner/admin RLS", () => {
-    const sql = latestMigrationContaining(/CREATE TABLE IF NOT EXISTS public\.floor_plan_variants/i);
+    const sql = latestMigrationContaining(
+      /CREATE TABLE IF NOT EXISTS public\.floor_plan_variants/i,
+    );
 
-    expect(sql).toContain("CREATE TABLE IF NOT EXISTS public.floor_plan_variants");
+    expect(sql).toContain(
+      "CREATE TABLE IF NOT EXISTS public.floor_plan_variants",
+    );
     expect(sql).toContain("snapshot jsonb NOT NULL");
-    expect(sql).toContain("CHECK (source IN ('manual', 'ai-image', 'ai-generated'))");
-    expect(sql).toContain("ALTER TABLE public.floor_plan_variants ENABLE ROW LEVEL SECURITY");
+    expect(sql).toContain(
+      "CHECK (source IN ('manual', 'ai-image', 'ai-generated'))",
+    );
+    expect(sql).toContain(
+      "ALTER TABLE public.floor_plan_variants ENABLE ROW LEVEL SECURITY",
+    );
     expect(sql).toContain("auth_can_manage_floor_plan_variant");
     expect(sql).toContain("REVOKE ALL ON public.floor_plan_variants FROM anon");
-    expect(sql).toContain("GRANT SELECT, INSERT, UPDATE, DELETE ON public.floor_plan_variants TO authenticated");
+    expect(sql).toContain(
+      "GRANT SELECT, INSERT, UPDATE, DELETE ON public.floor_plan_variants TO authenticated",
+    );
   });
 
   it("sends uploaded plan images to the floorplan AI vision path", () => {
@@ -44,19 +76,21 @@ describe("automatic floor-plan image import", () => {
     expect(edgeFunction).toContain('"table-rect-2"');
     expect(edgeFunction).toContain("one chair above and one chair below");
     expect(edgeFunction).toContain("normalizeFloorPlanAiResult");
-    expect(panel).toContain("Plan de salle automatique");
-    expect(panel).toContain('type="file"');
-    expect(panel).toContain('accept="image/png,image/jpeg,image/webp"');
-    expect(panel).toContain('callAI("image-import"');
-    expect(panel).toContain("MAX_IMPORT_IMAGE_BYTES");
+    expectCode(panel).toContain("Plan de salle automatique");
+    expectCode(panel).toContain('type="file"');
+    expectCode(panel).toContain('accept="image/png,image/jpeg,image/webp"');
+    expectCode(panel).toContain('callAI("image-import"');
+    expectCode(panel).toContain("MAX_IMPORT_IMAGE_BYTES");
   });
 
   it("surfaces a controlled TOK credit rejection instead of the generic Supabase function error", () => {
     const panel = read("src/components/floor-plan/FloorPlanAIPanel.tsx");
 
-    expect(panel).toContain('invokeSupabaseFunction<AIFloorPlanResult>("floorplan-ai"');
-    expect(panel).toContain("formatAiImageGenerationError(error)");
-    expect(panel).not.toContain('supabase.functions.invoke("floorplan-ai"');
+    expectCode(panel).toContain(
+      'invokeSupabaseFunction<AIFloorPlanResult>("floorplan-ai"',
+    );
+    expectCode(panel).toContain("formatAiImageGenerationError(error)");
+    expectCode(panel).not.toContain('supabase.functions.invoke("floorplan-ai"');
   });
 
   it("requires a precise image-analysis JSON contract before placing imported furniture", () => {
@@ -69,17 +103,23 @@ describe("automatic floor-plan image import", () => {
     expect(edgeFunction).toContain("x_ratio");
     expect(edgeFunction).toContain("y_ratio");
     expect(edgeFunction).toContain("seatPlacements");
-    expect(edgeFunction).toContain("Ne renvoie jamais les chaises attachees aux tables comme meubles separes");
+    expect(edgeFunction).toContain(
+      "Ne renvoie jamais les chaises attachees aux tables comme meubles separes",
+    );
   });
 
   it("accepts the semantic salle JSON returned by vision before falling back to grid placement", () => {
     const edgeFunction = read("supabase/functions/floorplan-ai/index.ts");
 
-    expect(edgeFunction).toContain('readRecord(source, ["salle", "room", "venue"])');
+    expect(edgeFunction).toContain(
+      'readRecord(source, ["salle", "room", "venue"])',
+    );
     expect(edgeFunction).toContain("buildSemanticFloorPlanFrameHints");
     expect(edgeFunction).toContain("haut_centre_droit");
     expect(edgeFunction).toContain("bas_centre_droit");
-    expect(edgeFunction).toContain('readArray(analysisSource, ["decoration", "decorations"])');
+    expect(edgeFunction).toContain(
+      'readArray(analysisSource, ["decoration", "decorations"])',
+    );
   });
 
   it("does not discard semantic tables when the vision analysis returns only a partial table list", () => {
@@ -87,8 +127,12 @@ describe("automatic floor-plan image import", () => {
 
     expect(edgeFunction).toContain("mergeFloorPlanEntriesByIdentity");
     expect(edgeFunction).toContain("getFloorPlanTableIdentity");
-    expect(edgeFunction).toContain("const semanticTables = readArray(semanticRoomSource, [\"tables\"])");
-    expect(edgeFunction).toContain("[analysisTables, rootTables, semanticTables]");
+    expect(edgeFunction).toContain(
+      'const semanticTables = readArray(semanticRoomSource, ["tables"])',
+    );
+    expect(edgeFunction).toContain(
+      "[analysisTables, rootTables, semanticTables]",
+    );
     expect(edgeFunction).toContain("Inclue toutes les tables visibles");
     expect(edgeFunction).toContain("la reponse doit contenir 14 tables");
   });
@@ -96,11 +140,11 @@ describe("automatic floor-plan image import", () => {
   it("passes source image dimensions to improve vision coordinate mapping", () => {
     const panel = read("src/components/floor-plan/FloorPlanAIPanel.tsx");
 
-    expect(panel).toContain("readImageDimensions");
-    expect(panel).toContain("naturalWidth");
-    expect(panel).toContain("naturalHeight");
-    expect(panel).toContain("width: dimensions.width");
-    expect(panel).toContain("height: dimensions.height");
+    expectCode(panel).toContain("readImageDimensions");
+    expectCode(panel).toContain("naturalWidth");
+    expectCode(panel).toContain("naturalHeight");
+    expectCode(panel).toContain("width: dimensions.width");
+    expectCode(panel).toContain("height: dimensions.height");
   });
 
   it("lets a restaurateur photograph a plan and compresses it before the size check", () => {
@@ -108,17 +152,17 @@ describe("automatic floor-plan image import", () => {
 
     // A phone photo is routinely 3-8 MB: rejecting it outright made the
     // camera path unusable, so compression now runs before the limit check.
-    expect(panel).toContain("optimizeImageUpload");
+    expectCode(panel).toContain("optimizeImageUpload");
     const compressionIndex = panel.indexOf("optimizeImageUpload(file)");
     const limitIndex = panel.indexOf("prepared.size > MAX_IMPORT_IMAGE_BYTES");
     expect(compressionIndex).toBeGreaterThan(-1);
     expect(limitIndex).toBeGreaterThan(compressionIndex);
 
-    expect(panel).toContain('capture="environment"');
-    expect(panel).toContain("Prendre en photo");
-    expect(panel).toContain("cameraInputRef");
-    expect(panel).toContain("onDrop={handleDrop}");
-    expect(panel).toContain("Placer automatiquement le mobilier");
+    expectCode(panel).toContain('capture="environment"');
+    expectCode(panel).toContain("Prendre en photo");
+    expectCode(panel).toContain("cameraInputRef");
+    expectCode(panel).toContain("onDrop={handleDrop}");
+    expectCode(panel).toContain("Placer automatiquement le mobilier");
   });
 
   it("gives the vision model room and vocabulary for a full banquet plan", () => {
@@ -159,24 +203,34 @@ describe("automatic floor-plan image import", () => {
     const canvas = read("src/components/floor-plan/StudioCanvas.tsx");
     const inspector = read("src/components/floor-plan/StudioInspector.tsx");
 
-    expect(floorPlan).toContain("UNIFORM_RESIZE_HANDLES");
-    expect(floorPlan).toContain('shape === "round"');
-    expect(floorPlan).toContain("ratioLocked: true, handles: UNIFORM_RESIZE_HANDLES");
+    expectCode(floorPlan).toContain("UNIFORM_RESIZE_HANDLES");
+    expectCode(floorPlan).toContain('shape === "round"');
+    expectCode(floorPlan).toContain(
+      "ratioLocked: true, handles: UNIFORM_RESIZE_HANDLES",
+    );
 
     // Both call sites must pass the shape, otherwise the lock never triggers.
-    expect(canvas).toContain("getFloorPlanItemResizeBehavior(table.layout.kind, table.layout.shape)");
-    expect(inspector).toContain("getFloorPlanItemResizeBehavior(selectedTable.layout.kind, selectedTable.layout.shape)");
+    expectCode(canvas).toContain(
+      "getFloorPlanItemResizeBehavior(table.layout.kind, table.layout.shape)",
+    );
+    expectCode(inspector).toContain(
+      "getFloorPlanItemResizeBehavior(selectedTable.layout.kind, selectedTable.layout.shape)",
+    );
   });
 
   it("creates switchable variants instead of overwriting the active template immediately", () => {
     const page = read("src/pages/dashboard/DashboardPlanSalle.tsx");
 
-    expect(page).toContain('supabase.from("floor_plan_variants" as any)');
-    expect(page).toContain("buildFloorPlanVariantSnapshot");
-    expect(page).toContain("buildDraftTablesFromVariant");
-    expect(page).toContain("Sauver variante");
-    expect(page).toContain("Template actif");
-    expect(page).toContain('source: result.source === "image-import" ? "ai-image" : "ai-generated"');
-    expect(page).toContain("commitHistorySnapshot(buildHistorySnapshot(newTables, {}, null))");
+    expectCode(page).toContain('supabase.from("floor_plan_variants" as any)');
+    expectCode(page).toContain("buildFloorPlanVariantSnapshot");
+    expectCode(page).toContain("buildDraftTablesFromVariant");
+    expectCode(page).toContain("Sauver variante");
+    expectCode(page).toContain("Configuration actuelle");
+    expectCode(page).toContain(
+      'source: result.source === "image-import" ? "ai-image" : "ai-generated"',
+    );
+    expectCode(page).toContain(
+      "commitHistorySnapshot(buildHistorySnapshot(nextTables, draftAssignments, null))",
+    );
   });
 });

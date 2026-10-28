@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import ServiceBoard from "@/components/floor-plan/ServiceBoard";
 
-function renderServiceBoard(overrides: Partial<Parameters<typeof ServiceBoard>[0]> = {}) {
+function renderServiceBoard(
+  overrides: Partial<Parameters<typeof ServiceBoard>[0]> = {},
+) {
   const canvasRef = createRef<HTMLDivElement>();
   const canvasViewportRef = createRef<HTMLDivElement>();
 
@@ -38,6 +40,7 @@ function renderServiceBoard(overrides: Partial<Parameters<typeof ServiceBoard>[0
       onStartResizingTable={vi.fn()}
       onStartRotatingTable={vi.fn()}
       onUpdateCanvasZoom={vi.fn()}
+      onCanvasViewportResize={vi.fn()}
       onReservationStatusChange={vi.fn()}
       onReleaseReservation={vi.fn()}
       getReservationDropState={() => ({ ok: false, reason: null })}
@@ -77,9 +80,9 @@ describe("ServiceBoard", () => {
     expect(onUpdateCanvasZoom).toHaveBeenCalledWith(0.58);
   });
 
-  it("starts dragging furniture from the whole object surface", () => {
+  it("starts dragging furniture from its surface only when plan adjustment is enabled", () => {
     const onStartDraggingTable = vi.fn();
-    const { container } = renderServiceBoard({
+    const { container, getByRole } = renderServiceBoard({
       visibleTables: [
         {
           id: "plant",
@@ -106,9 +109,67 @@ describe("ServiceBoard", () => {
     const furnitureSurface = container.querySelector(".absolute.select-none");
 
     expect(furnitureSurface).not.toBeNull();
-    fireEvent.pointerDown(furnitureSurface as Element, { clientX: 90, clientY: 100 });
+    fireEvent.pointerDown(furnitureSurface as Element, {
+      clientX: 90,
+      clientY: 100,
+    });
+    expect(onStartDraggingTable).not.toHaveBeenCalled();
 
-    expect(onStartDraggingTable).toHaveBeenCalledWith(expect.anything(), "plant");
+    fireEvent.click(getByRole("button", { name: "Ajuster le plan du jour" }));
+    fireEvent.pointerDown(furnitureSurface as Element, {
+      clientX: 90,
+      clientY: 100,
+    });
+
+    expect(onStartDraggingTable).toHaveBeenCalledWith(
+      expect.anything(),
+      "plant",
+    );
+  });
+
+  it("keeps locked items selectable while preventing geometry adjustments", () => {
+    const onStartDraggingTable = vi.fn();
+    const onTablePress = vi.fn();
+    const { getByRole, queryByRole } = renderServiceBoard({
+      selectedTableId: "locked-plant",
+      visibleTables: [
+        {
+          id: "locked-plant",
+          table_number: "Plante verrouillée",
+          capacity: 0,
+          is_active: true,
+          sector: "Salle",
+          layout: {
+            x: 80,
+            y: 90,
+            w: 84,
+            h: 84,
+            rotation: 0,
+            shape: "round",
+            kind: "plant",
+            seatLabels: [],
+            locked: true,
+          },
+        },
+      ],
+      onTablePress,
+      onStartDraggingTable,
+      getRenderedFrame: () => ({ x: 80, y: 90, w: 84, h: 84 }),
+    });
+    fireEvent.click(getByRole("button", { name: "Ajuster le plan du jour" }));
+    const item = getByRole("button", {
+      name: /Plante verrouillée, Mobilier, position verrouillée/,
+    });
+    fireEvent.pointerDown(item, { clientX: 90, clientY: 100 });
+    fireEvent.click(item);
+    expect(onStartDraggingTable).not.toHaveBeenCalled();
+    expect(onTablePress).toHaveBeenCalledWith("locked-plant");
+    expect(
+      queryByRole("button", { name: "Déplacer Plante verrouillée" }),
+    ).not.toBeInTheDocument();
+    expect(
+      queryByRole("button", { name: "Faire pivoter Plante verrouillée" }),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps tiny service furniture easy to target without enlarging its visual", () => {
@@ -137,8 +198,16 @@ describe("ServiceBoard", () => {
       getRenderedFrame: () => ({ x: 80, y: 90, w: 8, h: 6 }),
     });
 
-    expect(container.querySelector('[style*="left: 66px"][style*="width: 36px"][style*="height: 36px"]')).not.toBeNull();
-    expect(container.querySelector('[style*="left: 14px"][style*="width: 8px"][style*="height: 6px"]')).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[style*="left: 66px"][style*="width: 36px"][style*="height: 36px"]',
+      ),
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        '[style*="left: 14px"][style*="width: 8px"][style*="height: 6px"]',
+      ),
+    ).not.toBeNull();
   });
 
   it("renders late reservation state directly on the table", () => {
@@ -166,27 +235,31 @@ describe("ServiceBoard", () => {
           },
         },
       ],
-      visibleAssignmentsByTable: new Map([[
-        "t1",
-        [{
-          id: "r1",
-          user_id: "u1",
-          restaurant_id: "restaurant",
-          table_id: "t1",
-          date: "2026-05-27",
-          time: "19:30",
-          party_size: 4,
-          status: "confirmed",
-          notes: null,
-          special_requests: null,
-          feature: null,
-          metadata: {},
-          created_at: "2026-05-27T10:00:00Z",
-          updated_at: "2026-05-27T10:00:00Z",
-          confirmed_at: null,
-          customer: { full_name: "Martin", phone: null },
-        } as never],
-      ]]),
+      visibleAssignmentsByTable: new Map([
+        [
+          "t1",
+          [
+            {
+              id: "r1",
+              user_id: "u1",
+              restaurant_id: "restaurant",
+              table_id: "t1",
+              date: "2026-05-27",
+              time: "19:30",
+              party_size: 4,
+              status: "confirmed",
+              notes: null,
+              special_requests: null,
+              feature: null,
+              metadata: {},
+              created_at: "2026-05-27T10:00:00Z",
+              updated_at: "2026-05-27T10:00:00Z",
+              confirmed_at: null,
+              customer: { full_name: "Martin", phone: null },
+            } as never,
+          ],
+        ],
+      ]),
       visibleTablesCount: 1,
       availableTablesCount: 0,
       getRenderedFrame: () => ({ x: 80, y: 90, w: 190, h: 170 }),
@@ -219,47 +292,49 @@ describe("ServiceBoard", () => {
           },
         },
       ],
-      visibleAssignmentsByTable: new Map([[
-        "t1",
+      visibleAssignmentsByTable: new Map([
         [
-          {
-            id: "r1",
-            user_id: "u1",
-            restaurant_id: "restaurant",
-            table_id: "t1",
-            date: "2026-05-27",
-            time: "19:00",
-            party_size: 2,
-            status: "confirmed",
-            notes: null,
-            special_requests: null,
-            feature: null,
-            metadata: {},
-            created_at: "2026-05-27T10:00:00Z",
-            updated_at: "2026-05-27T10:00:00Z",
-            confirmed_at: null,
-            customer: { full_name: "Martin", phone: null },
-          } as never,
-          {
-            id: "r2",
-            user_id: "u2",
-            restaurant_id: "restaurant",
-            table_id: "t1",
-            date: "2026-05-27",
-            time: "20:00",
-            party_size: 2,
-            status: "confirmed",
-            notes: null,
-            special_requests: null,
-            feature: null,
-            metadata: {},
-            created_at: "2026-05-27T10:00:00Z",
-            updated_at: "2026-05-27T10:00:00Z",
-            confirmed_at: null,
-            customer: { full_name: "Durand", phone: null },
-          } as never,
+          "t1",
+          [
+            {
+              id: "r1",
+              user_id: "u1",
+              restaurant_id: "restaurant",
+              table_id: "t1",
+              date: "2026-05-27",
+              time: "19:00",
+              party_size: 2,
+              status: "confirmed",
+              notes: null,
+              special_requests: null,
+              feature: null,
+              metadata: {},
+              created_at: "2026-05-27T10:00:00Z",
+              updated_at: "2026-05-27T10:00:00Z",
+              confirmed_at: null,
+              customer: { full_name: "Martin", phone: null },
+            } as never,
+            {
+              id: "r2",
+              user_id: "u2",
+              restaurant_id: "restaurant",
+              table_id: "t1",
+              date: "2026-05-27",
+              time: "20:00",
+              party_size: 2,
+              status: "confirmed",
+              notes: null,
+              special_requests: null,
+              feature: null,
+              metadata: {},
+              created_at: "2026-05-27T10:00:00Z",
+              updated_at: "2026-05-27T10:00:00Z",
+              confirmed_at: null,
+              customer: { full_name: "Durand", phone: null },
+            } as never,
+          ],
         ],
-      ]]),
+      ]),
       visibleTablesCount: 1,
       availableTablesCount: 0,
       getRenderedFrame: () => ({ x: 80, y: 90, w: 190, h: 170 }),
@@ -293,27 +368,31 @@ describe("ServiceBoard", () => {
           },
         },
       ],
-      visibleAssignmentsByTable: new Map([[
-        "t1",
-        [{
-          id: "r1",
-          user_id: "u1",
-          restaurant_id: "restaurant",
-          table_id: "t1",
-          date: "2026-05-27",
-          time: "19:30",
-          party_size: 4,
-          status: "confirmed",
-          notes: null,
-          special_requests: null,
-          feature: null,
-          metadata: {},
-          created_at: "2026-05-27T10:00:00Z",
-          updated_at: "2026-05-27T10:00:00Z",
-          confirmed_at: null,
-          customer: { full_name: "Martin", phone: null },
-        } as never],
-      ]]),
+      visibleAssignmentsByTable: new Map([
+        [
+          "t1",
+          [
+            {
+              id: "r1",
+              user_id: "u1",
+              restaurant_id: "restaurant",
+              table_id: "t1",
+              date: "2026-05-27",
+              time: "19:30",
+              party_size: 4,
+              status: "confirmed",
+              notes: null,
+              special_requests: null,
+              feature: null,
+              metadata: {},
+              created_at: "2026-05-27T10:00:00Z",
+              updated_at: "2026-05-27T10:00:00Z",
+              confirmed_at: null,
+              customer: { full_name: "Martin", phone: null },
+            } as never,
+          ],
+        ],
+      ]),
       visibleTablesCount: 1,
       availableTablesCount: 0,
       getRenderedFrame: () => ({ x: 80, y: 90, w: 220, h: 180 }),
@@ -326,9 +405,21 @@ describe("ServiceBoard", () => {
     fireEvent.click(getByRole("button", { name: "Marquer Martin no-show" }));
     fireEvent.click(getByRole("button", { name: "Liberer T1" }));
 
-    expect(onReservationStatusChange).toHaveBeenNthCalledWith(1, "r1", "arrived");
-    expect(onReservationStatusChange).toHaveBeenNthCalledWith(2, "r1", "seated");
-    expect(onReservationStatusChange).toHaveBeenNthCalledWith(3, "r1", "no_show");
+    expect(onReservationStatusChange).toHaveBeenNthCalledWith(
+      1,
+      "r1",
+      "arrived",
+    );
+    expect(onReservationStatusChange).toHaveBeenNthCalledWith(
+      2,
+      "r1",
+      "seated",
+    );
+    expect(onReservationStatusChange).toHaveBeenNthCalledWith(
+      3,
+      "r1",
+      "no_show",
+    );
     expect(onReleaseReservation).toHaveBeenCalledWith("r1");
   });
 });

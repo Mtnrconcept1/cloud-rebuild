@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `37148e7be3a7742602c2351af8619e19594ace1141a900478f31a6caa2856d87`
+- Empreinte SHA-256 des sources indexées : `0a5656c6f4548c14d6a5ce3e162c27e6a0c9f980ce75f39cb5d23a2d17652fc0`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,24 +29,24 @@
 | cronJobs | 37 |
 | databaseContract | 231 |
 | databaseObjects | 3096 |
-| documents | 230 |
+| documents | 232 |
 | edgeFunctions | 121 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4083 |
+| exportedSymbols | 4115 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 583 |
-| modules | 1854 |
+| modules | 1864 |
 | pages | 133 |
-| pathLiterals | 902 |
-| publicAssets | 713 |
-| publicEntries | 743 |
+| pathLiterals | 924 |
+| publicAssets | 735 |
+| publicEntries | 767 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19172 |
-| repositoryFiles | 3715 |
+| records | 19308 |
+| repositoryFiles | 3751 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -742,6 +742,30 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /favicon-512x512.png | media | [public/favicon-512x512.png](../../public/favicon-512x512.png) |
 | /favicon.ico | media | [public/favicon.ico](../../public/favicon.ico) |
 | /firebase-messaging-sw.js | other | [public/firebase-messaging-sw.js](../../public/firebase-messaging-sw.js) |
+| /floor-plan/01_table-ronde-duo.webp | media | [public/floor-plan/01_table-ronde-duo.webp](../../public/floor-plan/01_table-ronde-duo.webp) |
+| /floor-plan/02_table-ronde-quatre.webp | media | [public/floor-plan/02_table-ronde-quatre.webp](../../public/floor-plan/02_table-ronde-quatre.webp) |
+| /floor-plan/03_table-carree.webp | media | [public/floor-plan/03_table-carree.webp](../../public/floor-plan/03_table-carree.webp) |
+| /floor-plan/04_table-rectangulaire.webp | media | [public/floor-plan/04_table-rectangulaire.webp](../../public/floor-plan/04_table-rectangulaire.webp) |
+| /floor-plan/05_table-haute-ronde.webp | media | [public/floor-plan/05_table-haute-ronde.webp](../../public/floor-plan/05_table-haute-ronde.webp) |
+| /floor-plan/06_chaise-sable.webp | media | [public/floor-plan/06_chaise-sable.webp](../../public/floor-plan/06_chaise-sable.webp) |
+| /floor-plan/07_tabouret-sauge.webp | media | [public/floor-plan/07_tabouret-sauge.webp](../../public/floor-plan/07_tabouret-sauge.webp) |
+| /floor-plan/08_banquette-droite-sauge.webp | media | [public/floor-plan/08_banquette-droite-sauge.webp](../../public/floor-plan/08_banquette-droite-sauge.webp) |
+| /floor-plan/09_banquette-angle-sauge.webp | media | [public/floor-plan/09_banquette-angle-sauge.webp](../../public/floor-plan/09_banquette-angle-sauge.webp) |
+| /floor-plan/10_console-service-bois.webp | media | [public/floor-plan/10_console-service-bois.webp](../../public/floor-plan/10_console-service-bois.webp) |
+| /floor-plan/11_mur-droit.webp | media | [public/floor-plan/11_mur-droit.webp](../../public/floor-plan/11_mur-droit.webp) |
+| /floor-plan/12_mur-angle.webp | media | [public/floor-plan/12_mur-angle.webp](../../public/floor-plan/12_mur-angle.webp) |
+| /floor-plan/13_porte-ouverte.webp | media | [public/floor-plan/13_porte-ouverte.webp](../../public/floor-plan/13_porte-ouverte.webp) |
+| /floor-plan/14_fenetre-module.webp | media | [public/floor-plan/14_fenetre-module.webp](../../public/floor-plan/14_fenetre-module.webp) |
+| /floor-plan/15_cloison-vitree.webp | media | [public/floor-plan/15_cloison-vitree.webp](../../public/floor-plan/15_cloison-vitree.webp) |
+| /floor-plan/16_plante-grande.webp | media | [public/floor-plan/16_plante-grande.webp](../../public/floor-plan/16_plante-grande.webp) |
+| /floor-plan/17_plante-table.webp | media | [public/floor-plan/17_plante-table.webp](../../public/floor-plan/17_plante-table.webp) |
+| /floor-plan/18_jardiniere-rectangulaire.webp | media | [public/floor-plan/18_jardiniere-rectangulaire.webp](../../public/floor-plan/18_jardiniere-rectangulaire.webp) |
+| /floor-plan/19_parasol-terrasse.webp | media | [public/floor-plan/19_parasol-terrasse.webp](../../public/floor-plan/19_parasol-terrasse.webp) |
+| /floor-plan/20_presentoir-gateau.webp | media | [public/floor-plan/20_presentoir-gateau.webp](../../public/floor-plan/20_presentoir-gateau.webp) |
+| /floor-plan/21_buffet-reception.webp | media | [public/floor-plan/21_buffet-reception.webp](../../public/floor-plan/21_buffet-reception.webp) |
+| /floor-plan/22_comptoir-mobile.webp | media | [public/floor-plan/22_comptoir-mobile.webp](../../public/floor-plan/22_comptoir-mobile.webp) |
+| /floor-plan/README.md | other | [public/floor-plan/README.md](../../public/floor-plan/README.md) |
+| /floor-plan/manifest.json | data | [public/floor-plan/manifest.json](../../public/floor-plan/manifest.json) |
 | /fond fun.png | media | [public/fond fun.png](../../public/fond%20fun.png) |
 | /fond.jpg | media | [public/fond.jpg](../../public/fond.jpg) |
 | /fond.png | media | [public/fond.png](../../public/fond.png) |
@@ -1690,6 +1714,28 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /favicon-512x512.png | 1 | [src/test/favicon-branding.test.ts:59](../../src/test/favicon-branding.test.ts#L59) |
 | /firebase-messaging-sw.js | 1 | [src/lib/push.ts:80](../../src/lib/push.ts#L80) |
 | /flex-prix-bas | 12 | [scripts/prerender-seo.mjs:1113](../../scripts/prerender-seo.mjs#L1113) |
+| /floor-plan/01_table-ronde-duo.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:29](../../src/components/floor-plan/floorPlanAssets.ts#L29) |
+| /floor-plan/02_table-ronde-quatre.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:35](../../src/components/floor-plan/floorPlanAssets.ts#L35) |
+| /floor-plan/03_table-carree.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:41](../../src/components/floor-plan/floorPlanAssets.ts#L41) |
+| /floor-plan/04_table-rectangulaire.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:47](../../src/components/floor-plan/floorPlanAssets.ts#L47) |
+| /floor-plan/05_table-haute-ronde.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:53](../../src/components/floor-plan/floorPlanAssets.ts#L53) |
+| /floor-plan/06_chaise-sable.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:59](../../src/components/floor-plan/floorPlanAssets.ts#L59) |
+| /floor-plan/07_tabouret-sauge.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:65](../../src/components/floor-plan/floorPlanAssets.ts#L65) |
+| /floor-plan/08_banquette-droite-sauge.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:71](../../src/components/floor-plan/floorPlanAssets.ts#L71) |
+| /floor-plan/09_banquette-angle-sauge.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:77](../../src/components/floor-plan/floorPlanAssets.ts#L77) |
+| /floor-plan/10_console-service-bois.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:83](../../src/components/floor-plan/floorPlanAssets.ts#L83) |
+| /floor-plan/11_mur-droit.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:89](../../src/components/floor-plan/floorPlanAssets.ts#L89) |
+| /floor-plan/12_mur-angle.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:95](../../src/components/floor-plan/floorPlanAssets.ts#L95) |
+| /floor-plan/13_porte-ouverte.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:101](../../src/components/floor-plan/floorPlanAssets.ts#L101) |
+| /floor-plan/14_fenetre-module.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:107](../../src/components/floor-plan/floorPlanAssets.ts#L107) |
+| /floor-plan/15_cloison-vitree.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:113](../../src/components/floor-plan/floorPlanAssets.ts#L113) |
+| /floor-plan/16_plante-grande.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:119](../../src/components/floor-plan/floorPlanAssets.ts#L119) |
+| /floor-plan/17_plante-table.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:125](../../src/components/floor-plan/floorPlanAssets.ts#L125) |
+| /floor-plan/18_jardiniere-rectangulaire.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:131](../../src/components/floor-plan/floorPlanAssets.ts#L131) |
+| /floor-plan/19_parasol-terrasse.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:137](../../src/components/floor-plan/floorPlanAssets.ts#L137) |
+| /floor-plan/20_presentoir-gateau.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:143](../../src/components/floor-plan/floorPlanAssets.ts#L143) |
+| /floor-plan/21_buffet-reception.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:149](../../src/components/floor-plan/floorPlanAssets.ts#L149) |
+| /floor-plan/22_comptoir-mobile.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:155](../../src/components/floor-plan/floorPlanAssets.ts#L155) |
 | /fond3.png | 7 | [public/seo-trust-runtime.js:8](../../public/seo-trust-runtime.js#L8) |
 | /fondbanniere.png | 1 | [src/test/dashboard-overview-google-compact.test.ts:24](../../src/test/dashboard-overview-google-compact.test.ts#L24) |
 | /formules | 1 | [src/test/dashboard-design-preview-export.test.tsx:61](../../src/test/dashboard-design-preview-export.test.tsx#L61) |
@@ -6956,12 +7002,12 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
 | Google | 123 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 146 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 145 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 278 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 852 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 855 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 71 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -6971,18 +7017,18 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 221 |
+| application-library | 222 |
 | automation-script | 91 |
 | documentation | 6 |
 | edge-function-source | 247 |
-| frontend-component | 297 |
+| frontend-component | 300 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
-| frontend-source | 35 |
+| frontend-source | 36 |
 | public-asset | 6 |
 | repository-file | 8 |
 | server-source | 2 |
-| test | 767 |
+| test | 772 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7085,6 +7131,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Déploiement — carte commerciale TheFork Genève | 1 | [docs/deployments/2026-07-24-commercial-map-thefork-520.md:1](../../docs/deployments/2026-07-24-commercial-map-thefork-520.md#L1) |
 | Plan de salle — placement des réservations | 10 | [docs/design/plan-de-salle-placement.md:1](../../docs/design/plan-de-salle-placement.md#L1) |
 | Plan de salle — thème clair / sombre | 9 | [docs/design/plan-de-salle-theme.md:1](../../docs/design/plan-de-salle-theme.md#L1) |
+| Plan de salle — studio professionnel TOK | 9 | [docs/design/plan-salle-studio-2026-10-28.md:1](../../docs/design/plan-salle-studio-2026-10-28.md#L1) |
 | Fabrication des assets | 4 | [docs/design/tok-launch/ASSETS.md:1](../../docs/design/tok-launch/ASSETS.md#L1) |
 | TOK — Affiche animée et décompte de lancement | 6 | [docs/design/tok-launch/README.md:1](../../docs/design/tok-launch/README.md#L1) |
 | TOK — Proposition UX/UI du 10 octobre 2026 | 12 | [docs/design/tok-ux-ui-audit-20261010.md:1](../../docs/design/tok-ux-ui-audit-20261010.md#L1) |
@@ -7215,6 +7262,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Espace Comptabilité Administrateur | 11 | [implementation_plan_compta.md:1](../../implementation_plan_compta.md#L1) |
 | Refonte de la Facturation avec Suivi des Commandes | 11 | [implementation_plan_invoice_refactor.md:1](../../implementation_plan_invoice_refactor.md#L1) |
 | CapApp-SPM | 1 | [ios/App/CapApp-SPM/README.md:1](../../ios/App/CapApp-SPM/README.md#L1) |
+| TOK floor-plan sprites | 1 | [public/floor-plan/README.md:1](../../public/floor-plan/README.md#L1) |
 | Security Best Practices Audit Report | 24 | [security_best_practices_report.md:1](../../security_best_practices_report.md#L1) |
 | Tâches - Module Comptabilité Administrateur | 1 | [task_compta.md:1](../../task_compta.md#L1) |
 | Tâches - Facturation au réel TOK | 1 | [task_invoice_match.md:1](../../task_invoice_match.md#L1) |
@@ -7286,7 +7334,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (221)</summary>
+<details><summary>application-library (222)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/acquisitionAttribution.ts`
@@ -7385,6 +7433,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/floorPlanHealth.ts`
 - `src/lib/floorPlanHistory.ts`
 - `src/lib/floorPlanPersistence.ts`
+- `src/lib/floorPlanStudio.ts`
 - `src/lib/geo.ts`
 - `src/lib/geolocation-native.ts`
 - `src/lib/googleBusinessBooking.ts`
@@ -8247,7 +8296,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (182)</summary>
+<details><summary>documentation (183)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8276,6 +8325,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/deployments/2026-07-24-commercial-map-thefork-520.md`
 - `docs/design/plan-de-salle-placement.md`
 - `docs/design/plan-de-salle-theme.md`
+- `docs/design/plan-salle-studio-2026-10-28.md`
 - `docs/design/tok-launch/.gitignore`
 - `docs/design/tok-launch/ASSETS.md`
 - `docs/design/tok-launch/README.md`
@@ -8686,7 +8736,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (306)</summary>
+<details><summary>frontend-component (310)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8829,7 +8879,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/floor-plan/DynamicTableSvg.tsx`
 - `src/components/floor-plan/EventFurnitureSvg.tsx`
 - `src/components/floor-plan/FloorPlanAIPanel.tsx`
+- `src/components/floor-plan/FloorPlanAssetSprite.tsx`
 - `src/components/floor-plan/FloorPlanItemIllustration.tsx`
+- `src/components/floor-plan/FloorPlanMiniature.tsx`
+- `src/components/floor-plan/FloorPlanSpaces.tsx`
+- `src/components/floor-plan/FloorPlanWorkspace.css`
 - `src/components/floor-plan/ReservationQueue.tsx`
 - `src/components/floor-plan/ServiceBoard.tsx`
 - `src/components/floor-plan/SimpleReservationQueue.tsx`
@@ -9165,7 +9219,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (52)</summary>
+<details><summary>frontend-source (53)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -9211,6 +9265,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/styles/golden-tok-chefs-table-v6.css`
 - `src/styles/golden-tok-chefs-table.css`
 - `src/styles/workforce-report-print.css`
+- `src/test/fixtures/floorPlanPreview.ts`
 - `src/test/fixtures/golden-tok-preview.tsx`
 - `src/test/setup.ts`
 - `src/test/sql/marketing_content_reviews_smoke.sql`
@@ -9272,7 +9327,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (743)</summary>
+<details><summary>public-asset (767)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -9375,6 +9430,30 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/favicon-512x512.png`
 - `public/favicon.ico`
 - `public/firebase-messaging-sw.js`
+- `public/floor-plan/01_table-ronde-duo.webp`
+- `public/floor-plan/02_table-ronde-quatre.webp`
+- `public/floor-plan/03_table-carree.webp`
+- `public/floor-plan/04_table-rectangulaire.webp`
+- `public/floor-plan/05_table-haute-ronde.webp`
+- `public/floor-plan/06_chaise-sable.webp`
+- `public/floor-plan/07_tabouret-sauge.webp`
+- `public/floor-plan/08_banquette-droite-sauge.webp`
+- `public/floor-plan/09_banquette-angle-sauge.webp`
+- `public/floor-plan/10_console-service-bois.webp`
+- `public/floor-plan/11_mur-droit.webp`
+- `public/floor-plan/12_mur-angle.webp`
+- `public/floor-plan/13_porte-ouverte.webp`
+- `public/floor-plan/14_fenetre-module.webp`
+- `public/floor-plan/15_cloison-vitree.webp`
+- `public/floor-plan/16_plante-grande.webp`
+- `public/floor-plan/17_plante-table.webp`
+- `public/floor-plan/18_jardiniere-rectangulaire.webp`
+- `public/floor-plan/19_parasol-terrasse.webp`
+- `public/floor-plan/20_presentoir-gateau.webp`
+- `public/floor-plan/21_buffet-reception.webp`
+- `public/floor-plan/22_comptoir-mobile.webp`
+- `public/floor-plan/README.md`
+- `public/floor-plan/manifest.json`
 - `public/fond fun.png`
 - `public/fond.jpg`
 - `public/fond.png`
@@ -10233,7 +10312,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (767)</summary>
+<details><summary>test (772)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10427,6 +10506,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/dashboard-commands-collapse.test.tsx`
 - `src/test/dashboard-design-preview-env.test.ts`
 - `src/test/dashboard-design-preview-export.test.tsx`
+- `src/test/dashboard-floor-plan-integration.test.tsx`
 - `src/test/dashboard-grouping.test.ts`
 - `src/test/dashboard-hero-readability.test.ts`
 - `src/test/dashboard-home-recovery.test.tsx`
@@ -10493,6 +10573,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/firebase-vapid-key.test.ts`
 - `src/test/flat-fee-on-arrival.test.ts`
 - `src/test/flat-reservation-billing-fallback.test.ts`
+- `src/test/floor-plan-assets.test.tsx`
 - `src/test/floor-plan-assignment-governance.test.ts`
 - `src/test/floor-plan-automatic-import.test.ts`
 - `src/test/floor-plan-automatic-placement.test.ts`
@@ -10500,6 +10581,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/floor-plan-history.test.ts`
 - `src/test/floor-plan-page-layout.test.ts`
 - `src/test/floor-plan-persistence.test.ts`
+- `src/test/floor-plan-studio-panels.test.tsx`
+- `src/test/floor-plan-studio.test.ts`
 - `src/test/floor-plan.test.ts`
 - `src/test/french-copy-accents.test.ts`
 - `src/test/frontend-10k-readiness.test.ts`
@@ -10852,6 +10935,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/signup-correction-flow.test.ts`
 - `src/test/signup-document-upload-rollback.test.ts`
 - `src/test/signup.test.ts`
+- `src/test/simple-reservation-queue.test.tsx`
 - `src/test/social-comments-drawer.test.tsx`
 - `src/test/social-comments-mobile-layout.test.ts`
 - `src/test/social-composer-cross-post.test.tsx`
