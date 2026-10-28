@@ -18,7 +18,9 @@ describe('aperçu TOK Connect explicitement isolé', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Aucune réservation, commande ni paiement exécuté');
     expect(getSupabase).not.toHaveBeenCalled();
     const frame = screen.getByTitle('Module TOK Connect') as HTMLIFrameElement;
-    const channel = /var channel = "([0-9a-f-]+)"/.exec(frame.srcdoc)?.[1];
+    const channel = /<meta name="tok-preview-channel" content="([0-9a-f-]+)">/.exec(frame.srcdoc)?.[1];
+    expect(frame.srcdoc).toContain('src="/tok-connect-preview-bridge.js"');
+    expect(frame.srcdoc).toContain('src="/tok-connect-preview-widget.js"');
     expect(channel).toBeTruthy();
     await act(async () => {
       window.dispatchEvent(new MessageEvent('message', {

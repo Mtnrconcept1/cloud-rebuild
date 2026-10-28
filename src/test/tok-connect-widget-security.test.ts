@@ -1,7 +1,13 @@
+import { readFileSync } from "node:fs";
 import { JSDOM } from "jsdom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TOK_DISCOVERY_WIDGET_HTML } from "../../supabase/functions/_shared/tok-connect-discovery-widget";
-import { buildTokConnectPreviewDocument } from "@/lib/tok-connect-preview";
+import {
+  buildTokConnectPreviewDocument,
+  getTokConnectPreviewWidgetScript,
+  TOK_CONNECT_PREVIEW_BRIDGE_SCRIPT_PATH,
+  TOK_CONNECT_PREVIEW_WIDGET_SCRIPT_PATH,
+} from "@/lib/tok-connect-preview";
 
 const origin = "https://www.thetok.ch";
 const channel = "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa";
@@ -12,7 +18,18 @@ function execute(html: string) {
   const parent = { postMessage: vi.fn() };
   Object.defineProperty(dom.window, "parent", { value: parent });
   Object.defineProperty(dom.window, "matchMedia", { value: () => ({ matches: false, addEventListener() {} }) });
-  for (const script of dom.window.document.querySelectorAll("script")) dom.window.eval(script.textContent || "");
+  for (const script of dom.window.document.querySelectorAll("script")) {
+    const src = script.getAttribute("src");
+    const code = src === TOK_CONNECT_PREVIEW_BRIDGE_SCRIPT_PATH
+      ? readFileSync("public/tok-connect-preview-bridge.js", "utf8")
+      : src === TOK_CONNECT_PREVIEW_WIDGET_SCRIPT_PATH
+        ? getTokConnectPreviewWidgetScript()
+        : script.textContent || "";
+    if (src && src !== TOK_CONNECT_PREVIEW_BRIDGE_SCRIPT_PATH && src !== TOK_CONNECT_PREVIEW_WIDGET_SCRIPT_PATH) {
+      throw new Error("Unexpected widget script source: " + src);
+    }
+    dom.window.eval(code);
+  }
   return { dom, parent, api: (dom.window as unknown as { openai: Record<string, any> }).openai };
 }
 afterEach(() => { for (const dom of windows.splice(0)) dom.window.close(); });
@@ -28,6 +45,25 @@ describe("widget host message boundaries", () => {
     expect(parent.postMessage).not.toHaveBeenCalled();
     expect(TOK_DISCOVERY_WIDGET_HTML).not.toContain("tok_connect_preview");
     expect(TOK_DISCOVERY_WIDGET_HTML).toContain("openai:set_globals");
+  });
+  it("keeps the website CSP strict while loading both preview scripts externally", () => {
+    const html = buildTokConnectPreviewDocument(origin, channel);
+    const document = new JSDOM(html).window.document;
+    const scripts = Array.from(document.querySelectorAll("script"));
+    expect(scripts.map((script) => script.getAttribute("src"))).toEqual([
+      TOK_CONNECT_PREVIEW_BRIDGE_SCRIPT_PATH,
+      TOK_CONNECT_PREVIEW_WIDGET_SCRIPT_PATH,
+    ]);
+    expect(scripts.every((script) => !script.textContent?.trim())).toBe(true);
+    expect(getTokConnectPreviewWidgetScript()).toContain("function bootstrap()");
+    expect(readFileSync("vite.config.ts", "utf8")).toContain("tokConnectPreviewWidgetPlugin()");
+    const config = JSON.parse(readFileSync("vercel.json", "utf8")) as {
+      headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
+    };
+    const csp = config.headers.find((entry) => entry.source === "/(.*)")?.headers
+      .find((entry) => entry.key === "Content-Security-Policy")?.value || "";
+    expect(csp).toContain("script-src 'self'");
+    expect(csp.split(";").find((directive) => directive.includes("script-src"))).not.toContain("'unsafe-inline'");
   });
   it("preview requires the exact parent, origin and per-instance channel", () => {
     const { dom, parent, api } = execute(buildTokConnectPreviewDocument(origin, channel));

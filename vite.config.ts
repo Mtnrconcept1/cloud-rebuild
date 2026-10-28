@@ -1,7 +1,8 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { getMissingSupabasePublicEnvKeys } from "./src/lib/publicEnv";
+import { getTokConnectPreviewWidgetScript, TOK_CONNECT_PREVIEW_WIDGET_SCRIPT_PATH } from "./src/lib/tok-connect-preview";
 
 const manualChunkGroups = {
   "react-vendor": ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
@@ -58,6 +59,34 @@ function applyDevelopmentPublicEnvOverrides(mode: string, env: Record<string, st
   }
 }
 
+
+/**
+ * A srcDoc iframe inherits the site's CSP, which intentionally blocks inline
+ * scripts. Serve the exact inline runtime of the canonical MCP HTML as an
+ * external first-party asset in development and in the production build.
+ */
+function tokConnectPreviewWidgetPlugin(): Plugin {
+  const scriptSource = getTokConnectPreviewWidgetScript();
+  return {
+    name: "tok-connect-preview-external-widget-script",
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        if (request.url?.split("?")[0] !== TOK_CONNECT_PREVIEW_WIDGET_SCRIPT_PATH) return next();
+        response.setHeader("Content-Type", "text/javascript; charset=utf-8");
+        response.setHeader("Cache-Control", "no-store");
+        response.end(scriptSource);
+      });
+    },
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: TOK_CONNECT_PREVIEW_WIDGET_SCRIPT_PATH.slice(1),
+        source: scriptSource,
+      });
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -98,7 +127,7 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    plugins: [react()],
+    plugins: [react(), tokConnectPreviewWidgetPlugin()],
     resolve: {
       alias: {
         // Keep the large legacy studio source untouched and wrap only the
