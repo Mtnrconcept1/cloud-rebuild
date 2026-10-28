@@ -193,6 +193,43 @@ describe("vercel config", () => {
     expect(globalHeaders.find((header) => header.key === "X-Frame-Options")?.value).toBe("SAMEORIGIN");
   });
 
+  it("allows the reverse-geocoding redirect without broadening restricted host policies", () => {
+    const config = JSON.parse(readFileSync(path.resolve(process.cwd(), "vercel.json"), "utf8")) as {
+      headers: Array<{
+        source: string;
+        has?: Array<{ type: string; value: string }>;
+        headers: Array<{ key: string; value: string }>;
+      }>;
+    };
+    const connectSources = (headers: Array<{ key: string; value: string }> = []) => {
+      const policy = headers.find((header) => header.key === "Content-Security-Policy")?.value || "";
+      return policy.split(";")
+        .map((directive) => directive.trim().split(/\s+/))
+        .find(([name]) => name === "connect-src")?.slice(1) || [];
+    };
+    const publicHeaders = config.headers.find((entry) => entry.source === "/(.*)" && !entry.has);
+    const publicSources = connectSources(publicHeaders?.headers);
+
+    // The documented client endpoint redirects to api-bdc.io; both origins
+    // must be allowed by connect-src for the browser to complete the request.
+    expect(publicSources.filter((source) => /bigdatacloud|api-bdc/.test(source))).toEqual([
+      "https://api.bigdatacloud.net",
+      "https://api-bdc.io",
+    ]);
+    expect(publicSources).not.toContain("*");
+    expect(publicSources).not.toContain("https:");
+
+    for (const host of ["commercial.thetok.ch", "marketing.thetok.ch"]) {
+      const restricted = config.headers.find((entry) => entry.has?.some(
+        (condition) => condition.type === "host" && condition.value === host,
+      ));
+      expect(restricted).toBeDefined();
+      expect(connectSources(restricted?.headers).filter(
+        (source) => /bigdatacloud|api-bdc/.test(source),
+      )).toEqual([]);
+    }
+  });
+
   it("keeps the commercial demo out of search indexes and same-origin framed", () => {
     const config = JSON.parse(readFileSync(path.resolve(process.cwd(), "vercel.json"), "utf8")) as {
       headers?: Array<{
