@@ -1,14 +1,30 @@
 {
   "projectId": "prj_v4X2Bhefbcf12CVIanrvS62q9Vy6",
   "teamId": "team_FvFPXdOD5Vw9DAQS5grAuJAv",
-  "previousVersion": "250b0e5b-2fbe-4d51-9fce-8bb184ce91ce",
-  "publishedVersion": "788308b6-0969-47e9-81f1-9b2ff38e56f0",
-  "publishedAt": "2026-10-28",
+  "initialPreviousVersion": "250b0e5b-2fbe-4d51-9fce-8bb184ce91ce",
+  "initialVersion": "788308b6-0969-47e9-81f1-9b2ff38e56f0",
+  "previousVersion": "788308b6-0969-47e9-81f1-9b2ff38e56f0",
+  "publishedVersion": "8a87ca65-255d-49d8-99c4-254f8fe498e1",
+  "publishedAt": "2026-10-28T06:43:51.137Z",
+  "projectRuleCount": 6,
   "domains": [
     "equipe.thetok.ch",
     "xn--quipe-9ra.thetok.ch"
   ],
   "routes": [
+    {
+      "id": "9d07bb08-2757-4520-ab47-0a0c58c65c32",
+      "name": "TOK Équipe accès direct aux espaces privés",
+      "kind": "rewrite",
+      "host": "www.thetok.ch",
+      "source": "^/equipe/(?:mon-espace|gestion)/?$",
+      "destination": "/index.html",
+      "status": 200,
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow, noarchive",
+        "Cache-Control": "private, no-store, max-age=0"
+      }
+    },
     {
       "name": "TOK Équipe entrée",
       "host": "equipe.thetok.ch",

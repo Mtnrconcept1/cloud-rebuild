@@ -75,7 +75,7 @@ describe("SEO growth readiness", () => {
     expect(prerender).toContain("LOCAL_INTENTS");
     expect(prerender).toContain("inventoryCount");
     expect([pagesSitemap, restaurantSitemap, actualitesSitemap].join("\n")).not.toMatch(
-      /https:\/\/www\.thetok\.ch\/(?:admin|marketing|dashboard|courier|auth|panier|profil|memoire-tok|notifications|commandes|reservations|points-cadeau)(?:\/|<)/,
+      /https:\/\/www\.thetok\.ch\/(?:admin|marketing|dashboard|courier|auth|panier|profil|memoire-tok|notifications|commandes|reservations|points-cadeau|equipe)(?:\/|<)/,
     );
   });
 
@@ -90,6 +90,8 @@ describe("SEO growth readiness", () => {
     expect(prerender).toContain('"/dashboard"');
     expect(prerender).toContain('"/memoire-tok"');
     expect(prerender).toContain('"/espaces"');
+    expect(prerender).toContain('"/equipe/mon-espace"');
+    expect(prerender).toContain('"/equipe/gestion"');
     expect(prerender).toContain('"/r"');
     expect(prerender).toContain("createClient");
     expect(prerender).toContain("VITE_SUPABASE_PUBLISHABLE_KEY");

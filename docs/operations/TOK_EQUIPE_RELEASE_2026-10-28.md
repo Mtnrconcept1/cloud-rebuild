@@ -4,17 +4,17 @@
 
 Ce dossier décrit le lot préparé sur la branche `feat/tok-equipe-swisstime-20261028`, initialement issue de `7d34670974e81a1ea13090296ec3c14e1e311f98`. Avant le commit de livraison, la base a été actualisée sur `main` à `070aecdfb2a8cca59191d329034c380117abf1ab` (PR Cloudprinter #999). La PR #1004 intègre également `837705c65cedfbfb3406fe9542e4afdf66020938` (inscription restaurateur et CSP, PR #1002) ; les trois conflits d’index générés ont été résolus par régénération après intégration des sources. Le dossier distingue le code vérifié localement, les vérifications de publication et les éléments déjà actifs en production.
 
-**Le nouveau code applicatif, la migration d’intégrité et l’Edge Function `tok-workforce-assistant` ne sont pas encore déployés à la date de rédaction.** Les tests locaux ne constituent pas une preuve de déploiement. Les références exactes du commit, de la PR et des exécutions GitHub figurent dans le compte rendu de livraison et dans la PR de la branche ; les preuves locales et la liste complète des fichiers sont consignées ci-dessous.
+**Le lot fonctionnel est déployé en production.** La [PR #1004](https://github.com/Mtnrconcept1/cloud-rebuild/pull/1004) a été fusionnée depuis le compte `mtnrconcept` à 06:08:38 UTC au commit `c560a7de37f0fc46eb0d1192ae8492287c624422`. Son arbre `dbdd98a85f2124af1cdc4e6e3caeef50ef64d2bc` est identique à l’arbre testé. Le [pipeline de production 40642076919](https://github.com/Mtnrconcept1/cloud-rebuild/actions/runs/40642076919) a ensuite réussi ses contrôles, l’application SQL, la publication des fonctions et celle du frontend. Les preuves locales conservées plus bas décrivent la préparation ; les preuves de production ci-dessous établissent la livraison effective.
 
 | Élément | État constaté |
 |---|---|
-| Branche d’implémentation | Implémentation terminée sur la branche dédiée ; contrôles de publication dans la PR. |
-| Migration `20261028044351_tok_workforce_integrity_and_workflows.sql` | Présente dans la branche ; non appliquée en production dans ce lot. |
-| Edge Function `tok-workforce-assistant` | Présente dans la branche ; non déployée dans ce lot. |
-| Frontend des nouveaux parcours Équipe | Présent dans la branche ; non déployé dans ce lot. |
+| Branche d’implémentation | PR #1004 fusionnée ; cinq workflows de validation réussis sur `e86dc168`, puis contrôles de production réussis. |
+| Migration `20261028044351_tok_workforce_integrity_and_workflows.sql` | Appliquée à 06:15:33 UTC ; présence confirmée par lecture de l’historique de production à 06:20 UTC. |
+| Edge Function `tok-workforce-assistant` | Publiée sur `wwcrtyoueexyxkkikaos` à 06:27:30 UTC ; version 1 et statut `ACTIVE` confirmés. |
+| Frontend des nouveaux parcours Équipe | Publié par le pipeline à 06:36 UTC ; contrôle final et référence de production enregistrée avec succès. |
 | Entrées `equipe.thetok.ch` et `équipe.thetok.ch` | **Actives et vérifiées** ; redirections publiées séparément. |
 | Navigation publique vers le portail protégé | Vérifiée dans un navigateur réel : passage vers l’authentification avec continuation conservée. |
-| Navigation authentifiée dans la nouvelle UI | **Non vérifiée dans le navigateur cloud** : ce navigateur ne rejoint pas le serveur local. Les tests de composants ne remplacent pas cette vérification. |
+| Navigation authentifiée dans la nouvelle UI | **Non vérifiée avec un compte salarié réel**. Les tests de composants et de routeur ne remplacent pas cette vérification. Aucun salarié n’a été créé ni invité pour les essais. |
 
 ### Référence fonctionnelle et méthode
 
@@ -49,11 +49,11 @@ La branche et ses contrôles fournissent la référence versionnée de la livrai
 | Référence | Valeur |
 |---|---|
 | Branche | [`feat/tok-equipe-swisstime-20261028`](https://github.com/Mtnrconcept1/cloud-rebuild/tree/feat/tok-equipe-swisstime-20261028) |
-| Comparaison avec main | [Diff de livraison](https://github.com/Mtnrconcept1/cloud-rebuild/compare/main...feat/tok-equipe-swisstime-20261028) |
+| Diff du lot livré | [Fichiers de la PR #1004](https://github.com/Mtnrconcept1/cloud-rebuild/pull/1004/files) |
 | PR et CI | [PR #1004](https://github.com/Mtnrconcept1/cloud-rebuild/pull/1004) ; vérifier le SHA de tête dans l’onglet Checks. |
 | Liste complète des fichiers | Section 11, extraite du staging de livraison. |
-| Déploiement Supabase / Edge | Non réalisé dans ce lot. |
-| Déploiement frontend | Non réalisé dans ce lot. |
+| Déploiement Supabase / Edge | [Job réussi](https://github.com/Mtnrconcept1/cloud-rebuild/actions/runs/40642076919/job/122664263233), migration et nouvelle fonction nommées dans son journal. |
+| Déploiement frontend | [Job réussi](https://github.com/Mtnrconcept1/cloud-rebuild/actions/runs/40642076919/job/122670788537), suivi du contrôle de disponibilité. |
 
 ## 3. Entrées de domaine déjà publiées
 
@@ -61,8 +61,8 @@ Le manifeste [tok-equipe-entry-routes.json](../architecture/tok-equipe-entry-rou
 
 | Métadonnée | Valeur |
 |---|---|
-| Version publiée | `788308b6-0969-47e9-81f1-9b2ff38e56f0` |
-| Version précédente | `250b0e5b-2fbe-4d51-9fce-8bb184ce91ce` |
+| Version publiée | `8a87ca65-255d-49d8-99c4-254f8fe498e1` |
+| Version précédente | `788308b6-0969-47e9-81f1-9b2ff38e56f0` — quatre redirections employés et redirection historique déjà présentes. |
 | Domaine ASCII | `equipe.thetok.ch` |
 | Domaine accentué, forme DNS | `xn--quipe-9ra.thetok.ch` |
 
@@ -75,14 +75,16 @@ Comportement actif vérifié :
 | Autre chemin `/<chemin>` | HTTP **307** vers `https://www.thetok.ch/<chemin>`, selon la règle publiée. |
 | Paramètre `restaurant` d’un lien | Conservé dans la redirection et la continuation vers le portail après authentification. |
 | `https://www.thetok.ch/` | Toujours **200** ; la racine du site canonique n’est pas redirigée vers Équipe. |
+| `/equipe/mon-espace` et `/equipe/gestion` sur le site canonique | **200**, shell applicatif, `X-Robots-Tag: noindex, nofollow, noarchive`, `Cache-Control: private, no-store, max-age=0` et CSP présente. |
+| `/equipe/inconnue` et `/equipe/mon-espace-extra` | **404** conservé ; aucun fallback général n’a été ouvert. |
 
-La navigation publique a atteint l’authentification avec la continuation attendue. Elle ne prouve ni le fonctionnement d’une session employé/manager dans le nouveau frontend, ni le déploiement de ses migrations. La publication de ces redirections est indépendante du lot applicatif restant à livrer.
+La navigation publique après déploiement a atteint `https://www.thetok.ch/auth?redirect=%2Fequipe%2Fmon-espace`, avec le texte invitant le salarié à utiliser son adresse invitée. La correction HTTP décrite en section 12 a ensuite été publiée dans le routage du projet. Ce contrôle d’entrée ne remplace pas une session authentifiée employé/manager.
 
 ## 4. Cible Supabase et conditions de déploiement
 
 La cible de production déclarée et vérifiée en lecture seule est **`wwcrtyoueexyxkkikaos`**. Le fichier [supabase/config.toml](../../supabase/config.toml), le [workflow de production](../../.github/workflows/deploy-production.yml) et la cible de production attendue sont cohérents.
 
-`corepack pnpm run supabase:doctor:all` a échoué dans ce worktree, qui ne possède pas les fichiers `.env` attendus ni le lien CLI Supabase local. Cet échec ne constitue pas une validation de connectivité ou d’état du schéma distant. Il doit rester visible dans le bilan ; le contrôle de cible et le doctor du pipeline devront réussir dans leur environnement autorisé.
+`corepack pnpm run supabase:doctor:all` avait échoué dans le worktree sans fichiers `.env` ni lien CLI Supabase local. Le contrôle de cible et le **doctor de production ont ensuite réussi** dans le [préflight du pipeline](https://github.com/Mtnrconcept1/cloud-rebuild/actions/runs/40642076919/job/122663920610), avec les protections Auth, les contrôles Vault/cron/email et le contrôle de préparation à la livraison.
 
 **Aucun secret ni fichier d’environnement n’a été créé, modifié ou recopié pour contourner cette limite.** Ce dossier ne fournit aucune URL de connexion à une base de production et n’invite pas à lancer les fixtures SQL sur celle-ci.
 
@@ -246,7 +248,7 @@ Le [premier passage GitHub complet](https://github.com/Mtnrconcept1/cloud-rebuil
 
 Le correctif de livraison met cette seule dépendance racine à la [version officielle 4.6.7](https://github.com/colinhacks/zod/releases/tag/v4.6.7), avec son lockfile. Aucun import ou schéma Zod n’a été trouvé dans les 1 889 fichiers source/configuration inspectés ; OpenAI 6.39.1 accepte ce peer v4. Le resolver de formulaires inutilisé et la chaîne Puppeteer/Chromium-BiDi de développement restent hors de cette correction. Un futur usage du resolver avec Zod 4 devra utiliser une version compatible. Aucun advisory n’est ignoré et le gate existant `pnpm audit --prod --audit-level high` est conservé.
 
-Après ce correctif, **l’audit de production signale zéro vulnérabilité sur 397 dépendances**, le typecheck réussit et le build de production réussit en **52,41 secondes**. La CI est relancée sur le nouveau commit de la PR ; les résultats définitifs restent attachés à son SHA de tête.
+Après ce correctif, **l’audit de production signale zéro vulnérabilité sur 397 dépendances**, le typecheck réussit et le build de production réussit en **52,41 secondes**. Sur le commit final `e86dc168`, les cinq workflows de validation ont réussi, avec **5 519 tests réussis et 2 ignorés** dans la suite complète. Le pipeline de production du commit fusionné `c560a7de` a ensuite réussi. CodeQL est également vert. Deux contrôles externes Cloudflare Workers Builds échouaient déjà sur la base `837705c6` et restent distincts de la livraison Vercel/Supabase réussie.
 
 | Contrôle | Résultat local / portée | Commande ou preuve |
 |---|---|---|
@@ -264,7 +266,7 @@ Après ce correctif, **l’audit de production signale zéro vulnérabilité sur
 | Audit des dépendances de production | Réussi après mise à jour de la dépendance racine Zod : 0 vulnérabilité, 397 dépendances. | `corepack pnpm audit --prod --audit-level high --json` ; critère du gate inchangé. |
 | Typage réel Edge | Réussi avec Deno officiel 2.9.6, checksum vérifié ; lock et cache temporaires. | Commande ci-dessous. |
 | Cohérence du diff | Contrôle UTF-8, liens documentaires et espaces du diff. | `git diff --cached --check` et index déterministe. |
-| `supabase:doctor:all` dans le worktree | Échec expliqué : absence des fichiers d’environnement et du lien CLI locaux. Aucune opération de production exécutée. | Préflight et doctor du pipeline à conserver avant déploiement. |
+| `supabase:doctor:all` dans le worktree, puis doctor du pipeline | Échec initial local expliqué par l’absence de configuration ; **doctor production et préflight ensuite réussis** dans le pipeline de publication. | Job `preflight` 122663920610 du run 40642076919. |
 | Navigation publique | Deux domaines HTTPS vérifiés, 307 et paramètre restaurant conservé ; site canonique en 200. Portail protégé rejoint l’authentification avec la continuation attendue. | Version de routage dans le manifeste ; vérification HTTP et navigateur réel. |
 | Navigation authentifiée de la nouvelle UI | Non exécutée dans le navigateur cloud, qui ne rejoint pas localhost. Tests de composants et intégrations routeur exécutés localement. | Vérifier les parcours après publication dans un environnement accessible avec comptes de test autorisés. |
 | CI de la PR | Exécutée par GitHub après publication de la branche ; consulter les checks associés au SHA exact de la PR. | La CI reste la référence pour l’autorisation de fusion. |
@@ -354,3 +356,46 @@ Cette liste porte sur le diff du lot Équipe par rapport à la base `837705c65ce
 | A | `supabase/functions/_shared/workforce-assistant-context.ts` |
 | A | `supabase/functions/tok-workforce-assistant/index.ts` |
 | A | `supabase/migrations/20261028044351_tok_workforce_integrity_and_workflows.sql` |
+
+## 12. Correction de l’accès direct après publication
+
+Le contrôle public final a détecté un défaut préexistant dans la liste manuelle de service des espaces privés : `/equipe/mon-espace` et `/equipe/gestion` recevaient le document 404, dont les scripts démarraient malgré tout l’application puis rejoignaient l’authentification. Les routes React existaient ; leurs rewrites Vercel et leur classement SEO privé manquaient.
+
+### Correction de routage déjà active
+
+Une réécriture de projet bornée à `^/equipe/(?:mon-espace|gestion)/?$`, sur le seul hôte `www.thetok.ch`, sert maintenant `/index.html`. Elle conserve les paramètres, les protections d’authentification/RLS, les cinq règles de routage déjà présentes et la CSP. Elle ajoute les en-têtes privés `noindex, nofollow, noarchive` et `private, no-store, max-age=0`. Version publiée : `8a87ca65-255d-49d8-99c4-254f8fe498e1` ; retour arrière de cette seule publication : `788308b6-0969-47e9-81f1-9b2ff38e56f0`.
+
+Les vérifications HTTP après publication établissent :
+
+- les deux routes privées, avec ou sans paramètre `restaurant`, répondent **200**, contiennent le shell et les en-têtes privés ;
+- `/equipe/inconnue` et `/equipe/mon-espace-extra` restent en **404** ;
+- la racine publique reste en **200** ;
+- les deux alias employés restent en **307** vers le chemin canonique.
+
+### Consolidation dans le dépôt
+
+La branche `fix/tok-equipe-entry-routing-20261028`, préparée depuis `32a4c77d5149108d33f7d69a9f3b5530ce380f42`, ajoute les deux rewrites exacts et leurs en-têtes dans `vercel.json`, classe les routes dans les deux listes SEO privées, et rend les entrées Équipe obligatoires dans le contrôle après déploiement. Cette consolidation du code et des titres privés suit sa propre PR ; elle n’est pas assimilée à la règle de projet déjà publiée. Aucune nouvelle migration ni modification d’Edge Function n’appartient à ce correctif.
+
+Le transport Git avait laissé des blobs de la nouvelle base manquants. Les 17 fichiers source concernés ont été récupérés par leur SHA via le connecteur, puis les trois index ont été régénérés. Les blobs et l’arbre résultant **`cbb4afeab5d8b55922ddfa7dea3315cec057a5e3`** ont été vérifiés identiques à `main` avant les modifications. Le fetch Git fonctionne de nouveau après cette restauration ; aucun travail distant n’a été remplacé.
+
+Vérifications ciblées : **8 suites, 146 tests distincts réussis** sur serving, en-têtes, métadonnées privées, génération SEO et contrôles après déploiement. La suite de génération qui lance des sous-processus a d’abord rencontré `spawnSync EPERM` dans le sandbox ; sa relance autorisée sur fixtures temporaires a réussi **20/20**, sans accès Supabase réel. ESLint ciblé, syntaxe Node/JSON, UTF-8 et espaces du diff sont propres. Le contrôle canonique **`corepack pnpm run typecheck` réussit** (`tsconfig.typecheck.json`). Un diagnostic initial non canonique avec `tsconfig.app.json` a échoué en incluant les tests et leurs imports Edge ; aucune configuration n’a été modifiée pour le faire passer. Les résultats de CI restent attachés au commit de cette PR.
+
+Liste complète des fichiers de cette consolidation (15 fichiers ; la section 11 conserve le périmètre des 65 fichiers du lot fonctionnel initial) :
+
+| État | Fichier |
+|---|---|
+| M | `vercel.json` |
+| M | `scripts/post-deploy-check.mjs` |
+| M | `scripts/prerender-seo.mjs` |
+| M | `src/hooks/useSeoMeta.ts` |
+| M | `src/test/post-deploy-seo-regressions.test.ts` |
+| M | `src/test/route-serving-regression.test.ts` |
+| M | `src/test/seo-growth.test.ts` |
+| M | `src/test/vercel-rewrites.test.ts` |
+| A | `src/test/workforce-route-metadata.test.ts` |
+| M | `docs/architecture/TOK_EQUIPE_FUNCTIONAL_PARITY.md` |
+| M | `docs/architecture/tok-equipe-entry-routes.json` |
+| M | `docs/operations/TOK_EQUIPE_RELEASE_2026-10-28.md` |
+| M | `docs/architecture/TOK_APPLICATION_REFERENCE.md` |
+| M | `docs/architecture/tok-application-search-index.json` |
+| M | `src/data/tok-user-guide-catalog.generated.ts` |

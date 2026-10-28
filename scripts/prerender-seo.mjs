@@ -1280,6 +1280,8 @@ const PRIVATE_ROUTE_PREFIXES = [
   "/auth",
   "/oauth",
   "/espaces",
+  "/equipe/mon-espace",
+  "/equipe/gestion",
   "/r",
   "/tok-connect/developer",
 ];

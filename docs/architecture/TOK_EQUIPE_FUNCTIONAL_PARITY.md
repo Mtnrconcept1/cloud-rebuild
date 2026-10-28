@@ -4,7 +4,7 @@
 
 Cette matrice compare la cartographie du dépôt `mtnrconcept/swiss-time-tracker`, au commit **`7cab98100ae189b7eec1234a7cbc6b49db2f95b7`**, avec le code TOK préparé le **28 octobre 2026** sur la branche **`feat/tok-equipe-swisstime-20261028`**, mise à jour depuis `main` au commit `070aecdfb2a8cca59191d329034c380117abf1ab`. La PR #1004 intègre ensuite la base `main` `837705c65cedfbfb3406fe9542e4afdf66020938` et régénère ses index.
 
-Elle décrit les parcours reliés dans la branche applicative destinée à la PR. **Elle n’atteste ni le déploiement de cette branche, ni l’application en production de la nouvelle migration SQL, ni le déploiement de l’Edge Function `tok-workforce-assistant`.** Les fichiers de test constituent les preuves de comportement à exécuter ; le statut final de la CI et du déploiement relève de la livraison de la PR.
+La [PR #1004](https://github.com/Mtnrconcept1/cloud-rebuild/pull/1004) a été fusionnée le 28 octobre 2026 au commit `c560a7de37f0fc46eb0d1192ae8492287c624422`. Le [pipeline de production 40642076919](https://github.com/Mtnrconcept1/cloud-rebuild/actions/runs/40642076919) a réussi : migration appliquée à 06:15 UTC, assistant publié à 06:27 UTC et frontend publié à 06:36 UTC. La migration et la fonction `ACTIVE` ont également été vérifiées dans les métadonnées de production. Les parcours authentifiés sont couverts par les tests de composants, de routeur et de base ; ils n’ont pas été parcourus avec un compte salarié réel dans le navigateur.
 
 Un élément d’infrastructure est déjà publié séparément : les entrées `equipe.thetok.ch` et `équipe.thetok.ch` — forme DNS `xn--quipe-9ra.thetok.ch` — redirigent en **HTTP 307** vers le site canonique TOK. Le manifeste [tok-equipe-entry-routes.json](tok-equipe-entry-routes.json) conserve la version publiée et les règles du 28 octobre 2026 :
 
@@ -13,7 +13,7 @@ Un élément d’infrastructure est déjà publié séparément : les entrées `
 | Racine de chacun des deux sous-domaines | `https://www.thetok.ch/equipe/mon-espace` |
 | Chemin `/<chemin>` sur chacun des deux sous-domaines | `https://www.thetok.ch/<chemin>` |
 
-Ces redirections réutilisent l’authentification canonique ; elles ne déploient pas à elles seules les nouvelles fonctionnalités RH. La présente documentation ne les assimile donc pas à une mise en production de la branche.
+Ces redirections réutilisent l’authentification canonique. Après la publication applicative, le contrôle HTTP a révélé que les deux routes Équipe manquaient dans la liste de service SPA de Vercel. La version de routage `8a87ca65-255d-49d8-99c4-254f8fe498e1` corrige ce point en production : `/equipe/mon-espace` et `/equipe/gestion` servent le shell en **HTTP 200**, avec `noindex` et cache privé désactivé. Les paramètres sont conservés et les URL inconnues restent en 404. La branche `fix/tok-equipe-entry-routing-20261028` inscrit aussi cette frontière dans la configuration, les métadonnées et les tests du dépôt ; son état de fusion est distinct du correctif de routage déjà actif.
 
 ## 2. Organisation des écrans TOK
 

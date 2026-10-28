@@ -136,6 +136,20 @@ describe("vercel config", () => {
     expect(spaFallbackIndex).toBeGreaterThan(edgeFunctionIndex);
   });
 
+  it.each(["/equipe/mon-espace", "/equipe/gestion"])("serves the exact workforce entry %s with private non-cacheable headers", (route) => {
+    const config = JSON.parse(readFileSync(path.resolve(process.cwd(), "vercel.json"), "utf8")) as {
+      rewrites: Array<{ source: string; destination: string }>;
+      headers: Array<{ source: string; headers: Array<{ key: string; value: string }> }>;
+    };
+
+    expect(config.rewrites).toContainEqual({ source: route, destination: "/index.html" });
+    const headers = config.headers.find((entry) => entry.source === route)?.headers;
+    expect(headers).toEqual(expect.arrayContaining([
+      { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+      { key: "Cache-Control", value: "private, no-store, max-age=0" },
+    ]));
+  });
+
   it("keeps legacy public image aliases ahead of private SPA rewrites", () => {
     const configPath = path.resolve(process.cwd(), "vercel.json");
     const config = JSON.parse(readFileSync(configPath, "utf8")) as {
