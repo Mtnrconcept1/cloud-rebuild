@@ -1,9 +1,9 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "a93cf112bcffd04304eaba11fad4ffb53ff2b493089a6a4d07cd96e12393f08d",
+  "sourceDigest": "c51b146b4dcfa93526a92427d86fbad099820005ce4d37139e8bd8279913827e",
   "routeCount": 143,
-  "toolCount": 120
+  "toolCount": 121
 } as const;
 
 export const TOK_USER_GUIDE_ROUTES = [
@@ -2016,6 +2016,15 @@ export const TOK_USER_GUIDE_TOOLS = [
     "endpoint": "/functions/v1/cloudprinter-webhook",
     "methods": [
       "POST"
+    ],
+    "actions": [],
+    "integrations": []
+  },
+  {
+    "name": "commercial-consent-confirmation",
+    "endpoint": "/functions/v1/commercial-consent-confirmation",
+    "methods": [
+      "ANY"
     ],
     "actions": [],
     "integrations": []

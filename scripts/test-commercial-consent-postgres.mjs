@@ -96,4 +96,30 @@ try {
  assert.equal(psql("SELECT count(*) FROM cron.job WHERE jobname='tok-consent-retention' AND schedule='19 3 * * *';").trim(),'1');
  console.log('PASS: restored historical schema coexists with Cockpit consent; controller/proofs preserved, private tables protected, one retention registration (cron execution not simulated).');
  console.log('PASS: real PostgreSQL17 assertions and three simultaneous same-request submissions; one receipt and one evidence event.');
+ // New flow follows the legacy regression to prove upgrade compatibility.
+ const doubleMigration='supabase/migrations/20261027221840_commercial_email_confirmation.sql';
+ if (process.env.TOK_TEST_EMAIL_CONFIRMATION === 'true') {
+   console.log(psql(`CREATE TABLE public.email_queue(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),to_email text NOT NULL,subject text NOT NULL,body_html text,body_text text,status text DEFAULT 'queued',sent_at timestamptz,error text,created_at timestamptz DEFAULT now(),metadata jsonb DEFAULT '{}',provider_message_id text);
+     ALTER TABLE public.email_queue ENABLE ROW LEVEL SECURITY;
+     CREATE TABLE public.marketing_deliveries(id uuid PRIMARY KEY,contact_id uuid,status text,last_error text,unsubscribed_at timestamptz,lease_token uuid,lease_expires_at timestamptz);`));
+   const confirmation=readFileSync(doubleMigration,'utf8');
+   console.log(psql(confirmation)); console.log(psql(confirmation));
+   console.log(psql(readFileSync('supabase/tests/commercial_email_confirmation.sql','utf8')));
+   const doubleCall=`SELECT public.commercial_record_signed_email_consent_v2(1,'Test concurrency','double-concurrency@example.com','Test Person','Gérant', (SELECT signature_data FROM test_fixture.signature),true, public.commercial_get_email_consent_context(1)->>'document_hash','00000000-0000-4000-8000-000000000299')->>'receipt_id';`;
+   const attempts=await Promise.all([1,2,3].map(()=>execute('psql',['-X','-v','ON_ERROR_STOP=1','-At','-c',prefix+doubleCall],{encoding:'utf8'})));
+   assert.equal(new Set(attempts.map(r=>r.stdout.trim().split('\n').at(-1))).size,1);
+   assert.equal(psql("SELECT count(*) FROM public.email_queue WHERE to_email='double-concurrency@example.com';").trim(),'1');
+   const queue=psql("SELECT queue_id FROM public.commercial_email_confirmations WHERE email='double-concurrency@example.com';").trim();
+   console.log(psql(`SET ROLE service_role; SELECT public.commercial_claim_consent_email('${queue}',repeat('1',64),repeat('2',64));`));
+   await Promise.all([1,2,3].map(()=>execute('psql',['-X','-v','ON_ERROR_STOP=1','-At','-c',"SET ROLE service_role; SELECT public.commercial_consent_public_action(repeat('1',64),'confirm');"],{encoding:'utf8'})));
+   assert.equal(psql("SELECT count(*) FROM public.audit_log WHERE action='commercial_consent_mail_confirmed' AND entity_id=(SELECT receipt_id FROM public.commercial_email_confirmations WHERE email='double-concurrency@example.com');").trim(),'1');
+   assert.equal(psql("SELECT public.marketing_contact_is_eligible(id,'email') FROM public.marketing_contacts WHERE email_normalized='double-concurrency@example.com';").trim(),'t');
+   assert.equal(psql("SELECT count(*) FROM public.email_queue WHERE to_email='double-concurrency@example.com';").trim(),'2');
+   assert.equal(psql("SELECT count(*) FROM public.commercial_email_acknowledgements a JOIN public.commercial_email_confirmations c ON c.receipt_id=a.receipt_id WHERE c.email='double-concurrency@example.com';").trim(),'1');
+   const ackQueue=psql("SELECT a.queue_id FROM public.commercial_email_acknowledgements a JOIN public.commercial_email_confirmations c ON c.receipt_id=a.receipt_id WHERE c.email='double-concurrency@example.com';").trim();
+   const claims=await Promise.all([1,2,3].map(()=>execute('psql',['-X','-v','ON_ERROR_STOP=1','-At','-c',`SET ROLE service_role; SELECT public.commercial_claim_consent_email('${ackQueue}',repeat('1',64),repeat('3',64));`],{encoding:'utf8'})));
+   assert.equal(claims.filter(r=>r.stdout.includes('lease_token')).length,1);
+   console.log('PASS: signed permission, three simultaneous approvals produce one final acknowledgement, three concurrent mail workers acquire one lease.');
+ }
+
 } catch(error) { if(error.stderr)console.error(String(error.stderr));throw error; }

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { getSupabase } from "@/integrations/supabase/client";
 import WorkforceSignaturePad from "@/components/workforce/WorkforceSignaturePad";
 import {
-  consentErrorMessage, normalizeConsentEmail, parseConsentContext, parseConsentReceipt,
+  consentErrorMessage, consentStatusLabel, consentDeliveryLabel, normalizeConsentEmail, parseConsentContext, parseConsentReceipt,
   validateConsentFields, type ConsentContext, type ConsentDocument, type ConsentFields, type ConsentReceipt,
 } from "@/lib/commercialEmailConsent";
 
@@ -150,19 +150,23 @@ function ConsentSession({ prospect, onOpenChange }: { prospect: Prospect; onOpen
       {!loading && error && <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
       {!loading && !context && <Button type="button" variant="outline" onClick={() => setReload(value => value + 1)}>Réessayer le chargement</Button>}
       {!loading && receipt ? <section className="space-y-4 text-sm">
-        <h3 className="font-semibold">Consentement enregistré dans Marketing TOK</h3>
+        <h3 className="font-semibold">{receipt.confirmation_state && receipt.confirmation_state !== "legacy" ? consentStatusLabel(receipt) : "Consentement enregistré dans Marketing TOK"}</h3>
         <p>Accord signé par <strong>{receipt.signer_name}</strong> ({receipt.signer_role}) pour <strong>{receipt.restaurant_name}</strong>, le {formatDate(receipt.signed_at)}.</p>
-        <p className="break-all">Adresse autorisée : <strong>{receipt.email}</strong></p>
+        <p className="break-all">Adresse renseignée : <strong>{receipt.email}</strong></p>
+        {receipt.confirmation_state === "pending" && <p className="rounded-lg bg-primary/5 p-3">Le consentement signé autorise déjà les e-mails prévus par ce texte, sous réserve des autres règles marketing. La copie et la signature seront envoyées à cette adresse. Le restaurateur peut ouvrir le reçu puis cliquer sur <strong>JE CONSENS</strong>. Ce clic facultatif ajoute une seconde preuve et déclenche un e-mail de double confirmation.</p>}
+        {consentDeliveryLabel(receipt.email_delivery_state) && <p role="status">{consentDeliveryLabel(receipt.email_delivery_state)}</p>}
+        {receipt.confirmed_at && <p>Confirmation depuis la boîte : {formatDate(receipt.confirmed_at)}.</p>}
+        {receipt.acknowledgement_delivery_state && <p role="status">Accusé de double confirmation : {consentDeliveryLabel(receipt.acknowledgement_delivery_state)}</p>}
         <p className="rounded-lg border p-3">{receipt.withdrawn ? "Autorisation retirée : cette preuve ne réactive aucun droit d’envoi." : receipt.email_eligible ? "Consentement e-mail actif. Les contrôles de campagne, de fréquence et de délivrabilité restent applicables." : "L’accord est conservé, mais les règles marketing actuelles bloquent l’envoi à cette adresse."}</p>
         <DocumentText value={receipt.document} />
         <img src={receipt.signature_data} alt="Signature manuscrite enregistrée du restaurateur" className="w-full rounded-lg border bg-white" />
-        <p className="text-xs text-muted-foreground">Adresse e-mail non vérifiée par ce procédé. Signature électronique simple, sans vérification d’identité civile. Le commercial est identifié comme collecteur, pas comme signataire.</p>
+        <p className="text-xs text-muted-foreground">{receipt.email_verified ? "Accès au lien envoyé à la boîte confirmé ; cela ne certifie pas l’identité civile ni les pouvoirs du signataire." : "Adresse e-mail non vérifiée tant que son destinataire n’a pas confirmé le lien."} Signature électronique simple. Le commercial est identifié comme collecteur, pas comme signataire.</p>
         <p className="break-all text-xs text-muted-foreground">Référence : {receipt.receipt_id}<br />Empreinte de preuve : {receipt.proof_hash}</p>
-        <div className="flex flex-wrap gap-2"><Button type="button" onClick={downloadReceipt}>Télécharger la preuve</Button><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Terminer</Button></div>
+        <div className="flex flex-wrap gap-2"><Button type="button" onClick={downloadReceipt}>Télécharger la preuve</Button><Button type="button" variant="outline" disabled={busy} onClick={() => showReceipt(receipt.receipt_id)}>Actualiser la confirmation</Button><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Terminer</Button></div>
       </section> : !loading && context && <div className="space-y-4">
         {context.is_admin && <ControllerSettings key={context.document_hash ?? "setup"} context={context} sourceObjectId={prospect.sourceObjectId} onSaved={value => { setContext(value); setFields(emptyFields()); setPadKey(key => key + 1); setError(null); }} setBusy={setBusy} />}
         {!context.document ? <p className="rounded-lg border p-4 text-sm">L’identité professionnelle de TOK doit être renseignée par un administrateur avant la première signature. Aucune adresse ni signature n’est enregistrée ici tant que cette étape n’est pas terminée.</p> : <>
-          {context.latest && <div className="rounded-lg border p-3 text-sm"><p>Dernier accord enregistré : {formatDate(context.latest.signed_at)} — {context.latest.withdrawn ? "retiré" : context.latest.email_eligible ? "consentement e-mail actif" : "envoi bloqué par les règles marketing"}.</p><Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => showReceipt(context.latest!.receipt_id)}>Voir l’accord enregistré</Button></div>}
+          {context.latest && <div className="rounded-lg border p-3 text-sm"><p>Dernier accord enregistré : {formatDate(context.latest.signed_at)} — {consentStatusLabel(context.latest)}.</p><Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => showReceipt(context.latest!.receipt_id)}>Voir l’accord enregistré</Button></div>}
           <form onSubmit={submit} className="space-y-4">
             <p className="rounded-lg bg-primary/5 p-3 text-sm"><strong>{prospect.name}</strong><br />Commercial : remettez l’appareil au restaurateur pour qu’il lise, approuve et signe lui-même.</p>
             <fieldset disabled={busy || uncertain} className="space-y-4">
@@ -180,7 +184,7 @@ function ConsentSession({ prospect, onOpenChange }: { prospect: Prospect; onOpen
             <div className="sticky -bottom-6 space-y-2 border-t bg-background pb-4 pt-3">
               <Button type="submit" className="h-auto min-h-11 w-full whitespace-normal py-3" disabled={!canSubmit}>{busy ? "Enregistrement…" : "J’approuve et je signe mon consentement"}</Button>
               {uncertain && <Button type="button" variant="outline" className="w-full" disabled={busy} onClick={reset}>Recharger le texte et recommencer</Button>}
-              <p className="text-xs text-muted-foreground">L’accord signé est conservé comme preuve de consentement e-mail. Aucun message ni abonnement n’est déclenché par ce bouton.</p>
+              <p className="text-xs text-muted-foreground">La signature déclenche un e-mail contenant cette autorisation et votre signature. Votre consentement signé autorise déjà ces campagnes. JE CONSENS ajoute une confirmation complémentaire et un e-mail récapitulatif. Aucun abonnement ni achat.</p>
             </div>
           </form>
         </>}

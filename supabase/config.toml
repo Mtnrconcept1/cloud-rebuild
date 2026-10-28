@@ -369,3 +369,7 @@ verify_jwt = true
 
 [functions.tok-connect-broker]
 verify_jwt = false
+
+# Private mailbox capability; GET never grants consent and mutations validate the token server-side.
+[functions.commercial-consent-confirmation]
+verify_jwt = false

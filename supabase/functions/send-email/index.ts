@@ -11,6 +11,7 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { buildReservationConfirmationEmail } from "../_shared/transactional-emails.ts";
 import { reconcileEmailProviderStatuses } from "../_shared/email-provider-reconciliation.ts";
+import { CONSENT_EMAIL_KIND, deliverConsentEmail } from "../_shared/commercial-consent-confirmation.ts";
 
 async function sendEmailMessage(
   resendApiKey: string | null,
@@ -158,12 +159,19 @@ Deno.serve(async (req) => {
     );
     const resendApiKey = Deno.env.get("RESEND_API_KEY") || null;
 
+    if (!userIdFilter) {
+      // Recover only this feature's leases/retries; never requeue invoices or other notifications.
+      const { error: recoveryError } = await supabaseAdmin.rpc("commercial_recover_consent_emails");
+      if (recoveryError) log.warn("Consent email recovery unavailable", { code: "consent_recovery_unavailable" });
+    }
+
     const { data: emails, error } = userIdFilter
       ? { data: [], error: null }
       : await supabaseAdmin
         .from("email_queue")
         .select("*")
-        .eq("status", "queued")
+        // A private queue status keeps older generic workers from sending an empty confirmation.
+        .in("status", ["queued", "consent_pending"])
         .order("created_at", { ascending: true })
         .limit(10);
 
@@ -210,6 +218,22 @@ Deno.serve(async (req) => {
     let lastDeliveryError: string | null = null;
 
     for (const email of emails) {
+      if (email.metadata?.kind === CONSENT_EMAIL_KIND) {
+        try {
+          const outcome = await deliverConsentEmail({
+            rpc: (name, args) => supabaseAdmin.rpc(name, args), queueId: email.id,
+            secret: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, apiKey: resendApiKey,
+            from: Deno.env.get("EMAIL_FROM") || "Tok <noreply@mailing.thetok.ch>",
+          });
+          if (outcome === "sent") queuedProcessed++;
+          else if (outcome === "failed") { queuedFailed++; lastDeliveryError = "consent_delivery_failed"; }
+        } catch {
+          // Leave the atomic lease/outbox intact for bounded recovery. Never fall through to generic mail.
+          queuedFailed++; lastDeliveryError = "consent_delivery_unsettled";
+          log.warn("Consent email not settled", { code: "consent_delivery_unsettled" });
+        }
+        continue;
+      }
       try {
         // Concurrent scheduled workers must atomically claim a queued mail
         // before sending; otherwise they can send duplicate paid invoices.
