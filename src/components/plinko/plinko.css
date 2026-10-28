@@ -10,7 +10,7 @@
 .tok-plinko__board { margin:0 16px; padding:15px 10px 9px; border:1px solid #e6ae65; border-radius:20px; background:radial-gradient(ellipse at 50% -10%,#654126 0%,#29231e 38%,#141a22 100%); color:#fff8ee; box-shadow:inset 0 0 0 4px #ffffff05; }
 .tok-plinko__board-caption { display:flex; justify-content:space-between; gap:10px; padding:0 8px; color:#efd7b5; font-size:8px; font-weight:700; letter-spacing:.12em; }
 .tok-plinko__board-caption span:last-child { color:#fdc16e; letter-spacing:0; }
-.tok-plinko__pegboard { display:block; width:100%; max-height:288px; overflow:visible; margin:2px 0 0; }
+.tok-plinko__pegboard { display:block; width:100%; height:auto; overflow:visible; margin:2px 0 0; }
 .tok-plinko__pockets { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:5px; margin:2px 3px 0; }
 .tok-plinko__pockets>div { display:flex; min-width:0; min-height:51px; flex-direction:column; align-items:center; justify-content:flex-start; gap:5px; color:#f9dfc2; font-size:10px; line-height:1.1; text-align:center; }
 .tok-plinko__pockets .is-selected { color:#ffd088; }

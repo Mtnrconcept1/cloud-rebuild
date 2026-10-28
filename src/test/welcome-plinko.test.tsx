@@ -87,6 +87,8 @@ function renderPlinko(enabled = true) {
 }
 
 async function advance(milliseconds: number) {
+  // Commit a resolved play response before advancing its requestAnimationFrame loop.
+  await act(async () => { await Promise.resolve(); });
   await act(async () => { await vi.advanceTimersByTimeAsync(milliseconds); });
 }
 
@@ -163,7 +165,7 @@ describe("WelcomePlinko anonymous visitor flow", () => {
     expect(screen.getByRole("button", { name: /lâcher mon miamz/i })).toBeEnabled();
 
     fireEvent.click(screen.getByRole("button", { name: /lâcher mon miamz/i }));
-    await advance(2300);
+    await advance(6000);
 
     expect(plinkoMocks.playPlinko).toHaveBeenCalledWith("anonymous-plinko-session", expect.any(String));
     expect(plinkoMocks.playPlinko.mock.calls[0][1]).not.toBe("expired-draw-request");
@@ -277,7 +279,7 @@ describe("WelcomePlinko anonymous visitor flow", () => {
     expect(plinkoMocks.claimPlinko).not.toHaveBeenCalled();
 
     await act(async () => { resolvePlay(lostPlay); });
-    await advance(2300);
+    await advance(6000);
     expect(screen.queryByRole("textbox", { name: /e-?mail/i })).not.toBeInTheDocument();
   });
 
@@ -286,11 +288,11 @@ describe("WelcomePlinko anonymous visitor flow", () => {
     await openPlinko();
 
     fireEvent.click(screen.getByRole("button", { name: /lâcher mon miamz/i }));
-    await advance(2300);
+    await advance(6000);
     expect(screen.getByRole("alert")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /lâcher mon miamz|réessayer/i }));
-    await advance(2300);
+    await advance(6000);
 
     expect(plinkoMocks.playPlinko).toHaveBeenCalledTimes(2);
     expect(plinkoMocks.playPlinko.mock.calls[0]).toEqual(plinkoMocks.playPlinko.mock.calls[1]);
@@ -307,10 +309,10 @@ describe("WelcomePlinko anonymous visitor flow", () => {
     expect(screen.queryByRole("textbox", { name: /e-?mail/i })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /lâcher mon miamz/i }));
-    await advance(2299);
+    await advance(500);
     expect(screen.queryByRole("textbox", { name: /e-?mail/i })).not.toBeInTheDocument();
     expect(screen.getByRole("status")).not.toHaveTextContent("−50 % sur un repas");
-    await advance(1);
+    await advance(5500);
 
     expect(screen.getByRole("status")).toHaveTextContent("−50 % sur un repas");
     const email = screen.getByRole("textbox", { name: /e-?mail/i });
@@ -336,7 +338,7 @@ describe("WelcomePlinko anonymous visitor flow", () => {
     await openPlinko();
 
     fireEvent.click(screen.getByRole("button", { name: /lâcher mon miamz/i }));
-    await advance(2300);
+    await advance(6000);
 
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("status")).not.toHaveTextContent("−50 % sur un repas");
@@ -352,7 +354,7 @@ describe("WelcomePlinko anonymous visitor flow", () => {
     fireEvent.click(screen.getByRole("button", { name: /^fermer$/i }));
 
     await act(async () => { resolvePlay(wonPlay); });
-    await advance(2300);
+    await advance(6000);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /ouvrir le plinko tok/i }));
@@ -373,5 +375,35 @@ describe("WelcomePlinko anonymous visitor flow", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("−50 % sur un repas");
     expect(screen.getByRole("textbox", { name: /e-?mail/i })).toBeInTheDocument();
+  });
+
+  it("allows exactly one new physical drop after a replay and reveals the next server result", async () => {
+    plinkoMocks.playPlinko.mockResolvedValueOnce({
+      ...lostPlay, available: true, play: { ...lostPlay.play, outcome: "replay" },
+    }).mockResolvedValueOnce(wonPlay);
+    await openPlinko();
+    fireEvent.click(screen.getByRole("button", { name: /lâcher mon miamz/i }));
+    await advance(6000);
+    fireEvent.click(screen.getByRole("button", { name: /rejouer mon coup gratuit/i }));
+    await advance(500);
+    expect(document.querySelector(".tok-plinko__pockets .is-selected")).toBeNull();
+    expect(screen.queryByRole("textbox", { name: /e-?mail/i })).not.toBeInTheDocument();
+    await advance(5500);
+    expect(screen.getByRole("textbox", { name: /e-?mail/i })).toBeInTheDocument();
+    expect(plinkoMocks.playPlinko).toHaveBeenCalledTimes(2);
+    expect(plinkoMocks.playPlinko.mock.calls[0][1]).not.toBe(plinkoMocks.playPlinko.mock.calls[1][1]);
+  });
+
+  it("reveals an interrupted physical drop on reopen without replaying or spending another attempt", async () => {
+    plinkoMocks.playPlinko.mockResolvedValueOnce(wonPlay);
+    await openPlinko();
+    fireEvent.click(screen.getByRole("button", { name: /lâcher mon miamz/i }));
+    await advance(500);
+    fireEvent.click(screen.getByRole("button", { name: /^fermer$/i }));
+    await advance(200);
+    fireEvent.click(screen.getByRole("button", { name: /ouvrir le plinko tok/i }));
+    expect(screen.getByRole("status")).toHaveTextContent("−50 % sur un repas");
+    expect(screen.getByRole("textbox", { name: /e-?mail/i })).toBeInTheDocument();
+    expect(plinkoMocks.playPlinko).toHaveBeenCalledTimes(1);
   });
 });

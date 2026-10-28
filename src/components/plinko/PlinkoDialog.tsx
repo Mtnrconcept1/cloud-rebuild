@@ -1,50 +1,10 @@
 import { useId, useState, type FormEvent } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { ArrowDown, Check, Gift, LoaderCircle, RotateCcw, ShieldCheck, Sparkles, UtensilsCrossed } from "lucide-react";
+import { ArrowDown, Check, Gift, LoaderCircle, RotateCcw, ShieldCheck } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { PLINKO_PRIZES, type PlinkoOutcome, type PlinkoState } from "@/lib/plinko";
+import { PLINKO_PRIZES, type PlinkoState } from "@/lib/plinko";
+import type { PlinkoTrajectory } from "@/lib/plinko-physics";
+import PlinkoBoard from "./PlinkoBoard";
 import "./plinko.css";
-
-const POCKETS: PlinkoOutcome[] = ["free_meal", "replay", "tok_one_month", "lost", "half_price"];
-const ICONS = [UtensilsCrossed, RotateCcw, Sparkles, Gift, UtensilsCrossed];
-const pins = Array.from({ length: 8 }, (_, row) => Array.from({ length: row + 3 }, (_, column) => ({
-  x: 250 + (column - (row + 2) / 2) * 40,
-  y: 61 + row * 29,
-}))).flat();
-
-function PlinkoBoard({ outcome, playing, animationKey }: { outcome?: PlinkoOutcome; playing: boolean; animationKey: number }) {
-  const reduceMotion = useReducedMotion();
-  const id = useId().replace(/:/g, "");
-  const pocket = outcome ? POCKETS.indexOf(outcome) : 2;
-  const target = 50 + pocket * 100;
-  const x = [250, ...Array.from({ length: 8 }, (_, row) => {
-    const progress = (row + 1) / 9;
-    return 250 + (target - 250) * progress + (row % 2 === 0 ? 15 : -15);
-  }), target, target];
-  const y = [15, ...Array.from({ length: 8 }, (_, row) => 45 + row * 29), 310, 322];
-  return <div className="tok-plinko__board" aria-hidden="true">
-    <div className="tok-plinko__board-caption"><span>LAISSEZ FAIRE LE MIAMZ</span><span>100 % gratuit</span></div>
-    <svg viewBox="0 0 500 350" className="tok-plinko__pegboard" focusable="false">
-      <defs>
-        <radialGradient id={`${id}-coin`} cx="35%" cy="25%"><stop stopColor="#fff7c0" /><stop offset=".6" stopColor="#ffc54d" /><stop offset="1" stopColor="#df7a13" /></radialGradient>
-        <linearGradient id={`${id}-peg`} x2="0" y2="1"><stop stopColor="#fff8e7" /><stop offset="1" stopColor="#d78b4b" /></linearGradient>
-      </defs>
-      <path d="M24 27V288Q24 302 38 302H462Q476 302 476 288V27" fill="none" stroke="#f78b332b" strokeWidth="2" />
-      {pins.map((pin, i) => <g key={i}><circle cx={pin.x} cy={pin.y + 3} r="4" fill="#090c12" /><circle cx={pin.x} cy={pin.y} r="3.8" fill={`url(#${id}-peg)`} /></g>)}
-      {POCKETS.map((entry, index) => <rect key={entry} x={index * 100 + 5} y="302" width="90" height="43" rx="9" fill={outcome === entry ? "#ef7922" : "#ffffff0a"} stroke={outcome === entry ? "#ffcd80" : "#ffffff20"} />)}
-      <motion.g key={animationKey} initial={{ x: 250, y: 15 }} animate={outcome ? { x: reduceMotion || !playing ? target : x, y: reduceMotion || !playing ? 322 : y } : { x: 250, y: 15 }} transition={{ duration: reduceMotion || !playing ? 0 : 2.3, ease: "linear" }}>
-        <circle r="13" fill={`url(#${id}-coin)`} stroke="#ffde8b" strokeWidth="2" />
-        <circle r="9" fill="none" stroke="#c17522" strokeWidth=".7" />
-        <text y="4" textAnchor="middle" fontSize="12" fontWeight="900" fill="#6f350c">M</text>
-      </motion.g>
-    </svg>
-    <div className="tok-plinko__pockets">{POCKETS.map((entry, i) => {
-      const Icon = ICONS[i];
-      return <div key={entry} className={outcome === entry ? "is-selected" : ""}><Icon size={17} /><span>{PLINKO_PRIZES[entry].short}</span>{entry === "tok_one_month" && <small>1 mois offert</small>}</div>;
-    })}</div>
-    <p className="tok-plinko__board-note">{playing ? "Le chef prépare votre résultat…" : "Un Miamz, cinq possibilités."}</p>
-  </div>;
-}
 
 export type PlinkoDialogProps = {
   open: boolean;
@@ -53,13 +13,14 @@ export type PlinkoDialogProps = {
   busy: boolean;
   animating: boolean;
   error: string | null;
-  animationKey: number;
+  trajectory: PlinkoTrajectory | null;
+  onAnimationComplete: () => void;
   onPlay: () => void;
   onRetry: () => void;
   onClaim: (email: string, marketingConsent: boolean) => void;
 };
 
-export default function PlinkoDialog({ open, onOpenChange, state, busy, animating, error, animationKey, onPlay, onRetry, onClaim }: PlinkoDialogProps) {
+export default function PlinkoDialog({ open, onOpenChange, state, busy, animating, error, trajectory, onAnimationComplete, onPlay, onRetry, onClaim }: PlinkoDialogProps) {
   const [email, setEmail] = useState("");
   const [marketingConsent, setMarketingConsent] = useState(false);
   const emailId = useId();
@@ -81,7 +42,7 @@ export default function PlinkoDialog({ open, onOpenChange, state, busy, animatin
         <DialogTitle className="tok-plinko__title">Le Plinko <em>du chef</em></DialogTitle>
         <DialogDescription className="tok-plinko__description">Lâchez votre Miamz.<br />Votre prochain plaisir est peut-être ici.</DialogDescription>
       </div>
-      <PlinkoBoard outcome={outcome} playing={busy || animating} animationKey={animationKey} />
+      <PlinkoBoard outcome={outcome} playing={busy || animating} animating={animating} trajectory={trajectory} onAnimationComplete={onAnimationComplete} />
       <div className="tok-plinko__actions">
         <div role="status" aria-live="polite" aria-atomic="true">
           {visibleResult && <div className={`tok-plinko__result ${outcome === "lost" ? "is-lost" : ""}`}><strong>{PLINKO_PRIZES[outcome].label}</strong><p>{PLINKO_PRIZES[outcome].description}</p></div>}
