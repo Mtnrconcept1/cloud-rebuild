@@ -1,0 +1,174 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { useReducedMotion } from "framer-motion";
+import { useAuth } from "@/lib/auth-context";
+import { claimPlinko, getPlinkoStatus, isPlinkoSurface, parsePlinkoState, PlinkoSessionExpiredError, playPlinko, startPlinkoSession, type PlinkoState } from "@/lib/plinko";
+import PlinkoDialog from "./PlinkoDialog";
+
+const TOKEN_KEY = "tok:plinko:welcome-v1:token";
+const SHOWN_KEY = "tok:plinko:welcome-v1:shown";
+const REQUEST_KEY = "tok:plinko:welcome-v1:request";
+const CLAIM_REQUEST_KEY = "tok:plinko:welcome-v1:claim-request";
+const OPEN_DELAY = 5_000;
+
+function readStorage(storage: "localStorage" | "sessionStorage", key: string) {
+  try { return window[storage].getItem(key); } catch { return null; }
+}
+function writeStorage(storage: "localStorage" | "sessionStorage", key: string, value: string | null) {
+  try {
+    if (value === null) window[storage].removeItem(key);
+    else window[storage].setItem(key, value);
+  } catch { /* The in-memory session remains playable when storage is blocked. */ }
+}
+
+export default function WelcomePlinko({ enabled = true, arrivedAt }: { enabled?: boolean; arrivedAt?: number }) {
+  const { user, loading } = useAuth();
+  const { pathname } = useLocation();
+  const reduceMotion = useReducedMotion();
+  const eligible = enabled && !loading && !user && isPlinkoSurface(pathname);
+  const arrival = useRef(arrivedAt ?? Date.now());
+  const shown = useRef(readStorage("sessionStorage", SHOWN_KEY) === "1");
+  const token = useRef<string | null>(readStorage("localStorage", TOKEN_KEY));
+  const requestId = useRef<string | null>(readStorage("localStorage", REQUEST_KEY));
+  const claimRequestId = useRef<string | null>(readStorage("localStorage", CLAIM_REQUEST_KEY));
+  const locked = useRef(false);
+  const mounted = useRef(true);
+  const focusReturn = useRef<HTMLElement | null>(null);
+  const animationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [ready, setReady] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [state, setState] = useState<PlinkoState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [animating, setAnimating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [animationKey, setAnimationKey] = useState(0);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      if (animationTimer.current) clearTimeout(animationTimer.current);
+    };
+  }, []);
+
+  const changeOpen = useCallback((next: boolean) => {
+    if (next) focusReturn.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setOpen(next);
+    if (!next) window.requestAnimationFrame(() => focusReturn.current?.focus());
+  }, []);
+
+  useEffect(() => {
+    if (!eligible) { setOpen(false); return; }
+    let timer: ReturnType<typeof setTimeout>;
+    let cancelled = false;
+    const maybeOpen = () => {
+      if (cancelled) return;
+      setReady(true);
+      if (shown.current) return;
+      // Give existing games, consent prompts and other dialogs their own turn.
+      if (document.hidden || document.querySelector('[role="dialog"], [role="alertdialog"]')) {
+        timer = setTimeout(maybeOpen, 500);
+        return;
+      }
+      shown.current = true;
+      writeStorage("sessionStorage", SHOWN_KEY, "1");
+      changeOpen(true);
+    };
+    timer = setTimeout(maybeOpen, Math.max(0, OPEN_DELAY - (Date.now() - arrival.current)));
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [eligible, changeOpen]);
+
+  const loadSession = useCallback(async () => {
+    if (locked.current) return;
+    locked.current = true;
+    setBusy(true);
+    setError(null);
+    try {
+      let response: PlinkoState;
+      try {
+        response = token.current ? await getPlinkoStatus(token.current) : await startPlinkoSession();
+      } catch (cause) {
+        if (!(cause instanceof PlinkoSessionExpiredError)) throw cause;
+        token.current = null;
+        requestId.current = null;
+        claimRequestId.current = null;
+        for (const key of [TOKEN_KEY, REQUEST_KEY, CLAIM_REQUEST_KEY]) writeStorage("localStorage", key, null);
+        response = await startPlinkoSession();
+      }
+      const next = parsePlinkoState(response);
+      if (!token.current && !next.token) throw new Error("Le chef n’a pas pu préparer votre partie. Réessayez.");
+      if (next.token) {
+        token.current = next.token;
+        writeStorage("localStorage", TOKEN_KEY, next.token);
+      }
+      if (mounted.current) {
+        setState(next);
+        if (!next.enabled) changeOpen(false);
+      }
+    } catch (cause) {
+      if (mounted.current) setError(cause instanceof Error ? cause.message : "Le jeu est momentanément indisponible.");
+    } finally {
+      locked.current = false;
+      if (mounted.current) setBusy(false);
+    }
+  }, [changeOpen]);
+
+  useEffect(() => { if (open && !state) void loadSession(); }, [open, state, loadSession]);
+
+  const play = async () => {
+    if (locked.current || animating || !state?.available || !token.current) return;
+    locked.current = true;
+    setBusy(true);
+    setError(null);
+    const id = requestId.current || crypto.randomUUID();
+    requestId.current = id;
+    writeStorage("localStorage", REQUEST_KEY, id);
+    try {
+      const next = parsePlinkoState(await playPlinko(token.current, id));
+      if (!next.play) throw new Error("Le résultat n’est pas encore disponible. Réessayez pour le retrouver.");
+      requestId.current = null;
+      writeStorage("localStorage", REQUEST_KEY, null);
+      if (mounted.current) {
+        setState(next);
+        setAnimationKey((key) => key + 1);
+        setAnimating(!reduceMotion);
+        animationTimer.current = setTimeout(() => {
+          if (mounted.current) setAnimating(false);
+        }, reduceMotion ? 0 : 2_300);
+      }
+    } catch (cause) {
+      if (mounted.current) setError(cause instanceof Error ? cause.message : "La connexion a été interrompue. Réessayez pour retrouver votre tirage.");
+    } finally {
+      locked.current = false;
+      if (mounted.current) setBusy(false);
+    }
+  };
+
+  const claim = async (email: string, marketingConsent: boolean) => {
+    if (locked.current || !token.current || !state?.reward) return;
+    locked.current = true;
+    setBusy(true);
+    setError(null);
+    const id = claimRequestId.current || crypto.randomUUID();
+    claimRequestId.current = id;
+    writeStorage("localStorage", CLAIM_REQUEST_KEY, id);
+    try {
+      const next = parsePlinkoState(await claimPlinko(token.current, id, email, marketingConsent));
+      if (next.reward?.status !== "pending_fulfillment") throw new Error("Votre demande n’a pas été confirmée. Réessayez.");
+      claimRequestId.current = null;
+      writeStorage("localStorage", CLAIM_REQUEST_KEY, null);
+      if (mounted.current) setState(next);
+    } catch (cause) {
+      if (mounted.current) setError(cause instanceof Error ? cause.message : "Votre demande n’a pas pu être enregistrée. Réessayez.");
+    } finally {
+      locked.current = false;
+      if (mounted.current) setBusy(false);
+    }
+  };
+
+  if (!eligible || state?.enabled === false) return null;
+  return <>
+    {ready && !open && <button type="button" className="tok-plinko-launcher" aria-label="Ouvrir le Plinko TOK" onClick={() => changeOpen(true)}><img src="/images/home/tok-logo-ui.webp" width="29" height="29" alt="" />Le Plinko du chef</button>}
+    <PlinkoDialog open={open} onOpenChange={changeOpen} state={state} busy={busy} animating={animating} error={error} animationKey={animationKey} onPlay={() => void play()} onRetry={() => void loadSession()} onClaim={(email, consent) => void claim(email, consent)} />
+  </>;
+}

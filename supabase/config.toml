@@ -137,6 +137,9 @@ verify_jwt = false
 [functions.daily-slot-spin]
 verify_jwt = false
 
+[functions.plinko-play]
+verify_jwt = false
+
 [functions.dispatch-order]
 verify_jwt = false
 

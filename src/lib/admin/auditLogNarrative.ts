@@ -120,6 +120,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "track-analytics": "la collecte des événements d’analyse",
   "track-sponsored-event": "la collecte des événements sponsorisés",
   "daily-slot-spin": "le tirage quotidien MIAMZ",
+  "plinko-play": "le Plinko de bienvenue TOK et la réclamation des gains",
   "delete-account": "la suppression d’un compte utilisateur",
   "submit-signup-application": "le dépôt d’une demande d’inscription",
   "provision-commercial-accounts": "la création des comptes commerciaux",
