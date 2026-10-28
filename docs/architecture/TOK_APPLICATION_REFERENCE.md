@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `51499fa45478fa789c12721b274ffbf56b21c6f58dadfdd16694e6b991574e8f`
+- Empreinte SHA-256 des sources indexées : `8f64f27b3e04c7811f3da71a60697e0912afce6caa592dc43b3f197f44f6d0be`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,7 +45,7 @@
 | publicEntries | 772 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19730 |
+| records | 19731 |
 | repositoryFiles | 3821 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -7169,7 +7169,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Stripe Projects — Service Provisioning | 9 | [.claude/skills/stripe-projects/SKILL.md:1](../../.claude/skills/stripe-projects/SKILL.md#L1) |
 | Upgrading Stripe Versions | 18 | [.claude/skills/upgrade-stripe/SKILL.md:1](../../.claude/skills/upgrade-stripe/SKILL.md#L1) |
 | Objectif | 5 | [.github/PULL_REQUEST_TEMPLATE.md:1](../../.github/PULL_REQUEST_TEMPLATE.md#L1) |
-| Contexte projet | 12 | [AGENTS.md:1](../../AGENTS.md#L1) |
+| AGENTS.md — TOK \| Contrat opérationnel des agents | 13 | [AGENTS.md:1](../../AGENTS.md#L1) |
 | TOK / TheTok | 10 | [README.md:1](../../README.md#L1) |
 | Déploiement TOK | 5 | [README_DEPLOY.md:1](../../README_DEPLOY.md#L1) |
 | Security Policy | 7 | [SECURITY.md:1](../../SECURITY.md#L1) |
