@@ -327,7 +327,7 @@ export default function DashboardLayout({
   useJourneyFocus(pageRef, hash ? null : pathname);
   const queryClient = useQueryClient();
   const logoSrc = useTokLogoSrc();
-  const { selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, onboardingConfigurationUnlocked, isDemoMode } = useDashboardRestaurant();
+  const { restaurants, selectedId, disabledFeatures, dashboardAccessLocked, dashboardAccessLockReason, onboardingConfigurationUnlocked, isDemoMode } = useDashboardRestaurant();
   const commercialDemoFrame = useCommercialDemoFrame();
   const workforceSettings = useWorkforceSettings(isDemoMode ? null : selectedId);
   const globalActiveFeatures = useActiveFeatures({ enabled: !commercialDemoFrame });
@@ -386,6 +386,7 @@ export default function DashboardLayout({
         .sort((a, b) => b.to.length - a.to.length)[0],
     [pathname, sections]
   );
+  const selectedRestaurantName = restaurants.find((restaurant) => restaurant.id === selectedId)?.name ?? "Mon restaurant";
   const backFallback = pathname === "/dashboard" ? "/" : "/dashboard";
 
   // ✅ realtime notifications
@@ -481,7 +482,7 @@ export default function DashboardLayout({
             <Button
               variant="ghost"
               className={cn(
-                "pointer-events-auto h-16 max-w-[10.75rem] rounded-[1.45rem] border border-border bg-card px-2.5 pr-4 text-foreground shadow-sm ring-1 ring-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-muted shadow-sm dark:border-border dark:bg-card shadow-sm",
+                "tok-mobile-menu-trigger pointer-events-auto h-14 max-w-[11rem] rounded-[1.15rem] border border-border bg-card p-1.5 pr-3 text-foreground shadow-[0_10px_30px_rgb(54_36_22/0.10)] ring-1 ring-white/30 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-muted dark:border-border dark:bg-card",
                 mobileMenuOpen && "border-orange-200 bg-primary text-primary-foreground hover:bg-primary"
               )}
               aria-label="Ouvrir le menu du dashboard"
@@ -489,48 +490,52 @@ export default function DashboardLayout({
             >
               <span
                 className={cn(
-                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-[1rem] bg-primary text-primary-foreground shadow-sm transition-colors",
+                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.9rem] bg-primary text-primary-foreground shadow-sm transition-colors",
                   mobileMenuOpen && "bg-white/15 text-current shadow-none"
                 )}
               >
                 <Menu className="h-5 w-5" />
               </span>
-              <span className="flex min-w-0 flex-col items-start leading-tight">
+              <span className="tok-mobile-menu-trigger__copy min-w-0 flex-col items-start leading-tight">
                 <span
                   className={cn(
                     "text-[10px] font-semibold uppercase tracking-[0.28em] text-primary",
                     mobileMenuOpen && "text-primary-foreground/75"
                   )}
                 >
-                  Resto
+                  Menu
                 </span>
                 <span className="max-w-[6.25rem] truncate text-sm font-semibold">
                   {activeNavItem?.label ?? "Ouvrir le menu"}
                 </span>
               </span>
-              <span className="sr-only">{activeNavItem?.label ?? "Ouvrir le menu"}</span>
             </Button>
           </SheetTrigger>
-          <SheetContent className="flex h-[100dvh] flex-col overflow-hidden p-0 dark:border-border dark:bg-card">
-            <SheetHeader className="border-b px-6 pb-4 pr-14 pt-[calc(env(safe-area-inset-top,0px)+1.5rem)]">
-              <SheetTitle>Dashboard</SheetTitle>
-              <SheetDescription className="sr-only">
-                Navigation, restaurant sélectionné et accès aux outils du dashboard.
+          <SheetContent
+            side="left"
+            data-testid="restaurant-mobile-menu-panel"
+            className="tok-mobile-dashboard-menu flex h-[100dvh] w-[min(23rem,calc(100vw-0.75rem))] flex-col overflow-hidden border-r p-0 dark:border-border dark:bg-card"
+          >
+            <SheetHeader className="tok-mobile-menu-header border-b px-5 pb-4 pr-16 pt-[calc(env(safe-area-inset-top,0px)+1rem)] text-left">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="tok-mobile-menu-brandmark" aria-hidden="true">
+                  <img src={logoSrc} alt="" width={58} height={44} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Espace restaurateur</span>
+                  <SheetTitle className="mt-1 truncate pr-0 text-xl">Menu principal</SheetTitle>
+                </span>
+              </div>
+              <SheetDescription className="tok-mobile-menu-context mt-3 flex min-w-0 items-center gap-2">
+                <Store className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                <span className="truncate font-semibold text-foreground">{selectedRestaurantName}</span>
+                <span aria-hidden="true">·</span>
+                <span className="truncate">{activeNavItem?.label ?? "Vue d’ensemble"}</span>
               </SheetDescription>
             </SheetHeader>
-            <div data-sheet-scroll-area className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-4">
+            <div data-sheet-scroll-area className="tok-mobile-menu-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pb-4 pt-4">
               <RestaurantSelector />
-              {!commercialDemoFrame ? (
-                <>
-                  <div className="mb-4">
-                    <RoleSpaceMenuSection onNavigate={() => setMobileMenuOpen(false)} />
-                  </div>
-                  <div className="mb-4">
-                    <ChefHelpButton surface="restaurant" onOpen={() => setMobileMenuOpen(false)} />
-                  </div>
-                </>
-              ) : null}
-              <nav className="flex flex-col gap-1 pb-4">
+              <nav aria-label="Navigation mobile de l’espace restaurateur" className="tok-mobile-navigation flex flex-col gap-1 pb-4">
                 <NavItems
                   pathname={pathname}
                   sections={sections}
@@ -540,16 +545,22 @@ export default function DashboardLayout({
                   dashboardAccessLocked={dashboardAccessLocked}
                   onboardingConfigurationUnlocked={onboardingConfigurationUnlocked}
                 />
-                {!commercialDemoFrame ? (
-                  <div className="mt-3 border-t pt-3">
-                    <SignOutButton
-                      onSignedOut={() => setMobileMenuOpen(false)}
-                      className="w-full justify-start rounded-xl px-3"
-                    />
-                  </div>
-                ) : null}
               </nav>
+              {!commercialDemoFrame ? (
+                <div className="tok-mobile-menu-space-switch border-t pt-3">
+                  <RoleSpaceMenuSection onNavigate={() => setMobileMenuOpen(false)} />
+                </div>
+              ) : null}
             </div>
+            {!commercialDemoFrame ? (
+              <div className="tok-mobile-menu-footer border-t px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-3">
+                <ChefHelpButton surface="restaurant" onOpen={() => setMobileMenuOpen(false)} />
+                <SignOutButton
+                  onSignedOut={() => setMobileMenuOpen(false)}
+                  className="w-full justify-start rounded-xl px-3"
+                />
+              </div>
+            ) : null}
           </SheetContent>
         </Sheet>
       </div>

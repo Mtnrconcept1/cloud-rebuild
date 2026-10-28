@@ -285,14 +285,14 @@ export default function DashboardService() {
           </p>
         ) : null}
 
-        <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(26rem,100%),1fr))]">
+        <div className="tok-service-period-grid grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(26rem,100%),1fr))]">
           {SERVICE_PERIODS.map((period) => {
             const settings = serviceSettings[period.key];
             const Icon = period.icon;
             const fieldId = (field: string) => "service-" + period.key + "-" + field;
 
             return (
-              <Card key={period.key} className="min-w-0">
+              <Card key={period.key} className="tok-service-period-card min-w-0 overflow-hidden">
                 <CardHeader className="space-y-2 pb-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <h2 className="flex items-center gap-2 text-lg font-semibold leading-none tracking-tight">
@@ -306,13 +306,14 @@ export default function DashboardService() {
                   <p className="text-sm text-muted-foreground">{period.description}</p>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
-                  <label className="flex min-h-16 items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+                <CardContent className="tok-service-period-content min-w-0 space-y-4">
+                  <label className="tok-service-toggle-row flex min-h-16 items-start justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 sm:items-center">
                     <span className="min-w-0">
                       <span className="block text-sm font-semibold">Réservation de table sans restauration</span>
                       <span className="block text-xs text-muted-foreground">Réserver pour boire un verre, sans menu ni précommande.</span>
                     </span>
                     <Switch
+                      className="mt-0.5 shrink-0 sm:mt-0"
                       checked={settings.table_only_booking}
                       aria-label={"Réservation sans restauration — " + getServicePeriodLabel(period.key)}
                       onCheckedChange={(checked) => setServiceSettings((current) => ({
@@ -335,8 +336,8 @@ export default function DashboardService() {
                       Réservations ouvertes sans restauration ; commandes suspendues sur ce service uniquement.
                     </p>
                   ) : null}
-                  <div className="grid gap-3 min-[420px]:grid-cols-2">
-                    <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl border px-3 py-2 text-sm">
+                  <div className="tok-service-control-grid grid gap-3 sm:grid-cols-2">
+                    <label className="tok-service-toggle-row flex min-h-11 items-center justify-between gap-3 rounded-xl border px-3 py-2 text-sm">
                       <span>Réservations en ligne</span>
                       <Switch
                         checked={reservationEnabled && settings.online_booking_enabled}
@@ -344,7 +345,7 @@ export default function DashboardService() {
                         onCheckedChange={(checked) => updateServiceField(period.key, "online_booking_enabled", checked)}
                       />
                     </label>
-                    <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl border px-3 py-2 text-sm">
+                    <label className="tok-service-toggle-row flex min-h-11 items-center justify-between gap-3 rounded-xl border px-3 py-2 text-sm">
                       <span>Service fermé</span>
                       <Switch
                         checked={settings.service_closed}
@@ -353,12 +354,12 @@ export default function DashboardService() {
                     </label>
                   </div>
 
-                  <section className="space-y-3 rounded-2xl border bg-muted/15 p-3">
+                  <section className="tok-service-section min-w-0 space-y-3 rounded-2xl border bg-muted/15 p-3">
                     <div>
                       <h3 className="text-sm font-semibold">Horaires et capacité</h3>
                       <p className="text-xs text-muted-foreground">Les informations indispensables restent toujours visibles.</p>
                     </div>
-                    <div className="grid gap-3 min-[420px]:grid-cols-2">
+                    <div className="tok-service-control-grid grid gap-3 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor={fieldId("start-time")}>Début</Label>
                         <Input
@@ -399,12 +400,12 @@ export default function DashboardService() {
                     </div>
                   </section>
 
-                  <section className="space-y-3 rounded-2xl border bg-muted/15 p-3">
+                  <section className="tok-service-section min-w-0 space-y-3 rounded-2xl border bg-muted/15 p-3">
                     <div>
                       <h3 className="text-sm font-semibold">Commandes, retrait et livraison</h3>
                       <p className="text-xs text-muted-foreground">Créneaux proposés au panier pour ce service.</p>
                     </div>
-                    <div className="grid gap-3 min-[420px]:grid-cols-2">
+                    <div className="tok-service-control-grid grid gap-3 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor={fieldId("order-start-time")}>Début commandes</Label>
                         <Input
@@ -423,7 +424,7 @@ export default function DashboardService() {
                           onChange={(event) => updateServiceField(period.key, "order_end_time", event.target.value)}
                         />
                       </div>
-                      <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl border bg-background px-3 py-2 text-sm">
+                      <label className="tok-service-toggle-row flex min-h-11 items-center justify-between gap-3 rounded-xl border bg-background px-3 py-2 text-sm">
                         <span>Commandes en ligne</span>
                         <Switch
                           checked={settings.online_ordering_enabled && !settings.orders_closed}
@@ -434,7 +435,7 @@ export default function DashboardService() {
                           }}
                         />
                       </label>
-                      <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl border bg-background px-3 py-2 text-sm">
+                      <label className="tok-service-toggle-row flex min-h-11 items-center justify-between gap-3 rounded-xl border bg-background px-3 py-2 text-sm">
                         <span>Suspendre les commandes</span>
                         <Switch
                           checked={settings.orders_closed}
@@ -457,7 +458,7 @@ export default function DashboardService() {
                       >
                         <span className="min-w-0">
                           <span className="block text-sm font-semibold">Réglages avancés</span>
-                          <span className="block truncate text-xs font-normal text-muted-foreground">
+                          <span className="block text-xs font-normal leading-relaxed text-muted-foreground sm:truncate">
                             Groupes {settings.min_party_size}–{settings.max_party_size} · {settings.slot_interval_minutes} min · {settings.slot_capacity_windows.length} {settings.slot_capacity_windows.length === 1 ? "plage" : "plages"}
                           </span>
                         </span>
@@ -466,7 +467,7 @@ export default function DashboardService() {
                     </CollapsibleTrigger>
 
                     <CollapsibleContent className="space-y-4 border-t px-3 pb-3 pt-3">
-                      <div className="grid gap-3 min-[420px]:grid-cols-2">
+                      <div className="tok-service-control-grid grid gap-3 sm:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor={fieldId("min-party-size")}>Groupe minimum</Label>
                           <Input
@@ -511,12 +512,12 @@ export default function DashboardService() {
                       </div>
 
                       <div className="space-y-3 rounded-xl border bg-muted/15 p-3">
-                        <div className="flex flex-col gap-2 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                           <div>
                             <h3 className="text-sm font-semibold">Tables disponibles par créneau</h3>
                             <p className="text-xs text-muted-foreground">Ajoutez seulement les plages qui dérogent à la valeur par défaut.</p>
                           </div>
-                          <Button type="button" variant="outline" size="sm" onClick={() => addCapacityWindow(period.key)}>
+                          <Button className="self-start" type="button" variant="outline" size="sm" onClick={() => addCapacityWindow(period.key)}>
                             <Plus className="mr-2 h-4 w-4" />
                             Ajouter
                           </Button>
@@ -577,14 +578,14 @@ export default function DashboardService() {
                           <h3 className="text-sm font-semibold">Confirmation et acompte</h3>
                           <p className="text-xs text-muted-foreground">Options de validation de la réservation client.</p>
                         </div>
-                        <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl border bg-background px-3 py-2 text-sm">
+                        <label className="tok-service-toggle-row flex min-h-11 items-center justify-between gap-3 rounded-xl border bg-background px-3 py-2 text-sm">
                           <span>Confirmation restaurant requise</span>
                           <Switch
                             checked={settings.restaurant_confirmation_required}
                             onCheckedChange={(checked) => updateServiceField(period.key, "restaurant_confirmation_required", checked)}
                           />
                         </label>
-                        <div className="grid gap-3 min-[420px]:grid-cols-2">
+                        <div className="tok-service-control-grid grid gap-3 sm:grid-cols-2">
                           <div className="space-y-2">
                             <Label htmlFor={fieldId("confirmation-deadline")}>Délai de confirmation (minutes)</Label>
                             <Input
@@ -643,7 +644,7 @@ export default function DashboardService() {
                     <Switch checked={deliveryAvailable} onCheckedChange={setDeliveryAvailable} />
                   </label>
                   {deliveryAvailable ? (
-                    <div className="grid gap-3 min-[420px]:grid-cols-2">
+                    <div className="tok-service-control-grid grid gap-3 sm:grid-cols-2">
                       <div className="space-y-2">
                         <Label htmlFor="service-delivery-fee">Frais de livraison (CHF)</Label>
                         <Input
@@ -689,7 +690,7 @@ export default function DashboardService() {
           </Card>
         </div>
 
-        <div className="flex justify-end">
+        <div className="tok-service-save flex justify-end">
           <Button onClick={handleSave} disabled={loading} size="lg">
             {loading ? "Enregistrement..." : "Sauvegarder les paramètres"}
           </Button>

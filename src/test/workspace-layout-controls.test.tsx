@@ -109,6 +109,26 @@ describe("customer workspace toolbar integration", () => {
 });
 
 describe("restaurant workspace tool access integration", () => {
+  it("opens the branded mobile menu with restaurant context and primary navigation first", () => {
+    state.features = new Set(["dashboard-overview", "dashboard-service", "dashboard-plan-salle"]);
+    renderRestaurantShell({
+      restaurants: [{ id: "restaurant-1", name: "La Table d’Octobre" }] as DashboardContextValue["restaurants"],
+      selectedId: "restaurant-1",
+      dashboardAccessLocked: false,
+      onboardingConfigurationUnlocked: true,
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Ouvrir le menu du dashboard" }));
+
+    const panel = screen.getByTestId("restaurant-mobile-menu-panel");
+    expect(panel).toBeVisible();
+    expect(within(panel).getByRole("heading", { name: "Menu principal" })).toBeVisible();
+    expect(within(panel).getAllByText("La Table d’Octobre")).toHaveLength(2);
+    expect(within(panel).getByRole("navigation", { name: "Navigation mobile de l’espace restaurateur" })).toBeVisible();
+    expect(within(panel).getByRole("link", { name: "Vue d'ensemble" })).toHaveAttribute("aria-current", "page");
+    expect(within(panel).getByRole("button", { name: "Help ! Ouvrir le chat IA" })).toBeVisible();
+  });
+
   it("supplies only permitted destinations to search while transactional access remains locked", () => {
     state.features = new Set(["dashboard-overview", "dashboard-menu", "dashboard-commandes"]);
     renderRestaurantShell();
