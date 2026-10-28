@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
+import { getFloorPlanWidthFitScale } from "@/components/floor-plan/useFloorPlanZoomViewport";
 
 // Source-contract checks ignore formatting; behavior is exercised by the
 // dashboard integration and component tests.
@@ -89,6 +90,30 @@ describe("floor plan page layout", () => {
     expect(serviceBoard).toContain("touch-manipulation");
     expect(queue).toContain('role="button"');
     expect(queue).toContain("onReservationHandlePointerDown");
+  });
+
+  it("fills the canvas horizontally regardless of the limited visible height", () => {
+    const page = readSource("src/pages/dashboard/DashboardPlanSalle.tsx");
+    const studio = readSource("src/components/floor-plan/StudioCanvas.tsx");
+    const service = readSource("src/components/floor-plan/ServiceBoard.tsx");
+
+    // This was the reported regression: a 1090px-wide viewport with only
+    // 390px of visible height rendered a 534px-wide room and a blank right half.
+    const availableWidth = 1090;
+    const scale = getFloorPlanWidthFitScale(availableWidth, 1040);
+    expect(1040 * scale).toBeCloseTo(availableWidth, 5);
+    expect(760 * scale).toBeGreaterThan(390);
+    expect(getFloorPlanWidthFitScale(360, 1040) * 1040).toBeCloseTo(360, 5);
+    expect(getFloorPlanWidthFitScale(0, 1040)).toBe(1);
+    expect(getFloorPlanWidthFitScale(900, 0)).toBe(1);
+    expect(getFloorPlanWidthFitScale(Number.NaN, 1040)).toBe(1);
+
+    expectCode(page).toContain("getFloorPlanWidthFitScale(width, CANVAS_WIDTH)");
+    expectCode(page).not.toContain("Math.min(width / CANVAS_WIDTH, height / CANVAS_HEIGHT)");
+    expectCode(studio).toContain("mx-auto overflow-hidden");
+    expectCode(service).toContain("mx-auto overflow-hidden");
+    expectCode(studio).toContain("overflow-auto overscroll-contain");
+    expectCode(service).toContain("overflow-auto overscroll-contain");
   });
 
   it("uses a purpose-built illustrated hero without hiding the operational actions", () => {

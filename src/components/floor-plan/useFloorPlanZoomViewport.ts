@@ -27,6 +27,27 @@ export function clampFloorPlanZoom(value: number) {
   return Math.min(FLOOR_PLAN_MAX_ZOOM, Math.max(FLOOR_PLAN_MIN_ZOOM, rounded));
 }
 
+/**
+ * At the default 100% zoom, occupy the whole available horizontal canvas.
+ * The viewport already scrolls vertically: fitting both axes would shrink a
+ * landscape floor plan to half its available width when the panel is short.
+ * Keep one uniform scale so furniture and hit targets retain their geometry.
+ */
+export function getFloorPlanWidthFitScale(
+  viewportWidth: number,
+  canvasWidth: number,
+) {
+  if (
+    !Number.isFinite(viewportWidth) ||
+    !Number.isFinite(canvasWidth) ||
+    viewportWidth <= 0 ||
+    canvasWidth <= 0
+  ) {
+    return 1;
+  }
+  return viewportWidth / canvasWidth;
+}
+
 type FloorPlanZoomViewportOptions = {
   viewportRef: RefObject<HTMLDivElement | null>;
   zoom: number;
@@ -78,7 +99,7 @@ export function useFloorPlanZoomViewport({
   const zoomIn = useCallback(() => applyZoom(zoomRef.current * FLOOR_PLAN_ZOOM_FACTOR), [applyZoom]);
   const zoomOut = useCallback(() => applyZoom(zoomRef.current / FLOOR_PLAN_ZOOM_FACTOR), [applyZoom]);
 
-  /** Back to "the whole room fits the viewport", which is what zoom 1 means. */
+  /** At 100%, the room fills the viewport width; taller rooms scroll vertically. */
   const resetZoom = useCallback(() => {
     applyZoom(1);
     const viewport = viewportRef.current;

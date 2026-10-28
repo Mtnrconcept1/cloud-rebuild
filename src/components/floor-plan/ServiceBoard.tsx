@@ -386,7 +386,7 @@ export default function ServiceBoard({
               size="icon"
               className="h-10 w-10 rounded-md"
               onClick={resetZoom}
-              aria-label="Recentrer le plan à 100 %"
+              aria-label="Ajuster le plan à la largeur (100 %)"
             >
               <Maximize2 className="h-4 w-4" />
             </Button>
@@ -497,7 +497,7 @@ export default function ServiceBoard({
             aria-label={`Plan de service du secteur ${selectedSector}`}
           >
             <div
-              className="overflow-hidden"
+              className="mx-auto overflow-hidden"
               style={{
                 width: canvasWidth * canvasZoom * canvasScale,
                 height: canvasHeight * canvasZoom * canvasScale,
