@@ -105,6 +105,10 @@ describe("customer workspace toolbar integration", () => {
     expect(screen.queryByRole("link", { name: "Mon panier" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Help ! Ouvrir le chat IA" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Ouvrir mon compte" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Ouvrir le menu client" }));
+    const panel = screen.getByTestId("customer-mobile-menu-panel");
+    expect(within(panel).queryByRole("button", { name: "Déconnexion" })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("button", { name: "Help ! Ouvrir le chat IA" })).not.toBeInTheDocument();
   });
 });
 

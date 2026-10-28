@@ -89,7 +89,7 @@ function CourierNavContent({
       {!isCommercialDemoFrame ? (
         <div className="tok-menu-footer mt-3 border-t pt-3">
           <RoleSpaceMenuSection onNavigate={onNavigate} />
-          <ChefHelpButton menuCard surface="courier" onOpen={onNavigate} />
+          <ChefHelpButton surface="courier" menuCard onOpen={onNavigate} />
           <button
             aria-label="Déconnexion"
             onClick={onSignOut}

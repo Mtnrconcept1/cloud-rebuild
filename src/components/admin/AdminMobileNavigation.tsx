@@ -370,7 +370,7 @@ export default function AdminMobileNavigation() {
                 openSupportIncidentCount={openSupportIncidentCount}
               />
               <div className="tok-menu-footer mt-3 border-t pt-3">
-                <ChefHelpButton menuCard surface="admin" onOpen={() => setMobileMenuOpen(false)} />
+                <ChefHelpButton surface="admin" menuCard onOpen={() => setMobileMenuOpen(false)} />
                 <SignOutButton
                   onSignedOut={() => setMobileMenuOpen(false)}
                   className="w-full justify-start rounded-xl px-3"
