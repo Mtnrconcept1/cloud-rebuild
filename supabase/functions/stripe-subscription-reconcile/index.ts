@@ -1,4 +1,3 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import type Stripe from "npm:stripe@22.3.2";
 
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
