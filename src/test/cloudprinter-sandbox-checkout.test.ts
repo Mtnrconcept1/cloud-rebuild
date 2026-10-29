@@ -42,10 +42,28 @@ describe("Cloudprinter sandbox checkout", () => {
     expect(completion).toContain('metadata.no_financial_ledger === "true"');
     expect(completion).toContain("session.livemode === false");
     expect(completion).toContain('session.payment_status === "no_payment_required"');
+    expect(completion).toContain('session.payment_status === "paid"');
+    expect(completion).toContain("enqueueNotification");
+    expect(completion).toContain("transactional_email_key");
     expect(completion).toContain('session.status === "complete"');
     expect(completion).toContain("Number(session.amount_total || 0) === 0");
     expect(completion).toContain("finalizePaymentAttempt");
     expect(completion).toContain('adminClient.rpc("finalize_paid_print_order"');
     expect(config).toContain("[functions.print-sandbox-complete]\nverify_jwt = false");
   });
+  it("recovers a Stripe Test payment after redirect and separates test print orders from financial accounting", () => {
+    const action = read("supabase/functions/print-order-action/index.ts");
+    const photos = read("src/pages/dashboard/DashboardPhotos.tsx");
+    const accounting = read("src/pages/dashboard/DashboardFactures.tsx");
+    expect(action).toContain('action === "sync_checkout"');
+    expect(action).toContain("print-sandbox-complete?session_id=");
+    expect(action).toContain('attempt.mode === "test"');
+    expect(action).toContain("response.status !== 303");
+    expect(photos).toContain('data-testid="print-checkout-return"');
+    expect(photos).toContain('action: "sync_checkout"');
+    expect(photos).toContain("En attente de confirmation serveur");
+    expect(accounting).toContain("Suivi opérationnel des impressions");
+    expect(accounting).toContain("sans figurer dans les recettes");
+  });
+
 });
