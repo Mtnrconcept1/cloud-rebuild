@@ -28,7 +28,7 @@ import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import LegalConsentBanner from "@/components/legal/LegalConsentBanner";
 import PageViewTracker from "@/components/PageViewTracker";
-import DailyMiamzSlotMachine from "@/components/DailyMiamzSlotMachine";
+import DailyTokArcade from "@/components/DailyTokArcade";
 import AiCreationNotifications from "@/components/AiCreationNotifications";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
@@ -718,7 +718,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <OrderConflictDialog />
         </Suspense> : null
       ) : null}
-      {!commercialDemoFrame && pathname === "/" ? <DailyMiamzSlotMachine /> : null}
+      {!commercialDemoFrame && pathname === "/" ? <DailyTokArcade /> : null}
       {showLaunchClientChrome && !commercialDemoFrame && activeFeatures.has("plinko-welcome") ? (
         <Suspense fallback={null}><WelcomePlinko arrivedAt={plinkoArrivalAt.current} /></Suspense>
       ) : null}
