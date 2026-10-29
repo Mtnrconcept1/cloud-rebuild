@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
 
     const { data: order, error: orderError } = await adminClient
       .from("print_orders")
-      .select("id, restaurant_id, owner_user_id, payment_attempt_id, customer_amount_cents, customer_currency, payment_status, status")
+      .select("id, restaurant_id, owner_user_id, payment_attempt_id, customer_amount_cents, customer_currency, quantity, payment_status, status")
       .eq("id", orderId)
       .maybeSingle();
     if (orderError) throw orderError;
@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
         await enqueueNotification({
           adminClient, userId: order.owner_user_id,
           title: "Impression de test confirmée",
-          body: "Votre impression de test de 250 exemplaires est confirmée : 0,00 CHF, aucun débit réel.",
+          body: "Votre impression de test est confirmée : 0,00 CHF, aucun débit réel.",
           type: "print_order_confirmation", category: "transactional",
           data: { print_order_id: order.id, restaurant_id: restaurantId,
             sandbox: true, url: "/dashboard/photos", requested_channels: { in_app: true, push: true, email: false } },
@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
       }
       const { data: owner } = await adminClient.auth.admin.getUserById(order.owner_user_id);
       const recipient = String(owner?.user?.email || "").trim();
-      if (recipient && /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(recipient)) {
+      if (recipient && /^[^@\s]+@[^@\s]+\\.[^@\s]+$/.test(recipient)) {
         const key = `print-sandbox:${order.id}:confirmation`;
         const { data: existingMail } = await adminClient.from("email_queue")
           .select("id").filter("metadata->>transactional_email_key", "eq", key).limit(1).maybeSingle();
@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
           const message = "Votre commande d'impression Sandbox est confirmée. Aucun paiement réel n'a été effectué. Référence : " + order.id;
           const { error: mailError } = await adminClient.from("email_queue").insert({
             to_email: recipient, subject: "TheTok Print — confirmation de simulation",
-            body_text: message + "\\nSuivez votre impression sur https://www.thetok.ch/dashboard/photos",
+            body_text: message + "\nSuivez votre impression sur https://www.thetok.ch/dashboard/photos",
             body_html: "<p>" + message + "</p><p><a href=\"https://www.thetok.ch/dashboard/photos\">Suivre mon impression</a></p>",
             metadata: { transactional_email: "print_confirmation", transactional_email_key: key,
               print_order_id: order.id, sandbox: true, recipient_role: "customer" },
