@@ -1,4 +1,6 @@
 import { useJourneyFocus } from "@/hooks/useJourneyFocus";
+import { useSearchParams } from "react-router-dom";
+import { invokeSupabaseFunction } from "@/lib/session";
 import { type CSSProperties, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
@@ -405,6 +407,50 @@ export default function DashboardPhotos() {
   const [activeTool, setActiveTool] = useState<PhotoWorkspaceTool | null>(null);
   const demoGalleryObjectUrlsRef = useRef(new Set<string>());
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
+  // Stripe return data is only a hint: the authenticated server verifies the
+  // actual order and Stripe Test session before claiming success.
+  const [printSearchParams, setPrintSearchParams] = useSearchParams();
+  const printOrderId = printSearchParams.get("print_order_id");
+  const printReturnStatus = printSearchParams.get("status");
+  const isPrintReturn = Boolean(printOrderId && ["sandbox_success", "sandbox_error", "success", "cancelled"].includes(printReturnStatus || ""));
+  const [printReturnResult, setPrintReturnResult] = useState<{
+    confirmed: boolean;
+    sandbox: boolean;
+    order?: { id: string; quantity: number; status: string; payment_status: string; provider_reference: string | null } | null;
+    previewUrl?: string | null;
+  } | null>(null);
+  const [printReturnLoading, setPrintReturnLoading] = useState(false);
+  const [printReturnError, setPrintReturnError] = useState<string | null>(null);
+  const checkPrintReturn = useCallback(async () => {
+    if (!selectedId || !printOrderId || !/^[a-f0-9-]{36}$/i.test(printOrderId)) return;
+    setPrintReturnLoading(true);
+    setPrintReturnError(null);
+    try {
+      const { data, error } = await invokeSupabaseFunction<{
+        confirmed: boolean; sandbox: boolean; previewUrl?: string | null;
+        order: { id: string; quantity: number; status: string; payment_status: string; provider_reference: string | null };
+      }>("print-order-action", {
+        body: { action: "sync_checkout", restaurantId: selectedId, orderId: printOrderId },
+      });
+      if (error) throw error;
+      setPrintReturnResult(data || null);
+    } catch (failure) {
+      setPrintReturnError(failure instanceof Error ? failure.message : "Impossible de confirmer cette commande.");
+    } finally {
+      setPrintReturnLoading(false);
+    }
+  }, [selectedId, printOrderId]);
+  useEffect(() => {
+    if (isPrintReturn && selectedId) void checkPrintReturn();
+  }, [isPrintReturn, selectedId, checkPrintReturn]);
+  const dismissPrintReturn = () => {
+    const next = new URLSearchParams(printSearchParams);
+    for (const field of ["print_order_id", "payment_attempt_id", "status"]) next.delete(field);
+    setPrintSearchParams(next, { replace: true });
+    setPrintReturnResult(null);
+    setPrintReturnError(null);
+  };
+
   const watermarkSubscription = selectedRestaurant?.restaurant_subscription
     ? {
         plan: selectedRestaurant.restaurant_subscription.plan,
@@ -684,6 +730,34 @@ export default function DashboardPhotos() {
 
   return (
     <DashboardLayout mainClassName="tok-restaurant-page tok-page-photos">
+      <Dialog open={isPrintReturn} onOpenChange={(next) => { if (!next) dismissPrintReturn(); }}>
+        <DialogContent className="max-w-lg" data-testid="print-checkout-return">
+          <DialogHeader>
+            <DialogTitle>{printReturnResult?.confirmed && printReturnResult.order?.payment_status === "paid"
+              ? "Impression confirmée" : "Vérification de votre impression"}</DialogTitle>
+            <DialogDescription>
+              {printReturnResult?.confirmed && printReturnResult.sandbox
+                ? "Simulation Stripe et Cloudprinter : aucun débit réel. Commande enregistrée dans le suivi des impressions."
+                : "La redirection Stripe ne prouve pas à elle seule le paiement. TOK vérifie le statut auprès du serveur."}
+            </DialogDescription>
+          </DialogHeader>
+          <div role="status" className="space-y-2 rounded-xl border p-4 text-sm">
+            <p>Référence : <strong>{printReturnResult?.order?.provider_reference || printOrderId || "—"}</strong></p>
+            <p>Statut : <strong>{printReturnResult?.confirmed ? "Confirmée" : "En attente de confirmation serveur"}</strong></p>
+            <p>{printReturnResult?.order?.quantity || "—"} exemplaires</p>
+            {printReturnResult?.sandbox ? <p className="font-semibold">0,00 CHF — TEST, hors comptabilité financière</p> : null}
+            {printReturnResult?.confirmed ? <p>Votre confirmation est enregistrée. L’e-mail et la notification sont envoyés via les canaux transactionnels TOK.</p> : null}
+            {printReturnError ? <p role="alert" className="text-destructive">{printReturnError}</p> : null}
+          </div>
+          <div className="flex flex-wrap justify-end gap-2">
+            {!printReturnResult?.confirmed ? <Button variant="outline" disabled={printReturnLoading || !selectedId}
+              onClick={() => void checkPrintReturn()}>Vérifier à nouveau</Button> : null}
+            {printReturnResult?.previewUrl ? <Button asChild variant="outline"><a target="_blank" rel="noopener noreferrer"
+              href={printReturnResult.previewUrl}>Consulter le BAT</a></Button> : null}
+            <Button onClick={() => { dismissPrintReturn(); setActiveTool("marketing"); }}>Voir mes impressions</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <div ref={toolPageRef} tabIndex={-1} className="space-y-6">
         {!activeTool ? (
           <>
