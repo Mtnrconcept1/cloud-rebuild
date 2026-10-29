@@ -1,0 +1,37 @@
+name: PhotoPro generated index refresh once
+on:
+  pull_request:
+    types: [synchronize]
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  refresh:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/photopro-style-reference-weight-20261030' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Enable pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - name: Configure Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Regenerate index from final repository state and remove this temporary workflow
+        run: |
+          git rm -- .github/workflows/photopro-refresh-index-once.yml
+          pnpm docs:application-index
+          pnpm docs:application-index:check
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git -c user.name="TOK GitHub Actions" -c user.email="actions@users.noreply.github.com" commit -m "docs(photopro): refresh canonical application index"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
