@@ -51,6 +51,14 @@ Les trois premières règles n'affirment pas une intrusion et **ne peuvent jamai
 7. Activer `TOK_SENTINEL_ENFORCEMENT_ENABLED=true` côté **Edge Functions uniquement** après migration, tests et validation du plan de reprise. Garder l'arrêt global automatique désarmé jusqu'aux deux vrais témoins hors bande et à la couverture complète des entrées réseau, y compris les sous-domaines d'API.
 8. Faire des exercices trimestriels en staging (tentatives d'accès inter-restaurant, abuse financial simulé, perte de DB, indisponibilité Telegram), réévaluer les seuils selon les volumes réels et faire relire les scénarios critiques.
 
+## Bruit des comptes de test autorisés
+
+Les UUID des identités vérifiées sont inscrits uniquement en base privée par un administrateur après migration, sans e-mail ni UID dans Git. La table `tok_sentinel_test_accounts` refuse les accès navigateur et borne chaque autorisation à 30 jours. La console Sentinel affiche le nombre de comptes autorisés et la prochaine échéance.
+
+Sentinel conserve tous les événements d'audit, même lors des tests. Seules les anomalies ordinaires intégralement attribuées à ces comptes sont classées `observed_test` sans notification Telegram. Aucune exemption n'est accordée aux incidents critiques, aux événements mixtes ou non attribués, aux opérations sensibles ou aux épisodes de plus de 35 événements. En cas d'échec de lecture de la configuration, l'alerte habituelle reprend.
+
+Le mécanisme ne modifie jamais l'authentification, les RLS des restaurants, les contrôles Stripe ni les politiques de confinement. Pour révoquer immédiatement une autorisation, renseigner `revoked_at = now()` pour l'UUID concerné dans Supabase. Pour renouveler, mettre à jour ensemble `activated_at = now()` et `expires_at = now() + interval '30 days'` après nouvelle validation administrative.
+
 ## Plan de réaction et de réparation
 
 **0–15 minutes :** assurer la continuité de la collecte, identifier les preuves et le périmètre réel, isoler ciblé si validé, préserver les journaux, capturer l'état des paiements et conserver une chronologie. En cas d'attaque active prouvée, privilégier la sécurité à la disponibilité, sans interrompre silencieusement les transactions déjà payées.
