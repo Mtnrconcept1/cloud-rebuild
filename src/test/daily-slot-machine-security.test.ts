@@ -13,6 +13,7 @@ const slotTemplate = readFileSync("public/tok-slot-machine/index.html", "utf8");
 const slotScriptPath = "public/tok-slot-machine/slot-machine.js";
 const slotScript = existsSync(slotScriptPath) ? readFileSync(slotScriptPath, "utf8") : "";
 const appShell = readFileSync("src/App.tsx", "utf8");
+const dailyArcade = readFileSync("src/components/DailyTokArcade.tsx", "utf8");
 const vercelConfig = JSON.parse(readFileSync("vercel.json", "utf8")) as {
   headers?: Array<{ source?: string; headers?: Array<{ key?: string; value?: string }> }>;
 };
@@ -150,11 +151,13 @@ describe("daily Miamz slot machine", () => {
   });
 
   it("mounts only for eligible client users", () => {
-    expect(appShell).toContain("DailyMiamzSlotMachine");
-    expect(appShell).toContain("<DailyMiamzSlotMachine />");
+    expect(appShell).toContain("DailyTokArcade");
+    expect(appShell).toContain("<DailyTokArcade />");
+    expect(dailyArcade).toContain("<DailyMiamzSlotMachine />");
     expect(component).toContain('role === "client"');
     expect(component).toContain("hasPrivilegedRole");
     expect(component).toContain("Trois essais quotidiens");
+    expect(dailyArcade).toContain('role === "client"');
   });
 
   it("keeps primary asset paths case-exact for Vercel/Linux", () => {
