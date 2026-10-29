@@ -87,6 +87,11 @@ describe("TOK Sentinel control authentication, fail-safe activation and privacy"
     expect(response.status).toBe(403);
     expect(from).not.toHaveBeenCalledWith("tok_sentinel_incidents");
   });
+  it("accepts only the verified isolated Vercel origin when MFA is valid", async () => {
+    const response = await request({ action: "list" }, "https://tok-sentinel-console.vercel.app");
+    expect(response.status).toBe(200);
+    expect((await response.json()).ok).toBe(true);
+  });
   it("denies users without the admin role", async () => {
     role = "client";
     expect((await request({ action: "list" }, "https://sentinel.thetok.ch")).status).toBe(403);

@@ -11,7 +11,10 @@ const FUNCTION_NAME = "ops-sentinel-control";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TOKEN_CALLBACK = /^snt:([ar]):([A-Za-z0-9_-]{32})$/;
 const APPROVAL_HOURS = 24;
-const CONSOLE_ORIGIN = "https://sentinel.thetok.ch";
+const CONSOLE_ORIGINS = new Set([
+  "https://sentinel.thetok.ch",
+  "https://tok-sentinel-console.vercel.app", // Verified dedicated Vercel project origin.
+]);
 const ADMIN_ORIGIN = "https://admin.thetok.ch";
 const MAX_BODY = 16_384;
 
@@ -81,7 +84,7 @@ async function requireService(req: Request) {
 }
 async function requireSecurityAdmin(req: Request) {
   const origin = req.headers.get("origin");
-  if (origin !== CONSOLE_ORIGIN && origin !== ADMIN_ORIGIN) {
+  if ((!origin || !CONSOLE_ORIGINS.has(origin)) && origin !== ADMIN_ORIGIN) {
     throw new HttpError(403, "sentinel_admin_origin_required");
   }
   const auth = req.headers.get("authorization") || "";
@@ -129,6 +132,7 @@ function telegramMessage(finding: SentinelFinding, id: string): string {
       ? "Quarantaine soumise a votre validation."
       : "MODE OBSERVATION - aucun confinement executable avant validation technique.",
     "Consultez le rapport detaille et les identifiants de preuves dans TOK Sentinel.",
+    "Console securisee (MFA): https://tok-sentinel-console.vercel.app",
     "Sous-domaine prevu: sentinel.thetok.ch (DNS non publie).",
   ];
   return lines.join("\n").slice(0, 3500);

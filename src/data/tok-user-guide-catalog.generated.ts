@@ -1,7 +1,7 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "a9a392eca218c30ec8ca4eca7a1a26ad6458a1deb124cec638bd93a8881c38a3",
+  "sourceDigest": "7eb31ac5b119712c7e8b8cb6cea3f08971b99f4c89e688898e2a951b7d56fd6c",
   "routeCount": 143,
   "toolCount": 125
 } as const;
@@ -2599,7 +2599,8 @@ export const TOK_USER_GUIDE_TOOLS = [
       "telegram_decision"
     ],
     "integrations": [
-      "supabase"
+      "supabase",
+      "vercel"
     ]
   },
   {

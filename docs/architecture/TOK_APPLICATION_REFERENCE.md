@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a9a392eca218c30ec8ca4eca7a1a26ad6458a1deb124cec638bd93a8881c38a3`
+- Empreinte SHA-256 des sources indexées : `7eb31ac5b119712c7e8b8cb6cea3f08971b99f4c89e688898e2a951b7d56fd6c`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -550,7 +550,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | ops-admin-approval | [supabase/functions/ops-admin-approval/index.ts:1](../../supabase/functions/ops-admin-approval/index.ts#L1) | oui ([supabase/config.toml:194](../../supabase/config.toml#L194)) | false | POST | — | supabase |
 | ops-incident-control | [supabase/functions/ops-incident-control/index.ts:1](../../supabase/functions/ops-incident-control/index.ts#L1) | oui ([supabase/config.toml:197](../../supabase/config.toml#L197)) | false | GET, POST | content_review_process, ingest, instagram_review_list, instagram_review_submit, repair-context, scan, workflow-update | openai, sentry, stripe, supabase |
 | ops-incident-native-scan | [supabase/functions/ops-incident-native-scan/index.ts:1](../../supabase/functions/ops-incident-native-scan/index.ts#L1) | oui ([supabase/config.toml:200](../../supabase/config.toml#L200)) | false | POST | — | supabase |
-| ops-sentinel-control | [supabase/functions/ops-sentinel-control/index.ts:1](../../supabase/functions/ops-sentinel-control/index.ts#L1) | oui ([supabase/config.toml:203](../../supabase/config.toml#L203)) | false | POST | list, release, scan, telegram_decision | supabase |
+| ops-sentinel-control | [supabase/functions/ops-sentinel-control/index.ts:1](../../supabase/functions/ops-sentinel-control/index.ts#L1) | oui ([supabase/config.toml:203](../../supabase/config.toml#L203)) | false | POST | list, release, scan, telegram_decision | supabase, vercel |
 | payment-attempt-status | [supabase/functions/payment-attempt-status/index.ts:1](../../supabase/functions/payment-attempt-status/index.ts#L1) | oui ([supabase/config.toml:206](../../supabase/config.toml#L206)) | false | ANY | — | stripe |
 | plinko-play | [supabase/functions/plinko-play/index.ts:1](../../supabase/functions/plinko-play/index.ts#L1) | oui ([supabase/config.toml:143](../../supabase/config.toml#L143)) | false | POST | claim, play, start, status, string | — |
 | print-admin | [supabase/functions/print-admin/index.ts:1](../../supabase/functions/print-admin/index.ts#L1) | oui ([supabase/config.toml:315](../../supabase/config.toml#L315)) | false | POST | cancel, list, map_product, reconcile, reorder, settings, update_settings | — |
@@ -7119,7 +7119,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Stripe | 279 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 872 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 77 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 79 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
