@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useAuth } from "@/lib/auth-context";
 import { cantonFromPlaceName, cantonHeroSrc, type SwissCantonCode } from "@/lib/homeCantonHero";
 import { resolveWorldArt } from "@/lib/homeWorldHero";
+import { HALLOWEEN_FEATURE_FLAG } from "@/components/seasonal/HalloweenTheme";
 import "./HeroSection.css";
 
 const EMPTY_FEATURES: ReadonlySet<string> = new Set();
@@ -45,8 +46,13 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
   const canton = selectedCity ? cantonFromPlaceName(selectedCity) : locationCanton;
   const worldArt = !pending ? resolveWorldArt(selectedCity || gpsCity, selectedCity ? null : gpsCountry) : null;
   const cantonImage = !pending && canton ? cantonHeroSrc(canton) : null;
-  const desktopImage = cantonImage || worldArt?.desktop || (pending ? null : "/images/home/tok-leman-signature.webp");
-  const mobileImage = worldArt?.mobile || desktopImage;
+  const halloweenEnabled = activeFeatures.has(HALLOWEEN_FEATURE_FLAG);
+  const desktopImage = halloweenEnabled
+    ? "/images/seasonal/halloween/hero-desktop.webp"
+    : cantonImage || worldArt?.desktop || (pending ? null : "/images/home/tok-leman-signature.webp");
+  const mobileImage = halloweenEnabled
+    ? "/images/seasonal/halloween/hero-mobile.webp"
+    : worldArt?.mobile || desktopImage;
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -65,16 +71,19 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         data-content-visible={contentVisible}
         data-authenticated={Boolean(user)}
         data-home-canton={pending ? "pending" : canton ?? "default"}
+        data-seasonal-hero={halloweenEnabled ? "halloween" : undefined}
       >
         <div className="tok-home-hero__content">
           <div className="tok-home-hero__brand">
-            <p className="tok-home-hero__eyebrow"><span className="tok-home-hero__eyebrow-dot" aria-hidden="true" />Le goût de se retrouver</p>
+            <p className="tok-home-hero__eyebrow"><span className="tok-home-hero__eyebrow-dot" aria-hidden="true" />{halloweenEnabled ? "Le goût des frissons" : "Le goût de se retrouver"}</p>
           </div>
           <h1 id="home-hero-title" className="tok-home-hero__title">
             Votre prochaine<br /><span>bonne adresse.</span>
           </h1>
           <p className="tok-home-hero__intro">
-            Une table, un repas à emporter, une nouvelle envie. Trouvez le restaurant qui vous correspond.
+            {halloweenEnabled
+              ? "Une table, un repas à emporter, une envie ensorcelante. Trouvez l’adresse qui vous fera frissonner."
+              : "Une table, un repas à emporter, une nouvelle envie. Trouvez le restaurant qui vous correspond."}
           </p>
           <form role="search" aria-label="Rechercher un restaurant" onSubmit={handleSearch} className="tok-home-hero__form">
             <div className="tok-home-hero__field">

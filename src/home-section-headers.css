@@ -39,6 +39,10 @@
   aspect-ratio: 4 / 1;
 }
 
+[data-section-showcase-header][data-image-aspect="3-1"] {
+  aspect-ratio: 3 / 1;
+}
+
 [data-section-showcase-header] .tok-section-header__visual {
   position: absolute;
   z-index: 0;

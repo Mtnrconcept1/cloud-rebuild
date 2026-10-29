@@ -40,6 +40,20 @@ describe("feature flag catalog", () => {
     expect(golden?.effectiveEnabled).toBe(true);
   });
 
+  it("keeps the Halloween theme opt-in and independent from transactional features", () => {
+    const flags = resolveFlags(buildRows({
+      "seasonal-halloween-2026": true,
+      commandes: false,
+      reservation: false,
+      "payment-card": false,
+    }));
+    const halloween = flags.find((flag) => flag.name === "seasonal-halloween-2026");
+
+    expect(halloween?.defaultEnabled).toBe(false);
+    expect(halloween?.effectiveEnabled).toBe(true);
+    expect(halloween?.blockedBy).toEqual([]);
+  });
+
   it("computes effective state from dependencies", () => {
     const flags = resolveFlags(buildRows({
       reservation: true,
