@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 536 error codes mapped from supabase/functions/**.
+// 535 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -1814,7 +1814,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 77
+      "line": 72
     }
   ],
   "invalid_json_body": [
@@ -1930,7 +1930,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "json_body_required": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 56
+      "line": 51
     }
   ],
   "json_object_required": [
@@ -2154,7 +2154,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 299
+      "line": 294
     },
     {
       "file": "supabase/functions/plinko-play/index.ts",
@@ -2340,11 +2340,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "payload_too_large": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 54
+      "line": 49
     },
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 65
+      "line": 60
     }
   ],
   "payment_attempt_cancel_refresh_required": [
@@ -3056,7 +3056,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "scan_parameters_forbidden": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 305
+      "line": 300
     }
   ],
   "scheduler_identity_required": [
@@ -3068,77 +3068,71 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "sentinel_aal2_required": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 99
+      "line": 94
     }
   ],
   "sentinel_admin_origin_required": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 88
+      "line": 83
     }
   ],
   "sentinel_admin_session_required": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 91
+      "line": 86
     }
   ],
   "sentinel_approval_lookup_failed": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 255
+      "line": 250
     }
   ],
   "sentinel_audit_source_unavailable": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 220
+      "line": 215
     }
   ],
   "sentinel_console_data_unavailable": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 276
+      "line": 271
     }
   ],
   "sentinel_containment_not_armed": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 239
+      "line": 234
     }
   ],
   "sentinel_decision_expired_or_replayed": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 256
+      "line": 251
     },
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 262
+      "line": 257
     }
   ],
   "sentinel_explicit_confirmation_required": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 284
+      "line": 279
     }
   ],
   "sentinel_human_admin_required": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 95
+      "line": 90
     }
   ],
   "sentinel_incident_persist_failed": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 186
-    }
-  ],
-  "sentinel_internal_service_not_configured": [
-    {
-      "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 34
+      "line": 181
     }
   ],
   "sentinel_invalid_callback": [
@@ -3148,19 +3142,19 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 235
+      "line": 230
     }
   ],
   "sentinel_invalid_telegram_identity": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 247
+      "line": 242
     }
   ],
   "sentinel_journal_unavailable": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 192
+      "line": 187
     }
   ],
   "sentinel_operation_temporarily_locked": [
@@ -3172,7 +3166,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "sentinel_release_unavailable": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 289
+      "line": 284
     }
   ],
   "sentinel_scan_invalid_response": [
@@ -3202,31 +3196,31 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "sentinel_service_only": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 82
+      "line": 77
     }
   ],
   "sentinel_telegram_delivery_failed": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 114
+      "line": 109
     }
   ],
   "sentinel_telegram_message_binding_failed": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 198
+      "line": 193
     }
   ],
   "sentinel_telegram_not_configured": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 104
+      "line": 99
     }
   ],
   "sentinel_unsupported_action": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 317
+      "line": 312
     }
   ],
   "sentinel_upstream_not_configured": [

@@ -29,11 +29,6 @@ type Result = Record<string, unknown>;
 function asText(value: unknown, max = 160): string {
   return typeof value === "string" ? value.slice(0, max) : "";
 }
-function internalSecret(): string {
-  const secret = getEnv("SUPABASE_SERVICE_ROLE_KEY");
-  if (!secret) throw new HttpError(503, "sentinel_internal_service_not_configured");
-  return secret;
-}
 function secureRandomToken() {
   const bytes = crypto.getRandomValues(new Uint8Array(24));
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
