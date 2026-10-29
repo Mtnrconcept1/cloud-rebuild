@@ -1,4 +1,5 @@
 import { useAuth } from "@/lib/auth-context";
+import AppLoadingScreen from "@/components/ui/app-loading-screen";
 import type { UserRole } from "@/lib/auth-context";
 import { canAccessAnyRole, getRoleHomePath } from "@/lib/roleAccess";
 import { buildAuthRedirectTarget } from "@/lib/stripeReturn";
@@ -20,11 +21,7 @@ export default function ProtectedRoute({ children, requiredRole, requiredRoles }
   // encore vide. Decider la se soldait par une redirection vers l'accueil
   // public, visible comme un clignotement en changeant d'espace.
   if (loading || (user && !rolesResolved)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
+    return <AppLoadingScreen fullScreen title="Vérification de votre accès" description="TOK prépare votre espace et vérifie vos autorisations…" />;
   }
 
   if (!user) {
