@@ -1,0 +1,178 @@
+:root[data-seasonal-theme="halloween"] {
+  --background: 24 24% 7%;
+  --foreground: 34 55% 94%;
+  --card: 24 19% 10%;
+  --card-foreground: 34 55% 94%;
+  --popover: 24 19% 10%;
+  --popover-foreground: 34 55% 94%;
+  --primary: 17.101449 88.085106% 53.921569%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 27 22% 15%;
+  --secondary-foreground: 34 55% 94%;
+  --muted: 27 16% 16%;
+  --muted-foreground: 31 20% 69%;
+  --accent: 34 65% 58%;
+  --accent-foreground: 24 28% 9%;
+  --border: 27 22% 21%;
+  --input: 27 22% 21%;
+  --ring: 17.101449 88.085106% 53.921569%;
+}
+
+:root[data-seasonal-theme="halloween"] body {
+  background:
+    radial-gradient(circle at 10% 6%, rgb(241 93 34 / 12%), transparent 25rem),
+    radial-gradient(circle at 88% 28%, rgb(216 161 77 / 8%), transparent 30rem),
+    #120e0c;
+  color: hsl(var(--foreground));
+}
+
+.tok-halloween-canopy {
+  position: fixed;
+  z-index: 40;
+  inset: var(--tok-public-navbar-height, 80px) 0 auto;
+  height: clamp(120px, 18vw, 250px);
+  pointer-events: none;
+  background: url("/images/seasonal/halloween/canopy.webp") top center / 100% auto no-repeat;
+  filter: drop-shadow(0 18px 24px rgb(0 0 0 / 35%));
+}
+
+:root[data-seasonal-theme="halloween"] .tok-site-header {
+  border-color: rgb(241 93 34 / 24%);
+  background: rgb(18 14 12 / 92%);
+  box-shadow: 0 1px 0 rgb(241 93 34 / 18%), 0 14px 34px rgb(0 0 0 / 28%);
+  color: #fff7ed;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero {
+  --tok-home-ink: #fff7ed;
+  --tok-home-paper: #120e0c;
+  --tok-home-muted: #d2c0b2;
+  --tok-home-line: #493126;
+  --tok-home-field: #fffaf4;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero__eyebrow {
+  border-color: rgb(241 93 34 / 42%);
+  background: rgb(34 23 18 / 88%);
+  color: #fff7ed;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero__art {
+  background: #1e120d;
+  box-shadow: 0 30px 90px rgb(0 0 0 / 52%), 0 0 0 1px rgb(241 93 34 / 16%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero__art::after {
+  background: linear-gradient(to top, rgb(12 7 4 / 35%), transparent 38%);
+  box-shadow: inset 0 0 0 1px rgb(255 212 174 / 14%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero__field label,
+:root[data-seasonal-theme="halloween"] .tok-home-hero__input-row input {
+  color: #21140f;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero__field label span,
+:root[data-seasonal-theme="halloween"] .tok-home-hero__input-row svg,
+:root[data-seasonal-theme="halloween"] .tok-home-hero__input-row input::placeholder {
+  color: #77675e;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero__form {
+  border-color: rgb(241 93 34 / 34%);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 42%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero__filters a {
+  border-color: rgb(241 93 34 / 30%);
+  background: rgb(34 23 18 / 82%);
+  color: #fff7ed;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero__filters a:hover {
+  background: rgb(55 33 23 / 96%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero__secondary {
+  border-color: rgb(241 93 34 / 20%);
+  background: rgb(30 22 18 / 92%);
+  color: #d2c0b2;
+  box-shadow: 0 18px 44px rgb(0 0 0 / 28%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero__pro-link,
+:root[data-seasonal-theme="halloween"] .tok-home-hero__newsletter strong {
+  color: #fff7ed;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero__newsletter a {
+  background: #fff7ed;
+  color: #21140f;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-or-banner {
+  min-height: clamp(112px, 13vw, 158px);
+  background-image:
+    linear-gradient(90deg, rgb(20 11 7 / 96%) 0%, rgb(20 11 7 / 76%) 45%, rgb(20 11 7 / 8%) 72%),
+    url("/images/seasonal/halloween/tok-or-banner.webp");
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 22px 56px rgb(0 0 0 / 38%);
+}
+
+:root[data-seasonal-theme="halloween"] [data-section-showcase-header] {
+  --tok-header-ink: #fff8ef;
+  --tok-header-muted: #e2cfc0;
+  --tok-header-accent: #f15d22;
+  --tok-header-tint: rgb(241 93 34 / 18%);
+  border-color: rgb(241 93 34 / 22%);
+  background: #21130e;
+  box-shadow: 0 18px 46px rgb(0 0 0 / 30%);
+}
+
+:root[data-seasonal-theme="halloween"] [data-section-showcase-header] .tok-section-header__eyebrow {
+  color: var(--tok-header-ink);
+}
+
+:root[data-seasonal-theme="halloween"] [data-section-showcase-header] [data-section-action-row] a {
+  border-color: #fff7ed;
+  background: #fff7ed;
+  color: #21140f;
+}
+
+:root[data-seasonal-theme="halloween"] [data-home-restaurant-rail] article,
+:root[data-seasonal-theme="halloween"] [data-testid="home-restaurant-skeleton"] {
+  border-color: rgb(241 93 34 / 18%);
+  box-shadow: 0 18px 42px rgb(0 0 0 / 24%);
+}
+
+@media (max-width: 767px) {
+  .tok-halloween-canopy {
+    inset-block-start: var(--tok-public-navbar-height, 104px);
+    height: 118px;
+    background-size: auto 118px;
+    opacity: .88;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero__content {
+    background: linear-gradient(to bottom, rgb(18 14 12 / 18%), #120e0c 46px);
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero__art::after {
+    background: linear-gradient(to bottom, transparent, rgb(18 14 12 / 30%) 45%, #120e0c 100%);
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-or-banner {
+    background-position: 65% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-seasonal-theme="halloween"] *,
+  :root[data-seasonal-theme="halloween"] *::before,
+  :root[data-seasonal-theme="halloween"] *::after {
+    scroll-behavior: auto !important;
+  }
+}

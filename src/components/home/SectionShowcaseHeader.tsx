@@ -48,7 +48,8 @@ export default function SectionShowcaseHeader({
   imageClassName,
   actions,
 }: SectionShowcaseHeaderProps) {
-  const photographic = imageSrc.startsWith("/images/section-headers/tok-editorial-");
+  const seasonalPhotographic = imageSrc.startsWith("/images/seasonal/halloween/");
+  const photographic = seasonalPhotographic || imageSrc.startsWith("/images/section-headers/tok-editorial-");
   const visualRef = useRef<HTMLDivElement>(null);
   const [shouldLoadImage, setShouldLoadImage] = useState(!photographic);
 
@@ -81,6 +82,7 @@ export default function SectionShowcaseHeader({
       data-section-showcase-header
       data-theme={theme}
       data-image-kind={photographic ? "photo" : "illustration"}
+      data-image-aspect={seasonalPhotographic ? "3-1" : undefined}
       className={cn("tok-section-header", className)}
     >
       <div className={cn("tok-section-header__content", contentClassName)}>
@@ -120,8 +122,8 @@ export default function SectionShowcaseHeader({
           src={!photographic || shouldLoadImage ? imageSrc : undefined}
           data-deferred-src={photographic ? imageSrc : undefined}
           alt=""
-          width={photographic ? 2508 : 600}
-          height={photographic ? 627 : 340}
+          width={seasonalPhotographic ? 2172 : photographic ? 2508 : 600}
+          height={seasonalPhotographic ? 724 : photographic ? 627 : 340}
           loading="lazy"
           decoding="async"
           className={cn("tok-section-header__image", imageClassName)}

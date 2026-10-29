@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import { recoverChunkLoadError } from "@/components/ErrorBoundary";
 import "./index.css";
 import "./home-section-headers.css";
+import "./styles/halloween-theme.css";
 import "./styles/commercial-prospection-markers.css";
 import "./styles/golden-tok-chefs-table.css";
 import "./styles/golden-tok-chefs-table-v2.css";
