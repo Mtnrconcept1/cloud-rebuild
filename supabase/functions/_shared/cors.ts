@@ -35,6 +35,7 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "https://www.thetok.ch",
   "https://app.thetok.ch",
   "https://admin.thetok.ch",
+  "https://sentinel.thetok.ch",
   "https://marketing.thetok.ch",
   "https://commercial.thetok.ch",
   "https://demo-client.thetok.ch",
