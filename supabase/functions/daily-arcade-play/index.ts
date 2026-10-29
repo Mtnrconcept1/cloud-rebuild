@@ -97,7 +97,7 @@ Deno.serve(async (req: Request) => {
       ? body.toyType : null;
     if (toy !== null && !TOYS.has(toy)) throw new HttpError(400, "Invalid figurine");
     if (game === "claw" && body.captured === true && toy === null) throw new HttpError(400, "Figurine required");
-    const reward = game === "claw" && !toy ? 0 : 1 + randomInt(10);
+    const reward = game === "claw" ? (toy ? 1 + randomInt(10) : 0) : [1, 3, 5, 7, 10][randomInt(5)];
     const { data, error } = await actor.adminClient.rpc("record_daily_arcade_attempt", {
       p_user_id: actor.userId, p_play_date: playDate, p_game: game,
       p_request_id: requestId, p_toy_type: toy, p_reward_points: reward,
