@@ -273,7 +273,11 @@ export function createTokSaturnScene(
         const turn = matrixMultiply(yRot(seconds * TAU / 6.5 - 0.25), xRot(0.09));
         draw(body, turn, vp, [1.0, 0.255, 0.01], 0, seconds);
         gl.depthMask(false);
+        // Prevent the printed front artwork from appearing behind the solid back.
+        gl.enable(gl.CULL_FACE);
+        gl.cullFace(gl.BACK);
         draw(logo, turn, vp, [1, 1, 1], 1, seconds);
+        gl.disable(gl.CULL_FACE);
         gl.depthMask(true);
       },
       dispose() {
