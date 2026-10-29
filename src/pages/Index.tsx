@@ -46,6 +46,7 @@ import {
   type HomeRestaurantCandidate,
 } from "@/lib/homeRestaurantDiscovery";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
+import { HALLOWEEN_FEATURE_FLAG } from "@/components/seasonal/HalloweenTheme";
 
 const supabase = getSupabase();
 const NearbyRestaurantsMap = lazy(() => import("@/components/NearbyRestaurantsMap"));
@@ -53,6 +54,7 @@ const HOME_CANDIDATE_POOL_LIMIT = 54;
 const HOME_OFFER_CANDIDATE_LIMIT = 12;
 const HOME_NEARBY_RADIUS_KM = 5;
 const PROGRESSIVE_OFFERS_TABLE = "reservation_progressive_offers";
+const HALLOWEEN_SECTION_HEADER_IMAGE = "/images/seasonal/halloween/section-banner.webp";
 
 const SECTION_HEADER_IMAGES = {
   personal: "/images/section-headers/tok-editorial-rewards-full.webp",
@@ -217,6 +219,10 @@ export default function Index() {
   const activeFeatures = isCommercialDemoClient
     ? new Set(commercialDemoFrame.snapshot.active_features)
     : globalActiveFeatures;
+  const halloweenEnabled = activeFeatures.has(HALLOWEEN_FEATURE_FLAG);
+  const seasonalSectionImage = (fallbackImage: string) => (
+    halloweenEnabled ? HALLOWEEN_SECTION_HEADER_IMAGE : fallbackImage
+  );
   const demoRestaurants = useMemo(
     () => isCommercialDemoClient
       ? getCommercialDemoClientRestaurants(commercialDemoFrame.snapshot).map(mapSearchRailRestaurant)
@@ -840,7 +846,7 @@ export default function Index() {
             bgClass="bg-rose-50/70 dark:bg-rose-950/10"
             accentClassName="bg-pink-500/80"
             headerTheme="rose"
-            headerImageSrc={SECTION_HEADER_IMAGES.personal}
+            headerImageSrc={seasonalSectionImage(SECTION_HEADER_IMAGES.personal)}
             linkText="Retrouver vos favoris"
             linkTo="/profil?tab=favoris"
           />
@@ -857,7 +863,7 @@ export default function Index() {
             bgClass="bg-sky-50/75 dark:bg-sky-950/10"
             accentClassName="bg-sky-500/80"
             headerTheme="sky"
-            headerImageSrc={SECTION_HEADER_IMAGES.local}
+            headerImageSrc={seasonalSectionImage(SECTION_HEADER_IMAGES.local)}
             headerDescription="Découvrez les meilleures tables autour de vous."
             linkText={userCoordinates ? "Explorer autour de vous" : userContext?.city ? "Explorer votre ville" : "Explorer les restaurants"}
             linkTo={buildSearchLink({ city: userCoordinates ? null : userContext?.city || null })}
@@ -875,7 +881,7 @@ export default function Index() {
             bgClass={lunchFocus ? "bg-amber-50/70 dark:bg-amber-950/10" : "bg-indigo-50/70 dark:bg-indigo-950/10"}
             accentClassName={lunchFocus ? "bg-amber-500/80" : "bg-indigo-500/80"}
             headerTheme={lunchFocus ? "amber" : "indigo"}
-            headerImageSrc={lunchFocus ? SECTION_HEADER_IMAGES.lunch : SECTION_HEADER_IMAGES.reservation}
+            headerImageSrc={seasonalSectionImage(lunchFocus ? SECTION_HEADER_IMAGES.lunch : SECTION_HEADER_IMAGES.reservation)}
             linkText={primaryRail.linkText}
             linkTo={primaryRail.linkTo}
           />
@@ -889,7 +895,7 @@ export default function Index() {
                 subtitle="À ne pas manquer"
                 icon={Sparkles}
                 iconColor="text-primary"
-                imageSrc={SECTION_HEADER_IMAGES.promo}
+                imageSrc={seasonalSectionImage(SECTION_HEADER_IMAGES.promo)}
                 theme="orange"
               />
               <div className="space-y-4">
@@ -915,7 +921,7 @@ export default function Index() {
               bgClass="bg-emerald-50/75 dark:bg-emerald-950/10"
               accentClassName="bg-emerald-500/80"
               headerTheme="emerald"
-              headerImageSrc={SECTION_HEADER_IMAGES.offers}
+              headerImageSrc={seasonalSectionImage(SECTION_HEADER_IMAGES.offers)}
               linkText="Voir toutes les offres"
               linkTo={buildSearchLink({ sort: "promotion", promo: true, city: userCoordinates ? null : userContext?.city || null })}
             />
@@ -934,7 +940,7 @@ export default function Index() {
               bgClass={lunchFocus ? "bg-indigo-50/70 dark:bg-indigo-950/10" : "bg-amber-50/70 dark:bg-amber-950/10"}
               accentClassName={lunchFocus ? "bg-indigo-500/80" : "bg-amber-500/80"}
               headerTheme={lunchFocus ? "indigo" : "amber"}
-              headerImageSrc={lunchFocus ? SECTION_HEADER_IMAGES.reservation : SECTION_HEADER_IMAGES.lunch}
+              headerImageSrc={seasonalSectionImage(lunchFocus ? SECTION_HEADER_IMAGES.reservation : SECTION_HEADER_IMAGES.lunch)}
               linkText={secondaryRail.linkText}
               linkTo={secondaryRail.linkTo}
             />
@@ -953,7 +959,7 @@ export default function Index() {
               bgClass="bg-slate-50/90 dark:bg-slate-900/30"
               accentClassName="bg-primary/80"
               headerTheme="orange"
-              headerImageSrc={trendingIsSignalBased ? SECTION_HEADER_IMAGES.trending : SECTION_HEADER_IMAGES.nearby}
+              headerImageSrc={seasonalSectionImage(trendingIsSignalBased ? SECTION_HEADER_IMAGES.trending : SECTION_HEADER_IMAGES.nearby)}
               linkText={trendingIsSignalBased ? "Voir les tendances" : "Explorer d'autres restaurants"}
               linkTo={buildSearchLink({
                 city: userCoordinates ? null : userContext?.city || null,
@@ -971,7 +977,7 @@ export default function Index() {
                 subtitle={userCoordinates ? "Selon votre position actuelle" : "Explorez par lieu"}
                 icon={MapPinned}
                 iconColor="text-blue-500"
-                imageSrc={SECTION_HEADER_IMAGES.nearby}
+                imageSrc={seasonalSectionImage(SECTION_HEADER_IMAGES.nearby)}
                 theme="blue"
                 linkText="Voir la liste"
                 linkTo={buildSearchLink({ city: userCoordinates ? null : userContext?.city || null })}

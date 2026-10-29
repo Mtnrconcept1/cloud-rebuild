@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   History,
+  MoonStar,
   Power,
   Rocket,
   Search,
@@ -38,6 +39,9 @@ import {
   type FeatureFlag,
   useFeatureFlags,
 } from "@/lib/featureFlags";
+import { HALLOWEEN_FEATURE_FLAG } from "@/components/seasonal/HalloweenTheme";
+
+const HALLOWEEN_PREVIEW_IMAGE = "/images/seasonal/halloween/hero-desktop.webp";
 
 const CRITICAL_FLAGS = new Set([
   "coming-soon",
@@ -91,9 +95,11 @@ export default function AdminPlatformConfig() {
   const [submitting, setSubmitting] = useState(false);
 
   const normalizedQuery = query.trim().toLowerCase();
+  const halloweenFlag = flags.find((flag) => flag.name === HALLOWEEN_FEATURE_FLAG) || null;
   const filteredFlags = useMemo(() => {
-    if (!normalizedQuery) return flags;
-    return flags.filter((flag) => {
+    const genericFlags = flags.filter((flag) => flag.name !== HALLOWEEN_FEATURE_FLAG);
+    if (!normalizedQuery) return genericFlags;
+    return genericFlags.filter((flag) => {
       const haystack = [
         flag.label,
         flag.name,
@@ -251,6 +257,62 @@ export default function AdminPlatformConfig() {
             </Badge>
           </div>
         </CardContent>
+      </Card>
+
+      <Card className="overflow-hidden border-orange-500/25">
+        <div className="grid lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,.85fr)]">
+          <div className="relative min-h-[260px] overflow-hidden bg-[#160d09]">
+            <img
+              src={HALLOWEEN_PREVIEW_IMAGE}
+              alt="Aperçu du thème Halloween TOK avec le chef, le lac Léman et des citrouilles"
+              width={1672}
+              height={941}
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#160d09]/85 via-[#160d09]/30 to-transparent" />
+            <div className="relative flex min-h-[260px] max-w-md flex-col justify-end p-6 text-white md:p-8">
+              <Badge className="mb-3 w-fit border border-orange-300/30 bg-orange-600/90 text-white">
+                Collection 2026
+              </Badge>
+              <p className="font-display text-3xl font-semibold leading-tight md:text-4xl">TOK aux saveurs d’Halloween</p>
+              <p className="mt-2 text-sm leading-6 text-orange-50/85">
+                Une direction artistique complète, responsive et instantanément réversible.
+              </p>
+            </div>
+          </div>
+
+          <CardContent className="flex flex-col justify-center gap-5 p-6 md:p-8">
+            <div className="flex items-start justify-between gap-5">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <MoonStar className="h-5 w-5 text-orange-500" aria-hidden="true" />
+                  <h2 className="text-lg font-semibold">Thème Halloween</h2>
+                  <Badge variant={halloweenFlag?.effectiveEnabled ? "default" : "secondary"}>
+                    {halloweenFlag?.effectiveEnabled ? "Actif sur le site" : "Inactif"}
+                  </Badge>
+                </div>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  Active les décors, visuels et couleurs Halloween sur les surfaces publiques. Les espaces admin,
+                  restaurateur et coursier restent inchangés.
+                </p>
+              </div>
+              {halloweenFlag ? (
+                <Switch
+                  checked={halloweenFlag.explicitEnabled}
+                  onCheckedChange={() => void handleToggle(halloweenFlag)}
+                  disabled={loading || submitting}
+                  aria-label="Activer le thème Halloween"
+                />
+              ) : null}
+            </div>
+            <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-4 text-sm leading-6 text-muted-foreground">
+              Le changement est audité et diffusé en temps réel. Il ne modifie aucun prix, paiement, stock,
+              commande ou réservation.
+            </div>
+          </CardContent>
+        </div>
       </Card>
 
       <Card>

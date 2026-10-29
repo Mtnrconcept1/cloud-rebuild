@@ -175,6 +175,14 @@ export const FEATURE_DEFINITIONS: FeatureFlagDefinition[] = [
     routeTargets: ["/anti-gaspi"],
   },
   {
+    name: "seasonal-halloween-2026",
+    label: "Thème saisonnier : Halloween",
+    description: "Habille les surfaces publiques TOK pour Halloween sans modifier les parcours de commande, de réservation ou de paiement.",
+    defaultEnabled: false,
+    group: "client_features",
+    routeTargets: ["/", "/recherche", "/restaurant/:id"],
+  },
+  {
     name: "ventes-flash",
     label: "Ventes flash",
     description: "Active les drops time-boxes et les ecrans associés.",

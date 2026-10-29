@@ -30,6 +30,7 @@ import LegalConsentBanner from "@/components/legal/LegalConsentBanner";
 import PageViewTracker from "@/components/PageViewTracker";
 import DailyTokArcade from "@/components/DailyTokArcade";
 import AiCreationNotifications from "@/components/AiCreationNotifications";
+import HalloweenTheme, { HALLOWEEN_FEATURE_FLAG } from "@/components/seasonal/HalloweenTheme";
 import { setupDeepLinks } from "@/lib/deep-links";
 import { getAdminHostRedirectTarget } from "@/lib/adminDomains";
 import {
@@ -539,11 +540,15 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
   const adminGuardianEnabled = hasFeature("admin-guardian");
   const adminTokConnectEnabled = hasFeature("admin-tok-connect");
   const deliveryEnabled = hasFeature("livraison");
+  const halloweenThemeEnabled = hasFeature(HALLOWEEN_FEATURE_FLAG) === true;
   const isMarketingSurface = isMarketingExecutionLocation(pathname);
   const launchFrame = pathname === "/coming-soon";
   const showGlobalClientChrome = !commercialDemoFrame && !oauthConsentFrame && !isMarketingSurface;
   const showLaunchClientChrome = showGlobalClientChrome && !launchFrame;
   const showPublicFooter = showLaunchClientChrome && shouldShowPublicFooter(pathname);
+  const showHalloweenTheme = halloweenThemeEnabled
+    && showLaunchClientChrome
+    && shouldShowPublicNavbar(pathname);
   const publicNavbar = showGlobalClientChrome && shouldShowPublicNavbar(pathname) ? <Navbar /> : null;
   const isCommercialDemoHost = !commercialDemoFrame && pathname === "/commercial/demo-live";
   const supportChatAllowed = (!commercialDemoFrame || commercialDemoFrame.surface !== "commercial")
@@ -553,6 +558,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
 
   return (
     <>
+      <HalloweenTheme enabled={showHalloweenTheme} />
       {showLaunchClientChrome ? <MobileLogoIntro /> : null}
       {showLaunchClientChrome ? <AiCreationNotifications /> : null}
       {!launchFrame ? publicNavbar : null}
