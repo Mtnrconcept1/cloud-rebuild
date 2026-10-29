@@ -89,16 +89,6 @@ export default function AiGenerationProgressDialog({
         data-testid="ai-generation-progress-dialog"
       >
         <style>{`
-          @keyframes tokAiOrbit { to { transform: rotate(360deg); } }
-          @keyframes tokAiOrbitReverse { to { transform: rotate(-360deg); } }
-          @keyframes tokAiBreathe {
-            0%, 100% { transform: scale(.96); filter: drop-shadow(0 0 15px rgba(255,125,32,.35)); }
-            50% { transform: scale(1.04); filter: drop-shadow(0 0 30px rgba(255,177,80,.7)); }
-          }
-          @keyframes tokAiFloat {
-            0%, 100% { transform: translate3d(0,0,0) rotate(-5deg); opacity: .62; }
-            50% { transform: translate3d(0,-8px,0) rotate(7deg); opacity: 1; }
-          }
           @keyframes tokAiSweep {
             0% { transform: translateX(-130%); opacity: 0; }
             25% { opacity: .8; }
