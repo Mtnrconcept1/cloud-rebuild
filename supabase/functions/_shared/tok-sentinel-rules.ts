@@ -20,6 +20,7 @@ export interface SentinelAudit {
   status: string;
   error_message: string | null;
   actor_user_id: string | null;
+  is_service_role?: boolean;
   request_metadata: Record<string, unknown> | null;
 }
 export interface SentinelFinding {
@@ -47,6 +48,45 @@ const FINANCIAL_FUNCTIONS = new Set([
   "create-checkout", "complete-order-checkout", "process-refund",
   "stripe-connect-onboard", "manage-restaurant-subscription",
 ]);
+// A time-bound QA account can mute only low-confidence *notifications*, never
+// stop event collection or disable a security/transactional guard.
+const MAX_EXEMPTED_EVIDENCE = 35; // Larger clusters remain visible as high-risk alerts.
+const HIGH_IMPACT_FUNCTION = /(?:admin|auth|role|permission|security|sentinel|incident|stripe-connect|refund|payout|transfer|secret|vault|reconcile|subscription)/i;
+const CONFIRMED_DANGER = /(?:exfiltrat|rls.{0,15}bypass|privilege.{0,15}escalat|account.{0,15}takeover|credential.{0,15}leak|unauthorized.{0,15}transfer|fraud|tamper|destruct|malicious|data.{0,15}leak)/i;
+
+/**
+ * Only downgrades a correlation when EVERY source event is an attributed,
+ * non-service-role event from a currently approved test identity. Mixed IPs,
+ * truncated evidence, sensitive functions, and confirmed-risk indicators always
+ * retain normal alerting. No email, UUID or client flag can opt into this mode.
+ */
+export function isAuthorizedTestNoise(
+  finding: SentinelFinding,
+  auditRows: readonly SentinelAudit[],
+  activeTestAccountIds: ReadonlySet<string>,
+): boolean {
+  if (activeTestAccountIds.size === 0 || finding.severity !== "high") return false;
+  if (finding.scope === "global" || finding.scope === "restaurant" || finding.scope === "account") return false;
+  if (finding.category !== "authorization_probing" && finding.category !== "payment_abuse") return false;
+  if (finding.count < 1 || finding.count > MAX_EXEMPTED_EVIDENCE ||
+      finding.count !== finding.evidenceIds.length ||
+      new Set(finding.evidenceIds).size !== finding.count) return false;
+  if (finding.functions.some((name) => HIGH_IMPACT_FUNCTION.test(name))) return false;
+  if (finding.category === "payment_abuse" &&
+      finding.functions.some((name) => name !== "create-checkout")) return false;
+
+  const sourceById = new Map(auditRows.map((row) => [row.id, row]));
+  return finding.evidenceIds.every((id) => {
+    const row = sourceById.get(id);
+    if (!row || row.status !== "failure" || row.is_service_role !== false ||
+        typeof row.actor_user_id !== "string" ||
+        !activeTestAccountIds.has(row.actor_user_id.toLowerCase())) return false;
+    return !CONFIRMED_DANGER.test(row.action) &&
+      !CONFIRMED_DANGER.test(row.error_message || "") &&
+      !HIGH_IMPACT_FUNCTION.test(row.function_name);
+  });
+}
+
 const AUTO_CRITICAL = new Set([
   "confirmed_rls_bypass", "confirmed_privilege_compromise", "confirmed_destructive_activity",
 ]);

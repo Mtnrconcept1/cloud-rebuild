@@ -14,6 +14,7 @@ const api = validConfig
 type Report = {
   summary?: string; category?: string; evidence_count?: number;
   functions?: string[]; correlation_hash?: string;
+  authorized_test_noise?: boolean;
   analysis?: {
     assessment?: string;
     repair_steps?: string[]; validation_steps?: string[]; rollback_steps?: string[];
@@ -32,6 +33,8 @@ type Containment = {
 type Overview = {
   incidents: Incident[]; activeContainments: Containment[];
   autoGlobal: boolean; telegramConfigured: boolean; enforcementArmed: boolean;
+  authorizedTestAccounts: number; testNoiseConfigHealthy: boolean;
+  testAccountRenewBy: string | null;
 };
 
 async function sentinelAction<T>(session: Session, action: string, payload: Record<string, unknown> = {}): Promise<T> {
@@ -232,6 +235,11 @@ function App() {
                   ? "Confinement ciblé armé. Les gardes actuels ne couvrent pas toutes les Edge Functions ni le réseau : ne pas considérer cette protection comme totale."
                   : "Mode observation : les alertes et rapports restent actifs, mais les validations Telegram ne peuvent pas déclencher de confinement avant l'activation contrôlée des gardes."}
               </div>
+              <div className="notice" role="status">
+                {overview.testNoiseConfigHealthy
+                  ? <>{overview.authorizedTestAccounts} compte(s) de test autorisé(s) : les erreurs ordinaires sont observées sans notification Telegram. Les preuves, incidents mixtes et risques critiques restent surveillés. {overview.testAccountRenewBy ? `Expiration de l'exception : ${displayDate(overview.testAccountRenewBy)}.` : ""}</>
+                  : "Configuration des comptes de test indisponible : Sentinel conserve les alertes normales."}
+              </div>
               <h3>Confinements actifs</h3>
               {overview.activeContainments.length === 0 && <div className="card empty">Aucun confinement actif dans la source consultée.</div>}
               <div className="items">{overview.activeContainments.map((item) => (
@@ -246,10 +254,11 @@ function App() {
               <div className="items">{overview.incidents.map((incident) => (
                 <article className="card incident" key={incident.id}>
                   <div className="incident-head">
-                    <div><span className="eyebrow">{incident.category}</span><h4>{incident.scope} — {incident.status}</h4></div>
-                    <span className={"badge " + (incident.severity === "critical" ? "badge-danger" : "badge-warning")}>{incident.severity}</span>
+                    <div><span className="eyebrow">{incident.category}</span><h4>{incident.scope} — {incident.status === "observed_test" ? "test autorisé (observé)" : incident.status}</h4></div>
+                    <span className={"badge " + (incident.status === "observed_test" ? "badge-neutral" : incident.severity === "critical" ? "badge-danger" : "badge-warning")}>{incident.status === "observed_test" ? "TEST" : incident.severity}</span>
                   </div>
                   <p>{incident.report?.summary || "Anomalie technique à analyser."}</p>
+                  {incident.status === "observed_test" && <p className="notice">Activité de test autorisée : preuves conservées, aucune alerte Telegram ni quarantaine.</p>}
                   <p className="small">Détecté {displayDate(incident.first_seen_at)} · Dernier signal {displayDate(incident.last_seen_at)} · {incident.occurrence_count} occurrence(s)</p>
                   {incident.status === "awaiting_approval" && <p className="notice">Approbation ou refus dans le bot Telegram autorisé. Ne pas agir sans preuve.</p>}
                   <Evidence incident={incident} />

@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `580fc3ae73e28de021efc87cc80b6d9c6f44edde16e7da77005974a55c9321ce`
+- Empreinte SHA-256 des sources indexées : `bafadbe6b25f90946d5ac5e281847db0aa6faab8b53a13c869af42ccc2877122`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,7 +32,7 @@
 | documents | 238 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4285 |
+| exportedSymbols | 4286 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
@@ -45,7 +45,7 @@
 | publicEntries | 772 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19852 |
+| records | 19854 |
 | repositoryFiles | 3848 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -7292,7 +7292,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Versement développeur sans Stripe Connect : PostFinance | 4 | [docs/runbooks/tok-developer-bank-payouts.md:1](../../docs/runbooks/tok-developer-bank-payouts.md#L1) |
 | TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet) | 5 | [docs/runbooks/tok-stripe-connect-platform-profile-20261017.md:1](../../docs/runbooks/tok-stripe-connect-platform-profile-20261017.md#L1) |
 | Protection SEO et anti-scraping de TOK | 10 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
-| TOK Sentinel — Runbook d'incident et déploiement (v1) | 9 | [docs/security/TOK_SENTINEL_RUNBOOK.md:1](../../docs/security/TOK_SENTINEL_RUNBOOK.md#L1) |
+| TOK Sentinel — Runbook d'incident et déploiement (v1) | 10 | [docs/security/TOK_SENTINEL_RUNBOOK.md:1](../../docs/security/TOK_SENTINEL_RUNBOOK.md#L1) |
 | Réservation des crédits pour les images IA | 10 | [docs/security/ai-image-credit-reservations.md:1](../../docs/security/ai-image-credit-reservations.md#L1) |
 | Tok audit readiness — plan 10/10 | 5 | [docs/security/audit-readiness-10-10.md:1](../../docs/security/audit-readiness-10-10.md#L1) |
 | Audit d’intégrité des paiements — 15 juillet 2026 | 15 | [docs/security/payment-integrity-audit-2026-07-15.md:1](../../docs/security/payment-integrity-audit-2026-07-15.md#L1) |

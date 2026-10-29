@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 535 error codes mapped from supabase/functions/**.
+// 536 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -2154,7 +2154,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 294
+      "line": 349
     },
     {
       "file": "supabase/functions/plinko-play/index.ts",
@@ -3056,7 +3056,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "scan_parameters_forbidden": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 300
+      "line": 355
     }
   ],
   "scheduler_identity_required": [
@@ -3086,41 +3086,47 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "sentinel_approval_lookup_failed": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 250
+      "line": 298
+    }
+  ],
+  "sentinel_approval_token_unavailable": [
+    {
+      "file": "supabase/functions/ops-sentinel-control/index.ts",
+      "line": 226
     }
   ],
   "sentinel_audit_source_unavailable": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 215
+      "line": 255
     }
   ],
   "sentinel_console_data_unavailable": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 271
+      "line": 319
     }
   ],
   "sentinel_containment_not_armed": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 234
+      "line": 282
     }
   ],
   "sentinel_decision_expired_or_replayed": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 251
+      "line": 299
     },
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 257
+      "line": 305
     }
   ],
   "sentinel_explicit_confirmation_required": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 279
+      "line": 334
     }
   ],
   "sentinel_human_admin_required": [
@@ -3132,7 +3138,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "sentinel_incident_persist_failed": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 181
+      "line": 213
     }
   ],
   "sentinel_invalid_callback": [
@@ -3142,19 +3148,19 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 230
+      "line": 278
     }
   ],
   "sentinel_invalid_telegram_identity": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 242
+      "line": 290
     }
   ],
   "sentinel_journal_unavailable": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 187
+      "line": 221
     }
   ],
   "sentinel_operation_temporarily_locked": [
@@ -3166,7 +3172,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "sentinel_release_unavailable": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 284
+      "line": 339
     }
   ],
   "sentinel_scan_invalid_response": [
@@ -3208,7 +3214,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "sentinel_telegram_message_binding_failed": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 193
+      "line": 232
     }
   ],
   "sentinel_telegram_not_configured": [
@@ -3220,7 +3226,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "sentinel_unsupported_action": [
     {
       "file": "supabase/functions/ops-sentinel-control/index.ts",
-      "line": 312
+      "line": 367
     }
   ],
   "sentinel_upstream_not_configured": [

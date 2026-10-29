@@ -28,6 +28,17 @@ for (let attempt = 0; attempt < 40; attempt++) {
   } catch {
     databaseReady = false;
   }
+  if (databaseReady) {
+    // postgres:17 initializes with a temporary server, then restarts it.
+    // Verify stability before running destructive fixture DDL.
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+    try {
+      databaseReady = docker(["exec", container, "psql", "-U", "postgres",
+        "-d", "postgres", "-tA", "-c", "SELECT 1;"]) === "1";
+    } catch {
+      databaseReady = false;
+    }
+  }
   if (databaseReady) break;
   await new Promise((resolve) => setTimeout(resolve, 500));
 }
@@ -48,6 +59,7 @@ const fixture = [
   "CREATE ROLE authenticated NOLOGIN;",
   "CREATE ROLE service_role NOLOGIN BYPASSRLS;",
   "CREATE SCHEMA auth;",
+  "CREATE TABLE auth.users (id uuid PRIMARY KEY, email text);",
   "GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;",
   "GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;",
   "CREATE TYPE public.app_role AS ENUM ('client', 'admin');",
@@ -188,3 +200,52 @@ sql(migration);
 assert.equal(sql("SELECT count(*) FROM public.tok_sentinel_containments WHERE incident_id = '" +
   incident + "';"), "1");
 console.log("PASS MFA-gated server release RPC, audit events and migration reapplication");
+
+const noiseMigration = readFileSync(
+  resolve("supabase/migrations/20261029073000_tok_sentinel_test_actor_noise.sql"),
+  "utf8",
+);
+const anotherTestAccount = "88888888-8888-4888-8888-888888888888";
+sql("INSERT INTO auth.users(id,email) VALUES ('" + client +
+  "','test-one@example.invalid'),('" + anotherTestAccount + "','test-two@example.invalid');");
+sql(noiseMigration);
+expectBlocked("SET ROLE anon; SELECT user_id FROM public.tok_sentinel_test_accounts;", "permission denied");
+expectBlocked("SET ROLE authenticated; SELECT user_id FROM public.tok_sentinel_test_accounts;", "permission denied");
+expectBlocked(asService + "INSERT INTO public.tok_sentinel_test_accounts(user_id,expires_at) VALUES ('" +
+  client + "',now()+interval '1 day');", "permission denied");
+sql("INSERT INTO public.tok_sentinel_test_accounts(user_id,activated_at,expires_at) VALUES ('" +
+  client + "',now(),now()+interval '3 days');");
+assert.equal(sql(asService + "SELECT count(*) FROM public.tok_sentinel_test_accounts WHERE revoked_at IS NULL AND expires_at>now();"), "1");
+expectBlocked(
+  "INSERT INTO public.tok_sentinel_test_accounts(user_id,expires_at) VALUES ('" +
+    anotherTestAccount + "',now()+interval '31 days');",
+  "tok_sentinel_test_accounts_bounded_period",
+);
+console.log("PASS test-account registry is private, service read-only and limited to 30 days");
+
+const noiseIncident = "99999999-9999-4999-8999-999999999999";
+sql("INSERT INTO public.tok_sentinel_incidents(id,fingerprint,category,severity,scope,status) VALUES ('" +
+  noiseIncident + "','" + "1".repeat(64) +
+  "','authorization_probing','high','administration','observed_test');");
+assert.equal(sql("SELECT status FROM public.tok_sentinel_incidents WHERE id='" + noiseIncident + "';"), "observed_test");
+expectBlocked("INSERT INTO public.tok_sentinel_incidents(fingerprint,category,severity,scope,status) VALUES ('" +
+  "3".repeat(64) + "','confirmed_rls_bypass','critical','administration','observed_test');",
+  "tok_sentinel_test_observation_only");
+expectBlocked("INSERT INTO public.tok_sentinel_incidents(fingerprint,category,severity,scope,status,approval_token_hash) VALUES ('" +
+  "4".repeat(64) + "','authorization_probing','high','administration','observed_test','" +
+  "5".repeat(64) + "');", "tok_sentinel_test_observation_only");
+assert.equal(sql("SELECT count(*) FROM public.tok_sentinel_containments WHERE incident_id='" +
+  noiseIncident + "';"), "0");
+expectBlocked(asService + "SELECT public.tok_sentinel_decide('" + noiseIncident +
+  "','" + "2".repeat(64) +
+  "','test-chat',42,'telegram:fixture','approve');", "sentinel_stale_or_unverified_decision");
+assert.equal(sql("SELECT public.tok_sentinel_write_allowed('payments');"), "t");
+console.log("PASS observed test events cannot be approved or used to bypass payment checks");
+
+sql("UPDATE public.tok_sentinel_test_accounts SET revoked_at=now() WHERE user_id='" + client + "';");
+assert.equal(sql("SELECT count(*) FROM public.tok_sentinel_test_accounts WHERE revoked_at IS NULL AND expires_at>now();"), "0");
+sql("UPDATE public.tok_sentinel_test_accounts SET revoked_at=NULL, activated_at=now()-interval '3 days', expires_at=now()-interval '1 day' WHERE user_id='" + client + "';");
+assert.equal(sql("SELECT count(*) FROM public.tok_sentinel_test_accounts WHERE revoked_at IS NULL AND expires_at>now();"), "0");
+sql(noiseMigration);
+assert.equal(sql("SELECT status FROM public.tok_sentinel_incidents WHERE id='" + noiseIncident + "';"), "observed_test");
+console.log("PASS revoke, expiry and reapplication without removing forensic incidents");

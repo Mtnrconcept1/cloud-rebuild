@@ -4,7 +4,7 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import {
-  detectSentinelFindings, type SentinelAudit, type SentinelFinding,
+  detectSentinelFindings, isAuthorizedTestNoise, type SentinelAudit, type SentinelFinding,
 } from "../_shared/tok-sentinel-rules.ts";
 
 const FUNCTION_NAME = "ops-sentinel-control";
@@ -147,21 +147,52 @@ async function sendDecisionRequest(incidentId: string, finding: SentinelFinding,
     },
   });
 }
-async function registerFinding(finding: SentinelFinding, now: number) {
+async function getActiveTestActorIds(
+  client: ReturnType<typeof createAdminClient>,
+  now: number,
+): Promise<{ ids: ReadonlySet<string>; healthy: boolean; renewBy: string | null }> {
+  const current = new Date(now).toISOString();
+  const { data, error } = await client.from("tok_sentinel_test_accounts")
+    .select("user_id,expires_at")
+    .is("revoked_at", null)
+    .lte("activated_at", current)
+    .gt("expires_at", current)
+    .limit(20);
+  // A missing table, inaccessible service role, or network failure must
+  // restore normal alerting, never silently trust unknown user IDs.
+  if (error) return { ids: new Set<string>(), healthy: false, renewBy: null };
+  const ids = new Set<string>();
+  let renewBy: string | null = null;
+  for (const row of data || []) {
+    if (typeof row.user_id === "string" && UUID.test(row.user_id)) {
+      ids.add(row.user_id.toLowerCase());
+      if (typeof row.expires_at === "string" &&
+          (!renewBy || row.expires_at < renewBy)) renewBy = row.expires_at;
+    }
+  }
+  return { ids, healthy: true, renewBy };
+}
+
+async function registerFinding(
+  finding: SentinelFinding,
+  now: number,
+  observedAuthorizedTest = false,
+) {
   const client = createAdminClient();
   // Raw IPs/user identifiers are NEVER written to Sentinel reports or Telegram.
   const correlationHash = await sha256(finding.correlationKey);
   const fingerprint = await sha256([
     finding.category, finding.scope, correlationHash, Math.floor(now / 3_600_000),
   ].join("|"));
-  const token = secureRandomToken();
+  const token = observedAuthorizedTest ? null : secureRandomToken();
   const cleanFunctions = finding.functions.filter((s) => /^[a-z0-9_.-]{1,64}$/i.test(s));
   const report = {
     summary: finding.summary,
     category: finding.category, scope: finding.scope,
     severity: finding.severity, observed_at: finding.observedAt,
     correlation_hash: correlationHash, evidence_count: finding.count,
-    functions: cleanFunctions, proposed_action: "manual_containment",
+    functions: cleanFunctions, proposed_action: observedAuthorizedTest ? "observation_only" : "manual_containment",
+    authorized_test_noise: observedAuthorizedTest,
     analysis: finding.recommended,
     evidence_source: "edge_function_audit_logs",
     sampled: finding.evidenceIds.length < finding.count,
@@ -169,10 +200,11 @@ async function registerFinding(finding: SentinelFinding, now: number) {
   const { data, error } = await client.from("tok_sentinel_incidents").insert({
     fingerprint, category: finding.category, scope: finding.scope,
     severity: finding.severity, target_id: null,
-    status: "awaiting_approval", evidence_ids: finding.evidenceIds,
-    report, approval_token_hash: await sha256(token),
-    approval_expires_at: new Date(now + APPROVAL_HOURS * 3_600_000).toISOString(),
-    decision_chat_id: getEnv("TELEGRAM_ADMIN_CHAT_ID") || null,
+    status: observedAuthorizedTest ? "observed_test" : "awaiting_approval",
+    evidence_ids: finding.evidenceIds,
+    report, approval_token_hash: token ? await sha256(token) : null,
+    approval_expires_at: token ? new Date(now + APPROVAL_HOURS * 3_600_000).toISOString() : null,
+    decision_chat_id: token ? (getEnv("TELEGRAM_ADMIN_CHAT_ID") || null) : null,
   }).select("id").single();
   if (error?.code === "23505") {
     // An existing hourly episode is not spammed repeatedly.
@@ -181,10 +213,17 @@ async function registerFinding(finding: SentinelFinding, now: number) {
   if (error || !data?.id) throw new HttpError(503, "sentinel_incident_persist_failed");
   const incidentId = String(data.id);
   const { error: journalError } = await client.from("tok_sentinel_events").insert({
-    incident_id: incidentId, event_type: "incident_detected", actor: FUNCTION_NAME,
+    incident_id: incidentId,
+    event_type: observedAuthorizedTest ? "authorized_test_noise_observed" : "incident_detected",
+    actor: FUNCTION_NAME,
     evidence: { event_count: finding.count, category: finding.category, scope: finding.scope },
   });
   if (journalError) throw new HttpError(503, "sentinel_journal_unavailable");
+  if (observedAuthorizedTest) {
+    // Preserve forensic evidence; do not send Telegram or create approval tokens.
+    return { new: true, notified: false, observedTest: true, incidentId };
+  }
+  if (!token) throw new HttpError(503, "sentinel_approval_token_unavailable");
   try {
     const messageId = await sendDecisionRequest(incidentId, finding, token);
     const { error: bindingError } = await client.from("tok_sentinel_incidents").update({
@@ -206,21 +245,30 @@ async function registerFinding(finding: SentinelFinding, now: number) {
   }
 }
 async function scan(): Promise<Result> {
-  const since = new Date(Date.now() - 10 * 60_000).toISOString();
+  const now = Date.now();
+  const since = new Date(now - 10 * 60_000).toISOString();
   const client = createAdminClient();
   const { data, error } = await client.from("edge_function_audit_logs")
-    .select("id,created_at,function_name,action,status,error_message,actor_user_id,request_metadata")
+    .select("id,created_at,function_name,action,status,error_message,actor_user_id,is_service_role,request_metadata")
     .eq("status", "failure").gte("created_at", since)
     .order("created_at", { ascending: false }).limit(500);
   if (error) throw new HttpError(503, "sentinel_audit_source_unavailable");
-  const findings = detectSentinelFindings((data || []) as SentinelAudit[], Date.now());
+  const auditRows = (data || []) as SentinelAudit[];
+  const { ids: authorizedTestIds, healthy: testConfigHealthy } =
+    await getActiveTestActorIds(client, now).catch(() => ({
+      ids: new Set<string>() as ReadonlySet<string>, healthy: false,
+    }));
+  const findings = detectSentinelFindings(auditRows, now);
   const outcomes = [];
   for (const finding of findings.slice(0, 5)) {
-    outcomes.push(await registerFinding(finding, Date.now()));
+    const observeOnly = isAuthorizedTestNoise(finding, auditRows, authorizedTestIds);
+    outcomes.push(await registerFinding(finding, now, observeOnly));
   }
-  return { ok: true, scanned: (data || []).length, truncated: (data || []).length >= 500,
+  return { ok: true, scanned: auditRows.length, truncated: auditRows.length >= 500,
     findings: findings.length, newlyRegistered: outcomes.filter((o) => o.new).length,
     notified: outcomes.filter((o) => o.notified).length,
+    testNoiseObserved: outcomes.filter((o) => o.observedTest).length,
+    testNoiseConfigHealthy: testConfigHealthy,
     // Auto global quarantine disabled until two independent signed witnesses
     // and out-of-band enforcement have been integrated and verified.
     globalAutomaticContainment: "disabled_not_independently_verified" };
@@ -269,9 +317,16 @@ async function listConsole(): Promise<Result> {
         .is("released_at", null).order("activated_at", { ascending: false }).limit(40),
     ]);
   if (incidentsError || controlsError) throw new HttpError(503, "sentinel_console_data_unavailable");
+  const authorizedTestActors = await getActiveTestActorIds(client, Date.now()).catch(() => ({
+    ids: new Set<string>() as ReadonlySet<string>, healthy: false,
+    renewBy: null as string | null,
+  }));
   return { incidents: (incidents || []) as IncidentRecord[], activeContainments: containments || [],
     autoGlobal: false, provider: "supabase", telegramConfigured: isTelegramReady(),
-    enforcementArmed: getEnv("TOK_SENTINEL_ENFORCEMENT_ENABLED") === "true" };
+    enforcementArmed: getEnv("TOK_SENTINEL_ENFORCEMENT_ENABLED") === "true",
+    authorizedTestAccounts: authorizedTestActors.ids.size,
+    testNoiseConfigHealthy: authorizedTestActors.healthy,
+    testAccountRenewBy: authorizedTestActors.renewBy };
 }
 async function release(body: Record<string, unknown>, actorId: string): Promise<Result> {
   const incidentId = asText(body.incidentId, 40);
