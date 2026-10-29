@@ -174,7 +174,13 @@ export function createTokSaturnScene(
   onReady: () => void,
 ): TokSaturnScene | null {
   if (typeof window === "undefined" || !("WebGLRenderingContext" in window)) return null;
-  const gl = canvas.getContext("webgl", { alpha: true, antialias: true, powerPreference: "low-power" });
+  let gl: WebGLRenderingContext | null = null;
+  try {
+    gl = canvas.getContext("webgl", { alpha: true, antialias: true, powerPreference: "low-power" });
+  } catch {
+    // Hardened browsers and old mobile GPUs can throw instead of returning null.
+    return null;
+  }
   if (!gl) return null;
   let disposed = false, logoReady = false, program: WebGLProgram | null = null;
   let texture: WebGLTexture | null = null;
