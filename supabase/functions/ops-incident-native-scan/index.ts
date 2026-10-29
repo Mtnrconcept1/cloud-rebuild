@@ -82,6 +82,32 @@ async function callIncidentControl() {
   return payload;
 }
 
+async function callSentinelControl(): Promise<{ findings: number; notified: number }> {
+  const projectUrl = getEnv("SUPABASE_URL");
+  const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+  if (!projectUrl || !serviceRoleKey) throw new HttpError(503, "sentinel_service_not_configured");
+  const response = await fetch(
+    `${projectUrl.replace(/\/$/, "")}/functions/v1/ops-sentinel-control`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${serviceRoleKey}`,
+        apikey: serviceRoleKey,
+        "User-Agent": "TOK-Native-Sentinel-Scanner/1.0",
+      },
+      body: JSON.stringify({ action: "scan" }),
+      signal: AbortSignal.timeout(30_000),
+    },
+  );
+  if (!response.ok) throw new HttpError(502, "sentinel_scan_upstream_failed");
+  const payload = await response.json().catch(() => null) as {
+    ok?: boolean; findings?: number; notified?: number;
+  } | null;
+  if (!payload || payload.ok !== true) throw new HttpError(502, "sentinel_scan_invalid_response");
+  return { findings: Number(payload.findings || 0), notified: Number(payload.notified || 0) };
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req);
   const preflight = handleCorsPreflight(req, corsHeaders);
@@ -100,6 +126,18 @@ Deno.serve(async (req) => {
     }
 
     const result = await callIncidentControl();
+    // Sentinel failure must never break the proven operations incident scanner.
+    let sentinel: { findings: number; notified: number } | null = null;
+    try {
+      sentinel = await callSentinelControl();
+    } catch {
+      await writeAuditLog({
+        adminClient, actor, request: req, functionName: FUNCTION_NAME,
+        action: "scan_sentinel", status: "failure",
+        errorMessage: "sentinel_scan_unavailable",
+        metadata: { rid: log.rid },
+      }).catch(() => {});
+    }
     const activeFailures = Number.isFinite(Number(result.activeFailures))
       ? Math.max(0, Number(result.activeFailures))
       : 0;
@@ -125,6 +163,8 @@ Deno.serve(async (req) => {
         ok: true,
         activeFailures,
         incidentCount,
+        sentinelFindings: sentinel?.findings ?? null,
+        sentinelNotifications: sentinel?.notified ?? null,
       },
       200,
       corsHeaders,
