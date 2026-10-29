@@ -138,6 +138,24 @@ Deno.serve(async (req) => {
     actor = await authenticateRequest(req, { allowServiceRole: false });
     assertClientActor(actor);
 
+    // The daily game is chosen once in PostgreSQL, not by the browser.
+    // Legacy slot clients must not consume extra spins on a Plinko/claw day.
+    const { data: assignedGame, error: gameError } = await actor.adminClient.rpc(
+      "get_or_assign_daily_arcade_game",
+      { p_user_id: actor.userId, p_play_date: spinDate },
+    );
+    if (gameError) throw new HttpError(503, "Daily arcade unavailable");
+    if (assignedGame !== "slot") {
+      if (req.method === "GET") {
+        return jsonResponse({
+          ok: true, game: assignedGame, available: false, alreadyClaimed: true,
+          attemptsUsed: 0, attemptsRemaining: 0, maxAttempts: SLOT_MAX_ATTEMPTS_PER_DAY,
+          spinDate,
+        }, 200, responseHeaders);
+      }
+      throw new HttpError(409, "Another TOK game is selected for today");
+    }
+
     if (req.method === "GET") {
       const status = await getSpinStatus(actor, spinDate);
       return jsonResponse({
@@ -145,6 +163,7 @@ Deno.serve(async (req) => {
         available: status.attemptsRemaining > 0,
         alreadyClaimed: status.attemptsRemaining <= 0,
         spinDate,
+        game: "slot",
         spin: formatSpin(status.latestSpin),
         attemptsUsed: status.attemptsUsed,
         attemptsRemaining: status.attemptsRemaining,
@@ -229,6 +248,7 @@ Deno.serve(async (req) => {
       alreadyClaimed,
       idempotentReplay,
       spinDate,
+      game: "slot",
       spin,
       attemptsUsed: result.attempts_used ?? spin.attemptNumber,
       attemptsRemaining,
