@@ -71,7 +71,7 @@ function nativeCheckoutHarness(kind: "antigaspi" | "flash") {
     makeLogger: () => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn() }),
     isCommercialDemoHostRequest: () => false, isCommercialDemoUrl: () => false,
     authenticateRequest: async () => ({ userId: "caller", adminClient: h.db }),
-    assertProductionFlowAllowed: async () => {}, assertClientLaunchOpen: async () => {},
+    assertProductionFlowAllowed: async () => {}, assertSentinelAllowed: async () => {}, assertClientLaunchOpen: async () => {},
     buildRequestMetadata: () => ({}), createRateLimiter: () => ({ consume: async () => {} }),
     requireClientPaymentAttemptId: (id: string) => id,
     getStripeRuntimeForCheckoutKind: () => ({ stripe: {}, mode: "test" }),

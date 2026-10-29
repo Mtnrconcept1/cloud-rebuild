@@ -1,3 +1,4 @@
+import { assertSentinelAllowed } from "../_shared/tok-sentinel-guard.ts";
 import {
   HttpError,
   assertProductionFlowAllowed,
@@ -56,6 +57,7 @@ Deno.serve(async (req) => {
         "DEMO_SIDE_EFFECT_BLOCKED: Stripe Connect est désactivé pour les restaurants de démonstration.",
       );
     }
+    await assertSentinelAllowed(actor, "payments", restaurantId);
     const { stripe } = getStripeRuntimeForCheckoutKind("stripe-connect");
 
     accountId = text(restaurant.stripe_account_id);

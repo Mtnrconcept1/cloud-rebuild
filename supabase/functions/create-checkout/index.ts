@@ -1,3 +1,4 @@
+import { assertSentinelAllowed } from "../_shared/tok-sentinel-guard.ts";
 import type Stripe from "npm:stripe@22.3.2";
 
 import {
@@ -283,6 +284,7 @@ Deno.serve(async (req) => {
       throw new HttpError(401, "Unauthorized");
     }
     await assertProductionFlowAllowed(actor, "paiement réel");
+    await assertSentinelAllowed(actor, "payments");
 
     const requestMetadata = buildRequestMetadata(req);
     const rateLimiter = createRateLimiter(actor.adminClient, "create-checkout");

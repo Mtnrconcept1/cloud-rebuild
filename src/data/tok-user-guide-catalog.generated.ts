@@ -1,9 +1,9 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "954c9a4f9efaffdef24f3ce2d6dc53c9dd5aa728b07607b4cc7b1fe60c4e64b3",
+  "sourceDigest": "580fc3ae73e28de021efc87cc80b6d9c6f44edde16e7da77005974a55c9321ce",
   "routeCount": 143,
-  "toolCount": 124
+  "toolCount": 125
 } as const;
 
 export const TOK_USER_GUIDE_ROUTES = [
@@ -2584,6 +2584,23 @@ export const TOK_USER_GUIDE_TOOLS = [
     "actions": [],
     "integrations": [
       "supabase"
+    ]
+  },
+  {
+    "name": "ops-sentinel-control",
+    "endpoint": "/functions/v1/ops-sentinel-control",
+    "methods": [
+      "POST"
+    ],
+    "actions": [
+      "list",
+      "release",
+      "scan",
+      "telegram_decision"
+    ],
+    "integrations": [
+      "supabase",
+      "vercel"
     ]
   },
   {

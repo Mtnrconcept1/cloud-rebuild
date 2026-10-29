@@ -48,9 +48,10 @@ function harness(options: { loseBindingOnce?: boolean } = {}) {
     if (!sessions.has(request.idempotencyKey)) sessions.set(request.idempotencyKey, { id: "cs_fixture", url: "https://checkout.stripe.com/c/pay/fixture" });
     return sessions.get(request.idempotencyKey);
   });
+  const sentinelGate = vi.fn(async () => {});
   const deps = { HttpError, Deno: { env: { get: () => undefined }, serve: (callback: typeof handler) => { handler = callback; } },
     buildCorsHeaders: () => ({}), handleCorsPreflight: () => null, authenticateRequest: async () => ({ userId: "caller", adminClient: db }),
-    assertProductionFlowAllowed: async () => {}, buildRequestMetadata: () => ({}), createAdminClient: () => db,
+    assertProductionFlowAllowed: async () => {}, assertSentinelAllowed: sentinelGate, buildRequestMetadata: () => ({}), createAdminClient: () => db,
     jsonResponse: (body: unknown, status = 200) => Response.json(body, { status }), writeAuditLog: async () => {},
     makeLogger: () => ({ error() {} }), createRateLimiter: () => ({ consume: async () => {} }),
     getStripeRuntimeForCheckoutKind: () => ({ mode: "live", stripe: { customers: { create: createCustomer }, checkout: { sessions: { create: createSession } } } }),
@@ -58,7 +59,7 @@ function harness(options: { loseBindingOnce?: boolean } = {}) {
   };
   new Function(...Object.keys(deps), compiled)(...Object.values(deps));
   const body = { restaurant_id: restaurant, date: "2027-01-02", time: "19:00", party_size: 7, guarantee_accepted: true };
-  return { setups, customers, sessions, createCustomer, createSession,
+  return { setups, customers, sessions, createCustomer, createSession, sentinelGate,
     call: (patch: Json = {}) => handler(new Request("https://tok.test/create-reservation", { method: "POST", headers: { "Idempotency-Key": "guarantee-key-1" }, body: JSON.stringify({ ...body, ...patch }) })) };
 }
 describe("native guarantee request recovery", () => {
@@ -67,6 +68,8 @@ describe("native guarantee request recovery", () => {
     const first = await h.call(), replay = await h.call();
     expect(first.status).toBe(200); expect(await replay.json()).toEqual(await first.json());
     expect(h.setups.size).toBe(1); expect(h.createSession).toHaveBeenCalledTimes(1);
+    expect(h.sentinelGate).toHaveBeenCalledTimes(1);
+    expect(h.sentinelGate).toHaveBeenCalledWith(expect.anything(), "operations", restaurant);
   });
   it("recovers response loss before binding using the same provider object keys", async () => {
     const h = harness({ loseBindingOnce: true });
