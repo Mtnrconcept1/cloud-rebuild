@@ -19,12 +19,12 @@ export function clampPrintFrame(input: PrintFrame): PrintFrame {
   return { scalePercent: safe(input.scalePercent, 80, 50, 95),
     offsetXPercent: safe(input.offsetXPercent, 0, -20, 20), offsetYPercent: safe(input.offsetYPercent, 0, -20, 20) };
 }
-export function isPrintFrameReady(input: PrintFrame, safeXPercent: number, safeYPercent: number): boolean {
+export function isPrintFrameReady(input: PrintFrame, trimXPercent: number, trimYPercent: number): boolean {
   const { scalePercent: scale, offsetXPercent: x, offsetYPercent: y } = input;
-  if (![scale, x, y, safeXPercent, safeYPercent].every(Number.isFinite)) return false;
+  if (![scale, x, y, trimXPercent, trimYPercent].every(Number.isFinite)) return false;
   return scale >= 50 && scale <= 95 && Math.abs(x) <= 20 && Math.abs(y) <= 20
-    && 50 + x - scale / 2 >= safeXPercent && 50 + x + scale / 2 <= 100 - safeXPercent
-    && 50 + y - scale / 2 >= safeYPercent && 50 + y + scale / 2 <= 100 - safeYPercent;
+    && 50 + x - scale / 2 >= trimXPercent && 50 + x + scale / 2 <= 100 - trimXPercent
+    && 50 + y - scale / 2 >= trimYPercent && 50 + y + scale / 2 <= 100 - trimYPercent;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -54,7 +54,7 @@ export function buildPrintMarginCorrectionPrompt(insetPercent: PrintMarginInsetP
     "Produce exactly ONE complete image with the SAME print format, single scene, brand, palette, lettering, logo, food, layout and hierarchy as the reference image.",
     frame
       ? `Use the manual composition preview as target: source design occupies ${frame.scalePercent}% of canvas width and height, center offset ${frame.offsetXPercent}% horizontally and ${frame.offsetYPercent}% vertically. Recompose NATIVELY to these proportions (not a pasted or rescaled bitmap). Extend the surrounding scene by generative outpainting. The source must remain one coherent design.`
-      : `Reframe the WHOLE existing design very slightly inwards by approximately ${insetPercent}% on each side. Keep every existing essential element (including the full extent of text, logos, prices, contact details, faces and their shadows) well INSIDE the green print safety rectangle required by the native template.`,
+      : `Reframe the WHOLE existing design very slightly inwards by approximately ${insetPercent}% on each side. Keep all existing essential elements (text, logos, prices and contact details) INSIDE the mandatory red trim rectangle. The green margin is advisory, not a rejection criterion.`,
     "Use generative outpainting to continue the existing background, restaurant photograph, textures and purely decorative details naturally into all four newly exposed peripheral regions, through the trim line and to the outer bleed edge.",
     "Preserve all existing words, accents, prices, dates, phone numbers, URLs, symbols, graphic marks, typefaces and the exact logo. Do not rewrite, translate, invent, remove, duplicate or change any of them.",
     "No new text, no new logos, no new QR codes, no visible border, crop marks, colored bars, frames, watermarks, template grids, contact sheets or mockups.",

@@ -125,3 +125,32 @@ it("keeps the original image and shows an editable generative margin correction 
   expect(fixtures.assets.map((item) => item.id)).toContain(originalId);
   expect(screen.getByRole("button", { name: /générer le BAT/i })).toBeTruthy();
 });
+
+it("shows non-blocking prepress warnings after a successful BAT instead of asking for another image", async () => {
+  const sourceId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  const target = {
+    destination: "print", providerProductId: a4.providerProductId, widthMm: a4.widthMm,
+    heightMm: a4.heightMm, bleedMm: a4.bleedMm,
+    ...buildNativePrintTemplate(a4).contract, sourceSha256: "a".repeat(64),
+  };
+  fixtures.assets = [asset(sourceId, target)];
+  const native = buildNativePrintTemplate(a4);
+  vi.stubGlobal("Image", class {
+    naturalWidth = native.widthPx; naturalHeight = native.heightPx; onload?: () => void;
+    set src(_value: string) { queueMicrotask(() => this.onload?.()); }
+  });
+  fixtures.exportCall.mockResolvedValueOnce({
+    exportId: "proof-id", status: "ready", previewUrl: "https://images.example/proof.pdf",
+    preflight: { artworkReview: { warnings: [
+      { code: "native_element_near_trim", message: "Zone verte facultative ; le texte reste dans le rouge." },
+    ] } },
+  });
+  render(<PrintComposerDialog restaurantId="restaurant" initialSourceGenerationId={sourceId} open showTrigger={false} />);
+  await screen.findByText("Format et orientation verrouillés sur la création générée.");
+  const button = await screen.findByRole("button", { name: /Contrôler le visuel & générer le BAT/ });
+  expect((button as HTMLButtonElement).disabled).toBe(false);
+  fireEvent.click(button);
+  expect(await screen.findByText("Zone verte facultative ; le texte reste dans le rouge.")).toBeTruthy();
+  expect(screen.getByText("À vérifier sur le BAT (non bloquant)")).toBeTruthy();
+  expect(screen.getByRole("link", { name: /Consulter le PDF contrôlé/ })).toBeTruthy();
+});

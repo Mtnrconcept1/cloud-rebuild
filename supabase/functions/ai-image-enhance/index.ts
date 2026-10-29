@@ -1398,8 +1398,8 @@ Deno.serve(async (req) => {
       throw new HttpError(400, "La correction des marges nécessite un visuel d’impression natif");
     }
     if (printMarginCorrection?.frame && printTemplate && !isPrintFrameReady(printMarginCorrection.frame,
-      printTemplate.safeArea.left * 100, printTemplate.safeArea.top * 100)) {
-      throw new HttpError(400, "Le cadre choisi sort de la zone de sécurité du support");
+      printTemplate.trimArea.left * 100, printTemplate.trimArea.top * 100)) {
+      throw new HttpError(400, "Le cadrage dépasse la ligne rouge de coupe du support");
     }
     const rawPrompt = printMarginCorrection
       ? buildPrintMarginCorrectionPrompt(printMarginCorrection.insetPercent, printMarginCorrection.frame)

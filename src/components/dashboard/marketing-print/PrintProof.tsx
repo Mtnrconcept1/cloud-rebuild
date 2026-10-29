@@ -22,7 +22,7 @@ export default function PrintProof({ document, product, approved = false }: {
           <div className="pointer-events-none absolute border border-dashed border-emerald-500/80" style={insets(product.bleedMm + safe)} aria-label="Zone de sécurité" />
         </> : null}
       </div>
-      <p className="text-xs text-muted-foreground">Rouge : coupe. Vert : tous les éléments essentiels doivent rester à l’intérieur. Les repères ne font jamais partie du PDF.</p>
+      <p className="text-xs text-muted-foreground">Rouge : ligne de coupe obligatoire — tout texte, logo et objet essentiel doit rester entièrement à l’intérieur. Vert : marge de confort recommandée, non bloquante. Les fonds et décors peuvent aller jusqu’aux bords. Les repères ne sont pas imprimés.</p>
       <div className="grid gap-2 text-xs sm:grid-cols-3">
         <div className="rounded-xl border p-3">Format fini : {product.widthMm} × {product.heightMm} mm</div>
         <div className="rounded-xl border p-3">Fond perdu : {product.bleedMm} mm · marge intérieure : {safe} mm</div>

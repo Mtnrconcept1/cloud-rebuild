@@ -447,7 +447,8 @@ describe("server-authoritative native Cloudprinter generation", () => {
     expect(form.getAll("image[]")).toHaveLength(4);
     expect(String(form.get("prompt"))).toContain("GABARIT IMPRESSION PRIORITAIRE");
     expect(String(form.get("prompt"))).toContain("111×154 mm");
-    expect(String(form.get("prompt"))).toContain("3 mm À L'INTÉRIEUR");
+    expect(String(form.get("prompt"))).toContain("LIGNE ROUGE DE COUPE");
+    expect(String(form.get("prompt"))).toContain("LIGNE VERTE = marge conseillée");
     expect(String(form.get("prompt"))).toContain("generation_seed: fixture-marketing");
     expect(body.generation_seed).toBe("fixture-marketing");
     expect(body.marketing_output_target).toMatchObject({ ...output, nativeArtworkVersion: 1, safeMarginMm: 3, sourceSha256: expect.stringMatching(/^[a-f0-9]{64}$/) });
