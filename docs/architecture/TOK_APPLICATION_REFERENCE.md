@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `fe699ec29657aedfdd82b508a38ed585fe325ae4a1b022c799416990a9ca6b70`
+- Empreinte SHA-256 des sources indexées : `8ab5cbdeaa790a8e172fcef75856950ba65df144cdd3901262d7b2d6c3186cd0`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 238 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4287 |
+| exportedSymbols | 4290 |
 | featureFlags | 100 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 590 |
-| modules | 1932 |
+| modules | 1935 |
 | pages | 133 |
 | pathLiterals | 952 |
 | publicAssets | 742 |
 | publicEntries | 777 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19876 |
-| repositoryFiles | 3857 |
+| records | 19886 |
+| repositoryFiles | 3861 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1869,7 +1869,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
 | /images/home/tok-leman-signature-fast.webp | 1 | [src/test/home-core-web-vitals.test.ts:17](../../src/test/home-core-web-vitals.test.ts#L17) |
 | /images/home/tok-leman-signature.webp | 3 | [src/components/home/HeroSection.tsx:52](../../src/components/home/HeroSection.tsx#L52) |
-| /images/home/tok-logo-ui.webp | 4 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
+| /images/home/tok-logo-ui.webp | 5 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
 | /images/kebab-box-spread.jpeg | 22 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
@@ -7138,18 +7138,18 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 229 |
+| application-library | 230 |
 | automation-script | 92 |
 | documentation | 6 |
 | edge-function-source | 258 |
-| frontend-component | 313 |
+| frontend-component | 314 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
 | frontend-source | 36 |
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 805 |
+| test | 806 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7461,7 +7461,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (229)</summary>
+<details><summary>application-library (230)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/acquisitionAttribution.ts`
@@ -7681,6 +7681,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/tokIntelligence.ts`
 - `src/lib/tokLogo.ts`
 - `src/lib/tokOAuth.ts`
+- `src/lib/tokSaturnScene.ts`
 - `src/lib/tokWorkforce.ts`
 - `src/lib/tokWorkforceCantons.ts`
 - `src/lib/tokWorkforcePdf.ts`
@@ -8896,7 +8897,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (325)</summary>
+<details><summary>frontend-component (327)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -9200,6 +9201,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/ui/toggle-group.tsx`
 - `src/components/ui/toggle-variants.ts`
 - `src/components/ui/toggle.tsx`
+- `src/components/ui/tok-saturn-loader.css`
+- `src/components/ui/tok-saturn-loader.tsx`
 - `src/components/ui/tooltip.tsx`
 - `src/components/ui/use-toast.ts`
 - `src/components/workforce/WorkforceAbsences.tsx`
@@ -10512,7 +10515,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (805)</summary>
+<details><summary>test (806)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -11275,6 +11278,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-one-stripe-test-mode.test.ts`
 - `src/test/tok-one-subscription-sync.test.ts`
 - `src/test/tok-pulse-native-widget.test.ts`
+- `src/test/tok-saturn-loader.test.tsx`
 - `src/test/tok-sentinel-control-auth.test.ts`
 - `src/test/tok-sentinel-guard.test.ts`
 - `src/test/tok-sentinel-rules.test.ts`

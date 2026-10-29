@@ -1,8 +1,8 @@
-import { Check, Clock3, Image, Loader2, MessageSquareText, ScanSearch, Sparkles, Wand2, type LucideIcon } from "lucide-react";
+import { Check, Clock3, Image, Loader2, MessageSquareText, ScanSearch, type LucideIcon } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { formatWaitingTime, useEstimatedProgress } from "@/hooks/use-estimated-progress";
-import { useTokLogoSrc } from "@/hooks/useTokLogo";
+import TokSaturnLoader from "@/components/ui/tok-saturn-loader";
 import { cn } from "@/lib/utils";
 
 type AiGenerationKind = "image" | "text" | "analysis";
@@ -51,7 +51,6 @@ export default function AiGenerationProgressDialog({
   onOpenChange,
   className,
 }: AiGenerationProgressDialogProps) {
-  const logoSrc = useTokLogoSrc();
   const normalizedSteps = steps.length ? steps : DEFAULT_STEPS;
   const durationMs = Math.max(1_000, estimatedDurationMs ?? ESTIMATED_DURATION_BY_KIND[kind]);
   const { elapsedMs, remainingMs, progress, isOverdue } = useEstimatedProgress({
@@ -90,16 +89,6 @@ export default function AiGenerationProgressDialog({
         data-testid="ai-generation-progress-dialog"
       >
         <style>{`
-          @keyframes tokAiOrbit { to { transform: rotate(360deg); } }
-          @keyframes tokAiOrbitReverse { to { transform: rotate(-360deg); } }
-          @keyframes tokAiBreathe {
-            0%, 100% { transform: scale(.96); filter: drop-shadow(0 0 15px rgba(255,125,32,.35)); }
-            50% { transform: scale(1.04); filter: drop-shadow(0 0 30px rgba(255,177,80,.7)); }
-          }
-          @keyframes tokAiFloat {
-            0%, 100% { transform: translate3d(0,0,0) rotate(-5deg); opacity: .62; }
-            50% { transform: translate3d(0,-8px,0) rotate(7deg); opacity: 1; }
-          }
           @keyframes tokAiSweep {
             0% { transform: translateX(-130%); opacity: 0; }
             25% { opacity: .8; }
@@ -122,16 +111,8 @@ export default function AiGenerationProgressDialog({
               {KIND_META[kind].label}
             </div>
 
-            <div className="relative mb-5 grid h-36 w-36 place-items-center sm:h-40 sm:w-40">
-              <div aria-hidden="true" className="tok-ai-motion absolute inset-0 rounded-full border border-orange-300/35 [animation:tokAiOrbit_7s_linear_infinite] before:absolute before:left-1/2 before:top-[-4px] before:h-2 before:w-2 before:-translate-x-1/2 before:rounded-full before:bg-amber-200 before:shadow-[0_0_16px_rgba(253,230,138,.95)]" />
-              <div aria-hidden="true" className="tok-ai-motion absolute inset-3 rounded-full border border-dashed border-amber-100/35 [animation:tokAiOrbitReverse_10s_linear_infinite]" />
-              <div aria-hidden="true" className="absolute inset-8 rounded-full bg-orange-500/25 blur-xl" />
-              <div className="relative z-10 grid h-24 w-24 place-items-center overflow-hidden rounded-[2rem] border border-white/30 bg-white shadow-[0_16px_45px_rgba(0,0,0,.55),0_0_32px_rgba(255,124,24,.42)]">
-                <img src={logoSrc} alt="" className="tok-ai-motion h-20 w-20 object-contain [animation:tokAiBreathe_3s_ease-in-out_infinite]" draggable={false} />
-                <span aria-hidden="true" className="tok-ai-motion absolute inset-y-0 -left-1/2 w-1/2 skew-x-[-18deg] bg-gradient-to-r from-transparent via-white/70 to-transparent [animation:tokAiSweep_2.8s_ease-in-out_infinite]" />
-              </div>
-              <Sparkles aria-hidden="true" className="tok-ai-motion absolute right-0 top-6 h-5 w-5 text-amber-100 [animation:tokAiFloat_2.6s_ease-in-out_infinite]" />
-              <Wand2 aria-hidden="true" className="tok-ai-motion absolute bottom-7 left-0 h-5 w-5 text-orange-100 [animation:tokAiFloat_3s_ease-in-out_.3s_infinite]" />
+            <div className="relative mb-2 flex w-full items-center justify-center">
+              <TokSaturnLoader size="lg" active={open && !completed} className="max-w-[265px] sm:max-w-[308px]" />
             </div>
 
             <div className="mb-3 inline-flex max-w-full items-center gap-2 rounded-full border border-orange-200/25 bg-orange-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-orange-100">
