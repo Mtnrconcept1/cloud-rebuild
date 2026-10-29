@@ -6,6 +6,7 @@ import {
   useDashboardRestaurant,
 } from "@/pages/dashboard/useDashboardRestaurant";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AppLoadingScreen from "@/components/ui/app-loading-screen";
 
 function DashboardAccessGate({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -17,11 +18,7 @@ function DashboardAccessGate({ children }: { children: React.ReactNode }) {
   } = useDashboardRestaurant();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
+    return <AppLoadingScreen fullScreen title="Ouverture de votre restaurant" description="TOK vérifie les paramètres de votre établissement…" />;
   }
 
   if (
