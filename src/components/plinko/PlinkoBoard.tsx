@@ -11,9 +11,10 @@ type Props = {
   animating: boolean;
   trajectory: PlinkoTrajectory | null;
   onAnimationComplete: () => void;
+  dailyMiamz?: boolean;
 };
 
-export default function PlinkoBoard({ outcome, playing, animating, trajectory, onAnimationComplete }: Props) {
+export default function PlinkoBoard({ outcome, playing, animating, trajectory, onAnimationComplete, dailyMiamz = false }: Props) {
   const id = useId().replace(/:/g, "");
   const coin = useRef<SVGGElement>(null);
   const halos = useRef<(SVGCircleElement | null)[]>([]);
@@ -56,7 +57,7 @@ export default function PlinkoBoard({ outcome, playing, animating, trajectory, o
 
   const first = animating && trajectory ? trajectory.frames[0] : rest;
   return <div className="tok-plinko__board" aria-hidden="true">
-    <div className="tok-plinko__board-caption"><span>LAISSEZ FAIRE LE MIAMZ</span><span>100 % gratuit</span></div>
+    <div className="tok-plinko__board-caption"><span>{dailyMiamz ? "PLINKO QUOTIDIEN" : "LAISSEZ FAIRE LE MIAMZ"}</span><span>100 % gratuit</span></div>
     <svg viewBox="0 0 500 350" className="tok-plinko__pegboard" focusable="false">
       <defs>
         <radialGradient id={`${id}-coin`} cx="35%" cy="25%"><stop stopColor="#fff7c0" /><stop offset=".6" stopColor="#ffc54d" /><stop offset="1" stopColor="#df7a13" /></radialGradient>
@@ -78,8 +79,8 @@ export default function PlinkoBoard({ outcome, playing, animating, trajectory, o
     </svg>
     <div className="tok-plinko__pockets">{PLINKO_POCKETS.map((entry, i) => {
       const Icon = ICONS[i];
-      return <div key={entry} className={selected === entry ? "is-selected" : ""}><Icon size={17} /><span>{PLINKO_PRIZES[entry].short}</span>{entry === "tok_one_month" && <small>1 mois offert</small>}</div>;
+      return <div key={entry} className={selected === entry ? "is-selected" : ""}>{dailyMiamz ? <><span>{[1, 3, 5, 7, 10][i]}</span><small>Miamz</small></> : <><Icon size={17} /><span>{PLINKO_PRIZES[entry].short}</span>{entry === "tok_one_month" && <small>1 mois offert</small>}</>}</div>;
     })}</div>
-    <p className="tok-plinko__board-note">{playing ? "Le Miamz rebondit…" : "Un Miamz, cinq possibilités."}</p>
+    <p className="tok-plinko__board-note">{playing ? "Le Miamz rebondit…" : "Un Miamz, cinq récompenses."}</p>
   </div>;
 }
