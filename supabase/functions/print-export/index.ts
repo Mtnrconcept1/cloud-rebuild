@@ -277,6 +277,15 @@ Deno.serve(async (req) => {
       targetEntityType: "print_exports",
       errorMessage: message,
     });
-    return jsonResponse({ error: status >= 500 ? "Erreur interne de préparation impression" : message }, status, cors);
+    const preflight = error instanceof HttpError && error.details?.preflight;
+    // Return only actionable issue codes/messages. Never expose raw vision observations
+    // or image content in a failed print-export response.
+    const blocking = status === 422 && preflight && typeof preflight === "object"
+      ? (preflight as { blocking?: unknown }).blocking : null;
+    const issues = Array.isArray(blocking) ? blocking
+      .filter(item => item && typeof item === "object" && typeof item.code === "string" && typeof item.message === "string")
+      .slice(0, 5).map(item => ({ code: String(item.code).slice(0, 80), message: String(item.message).slice(0, 250) })) : [];
+    return jsonResponse({ error: status >= 500 ? "Erreur interne de préparation impression" : message,
+      ...(issues.length ? { issues } : {}) }, status, cors);
   }
 });

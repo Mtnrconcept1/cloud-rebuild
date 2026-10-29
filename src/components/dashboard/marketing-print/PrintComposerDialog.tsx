@@ -346,6 +346,7 @@ export default function PrintComposerDialog({
     setProofAcknowledged(false);
     setPreviewUrl(null);
     setExportError(null);
+    setPrintFrame(DEFAULT_PRINT_FRAME);
   }, [selectedAssetId]);
 
   const document = useMemo<MarketingPrintDocument | null>(() => {
@@ -410,8 +411,12 @@ export default function PrintComposerDialog({
         throw new Error("La nouvelle image a été enregistrée, mais son format natif n’est pas prêt. Réouvrez l’impression depuis la galerie.");
       }
       setRetouchedFrom(original);
-      setAssets((current) => [corrected, ...current.filter((asset) => asset.id !== corrected.id)].slice(0, 30));
-      setSelectedAssetId(corrected.id);
+      // Pin the newly persisted generation in the selector and both previews.
+      // Do not reuse a possibly stale gallery rendition of the previous artwork.
+      const latestUrl = result.gallery_image_url || result.generated_image_url || corrected.url;
+      const updated = { ...corrected, url: latestUrl };
+      setAssets((current) => [updated, ...current.filter((asset) => asset.id !== updated.id)].slice(0, 30));
+      setSelectedAssetId(updated.id);
       toast({ title: "Nouvelle version générée", description: "Comparez les deux visuels, vérifiez chaque mot et logo, puis demandez le contrôle du BAT." });
     } catch (error) {
       if (revision === proofRevision.current) {
@@ -438,8 +443,14 @@ export default function PrintComposerDialog({
       toast({ title: "BAT natif contrôlé", description: "Consultez le PDF réel, vérifiez les marges, les textes et la netteté avant approbation." });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erreur de préparation.";
-      if (revision === proofRevision.current) setExportError(message);
-      toast({ title: "BAT impossible", description: message, variant: "destructive" });
+      const body = error && typeof error === "object" && "body" in error ? (error as { body?: unknown }).body : null;
+      const detail = body && typeof body === "object" && "issues" in body ? (body as { issues?: unknown }).issues : null;
+      const issues = Array.isArray(detail) ? detail
+        .filter((item): item is { code: string; message: string } => item && typeof item.code === "string" && typeof item.message === "string")
+        .map((item) => item.message).slice(0, 5) : [];
+      const actionableMessage = issues.length ? issues.join(" ") : message;
+      if (revision === proofRevision.current) setExportError(actionableMessage);
+      toast({ title: "BAT impossible", description: actionableMessage, variant: "destructive" });
     } finally {
       setWorking(null);
     }
