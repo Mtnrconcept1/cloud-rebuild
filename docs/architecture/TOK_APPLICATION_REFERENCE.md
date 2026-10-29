@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `bafadbe6b25f90946d5ac5e281847db0aa6faab8b53a13c869af42ccc2877122`
+- Empreinte SHA-256 des sources indexées : `ca3fdde85a9546f49566cce7b2cd30699168affda53af399759c4c08b3bddb12`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,7 +28,7 @@
 | apiRoutes | 11 |
 | cronJobs | 37 |
 | databaseContract | 231 |
-| databaseObjects | 3165 |
+| databaseObjects | 3166 |
 | documents | 238 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
@@ -37,16 +37,16 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 589 |
-| modules | 1930 |
+| migrations | 590 |
+| modules | 1932 |
 | pages | 133 |
 | pathLiterals | 948 |
 | publicAssets | 737 |
 | publicEntries | 772 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19854 |
-| repositoryFiles | 3848 |
+| records | 19861 |
+| repositoryFiles | 3851 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -5289,7 +5289,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (402)</summary>
+<details><summary>table (403)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5661,6 +5661,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.tok_sentinel_containments` (1 définition(s))
 - `public.tok_sentinel_events` (1 définition(s))
 - `public.tok_sentinel_incidents` (1 définition(s))
+- `public.tok_sentinel_test_accounts` (1 définition(s))
 - `public.tok_workforce_absences` (1 définition(s))
 - `public.tok_workforce_access_audit` (1 définition(s))
 - `public.tok_workforce_clock_events` (1 définition(s))
@@ -6883,6 +6884,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261028194500 Floorplan Ai Idempotency Rpc | 68 | 2 | [supabase/migrations/20261028194500_floorplan_ai_idempotency_rpc.sql:1](../../supabase/migrations/20261028194500_floorplan_ai_idempotency_rpc.sql#L1) |
 | 20261029043000 Tok Sentinel Quarantine | 252 | 22 | [supabase/migrations/20261029043000_tok_sentinel_quarantine.sql:1](../../supabase/migrations/20261029043000_tok_sentinel_quarantine.sql#L1) |
 | 20261029053000 Daily Tok Arcade Rotation | 154 | 7 | [supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql:1](../../supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql#L1) |
+| 20261029073000 Tok Sentinel Test Actor Noise | 53 | 1 | [supabase/migrations/20261029073000_tok_sentinel_test_actor_noise.sql:1](../../supabase/migrations/20261029073000_tok_sentinel_test_actor_noise.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7116,8 +7118,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 279 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 872 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 280 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 874 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 79 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7138,7 +7140,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 804 |
+| test | 806 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7832,7 +7834,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (589)</summary>
+<details><summary>database-migration (590)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8423,6 +8425,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261028194500_floorplan_ai_idempotency_rpc.sql`
 - `supabase/migrations/20261029043000_tok_sentinel_quarantine.sql`
 - `supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql`
+- `supabase/migrations/20261029073000_tok_sentinel_test_actor_noise.sql`
 
 </details>
 
@@ -10493,7 +10496,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (804)</summary>
+<details><summary>test (806)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -11258,6 +11261,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-sentinel-control-auth.test.ts`
 - `src/test/tok-sentinel-guard.test.ts`
 - `src/test/tok-sentinel-rules.test.ts`
+- `src/test/tok-sentinel-test-noise-scan.test.ts`
+- `src/test/tok-sentinel-test-noise.test.ts`
 - `src/test/tok-stripe-price-catalog.test.ts`
 - `src/test/tokWorkforce.test.ts`
 - `src/test/tokWorkforceAbsencesUi.test.tsx`
