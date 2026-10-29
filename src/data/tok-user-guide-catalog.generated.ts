@@ -1,9 +1,9 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "9c7dd94e8c8690a2c3685404d87833c264d4b4b0da5fef30fea9775f42e21a73",
+  "sourceDigest": "954c9a4f9efaffdef24f3ce2d6dc53c9dd5aa728b07607b4cc7b1fe60c4e64b3",
   "routeCount": 143,
-  "toolCount": 123
+  "toolCount": 124
 } as const;
 
 export const TOK_USER_GUIDE_ROUTES = [
@@ -2224,6 +2224,16 @@ export const TOK_USER_GUIDE_TOOLS = [
     "integrations": [
       "openai"
     ]
+  },
+  {
+    "name": "daily-arcade-play",
+    "endpoint": "/functions/v1/daily-arcade-play",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "actions": [],
+    "integrations": []
   },
   {
     "name": "daily-dish-ai",
