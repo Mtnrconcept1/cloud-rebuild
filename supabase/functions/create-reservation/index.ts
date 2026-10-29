@@ -1,3 +1,4 @@
+import { assertSentinelAllowed } from "../_shared/tok-sentinel-guard.ts";
 import {
   HttpError,
   authenticateRequest,
@@ -126,6 +127,7 @@ Deno.serve(async (req) => {
 
     const body: CreateReservationPayload = await req.json().catch(() => ({}));
     const action = String(body.action || "create").trim();
+    if (action !== "quote") await assertSentinelAllowed(actor, "operations");
     if (action === "quote") {
       const requestedSize = Number(body.party_size);
       if (!Number.isInteger(requestedSize) || requestedSize < 1 || requestedSize > 50) {
