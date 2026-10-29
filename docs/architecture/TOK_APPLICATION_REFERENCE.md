@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `31655d9f06c752679a1e4b81cbf73d381b8b0a03e57e7dc0c830630250ce4413`
+- Empreinte SHA-256 des sources indexées : `a9a392eca218c30ec8ca4eca7a1a26ad6458a1deb124cec638bd93a8881c38a3`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 11 |
 | cronJobs | 37 |
 | databaseContract | 231 |
-| databaseObjects | 3158 |
+| databaseObjects | 3165 |
 | documents | 238 |
-| edgeFunctions | 124 |
+| edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4280 |
+| exportedSymbols | 4285 |
 | featureFlags | 99 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 588 |
-| modules | 1922 |
+| migrations | 589 |
+| modules | 1930 |
 | pages | 133 |
-| pathLiterals | 946 |
+| pathLiterals | 948 |
 | publicAssets | 737 |
 | publicEntries | 772 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19817 |
-| repositoryFiles | 3839 |
+| records | 19852 |
+| repositoryFiles | 3848 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -480,7 +480,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | Fonction | Source | Config déclarée | JWT config | Méthodes | Actions qualifiées | Intégrations |
 | --- | --- | --- | --- | --- | --- | --- |
 | admin-demo-entities | [supabase/functions/admin-demo-entities/index.ts:1](../../supabase/functions/admin-demo-entities/index.ts#L1) | oui ([supabase/config.toml:26](../../supabase/config.toml#L26)) | false | POST | create_restaurant, create_user, list | stripe, supabase |
-| admin-restaurant-adjustment | [supabase/functions/admin-restaurant-adjustment/index.ts:1](../../supabase/functions/admin-restaurant-adjustment/index.ts#L1) | oui ([supabase/config.toml:212](../../supabase/config.toml#L212)) | false | POST | — | stripe |
+| admin-restaurant-adjustment | [supabase/functions/admin-restaurant-adjustment/index.ts:1](../../supabase/functions/admin-restaurant-adjustment/index.ts#L1) | oui ([supabase/config.toml:215](../../supabase/config.toml#L215)) | false | POST | — | stripe |
 | ai-accounting-agent | [supabase/functions/ai-accounting-agent/index.ts:1](../../supabase/functions/ai-accounting-agent/index.ts#L1) | oui ([supabase/config.toml:29](../../supabase/config.toml#L29)) | false | ANY | — | openai, stripe, supabase |
 | ai-admin-dashboard-chat | [supabase/functions/ai-admin-dashboard-chat/index.ts:1](../../supabase/functions/ai-admin-dashboard-chat/index.ts#L1) | oui ([supabase/config.toml:23](../../supabase/config.toml#L23)) | false | ANY | history, messages | openai, stripe |
 | ai-admin-monitor | [supabase/functions/ai-admin-monitor/index.ts:1](../../supabase/functions/ai-admin-monitor/index.ts#L1) | oui ([supabase/config.toml:20](../../supabase/config.toml#L20)) | false | GET | full_report, reject_public_analytics_event | openai, supabase, vercel |
@@ -496,17 +496,17 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | ai-restaurant-tools | [supabase/functions/ai-restaurant-tools/index.ts:1](../../supabase/functions/ai-restaurant-tools/index.ts#L1) | oui ([supabase/config.toml:53](../../supabase/config.toml#L53)) | false | ANY | — | openai |
 | ai-social-post-copy | [supabase/functions/ai-social-post-copy/index.ts:1](../../supabase/functions/ai-social-post-copy/index.ts#L1) | oui ([supabase/config.toml:50](../../supabase/config.toml#L50)) | false | POST | — | openai |
 | ai-support-resolution | [supabase/functions/ai-support-resolution/index.ts:1](../../supabase/functions/ai-support-resolution/index.ts#L1) | oui ([supabase/config.toml:65](../../supabase/config.toml#L65)) | false | POST | analyze, execute, list, reject | openai, resend, stripe, supabase |
-| aligro-catalog-sync | [supabase/functions/aligro-catalog-sync/index.ts:1](../../supabase/functions/aligro-catalog-sync/index.ts#L1) | oui ([supabase/config.toml:185](../../supabase/config.toml#L185)) | false | POST | — | supabase |
+| aligro-catalog-sync | [supabase/functions/aligro-catalog-sync/index.ts:1](../../supabase/functions/aligro-catalog-sync/index.ts#L1) | oui ([supabase/config.toml:188](../../supabase/config.toml#L188)) | false | POST | — | supabase |
 | analyze-restaurant-image | [supabase/functions/analyze-restaurant-image/index.ts:1](../../supabase/functions/analyze-restaurant-image/index.ts#L1) | oui ([supabase/config.toml:41](../../supabase/config.toml#L41)) | false | POST | — | openai, supabase |
-| apple-storekit-webhook | [supabase/functions/apple-storekit-webhook/index.ts:1](../../supabase/functions/apple-storekit-webhook/index.ts#L1) | oui ([supabase/config.toml:293](../../supabase/config.toml#L293)) | false | POST | — | — |
+| apple-storekit-webhook | [supabase/functions/apple-storekit-webhook/index.ts:1](../../supabase/functions/apple-storekit-webhook/index.ts#L1) | oui ([supabase/config.toml:296](../../supabase/config.toml#L296)) | false | POST | — | — |
 | authorize-match-group-order | [supabase/functions/authorize-match-group-order/index.ts:1](../../supabase/functions/authorize-match-group-order/index.ts#L1) | oui ([supabase/config.toml:68](../../supabase/config.toml#L68)) | false | ANY | — | stripe |
 | campaign-portal | [supabase/functions/campaign-portal/index.ts:1](../../supabase/functions/campaign-portal/index.ts#L1) | oui ([supabase/config.toml:71](../../supabase/config.toml#L71)) | false | ANY | delete, estimate_audience, list, save, update_status | twint |
 | cancel-payment-attempt | [supabase/functions/cancel-payment-attempt/index.ts:1](../../supabase/functions/cancel-payment-attempt/index.ts#L1) | oui ([supabase/config.toml:77](../../supabase/config.toml#L77)) | false | ANY | — | stripe |
 | cancel-pending-order-checkout | [supabase/functions/cancel-pending-order-checkout/index.ts:1](../../supabase/functions/cancel-pending-order-checkout/index.ts#L1) | oui ([supabase/config.toml:74](../../supabase/config.toml#L74)) | false | POST | — | stripe |
 | capture-due-match-groups | [supabase/functions/capture-due-match-groups/index.ts:1](../../supabase/functions/capture-due-match-groups/index.ts#L1) | oui ([supabase/config.toml:80](../../supabase/config.toml#L80)) | false | ANY | — | stripe |
 | close-due-match-groups | [supabase/functions/close-due-match-groups/index.ts:1](../../supabase/functions/close-due-match-groups/index.ts#L1) | oui ([supabase/config.toml:83](../../supabase/config.toml#L83)) | false | ANY | — | — |
-| cloudprinter-webhook | [supabase/functions/cloudprinter-webhook/index.ts:1](../../supabase/functions/cloudprinter-webhook/index.ts#L1) | oui ([supabase/config.toml:309](../../supabase/config.toml#L309)) | false | POST | — | — |
-| commercial-consent-confirmation | [supabase/functions/commercial-consent-confirmation/index.ts:1](../../supabase/functions/commercial-consent-confirmation/index.ts#L1) | oui ([supabase/config.toml:383](../../supabase/config.toml#L383)) | false | ANY | — | — |
+| cloudprinter-webhook | [supabase/functions/cloudprinter-webhook/index.ts:1](../../supabase/functions/cloudprinter-webhook/index.ts#L1) | oui ([supabase/config.toml:312](../../supabase/config.toml#L312)) | false | POST | — | — |
+| commercial-consent-confirmation | [supabase/functions/commercial-consent-confirmation/index.ts:1](../../supabase/functions/commercial-consent-confirmation/index.ts#L1) | oui ([supabase/config.toml:386](../../supabase/config.toml#L386)) | false | ANY | — | — |
 | commercial-demo-ai | [supabase/functions/commercial-demo-ai/index.ts:1](../../supabase/functions/commercial-demo-ai/index.ts#L1) | oui ([supabase/config.toml:92](../../supabase/config.toml#L92)) | false | POST | chat, maintenance_cleanup, visual_generate | openai, supabase |
 | commercial-demo-checkout | [supabase/functions/commercial-demo-checkout/index.ts:1](../../supabase/functions/commercial-demo-checkout/index.ts#L1) | oui ([supabase/config.toml:89](../../supabase/config.toml#L89)) | false | POST | create | stripe |
 | commercial-followup-reminder | [supabase/functions/commercial-followup-reminder/index.ts:1](../../supabase/functions/commercial-followup-reminder/index.ts#L1) | oui ([supabase/config.toml:86](../../supabase/config.toml#L86)) | false | POST | — | — |
@@ -522,87 +522,88 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | create-zero-attente-reservation | [supabase/functions/create-zero-attente-reservation/index.ts:1](../../supabase/functions/create-zero-attente-reservation/index.ts#L1) | oui ([supabase/config.toml:125](../../supabase/config.toml#L125)) | false | ANY | — | stripe, twint |
 | crm-mfa-recovery | [supabase/functions/crm-mfa-recovery/index.ts:1](../../supabase/functions/crm-mfa-recovery/index.ts#L1) | oui ([supabase/config.toml:101](../../supabase/config.toml#L101)) | false | POST | confirm, request, string | resend, supabase |
 | customer-memory | [supabase/functions/customer-memory/index.ts:1](../../supabase/functions/customer-memory/index.ts#L1) | oui ([supabase/config.toml:128](../../supabase/config.toml#L128)) | false | ANY | clear, confirm, delete, export, infer, list, reject, upsert | openai |
+| daily-arcade-play | [supabase/functions/daily-arcade-play/index.ts:1](../../supabase/functions/daily-arcade-play/index.ts#L1) | oui ([supabase/config.toml:140](../../supabase/config.toml#L140)) | false | GET, POST | — | — |
 | daily-dish-ai | [supabase/functions/daily-dish-ai/index.ts:1](../../supabase/functions/daily-dish-ai/index.ts#L1) | oui ([supabase/config.toml:134](../../supabase/config.toml#L134)) | false | ANY | generate, publish, refine, regenerate, select, set_enabled, status | openai |
 | daily-slot-spin | [supabase/functions/daily-slot-spin/index.ts:1](../../supabase/functions/daily-slot-spin/index.ts#L1) | oui ([supabase/config.toml:137](../../supabase/config.toml#L137)) | false | GET, POST | — | — |
 | delete-account | [supabase/functions/delete-account/index.ts:1](../../supabase/functions/delete-account/index.ts#L1) | oui ([supabase/config.toml:131](../../supabase/config.toml#L131)) | false | POST | — | — |
-| discover-thefork-official-sites | [supabase/functions/discover-thefork-official-sites/index.ts:1](../../supabase/functions/discover-thefork-official-sites/index.ts#L1) | oui ([supabase/config.toml:158](../../supabase/config.toml#L158)) | false | GET, OPTIONS, POST | — | google, supabase |
-| dispatch-order | [supabase/functions/dispatch-order/index.ts:1](../../supabase/functions/dispatch-order/index.ts#L1) | oui ([supabase/config.toml:143](../../supabase/config.toml#L143)) | false | ANY | — | supabase |
-| dispatch-timeout | [supabase/functions/dispatch-timeout/index.ts:1](../../supabase/functions/dispatch-timeout/index.ts#L1) | oui ([supabase/config.toml:146](../../supabase/config.toml#L146)) | false | ANY | — | supabase |
-| enrich-directory-cuisines | [supabase/functions/enrich-directory-cuisines/index.ts:1](../../supabase/functions/enrich-directory-cuisines/index.ts#L1) | oui ([supabase/config.toml:161](../../supabase/config.toml#L161)) | false | GET | — | google, supabase |
-| enrich-directory-cuisines-osm | [supabase/functions/enrich-directory-cuisines-osm/index.ts:1](../../supabase/functions/enrich-directory-cuisines-osm/index.ts#L1) | oui ([supabase/config.toml:164](../../supabase/config.toml#L164)) | false | GET, POST | — | supabase |
-| enrich-directory-images | [supabase/functions/enrich-directory-images/index.ts:1](../../supabase/functions/enrich-directory-images/index.ts#L1) | oui ([supabase/config.toml:149](../../supabase/config.toml#L149)) | false | GET, POST | — | google, supabase |
-| enrich-restaurants | [supabase/functions/enrich-restaurants/index.ts:1](../../supabase/functions/enrich-restaurants/index.ts#L1) | oui ([supabase/config.toml:170](../../supabase/config.toml#L170)) | false | POST | — | supabase |
-| enrich-thefork-images | [supabase/functions/enrich-thefork-images/index.ts:1](../../supabase/functions/enrich-thefork-images/index.ts#L1) | oui ([supabase/config.toml:152](../../supabase/config.toml#L152)) | false | GET, OPTIONS, POST | — | google, supabase |
-| floorplan-ai | [supabase/functions/floorplan-ai/index.ts:1](../../supabase/functions/floorplan-ai/index.ts#L1) | oui ([supabase/config.toml:173](../../supabase/config.toml#L173)) | false | POST | generate, image-import, optimize, suggest-furniture | openai |
-| generate-campaign | [supabase/functions/generate-campaign/index.ts:1](../../supabase/functions/generate-campaign/index.ts#L1) | oui ([supabase/config.toml:176](../../supabase/config.toml#L176)) | false | ANY | — | openai |
-| generate-invoices | [supabase/functions/generate-invoices/index.ts:1](../../supabase/functions/generate-invoices/index.ts#L1) | oui ([supabase/config.toml:221](../../supabase/config.toml#L221)) | false | ANY | — | supabase |
-| golden-tok-membership | [supabase/functions/golden-tok-membership/index.ts:1](../../supabase/functions/golden-tok-membership/index.ts#L1) | oui ([supabase/config.toml:230](../../supabase/config.toml#L230)) | false | POST | cancel, resume, string | stripe |
-| google-actions-center | [supabase/functions/google-actions-center/index.ts:1](../../supabase/functions/google-actions-center/index.ts#L1) | oui ([supabase/config.toml:179](../../supabase/config.toml#L179)) | false | GET, POST | — | google, stripe |
-| google-actions-center-sync | [supabase/functions/google-actions-center-sync/index.ts:1](../../supabase/functions/google-actions-center-sync/index.ts#L1) | oui ([supabase/config.toml:182](../../supabase/config.toml#L182)) | false | POST | — | google, supabase |
-| manage-restaurant-subscription | [supabase/functions/manage-restaurant-subscription/index.ts:1](../../supabase/functions/manage-restaurant-subscription/index.ts#L1) | oui ([supabase/config.toml:227](../../supabase/config.toml#L227)) | false | ANY | accept_commission_mandate, cancel, change_plan, commission_mandate_status, resume | stripe |
-| manage-tok-one-subscription | [supabase/functions/manage-tok-one-subscription/index.ts:1](../../supabase/functions/manage-tok-one-subscription/index.ts#L1) | oui ([supabase/config.toml:224](../../supabase/config.toml#L224)) | false | ANY | cancel, quote, resume, sync_checkout_session | stripe |
-| marketing-orchestrator | [supabase/functions/marketing-orchestrator/index.ts:1](../../supabase/functions/marketing-orchestrator/index.ts#L1) | oui ([supabase/config.toml:296](../../supabase/config.toml#L296)) | false | POST | check_meta, generate_daily, instagram_comments, instagram_discover, run_item | google, openai, resend, supabase |
-| marketing-provider-webhook | [supabase/functions/marketing-provider-webhook/index.ts:1](../../supabase/functions/marketing-provider-webhook/index.ts#L1) | oui ([supabase/config.toml:299](../../supabase/config.toml#L299)) | false | POST | — | — |
-| marketing-unsubscribe | [supabase/functions/marketing-unsubscribe/index.ts:1](../../supabase/functions/marketing-unsubscribe/index.ts#L1) | oui ([supabase/config.toml:306](../../supabase/config.toml#L306)) | false | GET, POST | — | — |
-| menu-image-import | [supabase/functions/menu-image-import/index.ts:1](../../supabase/functions/menu-image-import/index.ts#L1) | oui ([supabase/config.toml:233](../../supabase/config.toml#L233)) | false | POST | — | openai |
-| notification-dispatch | [supabase/functions/notification-dispatch/index.ts:1](../../supabase/functions/notification-dispatch/index.ts#L1) | oui ([supabase/config.toml:188](../../supabase/config.toml#L188)) | false | ANY | — | — |
-| ops-admin-approval | [supabase/functions/ops-admin-approval/index.ts:1](../../supabase/functions/ops-admin-approval/index.ts#L1) | oui ([supabase/config.toml:191](../../supabase/config.toml#L191)) | false | POST | — | supabase |
-| ops-incident-control | [supabase/functions/ops-incident-control/index.ts:1](../../supabase/functions/ops-incident-control/index.ts#L1) | oui ([supabase/config.toml:194](../../supabase/config.toml#L194)) | false | GET, POST | content_review_process, ingest, instagram_review_list, instagram_review_submit, repair-context, scan, workflow-update | openai, sentry, stripe, supabase |
-| ops-incident-native-scan | [supabase/functions/ops-incident-native-scan/index.ts:1](../../supabase/functions/ops-incident-native-scan/index.ts#L1) | oui ([supabase/config.toml:197](../../supabase/config.toml#L197)) | false | POST | — | supabase |
-| ops-sentinel-control | [supabase/functions/ops-sentinel-control/index.ts:1](../../supabase/functions/ops-sentinel-control/index.ts#L1) | oui ([supabase/config.toml:200](../../supabase/config.toml#L200)) | false | POST | list, release, scan, telegram_decision | supabase |
-| payment-attempt-status | [supabase/functions/payment-attempt-status/index.ts:1](../../supabase/functions/payment-attempt-status/index.ts#L1) | oui ([supabase/config.toml:203](../../supabase/config.toml#L203)) | false | ANY | — | stripe |
-| plinko-play | [supabase/functions/plinko-play/index.ts:1](../../supabase/functions/plinko-play/index.ts#L1) | oui ([supabase/config.toml:140](../../supabase/config.toml#L140)) | false | POST | claim, play, start, status, string | — |
-| print-admin | [supabase/functions/print-admin/index.ts:1](../../supabase/functions/print-admin/index.ts#L1) | oui ([supabase/config.toml:312](../../supabase/config.toml#L312)) | false | POST | cancel, list, map_product, reconcile, reorder, settings, update_settings | — |
-| print-catalog | [supabase/functions/print-catalog/index.ts:1](../../supabase/functions/print-catalog/index.ts#L1) | oui ([supabase/config.toml:315](../../supabase/config.toml#L315)) | false | POST | admin_mappings, discover, generation_catalog, hydrate, list, map, sync | — |
-| print-checkout | [supabase/functions/print-checkout/index.ts:1](../../supabase/functions/print-checkout/index.ts#L1) | oui ([supabase/config.toml:318](../../supabase/config.toml#L318)) | false | POST | — | stripe, supabase |
-| print-export | [supabase/functions/print-export/index.ts:1](../../supabase/functions/print-export/index.ts#L1) | oui ([supabase/config.toml:324](../../supabase/config.toml#L324)) | false | POST | approve | — |
-| print-orchestrator | [supabase/functions/print-orchestrator/index.ts:1](../../supabase/functions/print-orchestrator/index.ts#L1) | oui ([supabase/config.toml:327](../../supabase/config.toml#L327)) | false | POST | paused, stop | stripe |
-| print-order-action | [supabase/functions/print-order-action/index.ts:1](../../supabase/functions/print-order-action/index.ts#L1) | oui ([supabase/config.toml:330](../../supabase/config.toml#L330)) | false | POST | cancel, get, list, reorder | stripe |
-| print-quote | [supabase/functions/print-quote/index.ts:1](../../supabase/functions/print-quote/index.ts#L1) | oui ([supabase/config.toml:333](../../supabase/config.toml#L333)) | false | POST | — | — |
-| print-reconcile | [supabase/functions/print-reconcile/index.ts:1](../../supabase/functions/print-reconcile/index.ts#L1) | oui ([supabase/config.toml:336](../../supabase/config.toml#L336)) | false | POST | — | — |
-| print-sandbox-complete | [supabase/functions/print-sandbox-complete/index.ts:1](../../supabase/functions/print-sandbox-complete/index.ts#L1) | oui ([supabase/config.toml:321](../../supabase/config.toml#L321)) | false | GET | — | stripe |
-| process-refund | [supabase/functions/process-refund/index.ts:1](../../supabase/functions/process-refund/index.ts#L1) | oui ([supabase/config.toml:206](../../supabase/config.toml#L206)) | false | ANY | — | stripe |
-| process-reservation-cancellation-fees | [supabase/functions/process-reservation-cancellation-fees/index.ts:1](../../supabase/functions/process-reservation-cancellation-fees/index.ts#L1) | oui ([supabase/config.toml:209](../../supabase/config.toml#L209)) | false | POST | — | stripe |
-| provision-commercial-accounts | [supabase/functions/provision-commercial-accounts/index.ts:1](../../supabase/functions/provision-commercial-accounts/index.ts#L1) | oui ([supabase/config.toml:215](../../supabase/config.toml#L215)) | false | POST | create, list, reset_password, string | — |
-| provision-commercial-demo-logins | [supabase/functions/provision-commercial-demo-logins/index.ts:1](../../supabase/functions/provision-commercial-demo-logins/index.ts#L1) | oui ([supabase/config.toml:376](../../supabase/config.toml#L376)) | true | OPTIONS | — | — |
-| provision-commercial-demo-project-session | [supabase/functions/provision-commercial-demo-project-session/index.ts:1](../../supabase/functions/provision-commercial-demo-project-session/index.ts#L1) | oui ([supabase/config.toml:218](../../supabase/config.toml#L218)) | false | POST | — | stripe, supabase |
-| reconcile-match-group-authorizations | [supabase/functions/reconcile-match-group-authorizations/index.ts:1](../../supabase/functions/reconcile-match-group-authorizations/index.ts#L1) | oui ([supabase/config.toml:236](../../supabase/config.toml#L236)) | false | ANY | — | stripe |
-| reconcile-paid-order-checkouts | [supabase/functions/reconcile-paid-order-checkouts/index.ts:1](../../supabase/functions/reconcile-paid-order-checkouts/index.ts#L1) | oui ([supabase/config.toml:239](../../supabase/config.toml#L239)) | false | ANY | — | stripe |
-| resend-inbound-forward | [supabase/functions/resend-inbound-forward/index.ts:1](../../supabase/functions/resend-inbound-forward/index.ts#L1) | oui ([supabase/config.toml:303](../../supabase/config.toml#L303)) | false | POST | — | resend |
-| restaurant-advisor | [supabase/functions/restaurant-advisor/index.ts:1](../../supabase/functions/restaurant-advisor/index.ts#L1) | oui ([supabase/config.toml:242](../../supabase/config.toml#L242)) | false | POST | — | openai, stripe |
-| restaurant-media-governance | [supabase/functions/restaurant-media-governance/index.ts:1](../../supabase/functions/restaurant-media-governance/index.ts#L1) | oui ([supabase/config.toml:248](../../supabase/config.toml#L248)) | false | POST | add_ai_creation_to_gallery, string | — |
-| restaurant-order-status | [supabase/functions/restaurant-order-status/index.ts:1](../../supabase/functions/restaurant-order-status/index.ts#L1) | oui ([supabase/config.toml:245](../../supabase/config.toml#L245)) | false | ANY | — | — |
-| scrape-restaurants | [supabase/functions/scrape-restaurants/index.ts:1](../../supabase/functions/scrape-restaurants/index.ts#L1) | oui ([supabase/config.toml:251](../../supabase/config.toml#L251)) | false | POST | — | supabase |
-| send-email | [supabase/functions/send-email/index.ts:1](../../supabase/functions/send-email/index.ts#L1) | oui ([supabase/config.toml:254](../../supabase/config.toml#L254)) | false | POST | — | resend, supabase |
-| send-push | [supabase/functions/send-push/index.ts:1](../../supabase/functions/send-push/index.ts#L1) | oui ([supabase/config.toml:257](../../supabase/config.toml#L257)) | false | POST | — | firebase, google, supabase |
-| settle-developer-statement | [supabase/functions/settle-developer-statement/index.ts:1](../../supabase/functions/settle-developer-statement/index.ts#L1) | oui ([supabase/config.toml:275](../../supabase/config.toml#L275)) | false | ANY | — | stripe |
-| stripe-connect-onboard | [supabase/functions/stripe-connect-onboard/index.ts:1](../../supabase/functions/stripe-connect-onboard/index.ts#L1) | oui ([supabase/config.toml:260](../../supabase/config.toml#L260)) | false | POST | — | stripe |
-| stripe-connect-status | [supabase/functions/stripe-connect-status/index.ts:1](../../supabase/functions/stripe-connect-status/index.ts#L1) | oui ([supabase/config.toml:263](../../supabase/config.toml#L263)) | false | POST | — | stripe |
+| discover-thefork-official-sites | [supabase/functions/discover-thefork-official-sites/index.ts:1](../../supabase/functions/discover-thefork-official-sites/index.ts#L1) | oui ([supabase/config.toml:161](../../supabase/config.toml#L161)) | false | GET, OPTIONS, POST | — | google, supabase |
+| dispatch-order | [supabase/functions/dispatch-order/index.ts:1](../../supabase/functions/dispatch-order/index.ts#L1) | oui ([supabase/config.toml:146](../../supabase/config.toml#L146)) | false | ANY | — | supabase |
+| dispatch-timeout | [supabase/functions/dispatch-timeout/index.ts:1](../../supabase/functions/dispatch-timeout/index.ts#L1) | oui ([supabase/config.toml:149](../../supabase/config.toml#L149)) | false | ANY | — | supabase |
+| enrich-directory-cuisines | [supabase/functions/enrich-directory-cuisines/index.ts:1](../../supabase/functions/enrich-directory-cuisines/index.ts#L1) | oui ([supabase/config.toml:164](../../supabase/config.toml#L164)) | false | GET | — | google, supabase |
+| enrich-directory-cuisines-osm | [supabase/functions/enrich-directory-cuisines-osm/index.ts:1](../../supabase/functions/enrich-directory-cuisines-osm/index.ts#L1) | oui ([supabase/config.toml:167](../../supabase/config.toml#L167)) | false | GET, POST | — | supabase |
+| enrich-directory-images | [supabase/functions/enrich-directory-images/index.ts:1](../../supabase/functions/enrich-directory-images/index.ts#L1) | oui ([supabase/config.toml:152](../../supabase/config.toml#L152)) | false | GET, POST | — | google, supabase |
+| enrich-restaurants | [supabase/functions/enrich-restaurants/index.ts:1](../../supabase/functions/enrich-restaurants/index.ts#L1) | oui ([supabase/config.toml:173](../../supabase/config.toml#L173)) | false | POST | — | supabase |
+| enrich-thefork-images | [supabase/functions/enrich-thefork-images/index.ts:1](../../supabase/functions/enrich-thefork-images/index.ts#L1) | oui ([supabase/config.toml:155](../../supabase/config.toml#L155)) | false | GET, OPTIONS, POST | — | google, supabase |
+| floorplan-ai | [supabase/functions/floorplan-ai/index.ts:1](../../supabase/functions/floorplan-ai/index.ts#L1) | oui ([supabase/config.toml:176](../../supabase/config.toml#L176)) | false | POST | generate, image-import, optimize, suggest-furniture | openai |
+| generate-campaign | [supabase/functions/generate-campaign/index.ts:1](../../supabase/functions/generate-campaign/index.ts#L1) | oui ([supabase/config.toml:179](../../supabase/config.toml#L179)) | false | ANY | — | openai |
+| generate-invoices | [supabase/functions/generate-invoices/index.ts:1](../../supabase/functions/generate-invoices/index.ts#L1) | oui ([supabase/config.toml:224](../../supabase/config.toml#L224)) | false | ANY | — | supabase |
+| golden-tok-membership | [supabase/functions/golden-tok-membership/index.ts:1](../../supabase/functions/golden-tok-membership/index.ts#L1) | oui ([supabase/config.toml:233](../../supabase/config.toml#L233)) | false | POST | cancel, resume, string | stripe |
+| google-actions-center | [supabase/functions/google-actions-center/index.ts:1](../../supabase/functions/google-actions-center/index.ts#L1) | oui ([supabase/config.toml:182](../../supabase/config.toml#L182)) | false | GET, POST | — | google, stripe |
+| google-actions-center-sync | [supabase/functions/google-actions-center-sync/index.ts:1](../../supabase/functions/google-actions-center-sync/index.ts#L1) | oui ([supabase/config.toml:185](../../supabase/config.toml#L185)) | false | POST | — | google, supabase |
+| manage-restaurant-subscription | [supabase/functions/manage-restaurant-subscription/index.ts:1](../../supabase/functions/manage-restaurant-subscription/index.ts#L1) | oui ([supabase/config.toml:230](../../supabase/config.toml#L230)) | false | ANY | accept_commission_mandate, cancel, change_plan, commission_mandate_status, resume | stripe |
+| manage-tok-one-subscription | [supabase/functions/manage-tok-one-subscription/index.ts:1](../../supabase/functions/manage-tok-one-subscription/index.ts#L1) | oui ([supabase/config.toml:227](../../supabase/config.toml#L227)) | false | ANY | cancel, quote, resume, sync_checkout_session | stripe |
+| marketing-orchestrator | [supabase/functions/marketing-orchestrator/index.ts:1](../../supabase/functions/marketing-orchestrator/index.ts#L1) | oui ([supabase/config.toml:299](../../supabase/config.toml#L299)) | false | POST | check_meta, generate_daily, instagram_comments, instagram_discover, run_item | google, openai, resend, supabase |
+| marketing-provider-webhook | [supabase/functions/marketing-provider-webhook/index.ts:1](../../supabase/functions/marketing-provider-webhook/index.ts#L1) | oui ([supabase/config.toml:302](../../supabase/config.toml#L302)) | false | POST | — | — |
+| marketing-unsubscribe | [supabase/functions/marketing-unsubscribe/index.ts:1](../../supabase/functions/marketing-unsubscribe/index.ts#L1) | oui ([supabase/config.toml:309](../../supabase/config.toml#L309)) | false | GET, POST | — | — |
+| menu-image-import | [supabase/functions/menu-image-import/index.ts:1](../../supabase/functions/menu-image-import/index.ts#L1) | oui ([supabase/config.toml:236](../../supabase/config.toml#L236)) | false | POST | — | openai |
+| notification-dispatch | [supabase/functions/notification-dispatch/index.ts:1](../../supabase/functions/notification-dispatch/index.ts#L1) | oui ([supabase/config.toml:191](../../supabase/config.toml#L191)) | false | ANY | — | — |
+| ops-admin-approval | [supabase/functions/ops-admin-approval/index.ts:1](../../supabase/functions/ops-admin-approval/index.ts#L1) | oui ([supabase/config.toml:194](../../supabase/config.toml#L194)) | false | POST | — | supabase |
+| ops-incident-control | [supabase/functions/ops-incident-control/index.ts:1](../../supabase/functions/ops-incident-control/index.ts#L1) | oui ([supabase/config.toml:197](../../supabase/config.toml#L197)) | false | GET, POST | content_review_process, ingest, instagram_review_list, instagram_review_submit, repair-context, scan, workflow-update | openai, sentry, stripe, supabase |
+| ops-incident-native-scan | [supabase/functions/ops-incident-native-scan/index.ts:1](../../supabase/functions/ops-incident-native-scan/index.ts#L1) | oui ([supabase/config.toml:200](../../supabase/config.toml#L200)) | false | POST | — | supabase |
+| ops-sentinel-control | [supabase/functions/ops-sentinel-control/index.ts:1](../../supabase/functions/ops-sentinel-control/index.ts#L1) | oui ([supabase/config.toml:203](../../supabase/config.toml#L203)) | false | POST | list, release, scan, telegram_decision | supabase |
+| payment-attempt-status | [supabase/functions/payment-attempt-status/index.ts:1](../../supabase/functions/payment-attempt-status/index.ts#L1) | oui ([supabase/config.toml:206](../../supabase/config.toml#L206)) | false | ANY | — | stripe |
+| plinko-play | [supabase/functions/plinko-play/index.ts:1](../../supabase/functions/plinko-play/index.ts#L1) | oui ([supabase/config.toml:143](../../supabase/config.toml#L143)) | false | POST | claim, play, start, status, string | — |
+| print-admin | [supabase/functions/print-admin/index.ts:1](../../supabase/functions/print-admin/index.ts#L1) | oui ([supabase/config.toml:315](../../supabase/config.toml#L315)) | false | POST | cancel, list, map_product, reconcile, reorder, settings, update_settings | — |
+| print-catalog | [supabase/functions/print-catalog/index.ts:1](../../supabase/functions/print-catalog/index.ts#L1) | oui ([supabase/config.toml:318](../../supabase/config.toml#L318)) | false | POST | admin_mappings, discover, generation_catalog, hydrate, list, map, sync | — |
+| print-checkout | [supabase/functions/print-checkout/index.ts:1](../../supabase/functions/print-checkout/index.ts#L1) | oui ([supabase/config.toml:321](../../supabase/config.toml#L321)) | false | POST | — | stripe, supabase |
+| print-export | [supabase/functions/print-export/index.ts:1](../../supabase/functions/print-export/index.ts#L1) | oui ([supabase/config.toml:327](../../supabase/config.toml#L327)) | false | POST | approve | — |
+| print-orchestrator | [supabase/functions/print-orchestrator/index.ts:1](../../supabase/functions/print-orchestrator/index.ts#L1) | oui ([supabase/config.toml:330](../../supabase/config.toml#L330)) | false | POST | paused, stop | stripe |
+| print-order-action | [supabase/functions/print-order-action/index.ts:1](../../supabase/functions/print-order-action/index.ts#L1) | oui ([supabase/config.toml:333](../../supabase/config.toml#L333)) | false | POST | cancel, get, list, reorder | stripe |
+| print-quote | [supabase/functions/print-quote/index.ts:1](../../supabase/functions/print-quote/index.ts#L1) | oui ([supabase/config.toml:336](../../supabase/config.toml#L336)) | false | POST | — | — |
+| print-reconcile | [supabase/functions/print-reconcile/index.ts:1](../../supabase/functions/print-reconcile/index.ts#L1) | oui ([supabase/config.toml:339](../../supabase/config.toml#L339)) | false | POST | — | — |
+| print-sandbox-complete | [supabase/functions/print-sandbox-complete/index.ts:1](../../supabase/functions/print-sandbox-complete/index.ts#L1) | oui ([supabase/config.toml:324](../../supabase/config.toml#L324)) | false | GET | — | stripe |
+| process-refund | [supabase/functions/process-refund/index.ts:1](../../supabase/functions/process-refund/index.ts#L1) | oui ([supabase/config.toml:209](../../supabase/config.toml#L209)) | false | ANY | — | stripe |
+| process-reservation-cancellation-fees | [supabase/functions/process-reservation-cancellation-fees/index.ts:1](../../supabase/functions/process-reservation-cancellation-fees/index.ts#L1) | oui ([supabase/config.toml:212](../../supabase/config.toml#L212)) | false | POST | — | stripe |
+| provision-commercial-accounts | [supabase/functions/provision-commercial-accounts/index.ts:1](../../supabase/functions/provision-commercial-accounts/index.ts#L1) | oui ([supabase/config.toml:218](../../supabase/config.toml#L218)) | false | POST | create, list, reset_password, string | — |
+| provision-commercial-demo-logins | [supabase/functions/provision-commercial-demo-logins/index.ts:1](../../supabase/functions/provision-commercial-demo-logins/index.ts#L1) | oui ([supabase/config.toml:379](../../supabase/config.toml#L379)) | true | OPTIONS | — | — |
+| provision-commercial-demo-project-session | [supabase/functions/provision-commercial-demo-project-session/index.ts:1](../../supabase/functions/provision-commercial-demo-project-session/index.ts#L1) | oui ([supabase/config.toml:221](../../supabase/config.toml#L221)) | false | POST | — | stripe, supabase |
+| reconcile-match-group-authorizations | [supabase/functions/reconcile-match-group-authorizations/index.ts:1](../../supabase/functions/reconcile-match-group-authorizations/index.ts#L1) | oui ([supabase/config.toml:239](../../supabase/config.toml#L239)) | false | ANY | — | stripe |
+| reconcile-paid-order-checkouts | [supabase/functions/reconcile-paid-order-checkouts/index.ts:1](../../supabase/functions/reconcile-paid-order-checkouts/index.ts#L1) | oui ([supabase/config.toml:242](../../supabase/config.toml#L242)) | false | ANY | — | stripe |
+| resend-inbound-forward | [supabase/functions/resend-inbound-forward/index.ts:1](../../supabase/functions/resend-inbound-forward/index.ts#L1) | oui ([supabase/config.toml:306](../../supabase/config.toml#L306)) | false | POST | — | resend |
+| restaurant-advisor | [supabase/functions/restaurant-advisor/index.ts:1](../../supabase/functions/restaurant-advisor/index.ts#L1) | oui ([supabase/config.toml:245](../../supabase/config.toml#L245)) | false | POST | — | openai, stripe |
+| restaurant-media-governance | [supabase/functions/restaurant-media-governance/index.ts:1](../../supabase/functions/restaurant-media-governance/index.ts#L1) | oui ([supabase/config.toml:251](../../supabase/config.toml#L251)) | false | POST | add_ai_creation_to_gallery, string | — |
+| restaurant-order-status | [supabase/functions/restaurant-order-status/index.ts:1](../../supabase/functions/restaurant-order-status/index.ts#L1) | oui ([supabase/config.toml:248](../../supabase/config.toml#L248)) | false | ANY | — | — |
+| scrape-restaurants | [supabase/functions/scrape-restaurants/index.ts:1](../../supabase/functions/scrape-restaurants/index.ts#L1) | oui ([supabase/config.toml:254](../../supabase/config.toml#L254)) | false | POST | — | supabase |
+| send-email | [supabase/functions/send-email/index.ts:1](../../supabase/functions/send-email/index.ts#L1) | oui ([supabase/config.toml:257](../../supabase/config.toml#L257)) | false | POST | — | resend, supabase |
+| send-push | [supabase/functions/send-push/index.ts:1](../../supabase/functions/send-push/index.ts#L1) | oui ([supabase/config.toml:260](../../supabase/config.toml#L260)) | false | POST | — | firebase, google, supabase |
+| settle-developer-statement | [supabase/functions/settle-developer-statement/index.ts:1](../../supabase/functions/settle-developer-statement/index.ts#L1) | oui ([supabase/config.toml:278](../../supabase/config.toml#L278)) | false | ANY | — | stripe |
+| stripe-connect-onboard | [supabase/functions/stripe-connect-onboard/index.ts:1](../../supabase/functions/stripe-connect-onboard/index.ts#L1) | oui ([supabase/config.toml:263](../../supabase/config.toml#L263)) | false | POST | — | stripe |
+| stripe-connect-status | [supabase/functions/stripe-connect-status/index.ts:1](../../supabase/functions/stripe-connect-status/index.ts#L1) | oui ([supabase/config.toml:266](../../supabase/config.toml#L266)) | false | POST | — | stripe |
 | stripe-setup | [supabase/functions/stripe-setup/index.ts:1](../../supabase/functions/stripe-setup/index.ts#L1) | non | null | OPTIONS | — | stripe |
-| stripe-subscription-reconcile | [supabase/functions/stripe-subscription-reconcile/index.ts:1](../../supabase/functions/stripe-subscription-reconcile/index.ts#L1) | oui ([supabase/config.toml:272](../../supabase/config.toml#L272)) | false | POST | — | stripe |
-| stripe-webhook | [supabase/functions/stripe-webhook/index.ts:1](../../supabase/functions/stripe-webhook/index.ts#L1) | oui ([supabase/config.toml:266](../../supabase/config.toml#L266)) | false | POST | — | stripe, supabase |
-| stripe-worker | [supabase/functions/stripe-worker/index.ts:1](../../supabase/functions/stripe-worker/index.ts#L1) | oui ([supabase/config.toml:269](../../supabase/config.toml#L269)) | false | OPTIONS, POST | — | stripe, supabase |
-| submit-signup-application | [supabase/functions/submit-signup-application/index.ts:1](../../supabase/functions/submit-signup-application/index.ts#L1) | oui ([supabase/config.toml:287](../../supabase/config.toml#L287)) | false | ANY | — | — |
-| sync-apple-storekit | [supabase/functions/sync-apple-storekit/index.ts:1](../../supabase/functions/sync-apple-storekit/index.ts#L1) | oui ([supabase/config.toml:290](../../supabase/config.toml#L290)) | false | POST | — | — |
-| tok-connect-admin | [supabase/functions/tok-connect-admin/index.ts:1](../../supabase/functions/tok-connect-admin/index.ts#L1) | oui ([supabase/config.toml:354](../../supabase/config.toml#L354)) | false | POST | admin-overview, admin-restaurants, set-restaurant-mcp-access | supabase |
-| tok-connect-api | [supabase/functions/tok-connect-api/index.ts:1](../../supabase/functions/tok-connect-api/index.ts#L1) | oui ([supabase/config.toml:342](../../supabase/config.toml#L342)) | false | GET, POST | — | — |
-| tok-connect-app-bridge | [supabase/functions/tok-connect-app-bridge/index.ts:1](../../supabase/functions/tok-connect-app-bridge/index.ts#L1) | oui ([supabase/config.toml:360](../../supabase/config.toml#L360)) | false | GET, POST | cancel_attempt, checkout, insert, list, select, special_offers, status, update | stripe, supabase |
-| tok-connect-broker | [supabase/functions/tok-connect-broker/index.ts:1](../../supabase/functions/tok-connect-broker/index.ts#L1) | oui ([supabase/config.toml:379](../../supabase/config.toml#L379)) | false | ANY | — | — |
-| tok-connect-chatgpt | [supabase/functions/tok-connect-chatgpt/index.ts:1](../../supabase/functions/tok-connect-chatgpt/index.ts#L1) | oui ([supabase/config.toml:363](../../supabase/config.toml#L363)) | false | GET, POST | — | openai, supabase |
-| tok-connect-commercial-bridge | [supabase/functions/tok-connect-commercial-bridge/index.ts:1](../../supabase/functions/tok-connect-commercial-bridge/index.ts#L1) | oui ([supabase/config.toml:366](../../supabase/config.toml#L366)) | false | POST | demo_session, list, read, rpc | supabase |
-| tok-connect-full-app-mcp | [supabase/functions/tok-connect-full-app-mcp/index.ts:1](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L1) | oui ([supabase/config.toml:348](../../supabase/config.toml#L348)) | false | GET, POST | — | google, openai, stripe, supabase, vercel |
-| tok-connect-mcp | [supabase/functions/tok-connect-mcp/index.ts:1](../../supabase/functions/tok-connect-mcp/index.ts#L1) | oui ([supabase/config.toml:345](../../supabase/config.toml#L345)) | false | GET, POST | — | google, openai, stripe, supabase, vercel |
-| tok-connect-oauth | [supabase/functions/tok-connect-oauth/index.ts:1](../../supabase/functions/tok-connect-oauth/index.ts#L1) | oui ([supabase/config.toml:339](../../supabase/config.toml#L339)) | false | GET, POST | — | — |
-| tok-connect-portal | [supabase/functions/tok-connect-portal/index.ts:1](../../supabase/functions/tok-connect-portal/index.ts#L1) | oui ([supabase/config.toml:351](../../supabase/config.toml#L351)) | false | POST | approve-agent-run, approve-partner, create-sandbox-client, create-webhook-endpoint, mcp-connection-status, overview, reject-agent-run, revoke-client, revoke-partner, rotate-client-secret, send-webhook-test, suspend-partner, update-client-policy, update-grant-status, upsert-restaurant-grant | supabase |
-| tok-connect-remote-mcp | [supabase/functions/tok-connect-remote-mcp/index.ts:1](../../supabase/functions/tok-connect-remote-mcp/index.ts#L1) | oui ([supabase/config.toml:369](../../supabase/config.toml#L369)) | false | GET, POST | — | openai, stripe, supabase, twint |
-| tok-connect-webhook-dispatch | [supabase/functions/tok-connect-webhook-dispatch/index.ts:1](../../supabase/functions/tok-connect-webhook-dispatch/index.ts#L1) | oui ([supabase/config.toml:357](../../supabase/config.toml#L357)) | false | POST | — | supabase |
-| tok-pulse-widget | [supabase/functions/tok-pulse-widget/index.ts:1](../../supabase/functions/tok-pulse-widget/index.ts#L1) | oui ([supabase/config.toml:372](../../supabase/config.toml#L372)) | false | GET | — | supabase |
+| stripe-subscription-reconcile | [supabase/functions/stripe-subscription-reconcile/index.ts:1](../../supabase/functions/stripe-subscription-reconcile/index.ts#L1) | oui ([supabase/config.toml:275](../../supabase/config.toml#L275)) | false | POST | — | stripe |
+| stripe-webhook | [supabase/functions/stripe-webhook/index.ts:1](../../supabase/functions/stripe-webhook/index.ts#L1) | oui ([supabase/config.toml:269](../../supabase/config.toml#L269)) | false | POST | — | stripe, supabase |
+| stripe-worker | [supabase/functions/stripe-worker/index.ts:1](../../supabase/functions/stripe-worker/index.ts#L1) | oui ([supabase/config.toml:272](../../supabase/config.toml#L272)) | false | OPTIONS, POST | — | stripe, supabase |
+| submit-signup-application | [supabase/functions/submit-signup-application/index.ts:1](../../supabase/functions/submit-signup-application/index.ts#L1) | oui ([supabase/config.toml:290](../../supabase/config.toml#L290)) | false | ANY | — | — |
+| sync-apple-storekit | [supabase/functions/sync-apple-storekit/index.ts:1](../../supabase/functions/sync-apple-storekit/index.ts#L1) | oui ([supabase/config.toml:293](../../supabase/config.toml#L293)) | false | POST | — | — |
+| tok-connect-admin | [supabase/functions/tok-connect-admin/index.ts:1](../../supabase/functions/tok-connect-admin/index.ts#L1) | oui ([supabase/config.toml:357](../../supabase/config.toml#L357)) | false | POST | admin-overview, admin-restaurants, set-restaurant-mcp-access | supabase |
+| tok-connect-api | [supabase/functions/tok-connect-api/index.ts:1](../../supabase/functions/tok-connect-api/index.ts#L1) | oui ([supabase/config.toml:345](../../supabase/config.toml#L345)) | false | GET, POST | — | — |
+| tok-connect-app-bridge | [supabase/functions/tok-connect-app-bridge/index.ts:1](../../supabase/functions/tok-connect-app-bridge/index.ts#L1) | oui ([supabase/config.toml:363](../../supabase/config.toml#L363)) | false | GET, POST | cancel_attempt, checkout, insert, list, select, special_offers, status, update | stripe, supabase |
+| tok-connect-broker | [supabase/functions/tok-connect-broker/index.ts:1](../../supabase/functions/tok-connect-broker/index.ts#L1) | oui ([supabase/config.toml:382](../../supabase/config.toml#L382)) | false | ANY | — | — |
+| tok-connect-chatgpt | [supabase/functions/tok-connect-chatgpt/index.ts:1](../../supabase/functions/tok-connect-chatgpt/index.ts#L1) | oui ([supabase/config.toml:366](../../supabase/config.toml#L366)) | false | GET, POST | — | openai, supabase |
+| tok-connect-commercial-bridge | [supabase/functions/tok-connect-commercial-bridge/index.ts:1](../../supabase/functions/tok-connect-commercial-bridge/index.ts#L1) | oui ([supabase/config.toml:369](../../supabase/config.toml#L369)) | false | POST | demo_session, list, read, rpc | supabase |
+| tok-connect-full-app-mcp | [supabase/functions/tok-connect-full-app-mcp/index.ts:1](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L1) | oui ([supabase/config.toml:351](../../supabase/config.toml#L351)) | false | GET, POST | — | google, openai, stripe, supabase, vercel |
+| tok-connect-mcp | [supabase/functions/tok-connect-mcp/index.ts:1](../../supabase/functions/tok-connect-mcp/index.ts#L1) | oui ([supabase/config.toml:348](../../supabase/config.toml#L348)) | false | GET, POST | — | google, openai, stripe, supabase, vercel |
+| tok-connect-oauth | [supabase/functions/tok-connect-oauth/index.ts:1](../../supabase/functions/tok-connect-oauth/index.ts#L1) | oui ([supabase/config.toml:342](../../supabase/config.toml#L342)) | false | GET, POST | — | — |
+| tok-connect-portal | [supabase/functions/tok-connect-portal/index.ts:1](../../supabase/functions/tok-connect-portal/index.ts#L1) | oui ([supabase/config.toml:354](../../supabase/config.toml#L354)) | false | POST | approve-agent-run, approve-partner, create-sandbox-client, create-webhook-endpoint, mcp-connection-status, overview, reject-agent-run, revoke-client, revoke-partner, rotate-client-secret, send-webhook-test, suspend-partner, update-client-policy, update-grant-status, upsert-restaurant-grant | supabase |
+| tok-connect-remote-mcp | [supabase/functions/tok-connect-remote-mcp/index.ts:1](../../supabase/functions/tok-connect-remote-mcp/index.ts#L1) | oui ([supabase/config.toml:372](../../supabase/config.toml#L372)) | false | GET, POST | — | openai, stripe, supabase, twint |
+| tok-connect-webhook-dispatch | [supabase/functions/tok-connect-webhook-dispatch/index.ts:1](../../supabase/functions/tok-connect-webhook-dispatch/index.ts#L1) | oui ([supabase/config.toml:360](../../supabase/config.toml#L360)) | false | POST | — | supabase |
+| tok-pulse-widget | [supabase/functions/tok-pulse-widget/index.ts:1](../../supabase/functions/tok-pulse-widget/index.ts#L1) | oui ([supabase/config.toml:375](../../supabase/config.toml#L375)) | false | GET | — | supabase |
 | tok-workforce-assistant | [supabase/functions/tok-workforce-assistant/index.ts:1](../../supabase/functions/tok-workforce-assistant/index.ts#L1) | oui ([supabase/config.toml:3](../../supabase/config.toml#L3)) | false | POST | — | openai, supabase |
-| track-analytics | [supabase/functions/track-analytics/index.ts:1](../../supabase/functions/track-analytics/index.ts#L1) | oui ([supabase/config.toml:278](../../supabase/config.toml#L278)) | false | POST | — | supabase |
-| track-sponsored-event | [supabase/functions/track-sponsored-event/index.ts:1](../../supabase/functions/track-sponsored-event/index.ts#L1) | oui ([supabase/config.toml:281](../../supabase/config.toml#L281)) | false | POST | — | supabase |
-| validate-order | [supabase/functions/validate-order/index.ts:1](../../supabase/functions/validate-order/index.ts#L1) | oui ([supabase/config.toml:284](../../supabase/config.toml#L284)) | false | ANY | — | stripe |
-| verify-directory-commercial-names | [supabase/functions/verify-directory-commercial-names/index.ts:1](../../supabase/functions/verify-directory-commercial-names/index.ts#L1) | oui ([supabase/config.toml:167](../../supabase/config.toml#L167)) | false | GET | — | google, supabase |
-| verify-directory-image-truth | [supabase/functions/verify-directory-image-truth/index.ts:1](../../supabase/functions/verify-directory-image-truth/index.ts#L1) | oui ([supabase/config.toml:155](../../supabase/config.toml#L155)) | false | GET, OPTIONS | — | google, supabase |
+| track-analytics | [supabase/functions/track-analytics/index.ts:1](../../supabase/functions/track-analytics/index.ts#L1) | oui ([supabase/config.toml:281](../../supabase/config.toml#L281)) | false | POST | — | supabase |
+| track-sponsored-event | [supabase/functions/track-sponsored-event/index.ts:1](../../supabase/functions/track-sponsored-event/index.ts#L1) | oui ([supabase/config.toml:284](../../supabase/config.toml#L284)) | false | POST | — | supabase |
+| validate-order | [supabase/functions/validate-order/index.ts:1](../../supabase/functions/validate-order/index.ts#L1) | oui ([supabase/config.toml:287](../../supabase/config.toml#L287)) | false | ANY | — | stripe |
+| verify-directory-commercial-names | [supabase/functions/verify-directory-commercial-names/index.ts:1](../../supabase/functions/verify-directory-commercial-names/index.ts#L1) | oui ([supabase/config.toml:170](../../supabase/config.toml#L170)) | false | GET | — | google, supabase |
+| verify-directory-image-truth | [supabase/functions/verify-directory-image-truth/index.ts:1](../../supabase/functions/verify-directory-image-truth/index.ts#L1) | oui ([supabase/config.toml:158](../../supabase/config.toml#L158)) | false | GET, OPTIONS | — | google, supabase |
 
 ### Sous-routes HTTP des fonctions Edge
 
@@ -1441,6 +1442,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /:surface( | 2 | [src/test/vercel-rewrites.test.ts:132](../../src/test/vercel-rewrites.test.ts#L132) |
 | /:surface(admin\|marketing\|dashboard\|courier\|commercial\|profil\|memoire-tok\|notifications\|commandes\|commande\|reservations\|mon-espace\|compte\|espace-client\|mes-avis\|points-cadeau\|panier\|auth\|oauth\|espaces\|r) | 2 | [src/test/vercel-rewrites.test.ts:107](../../src/test/vercel-rewrites.test.ts#L107) |
 | /?$ | 1 | [src/test/route-serving-regression.test.ts:9](../../src/test/route-serving-regression.test.ts#L9) |
+| /?embed=tok&parentOrigin= | 1 | [src/components/DailyTokArcade.tsx:104](../../src/components/DailyTokArcade.tsx#L104) |
 | /?q=restaurant | 1 | [src/test/marketing-autopilot-frontend.test.tsx:255](../../src/test/marketing-autopilot-frontend.test.tsx#L255) |
 | /?source=pwa | 1 | [src/test/plan-phase1-readiness.test.ts:147](../../src/test/plan-phase1-readiness.test.ts#L147) |
 | /CN=webhook-runtime.test | 2 | [scripts/security/run-webhook-deno-runtime.mjs:17](../../scripts/security/run-webhook-deno-runtime.mjs#L17) |
@@ -1767,6 +1769,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /functions/v1/commercial-consent-confirmation | 1 | [public/consentement-email.js:6](../../public/consentement-email.js#L6) |
 | /functions/v1/create-checkout | 1 | [src/lib/iosCommerceFetch.ts:291](../../src/lib/iosCommerceFetch.ts#L291) |
 | /functions/v1/create-reservation | 1 | [src/test/tok-connect-oauth-delegation.test.ts:116](../../src/test/tok-connect-oauth-delegation.test.ts#L116) |
+| /functions/v1/daily-arcade-play | 1 | [src/components/DailyTokArcade.tsx:42](../../src/components/DailyTokArcade.tsx#L42) |
 | /functions/v1/daily-dish-ai?user=2f4c98d0-03f7-4e72-910a-0c34a892ca21 | 1 | [src/test/incident-intelligence-routing.test.ts:74](../../src/test/incident-intelligence-routing.test.ts#L74) |
 | /functions/v1/daily-dish-ai?user=891a6eef-5be3-4d4a-9887-2e4f27bf39ee | 1 | [src/test/incident-intelligence-routing.test.ts:95](../../src/test/incident-intelligence-routing.test.ts#L95) |
 | /functions/v1/delete-account | 1 | [src/test/tok-connect-oauth-delegation.test.ts:112](../../src/test/tok-connect-oauth-delegation.test.ts#L112) |
@@ -2793,7 +2796,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (912)</summary>
+<details><summary>function (914)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3241,6 +3244,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.get_my_reservation_guarantee_request_result` (1 définition(s))
 - `public.get_my_reservation_request_result` (1 définition(s))
 - `public.get_my_restaurant_ai_subscriptions` (1 définition(s))
+- `public.get_or_assign_daily_arcade_game` (1 définition(s))
 - `public.get_order_customers` (1 définition(s))
 - `public.get_payable_invoice_lines` (2 définition(s))
 - `public.get_payment_integrity_anomalies` (2 définition(s))
@@ -3444,6 +3448,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.record_ad_campaign_event` (8 définition(s))
 - `public.record_commercial_earning` (1 définition(s))
 - `public.record_commercial_prospect_followup` (4 définition(s))
+- `public.record_daily_arcade_attempt` (1 définition(s))
 - `public.record_daily_slot_spin` (3 définition(s))
 - `public.record_marketing_content_review_delivery` (1 définition(s))
 - `public.record_marketing_provider_event` (1 définition(s))
@@ -3710,7 +3715,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (742)</summary>
+<details><summary>index (743)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -3802,6 +3807,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `customer_memory_items_expiry_idx` (1 définition(s))
 - `customer_memory_items_user_key_uidx` (1 définition(s))
 - `customer_memory_items_user_status_idx` (1 définition(s))
+- `daily_arcade_attempts_user_date_idx` (1 définition(s))
 - `daily_slot_spins_user_request_uidx` (1 définition(s))
 - `email_queue_plinko_claim_once` (1 définition(s))
 - `email_queue_provider_reconciliation_idx` (1 définition(s))
@@ -4457,7 +4463,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>policy (819)</summary>
+<details><summary>policy (821)</summary>
 
 - `ad_campaigns.Admins can manage ad campaigns` (1 définition(s))
 - `ad_campaigns.Anyone can read active campaigns` (1 définition(s))
@@ -4673,6 +4679,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.cuisines.cuisines_public_select` (4 définition(s))
 - `public.customer_memory_events.Users can read own customer memory events` (1 définition(s))
 - `public.customer_memory_items.Users can read own customer memory` (1 définition(s))
+- `public.daily_arcade_attempts.Client reads own arcade attempts` (1 définition(s))
+- `public.daily_arcade_days.Client reads own arcade day` (1 définition(s))
 - `public.daily_slot_spins.Clients can read own daily slot spins` (1 définition(s))
 - `public.delivery_batches.Require auth for delivery_batches` (2 définition(s))
 - `public.delivery_batches.delivery_batches_courier_select` (1 définition(s))
@@ -5281,7 +5289,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (400)</summary>
+<details><summary>table (402)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5372,6 +5380,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.cuisines` (1 définition(s))
 - `public.customer_memory_events` (1 définition(s))
 - `public.customer_memory_items` (1 définition(s))
+- `public.daily_arcade_attempts` (1 définition(s))
+- `public.daily_arcade_days` (1 définition(s))
 - `public.daily_slot_spins` (1 définition(s))
 - `public.delivery_batches` (1 définition(s))
 - `public.delivery_routes` (1 définition(s))
@@ -6872,6 +6882,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261028132220 Tok Welcome Plinko | 218 | 11 | [supabase/migrations/20261028132220_tok_welcome_plinko.sql:1](../../supabase/migrations/20261028132220_tok_welcome_plinko.sql#L1) |
 | 20261028194500 Floorplan Ai Idempotency Rpc | 68 | 2 | [supabase/migrations/20261028194500_floorplan_ai_idempotency_rpc.sql:1](../../supabase/migrations/20261028194500_floorplan_ai_idempotency_rpc.sql#L1) |
 | 20261029043000 Tok Sentinel Quarantine | 252 | 22 | [supabase/migrations/20261029043000_tok_sentinel_quarantine.sql:1](../../supabase/migrations/20261029043000_tok_sentinel_quarantine.sql#L1) |
+| 20261029053000 Daily Tok Arcade Rotation | 154 | 7 | [supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql:1](../../supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7106,9 +7117,9 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 279 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 865 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 872 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 73 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 77 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
@@ -7117,17 +7128,17 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 229 |
-| automation-script | 91 |
+| automation-script | 92 |
 | documentation | 6 |
-| edge-function-source | 257 |
-| frontend-component | 311 |
+| edge-function-source | 258 |
+| frontend-component | 312 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
 | frontend-source | 36 |
 | public-asset | 7 |
-| repository-file | 9 |
+| repository-file | 10 |
 | server-source | 2 |
-| test | 800 |
+| test | 804 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7673,7 +7684,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (104)</summary>
+<details><summary>automation-script (105)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7745,6 +7756,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/security/ai-image-credit-fixture.sql`
 - `scripts/security/run-webhook-deno-runtime.mjs`
 - `scripts/security/test-ai-image-credit-postgres.mjs`
+- `scripts/security/test-tok-sentinel-postgres.mjs`
 - `scripts/security/test-webhook-deno-runtime.ts`
 - `scripts/security/test-webhook-dispatch-postgres.mjs`
 - `scripts/security/tok-connect-oauth-isolation.sql`
@@ -7820,7 +7832,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (588)</summary>
+<details><summary>database-migration (589)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8410,6 +8422,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261028132220_tok_welcome_plinko.sql`
 - `supabase/migrations/20261028194500_floorplan_ai_idempotency_rpc.sql`
 - `supabase/migrations/20261029043000_tok_sentinel_quarantine.sql`
+- `supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql`
 
 </details>
 
@@ -8608,7 +8621,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (257)</summary>
+<details><summary>edge-function-source (258)</summary>
 
 - `supabase/functions/_shared/advisor-attachment-policy.ts`
 - `supabase/functions/_shared/advisor-attachments.ts`
@@ -8782,6 +8795,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/crm-mfa-recovery/index.ts`
 - `supabase/functions/crm-mfa-recovery/provider-error.ts`
 - `supabase/functions/customer-memory/index.ts`
+- `supabase/functions/daily-arcade-play/index.ts`
 - `supabase/functions/daily-dish-ai/index.ts`
 - `supabase/functions/daily-slot-spin/index.ts`
 - `supabase/functions/daily-slot-spin/rules.ts`
@@ -8870,7 +8884,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (323)</summary>
+<details><summary>frontend-component (324)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8885,6 +8899,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/CourierDashboardLayout.tsx`
 - `src/components/CustomerDashboardLayout.tsx`
 - `src/components/DailyMiamzSlotMachine.tsx`
+- `src/components/DailyTokArcade.tsx`
 - `src/components/DashboardLayout.tsx`
 - `src/components/DashboardRoute.tsx`
 - `src/components/DeliveryMap.tsx`
@@ -10254,7 +10269,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>repository-file (164)</summary>
+<details><summary>repository-file (165)</summary>
 
 - `.agents/skills/stripe-best-practices/SKILL.md`
 - `.agents/skills/stripe-best-practices/references/billing.md`
@@ -10386,6 +10401,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `sentinel-console/.gitignore`
 - `sentinel-console/index.html`
 - `sentinel-console/package.json`
+- `sentinel-console/src/App.tsx`
 - `sentinel-console/src/main.tsx`
 - `sentinel-console/src/style.css`
 - `sentinel-console/tsconfig.json`
@@ -10477,7 +10493,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (800)</summary>
+<details><summary>test (804)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10666,6 +10682,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/customer-order-tracking-no-simulation.test.ts`
 - `src/test/customer-orders.test.ts`
 - `src/test/customer-workspace-routes.test.ts`
+- `src/test/daily-arcade-behavior.test.tsx`
+- `src/test/daily-arcade-security.test.ts`
 - `src/test/daily-dish-ai.test.ts`
 - `src/test/daily-dish-legal-mobile-hotfix.test.ts`
 - `src/test/daily-slot-machine-behavior.test.tsx`
@@ -11237,6 +11255,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-one-stripe-test-mode.test.ts`
 - `src/test/tok-one-subscription-sync.test.ts`
 - `src/test/tok-pulse-native-widget.test.ts`
+- `src/test/tok-sentinel-control-auth.test.ts`
+- `src/test/tok-sentinel-guard.test.ts`
 - `src/test/tok-sentinel-rules.test.ts`
 - `src/test/tok-stripe-price-catalog.test.ts`
 - `src/test/tokWorkforce.test.ts`
