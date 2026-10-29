@@ -52,6 +52,14 @@ export function buildNativePrintTemplate(input: PrintGeometryInput) {
   const recommended = candidates.filter(c => c.dpi + 0.5 >= recommendedDpi).sort((a, b) => a.dpi - b.dpi)[0];
   const chosen = recommended || candidates.sort((a, b) => b.dpi - a.dpi)[0];
   if (!chosen) throw new Error("PRINT_NATIVE_RESOLUTION_UNSUPPORTED");
+  const trimArea = {
+    left: bleedMm / mediaWidthMm,
+    top: bleedMm / mediaHeightMm,
+    right: 1 - bleedMm / mediaWidthMm,
+    bottom: 1 - bleedMm / mediaHeightMm,
+  };
+  // The red trim rectangle is the mandatory cut boundary. Green is a
+  // recommended inner margin, not a separate rejection condition.
   const safeArea = {
     left: (bleedMm + safeMarginMm) / mediaWidthMm,
     top: (bleedMm + safeMarginMm) / mediaHeightMm,
@@ -61,7 +69,7 @@ export function buildNativePrintTemplate(input: PrintGeometryInput) {
   const contract = { nativeArtworkVersion: NATIVE_ARTWORK_VERSION, safeMarginMm, minimumDpi, recommendedDpi,
     nativeWidthPx: chosen.width, nativeHeightPx: chosen.height };
   return { widthMm, heightMm, bleedMm, safeMarginMm, minimumDpi, recommendedDpi, mediaWidthMm, mediaHeightMm,
-    safeArea, widthPx: chosen.width, heightPx: chosen.height, nativeDpi: chosen.dpi, contract };
+    trimArea, safeArea, widthPx: chosen.width, heightPx: chosen.height, nativeDpi: chosen.dpi, contract };
 }
 export type NativePrintTemplate = ReturnType<typeof buildNativePrintTemplate>;
 
@@ -72,20 +80,20 @@ export function nativePrintContractMatches(value: unknown, template: NativePrint
 }
 
 export function buildNativePrintInstructions(t: NativePrintTemplate): string {
-  const left = Math.ceil(t.safeArea.left * t.widthPx);
-  const top = Math.ceil(t.safeArea.top * t.heightPx);
-  const right = Math.floor(t.safeArea.right * t.widthPx);
-  const bottom = Math.floor(t.safeArea.bottom * t.heightPx);
+  const left = Math.ceil(t.trimArea.left * t.widthPx);
+  const top = Math.ceil(t.trimArea.top * t.heightPx);
+  const right = Math.floor(t.trimArea.right * t.widthPx);
+  const bottom = Math.floor(t.trimArea.bottom * t.heightPx);
   return [
     "GABARIT IMPRESSION PRIORITAIRE — règles serveur, applicables uniquement à cette impression.",
     `Produire une seule image finale, une seule scène, jamais une grille, mosaïque, planche ni mockup. Fichier natif ${t.widthPx}×${t.heightPx} px.`,
     `Format fini après coupe ${t.widthMm}×${t.heightMm} mm. Plan de travail avec fonds perdus ${t.mediaWidthMm}×${t.mediaHeightMm} mm.`,
     `Fond perdu ${t.bleedMm} mm sur chacun des quatre côtés : prolonger uniquement les fonds et décors sans information essentielle jusqu'au bord, sans bande blanche ajoutée.`,
-    `Marge de sécurité ${t.safeMarginMm} mm À L'INTÉRIEUR de la coupe, soit ${t.bleedMm + t.safeMarginMm} mm depuis les bords du fichier.`,
-    `RECTANGLE SÛR en pixels depuis le coin supérieur gauche : gauche ${left}, haut ${top}, droite ${right}, bas ${bottom}. Tous les textes, titres, prix, appels à l'action, logos, visages et détails essentiels doivent être entièrement à l'intérieur, sans toucher cette limite.`,
-    "AVANT de produire l'image finale, contrôler mentalement chaque boîte englobante du logo, du texte, des prix et des coordonnées contre le RECTANGLE SÛR. Si un seul élément essentiel déborde, corriger la composition DANS cette même génération avant le rendu final. Ne pas produire une première version non conforme.",
+    `LIGNE ROUGE DE COUPE (limite obligatoire) : ${t.bleedMm} mm depuis chaque bord du fichier. RECTANGLE ROUGE en pixels : gauche ${left}, haut ${top}, droite ${right}, bas ${bottom}. Chaque texte, logo, prix, coordonnée et objet réellement important doit être entièrement à l'intérieur de ce rectangle rouge.`,
+    `LIGNE VERTE = marge conseillée : ${t.safeMarginMm} mm à l'intérieur de la coupe. Favoriser un placement dans le vert pour la qualité d'impression, mais un élément important entre vert et rouge n'est PAS un motif de rejet tant qu'il est intégralement dans le rectangle rouge.`,
+    "AVANT de produire l'image finale, contrôler la position de chaque boîte de texte, logo, prix et coordonnée par rapport au RECTANGLE ROUGE. Tout élément essentiel hors rouge exige une correction DANS cette même génération. Le vert reste une recommandation, pas une interdiction.",
     "Réserver une zone décorative continue et sans texte sur tous les bords du fond perdu. Prévoir le gabarit dès la conception plutôt que compter sur une seconde génération coûteuse.",
-    "IMPORTANT : les textes de pied de page, les icônes d'adresse, le numéro de téléphone, les prix, les logos et les vignettes promotionnelles doivent aussi être ENTIÈREMENT dans le rectangle sûr. Ne jamais descendre un bandeau de coordonnées dans la zone verte en bas du gabarit.",
+    "IMPORTANT : les textes de pied de page, le numéro de téléphone, les prix et les logos doivent rester ENTIEREMENT dans le rectangle ROUGE. Les formes décoratives, fonds photographiques, habillages, motifs et bordures peuvent traverser la coupe et s'étendre jusqu'au fond perdu.",
     "À la première génération seulement : réduire suffisamment la composition centrale pour laisser respirer les quatre marges de sécurité, prolonger visuellement le décor jusqu'au bord. Produire une seule image finale conforme, sans essai brouillon ni second rendu facturable.",
     "Intégrer nativement tous les éléments artistiques et typographiques demandés en conservant strictement les références maîtresses actives, couleurs, logos et identité. AUCUN calque ni ajout ultérieur de texte, prix, titre, logo ou CTA.",
     "Ne dessiner aucun repère de coupe, filet de sécurité, cote, légende technique, gabarit visible ou QR code fictif. Ne pas générer de QR : leur lisibilité n'est pas certifiée par ce parcours.",
@@ -118,26 +126,52 @@ export function validateNativeArtwork(width: number, height: number, t: NativePr
   return { blocking, warnings, effectiveResolutionDpi, ready: blocking.length === 0 };
 }
 
-/** Vision observations are untrusted. Measure each complete box; never trust a model's 'safe' flag. */
+/** The model only locates elements. The server alone applies the red trim line. */
 export function validateArtworkObservation(value: unknown, t: NativePrintTemplate) {
-  const row = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const row = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
   const blocking: PrintIssue[] = [];
-  if (row.complete !== true || row.uncertain !== false || row.singleDesign !== true || row.legible !== true
-    || row.bleedContinuous !== true || row.hasGuides !== false || !Array.isArray(row.elements) || row.elements.length < 1 || row.elements.length > 100) {
-    blocking.push({ code: "artwork_review_inconclusive", message: "La lisibilité, les fonds perdus et l'ensemble des éléments essentiels n'ont pas pu être validés. Régénérez le visuel." });
+  const warnings: PrintIssue[] = [];
+  const elements = Array.isArray(row.elements) ? row.elements : [];
+  if (row.complete !== true || row.uncertain !== false || row.singleDesign !== true
+    || row.bleedContinuous !== true || row.hasGuides !== false || !Array.isArray(row.elements)
+    || elements.length < 1 || elements.length > 100) {
+    blocking.push({ code: "artwork_review_inconclusive", message: "Le contrôle visuel des éléments et du fond perdu est incomplet. Réessayez ou corrigez le visuel." });
+  }
+  // Small print can be in bounds even when the model cannot decipher it.
+  // Defer typographic legibility to the mandatory human proof, rather than a false cut-line rejection.
+  if (row.legible !== true) {
+    warnings.push({ code: "print_text_legibility_review", message: "Lisibilité de certains textes incertaine : vérifiez attentivement le BAT avant d'approuver." });
   }
   if (row.containsQr !== false) blocking.push({ code: "native_qr_unverified", message: "Un QR code est présent ou incertain. Sa lecture n'est pas certifiée ; régénérez sans QR." });
-  for (const entry of Array.isArray(row.elements) ? row.elements : []) {
-    const b = entry && typeof entry === "object" ? entry as Record<string, unknown> : {};
+  let foundEssential = false;
+  for (const entry of elements) {
+    const b = entry && typeof entry === "object" && !Array.isArray(entry) ? entry as Record<string, unknown> : {};
     const { left, top, right, bottom } = b;
-    if (![left, top, right, bottom].every(n => typeof n === "number" && Number.isFinite(n))
-      || !["text", "logo", "face", "essential"].includes(String(b.kind))
-      || !(Number(left) < Number(right) && Number(top) < Number(bottom))
-      || Number(left) < t.safeArea.left || Number(top) < t.safeArea.top
-      || Number(right) > t.safeArea.right || Number(bottom) > t.safeArea.bottom) {
-      blocking.push({ code: "native_element_outside_safe_area", message: "Un texte, logo ou élément essentiel touche la zone de coupe ou sa position est incertaine. Régénérez le visuel." });
+    const kind = String(b.kind);
+    if (!["text", "logo", "face", "essential", "decorative"].includes(kind)
+      || ![left, top, right, bottom].every(n => typeof n === "number" && Number.isFinite(n))
+      || !(Number(left) >= 0 && Number(top) >= 0 && Number(right) <= 1 && Number(bottom) <= 1)
+      || !(Number(left) < Number(right) && Number(top) < Number(bottom))) {
+      blocking.push({ code: "artwork_observation_invalid", message: "La position d'un élément n'a pas pu être mesurée de façon fiable." });
       break;
     }
+    if (kind === "decorative") continue;
+    foundEssential = true;
+    if (Number(left) < t.trimArea.left || Number(top) < t.trimArea.top
+      || Number(right) > t.trimArea.right || Number(bottom) > t.trimArea.bottom) {
+      blocking.push({ code: "native_element_outside_trim", message: "Un texte, logo ou objet important dépasse le rectangle rouge de coupe. Corrigez sa position avant l'impression." });
+      break;
+    }
+    if (Number(left) < t.safeArea.left || Number(top) < t.safeArea.top
+      || Number(right) > t.safeArea.right || Number(bottom) > t.safeArea.bottom) {
+      if (!warnings.some(issue => issue.code === "native_element_near_trim")) {
+        warnings.push({ code: "native_element_near_trim", message: "Un élément important est entre la marge verte recommandée et la ligne rouge de coupe. Vérifiez le BAT." });
+      }
+    }
   }
-  return { ready: blocking.length === 0, blocking, policyVersion: NATIVE_ARTWORK_VERSION, observation: value };
+  if (!foundEssential && !blocking.length) {
+    // Avoid accepting an advertising design in which the model mislabeled all content decorative.
+    blocking.push({ code: "artwork_review_inconclusive", message: "Aucun élément essentiel n'a été identifié de manière fiable." });
+  }
+  return { ready: blocking.length === 0, blocking, warnings, policyVersion: NATIVE_ARTWORK_VERSION, observation: value };
 }

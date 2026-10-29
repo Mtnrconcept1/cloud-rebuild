@@ -19,6 +19,8 @@ describe("Cloudprinter native print templates", () => {
     expect(validateNativeArtwork(t.widthPx, t.heightPx, t).ready).toBe(true);
     expect(t.safeArea.left).toBeCloseTo(6 / (widthMm + 6));
     expect(t.safeArea.top).toBeCloseTo(6 / (heightMm + 6));
+    expect(t.trimArea.left).toBeCloseTo(3 / (widthMm + 6));
+    expect(t.trimArea.top).toBeCloseTo(3 / (heightMm + 6));
   });
   it.each([null, undefined, ""])("missing provider safe margin %s never becomes zero", (safeMarginMm) => {
     expect(buildNativePrintTemplate({ ...a6, safeMarginMm }).safeMarginMm).toBe(3);
@@ -43,7 +45,9 @@ describe("Cloudprinter native print templates", () => {
   it("adds native text, full bleed, trim and pixel safe boundaries without crop instructions", () => {
     const prompt = buildNativePrintInstructions(buildNativePrintTemplate(a6));
     expect(prompt).toContain("111×154 mm");
-    expect(prompt).toContain("RECTANGLE SÛR");
+    expect(prompt).toContain("RECTANGLE ROUGE");
+    expect(prompt).toContain("marge conseillée");
+    expect(prompt).toContain("PAS un motif de rejet");
     expect(prompt).toContain("AUCUN calque");
     expect(prompt).toContain("une seule image");
     expect(prompt).not.toContain("recadrage cover");
@@ -67,11 +71,42 @@ describe("embedded raster element checks", () => {
   const clean = () => ({ complete: true, uncertain: false, singleDesign: true, bleedContinuous: true,
     containsQr: false, legible: true, hasGuides: false,
     elements: [{ kind: "text", left: .2, top: .2, right: .8, bottom: .4 }] });
-  it("measures all native boxes against physical safe boundaries", () => {
+  it("blocks meaningful content outside red trim, never merely outside green", () => {
+    const { trimArea, safeArea } = template;
     expect(validateArtworkObservation(clean(), template).ready).toBe(true);
-    expect(validateArtworkObservation({ ...clean(), elements: [{ kind: "logo", left: 0, top: .2, right: .1, bottom: .3 }] }, template).ready).toBe(false);
+    const betweenGreenAndRed = { ...clean(), elements: [
+      { kind: "logo", left: (trimArea.left + safeArea.left) / 2, top: .2, right: .18, bottom: .4 },
+      { kind: "text", left: .2, top: .7, right: .8, bottom: (trimArea.bottom + safeArea.bottom) / 2 },
+    ] };
+    const allowed = validateArtworkObservation(betweenGreenAndRed, template);
+    expect(allowed.ready).toBe(true);
+    expect(allowed.blocking).toEqual([]);
+    expect(allowed.warnings.some(w => w.code === "native_element_near_trim")).toBe(true);
+    for (const kind of ["text", "logo", "face", "essential"]) {
+      const rejected = validateArtworkObservation({ ...clean(), elements: [
+        { kind, left: 0, top: .2, right: .2, bottom: .4 },
+      ] }, template);
+      expect(rejected.ready).toBe(false);
+      expect(rejected.blocking.some(issue => issue.code === "native_element_outside_trim")).toBe(true);
+    }
   });
-  it.each([{ complete: undefined }, { complete: false }, { uncertain: true }, { elements: [] }, { containsQr: true }, { bleedContinuous: false }, { hasGuides: true }, { singleDesign: false }, { elements: [{ kind: "text", left: "0.2", top: 0, right: 1, bottom: 1 }] }])("fails closed on uncertain/incomplete/unsafe observations %j", (bad) => {
+  it("allows backgrounds, textures and ornaments to cross red without accepting a cut-off label", () => {
+    const result = validateArtworkObservation({ ...clean(), elements: [
+      ...clean().elements,
+      { kind: "decorative", left: 0, top: 0, right: 1, bottom: 1 },
+    ] }, template);
+    expect(result.ready).toBe(true);
+    expect(result.warnings).toEqual([]);
+    expect(validateArtworkObservation({ ...clean(), elements: [
+      { kind: "decorative", left: 0, top: 0, right: 1, bottom: 1 },
+    ] }, template).ready).toBe(false);
+  });
+  it("warns instead of rejecting when lettering is small but all boxes are known and in the red rectangle", () => {
+    const result = validateArtworkObservation({ ...clean(), legible: false }, template);
+    expect(result.ready).toBe(true);
+    expect(result.warnings).toContainEqual(expect.objectContaining({ code: "print_text_legibility_review" }));
+  });
+  it.each([{ complete: undefined }, { complete: false }, { uncertain: true }, { elements: [] }, { elements: [{ kind: "decorative", left: 0, top: 0, right: 1, bottom: 1 }] }, { elements: [{ kind: "invalid", left: .2, top: .2, right: .6, bottom: .4 }] }, { containsQr: true }, { bleedContinuous: false }, { hasGuides: true }, { singleDesign: false }, { elements: [{ kind: "text", left: "0.2", top: 0, right: 1, bottom: 1 }] }])("fails closed on uncertain/incomplete/unsafe observations %j", (bad) => {
     expect(validateArtworkObservation({ ...clean(), ...bad }, template).ready).toBe(false);
   });
 });

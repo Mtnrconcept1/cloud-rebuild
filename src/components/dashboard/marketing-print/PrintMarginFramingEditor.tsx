@@ -26,9 +26,14 @@ export default function PrintMarginFramingEditor({
   const template = buildNativePrintTemplate(product);
   const safeInsetX = template.safeArea.left * 100;
   const safeInsetY = template.safeArea.top * 100;
+  const trimInsetX = template.trimArea.left * 100;
+  const trimInsetY = template.trimArea.top * 100;
   const left = 50 + frame.offsetXPercent - frame.scalePercent / 2;
   const top = 50 + frame.offsetYPercent - frame.scalePercent / 2;
-  const ready = left >= safeInsetX && top >= safeInsetY
+  const ready = left >= trimInsetX && top >= trimInsetY
+    && left + frame.scalePercent <= 100 - trimInsetX
+    && top + frame.scalePercent <= 100 - trimInsetY;
+  const recommended = left >= safeInsetX && top >= safeInsetY
     && left + frame.scalePercent <= 100 - safeInsetX
     && top + frame.scalePercent <= 100 - safeInsetY;
   const startDrag = (event: React.PointerEvent, handle: Handle | "move") => {
@@ -93,7 +98,11 @@ export default function PrintMarginFramingEditor({
         }} />
       </div>
       <p role="status" aria-live="polite" className={`rounded-lg border p-2 text-xs ${ready ? "border-emerald-400 bg-emerald-50 text-emerald-900" : "border-amber-400 bg-amber-50 text-amber-900"}`}>
-        {ready ? "✓ Cadrage géométrique dans la zone verte — prêt pour la génération IA. Le contenu et les textes seront contrôlés au BAT." : "Ajustez l'image pour placer ses limites dans le cadre vert de sécurité."}
+        {ready
+          ? recommended
+            ? "✓ Cadrage dans la marge verte recommandée — prêt pour la génération IA. Le contrôle des textes reste obligatoire au BAT."
+            : "✓ Cadrage dans la ligne rouge de coupe — génération autorisée. La marge verte est seulement recommandée. Contrôle des textes au BAT."
+          : "Ajustez l'image pour que le cadrage soit entièrement à l'intérieur de la ligne rouge de coupe."}
         {dragging ? " · Ajustement en cours" : ""}
       </p>
       <div className="grid grid-cols-3 gap-2">

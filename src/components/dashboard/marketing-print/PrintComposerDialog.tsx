@@ -255,6 +255,7 @@ export default function PrintComposerDialog({
   const [printFrame, setPrintFrame] = useState<PrintFrame>(DEFAULT_PRINT_FRAME);
   const [retouchedFrom, setRetouchedFrom] = useState<PrintableAsset | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [serverWarnings, setServerWarnings] = useState<string[]>([]);
   const [quantity, setQuantity] = useState(250);
   const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
   const [exportId, setExportId] = useState<string | null>(null);
@@ -286,6 +287,7 @@ export default function PrintComposerDialog({
     setRetouchedFrom(null);
     setPrintFrame(DEFAULT_PRINT_FRAME);
     setExportError(null);
+    setServerWarnings([]);
     Promise.all([
       loadPrintableAssets(restaurantId, initialSourceGenerationId),
       getPrintCatalog(restaurantId),
@@ -346,6 +348,7 @@ export default function PrintComposerDialog({
     setProofAcknowledged(false);
     setPreviewUrl(null);
     setExportError(null);
+    setServerWarnings([]);
     setPrintFrame(DEFAULT_PRINT_FRAME);
   }, [selectedAssetId]);
 
@@ -379,7 +382,7 @@ export default function PrintComposerDialog({
   const preflight = plannedDocument && selectedVariant ? runPrintPreflight(plannedDocument, selectedVariant) : null;
   const frameReady = selectedVariant ? (() => {
     try { const template = buildNativePrintTemplate(selectedVariant);
-      return isPrintFrameReady(printFrame, template.safeArea.left * 100, template.safeArea.top * 100);
+      return isPrintFrameReady(printFrame, template.trimArea.left * 100, template.trimArea.top * 100);
     } catch { return false; }
   })() : false;
 
@@ -432,6 +435,7 @@ export default function PrintComposerDialog({
     const revision = proofRevision.current;
     setWorking("export");
     setExportError(null);
+    setServerWarnings([]);
     try {
       const result = await createPrintExport({ restaurantId, providerProductId: selectedVariant.providerProductId, document });
       if (revision !== proofRevision.current) return;
@@ -440,6 +444,12 @@ export default function PrintComposerDialog({
       setApproved(false);
       setPreviewUrl(result.previewUrl);
       setProofAcknowledged(false);
+      const review = result.preflight?.artworkReview;
+      const reviewWarnings = review && typeof review === "object" && "warnings" in review
+        ? (review as { warnings?: unknown }).warnings : null;
+      setServerWarnings(Array.isArray(reviewWarnings)
+        ? reviewWarnings.filter((item): item is { message: string } => Boolean(item) && typeof item.message === "string")
+          .map(item => item.message).slice(0, 5) : []);
       toast({ title: "BAT natif contrôlé", description: "Consultez le PDF réel, vérifiez les marges, les textes et la netteté avant approbation." });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Erreur de préparation.";
@@ -568,9 +578,9 @@ export default function PrintComposerDialog({
                   <h3 className="text-sm font-semibold">Ajuster les marges avec l’IA</h3>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Un élément peut être hors de la <strong>marge de sécurité verte</strong> sans toucher le fond perdu.
-                  L’IA recule légèrement la composition et prolonge naturellement la photo et les décors sur les bords.
-                  L’original est conservé.
+                  <strong>La ligne rouge de coupe est la seule limite bloquante pour les textes, logos et objets essentiels.</strong>
+                  La ligne verte est une marge de confort conseillée, non obligatoire. Les photographies, textures et décors
+                  peuvent se prolonger jusque dans le fond perdu. L’original reste conservé.
                 </p>
                 {selectedAsset && selectedVariant ? (
                   <PrintMarginFramingEditor key={selectedAsset.id} imageUrl={selectedAsset.url} title={selectedAsset.name}
@@ -634,13 +644,20 @@ export default function PrintComposerDialog({
             <div className="space-y-4">
               {(preparedDocument || plannedDocument) && selectedVariant ? <PrintProof document={(preparedDocument || plannedDocument)!} product={selectedVariant} approved={approved} /> : null}
               {exportError ? <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-                Contrôle serveur refusé : {exportError} La zone verte représente la marge de sécurité des textes et logos,
-                au-delà du seul fond perdu. Vous pouvez générer une nouvelle version avec davantage de recul ci-contre.
+                Contrôle serveur refusé : {exportError} Un élément important qui dépasse la ligne rouge exige une correction.
+                La ligne verte n’est qu’une recommandation. Les erreurs techniques ou d’indisponibilité du contrôle visuel ne
+                signifient pas nécessairement que le cadrage est mauvais.
               </p> : null}
+              {exportId && serverWarnings.length ? (
+                <div role="status" className="space-y-1 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+                  <p className="font-semibold">À vérifier sur le BAT (non bloquant)</p>
+                  {serverWarnings.map((warning, index) => <p key={index}>{warning}</p>)}
+                </div>
+              ) : null}
               {previewUrl ? <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="block text-sm font-semibold underline">Consulter le PDF contrôlé (lien temporaire)</a> : null}
               {exportId && !approved ? <label className="flex items-start gap-3 rounded-xl border p-3 text-sm">
                 <input type="checkbox" checked={proofAcknowledged} onChange={event => setProofAcknowledged(event.target.checked)} className="mt-1" />
-                J’ai vérifié le PDF réel, tous les textes et logos à l’intérieur des marges et la netteté à la taille imprimée, y compris tout avertissement de résolution. J’approuve ce fichier sans ajout ni modification.
+                J’ai vérifié le PDF réel, tous les textes, logos et objets essentiels à l’intérieur de la ligne rouge de coupe, ainsi que la netteté à la taille imprimée, y compris les éventuels avertissements de lisibilité et de résolution. J’approuve ce fichier sans ajout ni modification.
               </label> : null}
               <div className="flex flex-wrap gap-2">
                 {!exportId ? <Button disabled={!preflight?.ready || !nativeContractValid || Boolean(renderingPlan?.blocked) || working !== null} onClick={() => void createExport()}>{working === "export" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}Contrôler le visuel & générer le BAT</Button> : null}
