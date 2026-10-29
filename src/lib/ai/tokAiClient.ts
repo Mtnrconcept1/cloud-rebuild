@@ -151,6 +151,7 @@ export type TokImageGenerationRequest = {
   sourceImageUrl?: string | null;
   referenceImageUrls?: string[];
   referenceMediaIds?: string[];
+  styleReferenceWeight?: number;
   dishName?: string | null;
   prompt: string;
   assetType?: "menu_visual" | "campaign_visual" | "banner" | "image";
