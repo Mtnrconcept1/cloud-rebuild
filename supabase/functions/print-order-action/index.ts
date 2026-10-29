@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
         if (attemptError) throw attemptError;
         if (attempt?.kind === "marketing_print_order" && attempt.mode === "test"
             && attempt.stripe_checkout_session_id?.startsWith("cs_test_")) {
-          const origin = String(getEnv("SUPABASE_URL")).replace(/\\/+$/, "");
+          const origin = String(getEnv("SUPABASE_URL")).replace(/\/+$/, "");
           if (!origin.startsWith("https://")) throw new HttpError(503, "PRINT_SANDBOX_CALLBACK_UNAVAILABLE");
           const callback = origin + "/functions/v1/print-sandbox-complete?session_id="
             + encodeURIComponent(attempt.stripe_checkout_session_id);
