@@ -1,7 +1,8 @@
-import { Check, Loader2, Sparkles } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 
 import { formatWaitingTime, useEstimatedProgress } from "@/hooks/use-estimated-progress";
 import { cn } from "@/lib/utils";
+import TokSaturnLoader from "@/components/ui/tok-saturn-loader";
 
 type AiLoadingStateProps = {
   title: string;
@@ -50,10 +51,7 @@ export function AiLoadingState({
       <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
 
       <div className="relative flex items-start gap-3">
-        <div className="relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-primary/20 bg-primary/10 text-primary shadow-sm">
-          <span aria-hidden="true" className="absolute inset-1 animate-ping rounded-lg border border-primary/20 motion-reduce:animate-none" />
-          <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
-        </div>
+        <TokSaturnLoader size="sm" active={active} className="shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 shrink-0 text-orange-500" aria-hidden="true" />

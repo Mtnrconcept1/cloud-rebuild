@@ -1,7 +1,7 @@
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { useEstimatedProgress } from "@/hooks/use-estimated-progress";
-import { useTokLogoSrc } from "@/hooks/useTokLogo";
+import TokSaturnLoader from "@/components/ui/tok-saturn-loader";
 import { cn } from "@/lib/utils";
 
 type AppLoadingScreenProps = {
@@ -17,7 +17,6 @@ export default function AppLoadingScreen({
   fullScreen = false,
   className,
 }: AppLoadingScreenProps) {
-  const logoSrc = useTokLogoSrc();
   const { progress, isOverdue } = useEstimatedProgress({
     active: true,
     estimatedDurationMs: 2_800,
@@ -40,15 +39,7 @@ export default function AppLoadingScreen({
       <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-35 [background-image:linear-gradient(rgba(249,115,22,.055)_1px,transparent_1px),linear-gradient(90deg,rgba(249,115,22,.055)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:radial-gradient(circle_at_center,black,transparent_70%)]" />
 
       <div className="w-full max-w-sm text-center">
-        <div className="relative mx-auto mb-7 grid h-32 w-32 place-items-center">
-          <span aria-hidden="true" className="absolute inset-0 animate-spin rounded-full border border-dashed border-orange-400/45 motion-reduce:animate-none" />
-          <span aria-hidden="true" className="absolute inset-3 animate-[spin_7s_linear_infinite_reverse] rounded-full border border-amber-300/35 motion-reduce:animate-none" />
-          <span aria-hidden="true" className="absolute inset-7 animate-pulse rounded-full bg-orange-500/20 blur-lg motion-reduce:animate-none" />
-          <div className="relative grid h-20 w-20 place-items-center overflow-hidden rounded-[1.7rem] border border-orange-200 bg-white shadow-[0_18px_48px_rgba(249,115,22,.28)]">
-            <img src={logoSrc} alt="" width={64} height={64} decoding="async" className="h-16 w-16 object-contain" draggable={false} />
-          </div>
-          <Sparkles aria-hidden="true" className="absolute right-0 top-4 h-5 w-5 animate-pulse text-amber-500 motion-reduce:animate-none" />
-        </div>
+        <TokSaturnLoader size="lg" className="mb-4 max-w-[275px]" />
 
         <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-orange-800 dark:border-orange-900/60 dark:bg-orange-950/35 dark:text-orange-200">
           <Loader2 className="h-3 w-3 animate-spin motion-reduce:animate-none" aria-hidden="true" />

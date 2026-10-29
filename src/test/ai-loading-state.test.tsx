@@ -21,7 +21,7 @@ describe("AiLoadingState", () => {
     expect(screen.getByText("Analyse")).toBeInTheDocument();
     expect(screen.getByText("Synthese")).toBeInTheDocument();
     expect(screen.getByText("Export")).toBeInTheDocument();
-    expect(status.querySelector(".animate-spin")).not.toBeNull();
+    expect(status.querySelector('[data-testid="tok-saturn-loader"]')).not.toBeNull();
     expect(status.querySelector(".animate-pulse")).not.toBeNull();
   });
 });

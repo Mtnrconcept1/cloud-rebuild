@@ -565,8 +565,8 @@ describe("TOK photo studio persistence", () => {
     const progressDialog = readFileSync(resolve(process.cwd(), "src/components/ui/ai-generation-progress-dialog.tsx"), "utf8");
 
     expect(progressDialog).toContain('data-testid="ai-generation-progress-dialog"');
-    expect(progressDialog).toContain("tokAiOrbit");
-    expect(progressDialog).toContain("tokAiBreathe");
+    expect(progressDialog).toContain("TokSaturnLoader");
+    expect(progressDialog).not.toContain("useTokLogoSrc");
     expect(progressDialog).toContain("tokAiSweep");
     expect(progressDialog).toContain("useEstimatedProgress");
     expect(progressDialog).toContain("prefers-reduced-motion");

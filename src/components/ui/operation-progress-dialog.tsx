@@ -14,6 +14,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { formatWaitingTime, useEstimatedProgress } from "@/hooks/use-estimated-progress";
 import { cn } from "@/lib/utils";
+import TokSaturnLoader from "@/components/ui/tok-saturn-loader";
 
 type OperationVariant = "default" | "save" | "upload" | "payment" | "reservation" | "analysis" | "security";
 
@@ -99,9 +100,9 @@ export default function OperationProgressDialog({
           <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-orange-400/80 to-transparent" />
 
           <div className="flex items-start gap-4">
-            <div className="relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-orange-200/80 bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-[0_12px_35px_rgba(249,115,22,0.32)]">
-              <span aria-hidden="true" className="absolute inset-0 animate-ping rounded-2xl border border-orange-400/40 motion-reduce:animate-none" />
-              <Icon className="h-6 w-6" aria-hidden="true" />
+            <div className="relative w-[86px] shrink-0">
+              <TokSaturnLoader size="sm" active={open && !completed} />
+              <Icon className="absolute bottom-0 right-0 h-4 w-4 text-orange-500" aria-hidden="true" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="mb-2 inline-flex max-w-full items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-orange-800 dark:border-orange-900/70 dark:bg-orange-950/40 dark:text-orange-200">

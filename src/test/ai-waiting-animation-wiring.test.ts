@@ -25,8 +25,16 @@ describe("AI waiting animations wiring", () => {
     const dialog = readSource("src/components/ui/ai-generation-progress-dialog.tsx");
     const progressHook = readSource("src/hooks/use-estimated-progress.ts");
 
-    expect(dialog).toContain("tokAiOrbit");
-    expect(dialog).toContain("tokAiBreathe");
+    expect(dialog).toContain("TokSaturnLoader");
+    expect(dialog).not.toContain("useTokLogoSrc");
+    const scene = readSource("src/lib/tokSaturnScene.ts");
+    const loader = readSource("src/components/ui/tok-saturn-loader.tsx");
+    expect(scene).toContain("function metallicBody");
+    expect(scene).toContain("function torus");
+    expect(scene).toContain("function officialFront");
+    expect(scene).toContain("6.5");
+    expect(loader).toContain("prefers-reduced-motion");
+    expect(loader).toContain("webglcontextlost");
     expect(dialog).toContain("tokAiSweep");
     expect(dialog).toContain("useEstimatedProgress");
     expect(dialog).toContain("ESTIMATED_DURATION_BY_KIND");
