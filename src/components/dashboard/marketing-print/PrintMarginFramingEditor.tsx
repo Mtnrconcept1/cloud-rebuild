@@ -63,12 +63,13 @@ export default function PrintMarginFramingEditor({
     <div className="space-y-3" data-testid="print-manual-framing">
       <p className="text-xs text-muted-foreground">Glissez l’image pour la déplacer ou utilisez les huit poignées pour changer sa taille. Les commandes ci-dessous permettent aussi un réglage précis au clavier.</p>
       <div ref={stage} className="relative mx-auto w-full overflow-hidden rounded-xl border bg-stone-800"
-        style={{ aspectRatio: `${template.mediaWidthMm} / ${template.mediaHeightMm}`, maxHeight: 420, touchAction: "none" }}>
+        style={{ aspectRatio: `${template.mediaWidthMm} / ${template.mediaHeightMm}`,
+          maxWidth: `min(100%, ${420 * template.mediaWidthMm / template.mediaHeightMm}px)`, touchAction: "none" }}>
         <div className="pointer-events-none absolute inset-0 opacity-40" style={{ background: "repeating-conic-gradient(#b5a49a 0% 25%, #dbcfc5 0% 50%) 50% / 20px 20px" }} />
         <div className={`absolute border-2 ${ready ? "border-emerald-400" : "border-amber-400"}`}
           data-testid="print-framing-bounds"
           style={{ left: `${left}%`, top: `${top}%`, width: `${frame.scalePercent}%`, height: `${frame.scalePercent}%`, boxShadow: ready ? "0 0 0 2px #065f46, 0 0 20px 4px #34d399" : "0 0 0 2px #92400e" }}>
-          <img src={imageUrl} alt={title} draggable={false} className="h-full w-full select-none object-fill" />
+          <img key={imageUrl} src={imageUrl} alt={title} draggable={false} className="h-full w-full select-none object-contain" />
           <button type="button" aria-label="Déplacer le visuel" disabled={disabled}
             className="absolute inset-4 cursor-move touch-none bg-transparent"
             onPointerDown={(e) => startDrag(e, "move")} onPointerMove={onDrag}

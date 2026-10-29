@@ -120,6 +120,8 @@ it("keeps the original image and shows an editable generative margin correction 
   }));
   expect(screen.getByAltText("Création originale avant correction")).toBeTruthy();
   expect(screen.getByAltText("Création corrigée par génération IA")).toBeTruthy();
+  expect((screen.getByAltText(correctedId) as HTMLImageElement).src).toContain(`${correctedId}.png`);
+  expect(screen.getByTestId("print-framing-bounds")).toBeTruthy();
   expect(fixtures.assets.map((item) => item.id)).toContain(originalId);
   expect(screen.getByRole("button", { name: /générer le BAT/i })).toBeTruthy();
 });
