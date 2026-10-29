@@ -22,7 +22,9 @@ export default function TokSaturnLoader({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !active || size === "sm") return;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const reduceMotion = typeof window.matchMedia === "function"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)")
+      : { matches: false };
     if (reduceMotion.matches) return;
 
     let disposed = false;
