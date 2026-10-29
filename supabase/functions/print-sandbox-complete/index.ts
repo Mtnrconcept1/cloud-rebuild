@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
       }
       const { data: owner } = await adminClient.auth.admin.getUserById(order.owner_user_id);
       const recipient = String(owner?.user?.email || "").trim();
-      if (recipient && /^[^@\s]+@[^@\s]+\\.[^@\s]+$/.test(recipient)) {
+      if (recipient && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(recipient)) {
         const key = `print-sandbox:${order.id}:confirmation`;
         const { data: existingMail } = await adminClient.from("email_queue")
           .select("id").filter("metadata->>transactional_email_key", "eq", key).limit(1).maybeSingle();
