@@ -30,6 +30,7 @@
 .tok-saturn__fallback { transform-style: preserve-3d; }
 .tok-saturn__coin {
   position: absolute;
+  z-index: 2;
   width: 61%;
   height: 85%;
   top: 7%;
