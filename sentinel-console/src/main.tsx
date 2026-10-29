@@ -187,7 +187,7 @@ function App() {
       </header>
       <section className="hero">
         <div className="eyebrow">PROTECTION OPÉRATIONNELLE • ACCÈS RESTREINT</div>
-        <h1>Surveiller. Démontrer.<br />ConfinER avec discernement.</h1>
+        <h1>Surveiller. Démontrer.<br />Confiner avec discernement.</h1>
         <p>Détection d'anomalies, journal de preuves et décisions humaines traçables. Aucun arrêt total automatique sans preuves critiques indépendantes et mécanisme de confinement prêt.</p>
       </section>
       {!validConfig && <div className="alert">Console non configurée : renseigner les variables publiques VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY dans le projet Vercel isolé.</div>}
