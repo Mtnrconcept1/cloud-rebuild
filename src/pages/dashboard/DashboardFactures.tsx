@@ -7,6 +7,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { CommercialDemoAccounting } from "@/components/dashboard/CommercialDemoScenario";
 import { AccountingDigestCard, AccountingFactList, AccountingPanel } from "@/components/invoices/AccountingCockpit";
+import PrintOrdersPanel from "@/components/dashboard/marketing-print/PrintOrdersPanel";
 import { AccountingBreakdownCard, type AccountingBreakdownItem } from "@/components/invoices/AccountingBreakdownCard";
 import { Badge } from "@/components/ui/badge";
 import { AiLoadingState } from "@/components/ui/ai-loading-state";
@@ -446,6 +447,17 @@ function LiveDashboardFactures() {
             </div>
           </CardContent>
         </Card>
+
+        {selectedRestaurant ? (
+          <section className="space-y-2" data-testid="print-accounting-operational">
+            <p className="text-sm font-semibold">Suivi opérationnel des impressions</p>
+            <p className="text-xs text-muted-foreground">
+              Les commandes de test Cloudprinter sont visibles ici à 0 CHF, sans figurer dans les recettes,
+              dépenses, factures, TVA ou exports comptables réels.
+            </p>
+            <PrintOrdersPanel restaurantId={selectedRestaurant.id} />
+          </section>
+        ) : null}
 
         {!selectedRestaurant && !isLoading ? (
           <Card className="tok-dashboard-section rounded-3xl border border-border/70">
