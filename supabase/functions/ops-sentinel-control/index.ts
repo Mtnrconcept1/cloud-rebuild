@@ -125,7 +125,9 @@ function telegramMessage(finding: SentinelFinding, id: string): string {
     `Date UTC: ${finding.observedAt}`,
     `Fonctions: ${functions || "non identifiees"}`,
     "Aucune intrusion n'est consideree comme confirmee par ce seul signal.",
-    "Aucune action de quarantaine sans votre validation.",
+    getEnv("TOK_SENTINEL_ENFORCEMENT_ENABLED") === "true"
+      ? "Quarantaine soumise a votre validation."
+      : "MODE OBSERVATION - aucun confinement executable avant validation technique.",
     "Consultez le rapport detaille et les identifiants de preuves dans TOK Sentinel.",
     "Sous-domaine prevu: sentinel.thetok.ch (DNS non publie).",
   ];
@@ -138,7 +140,9 @@ async function sendDecisionRequest(incidentId: string, finding: SentinelFinding,
     disable_web_page_preview: true,
     reply_markup: {
       inline_keyboard: [
-        [{ text: "Confiner le perimetre", callback_data: `snt:a:${token}` }],
+        ...(getEnv("TOK_SENTINEL_ENFORCEMENT_ENABLED") === "true"
+          ? [[{ text: "Confiner le perimetre", callback_data: `snt:a:${token}` }]]
+          : []),
         [{ text: "Refuser (surveillance)", callback_data: `snt:r:${token}` }],
       ],
     },
@@ -225,6 +229,11 @@ async function scan(): Promise<Result> {
 async function telegramDecision(body: Record<string, unknown>): Promise<Result> {
   const match = TOKEN_CALLBACK.exec(asText(body.data, 80));
   if (!match) throw new HttpError(400, "sentinel_invalid_callback");
+  // Fail closed in staging/read-only monitoring: an approval must never
+  // silently activate partial production controls before rollout validation.
+  if (match[1] === "a" && getEnv("TOK_SENTINEL_ENFORCEMENT_ENABLED") !== "true") {
+    throw new HttpError(409, "sentinel_containment_not_armed");
+  }
   const chat = asText(body.chatId, 64);
   const actor = asText(body.actor, 150);
   const messageId = Number(body.messageId);
@@ -262,7 +271,8 @@ async function listConsole(): Promise<Result> {
     ]);
   if (incidentsError || controlsError) throw new HttpError(503, "sentinel_console_data_unavailable");
   return { incidents: (incidents || []) as IncidentRecord[], activeContainments: containments || [],
-    autoGlobal: false, provider: "supabase", telegramConfigured: isTelegramReady() };
+    autoGlobal: false, provider: "supabase", telegramConfigured: isTelegramReady(),
+    enforcementArmed: getEnv("TOK_SENTINEL_ENFORCEMENT_ENABLED") === "true" };
 }
 async function release(body: Record<string, unknown>, actorId: string): Promise<Result> {
   const incidentId = asText(body.incidentId, 40);

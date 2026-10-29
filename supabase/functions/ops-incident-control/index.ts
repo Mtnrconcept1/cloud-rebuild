@@ -2078,7 +2078,7 @@ async function handleTelegramUpdate(req: Request, body: TelegramUpdate) {
       const projectUrl = getEnv("SUPABASE_URL");
       const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
       if (!projectUrl || !serviceKey) throw new HttpError(503, "sentinel_upstream_not_configured");
-      const response = await fetch(`${projectUrl.replace(/\\/$/, "")}/functions/v1/ops-sentinel-control`, {
+      const response = await fetch(`${projectUrl.replace(/\/$/, "")}/functions/v1/ops-sentinel-control`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

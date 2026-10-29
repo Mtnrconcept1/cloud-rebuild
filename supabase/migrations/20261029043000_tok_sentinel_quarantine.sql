@@ -3,7 +3,7 @@
 -- Existing Stripe webhooks/service_role reconciliation remain reachable.
 CREATE TABLE IF NOT EXISTS public.tok_sentinel_incidents (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  fingerprint text NOT NULL UNIQUE CHECK (length(fingerprint) = 64),
+  fingerprint text NOT NULL UNIQUE CHECK (fingerprint ~ '^[0-9a-f]{64}$'),
   category text NOT NULL CHECK (category IN (
     'authorization_probing', 'payment_abuse', 'distributed_probing',
     'confirmed_rls_bypass', 'confirmed_privilege_compromise',
@@ -67,13 +67,31 @@ CREATE TABLE IF NOT EXISTS public.tok_sentinel_events (
 CREATE INDEX IF NOT EXISTS tok_sentinel_events_by_incident
   ON public.tok_sentinel_events(incident_id, created_at DESC);
 
+-- Even service-role requests cannot rewrite or remove forensic history.
+-- This is an append-only in-project safeguard, not an off-project WORM archive.
+CREATE OR REPLACE FUNCTION public.tok_sentinel_protect_event_history()
+RETURNS trigger LANGUAGE plpgsql SET search_path = '' AS $$
+BEGIN
+  RAISE EXCEPTION 'sentinel_events_append_only' USING ERRCODE = '42501';
+END;
+$$;
+REVOKE ALL ON FUNCTION public.tok_sentinel_protect_event_history()
+  FROM PUBLIC, anon, authenticated;
+DROP TRIGGER IF EXISTS trg_tok_sentinel_events_append_only ON public.tok_sentinel_events;
+CREATE TRIGGER trg_tok_sentinel_events_append_only
+  BEFORE UPDATE OR DELETE ON public.tok_sentinel_events
+  FOR EACH ROW EXECUTE FUNCTION public.tok_sentinel_protect_event_history();
+
 ALTER TABLE public.tok_sentinel_incidents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tok_sentinel_containments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tok_sentinel_events ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.tok_sentinel_incidents FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON TABLE public.tok_sentinel_containments FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON TABLE public.tok_sentinel_events FROM PUBLIC, anon, authenticated;
-GRANT SELECT ON TABLE public.tok_sentinel_incidents, public.tok_sentinel_containments, public.tok_sentinel_events TO authenticated;
+-- Browser/API roles never read raw Sentinel evidence. The admin console must
+-- use the MFA-verified ops-sentinel-control Edge Function instead.
+REVOKE ALL ON TABLE public.tok_sentinel_incidents, public.tok_sentinel_containments,
+  public.tok_sentinel_events FROM authenticated, anon;
 GRANT ALL ON TABLE public.tok_sentinel_incidents, public.tok_sentinel_containments, public.tok_sentinel_events TO service_role;
 
 DROP POLICY IF EXISTS tok_sentinel_incidents_admin_read ON public.tok_sentinel_incidents;

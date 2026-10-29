@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
 
     const body: CreateReservationPayload = await req.json().catch(() => ({}));
     const action = String(body.action || "create").trim();
-    if (action !== "quote") await assertSentinelAllowed(actor, "operations");
+    // Quarantine check is deferred until the new-reservation path, after idempotent recovery.
     if (action === "quote") {
       const requestedSize = Number(body.party_size);
       if (!Number.isInteger(requestedSize) || requestedSize < 1 || requestedSize > 50) {
@@ -351,6 +351,8 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Existing bookings and pending guarantee checkouts can still be recovered
+    // during a quarantine. We check only *new* reservations after replay lookup.
     const guaranteeRequestPayload = { ...reservationArgs, acquisition_channel_token: acquisitionChannelToken || null };
     let guaranteeRequest: { id: string; status: string; error_code: string | null; reservation_id: string | null; checkout_url: string | null; fee_amount_cents: number } | null = null;
     if (requestKey) {
@@ -372,6 +374,10 @@ Deno.serve(async (req) => {
       if (guaranteeRequest?.checkout_url) return jsonResponse({ ok: true, requires_card_guarantee: true,
         checkout_url: guaranteeRequest.checkout_url, fee_amount_cents: guaranteeRequest.fee_amount_cents }, 200, corsHeaders);
     }
+
+    // Confirmed booking and guarantee replay paths have returned above.
+    // Only block new creation, with the verified target restaurant scope.
+    await assertSentinelAllowed(actor, "operations", restaurantId);
 
     // The quote is recalculated server-side at creation. A browser-provided
     // party size, cancellation count or "payment complete" flag is never trusted.

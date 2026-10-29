@@ -80,6 +80,7 @@ describe("Stripe Connect platform liability onboarding blocker", () => {
       handleCorsPreflight: () => null,
       authenticateRequest: async () => actor,
       assertProductionFlowAllowed: async () => undefined,
+      assertSentinelAllowed: async () => undefined,
       createAdminClient: () => actor.adminClient,
       jsonResponse: (payload: unknown, status: number) => Response.json(payload, { status }),
       requireRestaurantAccess: async () => ({

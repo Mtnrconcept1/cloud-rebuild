@@ -1,6 +1,7 @@
 packages:
   - "."
   - "workers/image-ai-worker"
+  - "sentinel-console"
 
 onlyBuiltDependencies:
   - "@swc/core"
