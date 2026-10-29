@@ -2065,6 +2065,45 @@ async function handleTelegramUpdate(req: Request, body: TelegramUpdate) {
       await removeTelegramButtons(admin.chatId, Number(messageId));
       return { reviewId: result.id, status: result.status };
     }
+    if (body.callback_query.data?.startsWith("snt:")) {
+      // Reuse the *existing* signed Telegram webhook. Never register another
+      // webhook or accept a caller-selected Telegram recipient.
+      const admin = validateTelegramAdmin(body.callback_query);
+      const callbackData = body.callback_query.data;
+      const messageId = Number(body.callback_query.message?.message_id);
+      if (!/^snt:[ar]:[A-Za-z0-9_-]{32}$/.test(callbackData) ||
+        !Number.isSafeInteger(messageId) || messageId <= 0) {
+        throw new HttpError(400, "sentinel_invalid_callback");
+      }
+      const projectUrl = getEnv("SUPABASE_URL");
+      const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+      if (!projectUrl || !serviceKey) throw new HttpError(503, "sentinel_upstream_not_configured");
+      const response = await fetch(`${projectUrl.replace(/\\/$/, "")}/functions/v1/ops-sentinel-control`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${serviceKey}`,
+          apikey: serviceKey,
+        },
+        body: JSON.stringify({
+          action: "telegram_decision",
+          data: callbackData,
+          chatId: admin.chatId,
+          messageId,
+          actor: `telegram:${admin.userId}`,
+        }),
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!response.ok) throw new HttpError(response.status === 409 ? 409 : 503, "sentinel_decision_failed");
+      const decision = await response.json() as { status?: string };
+      const accepted = decision.status === "contained";
+      await answerTelegramCallback(
+        body.callback_query.id,
+        accepted ? "Confinement active; verifiez le centre Sentinel." : "Confinement refuse; surveillance maintenue.",
+      );
+      await removeTelegramButtons(admin.chatId, messageId);
+      return { sentinel: true, status: decision.status || "unknown" };
+    }
     return await decideIncidentFromTelegram(body.callback_query);
   } catch (error) {
     if (body.callback_query.id) {
