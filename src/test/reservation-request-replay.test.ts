@@ -34,7 +34,7 @@ function harness(conflict = false) {
   const audit = vi.fn(async () => {});
   const dependencies = {
     HttpError, authenticateRequest: async () => actor,
-    assertProductionFlowAllowed: async () => {}, buildRequestMetadata: () => ({}),
+    assertProductionFlowAllowed: async () => {}, assertSentinelAllowed: async () => {}, buildRequestMetadata: () => ({}),
     createRateLimiter: () => ({ consume: async () => {} }),
     buildCorsHeaders: () => ({}), handleCorsPreflight: () => null,
     makeLogger: () => ({ error: vi.fn() }), writeAuditLog: audit,
