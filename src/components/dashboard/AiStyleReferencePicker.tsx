@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useId, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, ImagePlus, Loader2, Palette, Trash2, Upload } from "lucide-react";
 
@@ -13,7 +13,7 @@ import { assertSafeFileUpload, getSafeUploadExtension } from "@/lib/uploadSecuri
 
 const supabase = getSupabase();
 
-const STYLE_REFERENCE_BUCKET = "images";
+const STYLE_REFERENCE_BUCKET = "restaurant-images";
 const STYLE_REFERENCE_MEDIA_TYPE = "marketing_brand_visual";
 const STYLE_REFERENCE_ACCEPT = "image/png,image/jpeg,image/webp";
 const STYLE_REFERENCE_MIME_EXTENSIONS: Record<string, string> = {
@@ -21,7 +21,7 @@ const STYLE_REFERENCE_MIME_EXTENSIONS: Record<string, string> = {
   "image/png": "png",
   "image/webp": "webp",
 };
-const STYLE_REFERENCE_MAX_BYTES = 15 * 1024 * 1024;
+const STYLE_REFERENCE_MAX_BYTES = 10 * 1024 * 1024;
 const STYLE_REFERENCE_GALLERY_TYPES = [
   "photo",
   "photo_ai_tok",
@@ -65,6 +65,7 @@ type Props = {
   onChange: (value: AiStyleReferenceValue | null) => void;
   onUploaded?: (resource: AiStyleReferenceUploadedResource) => void;
   galleryMediaTypes?: string[];
+  allowUnindexedUpload?: boolean;
   disabled?: boolean;
   className?: string;
 };
@@ -75,7 +76,7 @@ function createStyleReferencePath(userId: string, restaurantId: string, file: Fi
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-  return `${userId}/marketing-assets/${restaurantId}/${id}.${extension}`;
+  return `${restaurantId}/marketing/style-references/${userId}/${id}.${extension}`;
 }
 
 function getStyleReferenceFileName(row: StyleReferenceRow) {
@@ -91,7 +92,22 @@ async function fetchStyleReferenceGallery(restaurantId: string, mediaTypes: stri
     .order("created_at", { ascending: false })
     .limit(24);
 
-  if (error) throw error;
+  if (error) {
+    // Retry with a smaller projection if the PostgREST schema cache lags.
+    const { data: fallback, error: fallbackError } = await supabase
+      .from("restaurant_media")
+      .select("id, media_url, alt_text, media_type, created_at")
+      .eq("restaurant_id", restaurantId)
+      .in("media_type", mediaTypes)
+      .order("created_at", { ascending: false })
+      .limit(24);
+    if (fallbackError) {
+      throw new Error(`Galerie indisponible (${fallbackError.code || "requête refusée"}). ${fallbackError.message}`);
+    }
+    return (fallback || [])
+      .map((row) => ({ ...row, storage_bucket: null, storage_path: null }))
+      .filter((row): row is StyleReferenceRow => Boolean(row.id && row.media_url));
+  }
 
   return (data || [])
     .filter((row): row is StyleReferenceRow => Boolean(row.id && row.media_url));
@@ -101,12 +117,11 @@ async function uploadStyleReference(input: {
   restaurantId: string;
   userId?: string | null;
   file: File;
+  allowUnindexedUpload?: boolean;
 }) {
-  const { data: userData, error: userError } = input.userId
-    ? { data: { user: { id: input.userId } }, error: null }
-    : await supabase.auth.getUser();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
 
-  if (userError || !userData.user?.id) {
+  if (userError || !userData.user?.id || (input.userId && input.userId !== userData.user.id)) {
     throw new Error("Reconnectez-vous avant d'ajouter une image de style.");
   }
 
@@ -143,7 +158,23 @@ async function uploadStyleReference(input: {
     .select("id, media_url, alt_text, media_type, storage_bucket, storage_path")
     .single();
 
-  if (insertError) throw insertError;
+  if (insertError) {
+    if (input.allowUnindexedUpload) {
+      // PhotoPro can reference this restaurant-scoped public object directly.
+      // The image is not falsely advertised as an indexed gallery asset.
+      return {
+        mediaId: null,
+        mediaUrl,
+        fileName: input.file.name,
+        storageBucket: STYLE_REFERENCE_BUCKET,
+        storagePath,
+        mediaType: STYLE_REFERENCE_MEDIA_TYPE,
+        persisted: false,
+      };
+    }
+    await supabase.storage.from(STYLE_REFERENCE_BUCKET).remove([storagePath]);
+    throw insertError;
+  }
 
   return {
     mediaId: media.id,
@@ -152,7 +183,8 @@ async function uploadStyleReference(input: {
     storageBucket: media.storage_bucket,
     storagePath: media.storage_path,
     mediaType: media.media_type || STYLE_REFERENCE_MEDIA_TYPE,
-  } satisfies AiStyleReferenceUploadedResource;
+    persisted: true,
+  };
 }
 
 export default function AiStyleReferencePicker({
@@ -162,10 +194,12 @@ export default function AiStyleReferencePicker({
   onChange,
   onUploaded,
   galleryMediaTypes,
+  allowUnindexedUpload = false,
   disabled,
   className,
 }: Props) {
   const { toast } = useToast();
+  const uploadInputId = useId();
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [refreshIndex, setRefreshIndex] = useState(0);
@@ -200,8 +234,8 @@ export default function AiStyleReferencePicker({
 
     setUploading(true);
     try {
-      const uploaded = await uploadStyleReference({ restaurantId, userId, file });
-      onUploaded?.(uploaded);
+      const uploaded = await uploadStyleReference({ restaurantId, userId, file, allowUnindexedUpload });
+      if (uploaded.mediaId) onUploaded?.({ ...uploaded, mediaId: uploaded.mediaId });
       onChange({
         mediaId: uploaded.mediaId,
         mediaUrl: uploaded.mediaUrl,
@@ -210,8 +244,10 @@ export default function AiStyleReferencePicker({
       });
       setRefreshIndex((current) => current + 1);
       toast({
-        title: "Style prêt",
-        description: "Cette image guidera la prochaine génération IA.",
+        title: uploaded.persisted ? "Style prêt" : "Style prêt pour cette génération",
+        description: uploaded.persisted
+          ? "Cette image guidera la prochaine génération IA."
+          : "Référence utilisable dans PhotoPro, mais non enregistrée dans la galerie. Réessayez ultérieurement pour la conserver.",
       });
     } catch (error) {
       toast({
@@ -252,12 +288,12 @@ export default function AiStyleReferencePicker({
       {open ? (
         <div className="mt-3 space-y-3 rounded-2xl border border-orange-100 bg-white/90 p-3 shadow-sm dark:bg-background/80">
           <div className="flex flex-col gap-2 rounded-xl border border-dashed border-orange-200 bg-orange-50/60 p-3">
-            <Label htmlFor="ai-style-reference-upload" className="flex items-center gap-2 text-sm font-semibold">
+            <Label htmlFor={uploadInputId} className="flex items-center gap-2 text-sm font-semibold">
               <Upload className="h-4 w-4 text-orange-600" />
               Uploader une image de style
             </Label>
             <Input
-              id="ai-style-reference-upload"
+              id={uploadInputId}
               type="file"
               accept={STYLE_REFERENCE_ACCEPT}
               onChange={handleUpload}
@@ -275,7 +311,7 @@ export default function AiStyleReferencePicker({
             </div>
             {galleryQuery.isError ? (
               <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                Impossible de charger la galerie pour le moment.
+                {galleryQuery.error instanceof Error ? galleryQuery.error.message : "Impossible de charger la galerie pour le moment."}
               </p>
             ) : null}
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
