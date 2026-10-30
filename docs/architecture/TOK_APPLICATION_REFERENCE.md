@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8ab5cbdeaa790a8e172fcef75856950ba65df144cdd3901262d7b2d6c3186cd0`
+- Empreinte SHA-256 des sources indexées : `88705240720815ee54ba89b68303987aa0e567f8a32463ad8a3b60f8f58b0b8f`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1553,7 +1553,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api/missing | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /api/photon | 1 | [vite.config.ts:123](../../vite.config.ts#L123) |
 | /api/status | 1 | [src/test/app-page-navigation.test.tsx:27](../../src/test/app-page-navigation.test.tsx#L27) |
-| /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:525](../../src/test/tok-ai-tools.test.ts#L525) |
+| /api/support-ai | 1 | [src/test/tok-ai-tools.test.ts:526](../../src/test/tok-ai-tools.test.ts#L526) |
 | /assets/app.js | 1 | [src/test/app-page-navigation.test.tsx:25](../../src/test/app-page-navigation.test.tsx#L25) |
 | /assets/missing.js | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /attachments? | 1 | [src/test/resend-inbound-forward.test.ts:25](../../src/test/resend-inbound-forward.test.ts#L25) |

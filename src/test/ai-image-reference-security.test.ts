@@ -73,6 +73,10 @@ describe("TOK AI image reference security", () => {
     expect(photoStudio).toContain("referenceMediaIds: styleReferenceMediaId ? [styleReferenceMediaId] : []");
     expect(photoStudio).toContain("buildPhotoProPrompt(draft.userInstructions || \"\", Boolean(styleReferenceImageUrl))");
     expect(photoStudio).toContain("generationSeed: generationSeed || null");
+    expect(photoStudio).toContain("styleReferenceWeight: styleReferenceImageUrl ?");
+    expect(photoStudio).toContain("allowUnindexedUpload");
+    expect(photoStudio).toContain("min={1}");
+    expect(photoStudio).toContain("max={100}");
 
     expect(imageFunction).toContain("resolveCurrentPhotoStyleReferences");
     expect(imageFunction).toContain("photo_style_reference_mismatch");
@@ -81,5 +85,18 @@ describe("TOK AI image reference security", () => {
     expect(imageFunction).toContain("[sourceImageUrl, ...referenceImageUrls]");
     expect(imageFunction).toContain("Utilise les images de style uniquement");
     expect(imageFunction).toContain("appendGenerationSeedToPrompt");
+    expect(imageFunction).toContain("normalizePhotoStyleWeight(body.styleReferenceWeight)");
+    expect(imageFunction).toContain("buildPhotoStyleTransferDirection(photoStyleWeight)");
+    expect(imageFunction).toContain("photo_style_weight: photoStyleDirection ? photoStyleWeight : null");
+  });
+
+  it("keeps PhotoPro style uploads restaurant-scoped and usable after metadata failures", () => {
+    const picker = readProjectFile("src/components/dashboard/AiStyleReferencePicker.tsx");
+    expect(picker).toContain('const STYLE_REFERENCE_BUCKET = "restaurant-images"');
+    expect(picker).toContain("`${restaurantId}/marketing/style-references/${userId}/${id}.${extension}`");
+    expect(picker).toContain("await supabase.auth.getUser()");
+    expect(picker).toContain("if (input.allowUnindexedUpload)");
+    expect(picker).toContain("if (uploaded.mediaId) onUploaded?");
+    expect(picker).toContain('select("id, media_url, alt_text, media_type, created_at")');
   });
 });

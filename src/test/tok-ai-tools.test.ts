@@ -208,7 +208,8 @@ describe("TOK AI tools foundation", () => {
 
     expect(picker).toContain("Réutiliser le style d'une image");
     expect(picker).toContain("restaurant_media");
-    expect(picker).toContain("marketing-assets");
+    expect(picker).toContain("marketing/style-references");
+    expect(picker).toContain('const STYLE_REFERENCE_BUCKET = "restaurant-images"');
     expect(picker).toContain("marketing_brand_visual");
     expect(picker).toContain("assertSafeFileUpload");
     expect(picker).toContain("optimizeImageUpload");

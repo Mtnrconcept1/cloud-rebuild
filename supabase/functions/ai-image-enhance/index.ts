@@ -319,6 +319,33 @@ function normalizeReferenceMediaIds(raw: unknown) {
   return Array.from(new Set(raw.map((entry) => maybeUuid(entry)).filter((id): id is string => Boolean(id)))).slice(0, MARKETING_REFERENCE_LIMIT);
 }
 
+function normalizePhotoStyleWeight(raw: unknown): number {
+  if (raw == null) return 80;
+  if (typeof raw !== "number" || !Number.isInteger(raw) || raw < 1 || raw > 100) {
+    throw new HttpError(400, "invalid_photo_style_weight");
+  }
+  return raw;
+}
+
+function buildPhotoStyleTransferDirection(weight: number) {
+  const transfer = weight >= 85
+    ? "Transfert quasi integral : reproduire au plus pres l'ambiance, la composition, l'angle, les contrastes, les ombres, les textures, les couleurs et le type de lumiere de la reference."
+    : weight >= 55
+    ? "Transfert fort : adopter clairement la palette, l'eclairage, l'atmosphere, les ombres et la composition de la reference."
+    : weight >= 25
+    ? "Transfert modere : reprendre la palette, l'atmosphere et la lumiere dominantes tout en gardant de la liberte dans le cadrage."
+    : "Transfert leger : conserver quelques indices visibles de palette et de lumiere sans imposer la composition de la reference.";
+
+  return [
+    "DIRECTIVE DE STYLE PHOTOPRO : cette directive prime sur les presets de photographie studio generiques presentes ailleurs dans le brief.",
+    "IMAGE 1 : photographie source. Elle definit le plat ou produit, les ingredients, les formes, le contenant, les textes et le packaging qui doivent etre conserves.",
+    "IMAGE 2 : reference de direction artistique. Elle definit la mise en scene, l'ambiance, l'eclairage, les ombres, la colorimetrie, l'objectif, l'arriere-plan et les choix de composition.",
+    `Influence de la reference : ${weight}/100. ${transfer}`,
+    "Si la reference presente une affiche ou un autre sujet, transposer seulement ses caracteristiques artistiques; ne pas copier son sujet, ses logos, ses textes ou ses objets.",
+    "Le contenu de la photo source prime toujours : ne jamais substituer le plat, ses ingredients ou le nombre d'elements principaux.",
+  ].join("\n");
+}
+
 type MarketingReferenceRow = {
   id: string;
   media_url: string;
@@ -1413,6 +1440,7 @@ Deno.serve(async (req) => {
     const requestedReferenceImageUrls = printMarginCorrection ? [] : normalizeReferenceImageUrls(body.referenceImageUrls)
       .filter((url) => url !== sourceImageUrl);
     const requestedReferenceMediaIds = printMarginCorrection ? [] : normalizeReferenceMediaIds(body.referenceMediaIds);
+    const photoStyleWeight = marketingAssetMode ? 80 : normalizePhotoStyleWeight(body.styleReferenceWeight);
     const format = normalizeFormat(marketingOutputFormat?.destination === "print"
       ? generatedPrintOrientation(marketingOutputFormat)
       : body.format);
@@ -1492,6 +1520,9 @@ Deno.serve(async (req) => {
     const resolvedReferenceMediaIds = resolvedReferences?.ids || [];
     const resolvedReferenceMediaTypes = resolvedReferences?.mediaTypes || [];
     const resolvedReferenceFingerprint = resolvedReferences?.fingerprint || null;
+    const photoStyleDirection = !marketingAssetMode && sourceImageUrl && referenceImageUrls.length
+      ? buildPhotoStyleTransferDirection(photoStyleWeight)
+      : "";
 
 
 
@@ -1551,7 +1582,7 @@ Deno.serve(async (req) => {
         TOK_PHOTO_DNA,
         "Rendu attendu: avant/apres fidele. Meme sujet reconnaissable immediatement, mais plus net, nettoye de tous les parasites, eclaire comme un studio photo, avec formes mieux valorisees, textures plus appetissantes, profondeur de champ douce et joli flou d'arriere-plan quand cela sert le produit.",
         "Interdiction explicite: ne pas ajouter de nouveau logo, texte de marque, bulle de marque, badge, filigrane ou watermark. Si un logo, une etiquette, un texte de marque ou un packaging existe deja physiquement dans l'image source, il doit etre conserve et rester reconnaissable. Seuls les filigranes, badges ou marques superposes qui ne font pas partie de l'objet photographie peuvent etre retires.",
-      ].join("\n").slice(0, 7000)
+      ].join("\n").slice(0, 5700) + (photoStyleDirection ? `\n\n${photoStyleDirection}` : "")
       : [
         result.enhanced_prompt,
         "",
@@ -1590,7 +1621,7 @@ Deno.serve(async (req) => {
           compactSourceEditPrompt,
           "",
           "Garde la retouche fidele a la photo source. Utilise les images de style uniquement pour l'ambiance, la lumiere, la palette, le cadrage et le rendu. Ne remplace pas le plat, le produit, la categorie alimentaire, les ingredients principaux ni le nombre d'elements visibles.",
-        ].join("\n").slice(0, 2400), activeGenerationSeed),
+        ].join("\n").slice(0, 2400) + (photoStyleDirection ? `\n\n${photoStyleDirection}` : ""), activeGenerationSeed),
         allowGenerationFallback: false,
       });
       imageResponse = editResult.response;
@@ -1715,6 +1746,7 @@ Deno.serve(async (req) => {
         reference_media_types: resolvedReferenceMediaTypes,
         reference_fingerprint: resolvedReferenceFingerprint,
         photo_style_reference_ids: photoStyleReferences?.ids || [],
+        photo_style_weight: photoStyleDirection ? photoStyleWeight : null,
         reference_identity_scope: printMarginCorrection
           ? "server_owned_original_native_print"
           : marketingAssetMode

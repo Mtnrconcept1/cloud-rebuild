@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AiGenerationProgressDialog from "@/components/ui/ai-generation-progress-dialog";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import ImageUpload from "@/components/ImageUpload";
@@ -51,7 +52,7 @@ function buildPhotoProPrompt(userInstructions: string, hasStyleReference: boolea
     PHOTO_PRO_CREATIVE_DIRECTION,
     "Si le produit est mal mis en scène ou n'a pas l'air appétissant, améliore sa présentation, son volume visuel, la gourmandise, les textures et la lumière tout en préservant le produit, les ingrédients, le packaging, les logos et les textes présents.",
     hasStyleReference
-      ? "Référence de style active: reprendre l'ambiance, la lumière, la palette, la profondeur de champ, le cadrage et le traitement visuel de l'image de style fournie, sans copier son contenu ni remplacer le produit source."
+      ? "Référence de style active: reprendre très fidèlement l'ambiance, la lumière, la palette, les ombres, la profondeur de champ, le cadrage et le traitement visuel de la référence. La photo produit définit le contenu; la référence définit exclusivement la direction artistique. Le preset studio générique ne doit pas écraser le style de référence. Ne pas copier le contenu de la référence ni remplacer le produit source."
       : "",
     trimmedInstructions ? `Consignes du restaurateur à appliquer visiblement: ${trimmedInstructions}` : "",
   ]
@@ -70,6 +71,7 @@ type Props = {
 type PhotoStudioDraft = {
   sourceImageUrl: string;
   styleReference: AiStyleReferenceValue | null;
+  styleReferenceWeight: number;
   dishName: string;
   userInstructions: string;
   generationSeed: string;
@@ -81,6 +83,7 @@ type PhotoStudioDraft = {
 const DEFAULT_DRAFT: PhotoStudioDraft = {
   sourceImageUrl: "",
   styleReference: null,
+  styleReferenceWeight: 80,
   dishName: "",
   userInstructions: "",
   generationSeed: "",
@@ -225,6 +228,7 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
         prompt: buildPhotoProPrompt(draft.userInstructions || "", Boolean(styleReferenceImageUrl)),
         referenceImageUrls: styleReferenceImageUrl ? [styleReferenceImageUrl] : [],
         referenceMediaIds: styleReferenceMediaId ? [styleReferenceMediaId] : [],
+        styleReferenceWeight: styleReferenceImageUrl ? Math.min(100, Math.max(1, Math.round(draft.styleReferenceWeight ?? 80))) : undefined,
         assetType: "menu_visual",
         format: draft.format,
         outputResolution: selectedOutputResolution,
@@ -411,7 +415,35 @@ export default function TokAiPhotoStudioV2({ restaurantId, userId, currentPhotoC
                   userId={userId}
                   value={draft.styleReference}
                   onChange={(styleReference) => updateDraft({ styleReference, result: null })}
+                  allowUnindexedUpload
                 />
+                {draft.styleReference ? (
+                  <div className="space-y-3 rounded-2xl border border-orange-200 bg-orange-50/60 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <Label htmlFor="photopro-style-reference-weight">Influence de l’image de référence</Label>
+                      <Badge variant="outline" className="border-orange-300 bg-white font-semibold text-orange-700">
+                        {draft.styleReferenceWeight ?? 80}/100
+                      </Badge>
+                    </div>
+                    <Slider
+                      id="photopro-style-reference-weight"
+                      aria-label="Influence de l’image de référence"
+                      min={1}
+                      max={100}
+                      step={1}
+                      value={[draft.styleReferenceWeight ?? 80]}
+                      onValueChange={([weight]) => updateDraft({ styleReferenceWeight: weight, result: null })}
+                      disabled={loading}
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>1 · Inspiration légère</span>
+                      <span>100 · Fidélité maximale au style</span>
+                    </div>
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      Le poids influence l’ambiance, la lumière et la composition. Le plat et ses ingrédients restent ceux de la photo source.
+                    </p>
+                  </div>
+                ) : null}
               </>
             )}
             <div className="grid gap-4 md:grid-cols-2">
