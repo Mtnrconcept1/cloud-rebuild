@@ -5,6 +5,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
+import HalloweenTheme from "@/components/seasonal/HalloweenTheme";
 
 const root = process.cwd();
 
@@ -15,6 +16,7 @@ function read(path: string) {
 afterEach(() => {
   cleanup();
   document.documentElement.classList.remove("dark");
+  delete document.documentElement.dataset.seasonalTheme;
   localStorage.clear();
 });
 
@@ -36,6 +38,23 @@ describe("mobile theme toggle", () => {
     expect(localStorage.getItem("theme")).toBe("light");
     expect(button).toHaveAccessibleName("Mode sombre");
     expect(button).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("respects light and dark preference while keeping Halloween active", () => {
+    document.documentElement.classList.add("dark");
+    render(<><HalloweenTheme enabled /><ThemeToggleButton /></>);
+
+    expect(document.documentElement.dataset.seasonalTheme).toBe("halloween");
+    const toggle = screen.getByRole("button", { name: "Mode clair" });
+    fireEvent.click(toggle);
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+    expect(document.documentElement.dataset.seasonalTheme).toBe("halloween");
+    expect(localStorage.getItem("theme")).toBe("light");
+
+    fireEvent.click(toggle);
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    expect(document.documentElement.dataset.seasonalTheme).toBe("halloween");
+    expect(localStorage.getItem("theme")).toBe("dark");
   });
 
   it("reads initial dark state and synchronizes external class changes", async () => {
