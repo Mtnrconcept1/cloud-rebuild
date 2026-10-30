@@ -335,7 +335,9 @@
 :root[data-seasonal-theme="halloween"] .tok-home-first-screen:has(.tok-home-hero[data-seasonal-hero="halloween"]) .tok-home-hero__secondary {
   position: absolute;
   z-index: 4;
-  bottom: clamp(16px, 2.2svh, 30px);
+  /* Account for the optional 44px discovery strip above the sticky menu,
+     keeping the entire Miamz panel visible in the first desktop viewport. */
+  bottom: clamp(64px, 7svh, 96px);
   left: 50%;
   width: min(1320px, calc(100% - 48px));
   max-width: none;
@@ -350,6 +352,12 @@
 }
 
 @media (max-width: 1199px) and (min-width: 768px) {
+  /* The landscape photograph needs a right-biased crop on portrait tablets:
+     otherwise the TOK chef is cut in half beyond the right viewport edge. */
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__background img {
+    object-position: 76% center;
+  }
+
   :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] {
     min-height: max(710px, calc(100dvh - var(--tok-public-navbar-height, 80px)));
     padding-inline: clamp(24px, 6vw, 84px);
