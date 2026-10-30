@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `920f1bb06d5cee28de2036147d3b7c2663954bcb43fe6793ea9137100b976d87`
+- Empreinte SHA-256 des sources indexées : `d108453cb6594ea12dfc9aea3ece60776cf994e4e15894cb3c2ddfc66d1b03f0`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 590 |
 | modules | 1935 |
 | pages | 133 |
-| pathLiterals | 953 |
+| pathLiterals | 952 |
 | publicAssets | 743 |
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19893 |
+| records | 19892 |
 | repositoryFiles | 3862 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1991,8 +1991,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/seasonal/halloween/ | 1 | [src/components/home/SectionShowcaseHeader.tsx:51](../../src/components/home/SectionShowcaseHeader.tsx#L51) |
 | /images/seasonal/halloween/canopy.webp | 2 | [src/components/seasonal/HalloweenTheme.tsx:13](../../src/components/seasonal/HalloweenTheme.tsx#L13) |
 | /images/seasonal/halloween/hero-desktop.webp | 3 | [src/components/home/HeroSection.tsx:53](../../src/components/home/HeroSection.tsx#L53) |
-| /images/seasonal/halloween/hero-mobile-20261030.webp | 2 | [src/components/home/HeroSection.tsx:56](../../src/components/home/HeroSection.tsx#L56) |
-| /images/seasonal/halloween/hero-mobile.webp | 1 | [src/test/home-hero-search.test.tsx:55](../../src/test/home-hero-search.test.tsx#L55) |
+| /images/seasonal/halloween/hero-mobile-20261030.webp | 3 | [src/components/home/HeroSection.tsx:56](../../src/components/home/HeroSection.tsx#L56) |
 | /images/seasonal/halloween/section-banner.webp | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
 | /images/section-headers/calendar-3d.png | 2 | [src/lib/dashboardIllustrations.ts:57](../../src/lib/dashboardIllustrations.ts#L57) |
 | /images/section-headers/fire-3d.png | 1 | [src/lib/dashboardIllustrations.ts:59](../../src/lib/dashboardIllustrations.ts#L59) |

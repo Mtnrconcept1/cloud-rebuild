@@ -52,7 +52,7 @@ describe("homepage semantic search", () => {
       "src", "/images/seasonal/halloween/hero-desktop.webp",
     );
     expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
-      "srcset", "/images/seasonal/halloween/hero-mobile.webp",
+      "srcset", "/images/seasonal/halloween/hero-mobile-20261030.webp",
     );
   });
   it("renders the correct canton art for device localization on desktop and mobile", () => {
