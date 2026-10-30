@@ -26,8 +26,8 @@ vi.mock("@/lib/plinko-physics", () => ({
 }));
 
 const respond = (value: Record<string, unknown>) => ({ ok: true, json: async () => value }) as Response;
-const status = (game: string, remaining = 3, total = 0) =>
-  respond({ ok: true, game, playDate: "2026-10-29", maxAttempts: 3, attemptsUsed: 3 - remaining, attemptsRemaining: remaining,
+const status = (game: string, remaining = 3, total = 0, playDate = "2026-10-29") =>
+  respond({ ok: true, game, playDate, maxAttempts: 3, attemptsUsed: 3 - remaining, attemptsRemaining: remaining,
     sessionRewardPoints: total, available: remaining > 0 });
 
 const result = (game: string, reward: number, remaining: number, total: number) =>
@@ -77,6 +77,39 @@ describe("daily TOK mini-game selection", () => {
     render(<DailyTokArcade />);
     await flush();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it.each(["slot", "plinko", "claw"])("never reopens %s once the user has played today", async (game) => {
+    mocks.fetch.mockResolvedValueOnce(status(game, 2, 7));
+    render(<DailyTokArcade />);
+    await flush();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("secure-slot")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("daily-plinko-board")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("TOK Miamz — attrape-figurines")).not.toBeInTheDocument();
+    expect(posts()).toHaveLength(0);
+  });
+
+  it("does not offer any game to a visitor without an authenticated account", async () => {
+    mocks.auth.user = null;
+    render(<DailyTokArcade />);
+    await flush();
+    expect(mocks.fetch).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("allows a fresh game on the following Swiss calendar day", async () => {
+    mocks.fetch.mockResolvedValueOnce(status("claw", 2, 7, "2026-10-29"));
+    const first = render(<DailyTokArcade />);
+    await flush();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    first.unmount();
+
+    mocks.fetch.mockResolvedValueOnce(status("plinko", 3, 0, "2026-10-30"));
+    render(<DailyTokArcade />);
+    await flush();
+    expect(screen.getByTestId("daily-plinko-board")).toBeInTheDocument();
+    expect(posts()).toHaveLength(0);
   });
 
   it("awards the three Plinko results and automatically closes after showing the total", async () => {

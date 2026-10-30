@@ -52,19 +52,17 @@ afterEach(() => vi.restoreAllMocks());
 afterAll(() => vi.unstubAllGlobals());
 
 describe("actual anonymous Plinko HTTP handler", () => {
-  it("starts without authentication and returns a bearer token while persisting only its hash", async () => {
-    const response = await request({ action: "start" });
-    const result = await response.json();
-
-    expect(response.status).toBe(200);
+  it.each(["start", "play"])("refuses legacy anonymous %s and never creates a new reward", async (action) => {
+    const response = await request(
+      { action, token, outcome: "free_meal" },
+      { "Idempotency-Key": requestId },
+    );
+    expect(response.status).toBe(403);
     expect(response.headers.get("cache-control")).toBe("private, no-store");
-    expect(result.token).toMatch(/^[0-9a-f]{64}$/);
-    expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith("create_plinko_session", {
-      p_token_hash: createHash("sha256").update(result.token).digest("hex"),
-    });
-    expect(JSON.stringify(mocks.rpc.mock.calls)).not.toContain(result.token);
-    expect(JSON.stringify(mocks.consume.mock.calls)).not.toContain(result.token);
-    expect(JSON.stringify(mocks.consume.mock.calls)).not.toContain("192.0.2.10");
+    expect(await response.json()).toEqual({ ok: false, error: "authenticated_daily_arcade_only" });
+    expect(mocks.createAdminClient).not.toHaveBeenCalled();
+    expect(mocks.rpc).not.toHaveBeenCalled();
+    expect(mocks.consume).not.toHaveBeenCalled();
   });
 
   it.each([undefined, "", "not-a-session", "A".repeat(64)])("rejects invalid status token %j before private data access", async (provided) => {
@@ -82,27 +80,16 @@ describe("actual anonymous Plinko HTTP handler", () => {
     expect(mocks.consume).toHaveBeenCalledWith(`session:${tokenHash}:status`, expect.objectContaining({ maxRequests: 120 }));
   });
 
-  it("ignores client outcomes and generates the draw with server crypto", async () => {
-    const random = vi.spyOn(crypto, "getRandomValues").mockImplementation((buffer) => {
-      (buffer as Uint32Array)[0] = 9999;
-      return buffer;
-    });
+  it("does not let an old visitor token trigger even a forged jackpot", async () => {
     const response = await request({ action: "play", token, outcome: "free_meal", landing: 0, reward: "jackpot" }, { "Idempotency-Key": requestId });
-
-    expect(response.status).toBe(200);
-    expect(random).toHaveBeenCalledTimes(1);
-    expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith("record_plinko_play", {
-      p_token_hash: tokenHash,
-      p_request_id: requestId,
-      p_outcome: "lost",
-      p_rng_nonce: expect.stringMatching(/^[0-9a-f-]{36}$/),
-    });
+    expect(response.status).toBe(403);
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
-  it.each([undefined, "not-a-uuid"])("requires a valid UUID idempotency header for play (%j)", async (key) => {
+  it.each([undefined, "not-a-uuid"])("blocks legacy play regardless of idempotency input (%j)", async (key) => {
     const response = await request({ action: "play", token }, key ? { "Idempotency-Key": key } : {});
-    expect(response.status).toBe(400);
-    expect(await response.json()).toMatchObject({ ok: false, error: "A valid UUID Idempotency-Key is required" });
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ ok: false, error: "authenticated_daily_arcade_only" });
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
@@ -135,7 +122,7 @@ describe("actual anonymous Plinko HTTP handler", () => {
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
-  it.each(["start", "status", "play"])("does not collect email during %s", async (action) => {
+  it.each(["status"])("does not collect email during legacy %s", async (action) => {
     await request({ action, token, email: "invalid-email", marketingConsent: "invalid" }, { "Idempotency-Key": requestId });
     expect(mocks.rpc).toHaveBeenCalledTimes(1);
     expect(mocks.rpc.mock.calls[0][1]).not.toHaveProperty("p_email");
@@ -144,7 +131,7 @@ describe("actual anonymous Plinko HTTP handler", () => {
 
   it("fails closed when persistent rate limiting is unavailable", async () => {
     mocks.consume.mockRejectedValueOnce(new mocks.HttpError(503, "rate_limiter_unavailable"));
-    const response = await request({ action: "start" });
+    const response = await request({ action: "status", token });
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ ok: false, error: "rate_limiter_unavailable" });
     expect(mocks.rpc).not.toHaveBeenCalled();

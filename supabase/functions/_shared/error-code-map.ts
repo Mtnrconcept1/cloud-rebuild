@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 536 error codes mapped from supabase/functions/**.
+// 537 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -519,6 +519,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/_shared/advisor-attachments.ts",
       "line": 271
+    }
+  ],
+  "authenticated_daily_arcade_only": [
+    {
+      "file": "supabase/functions/plinko-play/index.ts",
+      "line": 49
     }
   ],
   "autopilot_plan_fields_required": [
@@ -1830,7 +1836,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_marketing_consent": [
     {
       "file": "supabase/functions/plinko-play/index.ts",
-      "line": 81
+      "line": 86
     }
   ],
   "invalid_photo_style_weight": [
@@ -1842,13 +1848,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_plinko_email": [
     {
       "file": "supabase/functions/plinko-play/index.ts",
-      "line": 80
+      "line": 85
     }
   ],
   "invalid_plinko_session": [
     {
       "file": "supabase/functions/plinko-play/index.ts",
-      "line": 63
+      "line": 68
     }
   ],
   "invalid_recovery_challenge": [
@@ -2414,11 +2420,11 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "plinko_unavailable": [
     {
       "file": "supabase/functions/plinko-play/index.ts",
-      "line": 90
+      "line": 95
     },
     {
       "file": "supabase/functions/plinko-play/index.ts",
-      "line": 92
+      "line": 97
     }
   ],
   "premium_required": [

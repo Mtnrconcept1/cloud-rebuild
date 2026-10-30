@@ -179,3 +179,42 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Reference Halloween lettering: native accessible text, never baked into the scene. */
+:root[data-seasonal-theme="halloween"] .tok-home-hero .tok-home-hero__title {
+  font-family: "Nosifer", "Creepster", Georgia, serif;
+  font-weight: 400;
+  font-synthesis: none;
+  font-size: clamp(31px, 3.45vw, 58px);
+  line-height: 1.36;
+  letter-spacing: -.072em;
+  color: #fff7f1;
+  text-wrap: balance;
+  text-shadow: 0 3px 1px rgb(19 6 4 / 85%), 0 9px 22px rgb(0 0 0 / 84%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero .tok-home-hero__title span {
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: 400;
+  letter-spacing: inherit;
+  color: var(--tok-home-orange);
+  white-space: normal;
+  text-shadow: 0 3px 1px rgb(26 7 2 / 85%), 0 9px 22px rgb(0 0 0 / 84%);
+}
+
+@media (max-width: 767px) {
+  :root[data-seasonal-theme="halloween"] .tok-home-hero .tok-home-hero__title {
+    max-width: 100%;
+    font-size: clamp(23px, 6.8vw, 35px);
+    line-height: 1.42;
+    letter-spacing: -.075em;
+    text-wrap: pretty;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero .tok-home-hero__art::after {
+    background:
+      linear-gradient(180deg, rgb(14 7 4 / 15%) 0%, rgb(14 7 4 / 46%) 40%, rgb(14 7 4 / 45%) 72%, rgb(14 7 4 / 10%) 100%),
+      linear-gradient(90deg, rgb(14 7 4 / 36%), transparent 100%);
+  }
+}

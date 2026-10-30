@@ -53,7 +53,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
     ? "/images/seasonal/halloween/hero-desktop.webp"
     : cantonImage || worldArt?.desktop || (pending ? null : DEFAULT_HERO_DESKTOP);
   const mobileImage = halloweenEnabled
-    ? "/images/seasonal/halloween/hero-mobile.webp"
+    ? "/images/seasonal/halloween/hero-mobile-20261030.webp"
     : worldArt?.mobile || (!cantonImage && !worldArt?.desktop ? DEFAULT_HERO_MOBILE : desktopImage);
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {

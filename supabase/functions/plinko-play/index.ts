@@ -43,6 +43,11 @@ Deno.serve(async (req) => {
     const payload = await readPayload(req);
     const action = typeof payload.action === "string" ? payload.action : "";
     if (!ACTIONS.has(action)) throw new HttpError(400, "invalid_action");
+    // Legacy anonymous sessions may still inspect or claim an already earned prize.
+    // New games are exclusively the authenticated, server-limited daily arcade.
+    if (action === "start" || action === "play") {
+      throw new HttpError(403, "authenticated_daily_arcade_only");
+    }
     const adminClient = createAdminClient();
     const limiter = createRateLimiter(adminClient, FUNCTION_NAME);
     const ip = await hashIp(req);

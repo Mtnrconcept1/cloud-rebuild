@@ -322,7 +322,9 @@ export default function DailyTokArcade() {
     return () => controller.abort();
   }, [eligible, user?.id]);
 
-  if (!eligible || !status || !status.available || status.attemptsRemaining <= 0) return null;
+  // A first attempt consumes today's invitation. The server ledger is authoritative
+  // across devices, reloads and login sessions; remaining attempts are not a new game.
+  if (!eligible || !status || !status.available || status.attemptsUsed > 0 || status.attemptsRemaining <= 0) return null;
   if (status.game === "slot") return <DailyMiamzSlotMachine />;
   return <DailyArcadeMiniGame key={status.playDate + status.game + user?.id} initial={status} />;
 }
