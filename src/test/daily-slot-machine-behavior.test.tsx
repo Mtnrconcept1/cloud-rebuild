@@ -93,6 +93,7 @@ afterEach(() => {
 describe("daily Miamz slot machine lifecycle", () => {
   it("waits for all three animated results, then closes with the sum of gains rather than the wallet balance", async () => {
     const { frame, sent } = await openMachine();
+    expect(screen.queryByRole("textbox", { name: /e-?mail/i })).not.toBeInTheDocument();
     mocks.fetch.mockResolvedValueOnce(result(4, 2));
     const first = await spin(frame, sent);
     expect(first.sessionRewardPoints).toBe(4);

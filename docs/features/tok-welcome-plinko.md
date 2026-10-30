@@ -1,6 +1,6 @@
 # Plinko de bienvenue TOK
 
-Le Plinko s’adresse aux visiteurs **non authentifiés**. Sur l’accueil et les pages de découverte, une fenêtre centrée apparaît après cinq secondes. Si une autre boîte de dialogue est ouverte, le Plinko attend sa fermeture. Il ne s’ouvre automatiquement qu’une fois par session de navigateur ; son bouton permet de retrouver la partie. Le jeu quotidien Miamz des clients connectés est conservé intégralement.
+Le Plinko s’adresse aux visiteurs **non authentifiés**. Sur l’accueil et les pages de découverte, une fenêtre centrée apparaît après cinq secondes. Si une autre boîte de dialogue est ouverte, le Plinko attend sa fermeture. Il ne s’ouvre automatiquement qu’une fois par jour civil en Europe/Zurich, même après un rechargement ou un changement d’onglet. Le bouton flottant a été supprimé. Si le visiteur ferme la fenêtre sans réclamer son gain par e-mail, la fenêtre peut réapparaître le jour suivant et reprend la même partie non expirée, sans créer un nouveau tirage. Après réclamation, elle ne se représente plus sur ce navigateur. Le jeu quotidien Miamz des clients connectés reste indépendant : un seul jeu parmi Plinko, attrape-figurines et machine à sous, trois essais par jour, sans saisie d’e-mail et avec crédit des Miamz côté serveur.
 
 ## Parcours
 

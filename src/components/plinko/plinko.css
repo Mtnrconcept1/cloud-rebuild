@@ -45,8 +45,5 @@
 .tok-plinko__rules p { margin:8px 0; }
 .tok-plinko__rules ul { list-style:none; margin:8px 0; padding:0; }
 .tok-plinko__rules li { display:flex; justify-content:space-between; gap:8px; padding:4px 0; }
-.tok-plinko-launcher { position:fixed; left:16px; bottom:calc(88px + env(safe-area-inset-bottom,0px)); z-index:100; display:flex; align-items:center; gap:7px; min-height:44px; padding:7px 13px 7px 7px; border:1px solid #edb171; border-radius:99px; background:#fff7e9; color:#8e3d0c; font:700 12px 'DM Sans',sans-serif; box-shadow:0 4px 20px #1d160e20; cursor:pointer; }
-.tok-plinko-launcher img { width:29px; height:29px; object-fit:contain; }
-.tok-plinko-launcher:focus-visible { outline:3px solid #a94b13; outline-offset:3px; }
 @media(max-width:380px) { .tok-plinko__intro{padding:17px 20px 15px;min-height:162px}.tok-plinko__eyebrow{font-size:7px;gap:7px}.tok-plinko__title{font-size:29px!important}.tok-plinko__chef{right:12px;width:102px;height:125px}.tok-plinko__description{font-size:11px!important;max-width:calc(100% - 85px)}.tok-plinko__board{margin:0 10px;padding:13px 7px 8px}.tok-plinko__pockets>div{font-size:9px}.tok-plinko__actions{padding:12px 17px 14px} }
 @media(prefers-reduced-motion:reduce) { .tok-plinko,.tok-plinko * { animation-duration:.01ms!important; transition-duration:.01ms!important; } }
