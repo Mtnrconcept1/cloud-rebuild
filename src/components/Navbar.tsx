@@ -34,6 +34,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
+import { HalloweenCanopy, HALLOWEEN_FEATURE_FLAG } from "@/components/seasonal/HalloweenTheme";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { openConsentSettings } from "@/lib/consent";
@@ -121,6 +122,7 @@ export default function Navbar() {
   const discoveryFeatures = visibleFeatures.slice(0, 3);
   const showClientSurface = canShowClientSurface({ activeRole: role, roles });
   const isGoldenTokRoute = location.pathname === "/chefs-table";
+  const showHalloweenCanopy = activeFeatures.has(HALLOWEEN_FEATURE_FLAG);
   const showSocialFeedSurface = canShowSocialFeedSurface({ activeRole: role, roles });
   const homeTarget = showClientSurface
     ? "/"
@@ -155,6 +157,35 @@ export default function Navbar() {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, [accountMenuOpen, menuOpen]);
+
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    const canopy = header?.querySelector<HTMLElement>(".tok-halloween-canopy");
+    if (!showHalloweenCanopy || !header || !canopy) return undefined;
+
+    // The artwork sits outside the header box. Include its actual responsive
+    // height in the header's single exit transform so nothing stays over content.
+    const syncCanopyHeight = () => {
+      const height = Math.ceil(canopy.getBoundingClientRect().height);
+      header.style.setProperty("--tok-halloween-canopy-height", `${height}px`);
+    };
+    syncCanopyHeight();
+
+    const observer = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(syncCanopyHeight)
+      : null;
+    observer?.observe(canopy);
+    const image = canopy.querySelector("img");
+    image?.addEventListener("load", syncCanopyHeight);
+    window.addEventListener("resize", syncCanopyHeight);
+
+    return () => {
+      observer?.disconnect();
+      image?.removeEventListener("load", syncCanopyHeight);
+      window.removeEventListener("resize", syncCanopyHeight);
+      header.style.removeProperty("--tok-halloween-canopy-height");
+    };
+  }, [showHalloweenCanopy]);
 
   useLayoutEffect(() => {
     const root = document.documentElement;
@@ -248,8 +279,13 @@ export default function Navbar() {
         ref={headerRef}
         className={`tok-site-header ${isGoldenTokRoute ? "tok-golden-nav" : ""} sticky top-0 z-[70] w-full border-b bg-background safe-top transition-[opacity,transform] duration-300 ease-out dark:bg-slate-950 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border dark:border-border" : "border-border/70 dark:border-white/10"}`}
         style={{
+          // Slide the header AND its attached Halloween artwork out of view.
           opacity: isHeaderVisible ? 1 : 0,
-          transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
+          transform: isHeaderVisible
+            ? "translateY(0)"
+            : showHalloweenCanopy
+              ? "translateY(calc(-100% - var(--tok-halloween-canopy-height, 0px)))"
+              : "translateY(-100%)",
         }}
       >
         <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-3 px-3 min-[380px]:px-4 md:h-[76px] md:px-8 xl:px-5 2xl:px-8 ${isMobileHomeHeader ? "h-[66px]" : "h-16"}`}>
@@ -348,10 +384,12 @@ export default function Navbar() {
               </Button>
             ) : null}
 
-            <ThemeToggleButton
-              onMouseDown={preserveNavbarActionScrollPosition}
-              className={`${isMobileHomeHeader ? "text-foreground hover:bg-transparent hover:text-foreground" : ""} hidden min-[380px]:inline-flex`}
-            />
+            {!showHalloweenCanopy ? (
+              <ThemeToggleButton
+                onMouseDown={preserveNavbarActionScrollPosition}
+                className={`${isMobileHomeHeader ? "text-foreground hover:bg-transparent hover:text-foreground" : ""} hidden min-[380px]:inline-flex`}
+              />
+            ) : null}
 
             {isGoldenTokRoute ? (
               <Button variant="ghost" size="icon" asChild aria-label="Rechercher" className="golden-tok-mobile-search">
@@ -493,10 +531,12 @@ export default function Navbar() {
                   </SheetDescription>
                 </SheetHeader>
 
-                <div className="mt-4 flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/40 px-3.5 min-[380px]:hidden">
-                  <span className="text-sm font-medium">Thème d’affichage</span>
-                  <ThemeToggleButton aria-label="Changer le thème d’affichage" />
-                </div>
+                {!showHalloweenCanopy ? (
+                  <div className="mt-4 flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/40 px-3.5 min-[380px]:hidden">
+                    <span className="text-sm font-medium">Thème d’affichage</span>
+                    <ThemeToggleButton aria-label="Changer le thème d’affichage" />
+                  </div>
+                ) : null}
 
                 <nav className="tok-sheet-nav mt-5 flex min-w-0 flex-col gap-0.5 [&>a]:flex [&>a]:min-h-12 [&>a]:min-w-0 [&>a]:items-center [&>a]:rounded-2xl [&>a]:px-3.5 [&>a]:py-2.5 [&>a]:text-[0.95rem] [&>a]:transition-colors hover:[&>a]:bg-muted/70">
                   <Link to={homeTarget} className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>
@@ -648,6 +688,7 @@ export default function Navbar() {
             </Sheet>
           </div>
         </div>
+        {showHalloweenCanopy ? <HalloweenCanopy /> : null}
       </header>
     </>
   );

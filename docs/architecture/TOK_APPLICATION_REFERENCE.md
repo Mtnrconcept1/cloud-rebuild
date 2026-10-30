@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `103962e572b90bf04caf282747c9a0ad7de6cdfc67c0345ca40b0527c2e547d1`
+- Empreinte SHA-256 des sources indexées : `33711d1e831226f1121ec730c1be4146c296d875f5b373c47545b77ffa8d3cdc`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,7 +32,7 @@
 | documents | 238 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4293 |
+| exportedSymbols | 4294 |
 | featureFlags | 100 |
 | frontendRoutes | 143 |
 | integrations | 11 |
@@ -45,7 +45,7 @@
 | publicEntries | 777 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19889 |
+| records | 19890 |
 | repositoryFiles | 3861 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1428,7 +1428,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
 | / | 288 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
-| /(.*) | 8 | [src/test/admin-crm-theme-csp.test.ts:27](../../src/test/admin-crm-theme-csp.test.ts#L27) |
+| /(.*) | 8 | [src/test/admin-crm-theme-csp.test.ts:88](../../src/test/admin-crm-theme-csp.test.ts#L88) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:100](../../src/test/application-search-index.test.ts#L100) |
 | /.well-known/apple-app-site-association-extra | 1 | [src/test/mobile-association-hosting.test.ts:27](../../src/test/mobile-association-hosting.test.ts#L27) |
@@ -1705,8 +1705,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /database/query | 1 | [src/test/production-preflight-hardening.test.ts:204](../../src/test/production-preflight-hardening.test.ts#L204) |
 | /demo-restaurant.jpg | 1 | [src/test/commercial-demo-client-data-isolation.test.ts:19](../../src/test/commercial-demo-client-data-isolation.test.ts#L19) |
 | /desig%20app/tok-ch- | 2 | [src/lib/homeCantonHero.ts:72](../../src/lib/homeCantonHero.ts#L72) |
-| /desig%20app/tok-ch-ju.webp | 1 | [src/test/home-hero-search.test.tsx:44](../../src/test/home-hero-search.test.tsx#L44) |
-| /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:50](../../src/test/home-hero-search.test.tsx#L50) |
+| /desig%20app/tok-ch-ju.webp | 1 | [src/test/home-hero-search.test.tsx:62](../../src/test/home-hero-search.test.tsx#L62) |
+| /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:68](../../src/test/home-hero-search.test.tsx#L68) |
 | /emails | 1 | [supabase/functions/_shared/resend-inbound-forward.ts:190](../../supabase/functions/_shared/resend-inbound-forward.ts#L190) |
 | /enrich-directory-cuisines | 1 | [src/test/directory-cuisine-enrichment.test.ts:40](../../src/test/directory-cuisine-enrichment.test.ts#L40) |
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
@@ -1867,8 +1867,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-leman-signature-fast.webp | 1 | [src/test/home-core-web-vitals.test.ts:17](../../src/test/home-core-web-vitals.test.ts#L17) |
-| /images/home/tok-leman-signature.webp | 3 | [src/components/home/HeroSection.tsx:52](../../src/components/home/HeroSection.tsx#L52) |
+| /images/home/tok-leman-signature.webp | 1 | [src/test/home-core-web-vitals.test.ts:21](../../src/test/home-core-web-vitals.test.ts#L21) |
 | /images/home/tok-logo-ui.webp | 5 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
@@ -1927,8 +1926,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp | 1 | [src/lib/homeWorldHero.ts:6](../../src/lib/homeWorldHero.ts#L6) |
 | /images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:5](../../src/lib/homeWorldHero.ts#L5) |
 | /images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp | 1 | [src/lib/homeWorldHero.ts:143](../../src/lib/homeWorldHero.ts#L143) |
-| /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | 1 | [src/lib/homeWorldHero.ts:10](../../src/lib/homeWorldHero.ts#L10) |
-| /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | 1 | [src/lib/homeWorldHero.ts:11](../../src/lib/homeWorldHero.ts#L11) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | 4 | [src/components/home/HeroSection.tsx:13](../../src/components/home/HeroSection.tsx#L13) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | 4 | [src/components/home/HeroSection.tsx:14](../../src/components/home/HeroSection.tsx#L14) |
 | /images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp | 1 | [src/lib/homeWorldHero.ts:63](../../src/lib/homeWorldHero.ts#L63) |
 | /images/meringue-double.webp | 3 | [src/lib/securityUrls.ts:27](../../src/lib/securityUrls.ts#L27) |
 | /images/milkshake-oreo.jpg | 3 | [src/lib/securityUrls.ts:28](../../src/lib/securityUrls.ts#L28) |
@@ -1989,8 +1988,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/salade-du-marche.jpg | 6 | [scripts/dashboard-design-preview.fixtures.ts:23](../../scripts/dashboard-design-preview.fixtures.ts#L23) |
 | /images/samosa.jpg | 3 | [src/lib/menu-item-images.ts:94](../../src/lib/menu-item-images.ts#L94) |
 | /images/seasonal/halloween/ | 1 | [src/components/home/SectionShowcaseHeader.tsx:51](../../src/components/home/SectionShowcaseHeader.tsx#L51) |
-| /images/seasonal/halloween/hero-desktop.webp | 2 | [src/components/home/HeroSection.tsx:51](../../src/components/home/HeroSection.tsx#L51) |
-| /images/seasonal/halloween/hero-mobile.webp | 1 | [src/components/home/HeroSection.tsx:54](../../src/components/home/HeroSection.tsx#L54) |
+| /images/seasonal/halloween/canopy.webp | 2 | [src/components/seasonal/HalloweenTheme.tsx:13](../../src/components/seasonal/HalloweenTheme.tsx#L13) |
+| /images/seasonal/halloween/hero-desktop.webp | 3 | [src/components/home/HeroSection.tsx:53](../../src/components/home/HeroSection.tsx#L53) |
+| /images/seasonal/halloween/hero-mobile.webp | 2 | [src/components/home/HeroSection.tsx:56](../../src/components/home/HeroSection.tsx#L56) |
 | /images/seasonal/halloween/section-banner.webp | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
 | /images/section-headers/calendar-3d.png | 2 | [src/lib/dashboardIllustrations.ts:57](../../src/lib/dashboardIllustrations.ts#L57) |
 | /images/section-headers/fire-3d.png | 1 | [src/lib/dashboardIllustrations.ts:59](../../src/lib/dashboardIllustrations.ts#L59) |

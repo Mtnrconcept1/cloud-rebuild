@@ -18,23 +18,36 @@ export default function ThemeToggleButton({
   const [isDark, setIsDark] = useState(() =>
     typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
   );
+  const [halloweenActive, setHalloweenActive] = useState(() =>
+    typeof document !== "undefined" && document.documentElement.dataset.seasonalTheme === "halloween",
+  );
   const label = ariaLabel ?? (isDark ? "Mode clair" : "Mode sombre");
 
   useEffect(() => {
     const root = document.documentElement;
-    const syncTheme = () => setIsDark(root.classList.contains("dark"));
+    const syncTheme = () => {
+      setIsDark(root.classList.contains("dark"));
+      setHalloweenActive(root.dataset.seasonalTheme === "halloween");
+    };
     syncTheme();
     const observer = new MutationObserver(syncTheme);
-    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(root, { attributes: true, attributeFilter: ["class", "data-seasonal-theme"] });
     return () => observer.disconnect();
   }, []);
 
   const handleThemeToggle = () => {
-    const nextIsDark = !document.documentElement.classList.contains("dark");
-    document.documentElement.classList.toggle("dark", nextIsDark);
+    const root = document.documentElement;
+    if (root.dataset.seasonalTheme === "halloween") return;
+
+    const nextIsDark = !root.classList.contains("dark");
+    root.classList.toggle("dark", nextIsDark);
     setIsDark(nextIsDark);
     localStorage.setItem("theme", nextIsDark ? "dark" : "light");
   };
+
+  // Halloween has no light-mode option anywhere in the application.
+  // The click handler above also rejects a stale click during activation.
+  if (halloweenActive) return null;
 
   return (
     <Button

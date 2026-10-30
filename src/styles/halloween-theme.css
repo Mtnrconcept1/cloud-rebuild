@@ -26,14 +26,24 @@
   color: hsl(var(--foreground));
 }
 
-.tok-halloween-canopy {
-  position: fixed;
-  z-index: 40;
-  inset: var(--tok-public-navbar-height, 80px) 0 auto;
-  height: clamp(120px, 18vw, 250px);
+/* Always attached to the bottom edge of the sticky menu: the menu and
+   decoration use one transform and can never drift apart during scroll. */
+.tok-site-header .tok-halloween-canopy {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  z-index: 0;
+  line-height: 0;
   pointer-events: none;
-  background: url("/images/seasonal/halloween/canopy.webp") top center / 100% auto no-repeat;
   filter: drop-shadow(0 18px 24px rgb(0 0 0 / 35%));
+}
+
+.tok-site-header .tok-halloween-canopy img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: none;
 }
 
 :root[data-seasonal-theme="halloween"] .tok-site-header {
@@ -149,13 +159,6 @@
 }
 
 @media (max-width: 767px) {
-  .tok-halloween-canopy {
-    inset-block-start: var(--tok-public-navbar-height, 104px);
-    height: 118px;
-    background-size: auto 118px;
-    opacity: .88;
-  }
-
   :root[data-seasonal-theme="halloween"] .tok-home-hero__content {
     background: linear-gradient(to bottom, rgb(18 14 12 / 18%), #120e0c 46px);
   }
