@@ -109,6 +109,7 @@ export default function Navbar() {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const lastScrollYRef = useRef(0);
+  const downwardScrollTravelRef = useRef(0);
   const headerRef = useRef<HTMLElement | null>(null);
   const utilityBarRef = useRef<HTMLDivElement | null>(null);
 
@@ -144,11 +145,32 @@ export default function Navbar() {
 
       lastScrollYRef.current = currentScrollY;
 
-      if (Math.abs(scrollDelta) < 8) return;
-
-      if (currentScrollY < 48 || scrollDelta < 0) {
+      // Keep the navigation stable during the first part of the page and ignore
+      // trackpad/touch jitter. Hiding requires a deliberate downward travel,
+      // while the first meaningful upward movement reveals the header again.
+      if (currentScrollY < 72) {
+        downwardScrollTravelRef.current = 0;
         setIsHeaderVisible(true);
-      } else if (scrollDelta > 0 && !menuOpen && !accountMenuOpen) {
+        return;
+      }
+
+      if (scrollDelta <= -4) {
+        downwardScrollTravelRef.current = 0;
+        setIsHeaderVisible(true);
+        return;
+      }
+
+      if (scrollDelta < 4) return;
+
+      if (menuOpen || accountMenuOpen) {
+        downwardScrollTravelRef.current = 0;
+        setIsHeaderVisible(true);
+        return;
+      }
+
+      downwardScrollTravelRef.current += scrollDelta;
+      if (downwardScrollTravelRef.current >= 120) {
+        downwardScrollTravelRef.current = 0;
         setIsHeaderVisible(false);
       }
     };
@@ -277,7 +299,7 @@ export default function Navbar() {
       {/* ─── Main header ─── */}
       <header
         ref={headerRef}
-        className={`tok-site-header ${isGoldenTokRoute ? "tok-golden-nav" : ""} sticky top-0 z-[70] w-full border-b bg-background safe-top transition-[opacity,transform] duration-300 ease-out dark:bg-slate-950 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border dark:border-border" : "border-border/70 dark:border-white/10"}`}
+        className={`tok-site-header ${isGoldenTokRoute ? "tok-golden-nav" : ""} sticky top-0 z-[70] w-full border-b bg-background safe-top transition-[opacity,transform] duration-500 ease-out dark:bg-slate-950 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border dark:border-border" : "border-border/70 dark:border-white/10"}`}
         style={{
           // Slide the header AND its attached Halloween artwork out of view.
           opacity: isHeaderVisible ? 1 : 0,
