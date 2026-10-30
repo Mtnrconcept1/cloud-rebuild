@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8e524f534c92c0491812cb12e843f4903c8670ffb893d3df97660915970412f2`
+- Empreinte SHA-256 des sources indexées : `920f1bb06d5cee28de2036147d3b7c2663954bcb43fe6793ea9137100b976d87`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -41,12 +41,12 @@
 | modules | 1935 |
 | pages | 133 |
 | pathLiterals | 953 |
-| publicAssets | 742 |
-| publicEntries | 777 |
+| publicAssets | 743 |
+| publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19891 |
-| repositoryFiles | 3861 |
+| records | 19893 |
+| repositoryFiles | 3862 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1195,6 +1195,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/screenshot-1782328742823.png | media | [public/images/screenshot-1782328742823.png](../../public/images/screenshot-1782328742823.png) |
 | /images/seasonal/halloween/canopy.webp | media | [public/images/seasonal/halloween/canopy.webp](../../public/images/seasonal/halloween/canopy.webp) |
 | /images/seasonal/halloween/hero-desktop.webp | media | [public/images/seasonal/halloween/hero-desktop.webp](../../public/images/seasonal/halloween/hero-desktop.webp) |
+| /images/seasonal/halloween/hero-mobile-20261030.webp | media | [public/images/seasonal/halloween/hero-mobile-20261030.webp](../../public/images/seasonal/halloween/hero-mobile-20261030.webp) |
 | /images/seasonal/halloween/hero-mobile.webp | media | [public/images/seasonal/halloween/hero-mobile.webp](../../public/images/seasonal/halloween/hero-mobile.webp) |
 | /images/seasonal/halloween/section-banner.webp | media | [public/images/seasonal/halloween/section-banner.webp](../../public/images/seasonal/halloween/section-banner.webp) |
 | /images/seasonal/halloween/tok-or-banner.webp | media | [public/images/seasonal/halloween/tok-or-banner.webp](../../public/images/seasonal/halloween/tok-or-banner.webp) |
@@ -9510,7 +9511,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (777)</summary>
+<details><summary>public-asset (778)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -10062,6 +10063,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/screenshot-1782328742823.png`
 - `public/images/seasonal/halloween/canopy.webp`
 - `public/images/seasonal/halloween/hero-desktop.webp`
+- `public/images/seasonal/halloween/hero-mobile-20261030.webp`
 - `public/images/seasonal/halloween/hero-mobile.webp`
 - `public/images/seasonal/halloween/section-banner.webp`
 - `public/images/seasonal/halloween/tok-or-banner.webp`
