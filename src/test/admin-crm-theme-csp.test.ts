@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
 
 import { describe, expect, it } from "vitest";
 
@@ -19,8 +20,68 @@ describe("CRM authentication CSP regression", () => {
       (script) => !script.hasAttribute("src") && Boolean(script.textContent?.trim()),
     );
     expect(inlineScripts).toHaveLength(0);
-    expect(themeInit).toContain("new MutationObserver");
-    expect(themeInit).toContain('document.documentElement.classList.remove("dark")');
+    expect(themeInit).toContain('root.classList.add("tok-app-booting")');
+    expect(themeInit).not.toContain("new MutationObserver");
+  });
+
+  it.each([
+    ["light", true, false],
+    ["dark", false, true],
+    [null, true, true],
+    [null, false, false],
+  ])("applies the %s preference once and never competes with Halloween", (storedTheme, systemDark, expectedDark) => {
+    const classes = new Set(["dark"]);
+    let observerCount = 0;
+
+    runInNewContext(themeInit, {
+      document: {
+        documentElement: {
+          classList: {
+            add: (value: string) => classes.add(value),
+            toggle: (value: string, force: boolean) => {
+              if (force) classes.add(value);
+              else classes.delete(value);
+            },
+          },
+        },
+      },
+      window: {
+        localStorage: { getItem: () => storedTheme },
+        matchMedia: () => ({ matches: systemDark }),
+      },
+      MutationObserver: class {
+        constructor() { observerCount += 1; }
+        observe() {}
+      },
+    });
+
+    expect(classes.has("tok-app-booting")).toBe(true);
+    expect(classes.has("dark")).toBe(expectedDark);
+    // A persistent boot observer previously fought Halloween's dark-mode observer
+    // and could lock up the browser when the saved choice was light.
+    expect(observerCount).toBe(0);
+  });
+
+  it("uses system colors safely when localStorage is inaccessible", () => {
+    const classes = new Set<string>();
+    expect(() => runInNewContext(themeInit, {
+      document: {
+        documentElement: {
+          classList: {
+            add: (value: string) => classes.add(value),
+            toggle: (value: string, force: boolean) => {
+              if (force) classes.add(value);
+              else classes.delete(value);
+            },
+          },
+        },
+      },
+      window: {
+        localStorage: { getItem: () => { throw new Error("storage blocked"); } },
+        matchMedia: () => ({ matches: true }),
+      },
+    })).not.toThrow();
+    expect(classes.has("dark")).toBe(true);
   });
 
   it("retains the strict CSP rather than allowing inline JavaScript", () => {

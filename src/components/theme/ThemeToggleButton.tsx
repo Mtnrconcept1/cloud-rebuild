@@ -21,9 +21,7 @@ export default function ThemeToggleButton({
   const [halloweenActive, setHalloweenActive] = useState(() =>
     typeof document !== "undefined" && document.documentElement.dataset.seasonalTheme === "halloween",
   );
-  const label = halloweenActive
-    ? "Mode sombre obligatoire pendant Halloween"
-    : ariaLabel ?? (isDark ? "Mode clair" : "Mode sombre");
+  const label = ariaLabel ?? (isDark ? "Mode clair" : "Mode sombre");
 
   useEffect(() => {
     const root = document.documentElement;
@@ -47,6 +45,10 @@ export default function ThemeToggleButton({
     localStorage.setItem("theme", nextIsDark ? "dark" : "light");
   };
 
+  // Halloween has no light-mode option anywhere in the application.
+  // The click handler above also rejects a stale click during activation.
+  if (halloweenActive) return null;
+
   return (
     <Button
       variant="ghost"
@@ -54,8 +56,6 @@ export default function ThemeToggleButton({
       type="button"
       aria-label={label}
       aria-pressed={isDark}
-      disabled={halloweenActive}
-      title={halloweenActive ? label : undefined}
       onMouseDown={onMouseDown}
       onClick={handleThemeToggle}
       className={cn("relative text-muted-foreground hover:text-foreground", className)}

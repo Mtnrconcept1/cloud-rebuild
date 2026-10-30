@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
@@ -40,16 +40,12 @@ describe("mobile theme toggle", () => {
     expect(button).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("disables the light-mode control during Halloween and restores it afterwards", async () => {
+  it("removes every light/dark button while Halloween is active and restores it afterwards", async () => {
     localStorage.setItem("theme", "light");
     const { rerender } = render(<><HalloweenTheme enabled /><ThemeToggleButton /></>);
 
     expect(document.documentElement.dataset.seasonalTheme).toBe("halloween");
-    const toggle = await screen.findByRole("button", { name: "Mode sombre obligatoire pendant Halloween" });
-    expect(toggle).toBeDisabled();
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
-
-    await act(async () => { fireEvent.click(toggle); });
+    await waitFor(() => expect(screen.queryByRole("button")).not.toBeInTheDocument());
     expect(document.documentElement.classList.contains("dark")).toBe(true);
     expect(localStorage.getItem("theme")).toBe("light");
 
