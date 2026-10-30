@@ -7,19 +7,23 @@ const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 const assetSize = (path: string) => statSync(resolve(root, "public", path)).size;
 
 describe("TOK homepage Core Web Vitals safeguards", () => {
-  it("loads only the matching responsive hero rather than eagerly preloading a fixed city", () => {
+  it("loads only the matching responsive location hero without preloading a fixed city", () => {
   const html = read("index.html");
   const hero = read("src/components/home/HeroSection.tsx");
   expect(html).not.toContain('href="/images/home/tok-geneve-mobile-fast.webp"');
   expect(html).not.toContain('href="/images/home/tok-leman-signature-fast.webp"');
   expect(hero).toContain("desktopImage");
-  expect(hero).toContain('/images/home/tok-leman-signature.webp');
-  expect(hero).not.toContain('/images/home/tok-leman-signature-fast.webp');
+  expect(hero).toContain("DEFAULT_HERO_DESKTOP");
+  expect(hero).toContain("/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp");
+  expect(hero).toContain("DEFAULT_HERO_MOBILE");
+  expect(hero).toContain("/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp");
+  expect(hero).toContain('media="(max-width: 767px)"');
+  expect(hero).not.toContain("/images/home/tok-leman-signature.webp");
   expect(hero).toContain("mobileImage");
   expect(hero).toContain('loading="eager"');
   expect(hero).toContain('fetchpriority: "high"');
-  expect(assetSize("images/home/tok-leman-signature.webp")).toBeLessThan(300_000);
-  expect(assetSize("images/home/tok-geneve-mobile-fast.webp")).toBeLessThan(165_000);
+  expect(assetSize("images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp")).toBeLessThan(300_000);
+  expect(assetSize("images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp")).toBeLessThan(260_000);
 });
 
   it("uses a lightweight visible logo without changing the canonical app icon", () => {

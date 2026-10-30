@@ -23,19 +23,37 @@ function setup(activeFeatures?: ReadonlySet<string>) {
   render(<MemoryRouter><HeroSection contentVisible={false} activeFeatures={activeFeatures} /><LocationProbe /></MemoryRouter>);
 }
 describe("homepage semantic search", () => {
-  it("keeps the original mobile photo unstretched and uses a feathered blur into the page background", () => {
+  it("shares an edge-to-edge immersive hero between the seasonal and regular home", () => {
     const css = readFileSync(resolve(process.cwd(), "src/components/home/HeroSection.css"), "utf8");
-    expect(css).toContain(".tok-home-hero__background img{object-fit:cover");
-    expect(css).toContain(".tok-home-hero__art::before{");
-    expect(css).toContain("backdrop-filter:blur(8px)");
-    expect(css).toContain(".tok-home-hero__art::after{");
-    expect(css).toContain("var(--tok-home-paper) 100%");
+    expect(css).toContain("Shared TOK immersive hero");
+    expect(css).toContain(":root .tok-home-hero {");
+    expect(css).toContain("max-width: none;");
+    expect(css).toContain("object-fit: cover;");
+    expect(css).toContain("min-height: max(740px");
+    expect(css).toContain("grid-template-columns: repeat(4, minmax(0, 1fr))");
   });
 
-  it("uses a portrait hero asset on mobile and the supplied Léman illustration on desktop", () => {
+  it("uses a text-free Geneva photograph and its portrait version when no location is known", () => {
     setup();
     expect(document.querySelectorAll(".tok-home-hero__background img")).toHaveLength(1);
-    expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/home/tok-leman-signature.webp");
+    expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute(
+      "src",
+      "/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp",
+    );
+    expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
+      "srcset",
+      "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+    );
+  });
+
+  it("preserves the independent Halloween desktop and mobile imagery", () => {
+    setup(new Set(["seasonal-halloween-2026"]));
+    expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute(
+      "src", "/images/seasonal/halloween/hero-desktop.webp",
+    );
+    expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
+      "srcset", "/images/seasonal/halloween/hero-mobile.webp",
+    );
   });
   it("renders the correct canton art for device localization on desktop and mobile", () => {
     render(<MemoryRouter><HeroSection locationCanton="JU" /></MemoryRouter>);
