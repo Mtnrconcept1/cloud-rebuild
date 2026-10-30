@@ -384,10 +384,12 @@ export default function Navbar() {
               </Button>
             ) : null}
 
-            <ThemeToggleButton
-              onMouseDown={preserveNavbarActionScrollPosition}
-              className={`${isMobileHomeHeader ? "text-foreground hover:bg-transparent hover:text-foreground" : ""} hidden min-[380px]:inline-flex`}
-            />
+            {!showHalloweenCanopy ? (
+              <ThemeToggleButton
+                onMouseDown={preserveNavbarActionScrollPosition}
+                className={`${isMobileHomeHeader ? "text-foreground hover:bg-transparent hover:text-foreground" : ""} hidden min-[380px]:inline-flex`}
+              />
+            ) : null}
 
             {isGoldenTokRoute ? (
               <Button variant="ghost" size="icon" asChild aria-label="Rechercher" className="golden-tok-mobile-search">
@@ -529,10 +531,12 @@ export default function Navbar() {
                   </SheetDescription>
                 </SheetHeader>
 
-                <div className="mt-4 flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/40 px-3.5 min-[380px]:hidden">
-                  <span className="text-sm font-medium">Thème d’affichage</span>
-                  <ThemeToggleButton aria-label="Changer le thème d’affichage" />
-                </div>
+                {!showHalloweenCanopy ? (
+                  <div className="mt-4 flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/40 px-3.5 min-[380px]:hidden">
+                    <span className="text-sm font-medium">Thème d’affichage</span>
+                    <ThemeToggleButton aria-label="Changer le thème d’affichage" />
+                  </div>
+                ) : null}
 
                 <nav className="tok-sheet-nav mt-5 flex min-w-0 flex-col gap-0.5 [&>a]:flex [&>a]:min-h-12 [&>a]:min-w-0 [&>a]:items-center [&>a]:rounded-2xl [&>a]:px-3.5 [&>a]:py-2.5 [&>a]:text-[0.95rem] [&>a]:transition-colors hover:[&>a]:bg-muted/70">
                   <Link to={homeTarget} className="text-sm font-medium hover:text-primary" onClick={() => setMenuOpen(false)}>

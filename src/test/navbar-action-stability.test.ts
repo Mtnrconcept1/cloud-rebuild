@@ -19,6 +19,11 @@ describe("navbar action stability", () => {
     expect(source).not.toContain("Ouvrir mes espaces");
   });
 
+  it("omits both desktop and mobile light-mode controls during Halloween", () => {
+    expect(source.split("{!showHalloweenCanopy ? (").length - 1).toBe(2);
+    expect(source).toContain('<ThemeToggleButton aria-label="Changer le thème d’affichage" />');
+  });
+
   it("keeps home header actions readable in both themes", () => {
     expect(source).not.toContain("text-slate-950");
     const themeStart = source.indexOf("<ThemeToggleButton");
