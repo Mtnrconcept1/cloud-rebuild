@@ -7,10 +7,17 @@ import PlinkoDialog from "./PlinkoDialog";
 import { createPlinkoTrajectory, PLINKO_POCKETS, type PlinkoTrajectory } from "@/lib/plinko-physics";
 
 const TOKEN_KEY = "tok:plinko:welcome-v1:token";
-const SHOWN_KEY = "tok:plinko:welcome-v1:shown";
+const SHOWN_DAY_KEY = "tok:plinko:welcome-v1:shown-day";
+const CLAIMED_KEY = "tok:plinko:welcome-v1:claimed";
 const REQUEST_KEY = "tok:plinko:welcome-v1:request";
 const CLAIM_REQUEST_KEY = "tok:plinko:welcome-v1:claim-request";
 const OPEN_DELAY = 5_000;
+
+function swissDay() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Zurich", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date());
+}
 
 function readStorage(storage: "localStorage" | "sessionStorage", key: string) {
   try { return window[storage].getItem(key); } catch { return null; }
@@ -28,7 +35,7 @@ export default function WelcomePlinko({ enabled = true, arrivedAt }: { enabled?:
   const reduceMotion = useReducedMotion();
   const eligible = enabled && !loading && !user && isPlinkoSurface(pathname);
   const arrival = useRef(arrivedAt ?? Date.now());
-  const shown = useRef(readStorage("sessionStorage", SHOWN_KEY) === "1");
+  const lastShownDay = useRef(readStorage("localStorage", SHOWN_DAY_KEY));
   const token = useRef<string | null>(readStorage("localStorage", TOKEN_KEY));
   const requestId = useRef<string | null>(readStorage("localStorage", REQUEST_KEY));
   const claimRequestId = useRef<string | null>(readStorage("localStorage", CLAIM_REQUEST_KEY));
@@ -36,7 +43,6 @@ export default function WelcomePlinko({ enabled = true, arrivedAt }: { enabled?:
   const mounted = useRef(true);
   const focusReturn = useRef<HTMLElement | null>(null);
   const openRef = useRef(false);
-  const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<PlinkoState | null>(null);
   const [busy, setBusy] = useState(false);
@@ -66,15 +72,18 @@ export default function WelcomePlinko({ enabled = true, arrivedAt }: { enabled?:
     let cancelled = false;
     const maybeOpen = () => {
       if (cancelled) return;
-      setReady(true);
-      if (shown.current) return;
+      const day = swissDay();
+      // Dismissals survive reloads and tabs, but not the next Swiss calendar day.
+      if (readStorage("localStorage", CLAIMED_KEY) === "1"
+        || lastShownDay.current === day
+        || readStorage("localStorage", SHOWN_DAY_KEY) === day) return;
       // Give existing games, consent prompts and other dialogs their own turn.
       if (document.hidden || document.querySelector('[role="dialog"], [role="alertdialog"]')) {
         timer = setTimeout(maybeOpen, 500);
         return;
       }
-      shown.current = true;
-      writeStorage("sessionStorage", SHOWN_KEY, "1");
+      lastShownDay.current = day;
+      writeStorage("localStorage", SHOWN_DAY_KEY, day);
       changeOpen(true);
     };
     timer = setTimeout(maybeOpen, Math.max(0, OPEN_DELAY - (Date.now() - arrival.current)));
@@ -103,6 +112,9 @@ export default function WelcomePlinko({ enabled = true, arrivedAt }: { enabled?:
       if (next.token) {
         token.current = next.token;
         writeStorage("localStorage", TOKEN_KEY, next.token);
+      }
+      if (next.reward && next.reward.status !== "pending_email") {
+        writeStorage("localStorage", CLAIMED_KEY, "1");
       }
       if (mounted.current) {
         setState(next);
@@ -160,6 +172,7 @@ export default function WelcomePlinko({ enabled = true, arrivedAt }: { enabled?:
       if (next.reward?.status !== "pending_fulfillment") throw new Error("Votre demande n’a pas été confirmée. Réessayez.");
       claimRequestId.current = null;
       writeStorage("localStorage", CLAIM_REQUEST_KEY, null);
+      writeStorage("localStorage", CLAIMED_KEY, "1");
       if (mounted.current) setState(next);
     } catch (cause) {
       if (mounted.current) setError(cause instanceof Error ? cause.message : "Votre demande n’a pas pu être enregistrée. Réessayez.");
@@ -170,8 +183,5 @@ export default function WelcomePlinko({ enabled = true, arrivedAt }: { enabled?:
   };
 
   if (!eligible || state?.enabled === false) return null;
-  return <>
-    {ready && !open && <button type="button" className="tok-plinko-launcher" aria-label="Ouvrir le Plinko TOK" onClick={() => changeOpen(true)}><img src="/images/home/tok-logo-ui.webp" width="29" height="29" alt="" />Le Plinko du chef</button>}
-    <PlinkoDialog open={open} onOpenChange={changeOpen} state={state} busy={busy} animating={animating} error={error} trajectory={trajectory} onAnimationComplete={finishAnimation} onPlay={() => void play()} onRetry={() => void loadSession()} onClaim={(email, consent) => void claim(email, consent)} />
-  </>;
+  return <PlinkoDialog open={open} onOpenChange={changeOpen} state={state} busy={busy} animating={animating} error={error} trajectory={trajectory} onAnimationComplete={finishAnimation} onPlay={() => void play()} onRetry={() => void loadSession()} onClaim={(email, consent) => void claim(email, consent)} />;
 }

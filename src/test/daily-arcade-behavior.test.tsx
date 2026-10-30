@@ -84,6 +84,7 @@ describe("daily TOK mini-game selection", () => {
     render(<DailyTokArcade />);
     await flush();
     expect(screen.getByTestId("daily-plinko-board")).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: /e-?mail/i })).not.toBeInTheDocument();
     for (const [i, reward] of [1, 3, 5].entries()) {
       mocks.fetch.mockResolvedValueOnce(result("plinko", reward, 2 - i, [1, 4, 9][i]));
       fireEvent.click(screen.getByRole("button", { name: "Lancer un Miamz" }));
@@ -103,6 +104,7 @@ describe("daily TOK mini-game selection", () => {
     render(<DailyTokArcade />);
     await flush();
     const frame = screen.getByTitle("TOK Miamz — attrape-figurines") as HTMLIFrameElement;
+    expect(screen.queryByRole("textbox", { name: /e-?mail/i })).not.toBeInTheDocument();
     const data = { type: "TOK_CLAW_RESULT", captured: true, attemptNumber: 1, toyType: "basil" };
     act(() => { window.dispatchEvent(new MessageEvent("message", { data, origin: "https://attacker.test", source: frame.contentWindow })); });
     expect(posts()).toHaveLength(0);

@@ -57,6 +57,8 @@ const availableSession = {
 const tokenKey = "tok:plinko:welcome-v1:token";
 const requestKey = "tok:plinko:welcome-v1:request";
 const claimRequestKey = "tok:plinko:welcome-v1:claim-request";
+const shownDayKey = "tok:plinko:welcome-v1:shown-day";
+const claimedKey = "tok:plinko:welcome-v1:claimed";
 
 const lostPlay = {
   ok: true,
@@ -101,6 +103,7 @@ async function openPlinko() {
 describe("WelcomePlinko anonymous visitor flow", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-29T13:00:00+01:00"));
     sessionStorage.clear();
     localStorage.clear();
     plinkoMocks.auth = { user: null, role: null, roles: [], loading: false, rolesResolved: true };
@@ -227,7 +230,7 @@ describe("WelcomePlinko anonymous visitor flow", () => {
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(plinkoMocks.startPlinkoSession).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("button", { name: /ouvrir le plinko tok/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /ouvrir le plinko tok/i })).not.toBeInTheDocument();
   });
 
   it.each(["/auth", "/panier", "/commande/confirmation"])("suppresses the popup on %s", async (pathname) => {
@@ -346,23 +349,37 @@ describe("WelcomePlinko anonymous visitor flow", () => {
     expect(plinkoMocks.claimPlinko).not.toHaveBeenCalled();
   });
 
-  it("keeps an inflight win when the visitor closes and manually reopens the dialog", async () => {
+  it("recovers an unclaimed win on the following day without issuing another draw", async () => {
     let resolvePlay!: (value: typeof wonPlay) => void;
     plinkoMocks.playPlinko.mockImplementation(() => new Promise((resolve) => { resolvePlay = resolve; }));
-    await openPlinko();
+    const firstVisit = renderPlinko();
+    await advance(5000);
     fireEvent.click(screen.getByRole("button", { name: /lâcher mon miamz/i }));
     fireEvent.click(screen.getByRole("button", { name: /^fermer$/i }));
 
     await act(async () => { resolvePlay(wonPlay); });
     await advance(6000);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    firstVisit.unmount();
 
-    fireEvent.click(screen.getByRole("button", { name: /ouvrir le plinko tok/i }));
-    await advance(0);
+    // A reload in the same browser on the same day must stay silent.
+    const sameDay = renderPlinko();
+    await advance(5000);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    sameDay.unmount();
+
+    vi.setSystemTime(new Date("2026-10-30T13:00:00+01:00"));
+    plinkoMocks.getPlinkoStatus.mockResolvedValueOnce(wonPlay);
+    renderPlinko();
+    await advance(5000);
+
+    expect(screen.getByRole("dialog", { name: /le plinko du chef/i })).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("−50 % sur un repas");
     expect(screen.getByRole("textbox", { name: /e-?mail/i })).toBeInTheDocument();
+    expect(localStorage.getItem(shownDayKey)).toBe("2026-10-30");
     expect(plinkoMocks.playPlinko).toHaveBeenCalledTimes(1);
     expect(plinkoMocks.startPlinkoSession).toHaveBeenCalledTimes(1);
+    expect(plinkoMocks.getPlinkoStatus).toHaveBeenCalledExactlyOnceWith("anonymous-plinko-session");
   });
 
   it("reveals the server result without an animation delay when reduced motion is requested", async () => {
@@ -394,16 +411,48 @@ describe("WelcomePlinko anonymous visitor flow", () => {
     expect(plinkoMocks.playPlinko.mock.calls[0][1]).not.toBe(plinkoMocks.playPlinko.mock.calls[1][1]);
   });
 
-  it("reveals an interrupted physical drop on reopen without replaying or spending another attempt", async () => {
+  it("recovers an interrupted animation the next day without double-spending", async () => {
     plinkoMocks.playPlinko.mockResolvedValueOnce(wonPlay);
-    await openPlinko();
+    const firstVisit = renderPlinko();
+    await advance(5000);
     fireEvent.click(screen.getByRole("button", { name: /lâcher mon miamz/i }));
     await advance(500);
     fireEvent.click(screen.getByRole("button", { name: /^fermer$/i }));
-    await advance(200);
-    fireEvent.click(screen.getByRole("button", { name: /ouvrir le plinko tok/i }));
+    firstVisit.unmount();
+
+    vi.setSystemTime(new Date("2026-10-30T13:00:00+01:00"));
+    plinkoMocks.getPlinkoStatus.mockResolvedValueOnce(wonPlay);
+    renderPlinko();
+    await advance(5000);
     expect(screen.getByRole("status")).toHaveTextContent("−50 % sur un repas");
     expect(screen.getByRole("textbox", { name: /e-?mail/i })).toBeInTheDocument();
     expect(plinkoMocks.playPlinko).toHaveBeenCalledTimes(1);
   });
+
+  it("does not reopen tomorrow after the winner submits an email", async () => {
+    plinkoMocks.reducedMotion = true;
+    plinkoMocks.playPlinko.mockResolvedValueOnce(wonPlay);
+    plinkoMocks.claimPlinko.mockResolvedValueOnce({
+      ...wonPlay,
+      reward: { ...wonPlay.reward, status: "pending_fulfillment" },
+    });
+    const firstVisit = renderPlinko();
+    await advance(5000);
+    fireEvent.click(screen.getByRole("button", { name: /lâcher mon miamz/i }));
+    await advance(0);
+    fireEvent.change(screen.getByRole("textbox", { name: /e-?mail/i }), { target: { value: "personne@example.ch" } });
+    fireEvent.click(screen.getByRole("button", { name: /recevoir mon gain/i }));
+    await advance(0);
+    expect(localStorage.getItem(claimedKey)).toBe("1");
+    firstVisit.unmount();
+
+    vi.setSystemTime(new Date("2026-10-30T13:00:00+01:00"));
+    renderPlinko();
+    await advance(10000);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(plinkoMocks.startPlinkoSession).toHaveBeenCalledTimes(1);
+    expect(plinkoMocks.getPlinkoStatus).not.toHaveBeenCalled();
+  });
+
+
 });
