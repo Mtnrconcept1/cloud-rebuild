@@ -44,9 +44,14 @@ describe("navbar action stability", () => {
   it("fades the header out on downward scroll and back in on upward scroll", () => {
     expect(source).toContain("const [isHeaderVisible, setIsHeaderVisible] = useState(true)");
     expect(source).toContain("window.addEventListener(\"scroll\", handleScroll, { passive: true })");
-    expect(source).toContain("currentScrollY < 48 || scrollDelta < 0");
-    expect(source).toContain("scrollDelta > 0 && !menuOpen && !accountMenuOpen");
-    expect(source).toContain('transition-[opacity,transform] duration-300 ease-out');
+    expect(source).toContain("const downwardScrollTravelRef = useRef(0)");
+    expect(source).toContain("currentScrollY < 72");
+    expect(source).toContain("scrollDelta <= -4");
+    expect(source).toContain("scrollDelta < 4");
+    expect(source).toContain("downwardScrollTravelRef.current += scrollDelta");
+    expect(source).toContain("downwardScrollTravelRef.current >= 120");
+    expect(source).toContain("menuOpen || accountMenuOpen");
+    expect(source).toContain('transition-[opacity,transform] duration-500 ease-out');
     expect(source).toContain('isHeaderVisible ? "" : "pointer-events-none"');
     expect(source).toContain("opacity: isHeaderVisible ? 1 : 0");
     expect(source).toContain("showHalloweenCanopy ? <HalloweenCanopy /> : null");
