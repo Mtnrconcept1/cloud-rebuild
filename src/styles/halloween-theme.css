@@ -26,14 +26,24 @@
   color: hsl(var(--foreground));
 }
 
-.tok-halloween-canopy {
-  position: fixed;
-  z-index: 40;
-  inset: var(--tok-public-navbar-height, 80px) 0 auto;
-  height: clamp(120px, 18vw, 250px);
+/* Always attached to the bottom edge of the sticky menu: the menu and
+   decoration use one transform and can never drift apart during scroll. */
+.tok-site-header .tok-halloween-canopy {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  z-index: 0;
+  line-height: 0;
   pointer-events: none;
-  background: url("/images/seasonal/halloween/canopy.webp") top center / 100% auto no-repeat;
   filter: drop-shadow(0 18px 24px rgb(0 0 0 / 35%));
+}
+
+.tok-site-header .tok-halloween-canopy img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: none;
 }
 
 :root[data-seasonal-theme="halloween"] .tok-site-header {
@@ -149,13 +159,6 @@
 }
 
 @media (max-width: 767px) {
-  .tok-halloween-canopy {
-    inset-block-start: var(--tok-public-navbar-height, 104px);
-    height: 118px;
-    background-size: auto 118px;
-    opacity: .88;
-  }
-
   :root[data-seasonal-theme="halloween"] .tok-home-hero__content {
     background: linear-gradient(to bottom, rgb(18 14 12 / 18%), #120e0c 46px);
   }
@@ -174,5 +177,364 @@
   :root[data-seasonal-theme="halloween"] *::before,
   :root[data-seasonal-theme="halloween"] *::after {
     scroll-behavior: auto !important;
+  }
+}
+
+
+/* Halloween home: a single, edge-to-edge photographic hero. Normal TOK pages
+   retain the existing two-column layout when the seasonal flag is disabled. */
+:root[data-seasonal-theme="halloween"] .tok-home-first-screen:has(.tok-home-hero[data-seasonal-hero="halloween"]) {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  isolation: isolate;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  max-width: none;
+  min-height: max(690px, calc(100svh - var(--tok-public-navbar-height, 80px)));
+  min-height: max(690px, calc(100dvh - var(--tok-public-navbar-height, 80px)));
+  margin: 0;
+  padding: clamp(100px, 14svh, 160px) clamp(28px, 8vw, 154px) clamp(180px, 20svh, 240px);
+  overflow: hidden;
+  isolation: isolate;
+  background: #170d0a;
+  color: #fff8f1;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__art {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  order: 0;
+  flex: none;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 52% center;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__art::before {
+  content: none;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__art::after {
+  inset: 0;
+  height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  background:
+    linear-gradient(90deg, rgb(13 7 5 / 91%) 0%, rgb(13 7 5 / 76%) 25%, rgb(13 7 5 / 37%) 52%, transparent 83%),
+    linear-gradient(0deg, rgb(13 7 5 / 55%), transparent 28%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__content {
+  position: relative;
+  z-index: 3;
+  flex: 0 0 auto;
+  width: min(100%, 650px);
+  max-width: 650px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  background: none;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__brand {
+  display: block;
+  margin-bottom: 18px;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__eyebrow {
+  border-color: rgb(255 170 104 / 42%);
+  background: rgb(21 11 8 / 80%);
+  color: #fff7ee;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 26%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__title {
+  color: #fff8f1;
+  font-size: clamp(52px, 5.35vw, 88px);
+  font-weight: 800;
+  line-height: .98;
+  letter-spacing: -.045em;
+  text-shadow: 0 5px 20px rgb(0 0 0 / 66%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__title span {
+  color: var(--tok-home-orange);
+  text-shadow: 0 4px 20px rgb(0 0 0 / 65%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__intro {
+  max-width: 520px;
+  margin: 18px 0 24px;
+  color: #fff2e6;
+  font-size: clamp(16px, 1.25vw, 19px);
+  text-shadow: 0 2px 12px rgb(0 0 0 / 80%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__form {
+  width: min(680px, 100%);
+  border: 1px solid rgb(255 176 112 / 40%);
+  background: rgb(26 14 10 / 86%);
+  box-shadow: 0 20px 58px rgb(0 0 0 / 42%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__field--city {
+  border-left-color: rgb(255 234 213 / 25%);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__field label,
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__input-row input {
+  color: #fff8f1;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__field label span,
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__input-row svg,
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__input-row input::placeholder {
+  color: #e2c5b3;
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__filters a {
+  border-color: rgb(255 175 109 / 42%);
+  background: rgb(21 11 8 / 76%);
+  color: #fff7ee;
+  box-shadow: 0 10px 26px rgb(0 0 0 / 24%);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+}
+
+:root[data-seasonal-theme="halloween"] .tok-home-first-screen:has(.tok-home-hero[data-seasonal-hero="halloween"]) .tok-home-hero__secondary {
+  position: absolute;
+  z-index: 4;
+  /* Account for the optional 44px discovery strip above the sticky menu,
+     keeping the entire Miamz panel visible in the first desktop viewport. */
+  bottom: clamp(64px, 7svh, 96px);
+  left: 50%;
+  width: min(1320px, calc(100% - 48px));
+  max-width: none;
+  margin: 0;
+  transform: translateX(-50%);
+  border-color: rgb(255 176 112 / 35%);
+  background: rgb(20 12 10 / 87%);
+  color: #ffe6d2;
+  box-shadow: 0 20px 58px rgb(0 0 0 / 40%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+@media (max-width: 1199px) and (min-width: 768px) {
+  /* The landscape photograph needs a right-biased crop on portrait tablets:
+     otherwise the TOK chef is cut in half beyond the right viewport edge. */
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__background img {
+    object-position: 76% center;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] {
+    min-height: max(710px, calc(100dvh - var(--tok-public-navbar-height, 80px)));
+    padding-inline: clamp(24px, 6vw, 84px);
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__content {
+    width: min(100%, 540px);
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__title {
+    font-size: clamp(49px, 6vw, 73px);
+  }
+}
+
+@media (max-width: 767px) {
+  :root[data-seasonal-theme="halloween"] .tok-home-first-screen:has(.tok-home-hero[data-seasonal-hero="halloween"]) {
+    display: block;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-first-screen .tok-home-hero[data-seasonal-hero="halloween"] {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    min-height: max(740px, calc(100dvh - var(--tok-public-navbar-height, 104px)));
+    padding: clamp(102px, 13svh, 140px) 16px 32px;
+    gap: 0;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-first-screen .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__art {
+    position: absolute;
+    inset: 0;
+    flex: none;
+    order: 0;
+    height: 100%;
+    min-height: 100%;
+    border-radius: 0;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__background img {
+    object-position: center center;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__art::after {
+    height: 100%;
+    background:
+      linear-gradient(180deg, rgb(14 7 4 / 35%) 0%, rgb(14 7 4 / 65%) 43%, rgb(14 7 4 / 50%) 72%, rgb(14 7 4 / 16%) 100%),
+      linear-gradient(90deg, rgb(14 7 4 / 40%), transparent 100%);
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-first-screen .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__content {
+    flex: none;
+    width: min(100%, 480px);
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0;
+    text-align: left;
+    background: none;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__brand {
+    display: block;
+    margin: 0 0 14px;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__title {
+    font-size: clamp(38px, 9.7vw, 60px);
+    line-height: 1.02;
+    letter-spacing: -.045em;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__intro {
+    margin: 12px 0 18px;
+    max-width: 430px;
+    font-size: clamp(14px, 3.6vw, 17px);
+    line-height: 1.44;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 480px;
+    min-height: 0;
+    margin: 0;
+    padding: 10px;
+    border-radius: 24px;
+    background: rgb(23 12 9 / 85%);
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__field,
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__field--city {
+    display: flex;
+    flex-direction: column;
+    order: initial;
+    min-height: 59px;
+    padding: 7px 14px;
+    border: 1px solid rgb(255 225 201 / 24%);
+    border-radius: 16px;
+    background: rgb(34 22 17 / 90%);
+    box-shadow: none;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__field label {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0 0 2px;
+    padding: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    font-size: 10px;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__input-row {
+    height: auto;
+    min-height: 30px;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__cta {
+    order: initial;
+    width: 100%;
+    min-height: 52px;
+    margin: 0;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+    width: 100%;
+    gap: 6px;
+    margin-top: 14px;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__filters a {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    min-height: 58px;
+    gap: 4px;
+    padding: 8px 3px;
+    text-align: center;
+    font-size: clamp(10px, 2.4vw, 12px);
+    line-height: 1.15;
+    white-space: normal;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-first-screen:has(.tok-home-hero[data-seasonal-hero="halloween"]) .tok-home-hero__secondary {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    margin: 0;
+    transform: none;
+    border-width: 1px 0 0;
+    border-radius: 0;
+    background: #1a100d;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (max-width: 359px) {
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__title {
+    font-size: 36px;
+  }
+
+  :root[data-seasonal-theme="halloween"] .tok-home-hero[data-seasonal-hero="halloween"] .tok-home-hero__filters {
+    gap: 4px;
   }
 }

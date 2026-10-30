@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `88705240720815ee54ba89b68303987aa0e567f8a32463ad8a3b60f8f58b0b8f`
+- Empreinte SHA-256 des sources indexées : `51cff16944c890e16e4cca0eb54e43ef1d45bef0efc16ed43a59c7198bf7ae57`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,7 +32,7 @@
 | documents | 238 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4290 |
+| exportedSymbols | 4291 |
 | featureFlags | 100 |
 | frontendRoutes | 143 |
 | integrations | 11 |
@@ -40,12 +40,12 @@
 | migrations | 590 |
 | modules | 1935 |
 | pages | 133 |
-| pathLiterals | 952 |
+| pathLiterals | 953 |
 | publicAssets | 742 |
 | publicEntries | 777 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19886 |
+| records | 19888 |
 | repositoryFiles | 3861 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1989,6 +1989,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/salade-du-marche.jpg | 6 | [scripts/dashboard-design-preview.fixtures.ts:23](../../scripts/dashboard-design-preview.fixtures.ts#L23) |
 | /images/samosa.jpg | 3 | [src/lib/menu-item-images.ts:94](../../src/lib/menu-item-images.ts#L94) |
 | /images/seasonal/halloween/ | 1 | [src/components/home/SectionShowcaseHeader.tsx:51](../../src/components/home/SectionShowcaseHeader.tsx#L51) |
+| /images/seasonal/halloween/canopy.webp | 2 | [src/components/seasonal/HalloweenTheme.tsx:13](../../src/components/seasonal/HalloweenTheme.tsx#L13) |
 | /images/seasonal/halloween/hero-desktop.webp | 2 | [src/components/home/HeroSection.tsx:51](../../src/components/home/HeroSection.tsx#L51) |
 | /images/seasonal/halloween/hero-mobile.webp | 1 | [src/components/home/HeroSection.tsx:54](../../src/components/home/HeroSection.tsx#L54) |
 | /images/seasonal/halloween/section-banner.webp | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |

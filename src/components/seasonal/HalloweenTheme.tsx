@@ -6,6 +6,15 @@ type HalloweenThemeProps = {
   enabled: boolean;
 };
 
+// The decoration is a child of the sticky navbar, sharing its transform exactly.
+export function HalloweenCanopy() {
+  return (
+    <div className="tok-halloween-canopy" aria-hidden="true">
+      <img src="/images/seasonal/halloween/canopy.webp" alt="" decoding="async" />
+    </div>
+  );
+}
+
 export default function HalloweenTheme({ enabled }: HalloweenThemeProps) {
   useEffect(() => {
     if (!enabled) {
@@ -24,7 +33,5 @@ export default function HalloweenTheme({ enabled }: HalloweenThemeProps) {
     };
   }, [enabled]);
 
-  if (!enabled) return null;
-
-  return <div className="tok-halloween-canopy" aria-hidden="true" />;
+  return null;
 }

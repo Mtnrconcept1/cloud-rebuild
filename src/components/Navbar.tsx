@@ -34,6 +34,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
+import { HalloweenCanopy, HALLOWEEN_FEATURE_FLAG } from "@/components/seasonal/HalloweenTheme";
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { openConsentSettings } from "@/lib/consent";
@@ -121,6 +122,7 @@ export default function Navbar() {
   const discoveryFeatures = visibleFeatures.slice(0, 3);
   const showClientSurface = canShowClientSurface({ activeRole: role, roles });
   const isGoldenTokRoute = location.pathname === "/chefs-table";
+  const showHalloweenCanopy = activeFeatures.has(HALLOWEEN_FEATURE_FLAG);
   const showSocialFeedSurface = canShowSocialFeedSurface({ activeRole: role, roles });
   const homeTarget = showClientSurface
     ? "/"
@@ -248,7 +250,9 @@ export default function Navbar() {
         ref={headerRef}
         className={`tok-site-header ${isGoldenTokRoute ? "tok-golden-nav" : ""} sticky top-0 z-[70] w-full border-b bg-background safe-top transition-[opacity,transform] duration-300 ease-out dark:bg-slate-950 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border dark:border-border" : "border-border/70 dark:border-white/10"}`}
         style={{
-          opacity: isHeaderVisible ? 1 : 0,
+          // When retracted the menu leaves the viewport, but its canopy stays
+          // visible at y=0 because both share the same translated element.
+          opacity: isHeaderVisible || showHalloweenCanopy ? 1 : 0,
           transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
         }}
       >
@@ -648,6 +652,7 @@ export default function Navbar() {
             </Sheet>
           </div>
         </div>
+        {showHalloweenCanopy ? <HalloweenCanopy /> : null}
       </header>
     </>
   );
