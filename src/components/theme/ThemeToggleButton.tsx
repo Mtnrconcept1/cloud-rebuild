@@ -18,20 +18,31 @@ export default function ThemeToggleButton({
   const [isDark, setIsDark] = useState(() =>
     typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
   );
-  const label = ariaLabel ?? (isDark ? "Mode clair" : "Mode sombre");
+  const [halloweenActive, setHalloweenActive] = useState(() =>
+    typeof document !== "undefined" && document.documentElement.dataset.seasonalTheme === "halloween",
+  );
+  const label = halloweenActive
+    ? "Mode sombre obligatoire pendant Halloween"
+    : ariaLabel ?? (isDark ? "Mode clair" : "Mode sombre");
 
   useEffect(() => {
     const root = document.documentElement;
-    const syncTheme = () => setIsDark(root.classList.contains("dark"));
+    const syncTheme = () => {
+      setIsDark(root.classList.contains("dark"));
+      setHalloweenActive(root.dataset.seasonalTheme === "halloween");
+    };
     syncTheme();
     const observer = new MutationObserver(syncTheme);
-    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(root, { attributes: true, attributeFilter: ["class", "data-seasonal-theme"] });
     return () => observer.disconnect();
   }, []);
 
   const handleThemeToggle = () => {
-    const nextIsDark = !document.documentElement.classList.contains("dark");
-    document.documentElement.classList.toggle("dark", nextIsDark);
+    const root = document.documentElement;
+    if (root.dataset.seasonalTheme === "halloween") return;
+
+    const nextIsDark = !root.classList.contains("dark");
+    root.classList.toggle("dark", nextIsDark);
     setIsDark(nextIsDark);
     localStorage.setItem("theme", nextIsDark ? "dark" : "light");
   };
@@ -43,6 +54,8 @@ export default function ThemeToggleButton({
       type="button"
       aria-label={label}
       aria-pressed={isDark}
+      disabled={halloweenActive}
+      title={halloweenActive ? label : undefined}
       onMouseDown={onMouseDown}
       onClick={handleThemeToggle}
       className={cn("relative text-muted-foreground hover:text-foreground", className)}

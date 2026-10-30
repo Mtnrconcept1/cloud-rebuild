@@ -43,9 +43,12 @@ describe("navbar action stability", () => {
     expect(source).toContain("scrollDelta > 0 && !menuOpen && !accountMenuOpen");
     expect(source).toContain('transition-[opacity,transform] duration-300 ease-out');
     expect(source).toContain('isHeaderVisible ? "" : "pointer-events-none"');
-    expect(source).toContain("opacity: isHeaderVisible || showHalloweenCanopy ? 1 : 0");
+    expect(source).toContain("opacity: isHeaderVisible ? 1 : 0");
     expect(source).toContain("showHalloweenCanopy ? <HalloweenCanopy /> : null");
-    expect(source).toContain('transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)"');
+    expect(source).toContain('header.style.setProperty("--tok-halloween-canopy-height"');
+    expect(source).toContain("observer?.observe(canopy)");
+    expect(source).toContain('"translateY(calc(-100% - var(--tok-halloween-canopy-height, 0px)))"');
+    expect(source).toContain(': "translateY(-100%)"');
   });
 
   it("publishes the visible public navbar height for page-level sticky controls", () => {
