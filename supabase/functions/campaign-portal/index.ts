@@ -14,6 +14,11 @@ import {
   normalizeCampaignPricingStrategy,
 } from "../_shared/campaign-pricing.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import {
+  getCampaignSpendableChf,
+  getCreditCommittedAmount,
+  isCampaignCreditExhausted,
+} from "../_shared/campaign-credit-policy.ts";
 import { makeLogger } from "../_shared/logging.ts";
 
 const VALID_CAMPAIGN_TYPES = new Set(["boost", "banner", "push"]);
@@ -40,7 +45,6 @@ const VALID_CREATIVE_TEXT_ELEMENTS = [
   "sealBottom",
   "cta",
 ] as const;
-const TOK_CREDITS_PER_CAMPAIGN_CHF = 15;
 
 const DEFAULT_CREATIVE_TEXT = {
   badge: { x: 0, y: 0, scale: 100, rotation: 0, color: "#ffffff", font: "sans", style: "bold" },
@@ -330,17 +334,6 @@ function getRpcUnavailableReason(error: { code?: string | null; message?: string
   return "rpc_error";
 }
 
-function getCreditCommittedAmount(campaign?: Record<string, unknown> | null) {
-  if (!campaign) return 0;
-  const paymentMethod = normalizeLower(campaign.payment_method);
-  const paymentStatus = normalizeLower(campaign.payment_status);
-  if (paymentMethod !== "credits" || paymentStatus !== "paid") return 0;
-  return Math.max(
-    clampNonNegativeNumber(campaign.total_budget),
-    clampNonNegativeNumber(campaign.spent),
-  );
-}
-
 async function getCampaignCreditBalance(
   adminClient: Awaited<ReturnType<typeof authenticateRequest>>["adminClient"],
   restaurantId: string,
@@ -353,18 +346,16 @@ async function getCampaignCreditBalance(
     throw new HttpError(500, error.message);
   }
 
-  const usage = data && typeof data === "object" && !Array.isArray(data)
-    ? data as Record<string, unknown>
-    : {};
-  const credits = Array.isArray(usage.credits) ? usage.credits as Array<Record<string, unknown>> : [];
-  const campaignCredit = credits.find((credit) => String(credit.kind || "") === "campaign");
-  const tokCredit = credits.find((credit) => String(credit.kind || "") === "tok_credits");
+  return getCampaignSpendableChf(data);
+}
 
-  if (tokCredit) {
-    return clampNonNegativeNumber(tokCredit.balance) / TOK_CREDITS_PER_CAMPAIGN_CHF;
+// A concurrent purchase can use the last available credits after preflight.
+// Translate ONLY the known ledger refusal, preserving every database guard.
+function throwCampaignPersistenceError(error: { message: string }): never {
+  if (isCampaignCreditExhausted(error)) {
+    throw new HttpError(402, "Credits campagnes insuffisants. Rechargez les credits TOK utilisables pour la publicite.");
   }
-
-  return clampNonNegativeNumber(campaignCredit?.balance);
+  throw new HttpError(500, error.message);
 }
 
 Deno.serve(async (req) => {
@@ -495,7 +486,7 @@ Deno.serve(async (req) => {
           .select("*")
           .single();
 
-        if (error) throw new HttpError(500, error.message);
+        if (error) throwCampaignPersistenceError(error);
         savedCampaign = data;
       } else {
         const { data, error } = await adminClient
@@ -504,7 +495,7 @@ Deno.serve(async (req) => {
           .select("*")
           .single();
 
-        if (error) throw new HttpError(500, error.message);
+        if (error) throwCampaignPersistenceError(error);
         savedCampaign = data;
       }
 

@@ -1436,7 +1436,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "image_credit_reservation_mismatch": [
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1689
+      "line": 1691
     }
   ],
   "image_edit_timeout": [
@@ -1518,7 +1518,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1609
+      "line": 1611
     }
   ],
   "image_request_rejected": [
@@ -1976,7 +1976,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
-      "line": 1603
+      "line": 1605
     }
   ],
   "match_group_authorization_session_missing": [

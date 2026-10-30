@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `33711d1e831226f1121ec730c1be4146c296d875f5b373c47545b77ffa8d3cdc`
+- Empreinte SHA-256 des sources indexées : `7b74594bef72182d0c597736afff74eb2bc2f003990706cebb4e55e6cbf340e2`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 238 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4294 |
+| exportedSymbols | 4298 |
 | featureFlags | 100 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 590 |
-| modules | 1935 |
+| modules | 1937 |
 | pages | 133 |
 | pathLiterals | 952 |
 | publicAssets | 742 |
 | publicEntries | 777 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19890 |
-| repositoryFiles | 3861 |
+| records | 19898 |
+| repositoryFiles | 3863 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2453,7 +2453,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | on_conflict | — | 1 | [scripts/restaurant-image-truth-worker.mjs:548](../../scripts/restaurant-image-truth-worker.mjs#L548) |
 | open | /restaurant/:id | 2 | [src/pages/RestaurantDetail.tsx:148](../../src/pages/RestaurantDetail.tsx#L148) |
 | operation | /admin/commandes-reservations | 2 | [src/pages/admin/AdminOperationsCenter.tsx:65](../../src/pages/admin/AdminOperationsCenter.tsx#L65) |
-| or | — | 1 | [src/test/marketing-studio-references.test.ts:37](../../src/test/marketing-studio-references.test.ts#L37) |
+| or | — | 1 | [src/test/marketing-studio-references.test.ts:52](../../src/test/marketing-studio-references.test.ts#L52) |
 | order | /courier/jobs, /dashboard/commandes, /recherche | 3 | [src/pages/Recherche.tsx:253](../../src/pages/Recherche.tsx#L253) |
 | page | — | 1 | [src/marketing/useMarketingUrlState.ts:118](../../src/marketing/useMarketingUrlState.ts#L118) |
 | partySize | — | 1 | [src/lib/zeroAttenteReservationContext.ts:78](../../src/lib/zeroAttenteReservationContext.ts#L78) |
@@ -2478,7 +2478,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | reserve | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:149](../../src/pages/RestaurantDetail.tsx#L149) |
 | resize | — | 1 | [src/lib/optimizedImages.ts:40](../../src/lib/optimizedImages.ts#L40) |
 | restaurant | /equipe/gestion, /equipe/mon-espace, /zero-attente | 3 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
-| restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 2 | [src/test/marketing-studio-references.test.ts:36](../../src/test/marketing-studio-references.test.ts#L36) |
+| restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 2 | [src/test/marketing-studio-references.test.ts:51](../../src/test/marketing-studio-references.test.ts#L51) |
 | returnTo | — | 1 | [src/test/marketing-bff-client.test.ts:176](../../src/test/marketing-bff-client.test.ts#L176) |
 | scope | /actualites | 4 | [src/pages/Actualites.tsx:249](../../src/pages/Actualites.tsx#L249) |
 | session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:691](../../src/pages/ChefsTable.tsx#L691) |
@@ -7128,7 +7128,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 279 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 872 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 873 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 79 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7141,7 +7141,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 230 |
 | automation-script | 92 |
 | documentation | 6 |
-| edge-function-source | 258 |
+| edge-function-source | 259 |
 | frontend-component | 314 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
@@ -7149,7 +7149,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 806 |
+| test | 807 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -8634,7 +8634,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (258)</summary>
+<details><summary>edge-function-source (259)</summary>
 
 - `supabase/functions/_shared/advisor-attachment-policy.ts`
 - `supabase/functions/_shared/advisor-attachments.ts`
@@ -8644,6 +8644,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/ai-security.ts`
 - `supabase/functions/_shared/apple-storekit.ts`
 - `supabase/functions/_shared/auth.ts`
+- `supabase/functions/_shared/campaign-credit-policy.ts`
 - `supabase/functions/_shared/campaign-pricing.ts`
 - `supabase/functions/_shared/chefs-table.ts`
 - `supabase/functions/_shared/commercial-consent-confirmation.ts`
@@ -10515,7 +10516,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (806)</summary>
+<details><summary>test (807)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10612,6 +10613,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/business-wiring-audit.test.ts`
 - `src/test/campaign-auto-plan.test.ts`
 - `src/test/campaign-creative.test.ts`
+- `src/test/campaign-credit-policy.test.ts`
 - `src/test/campaign-credit-revenue-exclusion.test.ts`
 - `src/test/campaign-pricing.test.ts`
 - `src/test/campaign-targeting.test.ts`

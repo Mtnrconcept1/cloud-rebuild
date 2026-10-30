@@ -142,6 +142,12 @@ export function formatAiImageGenerationError(error: unknown) {
     return "Les visuels de référence n'ont pas pu être utilisés correctement. Réessayez avec moins de fichiers, des images plus légères ou des visuels plus nets.";
   }
 
+  if (message.includes("marketing_reference_mismatch")) {
+    return "Une référence de style ou de marque n'est plus reconnue pour ce restaurant. Actualisez les ressources ou importez de nouveau l'image, puis relancez.";
+  }
+  if (message.includes("marketing_reference_ids_required")) {
+    return "Sélectionnez au moins une ressource de marque enregistrée avant de générer le visuel.";
+  }
   if (message.includes("marketing_reference_required")) {
     return "Ajoutez au moins un logo, une carte, un menu ou un visuel de marque avant de générer.";
   }

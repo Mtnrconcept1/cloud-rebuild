@@ -1490,20 +1490,8 @@ Deno.serve(async (req) => {
       if (signingError || !signedSource?.signedUrl) throw new HttpError(503, "Original natif inaccessible");
       printCorrectionSourceUrl = signedSource.signedUrl;
     }
-    const rl = createRateLimiter(actor.adminClient, FUNCTION_NAME);
-    await rl.consume(`user:${actor.userId}`, { maxRequests: 20, windowSeconds: 600 });
-    await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 60, windowSeconds: 600 });
-    await rl.consume("global", { maxRequests: 180, windowSeconds: 60 });
-    const claim = await AiImageOperation.claim(actor.adminClient, {
-      userId: actor.userId, restaurantId, idempotencyKey, requestHash,
-      creditUnits: requestedOutputCreditUnits, generationSeed, model: imageModel,
-    });
-    if (!(claim instanceof AiImageOperation)) return jsonResponse(claim.response, claim.status, cors);
-    operation = claim;
-    generationSeed = operation.generationSeed;
-    assetId = operation.assetId;
-    const availableTokCredits = operation.availableCreditsBefore;
-
+    // Validate restaurant-owned reference media before reserving credits.
+    // An outdated or cross-restaurant ID must never create a paid operation.
     const marketingReferences = marketingAssetMode && !printMarginCorrection
       ? await resolveCurrentMarketingReferences(actor, restaurantId, requestedReferenceMediaIds)
       : null;
@@ -1520,6 +1508,20 @@ Deno.serve(async (req) => {
     const resolvedReferenceMediaIds = resolvedReferences?.ids || [];
     const resolvedReferenceMediaTypes = resolvedReferences?.mediaTypes || [];
     const resolvedReferenceFingerprint = resolvedReferences?.fingerprint || null;
+    const rl = createRateLimiter(actor.adminClient, FUNCTION_NAME);
+    await rl.consume(`user:${actor.userId}`, { maxRequests: 20, windowSeconds: 600 });
+    await rl.consume(`restaurant:${restaurantId}`, { maxRequests: 60, windowSeconds: 600 });
+    await rl.consume("global", { maxRequests: 180, windowSeconds: 60 });
+    const claim = await AiImageOperation.claim(actor.adminClient, {
+      userId: actor.userId, restaurantId, idempotencyKey, requestHash,
+      creditUnits: requestedOutputCreditUnits, generationSeed, model: imageModel,
+    });
+    if (!(claim instanceof AiImageOperation)) return jsonResponse(claim.response, claim.status, cors);
+    operation = claim;
+    generationSeed = operation.generationSeed;
+    assetId = operation.assetId;
+    const availableTokCredits = operation.availableCreditsBefore;
+
     const photoStyleDirection = !marketingAssetMode && sourceImageUrl && referenceImageUrls.length
       ? buildPhotoStyleTransferDirection(photoStyleWeight)
       : "";
