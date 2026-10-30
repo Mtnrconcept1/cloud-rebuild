@@ -53,7 +53,7 @@ jobs:
           TARGET_BRANCH: agent/halloween-immersive-hero-canopy-20261030
         run: |
           set -euo pipefail
-          git add -u --             .github/workflows/halloween-index-repair.yml             src/test/halloween-seasonal-theme.test.tsx             docs/architecture/TOK_APPLICATION_REFERENCE.md             docs/architecture/tok-application-search-index.json             src/data/tok-user-guide-catalog.generated.ts
+          git add -u --             src/test/halloween-seasonal-theme.test.tsx             docs/architecture/TOK_APPLICATION_REFERENCE.md             docs/architecture/tok-application-search-index.json             src/data/tok-user-guide-catalog.generated.ts
           git diff --cached --check
           git diff --cached --name-only
           git commit -m 'chore(halloween): remove diagnostic and regenerate canonical index'
