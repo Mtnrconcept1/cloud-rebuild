@@ -9,7 +9,7 @@ const observation = { complete: true, uncertain: false, singleDesign: true, blee
 const input = () => ({ bytes: new Uint8Array([1, 2, 3]), contentType: "image/png", width: template.widthPx, height: template.heightPx, template });
 afterEach(() => vi.unstubAllGlobals());
 describe("bounded native print visual review", () => {
-  it("uses a single structured vision call, no image generation retry", async () => {
+  it("uses one structured vision call for an already-safe print, without regeneration", async () => {
     const fetcher = vi.fn(async () => Response.json({ status: "completed", output_text: JSON.stringify(observation) }));
     vi.stubGlobal("fetch", fetcher);
     const result = await reviewNativePrintArtwork(input());
@@ -19,8 +19,8 @@ describe("bounded native print visual review", () => {
     expect(payload.model).toBe("configured-vision-model");
     expect(selectTokAiModel).toHaveBeenCalledWith("image_premium");
     expect(payload.input[0].content[0].text).toContain("red trim line");
-    expect(payload.input[0].content[0].text).toContain("NEVER label a word, price, logo");
-    expect(payload.input[0].content[0].text).toContain("Background photographs");
+    expect(payload.input[0].content[0].text).toContain("NEVER label a real word, price, logo");
+    expect(payload.input[0].content[0].text).toContain("restaurant/interior photograph");
     expect(payload.store).toBe(false);
     expect(payload.text.format.strict).toBe(true);
     expect(payload.max_output_tokens).toBeLessThanOrEqual(4000);
@@ -40,6 +40,37 @@ describe("bounded native print visual review", () => {
   it("does not trust a claimed pass over an unsafe element", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({ status: "completed", output_text: JSON.stringify({ ...observation, safe: true, elements: [{ kind: "text", left: 0, top: .2, right: .3, bottom: .4 }] }) })));
     expect((await reviewNativePrintArtwork(input())).ready).toBe(false);
+  });
+  it("rechecks suspicious oversized imagery against the red trim with one targeted structured call", async () => {
+    const first = { ...observation, elements: [
+      ...observation.elements,
+      { kind: "essential", left: 0, top: 0, right: 1, bottom: 1 },
+    ] };
+    const second = { complete: true, uncertain: false, candidates: [
+      { index: 1, kind: "decorative", reason: "background_photo", left: 0, top: 0, right: 1, bottom: 1 },
+    ] };
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(Response.json({ status: "completed", output_text: JSON.stringify(first) }))
+      .mockResolvedValueOnce(Response.json({ status: "completed", output_text: JSON.stringify(second) }));
+    vi.stubGlobal("fetch", fetcher);
+    const result = await reviewNativePrintArtwork(input());
+    expect(result.ready).toBe(true);
+    expect(result.warnings.some(issue => issue.code === "native_trim_refinement")).toBe(true);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    const confirmation = JSON.parse(fetcher.mock.calls[1][1].body);
+    expect(confirmation.text.format.strict).toBe(true);
+    expect(confirmation.input[1].content[0].text).toContain("first pass suspected");
+  });
+  it("keeps the original refusal if targeted verification is unavailable", async () => {
+    const outside = { ...observation, elements: [{ kind: "text", left: 0, top: .2, right: .3, bottom: .4 }] };
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(Response.json({ status: "completed", output_text: JSON.stringify(outside) }))
+      .mockRejectedValueOnce(new Error("timeout"));
+    vi.stubGlobal("fetch", fetcher);
+    const result = await reviewNativePrintArtwork(input());
+    expect(result.ready).toBe(false);
+    expect(result.blocking[0].code).toBe("native_element_outside_trim");
+    expect(fetcher).toHaveBeenCalledTimes(2);
   });
   it("fails closed once on a provider timeout", async () => {
     const fetcher = vi.fn(async () => { throw new Error("timeout"); });
