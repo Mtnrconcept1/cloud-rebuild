@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `fc4141151f9f7a60c4c752e6fdbb23f9873983a1ed8b41c1f8195c965be4613a`
+- Empreinte SHA-256 des sources indexées : `bff2bbbd7f4ae141c92b1ea15dfc3374ca017ab68b49bf2ff782b5c527e73e1d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 590 |
 | modules | 1935 |
 | pages | 133 |
-| pathLiterals | 953 |
+| pathLiterals | 952 |
 | publicAssets | 742 |
 | publicEntries | 777 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19888 |
+| records | 19887 |
 | repositoryFiles | 3861 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1867,8 +1867,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home/tok-leman-signature-fast.webp | 1 | [src/test/home-core-web-vitals.test.ts:17](../../src/test/home-core-web-vitals.test.ts#L17) |
-| /images/home/tok-leman-signature.webp | 1 | [src/test/home-core-web-vitals.test.ts:16](../../src/test/home-core-web-vitals.test.ts#L16) |
+| /images/home/tok-leman-signature.webp | 1 | [src/test/home-core-web-vitals.test.ts:21](../../src/test/home-core-web-vitals.test.ts#L21) |
 | /images/home/tok-logo-ui.webp | 5 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
@@ -1927,8 +1926,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp | 1 | [src/lib/homeWorldHero.ts:6](../../src/lib/homeWorldHero.ts#L6) |
 | /images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:5](../../src/lib/homeWorldHero.ts#L5) |
 | /images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp | 1 | [src/lib/homeWorldHero.ts:143](../../src/lib/homeWorldHero.ts#L143) |
-| /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | 3 | [src/components/home/HeroSection.tsx:13](../../src/components/home/HeroSection.tsx#L13) |
-| /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | 3 | [src/components/home/HeroSection.tsx:14](../../src/components/home/HeroSection.tsx#L14) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | 4 | [src/components/home/HeroSection.tsx:13](../../src/components/home/HeroSection.tsx#L13) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | 4 | [src/components/home/HeroSection.tsx:14](../../src/components/home/HeroSection.tsx#L14) |
 | /images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp | 1 | [src/lib/homeWorldHero.ts:63](../../src/lib/homeWorldHero.ts#L63) |
 | /images/meringue-double.webp | 3 | [src/lib/securityUrls.ts:27](../../src/lib/securityUrls.ts#L27) |
 | /images/milkshake-oreo.jpg | 3 | [src/lib/securityUrls.ts:28](../../src/lib/securityUrls.ts#L28) |
