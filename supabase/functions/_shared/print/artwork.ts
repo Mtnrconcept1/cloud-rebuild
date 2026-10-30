@@ -126,6 +126,99 @@ export function validateNativeArtwork(width: number, height: number, t: NativePr
   return { blocking, warnings, effectiveResolutionDpi, ready: blocking.length === 0 };
 }
 
+/**
+ * Only elements whose actual content crosses the catalogue trim line can
+ * block. Keep the model's generous candidate bounds distinct from a
+ * subsequent, targeted remeasurement of foreground ink.
+ */
+export type PrintTrimCandidate = {
+  index: number;
+  kind: "text" | "logo" | "face" | "essential";
+  left: number; top: number; right: number; bottom: number;
+};
+
+export function getOutOfTrimCandidates(observation: unknown, t: NativePrintTemplate): PrintTrimCandidate[] {
+  const record = observation && typeof observation === "object" && !Array.isArray(observation)
+    ? observation as Record<string, unknown> : {};
+  if (!Array.isArray(record.elements)) return [];
+  const matches: PrintTrimCandidate[] = [];
+  record.elements.forEach((value, index) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return;
+    const entry = value as Record<string, unknown>;
+    const kind = entry.kind;
+    if (kind !== "text" && kind !== "logo" && kind !== "face" && kind !== "essential") return;
+    const { left, top, right, bottom } = entry;
+    if (![left, top, right, bottom].every(n => typeof n === "number" && Number.isFinite(n))
+      || !(Number(left) >= 0 && Number(top) >= 0 && Number(right) <= 1 && Number(bottom) <= 1)
+      || !(Number(left) < Number(right) && Number(top) < Number(bottom))) return;
+    if (Number(left) < t.trimArea.left || Number(top) < t.trimArea.top
+      || Number(right) > t.trimArea.right || Number(bottom) > t.trimArea.bottom) {
+      matches.push({ index, kind, left: Number(left), top: Number(top),
+        right: Number(right), bottom: Number(bottom) });
+    }
+  });
+  return matches;
+}
+
+type PrintTrimRefinement = {
+  complete: boolean;
+  uncertain: boolean;
+  candidates: Array<{
+    index: number;
+    kind: "text" | "logo" | "face" | "essential" | "decorative" | "uncertain";
+    reason: "foreground_content" | "background_photo" | "ornament" | "uncertain";
+    left: number; top: number; right: number; bottom: number;
+  }>;
+};
+
+/**
+ * An independent targeted remeasurement may narrow an overbroad box or
+ * reclassify an isolated background/ornament falsely marked "essential".
+ * It NEVER downgrades text, logos or meaningful faces. Missing, ambiguous or
+ * still-outside evidence remains blocked, even when a reviewer says "pass".
+ */
+export function validateTrimRefinement(
+  observation: unknown,
+  t: NativePrintTemplate,
+  refinement: unknown,
+) {
+  const preliminary = validateArtworkObservation(observation, t);
+  if (preliminary.blocking.length !== 1 || preliminary.blocking[0].code !== "native_element_outside_trim") return preliminary;
+  const originals = getOutOfTrimCandidates(observation, t);
+  if (originals.length < 1 || originals.length > 8) return preliminary;
+  const result = refinement && typeof refinement === "object" && !Array.isArray(refinement)
+    ? refinement as Partial<PrintTrimRefinement> : {};
+  if (result.complete !== true || result.uncertain !== false
+    || !Array.isArray(result.candidates) || result.candidates.length !== originals.length) return preliminary;
+  const source = observation as Record<string, unknown>;
+  const elements = [...(source.elements as Array<Record<string, unknown>>)];
+  const seen = new Set<number>();
+  for (const original of originals) {
+    const revised = result.candidates.find(item => item?.index === original.index);
+    if (!revised || seen.has(original.index)) return preliminary;
+    seen.add(original.index);
+    const allowedDecorative = original.kind === "essential" && revised.kind === "decorative"
+      && (revised.reason === "background_photo" || revised.reason === "ornament");
+    if (!allowedDecorative && (revised.kind !== original.kind || revised.reason !== "foreground_content")) return preliminary;
+    const { left, top, right, bottom } = revised;
+    if (![left, top, right, bottom].every(n => typeof n === "number" && Number.isFinite(n))
+      || !(left >= 0 && top >= 0 && right <= 1 && bottom <= 1)
+      || !(left < right && top < bottom)) return preliminary;
+    elements[original.index] = { ...elements[original.index], kind: revised.kind, left, top, right, bottom };
+  }
+  if (new Set(result.candidates.map(item => item?.index)).size !== originals.length) return preliminary;
+  const reviewed = validateArtworkObservation({ ...source, elements }, t);
+  if (!reviewed.ready) return reviewed;
+  return {
+    ...reviewed,
+    warnings: [...reviewed.warnings, {
+      code: "native_trim_refinement",
+      message: "Des contours ont été revérifiés près de la coupe. Vérifiez les petits textes et les bords sur le PDF avant d'approuver.",
+    }],
+    remeasured: true,
+  };
+}
+
 /** The model only locates elements. The server alone applies the red trim line. */
 export function validateArtworkObservation(value: unknown, t: NativePrintTemplate) {
   const row = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};

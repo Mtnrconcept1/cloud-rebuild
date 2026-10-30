@@ -101,6 +101,79 @@ describe("embedded raster element checks", () => {
       { kind: "decorative", left: 0, top: 0, right: 1, bottom: 1 },
     ] }, template).ready).toBe(false);
   });
+  it("remeasures apparently out-of-trim visual content without dropping true print cuts", async () => {
+    const { validateTrimRefinement } = await import("../../supabase/functions/_shared/print/artwork");
+    const source = { ...clean(), elements: [
+      { kind: "text", left: .16, top: .08, right: .83, bottom: .33 },
+      // A restaurant interior PHOTO is not essential foreground artwork.
+      { kind: "essential", left: .00, top: .00, right: 1, bottom: 1 },
+    ] };
+    expect(validateArtworkObservation(source, template).ready).toBe(false);
+    const cleanRefinement = {
+      complete: true, uncertain: false, candidates: [
+        { index: 1, kind: "decorative", reason: "background_photo",
+          left: 0, top: 0, right: 1, bottom: 1 },
+      ],
+    };
+    const accepted = validateTrimRefinement(source, template, cleanRefinement);
+    expect(accepted.ready).toBe(true);
+    expect(accepted.warnings.some(issue => issue.code === "native_trim_refinement")).toBe(true);
+    expect(validateTrimRefinement(source, template,
+      { ...cleanRefinement, uncertain: true }).ready).toBe(false);
+    expect(validateTrimRefinement(source, template,
+      { ...cleanRefinement, candidates: [] }).ready).toBe(false);
+  });
+  it("permits corrected ink-only boxes but never hides a real cropped word, logo or face", async () => {
+    const { validateTrimRefinement } = await import("../../supabase/functions/_shared/print/artwork");
+    for (const kind of ["text", "logo", "face"] as const) {
+      const source = { ...clean(), elements: [
+        { kind, left: 0, top: .35, right: .3, bottom: .42 },
+      ] };
+      const correction = { complete: true, uncertain: false, candidates: [
+        { index: 0, kind, reason: "foreground_content", left: .04, top: .35, right: .3, bottom: .42 },
+      ] };
+      expect(validateTrimRefinement(source, template, correction).ready).toBe(true);
+      expect(validateTrimRefinement(source, template, { ...correction, candidates: [
+        { ...correction.candidates[0], left: 0 },
+      ] }).ready).toBe(false);
+      expect(validateTrimRefinement(source, template, { ...correction, candidates: [
+        { ...correction.candidates[0], kind: "decorative", reason: "ornament" },
+      ] }).ready).toBe(false);
+      expect(validateTrimRefinement(source, template, { ...correction, candidates: [
+        { ...correction.candidates[0], index: 44 },
+      ] }).ready).toBe(false);
+    }
+  });
+  it("refuses incomplete, duplicated, implausible or insecure remeasurements", async () => {
+    const { validateTrimRefinement } = await import("../../supabase/functions/_shared/print/artwork");
+    const source = { ...clean(), elements: [
+      { kind: "text", left: 0, top: .3, right: .2, bottom: .38 },
+      { kind: "logo", left: .3, top: .2, right: 1, bottom: .3 },
+    ] };
+    const candidates = [
+      { index: 0, kind: "text", reason: "foreground_content", left: .04, top: .3, right: .2, bottom: .38 },
+      { index: 1, kind: "logo", reason: "foreground_content", left: .3, top: .2, right: .94, bottom: .3 },
+    ];
+    for (const modification of [
+      { candidates: [candidates[0]] },
+      { candidates: [candidates[0], candidates[0]] },
+      { candidates: [{ ...candidates[0], left: -1 }, candidates[1]] },
+      { candidates: [{ ...candidates[0], right: .999 }, candidates[1]] },
+      { candidates: [{ ...candidates[0], reason: "ornament" }, candidates[1]] },
+    ]) {
+      const outcome = validateTrimRefinement(source, template, {
+        complete: true, uncertain: false, ...modification,
+      });
+      expect(outcome.ready).toBe(false);
+    }
+    expect(validateTrimRefinement({ ...source, containsQr: true }, template, {
+      complete: true, uncertain: false, candidates,
+    }).ready).toBe(false);
+    expect(validateTrimRefinement({ ...source, complete: false }, template, {
+      complete: true, uncertain: false, candidates,
+    }).ready).toBe(false);
+  });
+
   it("warns instead of rejecting when lettering is small but all boxes are known and in the red rectangle", () => {
     const result = validateArtworkObservation({ ...clean(), legible: false }, template);
     expect(result.ready).toBe(true);
