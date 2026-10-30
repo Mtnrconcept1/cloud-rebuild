@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -11,6 +12,20 @@ afterEach(() => {
 });
 
 describe("HalloweenTheme", () => {
+  it("uses a real portrait background and the reference dripping font only in Halloween mode", () => {
+    const hero = readFileSync("src/components/home/HeroSection.tsx", "utf8");
+    const styles = readFileSync("src/styles/halloween-theme.css", "utf8");
+    const html = readFileSync("index.html", "utf8");
+    const art = readFileSync("public/images/seasonal/halloween/hero-mobile-20261030.webp");
+
+    expect(hero).toContain("/images/seasonal/halloween/hero-mobile-20261030.webp");
+    expect(art.subarray(0, 4).toString("ascii")).toBe("RIFF");
+    expect(art.subarray(8, 12).toString("ascii")).toBe("WEBP");
+    expect(styles).toContain(':root[data-seasonal-theme="halloween"] .tok-home-hero .tok-home-hero__title');
+    expect(styles).toContain('font-family: "Nosifer"');
+    expect(html).toContain("&family=Nosifer&");
+  });
+
   it("renders the full-width decorative image as a child of the sticky header", () => {
     const { container } = render(<header className="tok-site-header"><HalloweenCanopy /></header>);
     const canopy = container.querySelector("header > .tok-halloween-canopy");

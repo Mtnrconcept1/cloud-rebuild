@@ -1,5 +1,5 @@
 import { isCustomerWorkspacePath } from "@/lib/customerWorkspaceRoutes";
-import { lazy, Suspense, useEffect, useRef, type CSSProperties } from "react";
+import { lazy, Suspense, useEffect, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { Toaster } from "@/components/ui/toaster";
@@ -69,7 +69,6 @@ const Panier = lazy(() => import("./pages/Panier"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OrderConflictDialog = lazy(() => import("./components/OrderConflictDialog"));
 const AdminUrgentActions = lazy(() => import("./components/admin/AdminUrgentActions"));
-const WelcomePlinko = lazy(() => import("./components/plinko/WelcomePlinko"));
 
 const Commandes = lazy(() => import("./pages/Commandes"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
@@ -460,7 +459,6 @@ function CommercialDemoFrameRouteBoundary({
 }
 
 function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: CommercialDemoFrameConfig | null }) {
-  const plinkoArrivalAt = useRef(Date.now());
   const location = useLocation();
   const { pathname } = location;
   const oauthConsentFrame = pathname === "/oauth/consent";
@@ -725,9 +723,6 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
         </Suspense> : null
       ) : null}
       {!commercialDemoFrame && pathname === "/" ? <DailyTokArcade /> : null}
-      {showLaunchClientChrome && !commercialDemoFrame && activeFeatures.has("plinko-welcome") ? (
-        <Suspense fallback={null}><WelcomePlinko arrivedAt={plinkoArrivalAt.current} /></Suspense>
-      ) : null}
       {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
       {showLaunchClientChrome ? <LegalConsentBanner /> : null}
       {showLaunchClientChrome ? <PageViewTracker /> : null}

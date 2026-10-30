@@ -19,7 +19,9 @@ describe("TOK daily arcade rotation and Miamz safeguards", () => {
     expect(arcade).toContain('const ZONE = "Europe/Zurich"');
     expect(arcade).toContain("assignedGame(actor, playDate)");
     expect(app).toContain("<DailyTokArcade />");
+    expect(app).not.toContain("WelcomePlinko");
     expect(selector).toContain('role === "client"');
+    expect(selector).toContain("status.attemptsUsed > 0");
   });
 
   it("rejects privileged users, client-created payout amounts, and replays", () => {
