@@ -46,6 +46,10 @@ describe("session isolation governance", () => {
 
     expect(center).toContain('.eq("user_id", user!.id)');
     expect(center).toContain('.eq("user_id", user.id)');
+    expect(center).toContain('window.location.pathname.toLowerCase() === "/coming-soon"');
+    expect(center).toContain("shouldFetchRealNotifications");
+    expect(center.match(/enabled: shouldFetchRealNotifications/g)?.length).toBe(2);
+    expect(center).toContain("options.realtime && shouldFetchRealNotifications");
     expect(realtime).toContain("filter: `user_id=eq.${userId}`");
     expect(realtime).toContain("removeChannel");
     expect(migration).toContain('DROP POLICY IF EXISTS "Users can view their notifications"');

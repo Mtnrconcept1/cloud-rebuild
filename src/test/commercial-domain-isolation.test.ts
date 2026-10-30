@@ -432,7 +432,9 @@ describe("commercial.thetok.ch canonical isolation", () => {
 
     expect(app).toContain("<MarketingHostBoundary>");
     expect(app).toMatch(/<AuthProvider>\s*<CanonicalWorkspaceHostBoundary>/);
-    expect(app).toContain("<CommercialHostBoundary>\n      <AdminHostBoundary />");
+    expect(app).toContain("<CommercialHostBoundary>\n          <AdminHostBoundary />");
+    expect(app).toContain('const launchFrame = pathname === "/coming-soon"');
+    expect(app).toMatch(/launchFrame[\s\S]*?<AdminHostBoundary \/>[\s\S]*?\{children\}[\s\S]*?: \([\s\S]*?<CommercialHostBoundary>/);
     expect(app.indexOf("<CanonicalWorkspaceHostBoundary>"))
       .toBeLessThan(app.indexOf("{commercialDemoFrame ? ("));
     expect(app).toMatch(

@@ -113,7 +113,7 @@ describe("marketing subdomain integration contract", () => {
     expect(app).toContain("MarketingHostBoundary");
     expect(app).toContain("<MarketingHostBoundary>");
     expect(app).toContain("function CanonicalWorkspaceHostBoundary");
-    expect(app).toContain("marketingExecutionLocation ? children");
+    expect(app).toMatch(/const canonicalChildren = marketingExecutionLocation\s*\? children/);
     expect(marketingApplication).toContain("<MarketingSessionProvider>");
     expect(marketingApplication).toContain('<Route path="/marketing/login" element={<MarketingLogin />} />');
     expect(applicationBoundary).toContain("if (isMarketingExecutionLocation(pathname))");
