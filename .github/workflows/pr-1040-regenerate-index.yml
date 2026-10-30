@@ -1,0 +1,37 @@
+name: PR 1040 temporary application index regeneration
+on:
+  push:
+    branches:
+      - agent/plinko-anonymous-daily-20261030
+    paths:
+      - .github/workflows/pr-1040-regenerate-index.yml
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/plinko-anonymous-daily-20261030
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate indices for the final branch without this temporary workflow
+        run: |
+          set -euo pipefail
+          git rm -- .github/workflows/pr-1040-regenerate-index.yml
+          pnpm docs:application-index
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'chore(docs): synchronize TOK application index after Plinko change'
+          git push origin HEAD:refs/heads/agent/plinko-anonymous-daily-20261030
