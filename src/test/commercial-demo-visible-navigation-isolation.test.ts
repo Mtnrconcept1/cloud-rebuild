@@ -156,8 +156,9 @@ describe("commercial demo visible navigation isolation", () => {
     );
 
     expect(notifications).toContain(
-      "enabled: Boolean(user?.id && !isCommercialDemoFrame)",
+      "const shouldFetchRealNotifications = Boolean(user?.id && !isCommercialDemoFrame && !isLaunchFrame)",
     );
+    expect(notifications).toContain("enabled: shouldFetchRealNotifications");
     expect(notifications).toContain("commercialDemoFrame.snapshot.events");
   });
 

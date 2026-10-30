@@ -27,7 +27,8 @@ describe("commercial demo real client dashboard home", () => {
     expect(clientHome).toContain("demoOrder.total_amount_cents / 100");
     expect(clientHome).toContain("enabled: Boolean(!isCommercialDemoClientFrame");
     expect(clientHome).toContain("const overviewData = isCommercialDemoClientFrame ? demoOverviewData : overviewQuery.data");
-    expect(notifications).toContain("enabled: Boolean(user?.id && !isCommercialDemoFrame)");
+    expect(notifications).toContain("const shouldFetchRealNotifications = Boolean(user?.id && !isCommercialDemoFrame && !isLaunchFrame)");
+    expect(notifications).toContain("enabled: shouldFetchRealNotifications");
     expect(notifications).toContain("commercialDemoFrame.snapshot.events");
   });
 

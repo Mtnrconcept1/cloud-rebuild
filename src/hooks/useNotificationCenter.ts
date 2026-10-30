@@ -44,8 +44,11 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
   // Actor frames consume isolated journey events. The embedded commercial
   // workspace keeps the authenticated user's real notification centre.
   const isCommercialDemoFrame = Boolean(commercialDemoFrame && commercialDemoFrame.surface !== "commercial");
+  const isLaunchFrame = typeof window !== "undefined"
+    && window.location.pathname.toLowerCase() === "/coming-soon";
+  const shouldFetchRealNotifications = Boolean(user?.id && !isCommercialDemoFrame && !isLaunchFrame);
 
-  useRealtimeNotifications({ enabled: Boolean(options.realtime && user?.id && !isCommercialDemoFrame) });
+  useRealtimeNotifications({ enabled: Boolean(options.realtime && shouldFetchRealNotifications) });
 
   const notificationsQuery = useQuery({
     queryKey: ["notifications", user?.id, limit],
@@ -60,7 +63,7 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
       if (error) throw error;
       return (data || []).map(normalizeNotification);
     },
-    enabled: Boolean(user?.id && !isCommercialDemoFrame),
+    enabled: shouldFetchRealNotifications,
   });
 
   const preferencesQuery = useQuery({
@@ -75,7 +78,7 @@ export function useNotificationCenter(limit = 50, options: { realtime?: boolean 
       if (error) throw error;
       return data;
     },
-    enabled: Boolean(user?.id && !isCommercialDemoFrame),
+    enabled: shouldFetchRealNotifications,
   });
 
   const inAppEnabled = isCommercialDemoFrame ? true : ((preferencesQuery.data as any)?.channels?.in_app ?? true);

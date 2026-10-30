@@ -275,12 +275,22 @@ function isMarketingExecutionLocation(pathname: string) {
 function CanonicalWorkspaceHostBoundary({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const marketingExecutionLocation = isMarketingExecutionLocation(pathname);
-  const canonicalChildren = marketingExecutionLocation ? children : (
-    <CommercialHostBoundary>
-      <AdminHostBoundary />
-      {children}
-    </CommercialHostBoundary>
-  );
+  const launchFrame = pathname === "/coming-soon";
+  const canonicalChildren = marketingExecutionLocation
+    ? children
+    : launchFrame
+      ? (
+        <>
+          <AdminHostBoundary />
+          {children}
+        </>
+      )
+      : (
+        <CommercialHostBoundary>
+          <AdminHostBoundary />
+          {children}
+        </CommercialHostBoundary>
+      );
 
   return <>{canonicalChildren}</>;
 }
