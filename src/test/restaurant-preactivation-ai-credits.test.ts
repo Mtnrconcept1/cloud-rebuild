@@ -64,8 +64,8 @@ describe("restaurant AI credits before subscription activation", () => {
     expect(migration).toContain("TG_TABLE_NAME = 'ad_campaigns'");
     expect(migration).toContain("pg_advisory_xact_lock");
     expect(migration).toContain("v_old_required_credits");
-    expect(campaignsPage).toContain("tokCredit.metadata?.preactivation");
-    expect(campaignsPage).toContain("tokCredit.metadata.campaign_spendable_balance");
+    expect(campaignsPage).toContain('Object.prototype.hasOwnProperty.call(metadata, "campaign_spendable_balance")');
+    expect(campaignsPage).toContain("metadata?.preactivation ? 0 : tokCredit.balance");
   });
 
   it("lets preactivation AI/photo tools use the wallet while preserving feature flags", () => {

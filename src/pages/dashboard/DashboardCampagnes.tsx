@@ -192,10 +192,14 @@ function getCampaignCreditBalanceFromUsage(usage: RestaurantCreditUsage | null |
   const credits = Array.isArray(usage?.credits) ? usage.credits : [];
   const tokCredit = credits.find((credit) => credit.kind === "tok_credits");
   if (tokCredit) {
-    // The 15 free pre-activation credits can only fund AI, never campaigns.
-    const spendable = tokCredit.metadata?.preactivation
-      ? tokCredit.metadata.campaign_spendable_balance
-      : tokCredit.balance;
+    // Promotional AI credit balances are not eligible campaign funds.
+    // Database guards enforce this separate campaign_spendable_balance.
+    const metadata = tokCredit.metadata;
+    const hasSpendableBalance = metadata
+      && Object.prototype.hasOwnProperty.call(metadata, "campaign_spendable_balance");
+    const spendable = hasSpendableBalance
+      ? metadata.campaign_spendable_balance
+      : metadata?.preactivation ? 0 : tokCredit.balance;
     return Math.max(0, toFiniteNumber(spendable) / TOK_CREDITS_PER_CAMPAIGN_CHF);
   }
 

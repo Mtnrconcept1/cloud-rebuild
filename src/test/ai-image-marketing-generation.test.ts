@@ -391,16 +391,50 @@ describe("native marketing image generation", () => {
   });
 
   it.each([
-    { referenceMediaIds: [] },
-    { referenceMediaIds: ["cccccccc-cccc-4ccc-8ccc-cccccccccccc"] },
-  ])("rejects absent or unavailable references before any image call: %j", async (patch) => {
+    [{ referenceMediaIds: [] }, 400, "marketing_reference_ids_required"],
+    [{ referenceMediaIds: ["cccccccc-cccc-4ccc-8ccc-cccccccccccc"] }, 409, "marketing_reference_mismatch"],
+  ] as const)("rejects absent or unavailable references BEFORE reserving credits: %j", async (patch, status, reason) => {
     const h = harness();
     const response = await h.call(patch);
+    const body = await response.json();
 
-    expect(response.status).toBe(502);
+    expect(response.status).toBe(status);
+    expect(body.error).toBe(reason);
+    expect(h.rpc.mock.calls.some(([name]) => name === "claim_ai_image_operation")).toBe(false);
     expect(h.fetchReference).not.toHaveBeenCalled();
     expect(h.provider).not.toHaveBeenCalled();
-    expectNoGeneratedSuccess(h, await response.json());
+    expectNoGeneratedSuccess(h, body);
+  });
+
+  it("accepts an indexed Marketing Studio style reference stored inside the same restaurant", async () => {
+    const h = harness();
+    const style = h.activeReferences[0];
+    style.media_type = "marketing_brand_visual";
+    style.storage_path = `${RESTAURANT_ID}/marketing/style-references/fixture-user/style.webp`;
+    style.media_url = `${STORAGE_URL}/restaurant-images/${style.storage_path}`;
+
+    const response = await h.call();
+    const body = await response.json();
+
+    expect(response.status, JSON.stringify(body)).toBe(200);
+    expect(h.provider).toHaveBeenCalledOnce();
+    expect((h.provider.mock.calls[0][1].body as FormData).getAll("image[]")).toHaveLength(1);
+    expect(h.assets).toHaveLength(1);
+    expect(body.reference_media_ids ?? (h.assets[0].metadata as Json).reference_media_ids).toEqual([style.id]);
+  });
+
+  it("rejects a style reference stored under another restaurant without reserving TOK credits", async () => {
+    const h = harness();
+    h.activeReferences[0].media_type = "marketing_brand_visual";
+    h.activeReferences[0].storage_path = "ffffffff-ffff-4fff-8fff-ffffffffffff/marketing/style-references/user/style.webp";
+
+    const response = await h.call();
+    const body = await response.json();
+    expect(response.status).toBe(409);
+    expect(body.error).toBe("marketing_reference_mismatch");
+    expect(h.rpc.mock.calls.some(([name]) => name === "claim_ai_image_operation")).toBe(false);
+    expect(h.provider).not.toHaveBeenCalled();
+    expectNoGeneratedSuccess(h, body);
   });
 
   it("refuses insufficient restaurant credits before downloading references or contacting the provider", async () => {

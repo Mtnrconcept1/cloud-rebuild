@@ -186,7 +186,7 @@ describe("AI image intention admission and financial outcome", () => {
   });
   it("binds native handler provider and storage paths to the admitted operation", () => {
     const source = readFileSync("supabase/functions/ai-image-enhance/index.ts", "utf8");
-    expect(source.indexOf("AiImageOperation.claim(actor.adminClient")).toBeLessThan(source.indexOf("const marketingReferences = marketingAssetMode"));
+    expect(source.indexOf("const marketingReferences = marketingAssetMode")).toBeLessThan(source.indexOf("AiImageOperation.claim(actor.adminClient"));
     expect(source).toContain("const imageOptions = { ...generatedImageOptions, operation }");
     expect(source).toContain('"X-Client-Request-Id": options.operation.providerClientRequestId');
     expect(source).toContain("await options.operation.beforeProvider()");

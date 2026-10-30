@@ -55,6 +55,15 @@ describe("public error messages", () => {
     expect(formatAiImageGenerationError(new Error("image_edit_failed:400:content_policy"))).toContain("refusée par la sécurité");
   });
 
+  it("explains stale marketing references without exposing backend details", () => {
+    const mismatch = formatAiImageGenerationError(new Error("marketing_reference_mismatch"));
+    expect(mismatch).toContain("référence de style ou de marque");
+    expect(mismatch).toContain("Actualisez");
+    expect(mismatch).not.toMatch(TECHNICAL_VISIBLE_PATTERN);
+    const missing = formatAiImageGenerationError(new Error("marketing_reference_ids_required"));
+    expect(missing).toContain("ressource de marque enregistrée");
+  });
+
   it("shows the right action for TOK credits without exposing provider billing failures", () => {
     expect(isTokCreditError(new Error("ai_credits_exhausted"))).toBe(true);
     expect(isTokCreditError(new Error("image_edit_failed:402:insufficient_quota"))).toBe(false);
