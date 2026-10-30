@@ -1840,10 +1840,10 @@ async function runMarketingOrchestrator(
     sendJson(res, 200, response.value);
     return;
   }
-  if (action !== "run_due" && action !== "run_item" && action !== "check_meta") {
+  if (action !== "run_due" && action !== "run_item" && action !== "check_meta" && action !== "check_resend") {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
-  const allowedKeys = action === "check_meta" ? ["action"]
+  const allowedKeys = (action === "check_meta" || action === "check_resend") ? ["action"]
     : action === "run_item" ? ["action", "itemId", "limit"] : ["action", "limit"];
   if (Object.keys(body).some((key) => !allowedKeys.includes(key))) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
@@ -1858,8 +1858,8 @@ async function runMarketingOrchestrator(
   }
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
-  if (action === "check_meta") await consumeRateLimit(config, req, "meta-health", session.userId, false);
-  const payload: JsonObject = action === "check_meta" ? { action } : { action, limit: rawLimit };
+  if (action === "check_meta" || action === "check_resend") await consumeRateLimit(config, req, "meta-health", session.userId, false);
+  const payload: JsonObject = (action === "check_meta" || action === "check_resend") ? { action } : { action, limit: rawLimit };
   if (itemId) payload.itemId = itemId;
   const response = await boundedFetch(
     `${config.supabaseUrl}/functions/v1/marketing-orchestrator`,
@@ -1879,7 +1879,7 @@ async function runMarketingOrchestrator(
       },
       body: JSON.stringify(payload),
     },
-    action === "check_meta" ? 35_000 : ORCHESTRATOR_TIMEOUT_MS,
+    (action === "check_meta" || action === "check_resend") ? 35_000 : ORCHESTRATOR_TIMEOUT_MS,
   );
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
