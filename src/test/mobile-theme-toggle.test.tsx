@@ -21,39 +21,43 @@ afterEach(() => {
 });
 
 describe("mobile theme toggle", () => {
-  it("toggles the html dark class and persists the selected theme", () => {
+  it("toggles the html dark class and persists the selected theme", async () => {
     render(<ThemeToggleButton />);
 
     const button = screen.getByRole("button", { name: "Mode sombre" });
 
     expect(button).toHaveAttribute("aria-pressed", "false");
-    fireEvent.click(button);
+    await act(async () => { fireEvent.click(button); });
     expect(button).toHaveAccessibleName("Mode clair");
     expect(button).toHaveAttribute("aria-pressed", "true");
     expect(document.documentElement.classList.contains("dark")).toBe(true);
     expect(localStorage.getItem("theme")).toBe("dark");
 
-    fireEvent.click(button);
+    await act(async () => { fireEvent.click(button); });
     expect(document.documentElement.classList.contains("dark")).toBe(false);
     expect(localStorage.getItem("theme")).toBe("light");
     expect(button).toHaveAccessibleName("Mode sombre");
     expect(button).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("respects light and dark preference while keeping Halloween active", () => {
-    document.documentElement.classList.add("dark");
-    render(<><HalloweenTheme enabled /><ThemeToggleButton /></>);
+  it("disables the light-mode control during Halloween and restores it afterwards", async () => {
+    localStorage.setItem("theme", "light");
+    const { rerender } = render(<><HalloweenTheme enabled /><ThemeToggleButton /></>);
 
     expect(document.documentElement.dataset.seasonalTheme).toBe("halloween");
-    const toggle = screen.getByRole("button", { name: "Mode clair" });
-    fireEvent.click(toggle);
-    expect(document.documentElement.classList.contains("dark")).toBe(false);
-    expect(document.documentElement.dataset.seasonalTheme).toBe("halloween");
+    const toggle = await screen.findByRole("button", { name: "Mode sombre obligatoire pendant Halloween" });
+    expect(toggle).toBeDisabled();
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
+
+    await act(async () => { fireEvent.click(toggle); });
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
     expect(localStorage.getItem("theme")).toBe("light");
 
-    fireEvent.click(toggle);
-    expect(document.documentElement.classList.contains("dark")).toBe(true);
-    expect(document.documentElement.dataset.seasonalTheme).toBe("halloween");
+    rerender(<><HalloweenTheme enabled={false} /><ThemeToggleButton /></>);
+    const restoredToggle = await screen.findByRole("button", { name: "Mode sombre" });
+    expect(restoredToggle).not.toBeDisabled();
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+    await act(async () => { fireEvent.click(restoredToggle); });
     expect(localStorage.getItem("theme")).toBe("dark");
   });
 

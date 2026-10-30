@@ -159,6 +159,35 @@ export default function Navbar() {
   }, [accountMenuOpen, menuOpen]);
 
   useLayoutEffect(() => {
+    const header = headerRef.current;
+    const canopy = header?.querySelector<HTMLElement>(".tok-halloween-canopy");
+    if (!showHalloweenCanopy || !header || !canopy) return undefined;
+
+    // The artwork sits outside the header box. Include its actual responsive
+    // height in the header's single exit transform so nothing stays over content.
+    const syncCanopyHeight = () => {
+      const height = Math.ceil(canopy.getBoundingClientRect().height);
+      header.style.setProperty("--tok-halloween-canopy-height", `${height}px`);
+    };
+    syncCanopyHeight();
+
+    const observer = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(syncCanopyHeight)
+      : null;
+    observer?.observe(canopy);
+    const image = canopy.querySelector("img");
+    image?.addEventListener("load", syncCanopyHeight);
+    window.addEventListener("resize", syncCanopyHeight);
+
+    return () => {
+      observer?.disconnect();
+      image?.removeEventListener("load", syncCanopyHeight);
+      window.removeEventListener("resize", syncCanopyHeight);
+      header.style.removeProperty("--tok-halloween-canopy-height");
+    };
+  }, [showHalloweenCanopy]);
+
+  useLayoutEffect(() => {
     const root = document.documentElement;
 
     const updatePublicNavbarOffset = () => {
@@ -250,10 +279,13 @@ export default function Navbar() {
         ref={headerRef}
         className={`tok-site-header ${isGoldenTokRoute ? "tok-golden-nav" : ""} sticky top-0 z-[70] w-full border-b bg-background safe-top transition-[opacity,transform] duration-300 ease-out dark:bg-slate-950 ${isHeaderVisible ? "" : "pointer-events-none"} ${isMobileHomeHeader ? "tok-home-header border-border dark:border-border" : "border-border/70 dark:border-white/10"}`}
         style={{
-          // When retracted the menu leaves the viewport, but its canopy stays
-          // visible at y=0 because both share the same translated element.
-          opacity: isHeaderVisible || showHalloweenCanopy ? 1 : 0,
-          transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
+          // Slide the header AND its attached Halloween artwork out of view.
+          opacity: isHeaderVisible ? 1 : 0,
+          transform: isHeaderVisible
+            ? "translateY(0)"
+            : showHalloweenCanopy
+              ? "translateY(calc(-100% - var(--tok-halloween-canopy-height, 0px)))"
+              : "translateY(-100%)",
         }}
       >
         <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-3 px-3 min-[380px]:px-4 md:h-[76px] md:px-8 xl:px-5 2xl:px-8 ${isMobileHomeHeader ? "h-[66px]" : "h-16"}`}>

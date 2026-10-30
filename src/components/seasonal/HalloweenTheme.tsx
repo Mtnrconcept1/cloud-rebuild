@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 export const HALLOWEEN_FEATURE_FLAG = "seasonal-halloween-2026";
 
@@ -16,20 +16,33 @@ export function HalloweenCanopy() {
 }
 
 export default function HalloweenTheme({ enabled }: HalloweenThemeProps) {
-  useEffect(() => {
-    if (!enabled) {
-      if (document.documentElement.dataset.seasonalTheme === "halloween") {
-        delete document.documentElement.dataset.seasonalTheme;
-      }
-      return undefined;
-    }
+  useLayoutEffect(() => {
+    if (!enabled) return undefined;
 
-    document.documentElement.dataset.seasonalTheme = "halloween";
+    const root = document.documentElement;
+    root.dataset.seasonalTheme = "halloween";
+
+    // Halloween is exclusively a dark theme, without overwriting the user's preference.
+    const enforceDark = () => {
+      if (!root.classList.contains("dark")) root.classList.add("dark");
+    };
+    enforceDark();
+
+    const observer = new MutationObserver(enforceDark);
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
 
     return () => {
-      if (document.documentElement.dataset.seasonalTheme === "halloween") {
-        delete document.documentElement.dataset.seasonalTheme;
-      }
+      observer.disconnect();
+      if (root.dataset.seasonalTheme !== "halloween") return;
+
+      delete root.dataset.seasonalTheme;
+      const storedTheme = localStorage.getItem("theme");
+      const systemPrefersDark = typeof window.matchMedia === "function"
+        && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      root.classList.toggle(
+        "dark",
+        storedTheme === "dark" || (storedTheme === null && systemPrefersDark),
+      );
     };
   }, [enabled]);
 
