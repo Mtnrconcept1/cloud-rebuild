@@ -132,10 +132,11 @@ test("middleware serves generated aliases as same-origin 301s and leaves other r
   const f = await fixture(t, { old: "canonical", hidden: "missing" });
   await f.addPage("canonical");
   await applyVenueRedirects(f.root);
+  await writeFile(path.join(f.root, ".vercel", "restaurant-redirects.mjs"), "export default [];\n");
   await writeFile(path.join(f.root, "package.json"), '{"type":"module"}');
   await writeFile(path.join(f.root, "middleware.js"), await readFile(new URL("../middleware.js", import.meta.url)));
   const { default: middleware, config } = await import(pathToFileURL(path.join(f.root, "middleware.js")).href);
-  assert.equal(config.matcher, "/restaurants-pres/:path*");
+  assert.deepEqual(config.matcher, ["/restaurants-pres/:path*", "/restaurant/:path*"]);
   for (const method of ["GET", "HEAD"]) {
     for (const suffix of ["", "/"]) {
       const response = middleware(new Request(`${origin}/restaurants-pres/old${suffix}?utm_source=test&x=%2F`, { method }));
