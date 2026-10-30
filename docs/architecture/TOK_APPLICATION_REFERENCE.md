@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `88705240720815ee54ba89b68303987aa0e567f8a32463ad8a3b60f8f58b0b8f`
+- Empreinte SHA-256 des sources indexées : `73cc316dc71242562ba1f5befe94a37bb5dc97a0f6bedee47ca206d96c76a46c`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1869,7 +1869,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
 | /images/home/tok-leman-signature-fast.webp | 1 | [src/test/home-core-web-vitals.test.ts:17](../../src/test/home-core-web-vitals.test.ts#L17) |
 | /images/home/tok-leman-signature.webp | 3 | [src/components/home/HeroSection.tsx:52](../../src/components/home/HeroSection.tsx#L52) |
-| /images/home/tok-logo-ui.webp | 5 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
+| /images/home/tok-logo-ui.webp | 4 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
 | /images/kebab-box-spread.jpeg | 22 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
