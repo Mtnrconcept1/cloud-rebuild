@@ -1,3 +1,5 @@
+import { normalizeAcquisitionTouch, type AcquisitionTouch } from "./marketing-utm.ts";
+
 /**
  * Public restaurant demo leads: parse only explicit, bounded structured fields.
  * A marketing checkbox is stored as unverified evidence until a controlled
@@ -13,6 +15,8 @@ export type RestaurantDemoInput = {
   tableCount: number | null;
   primaryNeed: string;
   marketingConsent: boolean;
+  /** User-declared visit source; never proof of conversion or consent. */
+  acquisitionTouch: Pick<AcquisitionTouch, "utm" | "referrerHost" | "touchedAt"> | null;
 };
 
 export function parseRestaurantDemoInput(raw: unknown): RestaurantDemoInput {
@@ -39,6 +43,14 @@ export function parseRestaurantDemoInput(raw: unknown): RestaurantDemoInput {
   ) {
     throw new Error("invalid_restaurant_demo_details");
   }
+  const touch = row.marketingTrackingConsent === true
+    ? normalizeAcquisitionTouch(row.acquisitionTouch)
+    : null;
+  const touchedAtAge = touch ? Date.now() - Date.parse(touch.touchedAt) : Number.NaN;
+  // Never persist arbitrary navigation paths, query strings, user identifiers or stale sources.
+  const acquisitionTouch = touch && touchedAtAge >= -300_000 && touchedAtAge <= 90 * 86_400_000
+    ? { utm: touch.utm, referrerHost: touch.referrerHost, touchedAt: touch.touchedAt }
+    : null;
   return {
     requestId,
     city: city.trim(),
@@ -46,5 +58,6 @@ export function parseRestaurantDemoInput(raw: unknown): RestaurantDemoInput {
     tableCount,
     primaryNeed: primaryNeed.trim(),
     marketingConsent: consent,
+    acquisitionTouch,
   };
 }

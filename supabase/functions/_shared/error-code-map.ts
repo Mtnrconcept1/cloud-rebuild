@@ -2964,7 +2964,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "restaurant_demo_crm_unavailable": [
     {
       "file": "supabase/functions/contact-support/index.ts",
-      "line": 215
+      "line": 222
     }
   ],
   "restaurant_id_missing": [

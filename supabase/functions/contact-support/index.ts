@@ -209,6 +209,13 @@ Deno.serve(async (req) => {
             marketing_opt_in_requested: demoLead.marketingConsent,
             marketing_opt_in_requested_at: demoLead.marketingConsent ? new Date().toISOString() : null,
             marketing_status: "unverified",
+            // A client-declared source may help research but is never verified campaign revenue.
+            acquisition_touch: demoLead.acquisitionTouch ? {
+              status: "self_reported_unverified",
+              utm: demoLead.acquisitionTouch.utm,
+              referrer_host: demoLead.acquisitionTouch.referrerHost,
+              touched_at: demoLead.acquisitionTouch.touchedAt,
+            } : null,
           },
         }).select("id").maybeSingle();
       if (leadError && leadError.code !== "23505") {

@@ -80,6 +80,7 @@ DECLARE
   v_contacts integer := 0;
   v_opted_in_emails integer := 0;
   v_leads_7d integer := 0;
+  v_leads_with_source_7d integer := 0;
   v_signatures_7d integer := 0;
   v_reservations_7d integer := 0;
   v_honored_7d integer := 0;
@@ -193,6 +194,12 @@ BEGIN
 
   SELECT count(*) INTO v_leads_7d FROM public.restaurant_leads
     WHERE created_at >= now() - interval '7 days';
+  -- Self-reported acquisition hints are counted separately, not as verified conversions.
+  SELECT count(*) INTO v_leads_with_source_7d FROM public.restaurant_leads
+    WHERE created_at >= now() - interval '7 days'
+      AND source = 'restaurateurs_geneve'
+      AND metadata #>> '{acquisition_touch,status}' = 'self_reported_unverified'
+      AND metadata #>> '{acquisition_touch,utm,utm_source}' IS NOT NULL;
   SELECT count(*) INTO v_signatures_7d FROM public.commercial_prospect_followups
     WHERE signed_at >= now() - interval '7 days';
   SELECT count(*) INTO v_reservations_7d FROM public.reservations
@@ -229,7 +236,9 @@ BEGIN
   v_metrics := jsonb_build_object(
     'source','TOK PostgreSQL', 'window_days',7,
     'prospect_contacts',v_contacts,'consented_emails',v_opted_in_emails,
-    'restaurant_leads_created',v_leads_7d,'signed_restaurants',v_signatures_7d,
+    'restaurant_leads_created',v_leads_7d,
+    'inbound_leads_with_source_unverified',v_leads_with_source_7d,
+    'signed_restaurants',v_signatures_7d,
     'reservations_created',v_reservations_7d,'reservations_honored',v_honored_7d,
     'acquisition_touches',v_acquisitions_7d,'campaign_attributed_conversions',v_attributed_7d,
     'restaurant_contracts_signed',v_contracts_signed_7d,

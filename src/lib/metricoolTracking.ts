@@ -7,6 +7,12 @@
 export const METRICOOL_TRACKER_SRC = "https://tracker.metricool.com/resources/be.js";
 export const METRICOOL_TRACKER_HASH = "8dd2fca1e84e3ac86c6d9d09fc0d05e9";
 
+/** The connected brand currently mixes Stoppin publications and TOK Instagram.
+ * Stay off until the operator verifies ownership of the TOK website property. */
+export function isMetricoolTokPropertyVerified(): boolean {
+  return import.meta.env.VITE_METRICOOL_TOK_PROPERTY_VERIFIED === "true";
+}
+
 type MetricoolApi = { t: (input: { hash: string }) => void };
 type MetricoolWindow = Window & { beTracker?: MetricoolApi };
 
@@ -66,7 +72,7 @@ function getTracker(): MetricoolApi | null {
 
 /** Insert the official script only once; no inline JavaScript (TOK CSP forbids it). */
 export function ensureMetricoolLoaded(): Promise<boolean> {
-  if (typeof document === "undefined" || typeof window === "undefined") return Promise.resolve(false);
+  if (!isMetricoolTokPropertyVerified() || typeof document === "undefined" || typeof window === "undefined") return Promise.resolve(false);
   if (getTracker()) return Promise.resolve(true);
   if (loadPromise) return loadPromise;
 
@@ -95,6 +101,7 @@ export function ensureMetricoolLoaded(): Promise<boolean> {
 
 /** Called only after consent and route checks by MetricoolPageTracker. */
 export function sendMetricoolPageView(): boolean {
+  if (!isMetricoolTokPropertyVerified()) return false;
   const tracker = getTracker();
   if (!tracker) return false;
   try {

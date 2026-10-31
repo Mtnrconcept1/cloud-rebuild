@@ -29,6 +29,21 @@ Metricool indique que son traqueur de site ne dépose pas de cookies, mais reço
 la page consultée et déduit le pays de l'adresse IP. La politique de confidentialité
 et l'inventaire des traceurs TOK le documentent.
 
+## Précondition bloquante : identité de marque
+
+Le 31 octobre, la marque Metricool reliée dans ChatGPT porte le nom `stoppin_gva`
+et contient des **publications Stoppin déjà publiées sur Facebook**, bien que
+le profil Instagram connecté soit `tok_suisse`. Cette marque est donc MIXTE :
+l'identifiant de suivi fourni ne constitue pas une preuve qu'une propriété
+Web TOK indépendante est configurée. Pour éviter de mélanger des statistiques
+entre deux entreprises, **le traceur reste désactivé par défaut**.
+
+La variable de build `VITE_METRICOOL_TOK_PROPERTY_VERIFIED=true` ne doit être
+définie sur la cible de production qu'après avoir confirmé dans Metricool
+que le hash est attribué au site TOK, et après avoir séparé les comptes
+Stoppin et TOK si nécessaire. Ce paramètre est public et n'est pas un secret.
+Le consentement Analytics du visiteur demeure obligatoire après activation.
+
 ## Contrôle d'activation après fusion et publication
 
 1. Dans Metricool, vérifier que le compte de marque concerné contient réellement

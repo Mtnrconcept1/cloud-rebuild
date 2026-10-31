@@ -66,6 +66,14 @@ La priorité `focus_code` est une **recommandation**, jamais une preuve de
 causalité. Elle peut orienter les tests de la page restaurateurs, la fluidité
 de la réservation ou une campagne ciblée vers les contacts opt-in.
 
+Les formulaires de démonstration peuvent aussi déclarer une première source
+UTM après consentement **distinct** au suivi marketing dans le navigateur.
+Cette indication est normalisée, bornée et marquée
+`self_reported_unverified` dans les métadonnées du lead. Le bilan mesure le
+nombre de demandes présentant une telle source, sans en déduire une conversion
+attribuée à une campagne. Aucun paramètre d'URL arbitraire ni identité de
+navigation n'est conservé à cet endroit.
+
 Le bilan distingue également quatre étapes post-signature vérifiables : contrats
 acceptés et signés, factures d'abonnement Stripe confirmées par un événement
 `invoice_paid` (dédupliquées par facture), deals payés disposant d'un identifiant

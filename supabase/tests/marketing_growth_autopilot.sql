@@ -44,6 +44,8 @@ BEGIN
    RAISE EXCEPTION 'Invented marketing conversion rate'; END IF;
  IF (SELECT metrics->>'reservations_created' FROM public.marketing_growth_snapshots) <> '1' THEN
    RAISE EXCEPTION 'Missing real booking baseline'; END IF;
+ IF (SELECT metrics->>'inbound_leads_with_source_unverified' FROM public.marketing_growth_snapshots) <> '1' THEN
+   RAISE EXCEPTION 'Inbound lead self-reported campaign source was not counted safely'; END IF;
  IF (SELECT metrics->>'restaurant_contracts_signed' FROM public.marketing_growth_snapshots) <> '1' THEN
    RAISE EXCEPTION 'Unaccepted contract counted as signed'; END IF;
  IF (SELECT metrics->>'stripe_subscription_invoices_paid' FROM public.marketing_growth_snapshots) <> '1' THEN

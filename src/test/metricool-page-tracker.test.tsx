@@ -32,11 +32,13 @@ function setAnalytics(allowed: boolean) {
 
 describe("Metricool website tracking", () => {
   beforeEach(() => {
+    vi.stubEnv("VITE_METRICOOL_TOK_PROPERTY_VERIFIED", "true");
     localStorage.clear();
     document.head.querySelectorAll("script[data-tok-metricool]").forEach((script) => script.remove());
   });
   afterEach(() => {
     delete (window as Window & { beTracker?: unknown }).beTracker;
+    vi.unstubAllEnvs();
   });
 
   it("restricts tracking to public TOK URLs with safe campaign parameters", () => {
@@ -61,6 +63,14 @@ describe("Metricool website tracking", () => {
     expect(isMetricoolTrackablePage(visit("/recherche", { search: "?email=client@example.ch" }))).toBe(false);
     expect(isMetricoolTrackablePage(visit("/recherche", { search: "?utm_source=jane@example.ch" }))).toBe(false);
     expect(isMetricoolTrackablePage(visit("/", { hash: "#access_token=secret" }))).toBe(false);
+  });
+
+  it("refuses any tracking while the TOK website property is not verified in Metricool", async () => {
+    vi.stubEnv("VITE_METRICOOL_TOK_PROPERTY_VERIFIED", "false");
+    render(<MemoryRouter initialEntries={["/"]}><MetricoolPageTracker /></MemoryRouter>);
+    setAnalytics(true);
+    await Promise.resolve();
+    expect(document.querySelector("script[data-tok-metricool]")).toBeNull();
   });
 
   it("does not load before consent, then counts SPA navigation once without tracking private pages", async () => {

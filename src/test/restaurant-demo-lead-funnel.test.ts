@@ -53,6 +53,40 @@ describe("restaurant demo: verified inbound prospect CRM", () => {
     expect(front).toContain('marketingConsent: data.get("marketing_optin") === "on"');
   });
 
+  it("records only unverified, bounded campaign hints after distinct tracking consent", () => {
+    const sample = {
+      utm: { utm_source: "Instagram", utm_campaign: "tok_october", utm_medium: "social" },
+      referrerHost: "instagram.com",
+      landingPath: "/restaurateurs/geneve?email=private@example.ch",
+      touchedAt: new Date().toISOString(),
+    };
+    const withoutConsent = parseRestaurantDemoInput({ ...request, acquisitionTouch: sample });
+    expect(withoutConsent.acquisitionTouch).toBeNull();
+
+    const withConsent = parseRestaurantDemoInput({ ...request, marketingTrackingConsent: true, acquisitionTouch: sample });
+    expect(withConsent.acquisitionTouch).toEqual({
+      utm: { utm_source: "instagram", utm_campaign: "tok_october", utm_medium: "social" },
+      referrerHost: "instagram.com",
+      touchedAt: sample.touchedAt,
+    });
+    expect(withConsent.acquisitionTouch).not.toHaveProperty("landingPath");
+    expect(parseRestaurantDemoInput({ ...request, marketingTrackingConsent: true, acquisitionTouch: {
+      ...sample, utm: { utm_source: "person@example.ch" }, referrerHost: null,
+    } }).acquisitionTouch).toBeNull();
+    expect(parseRestaurantDemoInput({ ...request, marketingTrackingConsent: true, acquisitionTouch: {
+      ...sample, touchedAt: "2024-01-01T00:00:00.000Z",
+    } }).acquisitionTouch).toBeNull();
+    expect(edge).toContain('status: "self_reported_unverified"');
+    expect(edge).not.toContain("marketing_attribution_facts");
+    expect(front).toContain('hasConsent("marketing")');
+  });
+
+  it("offers a direct, explicit restaurant signup and confirms demo receipt without purchase", () => {
+    expect(front).toContain('<Link to="/auth?role=restaurateur">');
+    expect(front).toContain('data-testid="restaurant-demo-confirmation"');
+    expect(front).toContain("Aucun abonnement ni paiement déclenché par une demande de démonstration");
+  });
+
   it("enforces CAPTCHA, per-recipient caps, deduplication and a transactional-only reply", () => {
     expect(edge.indexOf("await verifyTurnstileIfConfigured")).toBeLessThan(
       edge.indexOf('.from("restaurant_leads")'),

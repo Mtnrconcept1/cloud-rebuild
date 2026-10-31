@@ -6,6 +6,7 @@ import { isNative } from "@/lib/platform";
 import {
   ensureMetricoolLoaded,
   isMetricoolTrackablePage,
+  isMetricoolTokPropertyVerified,
   sendMetricoolPageView,
 } from "@/lib/metricoolTracking";
 
@@ -25,7 +26,7 @@ export default function MetricoolPageTracker() {
   }, []);
 
   useEffect(() => {
-    const allowed = analyticsAllowed && isMetricoolTrackablePage({
+    const allowed = analyticsAllowed && isMetricoolTokPropertyVerified() && isMetricoolTrackablePage({
       hostname: window.location.hostname,
       pathname,
       search,
