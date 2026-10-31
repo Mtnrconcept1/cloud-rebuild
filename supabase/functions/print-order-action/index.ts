@@ -3,13 +3,14 @@ import {
   assertProductionFlowAllowed,
   authenticateRequest,
   createAdminClient,
+  getEnv,
   jsonResponse,
   requireRestaurantAccess,
   requireRole,
   writeAuditLog,
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
-import { getPrintProvider } from "../_shared/print/cloudprinter.ts";
+import { getCloudprinterMode, getPrintProvider } from "../_shared/print/cloudprinter.ts";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -99,12 +100,48 @@ Deno.serve(async (req) => {
     const orderId = requireString(body.orderId, "orderId");
     const { data: order, error: orderError } = await adminClient
       .from("print_orders")
-      .select("id, restaurant_id, status, payment_status, customer_currency, customer_amount_cents, quantity, provider_reference, tracking_code, tracking_url, carrier, created_at, updated_at")
+      .select("id, restaurant_id, payment_attempt_id, status, payment_status, customer_currency, customer_amount_cents, quantity, provider_reference, tracking_code, tracking_url, carrier, created_at, updated_at")
       .eq("id", orderId)
       .eq("restaurant_id", restaurantId)
       .maybeSingle();
     if (orderError) throw orderError;
     if (!order) throw new HttpError(404, "Commande impression introuvable");
+
+    if (action === "sync_checkout") {
+      // Never infer a successful payment from URL query parameters.
+      // The callback fetches the real Stripe Test session and checks owner,
+      // bound payment attempt, mode, zero amount and lack of PaymentIntent.
+      if (getCloudprinterMode() === "sandbox" && order.payment_status === "pending"
+          && Number(order.customer_amount_cents) === 0 && order.payment_attempt_id) {
+        const { data: attempt, error: attemptError } = await adminClient.from("payment_attempts")
+          .select("kind, mode, stripe_checkout_session_id")
+          .eq("id", order.payment_attempt_id).eq("restaurant_id", restaurantId).maybeSingle();
+        if (attemptError) throw attemptError;
+        if (attempt?.kind === "marketing_print_order" && attempt.mode === "test"
+            && attempt.stripe_checkout_session_id?.startsWith("cs_test_")) {
+          const origin = String(getEnv("SUPABASE_URL")).replace(/\/+$/, "");
+          if (!origin.startsWith("https://")) throw new HttpError(503, "PRINT_SANDBOX_CALLBACK_UNAVAILABLE");
+          const callback = origin + "/functions/v1/print-sandbox-complete?session_id="
+            + encodeURIComponent(attempt.stripe_checkout_session_id);
+          const response = await fetch(callback, {
+            method: "GET", redirect: "manual", signal: AbortSignal.timeout(35000),
+          });
+          if (response.status !== 303
+              || !(response.headers.get("location") || "").includes("status=sandbox_success")) {
+            throw new HttpError(409, "Le paiement de test est encore en attente. Vérifiez la session Stripe.");
+          }
+        }
+      }
+      const { data: current, error: refreshError } = await adminClient.from("print_orders")
+        .select("id, status, payment_status, customer_amount_cents, customer_currency, quantity, provider_reference")
+        .eq("id", orderId).eq("restaurant_id", restaurantId).maybeSingle();
+      if (refreshError) throw refreshError;
+      return jsonResponse({
+        order: current, confirmed: current?.payment_status === "paid",
+        sandbox: getCloudprinterMode() === "sandbox",
+        previewUrl: current?.payment_status === "paid" ? await previewUrl(adminClient, orderId) : null,
+      }, 200, cors);
+    }
 
     if (action === "get") {
       const { data: events, error: eventError } = await adminClient

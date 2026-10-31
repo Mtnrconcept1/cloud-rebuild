@@ -6,6 +6,7 @@ import {
 import { finalizePaymentAttempt } from "../_shared/payment-attempts.ts";
 import { getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
 import { getCloudprinterMode } from "../_shared/print/cloudprinter.ts";
+import { enqueueNotification, triggerNotificationDispatch } from "../_shared/notifications.ts";
 
 function required(value: unknown, field: string) {
   const normalized = String(value || "").trim();
@@ -83,7 +84,7 @@ Deno.serve(async (req) => {
       && metadata.checkout_amount_cents === "0"
       && session.livemode === false
       && session.mode === "payment"
-      && session.payment_status === "no_payment_required"
+      && (session.payment_status === "no_payment_required" || session.payment_status === "paid")
       && session.status === "complete"
       && Number(session.amount_total || 0) === 0
       && String(session.currency || "").toUpperCase() === "CHF"
@@ -117,7 +118,7 @@ Deno.serve(async (req) => {
 
     const { data: order, error: orderError } = await adminClient
       .from("print_orders")
-      .select("id, restaurant_id, owner_user_id, payment_attempt_id, customer_amount_cents, customer_currency, payment_status, status")
+      .select("id, restaurant_id, owner_user_id, payment_attempt_id, customer_amount_cents, customer_currency, quantity, payment_status, status")
       .eq("id", orderId)
       .maybeSingle();
     if (orderError) throw orderError;
@@ -161,6 +162,47 @@ Deno.serve(async (req) => {
         p_stripe_event_id: null,
       });
       if (finalizeOrderError) throw finalizeOrderError;
+    }
+
+    // A completed 0-CHF test session is a simulation, not financial revenue.
+    // Delivery is idempotent across repeated Stripe redirects.
+    try {
+      const { data: existingNotice } = await adminClient.from("notifications")
+        .select("id").eq("user_id", order.owner_user_id)
+        .eq("type", "print_order_confirmation")
+        .filter("data->>print_order_id", "eq", order.id).limit(1).maybeSingle();
+      if (!existingNotice?.id) {
+        await enqueueNotification({
+          adminClient, userId: order.owner_user_id,
+          title: "Impression de test confirmée",
+          body: "Votre impression de test est confirmée : 0,00 CHF, aucun débit réel.",
+          type: "print_order_confirmation", category: "transactional",
+          data: { print_order_id: order.id, restaurant_id: restaurantId,
+            sandbox: true, url: "/dashboard/photos", requested_channels: { in_app: true, push: true, email: false } },
+        });
+      }
+      const { data: owner } = await adminClient.auth.admin.getUserById(order.owner_user_id);
+      const recipient = String(owner?.user?.email || "").trim();
+      if (recipient && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(recipient)) {
+        const key = `print-sandbox:${order.id}:confirmation`;
+        const { data: existingMail } = await adminClient.from("email_queue")
+          .select("id").filter("metadata->>transactional_email_key", "eq", key).limit(1).maybeSingle();
+        if (!existingMail?.id) {
+          const message = "Votre commande d'impression Sandbox est confirmée. Aucun paiement réel n'a été effectué. Référence : " + order.id;
+          const { error: mailError } = await adminClient.from("email_queue").insert({
+            to_email: recipient, subject: "TheTok Print — confirmation de simulation",
+            body_text: message + "\nSuivez votre impression sur https://www.thetok.ch/dashboard/photos",
+            body_html: "<p>" + message + "</p><p><a href=\"https://www.thetok.ch/dashboard/photos\">Suivre mon impression</a></p>",
+            metadata: { transactional_email: "print_confirmation", transactional_email_key: key,
+              print_order_id: order.id, sandbox: true, recipient_role: "customer" },
+          });
+          if (mailError) throw mailError;
+        }
+      }
+      await triggerNotificationDispatch({ source: "print-sandbox-complete", push: true, email: true, userId: order.owner_user_id });
+    } catch (notificationError) {
+      console.warn("[print-sandbox-complete] notification_delivery_pending", {
+        orderId: order.id, code: notificationError instanceof Error ? notificationError.name : "unknown" });
     }
 
     let orchestratorTriggered = false;
