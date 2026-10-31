@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `3b47e535aa42dc26ecf53305b4606494809044e0d5c98a42a6942205c9667d98`
+- Empreinte SHA-256 des sources indexées : `9e6f91d8dbe51eb3ec4607bb6a3502cd1b283dc076e363b282937492b7924de4`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,14 +45,14 @@
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19990 |
-| repositoryFiles | 3881 |
+| records | 19992 |
+| repositoryFiles | 3882 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 33 |
+| workflows | 34 |
 
 ## État distant observé
 
@@ -1575,7 +1575,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/v1/oauth/token | 2 | [src/test/tok-connect-broker.test.ts:56](../../src/test/tok-connect-broker.test.ts#L56) |
 | /auth/v1/token?grant_type=password | 5 | [src/test/marketing-bff-security.test.ts:240](../../src/test/marketing-bff-security.test.ts#L240) |
 | /auth/v1/user | 10 | [src/test/marketing-bff-security.test.ts:251](../../src/test/marketing-bff-security.test.ts#L251) |
-| /auth?code=private | 1 | [src/test/metricool-page-tracker.test.tsx:99](../../src/test/metricool-page-tracker.test.tsx#L99) |
+| /auth?code=private | 1 | [src/test/metricool-page-tracker.test.tsx:110](../../src/test/metricool-page-tracker.test.tsx#L110) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /auth?confirmed=1 | 3 | [src/test/auth-signup-form.test.tsx:595](../../src/test/auth-signup-form.test.tsx#L595) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
@@ -2179,7 +2179,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurant/12345 | 1 | [src/test/metricool-page-tracker.test.tsx:54](../../src/test/metricool-page-tracker.test.tsx#L54) |
 | /restaurant/:id | 9 | [src/App.tsx:602](../../src/App.tsx#L602) |
 | /restaurant/:id/reserver | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:201](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L201) |
-| /restaurant/abc | 1 | [src/test/metricool-page-tracker.test.tsx:100](../../src/test/metricool-page-tracker.test.tsx#L100) |
+| /restaurant/abc | 1 | [src/test/metricool-page-tracker.test.tsx:111](../../src/test/metricool-page-tracker.test.tsx#L111) |
 | /restaurant/cc47c8c6-752f-406c-8c2f-ed04ebd0ca20 | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
 | /restaurant/example | 1 | [src/test/back-navigation.test.ts:34](../../src/test/back-navigation.test.ts#L34) |
 | /restaurant/la-table | 1 | [src/test/customer-workspace-routes.test.ts:27](../../src/test/customer-workspace-routes.test.ts#L27) |
@@ -7022,6 +7022,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
 | TOK Connect security regression | deno-edge-check, deno-transport, postgres-security | [.github/workflows/tok-connect-security.yml](../../.github/workflows/tok-connect-security.yml) |
+| TOK Metricool PR index sync | index-sync | [.github/workflows/tok-metricool-index-sync.yml](../../.github/workflows/tok-metricool-index-sync.yml) |
 | TOK Workforce PostgreSQL Integration | migration-and-tenant-isolation | [.github/workflows/tok-workforce-postgres.yml](../../.github/workflows/tok-workforce-postgres.yml) |
 
 ### Dépendances
@@ -7291,7 +7292,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Pistes de backlinks TOK sans compte existant | 6 | [docs/marketing-backlink-opportunities.md:1](../../docs/marketing-backlink-opportunities.md#L1) |
 | TOK Growth AutoPilot — qualification et conversions à partir des preuves réelles | 8 | [docs/marketing/GROWTH_AUTOPILOT.md:1](../../docs/marketing/GROWTH_AUTOPILOT.md#L1) |
 | Veille Instagram Genève | 7 | [docs/marketing/INSTAGRAM_RESEARCH.md:1](../../docs/marketing/INSTAGRAM_RESEARCH.md#L1) |
-| TOK — Suivi du site via Metricool | 7 | [docs/marketing/METRICOOL_WEBSITE_TRACKING.md:1](../../docs/marketing/METRICOOL_WEBSITE_TRACKING.md#L1) |
+| TOK — Suivi du site via Metricool | 6 | [docs/marketing/METRICOOL_WEBSITE_TRACKING.md:1](../../docs/marketing/METRICOOL_WEBSITE_TRACKING.md#L1) |
 | TOK — Première recette commerciale restaurateurs (31 octobre 2026) | 9 | [docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md:1](../../docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md#L1) |
 | Légendes des campagnes TOK | 5 | [docs/marketing/SOCIAL_EDITORIAL_POLICY.md:1](../../docs/marketing/SOCIAL_EDITORIAL_POLICY.md#L1) |
 | Import d’une série de visuels sociaux | 2 | [docs/marketing/SOCIAL_SERIES_IMPORT.md:1](../../docs/marketing/SOCIAL_SERIES_IMPORT.md#L1) |
@@ -7827,7 +7828,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (33)</summary>
+<details><summary>ci-workflow (34)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -7861,6 +7862,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
 - `.github/workflows/tok-connect-security.yml`
+- `.github/workflows/tok-metricool-index-sync.yml`
 - `.github/workflows/tok-workforce-postgres.yml`
 
 </details>
