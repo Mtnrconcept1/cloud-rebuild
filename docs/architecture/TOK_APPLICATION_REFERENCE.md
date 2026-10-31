@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `462c549d1c5e54bd34f5f7e3f9d4c1aec54a57fe074c043ad43e66ddbe39dfde`
+- Empreinte SHA-256 des sources indexées : `3b47e535aa42dc26ecf53305b4606494809044e0d5c98a42a6942205c9667d98`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,7 +29,7 @@
 | cronJobs | 37 |
 | databaseContract | 231 |
 | databaseObjects | 3170 |
-| documents | 241 |
+| documents | 242 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 4309 |
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 591 |
-| modules | 1944 |
+| modules | 1946 |
 | pages | 133 |
 | pathLiterals | 959 |
 | publicAssets | 743 |
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19975 |
-| repositoryFiles | 3877 |
+| records | 19990 |
+| repositoryFiles | 3881 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7136,15 +7136,15 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | --- | --- | --- |
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
-| Google | 125 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Google | 126 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Openai | 150 | [public/tok-connect-preview-bridge.js:1](../../public/tok-connect-preview-bridge.js#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 45 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 280 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Stripe | 281 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 875 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 81 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
@@ -7153,7 +7153,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 231 |
-| automation-script | 93 |
+| automation-script | 94 |
 | documentation | 6 |
 | edge-function-source | 259 |
 | frontend-component | 315 |
@@ -7163,7 +7163,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 811 |
+| test | 812 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7297,6 +7297,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Import d’une série de visuels sociaux | 2 | [docs/marketing/SOCIAL_SERIES_IMPORT.md:1](../../docs/marketing/SOCIAL_SERIES_IMPORT.md#L1) |
 | Mailings ciblés TOK | 8 | [docs/marketing/TARGETED_MAILING.md:1](../../docs/marketing/TARGETED_MAILING.md#L1) |
 | Validation Telegram des contenus Marketing | 12 | [docs/marketing/TELEGRAM_CONTENT_REVIEWS.md:1](../../docs/marketing/TELEGRAM_CONTENT_REVIEWS.md#L1) |
+| TOK — AutoPilot acquisition B2B : exploitation continue et validation des brouillons | 8 | [docs/marketing/TOK_AUTOPILOT_EXPLOITATION_20261031.md:1](../../docs/marketing/TOK_AUTOPILOT_EXPLOITATION_20261031.md#L1) |
 | Références visuelles des campagnes TOK | 4 | [docs/marketing/TOK_BRAND_REFERENCES.md:1](../../docs/marketing/TOK_BRAND_REFERENCES.md#L1) |
 | Audit du marketing automatique TOK — 8 octobre 2026 | 7 | [docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md:1](../../docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md#L1) |
 | TOK Marketing Autopilot — runbook d'exploitation | 13 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
@@ -7714,7 +7715,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (106)</summary>
+<details><summary>automation-script (107)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7816,6 +7817,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/verification/test-marketing-content-review-publication.mjs`
 - `scripts/verification/test-marketing-content-reviews.mjs`
 - `scripts/verification/test-marketing-first-touch.mjs`
+- `scripts/verification/tok-autopilot-preview-smoke.mjs`
 - `scripts/verify-supabase-runtime-security.mjs`
 - `scripts/write-apple-app-site-association.mjs`
 - `scripts/write-commercial-demo-secrets-env.mjs`
@@ -8459,7 +8461,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (193)</summary>
+<details><summary>documentation (195)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8546,6 +8548,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing/SOCIAL_SERIES_IMPORT.md`
 - `docs/marketing/TARGETED_MAILING.md`
 - `docs/marketing/TELEGRAM_CONTENT_REVIEWS.md`
+- `docs/marketing/TOK_AUTOPILOT_EXPLOITATION_20261031.md`
 - `docs/marketing/TOK_BRAND_REFERENCES.md`
 - `docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md`
 - `docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md`
@@ -8553,6 +8556,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing/analytics-evidence.md`
 - `docs/marketing/campaigns/2026-10-12-geneve-visuals.json`
 - `docs/marketing/daily-instagram.md`
+- `docs/marketing/previews/tok-autopilot-restaurateurs.html`
 - `docs/mobile-fullstack-review-2026-03-29.md`
 - `docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md`
 - `docs/operations/TOK_EQUIPE_RELEASE_2026-10-28.md`
@@ -10543,7 +10547,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (811)</summary>
+<details><summary>test (812)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -11248,6 +11252,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/thefork-image-enrichment-completion.test.ts`
 - `src/test/tok-ai-platform-plan.test.ts`
 - `src/test/tok-ai-tools.test.ts`
+- `src/test/tok-autopilot-preview.test.ts`
 - `src/test/tok-brand-and-client-home.test.ts`
 - `src/test/tok-canonical-subscription-invoice.test.ts`
 - `src/test/tok-connect-admin-humanized.test.ts`
