@@ -369,7 +369,7 @@ export default function RestaurateursGeneve() {
             <p className="text-sm leading-6 text-white/80">
               Démo sans engagement. Aucun abonnement ni paiement déclenché par une demande de démonstration.
               <Link to="/restaurateurs/google-business" className="ml-2 font-semibold text-orange-200 underline underline-offset-4 hover:text-white">
-                Découvrir le module Google Business
+                Optimiser Google Business
               </Link>
             </p>
           </div>
