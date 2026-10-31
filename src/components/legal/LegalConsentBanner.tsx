@@ -30,6 +30,7 @@ export default function LegalConsentBanner() {
   const [details, setDetails] = useState(false);
   const [preferences, setPreferences] = useState<ConsentPreferences>(DEFAULT_CONSENT);
   const isRestaurantMobileOverview = pathname === "/dashboard";
+  const isRestaurantProspectLanding = pathname.startsWith("/restaurateurs/");
 
   useEffect(() => {
     const stored = readConsent();
@@ -60,18 +61,23 @@ export default function LegalConsentBanner() {
     return (
       <button
         type="button"
+        aria-label="Gérer mes cookies"
         onClick={() => { setDetails(true); setOpen(true); }}
         className={cn(
           "fixed z-[1300] max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-full border border-border/80 bg-background/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur-xl hover:border-primary/60 hover:text-primary",
           pathname === "/" ? "hidden lg:inline-flex" : "inline-flex",
-          "left-[calc(env(safe-area-inset-left,0px)+0.75rem)] md:bottom-4 md:left-auto md:right-4",
-          isRestaurantMobileOverview
-            ? "bottom-[calc(env(safe-area-inset-bottom,0px)+5.25rem)]"
-            : "bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)]",
+          isRestaurantProspectLanding
+            ? "left-auto right-3 bottom-auto top-[calc(env(safe-area-inset-top,0px)+4.75rem)] md:top-auto md:bottom-4 md:left-auto md:right-4"
+            : "left-[calc(env(safe-area-inset-left,0px)+0.75rem)] md:bottom-4 md:left-auto md:right-4",
+          isRestaurantProspectLanding
+            ? ""
+            : isRestaurantMobileOverview
+              ? "bottom-[calc(env(safe-area-inset-bottom,0px)+5.25rem)]"
+              : "bottom-[calc(env(safe-area-inset-bottom,0px)+1rem)]",
         )}
       >
         <Settings2 className="h-4 w-4 shrink-0" />
-        <span className="truncate">Gérer mes cookies</span>
+        <span className={cn("truncate", isRestaurantProspectLanding && "hidden sm:inline")}>Gérer mes cookies</span>
       </button>
     );
   }

@@ -58,6 +58,7 @@ try {
           reject?.click();
         });
       } catch { /* Banner absent or unavailable. */ }
+      await new Promise((resolve) => setTimeout(resolve, 300));
     }
     const metrics = await page.evaluate(() => ({
       heading: document.querySelector("h1")?.textContent?.trim().slice(0, 260) ?? null,
@@ -72,6 +73,14 @@ try {
         .map((el) => el.getAttribute("name")).filter(Boolean),
       consentOptInInitiallyChecked: document.querySelector("#marketing_optin")?.checked ?? null,
       horizontalOverflowPx: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+      cookieOverlapsSignup: (() => {
+        const cookie = document.querySelector('button[aria-label="Gérer mes cookies"]');
+        const signup = document.querySelector('a[href*="/auth?role=restaurateur"]');
+        if (!cookie || !signup) return null;
+        const a = cookie.getBoundingClientRect();
+        const b = signup.getBoundingClientRect();
+        return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+      })(),
     }));
     await page.screenshot({ path: resolve(output, `restaurateur-${view.name}-hero.png`) });
     if (metrics.demoFormExists) {
@@ -87,6 +96,7 @@ try {
     process.exitCode = 2;
   }
   if (expectNew && views.some((item) => !item.directSignupLinks.length)) process.exitCode = 3;
+  if (expectNew && views.some((item) => item.cookieOverlapsSignup || item.consentOptInInitiallyChecked !== false)) process.exitCode = 4;
 } finally {
   await browser.close();
 }

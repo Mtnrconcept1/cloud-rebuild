@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `7f15764b1b09b0ad6c71c6ccec6d0e921e8558b6bbd180303c8a7596059e37ca`
+- Empreinte SHA-256 des sources indexées : `282b6180c1bbc8537fe8b5374736e27003dc7e622dc710b1052299eccea1df84`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 591 |
 | modules | 1944 |
 | pages | 133 |
-| pathLiterals | 958 |
+| pathLiterals | 959 |
 | publicAssets | 743 |
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19968 |
+| records | 19969 |
 | repositoryFiles | 3877 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -2268,6 +2268,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants/vernier/r/mamasan-vernier-b315506b | 1 | [src/test/seo-near-duplicate-hardening.test.ts:73](../../src/test/seo-near-duplicate-hardening.test.ts#L73) |
 | /restaurants/vesenaz/r/sushi-zen-sa | 2 | [src/test/seo-directory-quality-hardening.test.ts:32](../../src/test/seo-directory-quality-hardening.test.ts#L32) |
 | /restaurateurs-geneve | 1 | [src/test/marketing-legacy-landing.test.ts:7](../../src/test/marketing-legacy-landing.test.ts#L7) |
+| /restaurateurs/ | 1 | [src/components/legal/LegalConsentBanner.tsx:33](../../src/components/legal/LegalConsentBanner.tsx#L33) |
 | /restaurateurs/:city | 3 | [src/App.tsx:719](../../src/App.tsx#L719) |
 | /restaurateurs/alternative-commission-couvert | 20 | [scripts/prerender-seo.mjs:689](../../scripts/prerender-seo.mjs#L689) |
 | /restaurateurs/geneve | 29 | [scripts/prerender-seo.mjs:621](../../scripts/prerender-seo.mjs#L621) |
