@@ -8,11 +8,10 @@ Le script officiel `https://tracker.metricool.com/resources/be.js` est chargé
 dynamiquement au premier affichage public autorisé puis la méthode
 `beTracker.t({ hash })` est appelée à chaque changement de page autorisé.
 
-Le hash fourni initialement appartenait à la marque mixte `stoppin_gva`, et ne
-peut donc plus activer le suivi de TOK. Le chargeur attend désormais **une nouvelle
-marque TOK et un nouveau hash de site**, publics mais distincts, tous deux
-validés dans Metricool. Le chargeur ne fournit pas de publication, d'analyse des
-posts ni de synchronisation CRM côté serveur.
+Le propriétaire autorise désormais l'usage du compte existant « Tok » / 6954835
+avec son historique Stoppin, sans nouvel abonnement. Les KPI TOK commencent le
+**1er novembre 2026** : ne pas les mélanger aux résultats Stoppin antérieurs.
+La propriété web de Metricool reste à vérifier indépendamment.
 
 ## Protection des visiteurs
 
@@ -31,46 +30,35 @@ Metricool indique que son traqueur de site ne dépose pas de cookies, mais reço
 la page consultée et déduit le pays de l'adresse IP. La politique de confidentialité
 et l'inventaire des traceurs TOK le documentent.
 
-## Précondition bloquante : identité de marque
+## Réutilisation autorisée de la marque Tok
 
-Le 31 octobre, la marque Metricool reliée dans ChatGPT porte le nom `stoppin_gva`
-et contient des **publications Stoppin déjà publiées sur Facebook**, bien que
-le profil Instagram connecté soit `tok_suisse`. Cette marque est donc MIXTE :
-l'identifiant de suivi fourni ne constitue pas une preuve qu'une propriété
-Web TOK indépendante est configurée. Pour éviter de mélanger des statistiques
-entre deux entreprises, **le traceur reste désactivé par défaut**.
+Le 31 octobre, Metricool affiche une marque « Tok » avec ID **6954835**,
+Instagram **tok_suisse** et Facebook **Tok**. Le propriétaire a expressément
+accepté la réutilisation de cette marque et de ses faibles données Stoppin.
+Aucun deuxième compte ni effacement n'est requis.
 
-Trois variables publiques de build sont nécessaires, toutes **refusées par défaut** :
-`VITE_METRICOOL_TOK_PROPERTY_VERIFIED=true`,
-`VITE_METRICOOL_TOK_BRAND_ID=<nouvel ID>` et
-`VITE_METRICOOL_TOK_TRACKER_HASH=<nouveau hash>`.
-Le code rejette explicitement l'ancienne marque **6954835** et l'ancien hash
-**8dd2fca1e84e3ac86c6d9d09fc0d05e9**, même si l'interrupteur de
-vérification a été activé. Ces identifiants sont publics et ne sont pas des
-clés d'API. Une nouvelle marque doit être vérifiée par l'opérateur ; le code
-seul ne peut pas attester la propriété des comptes sociaux.
-Le consentement Analytics du visiteur demeure obligatoire après activation.
+**Important :** la propriété web a une URL vide dans les données du connecteur.
+Cela n'empêche pas la publication organique sur les comptes vérifiés,
+mais le tracking du site reste **désactivé** jusqu'à validation de
+**www.thetok.ch** dans Metricool.
 
-## Séparation sans effacement
+Valeurs publiques de build :
+- `VITE_METRICOOL_TOK_BRAND_ID=6954835`
+- `VITE_METRICOOL_TOK_TRACKER_HASH=8dd2fca1e84e3ac86c6d9d09fc0d05e9`
+- `VITE_METRICOOL_TOK_REUSE_EXISTING_BRAND_APPROVED=true`
+- `VITE_METRICOOL_TOK_PROPERTY_VERIFIED=false` **tant que le site n'est pas vérifié**.
 
-Ne pas renommer ou supprimer la marque historique en espérant séparer ses
-statistiques : Metricool rattache les données du Planner à l'ID de marque.
-Une seconde marque « TOK Suisse » doit être créée via
-**Metricool → Connexions → Ajouter une marque**, dans les limites du forfait.
-La connexion et les droits des comptes TOK doivent être contrôlés séparément ;
-le connecteur Metricool utilisé ici ne dispose pas d'une action de création de
-marque ou de transfert. Ne jamais engager une mise à niveau payante sans accord.
+La réutilisation de la marque exige l'ancien **couple exact**, l'accord
+explicite et le second drapeau de validation du site web. Le consentement
+Analytics des visiteurs demeure obligatoire. Ne rien supprimer ni transférer
+automatiquement. Toutes les performances TOK sont mesurées à partir du
+**1er novembre 2026** seulement.
 
-Consulter le plan de mise en service et les brouillons dans
-`docs/marketing/TOK_AUTOPILOT_EXPLOITATION_20261031.md`.
+## Contrôle d'activation après validation de la propriété web
 
-## Contrôle d'activation après fusion et publication
-
-1. Dans Metricool, vérifier que le compte de marque concerné contient réellement
-   les réseaux TOK et le **site `www.thetok.ch`**. Lors du contrôle du 31/10/2026,
-   le compte accessible portait encore l'étiquette `stoppin_gva` mais son profil
-   Instagram pointait désormais sur `tok_suisse`. Vérifier que l'historique Stoppin
-   n'est pas mélangé avec les rapports TOK et séparer les marques si nécessaire.
+1. Dans Metricool, confirmer les comptes Facebook Tok et Instagram tok_suisse
+   sur la marque existante 6954835. Connecter puis vérifier www.thetok.ch
+   dans le module Site web (actuellement sans URL).
 2. Ouvrir une fenêtre privée sur `https://www.thetok.ch/`, accepter Analytics,
    puis vérifier dans Network que `be.js` se charge sans erreur CSP.
 3. Naviguer vers `/recherche` sans rechargement et vérifier une nouvelle mesure

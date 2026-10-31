@@ -36,14 +36,15 @@ describe("TOK AutoPilot sales preview and brand separation", () => {
     expect(html).toContain("Aucun e-mail ni publication n’est envoyé");
   });
 
-  it("requires a new Metricool brand AND new website hash, rather than the mixed brand", () => {
+  it("uses the explicitly approved Tok brand with historical metrics excluded", () => {
     expect(metricool).toContain('LEGACY_MIXED_BRAND_ID = "6954835"');
-    expect(metricool).toContain('brandId === LEGACY_MIXED_BRAND_ID');
-    expect(metricool).toContain('trackerHash === LEGACY_MIXED_TRACKER_HASH');
-    expect(metricool).toContain("VITE_METRICOOL_TOK_BRAND_ID");
-    expect(metricool).toContain("VITE_METRICOOL_TOK_TRACKER_HASH");
+    expect(metricool).toContain("VITE_METRICOOL_TOK_REUSE_EXISTING_BRAND_APPROVED");
+    expect(metricool).toContain("!isReusedBrand || !isReusedHash");
+    expect(metricool).toContain("VITE_METRICOOL_TOK_PROPERTY_VERIFIED");
     expect(plan).toContain("Ne rien supprimer ni transférer automatiquement");
+    expect(plan).toContain("1er novembre 2026");
     expect(plan).toContain("TOK AutoPilot Vigie");
+    expect(html).toContain("Marque Metricool Tok");
   });
 
   it("keeps all economic and reputational claims clearly qualified", () => {

@@ -77,16 +77,27 @@ describe("Metricool website tracking", () => {
     expect(document.querySelector("script[data-tok-metricool]")).toBeNull();
   });
 
-  it("refuses the mixed Stoppin brand and hash, even if someone enables the verified switch", () => {
+  it("only enables reused Tok brand on explicit authorization with exact hash", () => {
     vi.stubEnv("VITE_METRICOOL_TOK_BRAND_ID", LEGACY_MIXED_BRAND_ID);
+    vi.stubEnv("VITE_METRICOOL_TOK_TRACKER_HASH", LEGACY_MIXED_TRACKER_HASH);
+    vi.stubEnv("VITE_METRICOOL_TOK_REUSE_EXISTING_BRAND_APPROVED", "false");
+    expect(readTokMetricoolConfig()).toBeNull();
+    vi.stubEnv("VITE_METRICOOL_TOK_REUSE_EXISTING_BRAND_APPROVED", "true");
+    expect(readTokMetricoolConfig()).toEqual({
+      brandId: LEGACY_MIXED_BRAND_ID, trackerHash: LEGACY_MIXED_TRACKER_HASH,
+    });
+    vi.stubEnv("VITE_METRICOOL_TOK_PROPERTY_VERIFIED", "false");
+    expect(readTokMetricoolConfig()).toBeNull();
+    vi.stubEnv("VITE_METRICOOL_TOK_PROPERTY_VERIFIED", "true");
+    vi.stubEnv("VITE_METRICOOL_TOK_TRACKER_HASH", "f".repeat(32));
     expect(readTokMetricoolConfig()).toBeNull();
     vi.stubEnv("VITE_METRICOOL_TOK_BRAND_ID", "8765432");
     vi.stubEnv("VITE_METRICOOL_TOK_TRACKER_HASH", LEGACY_MIXED_TRACKER_HASH);
     expect(readTokMetricoolConfig()).toBeNull();
-    vi.stubEnv("VITE_METRICOOL_TOK_TRACKER_HASH", "");
-    expect(readTokMetricoolConfig()).toBeNull();
     vi.stubEnv("VITE_METRICOOL_TOK_TRACKER_HASH", "f".repeat(32));
-    expect(readTokMetricoolConfig()).toEqual({ brandId: "8765432", trackerHash: "f".repeat(32) });
+    expect(readTokMetricoolConfig()).toEqual({
+      brandId: "8765432", trackerHash: "f".repeat(32),
+    });
   });
 
   it("does not load before consent, then counts SPA navigation once without tracking private pages", async () => {

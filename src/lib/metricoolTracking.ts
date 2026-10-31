@@ -1,10 +1,8 @@
 /**
- * Website-only Metricool page views. No third-party script runs until the
- * visitor has consented AND a dedicated TOK Metricool brand is verified.
- *
- * Metricool brand 6954835 was historically used for Stoppin while the
- * Instagram connection pointed to tok_suisse. NEVER reuse that brand's
- * website hash or analytics for TOK: the two businesses need distinct brands.
+ * Metricool website tracking is enabled only after analytics consent and
+ * verification of the TOK website property. The owner explicitly authorized
+ * reuse of the existing "Tok" brand 6954835 on 31 October 2026. Historical
+ * Stoppin metrics must be excluded from TOK comparisons starting 1 Nov 2026.
  */
 export const METRICOOL_TRACKER_SRC = "https://tracker.metricool.com/resources/be.js";
 export const LEGACY_MIXED_BRAND_ID = "6954835";
@@ -15,16 +13,22 @@ type MetricoolWindow = Window & { beTracker?: MetricoolApi };
 export type TokMetricoolConfig = { brandId: string; trackerHash: string };
 
 /**
- * Both new IDs are browser-public identifiers, not API credentials.
- * A flag alone must never activate the old mixed brand.
+ * These identifiers are browser-public, not API credentials.
+ * Reuse requires a separate explicit flag and the exact historic ID/hash pair.
  * Verification happens administratively in the Metricool Connections panel.
  */
 export function readTokMetricoolConfig(): TokMetricoolConfig | null {
   const verified = import.meta.env.VITE_METRICOOL_TOK_PROPERTY_VERIFIED === "true";
   const brandId = String(import.meta.env.VITE_METRICOOL_TOK_BRAND_ID || "").trim();
   const trackerHash = String(import.meta.env.VITE_METRICOOL_TOK_TRACKER_HASH || "").trim().toLowerCase();
-  if (!verified || !/^\d{5,12}$/.test(brandId) || brandId === LEGACY_MIXED_BRAND_ID ||
-    !/^[a-f0-9]{32}$/.test(trackerHash) || trackerHash === LEGACY_MIXED_TRACKER_HASH) return null;
+  if (!verified || !/^\d{5,12}$/.test(brandId) || !/^[a-f0-9]{32}$/.test(trackerHash)) return null;
+  const isReusedBrand = brandId === LEGACY_MIXED_BRAND_ID;
+  const isReusedHash = trackerHash === LEGACY_MIXED_TRACKER_HASH;
+  if (isReusedBrand || isReusedHash) {
+    // Require an exact historic pair and separate operator authorization.
+    if (!isReusedBrand || !isReusedHash ||
+      import.meta.env.VITE_METRICOOL_TOK_REUSE_EXISTING_BRAND_APPROVED !== "true") return null;
+  }
   return { brandId, trackerHash };
 }
 
