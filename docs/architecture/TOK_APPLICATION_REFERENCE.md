@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `282b6180c1bbc8537fe8b5374736e27003dc7e622dc710b1052299eccea1df84`
+- Empreinte SHA-256 des sources indexées : `9e6f91d8dbe51eb3ec4607bb6a3502cd1b283dc076e363b282937492b7924de4`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,30 +29,30 @@
 | cronJobs | 37 |
 | databaseContract | 231 |
 | databaseObjects | 3170 |
-| documents | 241 |
+| documents | 242 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4306 |
+| exportedSymbols | 4309 |
 | featureFlags | 100 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 591 |
-| modules | 1944 |
+| modules | 1946 |
 | pages | 133 |
 | pathLiterals | 959 |
 | publicAssets | 743 |
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19969 |
-| repositoryFiles | 3877 |
+| records | 19992 |
+| repositoryFiles | 3882 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
 | workerRoutes | 2 |
-| workflows | 33 |
+| workflows | 34 |
 
 ## État distant observé
 
@@ -1575,7 +1575,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/v1/oauth/token | 2 | [src/test/tok-connect-broker.test.ts:56](../../src/test/tok-connect-broker.test.ts#L56) |
 | /auth/v1/token?grant_type=password | 5 | [src/test/marketing-bff-security.test.ts:240](../../src/test/marketing-bff-security.test.ts#L240) |
 | /auth/v1/user | 10 | [src/test/marketing-bff-security.test.ts:251](../../src/test/marketing-bff-security.test.ts#L251) |
-| /auth?code=private | 1 | [src/test/metricool-page-tracker.test.tsx:83](../../src/test/metricool-page-tracker.test.tsx#L83) |
+| /auth?code=private | 1 | [src/test/metricool-page-tracker.test.tsx:110](../../src/test/metricool-page-tracker.test.tsx#L110) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /auth?confirmed=1 | 3 | [src/test/auth-signup-form.test.tsx:595](../../src/test/auth-signup-form.test.tsx#L595) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
@@ -2176,10 +2176,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurant/11111111-1111-1111-1111-111111111111 | 1 | [src/test/restaurant-detail-preview.test.tsx:9](../../src/test/restaurant-detail-preview.test.tsx#L9) |
 | /restaurant/123 | 1 | [src/test/coming-soon-gate.test.tsx:50](../../src/test/coming-soon-gate.test.tsx#L50) |
 | /restaurant/123#menu | 1 | [src/test/app-page-navigation.test.tsx:19](../../src/test/app-page-navigation.test.tsx#L19) |
-| /restaurant/12345 | 1 | [src/test/metricool-page-tracker.test.tsx:50](../../src/test/metricool-page-tracker.test.tsx#L50) |
+| /restaurant/12345 | 1 | [src/test/metricool-page-tracker.test.tsx:54](../../src/test/metricool-page-tracker.test.tsx#L54) |
 | /restaurant/:id | 9 | [src/App.tsx:602](../../src/App.tsx#L602) |
 | /restaurant/:id/reserver | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:201](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L201) |
-| /restaurant/abc | 1 | [src/test/metricool-page-tracker.test.tsx:84](../../src/test/metricool-page-tracker.test.tsx#L84) |
+| /restaurant/abc | 1 | [src/test/metricool-page-tracker.test.tsx:111](../../src/test/metricool-page-tracker.test.tsx#L111) |
 | /restaurant/cc47c8c6-752f-406c-8c2f-ed04ebd0ca20 | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
 | /restaurant/example | 1 | [src/test/back-navigation.test.ts:34](../../src/test/back-navigation.test.ts#L34) |
 | /restaurant/la-table | 1 | [src/test/customer-workspace-routes.test.ts:27](../../src/test/customer-workspace-routes.test.ts#L27) |
@@ -2191,7 +2191,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurant/un-resto | 1 | [src/test/plinko-api.test.ts:72](../../src/test/plinko-api.test.ts#L72) |
 | /restaurants | 6 | [scripts/prerender-seo.mjs:2010](../../scripts/prerender-seo.mjs#L2010) |
 | /restaurants-pres/ | 1 | [src/pages/LocalRestaurants.tsx:567](../../src/pages/LocalRestaurants.tsx#L567) |
-| /restaurants-pres/%2Fsecret | 1 | [src/test/metricool-page-tracker.test.tsx:52](../../src/test/metricool-page-tracker.test.tsx#L52) |
+| /restaurants-pres/%2Fsecret | 1 | [src/test/metricool-page-tracker.test.tsx:56](../../src/test/metricool-page-tracker.test.tsx#L56) |
 | /restaurants-pres/:path* | 2 | [middleware.js:5](../../middleware.js#L5) |
 | /restaurants-pres/:venueSlug | 3 | [src/App.tsx:597](../../src/App.tsx#L597) |
 | /restaurants-pres/OLD | 1 | [scripts/stoppin-venue-seo.test.mjs:146](../../scripts/stoppin-venue-seo.test.mjs#L146) |
@@ -2224,7 +2224,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants/chene-bourg/r/la-caf | 1 | [src/test/seo-web-artifact-names.test.ts:55](../../src/test/seo-web-artifact-names.test.ts#L55) |
 | /restaurants/geneve | 16 | [src/test/coming-soon-gate.test.tsx:50](../../src/test/coming-soon-gate.test.tsx#L50) |
 | /restaurants/geneve/africain | 8 | [src/test/local-restaurants-pagination.test.tsx:197](../../src/test/local-restaurants-pagination.test.tsx#L197) |
-| /restaurants/geneve/contact%40example.com | 1 | [src/test/metricool-page-tracker.test.tsx:51](../../src/test/metricool-page-tracker.test.tsx#L51) |
+| /restaurants/geneve/contact%40example.com | 1 | [src/test/metricool-page-tracker.test.tsx:55](../../src/test/metricool-page-tracker.test.tsx#L55) |
 | /restaurants/geneve/eaux-vives | 2 | [src/test/seo-crawl-hardening.test.ts:93](../../src/test/seo-crawl-hardening.test.ts#L93) |
 | /restaurants/geneve/italien | 2 | [src/test/seo-crawl-hardening.test.ts:99](../../src/test/seo-crawl-hardening.test.ts#L99) |
 | /restaurants/geneve/pizza | 5 | [src/test/local-inventory-policy.test.ts:14](../../src/test/local-inventory-policy.test.ts#L14) |
@@ -7022,6 +7022,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Sync Cloudprinter Secrets | sync | [.github/workflows/sync-cloudprinter-secrets.yml](../../.github/workflows/sync-cloudprinter-secrets.yml) |
 | TOK Incident Secret Sync | sync | [.github/workflows/sync-incident-secrets.yml](../../.github/workflows/sync-incident-secrets.yml) |
 | TOK Connect security regression | deno-edge-check, deno-transport, postgres-security | [.github/workflows/tok-connect-security.yml](../../.github/workflows/tok-connect-security.yml) |
+| TOK Metricool PR index sync | index-sync | [.github/workflows/tok-metricool-index-sync.yml](../../.github/workflows/tok-metricool-index-sync.yml) |
 | TOK Workforce PostgreSQL Integration | migration-and-tenant-isolation | [.github/workflows/tok-workforce-postgres.yml](../../.github/workflows/tok-workforce-postgres.yml) |
 
 ### Dépendances
@@ -7136,15 +7137,15 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | --- | --- | --- |
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
-| Google | 125 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Google | 126 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Openai | 150 | [public/tok-connect-preview-bridge.js:1](../../public/tok-connect-preview-bridge.js#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 45 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 280 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Stripe | 281 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Supabase | 875 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 81 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
@@ -7153,7 +7154,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 231 |
-| automation-script | 93 |
+| automation-script | 94 |
 | documentation | 6 |
 | edge-function-source | 259 |
 | frontend-component | 315 |
@@ -7163,7 +7164,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 811 |
+| test | 812 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7297,6 +7298,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Import d’une série de visuels sociaux | 2 | [docs/marketing/SOCIAL_SERIES_IMPORT.md:1](../../docs/marketing/SOCIAL_SERIES_IMPORT.md#L1) |
 | Mailings ciblés TOK | 8 | [docs/marketing/TARGETED_MAILING.md:1](../../docs/marketing/TARGETED_MAILING.md#L1) |
 | Validation Telegram des contenus Marketing | 12 | [docs/marketing/TELEGRAM_CONTENT_REVIEWS.md:1](../../docs/marketing/TELEGRAM_CONTENT_REVIEWS.md#L1) |
+| TOK — AutoPilot acquisition B2B : exploitation continue et validation des brouillons | 8 | [docs/marketing/TOK_AUTOPILOT_EXPLOITATION_20261031.md:1](../../docs/marketing/TOK_AUTOPILOT_EXPLOITATION_20261031.md#L1) |
 | Références visuelles des campagnes TOK | 4 | [docs/marketing/TOK_BRAND_REFERENCES.md:1](../../docs/marketing/TOK_BRAND_REFERENCES.md#L1) |
 | Audit du marketing automatique TOK — 8 octobre 2026 | 7 | [docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md:1](../../docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md#L1) |
 | TOK Marketing Autopilot — runbook d'exploitation | 13 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
@@ -7714,7 +7716,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (106)</summary>
+<details><summary>automation-script (107)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7816,6 +7818,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/verification/test-marketing-content-review-publication.mjs`
 - `scripts/verification/test-marketing-content-reviews.mjs`
 - `scripts/verification/test-marketing-first-touch.mjs`
+- `scripts/verification/tok-autopilot-preview-smoke.mjs`
 - `scripts/verify-supabase-runtime-security.mjs`
 - `scripts/write-apple-app-site-association.mjs`
 - `scripts/write-commercial-demo-secrets-env.mjs`
@@ -7825,7 +7828,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (33)</summary>
+<details><summary>ci-workflow (34)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -7859,6 +7862,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/sync-cloudprinter-secrets.yml`
 - `.github/workflows/sync-incident-secrets.yml`
 - `.github/workflows/tok-connect-security.yml`
+- `.github/workflows/tok-metricool-index-sync.yml`
 - `.github/workflows/tok-workforce-postgres.yml`
 
 </details>
@@ -8459,7 +8463,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (193)</summary>
+<details><summary>documentation (195)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8546,6 +8550,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing/SOCIAL_SERIES_IMPORT.md`
 - `docs/marketing/TARGETED_MAILING.md`
 - `docs/marketing/TELEGRAM_CONTENT_REVIEWS.md`
+- `docs/marketing/TOK_AUTOPILOT_EXPLOITATION_20261031.md`
 - `docs/marketing/TOK_BRAND_REFERENCES.md`
 - `docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md`
 - `docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md`
@@ -8553,6 +8558,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing/analytics-evidence.md`
 - `docs/marketing/campaigns/2026-10-12-geneve-visuals.json`
 - `docs/marketing/daily-instagram.md`
+- `docs/marketing/previews/tok-autopilot-restaurateurs.html`
 - `docs/mobile-fullstack-review-2026-03-29.md`
 - `docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md`
 - `docs/operations/TOK_EQUIPE_RELEASE_2026-10-28.md`
@@ -10543,7 +10549,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (811)</summary>
+<details><summary>test (812)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -11248,6 +11254,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/thefork-image-enrichment-completion.test.ts`
 - `src/test/tok-ai-platform-plan.test.ts`
 - `src/test/tok-ai-tools.test.ts`
+- `src/test/tok-autopilot-preview.test.ts`
 - `src/test/tok-brand-and-client-home.test.ts`
 - `src/test/tok-canonical-subscription-invoice.test.ts`
 - `src/test/tok-connect-admin-humanized.test.ts`

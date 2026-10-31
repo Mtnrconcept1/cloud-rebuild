@@ -8,9 +8,10 @@ Le script officiel `https://tracker.metricool.com/resources/be.js` est chargé
 dynamiquement au premier affichage public autorisé puis la méthode
 `beTracker.t({ hash })` est appelée à chaque changement de page autorisé.
 
-L'identifiant de site est celui fourni explicitement pour ce projet. Il est public
-et ne permet pas d'authentifier l'API Metricool. Le chargeur est un suivi de visites,
-**pas** un adaptateur de publication, d'analyse des posts ou de synchronisation CRM.
+Le propriétaire autorise désormais l'usage du compte existant « Tok » / 6954835
+avec son historique Stoppin, sans nouvel abonnement. Les KPI TOK commencent le
+**1er novembre 2026** : ne pas les mélanger aux résultats Stoppin antérieurs.
+La propriété web de Metricool reste à vérifier indépendamment.
 
 ## Protection des visiteurs
 
@@ -29,28 +30,35 @@ Metricool indique que son traqueur de site ne dépose pas de cookies, mais reço
 la page consultée et déduit le pays de l'adresse IP. La politique de confidentialité
 et l'inventaire des traceurs TOK le documentent.
 
-## Précondition bloquante : identité de marque
+## Réutilisation autorisée de la marque Tok
 
-Le 31 octobre, la marque Metricool reliée dans ChatGPT porte le nom `stoppin_gva`
-et contient des **publications Stoppin déjà publiées sur Facebook**, bien que
-le profil Instagram connecté soit `tok_suisse`. Cette marque est donc MIXTE :
-l'identifiant de suivi fourni ne constitue pas une preuve qu'une propriété
-Web TOK indépendante est configurée. Pour éviter de mélanger des statistiques
-entre deux entreprises, **le traceur reste désactivé par défaut**.
+Le 31 octobre, Metricool affiche une marque « Tok » avec ID **6954835**,
+Instagram **tok_suisse** et Facebook **Tok**. Le propriétaire a expressément
+accepté la réutilisation de cette marque et de ses faibles données Stoppin.
+Aucun deuxième compte ni effacement n'est requis.
 
-La variable de build `VITE_METRICOOL_TOK_PROPERTY_VERIFIED=true` ne doit être
-définie sur la cible de production qu'après avoir confirmé dans Metricool
-que le hash est attribué au site TOK, et après avoir séparé les comptes
-Stoppin et TOK si nécessaire. Ce paramètre est public et n'est pas un secret.
-Le consentement Analytics du visiteur demeure obligatoire après activation.
+**Important :** la propriété web a une URL vide dans les données du connecteur.
+Cela n'empêche pas la publication organique sur les comptes vérifiés,
+mais le tracking du site reste **désactivé** jusqu'à validation de
+**www.thetok.ch** dans Metricool.
 
-## Contrôle d'activation après fusion et publication
+Valeurs publiques de build :
+- `VITE_METRICOOL_TOK_BRAND_ID=6954835`
+- `VITE_METRICOOL_TOK_TRACKER_HASH=8dd2fca1e84e3ac86c6d9d09fc0d05e9`
+- `VITE_METRICOOL_TOK_REUSE_EXISTING_BRAND_APPROVED=true`
+- `VITE_METRICOOL_TOK_PROPERTY_VERIFIED=false` **tant que le site n'est pas vérifié**.
 
-1. Dans Metricool, vérifier que le compte de marque concerné contient réellement
-   les réseaux TOK et le **site `www.thetok.ch`**. Lors du contrôle du 31/10/2026,
-   le compte accessible portait encore l'étiquette `stoppin_gva` mais son profil
-   Instagram pointait désormais sur `tok_suisse`. Vérifier que l'historique Stoppin
-   n'est pas mélangé avec les rapports TOK et séparer les marques si nécessaire.
+La réutilisation de la marque exige l'ancien **couple exact**, l'accord
+explicite et le second drapeau de validation du site web. Le consentement
+Analytics des visiteurs demeure obligatoire. Ne rien supprimer ni transférer
+automatiquement. Toutes les performances TOK sont mesurées à partir du
+**1er novembre 2026** seulement.
+
+## Contrôle d'activation après validation de la propriété web
+
+1. Dans Metricool, confirmer les comptes Facebook Tok et Instagram tok_suisse
+   sur la marque existante 6954835. Connecter puis vérifier www.thetok.ch
+   dans le module Site web (actuellement sans URL).
 2. Ouvrir une fenêtre privée sur `https://www.thetok.ch/`, accepter Analytics,
    puis vérifier dans Network que `be.js` se charge sans erreur CSP.
 3. Naviguer vers `/recherche` sans rechargement et vérifier une nouvelle mesure
@@ -67,7 +75,8 @@ Le consentement Analytics du visiteur demeure obligatoire après activation.
 Le connecteur Metricool de ChatGPT ne constitue pas une configuration de
 fournisseur serveur dans Supabase. Le registre marketing TOK reste en l'état,
 et aucune publication automatique ni campagne externe n'est activée ici.
-La PR de qualification commerciale #1052 suit un chantier distinct.
+La qualification commerciale issue de la PR #1054 fonctionne dans un module
+séparé, sous ses propres contrôles de sécurité et d'autorisation.
 Un adaptateur côté serveur avec identifiants sécurisés, sondes fournisseurs,
 rapprochement des publications et attribution aux ventes sera nécessaire
 pour un autopilote commercial réellement autonome.

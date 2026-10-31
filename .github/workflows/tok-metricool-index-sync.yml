@@ -1,0 +1,45 @@
+name: TOK Metricool PR index sync
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "src/lib/metricoolTracking.ts"
+      - "src/test/metricool-page-tracker.test.tsx"
+      - "src/test/tok-autopilot-preview.test.ts"
+      - ".env.example"
+      - "docs/marketing/**"
+      - ".github/workflows/tok-metricool-index-sync.yml"
+permissions:
+  contents: read
+jobs:
+  index-sync:
+    name: Regenerate canonical index for authorized PR only
+    if: ${{ github.repository == 'Mtnrconcept1/cloud-rebuild' && github.event.pull_request.number == 1055 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/tok-autopilot-resilience-preview-20261031' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: true
+      - run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm run docs:application-index
+      - name: Commit generated index to PR branch
+        shell: bash
+        env:
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          if git diff --cached --quiet; then exit 0; fi
+          git diff --cached --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(index): sync Tok brand-reuse PR references"
+          git push origin "HEAD:refs/heads/${PR_HEAD}"

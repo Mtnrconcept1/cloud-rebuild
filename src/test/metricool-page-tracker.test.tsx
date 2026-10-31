@@ -11,7 +11,9 @@ import MetricoolPageTracker from "@/components/MetricoolPageTracker";
 import { CONSENT_EVENT, CONSENT_STORAGE_KEY, CONSENT_VERSION } from "@/lib/consent";
 import {
   isMetricoolTrackablePage,
-  METRICOOL_TRACKER_HASH,
+  readTokMetricoolConfig,
+  LEGACY_MIXED_BRAND_ID,
+  LEGACY_MIXED_TRACKER_HASH,
   METRICOOL_TRACKER_SRC,
 } from "@/lib/metricoolTracking";
 
@@ -33,6 +35,8 @@ function setAnalytics(allowed: boolean) {
 describe("Metricool website tracking", () => {
   beforeEach(() => {
     vi.stubEnv("VITE_METRICOOL_TOK_PROPERTY_VERIFIED", "true");
+    vi.stubEnv("VITE_METRICOOL_TOK_BRAND_ID", "8765432");
+    vi.stubEnv("VITE_METRICOOL_TOK_TRACKER_HASH", "f".repeat(32));
     localStorage.clear();
     document.head.querySelectorAll("script[data-tok-metricool]").forEach((script) => script.remove());
   });
@@ -73,6 +77,29 @@ describe("Metricool website tracking", () => {
     expect(document.querySelector("script[data-tok-metricool]")).toBeNull();
   });
 
+  it("only enables reused Tok brand on explicit authorization with exact hash", () => {
+    vi.stubEnv("VITE_METRICOOL_TOK_BRAND_ID", LEGACY_MIXED_BRAND_ID);
+    vi.stubEnv("VITE_METRICOOL_TOK_TRACKER_HASH", LEGACY_MIXED_TRACKER_HASH);
+    vi.stubEnv("VITE_METRICOOL_TOK_REUSE_EXISTING_BRAND_APPROVED", "false");
+    expect(readTokMetricoolConfig()).toBeNull();
+    vi.stubEnv("VITE_METRICOOL_TOK_REUSE_EXISTING_BRAND_APPROVED", "true");
+    expect(readTokMetricoolConfig()).toEqual({
+      brandId: LEGACY_MIXED_BRAND_ID, trackerHash: LEGACY_MIXED_TRACKER_HASH,
+    });
+    vi.stubEnv("VITE_METRICOOL_TOK_PROPERTY_VERIFIED", "false");
+    expect(readTokMetricoolConfig()).toBeNull();
+    vi.stubEnv("VITE_METRICOOL_TOK_PROPERTY_VERIFIED", "true");
+    vi.stubEnv("VITE_METRICOOL_TOK_TRACKER_HASH", "f".repeat(32));
+    expect(readTokMetricoolConfig()).toBeNull();
+    vi.stubEnv("VITE_METRICOOL_TOK_BRAND_ID", "8765432");
+    vi.stubEnv("VITE_METRICOOL_TOK_TRACKER_HASH", LEGACY_MIXED_TRACKER_HASH);
+    expect(readTokMetricoolConfig()).toBeNull();
+    vi.stubEnv("VITE_METRICOOL_TOK_TRACKER_HASH", "f".repeat(32));
+    expect(readTokMetricoolConfig()).toEqual({
+      brandId: "8765432", trackerHash: "f".repeat(32),
+    });
+  });
+
   it("does not load before consent, then counts SPA navigation once without tracking private pages", async () => {
     expect(window.location.hostname).toBe("www.thetok.ch");
     const send = vi.fn();
@@ -95,7 +122,7 @@ describe("Metricool website tracking", () => {
     (window as Window & { beTracker?: { t: typeof send } }).beTracker = { t: send };
     act(() => script.dispatchEvent(new Event("load")));
     await waitFor(() => expect(send).toHaveBeenCalledTimes(1));
-    expect(send).toHaveBeenLastCalledWith({ hash: METRICOOL_TRACKER_HASH });
+    expect(send).toHaveBeenLastCalledWith({ hash: "f".repeat(32) });
 
     fireEvent.click(screen.getByText("Recherche"));
     await waitFor(() => expect(send).toHaveBeenCalledTimes(2));

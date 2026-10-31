@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="fr-CH">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
+<title>TOK · AutoPilot — prévisualisation commerciale</title>
+<style>
+:root{--ink:#161c1e;--orange:#f15d22;--paper:#f7f3ec;--border:#ebe2d9;--muted:#687478}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.58 Inter,"Segoe UI",Arial,sans-serif}
+header{background:#181b1a;color:#fff;padding:22px max(4vw,20px) 48px;border-bottom:5px solid var(--orange)}
+.head,.hero,.shell{max-width:1220px;margin:auto}.head{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.logo{display:flex;align-items:center;gap:11px;font-size:25px;font-weight:900;letter-spacing:-1.4px}.logo img{width:49px;height:49px;object-fit:contain;background:white;border-radius:13px}
+.logo small{display:block;font-size:10px;font-weight:800;letter-spacing:2px;color:#ffa36d}
+.pill{font-size:12px;padding:8px 13px;border:1px solid #69716c;border-radius:30px;color:#ffdec8}
+.hero{margin-top:55px}.eyebrow{font-size:12px;color:#ffa36d;font-weight:900;letter-spacing:2px;text-transform:uppercase}
+h1{font-size:clamp(35px,5.2vw,65px);line-height:1.06;letter-spacing:-2px;max-width:930px;margin:15px 0}
+.hero p{max-width:720px;color:#c7ceca;font-size:17px;margin:0}
+.shell{padding:30px 24px 80px}.alert{background:#fff0dc;border:1px solid #edcfab;color:#674523;border-radius:14px;padding:17px 20px;margin:0 0 27px}
+.layout{display:grid;grid-template-columns:245px minmax(0,1fr);gap:25px}
+nav{align-self:start;position:sticky;top:18px;background:#fff;border-radius:20px;border:1px solid var(--border);padding:12px}
+nav h2{font-size:11px;color:#995e42;text-transform:uppercase;letter-spacing:1.4px;margin:12px 11px}
+nav button{width:100%;background:transparent;color:#505c5b;text-align:left;border:0;border-radius:11px;padding:12px;cursor:pointer;font-size:13px;font-weight:800}
+nav button.active{background:#222726;color:#fff}nav button:hover:not(.active){background:#ffede2}
+.number{display:inline-block;width:27px;color:#ed6c35}
+section.panel{display:none}section.panel.active{display:block}
+h2.title{font-size:clamp(27px,3vw,37px);line-height:1.18;letter-spacing:-1px;margin:5px 0 9px}
+.kicker{color:#c45320;font-size:11px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase}
+.desc{color:#64716e;margin:0 0 22px;max-width:650px}
+.card{border:1px solid var(--border);background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 10px 40px rgba(29,25,20,.035)}
+.headerline{padding:17px 22px;background:#fdfbf8;border-bottom:1px solid var(--border);font-size:13px;color:#626b69}
+.headerline strong{color:#2a302e}
+.mail{max-width:620px;margin:27px auto 34px;background:#fff;border:1px solid #eedbd0;border-radius:18px;overflow:hidden}
+.mast{background:linear-gradient(#fff1e7,#fff);text-align:center;padding:25px}
+.mast img{width:85px;height:85px;object-fit:contain}
+.mail h3{font-weight:900;font-size:29px;letter-spacing:-1px;line-height:1.14;text-align:center;margin:0 20px 25px}
+.body{padding:0 33px;font-size:15px;line-height:1.75}
+.body p{margin:0 0 17px}
+.cta{display:inline-block;background:var(--orange);color:white;text-decoration:none;border-radius:99px;font-weight:900;padding:14px 28px;margin:10px auto}
+.call{text-align:center;padding:2px 16px 19px}
+.footer{font-size:11px;color:#6e716b;background:#f8f4ee;text-align:center;padding:18px 28px}
+.note{font-size:12px;color:#697470;border-left:3px solid var(--orange);padding:12px 15px;margin-top:14px;background:#fff}
+.copy{border:1px solid #d3c3b6;background:#fff;border-radius:10px;padding:9px 13px;cursor:pointer;font-weight:800}
+.flexhead{display:flex;align-items:start;justify-content:space-between;gap:15px}.flexhead>div{flex:1}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.item{background:white;border:1px solid var(--border);border-radius:16px;padding:20px}.item b{display:block;font-size:18px}.item p{margin:4px 0;color:#687471;font-size:13px}
+.timeline{display:grid;gap:12px}.step{display:flex;gap:17px;align-items:start;padding:19px}.time{background:#fff0e7;color:#a94a22;padding:6px 10px;border-radius:8px;font-weight:900;font-size:12px;white-space:nowrap}.step h3{margin:0 0 5px;font-size:17px}.step p{margin:0;color:#6a7672;font-size:13px}
+.phone{max-width:393px;border:9px solid #232727;border-radius:40px;overflow:hidden;background:white;margin:20px auto;box-shadow:0 18px 55px #302c2333}
+.photo{background:linear-gradient(45deg,#101716e6,#10171655),url("https://www.thetok.ch/fond3.png") center/cover;min-height:240px;color:white;padding:70px 20px 25px}
+.photo h3{font-size:26px;line-height:1.18;margin:0}.phone-body{padding:22px}.phone-body p{font-size:13px;color:#6d7773}
+.fakeinput{border:1px solid #dad7d2;background:#f9f7f3;color:#87918d;padding:12px;margin:10px 0;border-radius:9px;font-size:12px}
+.previewonly{background:#fff7e9;border:1px solid #f1cfaa;padding:13px;border-radius:12px;color:#915124;font-size:13px}
+.tag{display:inline-block;border-radius:30px;background:#eaf3ed;color:#276447;font-size:12px;padding:5px 12px;font-weight:800}
+.disabled{color:#a83a2a;font-weight:850}
+ul{padding-left:23px}li{margin:9px 0}.content{max-width:870px}.small{color:#697675;font-size:13px}
+footer{text-align:center;border-top:1px solid var(--border);color:#89908a;padding:24px;font-size:12px}
+@media(max-width:850px){.layout{display:block}nav{position:static;display:flex;gap:3px;overflow:auto;margin-bottom:25px}nav h2{display:none}nav button{min-width:164px}.shell{padding:23px 15px}.hero{margin-top:35px}.grid{grid-template-columns:1fr}}
+@media(max-width:520px){header{padding:17px 17px 37px}.logo img{height:37px;width:37px}.pill{font-size:10px}.hero p{font-size:15px}.mail{margin:15px 9px 25px}.body{padding:0 20px}.flexhead{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<header><div class="head"><div class="logo"><img src="https://www.thetok.ch/logo3df.png" alt="TOK">TOK <small>STUDIO DE VALIDATION</small></div><div class="pill">PREVIEW · Aucun envoi</div></div>
+<div class="hero"><div class="eyebrow">AutoPilot TOK · Acquisition restaurateurs à Genève</div><h1>Voici exactement les messages proposés aux restaurateurs.</h1><p>Vous pouvez comparer les brouillons d’e-mail, le post social, le parcours d’inscription et la procédure quotidienne. Rien sur cette page ne contacte un prospect, ne collecte de données ou ne déclenche un paiement.</p></div></header>
+<div class="shell"><div class="alert"><strong>Prévisualisation non approuvée.</strong> Aucun e-mail ni publication n’est envoyé. Les messages personnels exigent un consentement vérifié. La marque Tok 6954835 est autorisée pour les publications TOK, et ses anciens chiffres Stoppin sont exclus des nouveaux bilans. Cet aperçu ne réalise aucun envoi.</div>
+<div class="layout"><nav role="tablist" aria-label="Brouillons de la campagne">
+<h2>Choisir un écran</h2>
+<button class="active" data-open="initial"><span class="number">01</span> Premier e-mail</button>
+<button data-open="followup"><span class="number">02</span> Relance à J+7</button>
+<button data-open="social"><span class="number">03</span> Post Instagram</button>
+<button data-open="funnel"><span class="number">04</span> Parcours d’inscription</button>
+<button data-open="routine"><span class="number">05</span> AutoPilot quotidien</button>
+<button data-open="metricool"><span class="number">06</span> Marque Metricool</button>
+</nav><main>
+<section id="initial" class="panel active"><div class="flexhead"><div><span class="kicker">Brouillon · premier contact consenti</span><h2 class="title">Une invitation claire, sans promesse exagérée</h2><p class="desc">Destinataires : uniquement contacts ayant un consentement marketing vérifié et non révoqué.</p></div><button class="copy" data-copy="initial">Copier</button></div>
+<div class="card"><div class="headerline"><div><strong>Objet :</strong> Vos réservations et vos offres, au même endroit — découvrez TOK</div><div><strong>Expéditeur :</strong> TOK · adresse professionnelle vérifiée avant envoi</div><div><strong>Pré-en-tête :</strong> Une démonstration gratuite, des frais lisibles avant de décider.</div></div>
+<div class="mail"><div class="mast"><img src="https://www.thetok.ch/logo3df.png" alt="Logo TOK"></div><h3>Votre restaurant, un seul espace pour avancer.</h3>
+<div class="body" data-copy-source="initial"><p>Bonjour,</p>
+<p>Réservations, commandes, offres anti-gaspi, ventes flash et fidélité : TOK réunit ces outils dans un espace pensé pour les restaurateurs.</p>
+<p>Le tarif est transparent : le pack Starter est affiché à <strong>69 CHF/mois</strong>. Pour les réservations apportées par TOK et réellement honorées, les frais sont de <strong>5 CHF par table</strong>, quel que soit le nombre de personnes. Les autres prestations peuvent avoir leurs propres frais.</p>
+<p>Vous pouvez découvrir la plateforme et demander une démonstration gratuite. <strong>Aucun abonnement ni paiement n’est déclenché par cette demande.</strong></p>
+<p>Au plaisir de vous présenter TOK,<br>L’équipe TOK</p></div>
+<div class="call"><a class="cta" target="_blank" rel="noopener noreferrer" href="https://www.thetok.ch/restaurateurs/geneve?utm_source=email&amp;utm_medium=email&amp;utm_campaign=tok_restaurateurs_202611&amp;utm_content=initial">Découvrir TOK et demander une démo</a></div>
+<div class="footer">TOK · Genève, Suisse<br>Message envoyé uniquement avec autorisation de contact vérifiée.<br>Lien individuel de désinscription : <em>inséré automatiquement lors d’un envoi autorisé.</em></div></div></div>
+<p class="note">Les éléments variables lors d’un vrai envoi sont l’adresse expéditrice et le lien unique de désinscription. Le corps, l’objet, le tarif et le CTA figurent ici intégralement.</p>
+</section>
+
+<section id="followup" class="panel"><div class="flexhead"><div><span class="kicker">Brouillon · relance 7 jours après, sous conditions</span><h2 class="title">Une seule relance, sans insister</h2><p class="desc">Conditions : premier e-mail légalement envoyé, pas de réponse, pas de désinscription, pas d’inscription convertie, consentement toujours valide.</p></div><button class="copy" data-copy="followup">Copier</button></div>
+<div class="card"><div class="headerline"><strong>Objet :</strong> TOK : voir concrètement le coût pour votre restaurant ?</div>
+<div class="mail"><div class="mast"><img src="https://www.thetok.ch/logo3df.png" alt="TOK"></div><h3>Un tarif clair. Vos chiffres à vous.</h3>
+<div class="body" data-copy-source="followup"><p>Bonjour,</p><p>Je reviens une seule fois vers vous au sujet de TOK.</p>
+<p>Pour comprendre le budget, voici un exemple : avec le pack Starter à <strong>69 CHF/mois</strong> et <strong>10 tables réellement servies</strong> provenant de TOK, l’abonnement et ces frais de réservation représentent <strong>119 CHF</strong>, hors commandes et autres prestations.</p>
+<p>Vous pouvez simuler votre activité sur notre page restaurateur, puis demander une démonstration gratuite si cela vous intéresse.</p>
+<p>Si le sujet n’est pas d’actualité, nous n’insisterons pas.</p><p>L’équipe TOK</p></div>
+<div class="call"><a class="cta" target="_blank" rel="noopener noreferrer" href="https://www.thetok.ch/restaurateurs/geneve?utm_source=email&amp;utm_medium=email&amp;utm_campaign=tok_restaurateurs_202611&amp;utm_content=relance">Simuler mon tarif TOK</a></div>
+<div class="footer">TOK · Genève, Suisse<br>Une seule relance avec consentement maintenu.<br>Lien individuel de désinscription ajouté lors d’un éventuel envoi.</div></div></div></section>
+
+<section id="social" class="panel"><div class="flexhead"><div><span class="kicker">Publication publique organique — non envoyée</span><h2 class="title">Post Instagram / Facebook TOK</h2><p class="desc">Pas de DM aux comptes inconnus. Le visuel final doit être généré en une seule scène à partir des références TOK et validé, sans montage.</p></div><button class="copy" data-copy="social">Copier</button></div>
+<div class="card" style="padding:22px"><div class="mail" style="max-width:470px"><div class="headerline"><strong>tok_suisse</strong> · Maquette de contenu, pas une publication</div>
+<div style="aspect-ratio:4/5;background:linear-gradient(0deg,#101412d9,#171a1744),url('https://www.thetok.ch/fond3.png') center/cover;display:flex;align-items:end;color:white;padding:27px"><div style="font-size:30px;font-weight:900;line-height:1.1">Réservations.<br>Commandes.<br>Moins de dispersion.<div style="font-size:11px;font-weight:600;color:#ffb681;margin-top:15px">Exemple de mise en page seulement · pas un visuel généré</div></div></div>
+<div class="body" data-copy-source="social" style="padding-top:15px"><p><strong>Et si vos réservations, commandes et offres étaient au même endroit ?</strong></p><p>Avec TOK, retrouvez vos demandes, vos offres anti-gaspi et vos ventes flash dans un seul espace restaurateur.</p><p>Starter : 69 CHF/mois. Réservations TOK honorées : 5 CHF par table, en plus de l’abonnement. Autres frais selon les services.</p><p>Démo gratuite : thetok.ch/restaurateurs/geneve</p><p>#TOK #RestaurateursGeneve #RestaurantGeneve #Genève</p></div></div></div>
+<p class="note">Ce visuel de démonstration utilise une image déjà présente sur TOK. Il ne remplace pas une génération native conforme à la direction artistique.</p></section>
+
+<section id="funnel" class="panel"><span class="kicker">Parcours complet sans action réelle</span><h2 class="title">Du clic à l’inscription</h2><p class="desc">La même destination pour tous les messages. Le formulaire de cette maquette ne transmet rien.</p>
+<div class="phone"><div class="photo"><h3>Réservations, commandes et fidélité : votre restaurant réuni dans TOK.</h3></div><div class="phone-body"><p>Découvrez une plateforme pour centraliser les demandes et vos offres.</p><div class="cta" style="display:block;text-align:center">Demander une démo gratuite</div><p style="text-align:center;color:#cf5d23;font-weight:800">Créer mon compte restaurateur</p><div class="fakeinput">Nom du restaurant — non modifiable</div><div class="fakeinput">Adresse e-mail — non modifiable</div><div class="fakeinput">Téléphone — non modifiable</div><div class="fakeinput">□ Recevoir les offres TOK (facultatif, décoché)</div><p class="previewonly">Formulaire inactif : cette page ne collecte aucune donnée.</p></div></div>
+<div class="grid"><div class="item"><b>0 CHF</b><p>Pour la demande de démonstration</p></div><div class="item"><b>2 chemins</b><p>Démo gratuite ou inscription restaurateur directe</p></div></div>
+<p class="small">La page réelle est consultable à <a href="https://www.thetok.ch/restaurateurs/geneve" target="_blank" rel="noopener noreferrer">www.thetok.ch/restaurateurs/geneve</a>. Toute action réelle nécessite le consentement du visiteur.</p></section>
+
+<section id="routine" class="panel"><span class="kicker">Plan du système · propositions, pas promesses de publication</span><h2 class="title">AutoPilot TOK : chaque jour, avec garde-fous</h2><p class="desc">Les tâches existantes tournent à intervalles de 2–5 min. Les étapes ci-dessous sont le cycle cible et la politique de reprise.</p>
+<div class="timeline">
+<div class="card step"><span class="time">06:30</span><div><h3>Diagnostic et états de la veille</h3><p>État des cron, erreurs de génération, messages refusés, données CRM et coût. Escalade en cas d’anomalie.</p></div></div>
+<div class="card step"><span class="time">07:00</span><div><h3>Qualifier le CRM</h3><p>Dédupliquer, scorer, respecter les oppositions et préparer des brouillons internes (au maximum 200 nouveaux dossiers par jour).</p></div></div>
+<div class="card step"><span class="time">09:00</span><div><h3>Générer des contenus TOK</h3><p>Une image native par génération, mêmes références, marges renforcées, 3 tentatives au maximum. Si échec : alerte et blocage, jamais une image incorrecte.</p></div></div>
+<div class="card step"><span class="time">11:00</span><div><h3>Publication et prospection autorisées</h3><p>Vérifier la marque, la permission, l’accord éditorial, le consentement du contact et les plafonds. Publier seulement après autorisation vérifiée.</p></div></div>
+<div class="card step"><span class="time">18:00</span><div><h3>Rapprocher les ventes</h3><p>Démo, inscription, contrat, facture Stripe payée, activation. Chaque stade reste distinct et mesuré sans attribution inventée.</p></div></div>
+<div class="card step"><span class="time">24/7</span><div><h3>Watchdog indépendant</h3><p>Contrôler l’horodatage des tâches, détecter les échecs répétés et signaler. Les services peuvent avoir des pannes : aucun « zéro arrêt » absolu garanti.</p></div></div>
+</div></section>
+
+<section id="metricool" class="panel"><span class="kicker">Réutilisation autorisée par le propriétaire</span><h2 class="title">Marque Metricool Tok et nouvelles mesures</h2>
+<div class="alert"><strong>Réutilisation autorisée le 31 octobre 2026.</strong> La marque Tok / 6954835 est conservée avec Facebook Tok et Instagram tok_suisse. L'ancien historique Stoppin ne sera pas attribué aux nouvelles campagnes TOK.</div>
+<div class="timeline">
+<div class="card step"><span class="time">1</span><div><h3>Conserver la marque existante</h3><p>Aucun deuxième abonnement requis. Préserver l'historique Stoppin.</p></div></div>
+<div class="card step"><span class="time">2</span><div><h3>Nouvelle référence : 1er novembre 2026</h3><p>Mesurer les nouveaux posts et interactions TOK uniquement à compter de cette date.</p></div></div>
+<div class="card step"><span class="time">3</span><div><h3>Première publication Facebook programmée</h3><p>Le 1er novembre à 11 h 30, sans publicité payante. Instagram exige un visuel TOK conforme.</p></div></div>
+<div class="card step"><span class="time">4</span><div><h3>Suivi web séparé</h3><p>L'URL du site reste absente dans Metricool. Vérifier www.thetok.ch et le consentement Analytics avant d'activer le traceur.</p></div></div></div>
+<p class="note">Cette prévisualisation n'envoie aucun prospect, ne traite aucun paiement et n'active aucun traceur.</p></section>
+</main></div></div>
+<footer>TOK — Prévisualisation sans envoi, sans collecte, sans paiement et sans traceur · Exemplaires fictifs destinés à validation.</footer>
+<script>
+(function(){
+const tabs=[...document.querySelectorAll("[data-open]")];
+tabs.forEach(btn=>btn.addEventListener("click",()=>{
+tabs.forEach(x=>x.classList.toggle("active",x===btn));
+document.querySelectorAll("section.panel").forEach(x=>x.classList.toggle("active",x.id===btn.dataset.open));
+if(innerWidth<850)document.querySelector("main").scrollIntoView({behavior:"smooth"});
+}));
+document.querySelectorAll("[data-copy]").forEach(btn=>btn.addEventListener("click",()=>{
+const id=btn.dataset.copy,source=document.querySelector('[data-copy-source="'+id+'"]');
+if(!source)return;
+const subject=id==="initial"?"Objet : Vos réservations et vos offres, au même endroit — découvrez TOK\n\n":id==="followup"?"Objet : TOK : voir concrètement le coût pour votre restaurant ?\n\n":"";
+const end=id==="social"?"":"\n\nLien de désinscription unique : ajouté au moment d’un envoi autorisé.";
+const text=subject+source.innerText+"\n\nDestination : https://www.thetok.ch/restaurateurs/geneve"+end;
+if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>btn.textContent="Copié !").catch(()=>btn.textContent="Copie indisponible");}
+}));
+})();
+</script>
+</body>
+</html>
