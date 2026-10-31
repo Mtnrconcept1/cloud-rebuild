@@ -28,6 +28,7 @@ import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import LegalConsentBanner from "@/components/legal/LegalConsentBanner";
 import PageViewTracker from "@/components/PageViewTracker";
+import MetricoolPageTracker from "@/components/MetricoolPageTracker";
 import DailyTokArcade from "@/components/DailyTokArcade";
 import AiCreationNotifications from "@/components/AiCreationNotifications";
 import HalloweenTheme, { HALLOWEEN_FEATURE_FLAG } from "@/components/seasonal/HalloweenTheme";
@@ -736,6 +737,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
       {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
       {showLaunchClientChrome ? <LegalConsentBanner /> : null}
       {showLaunchClientChrome ? <PageViewTracker /> : null}
+      {showLaunchClientChrome ? <MetricoolPageTracker /> : null}
     </>
   );
 }
