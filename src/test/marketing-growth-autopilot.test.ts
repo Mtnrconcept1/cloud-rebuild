@@ -6,6 +6,10 @@ const sql = readFileSync(
   resolve(process.cwd(), "supabase/migrations/20261031063000_marketing_growth_autopilot.sql"),
   "utf8",
 );
+const noonRefreshSql = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql"),
+  "utf8",
+);
 const orchestrator = readFileSync(
   resolve(process.cwd(), "supabase/functions/marketing-orchestrator/index.ts"),
   "utf8",
@@ -47,6 +51,23 @@ describe("growth autopilot private CRM workflow", () => {
     expect(sql).not.toContain("http_post");
     expect(sql).not.toContain("resend.com");
     expect(sql).not.toContain("webhook");
+  });
+
+  it("refreshes morning aggregates only after Geneva noon without restaging contacts", () => {
+    expect(noonRefreshSql).toContain("AT TIME ZONE 'Europe/Zurich'");
+    expect(noonRefreshSql).toContain("v_snapshot_recorded_at >= v_noon_utc");
+    expect(noonRefreshSql).toContain("now() < v_noon_utc");
+    expect(noonRefreshSql).toContain("FOR UPDATE;");
+    expect(noonRefreshSql).toContain("IF NOT v_refresh_only THEN");
+    expect(noonRefreshSql).toContain("ON CONFLICT (local_date) DO UPDATE SET");
+    expect(noonRefreshSql).toContain("recorded_at = now()");
+    expect(noonRefreshSql).toContain("metrics = EXCLUDED.metrics");
+    expect(noonRefreshSql).toContain("PERFORM public.marketing_require_service_role()");
+    expect(noonRefreshSql).toContain("global_pause");
+    expect(noonRefreshSql).toContain("GRANT EXECUTE ON FUNCTION public.service_run_marketing_growth_autopilot(integer)");
+    expect(noonRefreshSql).toContain("TO service_role;");
+    expect(noonRefreshSql).not.toContain("http_post");
+    expect(noonRefreshSql).not.toContain("resend.com");
   });
 
   it("invokes only during approved scheduler runs and does not block the marketing queue", () => {
