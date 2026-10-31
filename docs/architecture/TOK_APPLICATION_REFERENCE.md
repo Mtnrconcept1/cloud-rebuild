@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `d742945876c11ade316252049269ea3da00b6e056f76da718a2ea99c5f854edc`
+- Empreinte SHA-256 des sources indexées : `1c538a9034d141b6fd6034386ab0abd6f2c4b0d3953d700d21cc26138bcfed39`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 239 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4294 |
+| exportedSymbols | 4298 |
 | featureFlags | 100 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 591 |
-| modules | 1937 |
+| modules | 1939 |
 | pages | 133 |
 | pathLiterals | 952 |
 | publicAssets | 743 |
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19915 |
-| repositoryFiles | 3868 |
+| records | 19924 |
+| repositoryFiles | 3870 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2265,7 +2265,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurateurs-geneve | 1 | [src/test/marketing-legacy-landing.test.ts:7](../../src/test/marketing-legacy-landing.test.ts#L7) |
 | /restaurateurs/:city | 3 | [src/App.tsx:718](../../src/App.tsx#L718) |
 | /restaurateurs/alternative-commission-couvert | 19 | [scripts/prerender-seo.mjs:689](../../scripts/prerender-seo.mjs#L689) |
-| /restaurateurs/geneve | 24 | [scripts/prerender-seo.mjs:621](../../scripts/prerender-seo.mjs#L621) |
+| /restaurateurs/geneve | 25 | [scripts/prerender-seo.mjs:621](../../scripts/prerender-seo.mjs#L621) |
 | /restaurateurs/google-business | 19 | [scripts/prerender-seo.mjs:688](../../scripts/prerender-seo.mjs#L688) |
 | /restaurateurs/lausanne | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
 | /robots.txt | 5 | [supabase/functions/discover-thefork-official-sites/index.ts:348](../../supabase/functions/discover-thefork-official-sites/index.ts#L348) |
@@ -7135,7 +7135,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 45 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 279 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 874 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 875 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 79 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7148,7 +7148,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 230 |
 | automation-script | 92 |
 | documentation | 6 |
-| edge-function-source | 258 |
+| edge-function-source | 259 |
 | frontend-component | 314 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
@@ -7156,7 +7156,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 808 |
+| test | 809 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7282,7 +7282,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Répartition des responsabilités — prix, disponibilité, allergènes et qualité | 3 | [docs/legal/10-responsabilites-produits.md:1](../../docs/legal/10-responsabilites-produits.md#L1) |
 | Pack contractuel TOK | 3 | [docs/legal/README.md:1](../../docs/legal/README.md#L1) |
 | Pistes de backlinks TOK sans compte existant | 6 | [docs/marketing-backlink-opportunities.md:1](../../docs/marketing-backlink-opportunities.md#L1) |
-| TOK Growth AutoPilot — qualification et conversions à partir des preuves réelles | 7 | [docs/marketing/GROWTH_AUTOPILOT.md:1](../../docs/marketing/GROWTH_AUTOPILOT.md#L1) |
+| TOK Growth AutoPilot — qualification et conversions à partir des preuves réelles | 8 | [docs/marketing/GROWTH_AUTOPILOT.md:1](../../docs/marketing/GROWTH_AUTOPILOT.md#L1) |
 | Veille Instagram Genève | 7 | [docs/marketing/INSTAGRAM_RESEARCH.md:1](../../docs/marketing/INSTAGRAM_RESEARCH.md#L1) |
 | Légendes des campagnes TOK | 5 | [docs/marketing/SOCIAL_EDITORIAL_POLICY.md:1](../../docs/marketing/SOCIAL_EDITORIAL_POLICY.md#L1) |
 | Import d’une série de visuels sociaux | 2 | [docs/marketing/SOCIAL_SERIES_IMPORT.md:1](../../docs/marketing/SOCIAL_SERIES_IMPORT.md#L1) |
@@ -8644,7 +8644,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (258)</summary>
+<details><summary>edge-function-source (259)</summary>
 
 - `supabase/functions/_shared/advisor-attachment-policy.ts`
 - `supabase/functions/_shared/advisor-attachments.ts`
@@ -8736,6 +8736,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/reservation-card-guarantee.ts`
 - `supabase/functions/_shared/restaurant-cover-evidence.ts`
 - `supabase/functions/_shared/restaurant-credits.ts`
+- `supabase/functions/_shared/restaurant-demo.ts`
 - `supabase/functions/_shared/restaurant-stripe-price-catalog.ts`
 - `supabase/functions/_shared/restaurant-subscription-billing.ts`
 - `supabase/functions/_shared/return-url.ts`
@@ -10528,7 +10529,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (808)</summary>
+<details><summary>test (809)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -11095,6 +11096,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-cover-evidence.test.ts`
 - `src/test/restaurant-dashboard-mobile-overview.test.ts`
 - `src/test/restaurant-dashboard-overview-navigation.test.ts`
+- `src/test/restaurant-demo-lead-funnel.test.ts`
 - `src/test/restaurant-detail-availability-preview.test.tsx`
 - `src/test/restaurant-detail-preview.test.tsx`
 - `src/test/restaurant-directory-pagination-images.test.ts`

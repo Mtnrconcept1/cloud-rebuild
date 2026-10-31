@@ -112,3 +112,36 @@ ou retirer l'appel dans le worker par une PR contrôlée. Une fois déployé, un
 rollback complet passe par une nouvelle migration compensatoire : ne jamais
 réécrire une migration déjà appliquée. Conserver les preuves, désabonnements,
 rapports et statuts audités.
+
+## Capture réelle des demandes de démonstration
+
+L'audit a révélé que la page `/restaurateurs/geneve` envoyait les demandes
+de démonstration uniquement au support, sans renseigner `restaurant_leads`.
+La fonction serveur `contact-support` reçoit désormais, pour ce formulaire
+public uniquement, un objet `restaurantLead` structuré : UUID v4 stable
+jusqu'au succès, établissement, ville, téléphone, tables et besoin.
+
+Après la validation CAPTCHA et les plafonds existants, le serveur persiste
+le dossier dans `restaurant_leads` avec le statut `new` et la source
+`restaurateurs_geneve`. La clé primaire UUID protège contre les doublons lors
+d'un nouvel essai. Un plafond supplémentaire de deux requêtes par jour et par
+empreinte SHA-256 d'e-mail limite l'abus sans inscrire l'adresse brute dans
+la clé du rate limiter.
+
+La demande continue d'être signalée au support. Seule la **première**
+création d'un dossier peut mettre en file un accusé de réception
+transactionnel à l'adresse fournie. Cet e-mail confirme uniquement la
+demande de démo et ne contient pas de publicité récurrente ; une adresse
+erronée ou usurpée reste un risque limité par CAPTCHA et fréquence.
+
+Une case facultative non cochée par défaut permet de demander à recevoir
+des nouvelles/offres TOK. Sa sélection, sa version de texte et la date
+serveur sont enregistrées sous `restaurant_leads.metadata` avec l'état
+**`marketing_status: unverified`**. Cela ne crée **pas** automatiquement
+un contact autorisé ni une inscription à une campagne. Une preuve de
+consentement vérifiée et la synchronisation contrôlée restent obligatoires
+avant tout marketing. Les demandes sans cette case restent traitables pour
+la démonstration qu'elles ont explicitement sollicitée.
+
+Tests : `src/test/restaurant-demo-lead-funnel.test.ts`, tests page
+`RestaurateursGeneve`, contrôles Deno et construction front.

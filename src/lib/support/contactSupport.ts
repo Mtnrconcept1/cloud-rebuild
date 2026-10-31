@@ -12,11 +12,20 @@ export type ContactSupportRequest = {
   captchaToken?: string | null;
   restaurantId?: string | null;
   restaurantName?: string | null;
+  restaurantLead?: {
+    requestId: string;
+    city: string;
+    phone: string;
+    tableCount: number | null;
+    primaryNeed: string;
+    marketingConsent: boolean;
+  };
 };
 
 export type ContactSupportResult = {
   ok: boolean;
   supportIncidentId?: string | null;
+  restaurantLeadId?: string | null;
 };
 
 function getFunctionErrorMessage(error: unknown, fallback: string) {

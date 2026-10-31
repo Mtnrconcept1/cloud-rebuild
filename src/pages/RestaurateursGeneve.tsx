@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -154,6 +154,7 @@ export default function RestaurateursGeneve() {
   const [pack, setPack] = useState<PackKey>("business");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [sendingLead, setSendingLead] = useState(false);
+  const demoRequestId = useRef<string | null>(null);
   const { toast } = useToast();
 
   const handleLeadSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -167,6 +168,13 @@ export default function RestaurateursGeneve() {
     const data = new FormData(form);
     const restaurant = String(data.get("restaurant") || "").trim();
     const email = String(data.get("email") || "").trim();
+    const city = String(data.get("ville") || "").trim() || "Genève";
+    const phone = String(data.get("telephone") || "").trim();
+    const tableCountRaw = String(data.get("tables") || "").trim();
+    const tableCount = tableCountRaw === "" ? null : Number(tableCountRaw);
+    const primaryNeed = String(data.get("besoin") || "").trim();
+    const requestId = demoRequestId.current || crypto.randomUUID();
+    demoRequestId.current = requestId;
     const details = [
       `Restaurant: ${restaurant}`,
       `Ville: ${String(data.get("ville") || "").trim()}`,
@@ -187,8 +195,17 @@ export default function RestaurateursGeneve() {
         subject: "Demande de démo restaurateur TOK Genève",
         message: details,
         captchaToken,
+        restaurantLead: {
+          requestId,
+          city,
+          phone,
+          tableCount,
+          primaryNeed,
+          marketingConsent: data.get("marketing_optin") === "on",
+        },
       });
       form.reset();
+      demoRequestId.current = null;
       setCaptchaToken(null);
       toast({ title: "Demande envoyée", description: "L’équipe TOK vous contactera rapidement." });
     } catch (error) {
@@ -637,6 +654,14 @@ export default function RestaurateursGeneve() {
             <div className="grid gap-2">
               <Label htmlFor="message">Contexte</Label>
               <Textarea id="message" name="message" placeholder="Horaires creux, canaux actuels, objectif à 30 jours..." />
+            </div>
+            <div className="flex items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+              <input id="marketing_optin" name="marketing_optin" type="checkbox"
+                className="mt-1 h-4 w-4 accent-orange-500" />
+              <Label htmlFor="marketing_optin" className="cursor-pointer text-sm font-normal leading-6 text-slate-700">
+                J’accepte de recevoir des nouvelles et offres TOK par e-mail. Ce choix est facultatif,
+                indépendant de ma demande de démo et révocable à tout moment.
+              </Label>
             </div>
             <TurnstileCaptcha action="restaurant_lead" onTokenChange={setCaptchaToken} />
             <Button type="submit" className="bg-orange-500 text-white hover:bg-orange-600" disabled={sendingLead}>
