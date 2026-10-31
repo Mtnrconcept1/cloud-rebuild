@@ -17,7 +17,7 @@ import {
 } from "../src/lib/seo/cityIdentity.mjs";
 
 const CANONICAL_ORIGIN = "https://www.thetok.ch";
-const DEFAULT_IMAGE = `${CANONICAL_ORIGIN}/fond3.png`;
+const DEFAULT_IMAGE = `${CANONICAL_ORIGIN}/tok-social-share-20261031.jpg`;
 const ROOT = process.cwd();
 const DIST_DIR = path.resolve(ROOT, "dist");
 const PUBLIC_DIR = path.resolve(ROOT, "public");

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 const DEFAULT_BASE_URL = "https://www.thetok.ch";
-const DEFAULT_IMAGE_PATH = "/fond3.png";
+const DEFAULT_IMAGE_PATH = "/tok-social-share-20261031.jpg";
 const INDEX_ROBOTS = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1";
 const NOINDEX_ROBOTS = "noindex,nofollow,noarchive";
 

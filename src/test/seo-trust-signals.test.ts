@@ -48,7 +48,7 @@ describe("SEO trust signals hardening", () => {
         {
           "@type": "Restaurant",
           name: "Le Jardin de Pinchat",
-          image: ["https://www.thetok.ch/fond3.png"],
+          image: ["https://www.thetok.ch/fond3.png", "https://www.thetok.ch/tok-social-share-20261031.jpg"],
           priceRange: "CHF CHF",
         },
       ],
@@ -57,6 +57,7 @@ describe("SEO trust signals hardening", () => {
     const hardened = sanitizeStructuredData(structured) as Record<string, unknown>;
     const payload = JSON.stringify(hardened);
     expect(payload).not.toContain("fond3.png");
+    expect(payload).not.toContain("tok-social-share-20261031.jpg");
     expect(payload).not.toContain("CHF CHF");
     expect(payload).toContain('"priceRange":"$$"');
   });
