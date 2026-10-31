@@ -45,8 +45,26 @@ describe("continuous daily marketing worker", () => {
     const client = clientFor({ ...claim, attempt_count: 2, recent_posts: recent.map((title) => ({ title })) });
     generate.mockResolvedValue({ ...visual, source: "recovered" });
     await runDailyMarketingGeneration(client, options);
-    expect(generate.mock.calls[0][1].brief).toEqual(buildDailyMarketingBrief(claim.local_date, recent));
+    const adjusted = generate.mock.calls[0][1].brief;
+    expect(adjusted.title).toBe(buildDailyMarketingBrief(claim.local_date, recent).title);
+    expect(adjusted.referenceIds).toEqual(buildDailyMarketingBrief(claim.local_date, recent).referenceIds);
+    expect(adjusted.visualPrompt).toContain("zone périphérique de 16 %");
     expect(client.rpc.mock.calls[1][1].p_content.generation_source).toBe("recovered");
+  });
+
+  it("reinforces the final attempt without changing the master reference ids or original copy", async () => {
+    const client = clientFor({ ...claim, attempt_count: 3 });
+    generate.mockResolvedValue(visual);
+    await runDailyMarketingGeneration(client, options);
+    const base = buildDailyMarketingBrief(claim.local_date);
+    const retried = generate.mock.calls[0][1].brief;
+    expect(retried.referenceIds).toEqual(base.referenceIds);
+    expect(retried.title).toBe(base.title);
+    expect(retried.visualFamily).toBe(base.visualFamily);
+    expect(retried.visualPrompt).toContain("zone périphérique de 20 %");
+    expect(retried.visualPrompt).toContain("x=205 et x=819");
+    expect(retried.visualPrompt).toContain("une seule scène");
+    expect(client.rpc.mock.calls[1][1].p_content.visual_prompt).toBe(retried.visualPrompt);
   });
 
   it.each(["marketing_daily_quality_title_mismatch", "marketing_daily_quality_safe_margins", "marketing_daily_quality_text_legible"])("records %s as a bounded retryable error, with no incomplete campaign content", async (error) => {

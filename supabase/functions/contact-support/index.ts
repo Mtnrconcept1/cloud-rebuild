@@ -10,6 +10,7 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { notifyAdmins } from "../_shared/notifications.ts";
+import { parseRestaurantDemoInput, RESTAURANT_DEMO_CONSENT_VERSION, RESTAURANT_DEMO_SUBJECT } from "../_shared/restaurant-demo.ts";
 
 type SupportSource = "public_contact" | "restaurant_dashboard";
 
@@ -106,6 +107,15 @@ Deno.serve(async (req) => {
     const restaurantId = maybeUuid(payload.restaurantId);
     const restaurantName = sanitizeText(payload.restaurantName, 160);
     const captchaToken = sanitizeText(payload.captchaToken, 1200);
+    let demoLead: ReturnType<typeof parseRestaurantDemoInput> | null = null;
+    if (payload.restaurantLead !== undefined) {
+      requireInput(source === "public_contact" && subject === RESTAURANT_DEMO_SUBJECT, "invalid_restaurant_demo_source");
+      try {
+        demoLead = parseRestaurantDemoInput(payload.restaurantLead);
+      } catch {
+        throw new HttpError(400, "invalid_restaurant_demo_details");
+      }
+    }
 
     requireInput(source === "public_contact" || source === "restaurant_dashboard", "invalid_source");
     requireInput(subject.length >= 3, "subject_required");
@@ -129,6 +139,8 @@ Deno.serve(async (req) => {
     }
 
     let incidentId: string | null = null;
+    let restaurantLeadId: string | null = null;
+    let restaurantLeadCreated = false;
 
     if (source === "restaurant_dashboard" && actor?.userId && restaurantId) {
       const { data: incident, error: incidentError } = await adminClient
@@ -169,6 +181,51 @@ Deno.serve(async (req) => {
       }
     }
 
+    if (demoLead) {
+      // The anonymous lead form has passed the same CAPTCHA and rate-limiting as support.
+      // Hash the email for a second, independent per-recipient anti-abuse cap.
+      const digest = new Uint8Array(await crypto.subtle.digest(
+        "SHA-256", new TextEncoder().encode(email),
+      ));
+      const fingerprint = Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join("");
+      await limiter.consume(`restaurant-demo:${fingerprint}`, { maxRequests: 2, windowSeconds: 86400 });
+
+      const { data: created, error: leadError } = await adminClient.from("restaurant_leads")
+        .insert({
+          id: demoLead.requestId,
+          restaurant_name: name,
+          city: demoLead.city,
+          email,
+          phone: demoLead.phone,
+          table_count: demoLead.tableCount,
+          primary_need: demoLead.primaryNeed || null,
+          source: "restaurateurs_geneve",
+          status: "new",
+          notes: message.slice(0, 1200),
+          metadata: {
+            form: "restaurant_demo",
+            page: "/restaurateurs/geneve",
+            consent_version: RESTAURANT_DEMO_CONSENT_VERSION,
+            marketing_opt_in_requested: demoLead.marketingConsent,
+            marketing_opt_in_requested_at: demoLead.marketingConsent ? new Date().toISOString() : null,
+            marketing_status: "unverified",
+            // A client-declared source may help research but is never verified campaign revenue.
+            acquisition_touch: demoLead.acquisitionTouch ? {
+              status: "self_reported_unverified",
+              utm: demoLead.acquisitionTouch.utm,
+              referrer_host: demoLead.acquisitionTouch.referrerHost,
+              touched_at: demoLead.acquisitionTouch.touchedAt,
+            } : null,
+          },
+        }).select("id").maybeSingle();
+      if (leadError && leadError.code !== "23505") {
+        throw new HttpError(500, "restaurant_demo_crm_unavailable");
+      }
+      restaurantLeadId = typeof created?.id === "string" ? created.id : demoLead.requestId;
+      restaurantLeadCreated = !leadError;
+      targetEntityId = restaurantLeadId;
+    }
+
     const senderLabel = source === "public_contact"
       ? `${name} <${email}>`
       : `${actor?.userId || "utilisateur"}${restaurantName ? ` / ${restaurantName}` : ""}`;
@@ -207,6 +264,20 @@ Deno.serve(async (req) => {
 
     if (emailError) throw new HttpError(500, emailError.message);
 
+    // Only one transactional acknowledgement for a genuinely new request ID.
+    // This is NOT a marketing subscription or an advertising message.
+    if (restaurantLeadCreated && restaurantLeadId) {
+      const { error: ackError } = await adminClient.from("email_queue").insert({
+        to_email: email,
+        subject: "TOK — demande de démonstration reçue",
+        body_text: `Bonjour,\n\nVotre demande de démonstration TOK pour ${name} a bien été reçue. L’équipe TOK reviendra vers vous pour organiser la suite.\n\nCe message confirme uniquement votre demande ; il ne vous inscrit pas à une liste publicitaire.\n\nL’équipe TOK`,
+        body_html: `<p>Bonjour,</p><p>Votre demande de démonstration TOK pour <strong>${escapeHtml(name)}</strong> a bien été reçue. L’équipe TOK reviendra vers vous pour organiser la suite.</p><p>Ce message confirme uniquement votre demande ; il ne vous inscrit pas à une liste publicitaire.</p><p>L’équipe TOK</p>`,
+        status: "queued",
+        metadata: { source: "restaurant_demo_ack", restaurant_lead_id: restaurantLeadId },
+      });
+      if (ackError) log.warn("restaurant_demo_ack_unavailable");
+    }
+
     await notifyAdmins({
       adminClient,
       title: incidentId ? "Nouveau sinistre support" : "Nouveau message support",
@@ -235,7 +306,7 @@ Deno.serve(async (req) => {
       functionName: FUNCTION_NAME,
       action: "queue_support_contact",
       status: "success",
-      targetEntityType: incidentId ? "support_incidents" : "email_queue",
+      targetEntityType: incidentId ? "support_incidents" : restaurantLeadId ? "restaurant_leads" : "email_queue",
       targetEntityId,
       metadata: {
         rid: log.rid,
@@ -245,7 +316,7 @@ Deno.serve(async (req) => {
       },
     });
 
-    return jsonResponse({ ok: true, supportIncidentId: incidentId }, 200, corsHeaders);
+    return jsonResponse({ ok: true, supportIncidentId: incidentId, restaurantLeadId }, 200, corsHeaders);
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "internal_error";

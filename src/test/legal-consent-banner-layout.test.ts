@@ -31,6 +31,13 @@ describe("legal consent banner layout", () => {
     expect(source).toContain("md:bottom-4");
   });
 
+  it("does not cover the mobile restaurant signup CTA with the cookie control", () => {
+    expect(source).toContain('isRestaurantProspectLanding = pathname.startsWith("/restaurateurs/")');
+    expect(source).toContain("top-[calc(env(safe-area-inset-top,0px)+4.75rem)]");
+    expect(source).toContain("isRestaurantProspectLanding && \"hidden sm:inline\"");
+    expect(source).toContain('aria-label="Gérer mes cookies"');
+  });
+
   it("keeps the desktop cookie control away from sidebar account actions", () => {
     expect(source).toContain("md:left-auto md:right-4");
   });

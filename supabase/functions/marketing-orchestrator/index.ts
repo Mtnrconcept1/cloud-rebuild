@@ -515,6 +515,28 @@ Deno.serve(async (req) => {
       deliveryResults.push(await processDelivery(client, delivery));
     }
 
+    // The growth agent only creates private CRM recommendations and metric snapshots.
+    // Failure never interrupts already-approved marketing deliveries.
+    let growth: { status: string; staged: number; focus?: string } | null = null;
+    if (action === "run_due") {
+      try {
+        const { data: growthResult, error: growthError } = await client.rpc(
+          "service_run_marketing_growth_autopilot",
+          { p_limit: 200 },
+        );
+        if (growthError) throw growthError;
+        const output = asRecord(growthResult);
+        growth = {
+          status: String(output.status || "unavailable"),
+          staged: Number.isFinite(Number(output.staged)) ? Number(output.staged) : 0,
+          ...(typeof output.focus === "string" ? { focus: output.focus.slice(0, 40) } : {}),
+        };
+      } catch {
+        growth = { status: "unavailable", staged: 0 };
+        log.error("Growth recommendations unavailable; marketing dispatch unaffected");
+      }
+    }
+
     await writeAuditLog({
       adminClient: client,
       actor,
@@ -528,9 +550,11 @@ Deno.serve(async (req) => {
         claimed_deliveries: deliveryResults.length,
         item_failures: itemResults.filter((row) => "error" in row).length,
         delivery_failures: deliveryResults.filter((row) => "error" in row).length,
+        growth_status: growth?.status ?? "not_scheduled",
+        growth_staged: growth?.staged ?? 0,
       },
     });
-    return jsonResponse({ ok: true, action, items: itemResults, deliveries: deliveryResults }, 200, corsHeaders);
+    return jsonResponse({ ok: true, action, items: itemResults, deliveries: deliveryResults, growth }, 200, corsHeaders);
   } catch (error) {
     if (error instanceof InstagramInputError || error instanceof InstagramResearchError) {
       const status = error instanceof InstagramInputError ? 400 : error.status;

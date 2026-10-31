@@ -48,6 +48,15 @@ export const TRACKER_INVENTORY: TrackerInventoryItem[] = [
     activation: "Ajout au panier ou démarrage d’un checkout.",
   },
   {
+    name: "Metricool be.js (visites des pages publiques)",
+    provider: "Metricool",
+    storage: "server event",
+    category: "analytics",
+    purpose: "Mesurer les visites des pages publiques autorisées de TOK. Metricool peut recevoir la page consultée et l'adresse IP pour déterminer le pays, sans déposer de cookie.",
+    duration: "Selon les conditions de conservation de Metricool, à confirmer dans le registre fournisseurs TOK.",
+    activation: "Après consentement analytics uniquement ; jamais sur les pages privées, d'authentification, de paiement ou d'administration.",
+  },
+  {
     name: "Sentry error and performance events",
     provider: "Sentry",
     storage: "server event",

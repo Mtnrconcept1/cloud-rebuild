@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 537 error codes mapped from supabase/functions/**.
+// 539 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -610,13 +610,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "captcha_invalid": [
     {
       "file": "supabase/functions/contact-support/index.ts",
-      "line": 81
+      "line": 82
     }
   ],
   "captcha_verification_failed": [
     {
       "file": "supabase/functions/contact-support/index.ts",
-      "line": 78
+      "line": 79
     }
   ],
   "channels_required": [
@@ -1909,6 +1909,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 235
     }
   ],
+  "invalid_restaurant_demo_details": [
+    {
+      "file": "supabase/functions/contact-support/index.ts",
+      "line": 116
+    }
+  ],
   "invalid_test_stripe_key": [
     {
       "file": "supabase/functions/_shared/stripe-client.ts",
@@ -2146,7 +2152,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/contact-support/index.ts",
-      "line": 97
+      "line": 98
     },
     {
       "file": "supabase/functions/crm-mfa-recovery/index.ts",
@@ -2955,6 +2961,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 595
     }
   ],
+  "restaurant_demo_crm_unavailable": [
+    {
+      "file": "supabase/functions/contact-support/index.ts",
+      "line": 222
+    }
+  ],
   "restaurant_id_missing": [
     {
       "file": "supabase/functions/google-actions-center-sync/index.ts",
@@ -3020,7 +3032,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/contact-support/index.ts",
-      "line": 127
+      "line": 137
     },
     {
       "file": "supabase/functions/menu-image-import/index.ts",

@@ -1,7 +1,7 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "541777589e8328d9126b1e2384f4a7ace58a0b45ec1b248a1f71e4ed655de23a",
+  "sourceDigest": "282b6180c1bbc8537fe8b5374736e27003dc7e622dc710b1052299eccea1df84",
   "routeCount": 143,
   "toolCount": 125
 } as const;
@@ -2493,6 +2493,7 @@ export const TOK_USER_GUIDE_TOOLS = [
       "generate_daily",
       "instagram_comments",
       "instagram_discover",
+      "run_due",
       "run_item"
     ],
     "integrations": [

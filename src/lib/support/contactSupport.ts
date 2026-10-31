@@ -1,4 +1,5 @@
 import { getSupabase } from "@/integrations/supabase/client";
+import type { AcquisitionTouch } from "../../../supabase/functions/_shared/marketing-utm";
 import { invokeSupabaseFunction } from "@/lib/session";
 
 export type ContactSupportSource = "public_contact" | "restaurant_dashboard";
@@ -12,11 +13,22 @@ export type ContactSupportRequest = {
   captchaToken?: string | null;
   restaurantId?: string | null;
   restaurantName?: string | null;
+  restaurantLead?: {
+    requestId: string;
+    city: string;
+    phone: string;
+    tableCount: number | null;
+    primaryNeed: string;
+    marketingConsent: boolean;
+    marketingTrackingConsent?: boolean;
+    acquisitionTouch?: AcquisitionTouch | null;
+  };
 };
 
 export type ContactSupportResult = {
   ok: boolean;
   supportIncidentId?: string | null;
+  restaurantLeadId?: string | null;
 };
 
 function getFunctionErrorMessage(error: unknown, fallback: string) {

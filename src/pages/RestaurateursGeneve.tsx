@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -23,6 +23,8 @@ import { useToast } from "@/hooks/use-toast";
 import TurnstileCaptcha from "@/components/security/TurnstileCaptcha";
 import { isCaptchaEnabled } from "@/lib/captcha";
 import { submitContactSupport } from "@/lib/support/contactSupport";
+import { readStoredFirstTouch } from "@/lib/acquisitionAttribution";
+import { hasConsent } from "@/lib/consent";
 
 const PAGE_PATH = "/restaurateurs/geneve";
 const CANONICAL_ORIGIN = "https://www.thetok.ch";
@@ -154,6 +156,8 @@ export default function RestaurateursGeneve() {
   const [pack, setPack] = useState<PackKey>("business");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [sendingLead, setSendingLead] = useState(false);
+  const [demoSubmitted, setDemoSubmitted] = useState(false);
+  const demoRequestId = useRef<string | null>(null);
   const { toast } = useToast();
 
   const handleLeadSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -167,6 +171,15 @@ export default function RestaurateursGeneve() {
     const data = new FormData(form);
     const restaurant = String(data.get("restaurant") || "").trim();
     const email = String(data.get("email") || "").trim();
+    const city = String(data.get("ville") || "").trim() || "Genève";
+    const phone = String(data.get("telephone") || "").trim();
+    const tableCountRaw = String(data.get("tables") || "").trim();
+    const tableCount = tableCountRaw === "" ? null : Number(tableCountRaw);
+    const primaryNeed = String(data.get("besoin") || "").trim();
+    const trackingConsent = hasConsent("marketing");
+    const firstTouch = trackingConsent ? readStoredFirstTouch() : null;
+    const requestId = demoRequestId.current || crypto.randomUUID();
+    demoRequestId.current = requestId;
     const details = [
       `Restaurant: ${restaurant}`,
       `Ville: ${String(data.get("ville") || "").trim()}`,
@@ -187,10 +200,27 @@ export default function RestaurateursGeneve() {
         subject: "Demande de démo restaurateur TOK Genève",
         message: details,
         captchaToken,
+        restaurantLead: {
+          requestId,
+          city,
+          phone,
+          tableCount,
+          primaryNeed,
+          marketingConsent: data.get("marketing_optin") === "on",
+          marketingTrackingConsent: trackingConsent,
+          acquisitionTouch: firstTouch ? {
+            utm: firstTouch.utm,
+            referrerHost: firstTouch.referrerHost,
+            landingPath: firstTouch.landingPath,
+            touchedAt: firstTouch.touchedAt,
+          } : null,
+        },
       });
       form.reset();
+      demoRequestId.current = null;
       setCaptchaToken(null);
-      toast({ title: "Demande envoyée", description: "L’équipe TOK vous contactera rapidement." });
+      setDemoSubmitted(true);
+      toast({ title: "Demande reçue", description: "La demande a été transmise à l’équipe TOK." });
     } catch (error) {
       toast({
         title: "Envoi impossible",
@@ -309,7 +339,7 @@ export default function RestaurateursGeneve() {
             <div className="flex flex-wrap gap-3">
               <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-600">
                 <a href="#demande-demo">
-                  Demander une démo
+                  Demander une démo gratuite
                   <PhoneCall className="ml-2 h-5 w-5" />
                 </a>
               </Button>
@@ -319,8 +349,8 @@ export default function RestaurateursGeneve() {
                 variant="outline"
                 className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
               >
-                <Link to="/restaurateurs/google-business">
-                  Optimiser Google Business
+                <Link to="/auth?role=restaurateur">
+                  Créer mon compte restaurateur
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
@@ -336,6 +366,12 @@ export default function RestaurateursGeneve() {
                 </Link>
               </Button>
             </div>
+            <p className="text-sm leading-6 text-white/80">
+              Démo sans engagement. Aucun abonnement ni paiement déclenché par une demande de démonstration.
+              <Link to="/restaurateurs/google-business" className="ml-2 font-semibold text-orange-200 underline underline-offset-4 hover:text-white">
+                Optimiser Google Business
+              </Link>
+            </p>
           </div>
 
           <div className="min-w-0 overflow-hidden rounded-3xl border-2 border-[#F15D22] bg-white text-slate-950 shadow-2xl">
@@ -638,11 +674,29 @@ export default function RestaurateursGeneve() {
               <Label htmlFor="message">Contexte</Label>
               <Textarea id="message" name="message" placeholder="Horaires creux, canaux actuels, objectif à 30 jours..." />
             </div>
+            <div className="flex items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+              <input id="marketing_optin" name="marketing_optin" type="checkbox"
+                className="mt-1 h-4 w-4 accent-orange-500" />
+              <Label htmlFor="marketing_optin" className="cursor-pointer text-sm font-normal leading-6 text-slate-700">
+                J’accepte de recevoir des nouvelles et offres TOK par e-mail. Ce choix est facultatif,
+                indépendant de ma demande de démo et révocable à tout moment.
+              </Label>
+            </div>
             <TurnstileCaptcha action="restaurant_lead" onTokenChange={setCaptchaToken} />
             <Button type="submit" className="bg-orange-500 text-white hover:bg-orange-600" disabled={sendingLead}>
-              {sendingLead ? "Envoi..." : "Demander une démo"}
+              {sendingLead ? "Envoi..." : "Demander une démo gratuite"}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
+            {demoSubmitted ? (
+              <div role="status" aria-live="polite" data-testid="restaurant-demo-confirmation"
+                className="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">
+                <p className="flex items-center gap-2 font-bold"><CheckCircle2 className="h-5 w-5" />Votre demande de démo est enregistrée.</p>
+                <p className="text-sm leading-6">L’équipe TOK pourra préparer votre démonstration. Cette demande ne souscrit aucun abonnement.</p>
+                <Link to="/auth?role=restaurateur" className="inline-flex items-center gap-2 text-sm font-semibold underline underline-offset-4">
+                  Vous préférez avancer directement ? Créer mon compte restaurateur <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            ) : null}
           </form>
         </div>
       </section>
