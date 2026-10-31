@@ -1,0 +1,74 @@
+name: TOK OG regenerate references and validate
+
+on:
+  push:
+    branches:
+      - agent/tok-og-chef-social-preview-20261031
+    paths:
+      - .github/workflows/tok-og-index-finalize-once.yml
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout isolated OG branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 1
+
+      - name: Check branch and status
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "agent/tok-og-chef-social-preview-20261031"
+          git status --short --branch
+          git rev-parse HEAD
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install exact dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Remove temporary workflow from staged tree
+        run: git rm -- .github/workflows/tok-og-index-finalize-once.yml
+
+      - name: Regenerate canonical application references
+        run: pnpm run docs:application-index
+
+      - name: Check canonical references
+        run: pnpm run docs:application-index:check
+
+      - name: Run targeted SEO non-regression tests
+        run: pnpm exec vitest run src/test/seo-growth.test.ts src/test/seo-trust-signals.test.ts src/test/seo-directory-quality-hardening.test.ts
+
+      - name: Commit the generated references
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- docs/architecture/TOK_APPLICATION_REFERENCE.md docs/architecture/tok-application-search-index.json src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git diff --cached --stat
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "chore(docs): synchroniser index et references OG sur main actualise"
+          git push origin "HEAD:refs/heads/agent/tok-og-chef-social-preview-20261031"
+
+      - name: Run official CI on exact resulting branch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run ci.yml --ref "agent/tok-og-chef-social-preview-20261031"
+          echo "Official CI workflow dispatched for verified branch."
