@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8bbe38cc6944752b5eca73aad2c99b27bf496abeab540f99bf519714570a58f3`
+- Empreinte SHA-256 des sources indexées : `118efcc942ca34ad95b21917d765f43ef36e3469c2e485d9a37ec390e05cf5ea`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,15 +37,15 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 591 |
+| migrations | 592 |
 | modules | 1944 |
 | pages | 133 |
-| pathLiterals | 960 |
-| publicAssets | 744 |
-| publicEntries | 779 |
+| pathLiterals | 959 |
+| publicAssets | 743 |
+| publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19972 |
+| records | 19971 |
 | repositoryFiles | 3878 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1420,7 +1420,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-slot-machine/assets/paytable.png | media | [public/tok-slot-machine/assets/paytable.png](../../public/tok-slot-machine/assets/paytable.png) |
 | /tok-slot-machine/ | navigable | [public/tok-slot-machine/index.html](../../public/tok-slot-machine/index.html) |
 | /tok-slot-machine/slot-machine.js | other | [public/tok-slot-machine/slot-machine.js](../../public/tok-slot-machine/slot-machine.js) |
-| /tok-social-share-20261031.jpg | media | [public/tok-social-share-20261031.jpg](../../public/tok-social-share-20261031.jpg) |
 | /tok-table-v2/app.js | other | [public/tok-table-v2/app.js](../../public/tok-table-v2/app.js) |
 | /tok-table-v2/ | navigable | [public/tok-table-v2/index.html](../../public/tok-table-v2/index.html) |
 | /tok-table-v2/styles.css | other | [public/tok-table-v2/styles.css](../../public/tok-table-v2/styles.css) |
@@ -1768,7 +1767,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /floor-plan/20_presentoir-gateau.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:143](../../src/components/floor-plan/floorPlanAssets.ts#L143) |
 | /floor-plan/21_buffet-reception.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:149](../../src/components/floor-plan/floorPlanAssets.ts#L149) |
 | /floor-plan/22_comptoir-mobile.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:155](../../src/components/floor-plan/floorPlanAssets.ts#L155) |
-| /fond3.png | 6 | [public/seo-trust-runtime.js:8](../../public/seo-trust-runtime.js#L8) |
+| /fond3.png | 7 | [public/seo-trust-runtime.js:8](../../public/seo-trust-runtime.js#L8) |
 | /fondbanniere.png | 1 | [src/test/dashboard-overview-google-compact.test.ts:24](../../src/test/dashboard-overview-google-compact.test.ts#L24) |
 | /formules | 1 | [src/test/dashboard-design-preview-export.test.tsx:61](../../src/test/dashboard-design-preview-export.test.tsx#L61) |
 | /functions/v1/ | 16 | [src/lib/commercialDemoEffects.ts:27](../../src/lib/commercialDemoEffects.ts#L27) |
@@ -1874,7 +1873,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/home/tok-logo-ui.webp | 5 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
-| /images/kebab-box-spread.jpeg | 22 | [public/seo-trust-runtime.js:10](../../public/seo-trust-runtime.js#L10) |
+| /images/kebab-box-spread.jpeg | 22 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
 | /images/kombucha.jpeg | 1 | [src/lib/menu-item-images.ts:91](../../src/lib/menu-item-images.ts#L91) |
 | /images/lebanese-mezze-fast.webp | 1 | [src/components/PromoCarousel.tsx:15](../../src/components/PromoCarousel.tsx#L15) |
 | /images/lebanese-mezze.jpeg | 4 | [src/components/AntiWasteCard.tsx:33](../../src/components/AntiWasteCard.tsx#L33) |
@@ -2122,7 +2121,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /parametres/securite | 5 | [src/App.tsx:380](../../src/App.tsx#L380) |
 | /performances | 1 | [src/test/dashboard-design-preview-export.test.tsx:63](../../src/test/dashboard-design-preview-export.test.tsx#L63) |
 | /photos | 1 | [src/test/dashboard-design-preview-export.test.tsx:68](../../src/test/dashboard-design-preview-export.test.tsx#L68) |
-| /placeholder.svg | 2 | [public/seo-trust-runtime.js:11](../../public/seo-trust-runtime.js#L11) |
+| /placeholder.svg | 2 | [public/seo-trust-runtime.js:10](../../public/seo-trust-runtime.js#L10) |
 | /plan-salle | 1 | [src/test/dashboard-design-preview-export.test.tsx:70](../../src/test/dashboard-design-preview-export.test.tsx#L70) |
 | /points-cadeau | 13 | [scripts/prerender-seo.mjs:1278](../../scripts/prerender-seo.mjs#L1278) |
 | /politique-confidentialite | 22 | [scripts/prerender-seo.mjs:1255](../../scripts/prerender-seo.mjs#L1255) |
@@ -2149,7 +2148,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/:slug | 3 | [src/App.tsx:601](../../src/App.tsx#L601) |
 | /r/:slug/reserver | 2 | [src/App.tsx:600](../../src/App.tsx#L600) |
 | /readyz | 3 | [src/test/application-search-index.test.ts:103](../../src/test/application-search-index.test.ts#L103) |
-| /recherche | 91 | [public/seo-trust-runtime.js:139](../../public/seo-trust-runtime.js#L139) |
+| /recherche | 91 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
 | /recherche#cuisines | 1 | [src/test/app-page-navigation.test.tsx:29](../../src/test/app-page-navigation.test.tsx#L29) |
 | /recherche?city=Lausanne | 1 | [src/test/restaurant-search-preview.test.tsx:91](../../src/test/restaurant-search-preview.test.tsx#L91) |
 | /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:75](../../src/test/restaurant-search-preview.test.tsx#L75) |
@@ -2207,7 +2206,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants-pres/stade-de-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:84](../../src/test/stoppin-thetok-routes.test.ts#L84) |
 | /restaurants-pres/theatre-de-beaulieu-lausanne | 1 | [src/test/stoppin-thetok-routes.test.ts:85](../../src/test/stoppin-thetok-routes.test.ts#L85) |
 | /restaurants-pres/victoria-hall-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:81](../../src/test/stoppin-thetok-routes.test.ts#L81) |
-| /restaurants/ | 4 | [scripts/harden-seo-trust-signals.mjs:189](../../scripts/harden-seo-trust-signals.mjs#L189) |
+| /restaurants/ | 4 | [scripts/harden-seo-trust-signals.mjs:188](../../scripts/harden-seo-trust-signals.mjs#L188) |
 | /restaurants/${citySlug}/r/${restaurantSlug} | 2 | [src/test/responsive-seo-regressions.test.ts:101](../../src/test/responsive-seo-regressions.test.ts#L101) |
 | /restaurants/:city | 5 | [src/App.tsx:596](../../src/App.tsx#L596) |
 | /restaurants/:city/:category | 5 | [src/App.tsx:599](../../src/App.tsx#L599) |
@@ -2338,7 +2337,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-pulse | 11 | [scripts/prerender-seo.mjs:1247](../../scripts/prerender-seo.mjs#L1247) |
 | /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:92](../../supabase/functions/ai-image-enhance/index.ts#L92) |
 | /tok-slot-machine/index.html?v=20261028 | 1 | [src/components/DailyMiamzSlotMachine.tsx:16](../../src/components/DailyMiamzSlotMachine.tsx#L16) |
-| /tok-social-share-20261031.jpg | 3 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
 | /tok_connect_mcp_action_idempotency | 2 | [server/marketingBff.ts:2605](../../server/marketingBff.ts#L2605) |
 | /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
 | /token?grant_type=password | 1 | [server/marketingBff.ts:815](../../server/marketingBff.ts#L815) |
@@ -3613,7 +3611,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_revoke_tok_connect_broker_session` (1 définition(s))
 - `public.service_revoke_tok_marketing_link` (1 définition(s))
 - `public.service_rotate_tok_connect_broker_refresh` (2 définition(s))
-- `public.service_run_marketing_growth_autopilot` (1 définition(s))
+- `public.service_run_marketing_growth_autopilot` (2 définition(s))
 - `public.service_send_marketing_in_app_delivery` (1 définition(s))
 - `public.service_start_marketing_ai_run` (1 définition(s))
 - `public.service_store_marketing_auth_challenge` (1 définition(s))
@@ -6910,6 +6908,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261029053000 Daily Tok Arcade Rotation | 154 | 7 | [supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql:1](../../supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql#L1) |
 | 20261029213000 Halloween Seasonal Theme Flag | 25 | 0 | [supabase/migrations/20261029213000_halloween_seasonal_theme_flag.sql:1](../../supabase/migrations/20261029213000_halloween_seasonal_theme_flag.sql#L1) |
 | 20261031063000 Marketing Growth Autopilot | 267 | 5 | [supabase/migrations/20261031063000_marketing_growth_autopilot.sql:1](../../supabase/migrations/20261031063000_marketing_growth_autopilot.sql#L1) |
+| 20261031214500 Marketing Growth Noon Refresh | 228 | 1 | [supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql:1](../../supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7865,7 +7864,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (591)</summary>
+<details><summary>database-migration (592)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8458,6 +8457,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql`
 - `supabase/migrations/20261029213000_halloween_seasonal_theme_flag.sql`
 - `supabase/migrations/20261031063000_marketing_growth_autopilot.sql`
+- `supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql`
 
 </details>
 
@@ -9536,7 +9536,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (779)</summary>
+<details><summary>public-asset (778)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -10313,7 +10313,6 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/tok-slot-machine/assets/paytable.png`
 - `public/tok-slot-machine/index.html`
 - `public/tok-slot-machine/slot-machine.js`
-- `public/tok-social-share-20261031.jpg`
 - `public/tok-table-v2/app.js`
 - `public/tok-table-v2/index.html`
 - `public/tok-table-v2/styles.css`

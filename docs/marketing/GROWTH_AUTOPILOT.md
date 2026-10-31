@@ -28,9 +28,12 @@ https://www.edoeb.admin.ch/fr/publicite-et-marketing
   `service_run_marketing_growth_autopilot(200)` uniquement pour `run_due`.
 - La fonction exige la clé/service JWT `service_role`, la pause marketing
   globale désactivée et un verrou transactionnel PostgreSQL.
-- Un instantané unique `marketing_growth_snapshots.local_date` évite les
-  traitements répétés le même jour suisse ; un maximum de 200 nouveaux dossiers
-  est proposé par jour. Les tâches existantes ne sont pas récréées.
+- Un instantané unique `marketing_growth_snapshots.local_date` conserve la date
+  suisse et évite les doublons : au plus 200 nouveaux dossiers sont proposés le
+  matin, puis les **agrégats seulement** sont rafraîchis une fois après 12h
+  heure de Genève. Les tâches existantes ne sont pas recréées et les compteurs
+  de qualification initiaux restent inchangés. Le créneau est calculé avec
+  `Europe/Zurich`, y compris lors des passages été/hiver.
 - Les tables nouvelles ont RLS activée et forcée, sans `SELECT` direct
   `anon`, `authenticated` ou `service_role` : le traitement utilise le
   seul RPC contrôlé, à droits limités. Aucun nom, e-mail, téléphone ou contenu
@@ -109,6 +112,8 @@ Sur une installation PostgreSQL **jetable** avec trois rôles de test, exécuter
 psql -v ON_ERROR_STOP=1 -f supabase/tests/marketing_growth_autopilot_fixture.sql
 psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261031063000_marketing_growth_autopilot.sql
 psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261031063000_marketing_growth_autopilot.sql
+psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql
+psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql
 psql -v ON_ERROR_STOP=1 -f supabase/tests/marketing_growth_autopilot.sql
 ```
 

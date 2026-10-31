@@ -31,6 +31,7 @@ describe("continuous daily marketing worker", () => {
     const client = clientFor(); generate.mockResolvedValue(visual);
     expect(await runDailyMarketingGeneration(client, options)).toEqual(completed);
     expect(generate).toHaveBeenCalledTimes(1);
+    expect(generate.mock.calls[0][1].brief.visualPrompt).toContain("zone périphérique de 16 %");
     const args = client.rpc.mock.calls[1][1];
     expect(client.rpc.mock.calls.map(([name]) => name)).toEqual(["claim_marketing_daily_run", "complete_marketing_daily_run"]);
     expect(args).toMatchObject({ p_run_id: runId, p_lease_token: lease, p_error: null,
@@ -48,7 +49,8 @@ describe("continuous daily marketing worker", () => {
     const adjusted = generate.mock.calls[0][1].brief;
     expect(adjusted.title).toBe(buildDailyMarketingBrief(claim.local_date, recent).title);
     expect(adjusted.referenceIds).toEqual(buildDailyMarketingBrief(claim.local_date, recent).referenceIds);
-    expect(adjusted.visualPrompt).toContain("zone périphérique de 16 %");
+    expect(adjusted.visualPrompt).toContain("zone périphérique de 22 %");
+    expect(adjusted.visualPrompt).toContain("x=226 et x=798");
     expect(client.rpc.mock.calls[1][1].p_content.generation_source).toBe("recovered");
   });
 
@@ -61,8 +63,8 @@ describe("continuous daily marketing worker", () => {
     expect(retried.referenceIds).toEqual(base.referenceIds);
     expect(retried.title).toBe(base.title);
     expect(retried.visualFamily).toBe(base.visualFamily);
-    expect(retried.visualPrompt).toContain("zone périphérique de 20 %");
-    expect(retried.visualPrompt).toContain("x=205 et x=819");
+    expect(retried.visualPrompt).toContain("zone périphérique de 26 %");
+    expect(retried.visualPrompt).toContain("x=267 et x=757");
     expect(retried.visualPrompt).toContain("une seule scène");
     expect(client.rpc.mock.calls[1][1].p_content.visual_prompt).toBe(retried.visualPrompt);
   });

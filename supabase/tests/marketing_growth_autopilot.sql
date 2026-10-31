@@ -71,6 +71,38 @@ DO $test$ BEGIN
   RAISE EXCEPTION 'Duplicate daily snapshot'; END IF;
 END $test$;
 
+-- A morning snapshot gets one aggregate-only refresh after local noon.
+-- Test fixture is disposable; never execute this script against TOK production.
+UPDATE public.marketing_growth_snapshots
+SET recorded_at = ((local_date::timestamp + interval '8 hours') AT TIME ZONE 'Europe/Zurich'),
+    metrics = jsonb_set(metrics, '{reservations_created}', '999'::jsonb, true);
+SET ROLE service_role;
+SET request.jwt.claims = '{"role":"service_role"}';
+SELECT public.service_run_marketing_growth_autopilot(50);
+RESET ROLE;
+RESET request.jwt.claims;
+DO $test$
+DECLARE
+  v_metric text;
+  v_recorded timestamptz;
+  v_noon timestamptz := (((now() AT TIME ZONE 'Europe/Zurich')::date::timestamp + interval '12 hours') AT TIME ZONE 'Europe/Zurich');
+BEGIN
+  SELECT metrics->>'reservations_created', recorded_at INTO v_metric, v_recorded
+  FROM public.marketing_growth_snapshots;
+  IF now() >= v_noon THEN
+    IF v_metric <> '1' OR v_recorded < v_noon THEN
+      RAISE EXCEPTION 'Post-noon metrics were not refreshed';
+    END IF;
+  ELSIF v_metric <> '999' THEN
+    RAISE EXCEPTION 'Premature pre-noon refresh';
+  END IF;
+  IF (SELECT count(*) FROM public.marketing_growth_snapshots) <> 1
+    OR (SELECT count(*) FROM public.marketing_growth_opportunities) <> 3
+    OR (SELECT staged_count FROM public.marketing_growth_snapshots) <> 3 THEN
+    RAISE EXCEPTION 'Refresh duplicated or restaged daily opportunities';
+  END IF;
+END $test$;
+
 -- Next internal cycle after a consent withdrawal and signed conversion:
 UPDATE public.marketing_contacts SET opted_out_at=now()
  WHERE id='00000000-0000-4000-8000-000000000001';

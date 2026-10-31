@@ -32,14 +32,15 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
  * Each attempt still generates exactly one native image using all references.
  */
 function strengthenRetryFrame(brief: ReturnType<typeof buildDailyMarketingBrief>, attempt: number) {
-  if (attempt <= 1) return brief;
-  const insetPercent = attempt === 2 ? 16 : 20;
+  // The 12/16/20% prompts still produced unsafe margins in real daily runs.
+  // Strengthen generation only; keep the independent measured review at 6%.
+  const insetPercent = attempt === 1 ? 16 : attempt === 2 ? 22 : 26;
   const x = Math.ceil(1024 * insetPercent / 100);
   const y = Math.ceil(1280 * insetPercent / 100);
   return { ...brief, visualPrompt: [
     brief.visualPrompt,
-    `CORRECTION IMPÉRATIVE POUR CET ESSAI : réserver une zone périphérique de ${insetPercent} % entièrement vide de logo, titre et texte de pied. Tous ces éléments doivent tenir entre x=${x} et x=${1024 - x}, et y=${y} et y=${1280 - y} px, bulle Miamz! et accents inclus. Ne pas reproduire le placement près du bord de la référence.`,
-    "Conserver exactement la même direction artistique, les références maîtresses, la famille visuelle, le titre demandé et une seule scène. Générer nativement une seule image entièrement nouvelle, sans mosaïque, grille, montage ni texte supplémentaire.",
+    `CADRAGE DE SÉCURITÉ PRIORITAIRE (ESSAI ${attempt}/3) : réserver une zone périphérique de ${insetPercent} % VIDE de tout logo, bulle Miamz!, titre, accent typographique et texte de pied. Les contours visibles COMPLETS de ces éléments doivent se trouver à l'intérieur du rectangle x=${x} et x=${1024 - x}, et y=${y} et y=${1280 - y} px. Ne pas reproduire leur emplacement près des bords tel qu'il apparaît sur les références. Le logo TOK intact et sa bulle restent en haut à gauche DE CE RECTANGLE. Le titre exact reste lisible, entier et sans chevauchement, sur deux ou trois lignes. Placer le pied thetok.ch dans ce rectangle ou l'omettre s'il ne tient pas. Seuls les fonds, photographies et arches décoratives peuvent atteindre les bords de l'image.`,
+    "Respecter les marges des éléments de marque tout en préservant strictement la direction artistique, les trois références maîtresses, la famille visuelle et le titre exact. Produire nativement une seule image et une seule scène, sans grille, montage, collage, texte ajouté ni post-traitement.",
   ].join("\n") };
 }
 
