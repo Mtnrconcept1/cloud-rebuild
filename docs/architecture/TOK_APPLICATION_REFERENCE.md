@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `282b6180c1bbc8537fe8b5374736e27003dc7e622dc710b1052299eccea1df84`
+- Empreinte SHA-256 des sources indexées : `118efcc942ca34ad95b21917d765f43ef36e3469c2e485d9a37ec390e05cf5ea`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,7 +37,7 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 591 |
+| migrations | 592 |
 | modules | 1944 |
 | pages | 133 |
 | pathLiterals | 959 |
@@ -45,8 +45,8 @@
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19969 |
-| repositoryFiles | 3877 |
+| records | 19971 |
+| repositoryFiles | 3878 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -3611,7 +3611,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_revoke_tok_connect_broker_session` (1 définition(s))
 - `public.service_revoke_tok_marketing_link` (1 définition(s))
 - `public.service_rotate_tok_connect_broker_refresh` (2 définition(s))
-- `public.service_run_marketing_growth_autopilot` (1 définition(s))
+- `public.service_run_marketing_growth_autopilot` (2 définition(s))
 - `public.service_send_marketing_in_app_delivery` (1 définition(s))
 - `public.service_start_marketing_ai_run` (1 définition(s))
 - `public.service_store_marketing_auth_challenge` (1 définition(s))
@@ -6908,6 +6908,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261029053000 Daily Tok Arcade Rotation | 154 | 7 | [supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql:1](../../supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql#L1) |
 | 20261029213000 Halloween Seasonal Theme Flag | 25 | 0 | [supabase/migrations/20261029213000_halloween_seasonal_theme_flag.sql:1](../../supabase/migrations/20261029213000_halloween_seasonal_theme_flag.sql#L1) |
 | 20261031063000 Marketing Growth Autopilot | 267 | 5 | [supabase/migrations/20261031063000_marketing_growth_autopilot.sql:1](../../supabase/migrations/20261031063000_marketing_growth_autopilot.sql#L1) |
+| 20261031214500 Marketing Growth Noon Refresh | 228 | 1 | [supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql:1](../../supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7863,7 +7864,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (591)</summary>
+<details><summary>database-migration (592)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8456,6 +8457,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql`
 - `supabase/migrations/20261029213000_halloween_seasonal_theme_flag.sql`
 - `supabase/migrations/20261031063000_marketing_growth_autopilot.sql`
+- `supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql`
 
 </details>
 
