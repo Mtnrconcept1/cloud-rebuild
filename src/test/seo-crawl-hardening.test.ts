@@ -122,6 +122,15 @@ describe("SEO crawl hardening", () => {
       publishedAt: "2026-09-03T01:00:00Z",
       content: prerendered("Post court", "Court"),
     }));
+    await writeRoute(dist, "/restaurateurs/geneve", htmlPage({
+      title: "TOK pour les restaurateurs", content: prerendered("Restaurateurs", "Offre TOK"),
+    }));
+    await writeRoute(dist, "/contact", htmlPage({
+      title: "Contact TOK", content: prerendered("Contact", "Contacter TOK"),
+    }));
+    await writeRoute(dist, "/packs-restaurateur", htmlPage({
+      title: "Packs", robots: "noindex,follow", content: prerendered("Packs", "Indisponible"),
+    }));
 
     execFileSync(process.execPath, [path.resolve(process.cwd(), "scripts/harden-seo-crawl.mjs")], {
       cwd: process.cwd(),
@@ -133,6 +142,12 @@ describe("SEO crawl hardening", () => {
     expect(home).toContain("Restaurants à Genève");
     expect(home).not.toContain("/restaurants/lausanne");
     expect(home).toContain("1 communes sont actuellement éligibles");
+    expect(home).toContain('href="/recherche"');
+    expect(home).toContain('href="/actualites"');
+    expect(home).toContain('href="/restaurateurs/geneve"');
+    expect(home).toContain('href="/contact"');
+    expect(home).not.toContain('href="/packs-restaurateur"');
+    expect(home).not.toContain('href="/a-propos"');
 
     const search = await readFile(path.join(dist, "recherche", "index.html"), "utf8");
     expect(search).toContain("/restaurants/geneve");

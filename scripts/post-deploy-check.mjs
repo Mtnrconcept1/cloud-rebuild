@@ -1,6 +1,7 @@
 import process from "node:process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { inspectSitemap } from "./seo-artifact-audit.mjs";
 
 const DEFAULT_TARGETS = [
   {
@@ -44,11 +45,12 @@ const DEFAULT_TARGETS = [
     expect: [
       "https://www.thetok.ch/sitemap-pages.xml",
       "https://www.thetok.ch/sitemap-restaurants.xml",
-      "<lastmod>2026-09-03</lastmod>",
     ],
+    sitemap: true,
   },
   {
     url: "https://www.thetok.ch/sitemap-pages.xml",
+    sitemap: true,
     expect: [
       "https://www.thetok.ch/restaurateurs/geneve",
       "https://www.thetok.ch/restaurateurs/google-business",
@@ -56,7 +58,8 @@ const DEFAULT_TARGETS = [
   },
   {
     url: "https://www.thetok.ch/sitemap-restaurants.xml",
-    expect: ["<urlset", "https://www.thetok.ch/restaurants/", "<lastmod>2026-09-03</lastmod>"],
+    expect: ["<urlset", "https://www.thetok.ch/restaurants/"],
+    sitemap: true,
     reject: ["moto911.com", "Safran_Open", "menus_side_image.7077f229.jpeg"],
   },
   {
@@ -143,6 +146,7 @@ const DEFAULT_TARGETS = [
 
 async function fetchText(target) {
   const response = await fetch(target.url, {
+    signal: AbortSignal.timeout(20000),
     redirect: "follow",
     headers: {
       "user-agent": "tok-post-deploy-check/1.0",
@@ -171,6 +175,10 @@ export async function runPostDeployCheck(targets = DEFAULT_TARGETS) {
       }
 
       const contentType = response.headers.get("content-type") || "";
+      if (target.sitemap) {
+        try { inspectSitemap(text); }
+        catch (error) { failures.push(`${target.url} has an invalid sitemap: ${error.message}`); }
+      }
       if (target.contentType && !contentType.includes(target.contentType) && !contentType.includes("application/json")) {
         failures.push(`${target.url} returned unexpected content-type ${contentType}`);
       }

@@ -1750,6 +1750,7 @@ async function collectDynamicRestaurantPages() {
 
       return {
         path: restaurantPath,
+        restaurantId: restaurant.id,
         title,
         description: restaurantSeo.description,
         priority: "0.7",
@@ -2327,6 +2328,11 @@ async function main() {
       await mkdir(path.dirname(outPath), { recursive: true });
       await writeFile(outPath, renderPreRenderedHtml(baseHtml, page), "utf8");
     }
+    // Candidates come from the same anonymous, RLS-filtered inventory as the
+    // public pages. The final build step validates each surviving destination.
+    await writeFile(path.join(DIST_DIR, "restaurant-aliases.json"), JSON.stringify(
+      pages.filter((page) => page.restaurantId).map((page) => ({ id: page.restaurantId, path: page.path })),
+    ) + "\n", "utf8");
   }
 
   const activeSitemapCount = sitemapFiles.filter(({ pages: sitemapPages }) => sitemapPages.length > 0).length;

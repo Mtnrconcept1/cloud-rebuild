@@ -236,7 +236,7 @@ function upsertJsonLd(html, value) {
   return html.replace(/<\/head>/i, `  ${tag}\n</head>`);
 }
 
-function enrichHome(html, cityDocuments, restaurantCount) {
+function enrichHome(html, cityDocuments, restaurantCount, indexableRoutes) {
   const topCities = cityDocuments.slice(0, MAX_HOME_CITIES);
   const cityItems = topCities.map((document) => {
     const label = cityLabelFromDocument(document);
@@ -246,6 +246,23 @@ function enrichHome(html, cityDocuments, restaurantCount) {
     href: document.route,
     label: `Restaurants à ${cityLabelFromDocument(document)}`,
   }));
+  // Replacing the prerendered root must preserve discovery of public service
+  // and trust pages. Never add a disabled, absent or noindex destination.
+  const discoveryLinks = [
+    { href: "/recherche", label: "Rechercher un restaurant" },
+    { href: "/actualites", label: "Actualités des restaurants" },
+    { href: "/restaurateurs/geneve", label: "TOK pour les restaurateurs" },
+    { href: "/packs-restaurateur", label: "Packs et tarifs restaurateurs" },
+    { href: "/restaurateurs/google-business", label: "Google Business et réservation directe" },
+    { href: "/restaurateurs/alternative-commission-couvert", label: "Comparer les commissions de réservation" },
+    { href: "/a-propos", label: "À propos de TOK" },
+    { href: "/contact", label: "Contacter TOK" },
+    { href: "/aide", label: "Centre d’aide" },
+    { href: "/cgu", label: "Conditions d’utilisation" },
+    { href: "/conditions-restaurateurs", label: "Conditions restaurateurs" },
+    { href: "/politique-confidentialite", label: "Confidentialité" },
+    { href: "/cookies", label: "Gestion des cookies" },
+  ].filter((link) => indexableRoutes.has(link.href));
   return replaceSectionById(html, "tok-prerendered-content", renderPrerenderedContent({
     heading: "Réservez un restaurant à Genève et dans les communes couvertes par TOK",
     paragraphs: [
@@ -259,7 +276,7 @@ function enrichHome(html, cityDocuments, restaurantCount) {
       },
       { heading: "Communes avec inventaire public", items: cityItems },
     ],
-    links,
+    links: [...links, ...discoveryLinks],
   }));
 }
 
@@ -375,7 +392,7 @@ export async function optimizeSeoCrawl({ distDir = DIST_DIR } = {}) {
 
   for (const document of documents) {
     let html = document.html;
-    if (document.route === "/") html = enrichHome(html, cityDocuments, restaurantCount);
+    if (document.route === "/") html = enrichHome(html, cityDocuments, restaurantCount, new Set(indexable.map((entry) => entry.route)));
     if (document.route === "/recherche") html = enrichSearch(html, cityDocuments, specializedDocuments, restaurantCount);
     if (document.route === "/actualites") html = enrichActualites(html, actualiteDocuments);
     html = pruneKnownNoindexLinks(html, noindexRoutes);

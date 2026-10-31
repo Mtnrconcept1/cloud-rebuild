@@ -18,11 +18,20 @@ describe("Stoppin venue SEO", () => {
     const pkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
     const vercel = JSON.parse(readFileSync(path.join(root, "vercel.json"), "utf8"));
     for (const script of ["build:prod", "seo:prerender"]) {
-      expect(pkg.scripts[script].endsWith("node ./scripts/apply-stoppin-venue-redirects.mjs")).toBe(true);
+      const steps = pkg.scripts[script].split(" && ");
+      const hardening = steps.indexOf("node ./scripts/harden-performance-delivery.mjs");
+      const venueRedirects = steps.indexOf("node ./scripts/apply-stoppin-venue-redirects.mjs");
+      const restaurantRedirects = steps.indexOf("node ./scripts/apply-restaurant-redirects.mjs");
+      const discovery = steps.indexOf("node ./scripts/build-seo-discovery.mjs");
+      expect(hardening).toBeGreaterThanOrEqual(0);
+      expect(venueRedirects).toBeGreaterThan(hardening);
+      expect(restaurantRedirects).toBeGreaterThan(venueRedirects);
+      expect(discovery).toBeGreaterThan(restaurantRedirects);
+      expect(steps.at(-1)).toBe("node ./scripts/seo-artifact-audit.mjs");
     }
     expect(vercel.bulkRedirectsPath).toBeUndefined();
     const middleware = readFileSync(path.join(root, "middleware.js"), "utf8");
-    expect(middleware).toContain('matcher: "/restaurants-pres/:path*"');
+    expect(middleware).toContain('matcher: ["/restaurants-pres/:path*", "/restaurant/:path*"]');
     expect(middleware).toContain('"./.vercel/stoppin-venue-redirects.mjs"');
     const old = "/restaurants/carouge-ge/r/fernandes-de-almeida-restaurant-le-par";
     const exact = vercel.redirects.findIndex((rule: { source: string }) => rule.source === old);
