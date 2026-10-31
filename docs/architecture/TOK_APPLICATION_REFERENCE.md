@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f228b17488bf36da0bf23e65911da2bfa8041095a257304a477b21f6cdc5ddc8`
+- Empreinte SHA-256 des sources indexées : `d742945876c11ade316252049269ea3da00b6e056f76da718a2ea99c5f854edc`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,8 +28,8 @@
 | apiRoutes | 11 |
 | cronJobs | 37 |
 | databaseContract | 231 |
-| databaseObjects | 3165 |
-| documents | 238 |
+| databaseObjects | 3170 |
+| documents | 239 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 4294 |
@@ -37,16 +37,16 @@
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
-| migrations | 590 |
-| modules | 1936 |
+| migrations | 591 |
+| modules | 1937 |
 | pages | 133 |
 | pathLiterals | 952 |
 | publicAssets | 743 |
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19895 |
-| repositoryFiles | 3863 |
+| records | 19915 |
+| repositoryFiles | 3868 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2807,7 +2807,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (914)</summary>
+<details><summary>function (915)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3604,6 +3604,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_revoke_tok_connect_broker_session` (1 définition(s))
 - `public.service_revoke_tok_marketing_link` (1 définition(s))
 - `public.service_rotate_tok_connect_broker_refresh` (2 définition(s))
+- `public.service_run_marketing_growth_autopilot` (1 définition(s))
 - `public.service_send_marketing_in_app_delivery` (1 définition(s))
 - `public.service_start_marketing_ai_run` (1 définition(s))
 - `public.service_store_marketing_auth_challenge` (1 définition(s))
@@ -3726,7 +3727,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (743)</summary>
+<details><summary>index (745)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -4232,6 +4233,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `marketing_events_campaign_time_idx` (1 définition(s))
 - `marketing_events_delivery_time_idx` (1 définition(s))
 - `marketing_events_provider_unique` (1 définition(s))
+- `marketing_growth_opportunities_contact_idx` (1 définition(s))
+- `marketing_growth_opportunities_status_priority_idx` (1 définition(s))
 - `marketing_instagram_reviews_created_idx` (1 définition(s))
 - `marketing_lawful_basis_evidence_contact_time_idx` (1 définition(s))
 - `marketing_lawful_basis_evidence_source_unique` (1 définition(s))
@@ -5300,7 +5303,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (402)</summary>
+<details><summary>table (404)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5468,6 +5471,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.marketing_daily_series` (1 définition(s))
 - `public.marketing_deliveries` (1 définition(s))
 - `public.marketing_events` (1 définition(s))
+- `public.marketing_growth_opportunities` (1 définition(s))
+- `public.marketing_growth_snapshots` (1 définition(s))
 - `public.marketing_instagram_reviews` (1 définition(s))
 - `public.marketing_integrations` (1 définition(s))
 - `public.marketing_lawful_basis_evidence` (1 définition(s))
@@ -6895,6 +6900,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261029043000 Tok Sentinel Quarantine | 252 | 22 | [supabase/migrations/20261029043000_tok_sentinel_quarantine.sql:1](../../supabase/migrations/20261029043000_tok_sentinel_quarantine.sql#L1) |
 | 20261029053000 Daily Tok Arcade Rotation | 154 | 7 | [supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql:1](../../supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql#L1) |
 | 20261029213000 Halloween Seasonal Theme Flag | 25 | 0 | [supabase/migrations/20261029213000_halloween_seasonal_theme_flag.sql:1](../../supabase/migrations/20261029213000_halloween_seasonal_theme_flag.sql#L1) |
+| 20261031063000 Marketing Growth Autopilot | 235 | 5 | [supabase/migrations/20261031063000_marketing_growth_autopilot.sql:1](../../supabase/migrations/20261031063000_marketing_growth_autopilot.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7126,10 +7132,10 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Google | 123 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Openai | 150 | [public/tok-connect-preview-bridge.js:1](../../public/tok-connect-preview-bridge.js#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Resend | 44 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Resend | 45 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 279 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 873 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 874 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 79 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7150,7 +7156,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 807 |
+| test | 808 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7276,6 +7282,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Répartition des responsabilités — prix, disponibilité, allergènes et qualité | 3 | [docs/legal/10-responsabilites-produits.md:1](../../docs/legal/10-responsabilites-produits.md#L1) |
 | Pack contractuel TOK | 3 | [docs/legal/README.md:1](../../docs/legal/README.md#L1) |
 | Pistes de backlinks TOK sans compte existant | 6 | [docs/marketing-backlink-opportunities.md:1](../../docs/marketing-backlink-opportunities.md#L1) |
+| TOK Growth AutoPilot — qualification et conversions à partir des preuves réelles | 7 | [docs/marketing/GROWTH_AUTOPILOT.md:1](../../docs/marketing/GROWTH_AUTOPILOT.md#L1) |
 | Veille Instagram Genève | 7 | [docs/marketing/INSTAGRAM_RESEARCH.md:1](../../docs/marketing/INSTAGRAM_RESEARCH.md#L1) |
 | Légendes des campagnes TOK | 5 | [docs/marketing/SOCIAL_EDITORIAL_POLICY.md:1](../../docs/marketing/SOCIAL_EDITORIAL_POLICY.md#L1) |
 | Import d’une série de visuels sociaux | 2 | [docs/marketing/SOCIAL_SERIES_IMPORT.md:1](../../docs/marketing/SOCIAL_SERIES_IMPORT.md#L1) |
@@ -7845,7 +7852,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (590)</summary>
+<details><summary>database-migration (591)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8437,10 +8444,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261029043000_tok_sentinel_quarantine.sql`
 - `supabase/migrations/20261029053000_daily_tok_arcade_rotation.sql`
 - `supabase/migrations/20261029213000_halloween_seasonal_theme_flag.sql`
+- `supabase/migrations/20261031063000_marketing_growth_autopilot.sql`
 
 </details>
 
-<details><summary>documentation (190)</summary>
+<details><summary>documentation (191)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8519,6 +8527,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing-email-examples/02-pizzeria-carouge.txt`
 - `docs/marketing-email-examples/03-rive-droite-soiree.html`
 - `docs/marketing-email-examples/03-rive-droite-soiree.txt`
+- `docs/marketing/GROWTH_AUTOPILOT.md`
 - `docs/marketing/INSTAGRAM_RESEARCH.md`
 - `docs/marketing/SOCIAL_EDITORIAL_POLICY.md`
 - `docs/marketing/SOCIAL_SERIES_IMPORT.md`
@@ -10470,7 +10479,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (42)</summary>
+<details><summary>supabase-configuration (44)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -10501,6 +10510,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/tests/marketing_campaign_items_preview.sql`
 - `supabase/tests/marketing_daily_instagram.sql`
 - `supabase/tests/marketing_daily_publication.sql`
+- `supabase/tests/marketing_growth_autopilot.sql`
+- `supabase/tests/marketing_growth_autopilot_fixture.sql`
 - `supabase/tests/marketing_mailing_image_upload.sql`
 - `supabase/tests/marketing_mailing_recipients.sql`
 - `supabase/tests/marketing_social_image_upload.sql`
@@ -10517,7 +10528,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (807)</summary>
+<details><summary>test (808)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10907,6 +10918,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-email-cadence.test.ts`
 - `src/test/marketing-email-template.test.ts`
 - `src/test/marketing-first-touch-attribution.test.ts`
+- `src/test/marketing-growth-autopilot.test.ts`
 - `src/test/marketing-image-output.test.ts`
 - `src/test/marketing-instagram-bff.test.ts`
 - `src/test/marketing-instagram-graph.test.ts`
