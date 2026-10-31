@@ -22,9 +22,9 @@ const PUBLIC_PAGES = new Set([
 ]);
 const PUBLIC_DETAILS = [
   /^\/restaurant\/[a-z0-9-]+$/i,
-  /^\/restaurants\/[^/]+(?:\/[^/]+){0,2}$/i,
-  /^\/restaurants-pres\/[^/]+$/i,
-  /^\/restaurateurs\/[^/]+$/i,
+  /^\/restaurants\/[a-z0-9-]{1,100}(?:\/[a-z0-9-]{1,100}){0,2}$/i,
+  /^\/restaurants-pres\/[a-z0-9-]{1,100}$/i,
+  /^\/restaurateurs\/[a-z0-9-]{1,100}$/i,
   /^\/actualites\/[a-z0-9-]+$/i,
 ];
 const SAFE_SEARCH_KEYS = new Set([

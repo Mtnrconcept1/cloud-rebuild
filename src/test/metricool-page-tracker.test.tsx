@@ -46,6 +46,8 @@ describe("Metricool website tracking", () => {
     expect(isMetricoolTrackablePage(visit("/"))).toBe(true);
     expect(isMetricoolTrackablePage(visit("/recherche", { search: "?utm_source=instagram&utm_campaign=tok_automne" }))).toBe(true);
     expect(isMetricoolTrackablePage(visit("/restaurant/12345"))).toBe(true);
+    expect(isMetricoolTrackablePage(visit("/restaurants/geneve/contact%40example.com"))).toBe(false);
+    expect(isMetricoolTrackablePage(visit("/restaurants-pres/%2Fsecret"))).toBe(false);
     expect(isMetricoolTrackablePage(visit("/restaurateurs/geneve"))).toBe(true);
     expect(isMetricoolTrackablePage(visit("/dashboard"))).toBe(false);
     expect(isMetricoolTrackablePage(visit("/auth/callback", { search: "?code=secret" }))).toBe(false);
