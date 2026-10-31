@@ -1,20 +1,36 @@
 /**
- * Website-only Metricool page views.
+ * Website-only Metricool page views. No third-party script runs until the
+ * visitor has consented AND a dedicated TOK Metricool brand is verified.
  *
- * TOK's consent banner defaults analytics to off. Never load the third-party
- * script until that category has been accepted by the visitor.
+ * Metricool brand 6954835 was historically used for Stoppin while the
+ * Instagram connection pointed to tok_suisse. NEVER reuse that brand's
+ * website hash or analytics for TOK: the two businesses need distinct brands.
  */
 export const METRICOOL_TRACKER_SRC = "https://tracker.metricool.com/resources/be.js";
-export const METRICOOL_TRACKER_HASH = "8dd2fca1e84e3ac86c6d9d09fc0d05e9";
-
-/** The connected brand currently mixes Stoppin publications and TOK Instagram.
- * Stay off until the operator verifies ownership of the TOK website property. */
-export function isMetricoolTokPropertyVerified(): boolean {
-  return import.meta.env.VITE_METRICOOL_TOK_PROPERTY_VERIFIED === "true";
-}
+export const LEGACY_MIXED_BRAND_ID = "6954835";
+export const LEGACY_MIXED_TRACKER_HASH = "8dd2fca1e84e3ac86c6d9d09fc0d05e9";
 
 type MetricoolApi = { t: (input: { hash: string }) => void };
 type MetricoolWindow = Window & { beTracker?: MetricoolApi };
+export type TokMetricoolConfig = { brandId: string; trackerHash: string };
+
+/**
+ * Both new IDs are browser-public identifiers, not API credentials.
+ * A flag alone must never activate the old mixed brand.
+ * Verification happens administratively in the Metricool Connections panel.
+ */
+export function readTokMetricoolConfig(): TokMetricoolConfig | null {
+  const verified = import.meta.env.VITE_METRICOOL_TOK_PROPERTY_VERIFIED === "true";
+  const brandId = String(import.meta.env.VITE_METRICOOL_TOK_BRAND_ID || "").trim();
+  const trackerHash = String(import.meta.env.VITE_METRICOOL_TOK_TRACKER_HASH || "").trim().toLowerCase();
+  if (!verified || !/^\d{5,12}$/.test(brandId) || brandId === LEGACY_MIXED_BRAND_ID ||
+    !/^[a-f0-9]{32}$/.test(trackerHash) || trackerHash === LEGACY_MIXED_TRACKER_HASH) return null;
+  return { brandId, trackerHash };
+}
+
+export function isMetricoolTokPropertyVerified(): boolean {
+  return readTokMetricoolConfig() !== null;
+}
 
 const TRACKING_HOSTS = new Set(["thetok.ch", "www.thetok.ch"]);
 const PUBLIC_PAGES = new Set([
@@ -50,14 +66,11 @@ export type MetricoolLocation = {
 export function isMetricoolTrackablePage(input: MetricoolLocation): boolean {
   if (input.native || !TRACKING_HOSTS.has(input.hostname.toLowerCase())) return false;
   if (input.hash || !input.pathname.startsWith("/") || input.pathname.includes("//")) return false;
-
-  // The tracker may send the current URL, including query parameters. Reject
-  // arbitrary parameters and values that could contain tokens or personal data.
+  // The provider may transmit the full URL; reject arbitrary query parameters.
   const params = new URLSearchParams(input.search ?? "");
   for (const [key, value] of params) {
     if (!SAFE_SEARCH_KEYS.has(key) || !/^[a-zA-Z0-9_-]{1,100}$/.test(value)) return false;
   }
-
   const path = input.pathname === "/" ? "/" : input.pathname.replace(/\/$/, "");
   return PUBLIC_PAGES.has(path) || PUBLIC_DETAILS.some((pattern) => pattern.test(path));
 }
@@ -70,9 +83,10 @@ function getTracker(): MetricoolApi | null {
   return typeof tracker?.t === "function" ? tracker : null;
 }
 
-/** Insert the official script only once; no inline JavaScript (TOK CSP forbids it). */
+/** Insert the official script only once. No inline script (TOK's CSP forbids it). */
 export function ensureMetricoolLoaded(): Promise<boolean> {
-  if (!isMetricoolTokPropertyVerified() || typeof document === "undefined" || typeof window === "undefined") return Promise.resolve(false);
+  if (!isMetricoolTokPropertyVerified() || typeof document === "undefined" || typeof window === "undefined")
+    return Promise.resolve(false);
   if (getTracker()) return Promise.resolve(true);
   if (loadPromise) return loadPromise;
 
@@ -99,16 +113,16 @@ export function ensureMetricoolLoaded(): Promise<boolean> {
   return loadPromise;
 }
 
-/** Called only after consent and route checks by MetricoolPageTracker. */
+/** Called only after consent, dedicated brand and public-route checks. */
 export function sendMetricoolPageView(): boolean {
-  if (!isMetricoolTokPropertyVerified()) return false;
+  const config = readTokMetricoolConfig();
   const tracker = getTracker();
-  if (!tracker) return false;
+  if (!config || !tracker) return false;
   try {
-    tracker.t({ hash: METRICOOL_TRACKER_HASH });
+    tracker.t({ hash: config.trackerHash });
     return true;
   } catch {
-    // Tracking must never block browsing, sign-in or the purchase funnel.
+    // Tracking must never interrupt navigation, sign-in or a payment.
     return false;
   }
 }

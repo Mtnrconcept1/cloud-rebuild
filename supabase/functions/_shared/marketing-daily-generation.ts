@@ -32,8 +32,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
  * Each attempt still generates exactly one native image using all references.
  */
 function strengthenRetryFrame(brief: ReturnType<typeof buildDailyMarketingBrief>, attempt: number) {
-  if (attempt <= 1) return brief;
-  const insetPercent = attempt === 2 ? 16 : 20;
+  // The base prompt's 12% inset failed repeatedly in production. Start wider
+  // without loosening the reviewer or buying extra generation attempts.
+  const insetPercent = attempt === 1 ? 16 : attempt === 2 ? 20 : 24;
   const x = Math.ceil(1024 * insetPercent / 100);
   const y = Math.ceil(1280 * insetPercent / 100);
   return { ...brief, visualPrompt: [

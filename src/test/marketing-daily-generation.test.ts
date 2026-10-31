@@ -36,6 +36,7 @@ describe("continuous daily marketing worker", () => {
     expect(args).toMatchObject({ p_run_id: runId, p_lease_token: lease, p_error: null,
       p_content: { title: "Vos réservations. Bien organisées.", image_quality: visual.quality,
         reference_ids: expect.arrayContaining(["instagram-profile"]), image_model: "gpt-image-2", generation_source: "created" } });
+    expect(args.p_content.visual_prompt).toContain("zone périphérique de 16 %");
     expect(args.p_content).not.toHaveProperty("approval_status");
     expect(args.p_content).not.toHaveProperty("published_at");
   });
@@ -48,7 +49,7 @@ describe("continuous daily marketing worker", () => {
     const adjusted = generate.mock.calls[0][1].brief;
     expect(adjusted.title).toBe(buildDailyMarketingBrief(claim.local_date, recent).title);
     expect(adjusted.referenceIds).toEqual(buildDailyMarketingBrief(claim.local_date, recent).referenceIds);
-    expect(adjusted.visualPrompt).toContain("zone périphérique de 16 %");
+    expect(adjusted.visualPrompt).toContain("zone périphérique de 20 %");
     expect(client.rpc.mock.calls[1][1].p_content.generation_source).toBe("recovered");
   });
 
@@ -61,8 +62,8 @@ describe("continuous daily marketing worker", () => {
     expect(retried.referenceIds).toEqual(base.referenceIds);
     expect(retried.title).toBe(base.title);
     expect(retried.visualFamily).toBe(base.visualFamily);
-    expect(retried.visualPrompt).toContain("zone périphérique de 20 %");
-    expect(retried.visualPrompt).toContain("x=205 et x=819");
+    expect(retried.visualPrompt).toContain("zone périphérique de 24 %");
+    expect(retried.visualPrompt).toContain("x=246 et x=778");
     expect(retried.visualPrompt).toContain("une seule scène");
     expect(client.rpc.mock.calls[1][1].p_content.visual_prompt).toBe(retried.visualPrompt);
   });

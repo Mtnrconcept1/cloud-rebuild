@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `282b6180c1bbc8537fe8b5374736e27003dc7e622dc710b1052299eccea1df84`
+- Empreinte SHA-256 des sources indexées : `462c549d1c5e54bd34f5f7e3f9d4c1aec54a57fe074c043ad43e66ddbe39dfde`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,7 +32,7 @@
 | documents | 241 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4306 |
+| exportedSymbols | 4309 |
 | featureFlags | 100 |
 | frontendRoutes | 143 |
 | integrations | 11 |
@@ -45,7 +45,7 @@
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19969 |
+| records | 19975 |
 | repositoryFiles | 3877 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1575,7 +1575,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth/v1/oauth/token | 2 | [src/test/tok-connect-broker.test.ts:56](../../src/test/tok-connect-broker.test.ts#L56) |
 | /auth/v1/token?grant_type=password | 5 | [src/test/marketing-bff-security.test.ts:240](../../src/test/marketing-bff-security.test.ts#L240) |
 | /auth/v1/user | 10 | [src/test/marketing-bff-security.test.ts:251](../../src/test/marketing-bff-security.test.ts#L251) |
-| /auth?code=private | 1 | [src/test/metricool-page-tracker.test.tsx:83](../../src/test/metricool-page-tracker.test.tsx#L83) |
+| /auth?code=private | 1 | [src/test/metricool-page-tracker.test.tsx:99](../../src/test/metricool-page-tracker.test.tsx#L99) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /auth?confirmed=1 | 3 | [src/test/auth-signup-form.test.tsx:595](../../src/test/auth-signup-form.test.tsx#L595) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
@@ -2176,10 +2176,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurant/11111111-1111-1111-1111-111111111111 | 1 | [src/test/restaurant-detail-preview.test.tsx:9](../../src/test/restaurant-detail-preview.test.tsx#L9) |
 | /restaurant/123 | 1 | [src/test/coming-soon-gate.test.tsx:50](../../src/test/coming-soon-gate.test.tsx#L50) |
 | /restaurant/123#menu | 1 | [src/test/app-page-navigation.test.tsx:19](../../src/test/app-page-navigation.test.tsx#L19) |
-| /restaurant/12345 | 1 | [src/test/metricool-page-tracker.test.tsx:50](../../src/test/metricool-page-tracker.test.tsx#L50) |
+| /restaurant/12345 | 1 | [src/test/metricool-page-tracker.test.tsx:54](../../src/test/metricool-page-tracker.test.tsx#L54) |
 | /restaurant/:id | 9 | [src/App.tsx:602](../../src/App.tsx#L602) |
 | /restaurant/:id/reserver | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:201](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L201) |
-| /restaurant/abc | 1 | [src/test/metricool-page-tracker.test.tsx:84](../../src/test/metricool-page-tracker.test.tsx#L84) |
+| /restaurant/abc | 1 | [src/test/metricool-page-tracker.test.tsx:100](../../src/test/metricool-page-tracker.test.tsx#L100) |
 | /restaurant/cc47c8c6-752f-406c-8c2f-ed04ebd0ca20 | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
 | /restaurant/example | 1 | [src/test/back-navigation.test.ts:34](../../src/test/back-navigation.test.ts#L34) |
 | /restaurant/la-table | 1 | [src/test/customer-workspace-routes.test.ts:27](../../src/test/customer-workspace-routes.test.ts#L27) |
@@ -2191,7 +2191,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurant/un-resto | 1 | [src/test/plinko-api.test.ts:72](../../src/test/plinko-api.test.ts#L72) |
 | /restaurants | 6 | [scripts/prerender-seo.mjs:2010](../../scripts/prerender-seo.mjs#L2010) |
 | /restaurants-pres/ | 1 | [src/pages/LocalRestaurants.tsx:567](../../src/pages/LocalRestaurants.tsx#L567) |
-| /restaurants-pres/%2Fsecret | 1 | [src/test/metricool-page-tracker.test.tsx:52](../../src/test/metricool-page-tracker.test.tsx#L52) |
+| /restaurants-pres/%2Fsecret | 1 | [src/test/metricool-page-tracker.test.tsx:56](../../src/test/metricool-page-tracker.test.tsx#L56) |
 | /restaurants-pres/:path* | 2 | [middleware.js:5](../../middleware.js#L5) |
 | /restaurants-pres/:venueSlug | 3 | [src/App.tsx:597](../../src/App.tsx#L597) |
 | /restaurants-pres/OLD | 1 | [scripts/stoppin-venue-seo.test.mjs:146](../../scripts/stoppin-venue-seo.test.mjs#L146) |
@@ -2224,7 +2224,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants/chene-bourg/r/la-caf | 1 | [src/test/seo-web-artifact-names.test.ts:55](../../src/test/seo-web-artifact-names.test.ts#L55) |
 | /restaurants/geneve | 16 | [src/test/coming-soon-gate.test.tsx:50](../../src/test/coming-soon-gate.test.tsx#L50) |
 | /restaurants/geneve/africain | 8 | [src/test/local-restaurants-pagination.test.tsx:197](../../src/test/local-restaurants-pagination.test.tsx#L197) |
-| /restaurants/geneve/contact%40example.com | 1 | [src/test/metricool-page-tracker.test.tsx:51](../../src/test/metricool-page-tracker.test.tsx#L51) |
+| /restaurants/geneve/contact%40example.com | 1 | [src/test/metricool-page-tracker.test.tsx:55](../../src/test/metricool-page-tracker.test.tsx#L55) |
 | /restaurants/geneve/eaux-vives | 2 | [src/test/seo-crawl-hardening.test.ts:93](../../src/test/seo-crawl-hardening.test.ts#L93) |
 | /restaurants/geneve/italien | 2 | [src/test/seo-crawl-hardening.test.ts:99](../../src/test/seo-crawl-hardening.test.ts#L99) |
 | /restaurants/geneve/pizza | 5 | [src/test/local-inventory-policy.test.ts:14](../../src/test/local-inventory-policy.test.ts#L14) |
@@ -7291,7 +7291,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Pistes de backlinks TOK sans compte existant | 6 | [docs/marketing-backlink-opportunities.md:1](../../docs/marketing-backlink-opportunities.md#L1) |
 | TOK Growth AutoPilot — qualification et conversions à partir des preuves réelles | 8 | [docs/marketing/GROWTH_AUTOPILOT.md:1](../../docs/marketing/GROWTH_AUTOPILOT.md#L1) |
 | Veille Instagram Genève | 7 | [docs/marketing/INSTAGRAM_RESEARCH.md:1](../../docs/marketing/INSTAGRAM_RESEARCH.md#L1) |
-| TOK — Suivi du site via Metricool | 6 | [docs/marketing/METRICOOL_WEBSITE_TRACKING.md:1](../../docs/marketing/METRICOOL_WEBSITE_TRACKING.md#L1) |
+| TOK — Suivi du site via Metricool | 7 | [docs/marketing/METRICOOL_WEBSITE_TRACKING.md:1](../../docs/marketing/METRICOOL_WEBSITE_TRACKING.md#L1) |
 | TOK — Première recette commerciale restaurateurs (31 octobre 2026) | 9 | [docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md:1](../../docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md#L1) |
 | Légendes des campagnes TOK | 5 | [docs/marketing/SOCIAL_EDITORIAL_POLICY.md:1](../../docs/marketing/SOCIAL_EDITORIAL_POLICY.md#L1) |
 | Import d’une série de visuels sociaux | 2 | [docs/marketing/SOCIAL_SERIES_IMPORT.md:1](../../docs/marketing/SOCIAL_SERIES_IMPORT.md#L1) |
