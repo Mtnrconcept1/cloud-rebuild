@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `812c7af55dce9547df06d521407cda587f9c8290dc89eb6ce1665997dc5e0d72`
+- Empreinte SHA-256 des sources indexées : `a7a36e5002ca8027d26b065a09aaf4215ec183cff1f1337e93f6dc3bf3393fd8`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,7 +29,7 @@
 | cronJobs | 37 |
 | databaseContract | 231 |
 | databaseObjects | 3170 |
-| documents | 240 |
+| documents | 241 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 4306 |
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 591 |
-| modules | 1942 |
+| modules | 1944 |
 | pages | 133 |
 | pathLiterals | 958 |
 | publicAssets | 743 |
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19953 |
-| repositoryFiles | 3874 |
+| records | 19968 |
+| repositoryFiles | 3877 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1580,7 +1580,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth?confirmed=1 | 3 | [src/test/auth-signup-form.test.tsx:595](../../src/test/auth-signup-form.test.tsx#L595) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
 | /auth?redirect=/commercial | 1 | [src/test/admin-commercial-accounts.test.ts:192](../../src/test/admin-commercial-accounts.test.ts#L192) |
-| /auth?role=restaurateur | 3 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
+| /auth?role=restaurateur | 4 | [src/pages/PacksRestaurateur.tsx:191](../../src/pages/PacksRestaurateur.tsx#L191) |
 | /auth?type=client | 18 | [src/test/auth-redirect-security.test.ts:33](../../src/test/auth-redirect-security.test.ts#L33) |
 | /auth?type=restaurateur | 5 | [src/test/auth-signup-form.test.tsx:483](../../src/test/auth-signup-form.test.tsx#L483) |
 | /authorize | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
@@ -2270,7 +2270,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurateurs-geneve | 1 | [src/test/marketing-legacy-landing.test.ts:7](../../src/test/marketing-legacy-landing.test.ts#L7) |
 | /restaurateurs/:city | 3 | [src/App.tsx:719](../../src/App.tsx#L719) |
 | /restaurateurs/alternative-commission-couvert | 20 | [scripts/prerender-seo.mjs:689](../../scripts/prerender-seo.mjs#L689) |
-| /restaurateurs/geneve | 27 | [scripts/prerender-seo.mjs:621](../../scripts/prerender-seo.mjs#L621) |
+| /restaurateurs/geneve | 29 | [scripts/prerender-seo.mjs:621](../../scripts/prerender-seo.mjs#L621) |
 | /restaurateurs/geneve?email=private@example.ch | 1 | [src/test/restaurant-demo-lead-funnel.test.ts:60](../../src/test/restaurant-demo-lead-funnel.test.ts#L60) |
 | /restaurateurs/google-business | 20 | [scripts/prerender-seo.mjs:688](../../scripts/prerender-seo.mjs#L688) |
 | /restaurateurs/lausanne | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
@@ -7135,7 +7135,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | --- | --- | --- |
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
-| Google | 124 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Google | 125 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Openai | 150 | [public/tok-connect-preview-bridge.js:1](../../public/tok-connect-preview-bridge.js#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 45 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
@@ -7152,7 +7152,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 231 |
-| automation-script | 92 |
+| automation-script | 93 |
 | documentation | 6 |
 | edge-function-source | 259 |
 | frontend-component | 315 |
@@ -7162,7 +7162,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 810 |
+| test | 811 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7291,6 +7291,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | TOK Growth AutoPilot — qualification et conversions à partir des preuves réelles | 8 | [docs/marketing/GROWTH_AUTOPILOT.md:1](../../docs/marketing/GROWTH_AUTOPILOT.md#L1) |
 | Veille Instagram Genève | 7 | [docs/marketing/INSTAGRAM_RESEARCH.md:1](../../docs/marketing/INSTAGRAM_RESEARCH.md#L1) |
 | TOK — Suivi du site via Metricool | 6 | [docs/marketing/METRICOOL_WEBSITE_TRACKING.md:1](../../docs/marketing/METRICOOL_WEBSITE_TRACKING.md#L1) |
+| TOK — Première recette commerciale restaurateurs (31 octobre 2026) | 9 | [docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md:1](../../docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md#L1) |
 | Légendes des campagnes TOK | 5 | [docs/marketing/SOCIAL_EDITORIAL_POLICY.md:1](../../docs/marketing/SOCIAL_EDITORIAL_POLICY.md#L1) |
 | Import d’une série de visuels sociaux | 2 | [docs/marketing/SOCIAL_SERIES_IMPORT.md:1](../../docs/marketing/SOCIAL_SERIES_IMPORT.md#L1) |
 | Mailings ciblés TOK | 8 | [docs/marketing/TARGETED_MAILING.md:1](../../docs/marketing/TARGETED_MAILING.md#L1) |
@@ -7712,7 +7713,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (105)</summary>
+<details><summary>automation-script (106)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7806,6 +7807,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/test-tok-special-offer-stock-postgres.mjs`
 - `scripts/tok-connect-smoke.mjs`
 - `scripts/verification/fixtures/marketing-analytics-evidence.sql`
+- `scripts/verification/restaurant-conversion-smoke.mjs`
 - `scripts/verification/restaurant-image-discovery-sources.cjs`
 - `scripts/verification/restaurant-image-technical-retries.cjs`
 - `scripts/verification/test-inbound-forward-receipts.mjs`
@@ -8456,7 +8458,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (192)</summary>
+<details><summary>documentation (193)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8538,6 +8540,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/marketing/GROWTH_AUTOPILOT.md`
 - `docs/marketing/INSTAGRAM_RESEARCH.md`
 - `docs/marketing/METRICOOL_WEBSITE_TRACKING.md`
+- `docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md`
 - `docs/marketing/SOCIAL_EDITORIAL_POLICY.md`
 - `docs/marketing/SOCIAL_SERIES_IMPORT.md`
 - `docs/marketing/TARGETED_MAILING.md`
@@ -10539,7 +10542,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (810)</summary>
+<details><summary>test (811)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -11124,6 +11127,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-media-watermark.test.ts`
 - `src/test/restaurant-menu-cards.test.tsx`
 - `src/test/restaurant-menu-catalog.test.tsx`
+- `src/test/restaurant-onboarding-conversion.test.tsx`
 - `src/test/restaurant-onboarding-payments.test.ts`
 - `src/test/restaurant-order-board.test.tsx`
 - `src/test/restaurant-paid-tok-purchases-invoices.test.ts`
