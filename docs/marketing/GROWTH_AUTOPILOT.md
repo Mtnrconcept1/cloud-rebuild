@@ -66,6 +66,20 @@ La priorité `focus_code` est une **recommandation**, jamais une preuve de
 causalité. Elle peut orienter les tests de la page restaurateurs, la fluidité
 de la réservation ou une campagne ciblée vers les contacts opt-in.
 
+Le bilan distingue également quatre étapes post-signature vérifiables : contrats
+acceptés et signés, factures d'abonnement Stripe confirmées par un événement
+`invoice_paid` (dédupliquées par facture), deals payés disposant d'un identifiant
+de paiement Stripe et non remboursés, établissements ayant un job d'activation
+terminé. **Ces compteurs ne s'additionnent pas et ne sont pas du revenu attribué** :
+un même restaurant peut apparaître dans plusieurs étapes. L'agent ne déduit
+jamais le montant de Stripe d'un abonnement théorique ou d'une promesse commerciale.
+Les métriques seront renseignées après application contrôlée des migrations.
+
+Le suivi Metricool web de la PR d'intégration conserve les visites publiques
+sous consentement Analytics, sans prétendre constituer un connecteur de
+publication externe, une attribution de chiffre d'affaires ou une API
+utilisable depuis le backend TOK sans droits supplémentaires.
+
 ## Où consulter
 
 Les résultats sont dans `public.marketing_growth_snapshots` et les tâches

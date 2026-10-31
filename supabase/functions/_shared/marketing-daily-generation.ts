@@ -26,6 +26,23 @@ type DailyCompletion = {
 export type MarketingDailyResult = { status: "idle" } | (DailyCompletion & { error?: string });
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+/**
+ * Escalate the *generation* margin on the existing bounded daily retries,
+ * never relax the pixel reviewer or change the master images and copy.
+ * Each attempt still generates exactly one native image using all references.
+ */
+function strengthenRetryFrame(brief: ReturnType<typeof buildDailyMarketingBrief>, attempt: number) {
+  if (attempt <= 1) return brief;
+  const insetPercent = attempt === 2 ? 16 : 20;
+  const x = Math.ceil(1024 * insetPercent / 100);
+  const y = Math.ceil(1280 * insetPercent / 100);
+  return { ...brief, visualPrompt: [
+    brief.visualPrompt,
+    `CORRECTION IMPÉRATIVE POUR CET ESSAI : réserver une zone périphérique de ${insetPercent} % entièrement vide de logo, titre et texte de pied. Tous ces éléments doivent tenir entre x=${x} et x=${1024 - x}, et y=${y} et y=${1280 - y} px, bulle Miamz! et accents inclus. Ne pas reproduire le placement près du bord de la référence.`,
+    "Conserver exactement la même direction artistique, les références maîtresses, la famille visuelle, le titre demandé et une seule scène. Générer nativement une seule image entièrement nouvelle, sans mosaïque, grille, montage ni texte supplémentaire.",
+  ].join("\n") };
+}
+
 async function dailyRpc(client: MarketingDailyClient, name: string, args: Record<string, unknown>) {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -93,11 +110,12 @@ export async function runDailyMarketingGeneration(client: MarketingDailyClient, 
   let content: Record<string, unknown>;
   try {
     const brief = buildDailyMarketingBrief(claim.local_date, claim.recent_posts.map((post) => post.title));
-    const visual = await generateDailyMarketingVisual(client, { runId: claim.id, brief, ...options });
+    const visualBrief = strengthenRetryFrame(brief, claim.attempt_count);
+    const visual = await generateDailyMarketingVisual(client, { runId: claim.id, brief: visualBrief, ...options });
     content = {
       title: brief.title, caption: brief.caption, image_url: visual.imageUrl, image_quality: visual.quality,
       visual_brand_profile: brief.brandVersion, profile_version: brief.brandVersion,
-      subject_id: brief.subjectId, visual_family: brief.visualFamily, visual_prompt: brief.visualPrompt,
+      subject_id: brief.subjectId, visual_family: brief.visualFamily, visual_prompt: visualBrief.visualPrompt,
       reference_ids: brief.referenceIds, image_model: "gpt-image-2", variation_id: brief.variationId,
       generation_source: visual.source,
     };

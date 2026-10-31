@@ -56,6 +56,7 @@ const sections = [
       "Apple : gestion d'un achat ou abonnement numérique effectué par l'intermédiaire de l'App Store lorsque ce parcours est utilisé.",
       "Supabase : authentification, base de données, stockage et fonctions serveur.",
       "Vercel et fournisseurs d'hébergement : mise à disposition et exploitation des services web concernés.",
+      "Metricool : mesure des visites des pages publiques de TOK, uniquement après votre consentement à la catégorie Analytics. Le script ne dépose pas de cookies, mais Metricool peut traiter la page consultée et votre adresse IP afin de déterminer le pays.",
       "Fournisseurs de messagerie et notifications : envoi des messages nécessaires au service ou demandés par l'utilisateur.",
       "OpenAI ou autre fournisseur IA activé : uniquement pour les fonctions d'intelligence artificielle effectivement utilisées et selon le périmètre nécessaire à la demande.",
       "Partenaires TOK Connect approuvés : uniquement les données nécessaires à l'action autorisée et dans la limite des permissions accordées.",
@@ -101,6 +102,7 @@ const sections = [
     title: "11. Cookies, mesures d'audience et communications",
     paragraphs: [
       "Les cookies et technologies similaires sont décrits dans la Politique cookies. Les communications commerciales sont envoyées selon vos choix et peuvent être désactivées au moyen des mécanismes proposés.",
+      "Le suivi d'audience Metricool est désactivé par défaut. Vous pouvez l'autoriser ou le refuser puis retirer votre choix à tout moment depuis « Gérer mes cookies ». Les pages privées et les URL contenant des paramètres sensibles sont exclues du suivi.",
     ],
   },
   {

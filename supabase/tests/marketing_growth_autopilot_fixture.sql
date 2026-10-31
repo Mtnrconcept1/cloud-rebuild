@@ -19,6 +19,10 @@ CREATE TABLE public.marketing_automations(
 INSERT INTO public.marketing_automations VALUES ('global_runtime','active','{"global_pause":"false"}');
 CREATE TABLE public.commercial_prospect_followups(source_objectid bigint PRIMARY KEY, signed_at timestamptz);
 CREATE TABLE public.restaurant_leads(created_at timestamptz DEFAULT now());
+CREATE TABLE public.restaurant_contracts(signed_at timestamptz,accepted_contract boolean);
+CREATE TABLE public.restaurant_subscription_payment_events(stripe_event_id text PRIMARY KEY,event_type text,processed_at timestamptz,stripe_invoice_id text);
+CREATE TABLE public.restaurant_deals(paid_at timestamptz,refunded_at timestamptz,stripe_payment_intent_id text);
+CREATE TABLE public.restaurant_subscription_activation_jobs(restaurant_id uuid,status text,completed_at timestamptz);
 CREATE TABLE public.reservations(created_at timestamptz DEFAULT now(), honored_at timestamptz);
 CREATE TABLE public.marketing_acquisition_touches(touched_at timestamptz DEFAULT now());
 CREATE TABLE public.marketing_attribution_facts(observed_at timestamptz DEFAULT now(),fact_type text,campaign_id uuid);
@@ -49,6 +53,10 @@ VALUES
 INSERT INTO public.marketing_contacts(id,contact_type,source_objectid,lead_score,canton,email_normalized,lawful_basis,consent_at,opted_out_at)
 VALUES
  ('00000000-0000-4000-8000-000000000004','restaurant_prospect',4,80,'GE','blocked@example.invalid','consent',now(),now());
+INSERT INTO public.restaurant_contracts(signed_at,accepted_contract) VALUES (now(),true),(now(),false);
+INSERT INTO public.restaurant_subscription_payment_events(stripe_event_id,event_type,processed_at,stripe_invoice_id) VALUES ('e1','invoice_paid',now(),'invoice_a'),('e2','invoice_paid',now(),'invoice_a');
 INSERT INTO public.reservations(created_at,honored_at) VALUES (now()-interval '1 day',now()-interval '2 hours');
+INSERT INTO public.restaurant_deals(paid_at,refunded_at,stripe_payment_intent_id) VALUES (now(),null,'payment_a'),(now(),now(),'payment_b');
+INSERT INTO public.restaurant_subscription_activation_jobs(restaurant_id,status,completed_at) VALUES ('00000000-0000-4000-8000-000000000011','completed',now()),('00000000-0000-4000-8000-000000000011','completed',now());
 INSERT INTO public.marketing_acquisition_touches DEFAULT VALUES;
 COMMIT;

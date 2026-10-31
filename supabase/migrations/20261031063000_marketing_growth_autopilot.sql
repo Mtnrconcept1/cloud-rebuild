@@ -85,6 +85,10 @@ DECLARE
   v_honored_7d integer := 0;
   v_acquisitions_7d integer := 0;
   v_attributed_7d integer := 0;
+  v_contracts_signed_7d integer := 0;
+  v_paid_invoices_7d integer := 0;
+  v_paid_deals_7d integer := 0;
+  v_activated_restaurants_7d integer := 0;
   v_focus text;
   v_metrics jsonb;
 BEGIN
@@ -201,6 +205,20 @@ BEGIN
     WHERE observed_at >= now() - interval '7 days'
       AND fact_type = 'conversion' AND campaign_id IS NOT NULL;
 
+  -- Verifiable post-signature funnel, never substituted for campaign attribution.
+  -- A Stripe invoice is deduplicated by its stable invoice identifier.
+  SELECT count(*) INTO v_contracts_signed_7d FROM public.restaurant_contracts
+    WHERE signed_at >= now() - interval '7 days' AND accepted_contract IS TRUE;
+  SELECT count(DISTINCT COALESCE(stripe_invoice_id, stripe_event_id))
+    INTO v_paid_invoices_7d FROM public.restaurant_subscription_payment_events
+    WHERE event_type = 'invoice_paid' AND processed_at >= now() - interval '7 days';
+  SELECT count(*) INTO v_paid_deals_7d FROM public.restaurant_deals
+    WHERE paid_at >= now() - interval '7 days'
+      AND refunded_at IS NULL AND stripe_payment_intent_id IS NOT NULL;
+  SELECT count(DISTINCT restaurant_id) INTO v_activated_restaurants_7d
+    FROM public.restaurant_subscription_activation_jobs
+    WHERE status = 'completed' AND completed_at >= now() - interval '7 days';
+
   -- Focus code is a recommendation, never a claim of causal attribution.
   v_focus := CASE
     WHEN v_leads_7d = 0 THEN 'grow_restaurateur_leads'
@@ -214,6 +232,11 @@ BEGIN
     'restaurant_leads_created',v_leads_7d,'signed_restaurants',v_signatures_7d,
     'reservations_created',v_reservations_7d,'reservations_honored',v_honored_7d,
     'acquisition_touches',v_acquisitions_7d,'campaign_attributed_conversions',v_attributed_7d,
+    'restaurant_contracts_signed',v_contracts_signed_7d,
+    'stripe_subscription_invoices_paid',v_paid_invoices_7d,
+    'stripe_verified_deals_paid',v_paid_deals_7d,
+    'restaurants_activated',v_activated_restaurants_7d,
+    'paid_metrics_attribution','Unattributed operational receipts; do not add invoice and deal counts.',
     'conversion_rate',NULL,
     'rate_limitation','No verified matched visitor-to-reservation denominator.'
   );

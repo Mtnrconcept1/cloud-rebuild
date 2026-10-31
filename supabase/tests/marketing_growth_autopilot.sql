@@ -44,6 +44,16 @@ BEGIN
    RAISE EXCEPTION 'Invented marketing conversion rate'; END IF;
  IF (SELECT metrics->>'reservations_created' FROM public.marketing_growth_snapshots) <> '1' THEN
    RAISE EXCEPTION 'Missing real booking baseline'; END IF;
+ IF (SELECT metrics->>'restaurant_contracts_signed' FROM public.marketing_growth_snapshots) <> '1' THEN
+   RAISE EXCEPTION 'Unaccepted contract counted as signed'; END IF;
+ IF (SELECT metrics->>'stripe_subscription_invoices_paid' FROM public.marketing_growth_snapshots) <> '1' THEN
+   RAISE EXCEPTION 'Duplicate paid Stripe invoice counted twice'; END IF;
+ IF (SELECT metrics->>'stripe_verified_deals_paid' FROM public.marketing_growth_snapshots) <> '1' THEN
+   RAISE EXCEPTION 'Refunded or unverified deal counted as paid'; END IF;
+ IF (SELECT metrics->>'restaurants_activated' FROM public.marketing_growth_snapshots) <> '1' THEN
+   RAISE EXCEPTION 'Duplicate activation of one restaurant counted twice'; END IF;
+ IF (SELECT metrics->>'paid_metrics_attribution' FROM public.marketing_growth_snapshots) NOT LIKE 'Unattributed%' THEN
+   RAISE EXCEPTION 'Paid counts incorrectly presented as attributed revenue'; END IF;
 END;
 $test$;
 

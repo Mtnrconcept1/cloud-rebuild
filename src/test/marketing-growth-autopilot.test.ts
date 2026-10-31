@@ -39,6 +39,10 @@ describe("growth autopilot private CRM workflow", () => {
     expect(sql).toContain("FOR UPDATE OF c SKIP LOCKED");
     expect(sql).toContain("ON CONFLICT (contact_id, action_kind) DO NOTHING");
     expect(sql).toContain("'conversion_rate',NULL");
+    expect(sql).toContain("'stripe_subscription_invoices_paid',v_paid_invoices_7d");
+    expect(sql).toContain("'stripe_verified_deals_paid',v_paid_deals_7d");
+    expect(sql).toContain("'restaurants_activated',v_activated_restaurants_7d");
+    expect(sql).toContain("'paid_metrics_attribution','Unattributed operational receipts");
     expect(sql).not.toContain("http_post");
     expect(sql).not.toContain("resend.com");
     expect(sql).not.toContain("webhook");
