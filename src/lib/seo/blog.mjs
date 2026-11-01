@@ -59,8 +59,17 @@ function dateLabel(value) {
   return new Intl.DateTimeFormat("fr-CH", { dateStyle: "long", timeZone: "Europe/Zurich" }).format(new Date(`${value}T12:00:00Z`));
 }
 
+function coverPath(article) {
+  return "/blog-images/" + encodeURIComponent(article.slug) + ".webp";
+}
+
+function cover(article, loading) {
+  if (!article.coverAlt) return "";
+  return `<img src="${coverPath(article)}" alt="${escape(article.coverAlt)}" width="1672" height="941" loading="${loading}" style="display:block;width:100%;height:auto">`;
+}
+
 function articleCard(article) {
-  return `<article class="tok-blog-card"><p class="tok-blog-eyebrow">${escape(article.category)}</p><h3><a href="/blog/${escape(article.slug)}">${escape(article.title)}</a></h3><p>${escape(article.description)}</p><p class="tok-blog-card-meta">${Math.ceil(article.wordCount / 200)} min de lecture · <time datetime="${escape(article.modifiedAt)}">${escape(dateLabel(article.modifiedAt))}</time></p><a class="tok-blog-text-link" href="/blog/${escape(article.slug)}">Lire le guide <span aria-hidden="true">→</span><span class="tok-blog-sr-only"> : ${escape(article.title)}</span></a></article>`;
+  return `<article class="tok-blog-card">${cover(article, "lazy")}<p class="tok-blog-eyebrow">${escape(article.category)}</p><h3><a href="/blog/${escape(article.slug)}">${escape(article.title)}</a></h3><p>${escape(article.description)}</p><p class="tok-blog-card-meta">${Math.ceil(article.wordCount / 200)} min de lecture · <time datetime="${escape(article.modifiedAt)}">${escape(dateLabel(article.modifiedAt))}</time></p><a class="tok-blog-text-link" href="/blog/${escape(article.slug)}">Lire le guide <span aria-hidden="true">→</span><span class="tok-blog-sr-only"> : ${escape(article.title)}</span></a></article>`;
 }
 
 function editorialFooter() {
@@ -80,7 +89,7 @@ function renderArticle(article) {
   const headings = article.blocks.filter((block) => block.type === "heading" && block.level === 2 && block.text !== "En bref");
   const toc = `<nav class="tok-blog-toc" aria-label="Sommaire de l’article"><h2>Dans ce guide</h2><ol>${headings.map((heading) => `<li><a href="#${escape(heading.id)}">${escape(heading.text)}</a></li>`).join("")}</ol></nav>`;
   const related = article.related.map((slug) => bySlug.get(slug)).filter(Boolean);
-  return `<div class="tok-blog">${breadcrumbs(article)}<main id="blog-main"><header class="tok-blog-article-header"><a class="tok-blog-text-link" href="/blog">← Tous les articles</a><p class="tok-blog-eyebrow">${escape(article.category)}</p><h1>${escape(article.title)}</h1><p class="tok-blog-deck">${escape(article.description)}</p><p class="tok-blog-byline">Par ${escape(article.author)} · Mis à jour le <time datetime="${escape(article.modifiedAt)}">${escape(dateLabel(article.modifiedAt))}</time> · ${Math.ceil(article.wordCount / 200)} min de lecture</p></header><div class="tok-blog-reading"><aside>${toc}</aside><article class="tok-blog-prose" aria-label="Article complet">${renderBlogBody(article.blocks)}</article></div><section class="tok-blog-related" aria-labelledby="blog-related"><h2 id="blog-related">À lire pour votre prochaine sortie</h2><nav class="tok-blog-grid" aria-label="Articles à lire ensuite">${related.map(articleCard).join("")}</nav></section></main>${editorialFooter()}</div>`;
+  return `<div class="tok-blog">${breadcrumbs(article)}<main id="blog-main"><header class="tok-blog-article-header"><a class="tok-blog-text-link" href="/blog">← Tous les articles</a><p class="tok-blog-eyebrow">${escape(article.category)}</p><h1>${escape(article.title)}</h1><p class="tok-blog-deck">${escape(article.description)}</p><p class="tok-blog-byline">Par ${escape(article.author)} · Mis à jour le <time datetime="${escape(article.modifiedAt)}">${escape(dateLabel(article.modifiedAt))}</time> · ${Math.ceil(article.wordCount / 200)} min de lecture</p>${cover(article, "eager")}</header><div class="tok-blog-reading"><aside>${toc}</aside><article class="tok-blog-prose" aria-label="Article complet">${renderBlogBody(article.blocks)}</article></div><section class="tok-blog-related" aria-labelledby="blog-related"><h2 id="blog-related">À lire pour votre prochaine sortie</h2><nav class="tok-blog-grid" aria-label="Articles à lire ensuite">${related.map(articleCard).join("")}</nav></section></main>${editorialFooter()}</div>`;
 }
 
 function articleSchema(article) {
@@ -88,7 +97,7 @@ function articleSchema(article) {
   return {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "BlogPosting", "@id": `${url}#article`, headline: article.title, description: article.description, mainEntityOfPage: url, url, inLanguage: "fr-CH", datePublished: article.publishedAt, dateModified: article.modifiedAt, wordCount: article.wordCount, articleSection: article.category, isPartOf: { "@id": `${ORIGIN}/blog#blog` }, author: { "@type": "Organization", name: "Rédaction TOK", url: `${ORIGIN}/a-propos` }, publisher: { "@type": "Organization", name: "TOK", url: ORIGIN, logo: { "@type": "ImageObject", url: `${ORIGIN}/logotok.png` } } },
+      { "@type": "BlogPosting", "@id": `${url}#article`, image: article.coverAlt ? ORIGIN + coverPath(article) : IMAGE, headline: article.title, description: article.description, mainEntityOfPage: url, url, inLanguage: "fr-CH", datePublished: article.publishedAt, dateModified: article.modifiedAt, wordCount: article.wordCount, articleSection: article.category, isPartOf: { "@id": `${ORIGIN}/blog#blog` }, author: { "@type": "Organization", name: "Rédaction TOK", url: `${ORIGIN}/a-propos` }, publisher: { "@type": "Organization", name: "TOK", url: ORIGIN, logo: { "@type": "ImageObject", url: `${ORIGIN}/logotok.png` } } },
       { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Accueil", item: ORIGIN }, { "@type": "ListItem", position: 2, name: "Blog TOK", item: `${ORIGIN}/blog` }, { "@type": "ListItem", position: 3, name: article.title, item: url }] },
     ],
   };
@@ -99,7 +108,7 @@ export function getBlogSeoPages() {
   if (cachedPages) return cachedPages;
   cachedPages = [
     { path: "/blog", title: BLOG_TITLE, description: BLOG_DESCRIPTION, image: IMAGE, modifiedAt: "2026-11-01", staticHtml: renderIndex(), jsonLd: { "@context": "https://schema.org", "@type": "Blog", "@id": `${ORIGIN}/blog#blog`, name: "Le blog TOK", url: `${ORIGIN}/blog`, inLanguage: "fr-CH", description: BLOG_DESCRIPTION, blogPost: articles.map((article) => ({ "@id": `${ORIGIN}/blog/${article.slug}#article` })) } },
-    ...articles.map((article) => ({ path: `/blog/${article.slug}`, title: article.title, description: article.description, image: IMAGE, ogType: "article", publishedAt: article.publishedAt, modifiedAt: article.modifiedAt, staticHtml: renderArticle(article), jsonLd: articleSchema(article) })),
+    ...articles.map((article) => ({ path: `/blog/${article.slug}`, title: article.title, description: article.description, image: article.coverAlt ? ORIGIN + coverPath(article) : IMAGE, ogType: "article", publishedAt: article.publishedAt, modifiedAt: article.modifiedAt, staticHtml: renderArticle(article), jsonLd: articleSchema(article) })),
   ];
   for (const page of cachedPages) page.lastmod = page.modifiedAt;
   return cachedPages;
