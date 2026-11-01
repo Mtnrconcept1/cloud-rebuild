@@ -48,21 +48,27 @@ jobs:
           }
           const dateAt = days => new Date(Date.now()-days*86400000).toISOString().slice(0,10);
           const from=dateAt(9), to=dateAt(3);
-          const url = new URL("https://connectors.windsor.ai/searchconsole");
-          url.search = new URLSearchParams({api_key:key, select_accounts:property, date_from:from,
-            date_to:to, fields:"site,date,clicks,impressions", _renderer:"json", _max_rows:"7"});
-          const result=await readJson(url);
-          const rows=Array.isArray(result) ? result : result?.data;
-          const first=Array.isArray(rows) ? rows[0] : undefined;
-          const bodyText=JSON.stringify(result).slice(0,4000).toLowerCase();
-          console.log("Response format:", Array.isArray(result) ? "array" : Object.keys(result || {}).slice(0,20).join(","),
-            "rows", Array.isArray(rows) ? rows.length : "absent",
-            "fields", Object.keys(first || {}).slice(0,20).join(","),
-            "site", first?.site === "thetok.ch" || first?.site === property ? "TOK" : typeof first?.site,
-            "date", /^[0-9T:Z+. -]{4,35}$/.test(String(first?.date)) ? first.date : typeof first?.date,
-            "clicks type", typeof first?.clicks, "impressions type", typeof first?.impressions,
-            "sample evidence", /not your real numbers|demo data|sample data|reads are paused/.test(bodyText),
-            "plan or auth notice", /free plan|upgrade|permission denied|invalid api key/.test(bodyText));
+          let session, version;
+          const endpoint="https://mcp.windsor.ai/";
+          const headers={Authorization:"Bearer "+key,Accept:"application/json, text/event-stream","Content-Type":"application/json"};
+          async function rpc(body) {
+            const response=await fetch(endpoint,{method:"POST",headers:{...headers,...(session?{"Mcp-Session-Id":session}:{}),...(version?{"MCP-Protocol-Version":version}:{})},redirect:"error",signal:AbortSignal.timeout(30000),body:JSON.stringify({jsonrpc:"2.0",...body})});
+            if(!response.ok) throw Error("Windsor MCP HTTP "+response.status);
+            if(response.headers.has("mcp-session-id")) session=response.headers.get("mcp-session-id");
+            if(body.id===undefined) { await response.body?.cancel(); return; }
+            const raw=await response.text();
+            const messages=response.headers.get("content-type")?.includes("text/event-stream") ? raw.split(/\r?\n/).filter(s=>s.startsWith("data:")).map(s=>JSON.parse(s.slice(5))) : [JSON.parse(raw)];
+            const msg=messages.find(x=>x.id===body.id);
+            if(!msg || msg.error || msg.result?.isError) throw Error("Windsor MCP rejected "+body.method);
+            return msg.result;
+          }
+          const init=await rpc({id:1,method:"initialize",params:{protocolVersion:"2025-06-18",capabilities:{},clientInfo:{name:"tok-marketing-agent",version:"1.0"}}});
+          version=init.protocolVersion;
+          await rpc({method:"notifications/initialized"});
+          const read=await rpc({id:2,method:"tools/call",params:{name:"get_data",arguments:{connector:"searchconsole",accounts:[property],date_from:from,date_to:to,fields:["site","date","clicks","impressions"]}}});
+          const result=read.structuredContent ?? JSON.parse(read.content.find(x=>x.type==="text").text);
+          const rows=result.data ?? result.result?.data;
+          console.log("Windsor MCP result status", result.status??result.result?.status??"unknown", "rows", Array.isArray(rows)?rows.length:0);
           if(!Array.isArray(rows) || !rows.length || rows.length>7 ||
              rows.some(row => !["thetok.ch",property].includes(row.site) || typeof row.date!=="string" ||
                row.date<from || row.date>to || !Number.isSafeInteger(row.clicks) || row.clicks<0 ||
