@@ -1,0 +1,2838 @@
+[
+  {
+    "slug": "reserver-table-geneve-tok",
+    "title": "Réserver une table à Genève avec TOK : du choix à la confirmation",
+    "description": "Découvrez comment trouver un restaurant à Genève avec TOK, choisir un créneau et préparer votre réservation de table, du premier repérage à la confirmation.",
+    "category": "Réserver et découvrir",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 912,
+    "related": [
+      "zero-attente-precommande-geneve",
+      "trouver-restaurant-geneve-tok",
+      "tok-connect-chatgpt-restaurants"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Une soirée entre amis commence souvent par la même question : où allons-nous manger ? Il faut trouver une cuisine qui plaît au groupe, une adresse pratique et un horaire compatible avec les emplois du temps. Avec TOK, vous pouvez explorer les restaurants genevois, consulter leurs informations et réserver lorsque le service est activé dans l’établissement. Voici comment préparer votre prochaine sortie, sans confondre une adresse repérée et une table confirmée."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "TOK réunit la découverte de restaurants et les services disponibles sur leurs fiches.",
+          "Une réservation se prépare avec une date, une heure et le nombre exact de convives.",
+          "Tous les établissements référencés ne proposent pas nécessairement la réservation en ligne.",
+          "La confirmation et les conditions affichées vous donnent les informations à conserver avant votre venue."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Trouver une adresse qui correspond à votre sortie",
+        "id": "trouver-une-adresse-qui-correspond-a-votre-sortie"
+      },
+      {
+        "type": "paragraph",
+        "text": "Avant de chercher une table, définissez ce qui compte vraiment pour vous. Pour un déjeuner professionnel, la localisation et les horaires peuvent passer avant le type de cuisine. Pour un anniversaire, vous regarderez plutôt la carte, l’ambiance et les possibilités d’accueil du groupe."
+      },
+      {
+        "type": "paragraph",
+        "text": "La [recherche de restaurants TOK](https://www.thetok.ch/recherche) constitue un point de départ pour comparer les adresses. Consultez les informations de chaque fiche et ouvrez la carte lorsqu’elle est disponible. Une photo donne envie ; les informations pratiques permettent de décider."
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Votre priorité",
+          "Ce qu’il faut vérifier"
+        ],
+        "rows": [
+          [
+            "Déjeuner près du bureau",
+            "Adresse, horaires et temps de trajet"
+          ],
+          [
+            "Dîner en couple",
+            "Carte, cadre et créneaux proposés"
+          ],
+          [
+            "Repas entre amis",
+            "Nombre de convives et capacité d’accueil"
+          ],
+          [
+            "Budget défini",
+            "Prix et contenu de la carte consultée"
+          ],
+          [
+            "Besoin particulier",
+            "Possibilité de joindre directement le restaurant"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Une fiche présente une adresse. La présence d’un parcours de réservation actif vous indique si vous pouvez poursuivre la démarche sur TOK. Si ce service n’apparaît pas, utilisez les coordonnées renseignées pour vérifier les possibilités auprès du restaurant."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Préparer sa réservation, étape par étape",
+        "id": "preparer-sa-reservation-etape-par-etape"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Choisissez votre restaurant.** Vérifiez le nom et l’adresse pour éviter de sélectionner un autre établissement au nom proche.",
+          "**Indiquez votre date et votre horaire.** Appuyez-vous sur les créneaux proposés dans le parcours.",
+          "**Renseignez le nombre de convives.** Comptez toutes les personnes qui seront présentes et signalez les besoins particuliers au restaurant.",
+          "**Relisez les conditions affichées.** Une garantie, une annulation ou une offre spéciale peuvent suivre des règles propres à la réservation.",
+          "**Finalisez la demande.** Suivez les étapes jusqu’au statut ou au message de confirmation.",
+          "**Conservez les informations utiles.** Notez l’heure, l’adresse et les éventuelles instructions de l’établissement."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette dernière vérification évite un malentendu fréquent : avoir commencé à choisir un créneau ne signifie pas avoir terminé la réservation. En cas de doute, consultez son statut ou contactez le restaurant avant de vous déplacer."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Un exemple pour organiser un dîner à deux",
+        "id": "un-exemple-pour-organiser-un-diner-a-deux"
+      },
+      {
+        "type": "paragraph",
+        "text": "Imaginons une sortie après le travail. Vous souhaitez manger italien et retrouver votre accompagnant à une heure qui vous convient à tous les deux. Commencez par comparer les adresses accessibles depuis vos lieux de départ. Consultez ensuite la carte, puis les créneaux du restaurant choisi."
+      },
+      {
+        "type": "paragraph",
+        "text": "Cet exemple illustre une méthode de choix ; il ne correspond pas à une disponibilité annoncée. L’intérêt de préparer les informations dans cet ordre est simple : vous évitez de confirmer une table avant de vérifier que le lieu et le menu conviennent à votre soirée."
+      },
+      {
+        "type": "paragraph",
+        "text": "Si vous souhaitez aussi choisir vos plats avant d’arriver, découvrez le parcours [Zéro attente](https://www.thetok.ch/zero-attente). Il associe réservation et précommande chez les établissements compatibles. Une réservation classique, à elle seule, ne signifie pas que les plats ont été commandés."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Avant le repas : les détails qui comptent",
+        "id": "avant-le-repas-les-details-qui-comptent"
+      },
+      {
+        "type": "paragraph",
+        "text": "Relisez votre confirmation avant de partir. Vérifiez l’itinéraire, prévenez vos invités et gardez les coordonnées du restaurant à portée de main. Si le nombre de personnes change ou si vous êtes en retard, informez l’établissement dès que possible."
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour une allergie, un accès particulier ou un besoin qui demande une réponse précise, échangez directement avec l’équipe. Un commentaire envoyé dans un formulaire ne remplace pas une confirmation du restaurant sur ce qu’il peut effectivement prévoir."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Une bonne réservation commence par un choix adapté à votre repas. Chez TOK, nous voulons rapprocher la découverte d’une adresse et la préparation de votre visite. Vous pouvez explorer, comparer et utiliser les services proposés au même endroit, tout en gardant les informations propres à chaque restaurant au centre de votre décision."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Tous les restaurants présents sur TOK sont-ils réservables ?",
+        "id": "tous-les-restaurants-presents-sur-tok-sont-ils-reservables"
+      },
+      {
+        "type": "paragraph",
+        "text": "La réservation dépend de l’établissement et de l’activation du service. Consultez les options de sa fiche : une adresse référencée n’implique pas qu’un créneau soit réservable en ligne."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Comment savoir si ma table est confirmée ?",
+        "id": "comment-savoir-si-ma-table-est-confirmee"
+      },
+      {
+        "type": "paragraph",
+        "text": "Allez au bout du parcours et vérifiez le statut ou le message reçu. Si l’information n’est pas claire, demandez confirmation au restaurant avant de vous rendre sur place."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Puis-je modifier le nombre de convives ?",
+        "id": "puis-je-modifier-le-nombre-de-convives"
+      },
+      {
+        "type": "paragraph",
+        "text": "Consultez les possibilités et conditions associées à votre réservation. Prévenez le restaurant rapidement : une personne supplémentaire peut demander une autre organisation de la salle."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "La réservation comprend-elle la commande des plats ?",
+        "id": "la-reservation-comprend-elle-la-commande-des-plats"
+      },
+      {
+        "type": "paragraph",
+        "text": "Pas nécessairement. Si vous souhaitez commander avant votre arrivée, regardez si le parcours Zéro attente est proposé par le restaurant pour le créneau choisi."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Préparer votre prochaine sortie avec TOK",
+        "id": "preparer-votre-prochaine-sortie-avec-tok"
+      },
+      {
+        "type": "paragraph",
+        "text": "Ouvrez la [recherche de restaurants à Genève](https://www.thetok.ch/recherche), comparez les fiches et choisissez un établissement dont les services correspondent à votre repas. Pour une question sur votre compte ou votre démarche, consultez [l’aide TOK](https://www.thetok.ch/aide)."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[Recherche de restaurants TOK](https://www.thetok.ch/recherche)",
+          "[Parcours Zéro attente](https://www.thetok.ch/zero-attente)",
+          "[Aide TOK](https://www.thetok.ch/aide)"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "zero-attente-precommande-geneve",
+    "title": "Zéro attente TOK : réserver, précommander et profiter de sa pause déjeuner",
+    "description": "Avec Zéro attente TOK, préparez votre repas avant d’arriver : choix du restaurant, réservation, précommande et paiement chez les établissements compatibles.",
+    "category": "Réserver et découvrir",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 899,
+    "related": [
+      "reserver-table-geneve-tok",
+      "trouver-restaurant-geneve-tok",
+      "tableau-bord-restaurateur-tok"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Votre pause de midi est courte, mais vous avez envie d’un vrai repas au restaurant. Entre le choix de la table, la lecture de la carte et la commande, une partie du temps disponible peut être consacrée à préparer le repas plutôt qu’à en profiter. Le parcours Zéro attente de TOK permet d’anticiper ces étapes : vous choisissez votre horaire, votre restaurant et vos plats avant votre venue, puis suivez le paiement et la confirmation proposés."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "Zéro attente associe la préparation de votre visite à la précommande des plats.",
+          "Le parcours comprend le choix de l’heure, du restaurant, du menu, le paiement et la confirmation.",
+          "Il concerne les établissements et créneaux compatibles avec ce service.",
+          "Anticiper la commande aide à organiser le repas, sans constituer une garantie de service instantané."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "À quoi sert la précommande au restaurant ?",
+        "id": "a-quoi-sert-la-precommande-au-restaurant"
+      },
+      {
+        "type": "paragraph",
+        "text": "Réserver une table répond à la question « où et quand allons-nous manger ? ». Précommander ajoute une autre information : ce que vous avez choisi de manger. Vous prenez le temps de consulter le menu avant de vous installer et transmettez votre sélection à travers le parcours prévu."
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour un déjeuner entre collègues, cette préparation peut être particulièrement utile. Chacun regarde les plats avant de quitter le bureau. Le groupe arrive avec un choix déjà effectué, plutôt que de commencer à parcourir la carte une fois assis."
+      },
+      {
+        "type": "paragraph",
+        "text": "La précommande reste liée à un service de restauration réel. La préparation des plats, l’heure d’arrivée et l’organisation de la salle comptent toujours. Le nom Zéro attente exprime l’objectif du parcours ; il ne signifie pas que tout plat sera prêt à la seconde où vous franchissez la porte."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Réservation, Zéro attente ou emporter : quel parcours choisir ?",
+        "id": "reservation-zero-attente-ou-emporter-quel-parcours-choisir"
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Votre envie",
+          "Le parcours à regarder"
+        ],
+        "rows": [
+          [
+            "Choisir une table et commander sur place",
+            "Réservation classique si disponible"
+          ],
+          [
+            "Choisir les plats avant un repas en salle",
+            "Zéro attente chez un restaurant compatible"
+          ],
+          [
+            "Récupérer des plats et manger ailleurs",
+            "Commande à emporter si proposée"
+          ],
+          [
+            "Recevoir le repas à une adresse",
+            "Livraison si le service et la zone sont disponibles"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Ces possibilités ne sont pas interchangeables. Avant de payer, vérifiez bien le mode choisi, le lieu du repas et l’horaire. Pour comparer les usages, découvrez aussi notre guide [pour choisir un restaurant à Genève](/blog/trouver-restaurant-geneve-tok)."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Utiliser Zéro attente en cinq étapes",
+        "id": "utiliser-zero-attente-en-cinq-etapes"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Fixez la date, l’heure et les convives.** Choisissez un horaire compatible avec votre trajet et votre rendez-vous suivant.",
+          "**Sélectionnez un restaurant proposé dans le parcours.** La présence d’un établissement ailleurs dans l’annuaire ne suffit pas à établir sa compatibilité avec Zéro attente.",
+          "**Choisissez votre menu.** Relisez les plats, options et quantités avant de poursuivre.",
+          "**Vérifiez le paiement.** Consultez le montant total et les conditions affichées pour votre commande.",
+          "**Contrôlez la confirmation.** Conservez les informations de votre visite et les indications éventuellement fournies par le restaurant."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Le [parcours officiel Zéro attente](https://www.thetok.ch/zero-attente) réunit ces étapes. Prenez le temps de relire votre sélection : une précommande utile est d’abord une commande exacte."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Un déjeuner entre collègues : comment bien le préparer",
+        "id": "un-dejeuner-entre-collegues-comment-bien-le-preparer"
+      },
+      {
+        "type": "paragraph",
+        "text": "Voici un exemple d’organisation, sans promesse de durée de service. Votre équipe souhaite déjeuner ensemble avant une réunion. Vous convenez d’une heure de départ, consultez un restaurant compatible et préparez vos choix avant la pause."
+      },
+      {
+        "type": "paragraph",
+        "text": "L’un d’entre vous vérifie ensuite les informations communes : date, nombre de personnes et adresse. Chacun contrôle ses propres plats. Le groupe garde une marge pour le trajet et se présente à l’heure prévue."
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette préparation réduit les décisions à prendre sur place. Elle ne justifie pas de planifier un rendez-vous trop serré après le repas : le temps nécessaire dépend aussi du service et des plats sélectionnés."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Que faire si votre programme change ?",
+        "id": "que-faire-si-votre-programme-change"
+      },
+      {
+        "type": "paragraph",
+        "text": "Un retard, un convive absent ou une contrainte alimentaire peuvent modifier l’organisation prévue. Prévenez le restaurant dès que vous en avez connaissance et consultez les conditions associées à votre réservation et à votre commande."
+      },
+      {
+        "type": "paragraph",
+        "text": "Il faut distinguer l’annulation d’une table et celle de plats déjà précommandés. N’en déduisez pas une règle générale de remboursement : les conditions applicables sont celles du parcours confirmé. En cas de doute, [l’aide TOK](https://www.thetok.ch/aide) constitue un point d’entrée pour votre demande."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Un déjeuner au restaurant mérite de rester un moment agréable, même lorsque l’agenda est rempli. Zéro attente donne la possibilité de préparer davantage de choses avant l’arrivée : le lieu, l’horaire et les plats. L’objectif est de rendre votre repas plus facile à organiser, en coordination avec les restaurants qui proposent ce service."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Faut-il choisir ses plats à l’avance ?",
+        "id": "faut-il-choisir-ses-plats-a-lavance"
+      },
+      {
+        "type": "paragraph",
+        "text": "Oui, la précommande fait partie du parcours Zéro attente. Si vous préférez décider sur place, regardez les possibilités de réservation classique du restaurant."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Le paiement a-t-il lieu avant la visite ?",
+        "id": "le-paiement-a-t-il-lieu-avant-la-visite"
+      },
+      {
+        "type": "paragraph",
+        "text": "Le parcours présente une étape de paiement avant la confirmation. Vérifiez le total et les conditions de votre commande avant de la finaliser."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Tous les restaurants genevois sont-ils compatibles ?",
+        "id": "tous-les-restaurants-genevois-sont-ils-compatibles"
+      },
+      {
+        "type": "paragraph",
+        "text": "Le service dépend des établissements et des créneaux proposés. Consultez directement le parcours pour connaître les possibilités au moment de votre recherche."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Le repas est-il garanti sans aucune attente ?",
+        "id": "le-repas-est-il-garanti-sans-aucune-attente"
+      },
+      {
+        "type": "paragraph",
+        "text": "La précommande anticipe des étapes du repas. Le service reste soumis à l’organisation du restaurant, à la préparation des plats et à votre heure d’arrivée."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Découvrir Zéro attente",
+        "id": "decouvrir-zero-attente"
+      },
+      {
+        "type": "paragraph",
+        "text": "Préparez votre prochain déjeuner depuis [Zéro attente TOK](https://www.thetok.ch/zero-attente). Commencez par vos disponibilités, puis choisissez un restaurant et un menu adaptés à votre pause."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[Zéro attente TOK](https://www.thetok.ch/zero-attente)",
+          "[Aide TOK](https://www.thetok.ch/aide)"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "anti-gaspi-geneve-paniers-tok",
+    "title": "Anti-gaspi à Genève : sauver des portions avec les paniers TOK",
+    "description": "Découvrez les offres anti-gaspi TOK à Genève : paniers surprise, portions disponibles et points à vérifier avant de confirmer votre prochain retrait.",
+    "category": "Bons plans et fidélité",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 889,
+    "related": [
+      "ventes-flash-restaurants-geneve",
+      "miamz-fidelite-dons-solidaires",
+      "trouver-restaurant-geneve-tok"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Un restaurant peut terminer son service avec des portions qui n’ont pas trouvé preneur. Pour le client, ces propositions représentent une autre manière de choisir son repas : partir des offres disponibles plutôt que d’une carte entièrement ouverte. Le module Zéro Gaspi de TOK met en avant cette démarche, avec des offres et des paniers surprise à consulter selon les disponibilités. Voici comment en profiter en gardant les bonnes informations en tête."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "Les offres anti-gaspi cherchent à donner une destination à des portions restantes.",
+          "Un panier surprise implique une part d’inconnu sur son contenu.",
+          "Le prix, les quantités, les conditions et le créneau sont à vérifier pour chaque offre.",
+          "Les disponibilités évoluent : il peut ne rester aucune portion à proposer."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Pourquoi regarder l’anti-gaspi avant de choisir son repas ?",
+        "id": "pourquoi-regarder-lanti-gaspi-avant-de-choisir-son-repas"
+      },
+      {
+        "type": "paragraph",
+        "text": "Quand vous êtes ouvert à plusieurs cuisines, les offres anti-gaspi peuvent vous faire découvrir une adresse que vous n’auriez pas choisie spontanément. Vous regardez ce qui est proposé dans un secteur accessible, puis vous décidez si l’offre correspond à votre repas."
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette logique convient mieux à une personne flexible sur le menu qu’à quelqu’un qui recherche un plat précis. Elle invite aussi à raisonner en fonction du retrait : une bonne offre doit rester pratique à récupérer et correspondre à la quantité que vous souhaitez réellement consommer."
+      },
+      {
+        "type": "paragraph",
+        "text": "L’intérêt ne se mesure donc pas uniquement au rabais annoncé. Si vous ne pouvez pas respecter l’horaire, si le contenu ne vous convient pas ou si vous n’avez pas besoin de la quantité proposée, mieux vaut choisir une autre solution."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Panier surprise et vente flash : comprendre la différence",
+        "id": "panier-surprise-et-vente-flash-comprendre-la-difference"
+      },
+      {
+        "type": "paragraph",
+        "text": "Les deux peuvent prendre la forme d’une offre limitée, mais ils ne répondent pas nécessairement au même besoin."
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Dispositif",
+          "Ce que vous regardez en priorité"
+        ],
+        "rows": [
+          [
+            "Offre anti-gaspi",
+            "Portions disponibles, contenu indiqué et conditions de retrait"
+          ],
+          [
+            "Panier surprise",
+            "Nature de l’offre et degré de précision sur son contenu"
+          ],
+          [
+            "Vente flash",
+            "Période de validité et conditions de la promotion"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Une promotion commerciale n’est pas automatiquement une offre sur des invendus. Pour comparer, consultez séparément [Zéro Gaspi](https://www.thetok.ch/anti-gaspi) et les [ventes flash TOK](https://www.thetok.ch/ventes-flash)."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Choisir une offre anti-gaspi, étape par étape",
+        "id": "choisir-une-offre-anti-gaspi-etape-par-etape"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Ouvrez les offres disponibles.** Vérifiez qu’il reste une proposition adaptée à votre secteur et à votre moment de repas.",
+          "**Lisez la description.** Identifiez ce qui est précisé et ce qui reste surprise.",
+          "**Contrôlez la quantité et le prix.** Raisonnez sur le contenu de l’offre complète, pas uniquement sur un pourcentage affiché.",
+          "**Vérifiez le créneau et le lieu.** Assurez-vous de pouvoir récupérer l’offre selon les conditions prévues.",
+          "**Confirmez par le parcours proposé.** Conservez les informations nécessaires au retrait et relisez le statut obtenu."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Si la page indique qu’aucune opportunité n’est disponible, revenez à un autre moment. Une absence d’offre signifie qu’il n’y a rien à choisir à cet instant ; elle ne permet pas de prévoir les stocks du prochain service."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Les questions à poser avant un panier surprise",
+        "id": "les-questions-a-poser-avant-un-panier-surprise"
+      },
+      {
+        "type": "paragraph",
+        "text": "Le mot « surprise » doit rester compatible avec vos besoins. Si vous avez une contrainte alimentaire, regardez d’abord si les informations disponibles sont suffisantes. Lorsque ce n’est pas le cas, contactez directement le restaurant avant de confirmer."
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour une allergie, une simple mention de préférence ne suffit pas à établir la compatibilité d’un panier. Demandez ce que l’établissement peut effectivement vous préciser. Un contenu variable peut ne pas convenir à une restriction qui exige une composition connue à l’avance."
+      },
+      {
+        "type": "paragraph",
+        "text": "Vérifiez également le nombre de portions attendu et la manière de récupérer la commande. Ces détails vous aident à choisir une offre que vous utiliserez réellement."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Un repas improvisé, avec une organisation simple",
+        "id": "un-repas-improvise-avec-une-organisation-simple"
+      },
+      {
+        "type": "paragraph",
+        "text": "Imaginons que vous rentriez chez vous sans menu prévu. Vous regardez les offres TOK, repérez un établissement sur votre trajet et consultez la proposition du jour. Avant de confirmer, vous vérifiez l’heure de retrait et si la quantité convient à votre foyer."
+      },
+      {
+        "type": "paragraph",
+        "text": "Ce scénario est une illustration, pas l’annonce d’un panier actuellement disponible. Il montre le bon ordre de décision : disponibilité, compatibilité avec votre repas, puis facilité du retrait. L’anti-gaspi fonctionne mieux quand l’offre s’intègre naturellement à votre organisation."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Donner une nouvelle occasion à une portion restante est une démarche concrète, à condition que le repas trouve effectivement preneur. Chez TOK, nous voulons rendre ces offres plus visibles et plus faciles à comprendre. Le bon choix reste celui que vous pourrez récupérer, apprécier et consommer, avec des conditions claires avant la confirmation."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Le contenu d’un panier est-il toujours connu ?",
+        "id": "le-contenu-dun-panier-est-il-toujours-connu"
+      },
+      {
+        "type": "paragraph",
+        "text": "Pas nécessairement. Un panier surprise comporte une part de contenu non détaillé. La description de l’offre indique les informations disponibles avant votre choix."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Les paniers bénéficient-ils tous du même rabais ?",
+        "id": "les-paniers-beneficient-ils-tous-du-meme-rabais"
+      },
+      {
+        "type": "paragraph",
+        "text": "Ne supposez pas un taux valable pour toutes les offres. Consultez le prix et les conditions de la proposition choisie."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Y a-t-il des offres à toute heure ?",
+        "id": "y-a-t-il-des-offres-a-toute-heure"
+      },
+      {
+        "type": "paragraph",
+        "text": "Les disponibilités dépendent des établissements et des portions proposées. La page peut ne présenter aucune offre à un moment donné."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Une vente flash est-elle forcément anti-gaspi ?",
+        "id": "une-vente-flash-est-elle-forcement-anti-gaspi"
+      },
+      {
+        "type": "paragraph",
+        "text": "Non. Une vente flash est une offre limitée dans le temps. Consultez sa description pour savoir ce qu’elle concerne."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Regarder les portions disponibles",
+        "id": "regarder-les-portions-disponibles"
+      },
+      {
+        "type": "paragraph",
+        "text": "Découvrez les [offres anti-gaspi TOK](https://www.thetok.ch/anti-gaspi), puis choisissez en fonction de votre repas et de vos possibilités de retrait. Pour préparer d’autres sorties, consultez notre guide [pour choisir un restaurant à Genève](/blog/trouver-restaurant-geneve-tok)."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[Zéro Gaspi TOK](https://www.thetok.ch/anti-gaspi)",
+          "[Ventes flash TOK](https://www.thetok.ch/ventes-flash)"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "miamz-fidelite-dons-solidaires",
+    "title": "Miamz TOK : cumuler des points, offrir et soutenir des repas solidaires",
+    "description": "Découvrez les Miamz TOK : des points de fidélité liés aux usages éligibles, à utiliser pour des avantages, des cadeaux ou des contributions solidaires.",
+    "category": "Bons plans et fidélité",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 869,
+    "related": [
+      "tok-one-avantages-geneve",
+      "anti-gaspi-geneve-paniers-tok",
+      "ventes-flash-restaurants-geneve"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "La fidélité peut servir à préparer une prochaine sortie, faire plaisir à un proche ou participer à une action collective. C’est l’idée des Miamz de TOK : des points associés aux commandes et réservations éligibles, avec plusieurs possibilités d’utilisation selon les conditions du programme. Pour bien en profiter, il faut distinguer le solde de points, les avantages disponibles et la contribution solidaire."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "Les usages éligibles génèrent des Miamz selon le montant et les avantages actifs.",
+          "Le solde se consulte dans votre profil TOK.",
+          "Les possibilités annoncées comprennent des avantages, des cadeaux et des dons solidaires.",
+          "Les Miamz sont des points non monétaires, sans valeur ni conversion en espèces."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Les Miamz, à quoi correspondent-ils ?",
+        "id": "les-miamz-a-quoi-correspondent-ils"
+      },
+      {
+        "type": "paragraph",
+        "text": "Un point de fidélité sert dans le cadre d’un programme défini. Il faut donc le lire avec ses règles : ce qui permet d’en obtenir, les possibilités d’utilisation et la durée de validité des avantages choisis."
+      },
+      {
+        "type": "paragraph",
+        "text": "Sur TOK, les Miamz relient plusieurs usages de l’application. Ils vous donnent une raison de revenir consulter votre compte après un repas éligible et d’examiner ce que le programme vous propose à ce moment-là."
+      },
+      {
+        "type": "paragraph",
+        "text": "Ils ne constituent pas un compte bancaire ni une somme à retirer. Pour connaître l’avantage d’une opération, regardez sa description et ses conditions au moment de l’activer. Un nombre de points ne se traduit pas automatiquement par un montant universel en CHF."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Trois façons de regarder votre solde",
+        "id": "trois-facons-de-regarder-votre-solde"
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Votre intention",
+          "Ce qu’il faut consulter"
+        ],
+        "rows": [
+          [
+            "Profiter d’un avantage",
+            "Les possibilités éligibles et leurs conditions d’activation"
+          ],
+          [
+            "Faire un cadeau",
+            "Le parcours proposé et les conditions de réclamation du destinataire"
+          ],
+          [
+            "Contribuer à la solidarité",
+            "Le dispositif de dons et le suivi d’impact présenté par TOK"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Ces choix correspondent à des envies différentes. Vous pouvez examiner les avantages pour votre usage personnel, préférer offrir des points ou vous intéresser à leur dimension collective. Le programme reste encadré par les conditions propres à chaque opération."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Comment suivre vos Miamz ?",
+        "id": "comment-suivre-vos-miamz"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Consultez votre profil.** Regardez le solde indiqué et les informations associées.",
+          "**Vérifiez l’éligibilité de vos usages.** Toutes les actions ne doivent pas être considérées comme donnant automatiquement les mêmes droits.",
+          "**Explorez les possibilités disponibles.** Lisez leur description avant de décider.",
+          "**Contrôlez les conditions.** Regardez notamment la validité et les éventuelles restrictions.",
+          "**Confirmez l’opération choisie.** Conservez son récapitulatif lorsque le parcours vous en propose un."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "La page [Miamz solidaires](https://www.thetok.ch/miamz-solidaires) présente le fonctionnement général. Votre [profil TOK](https://www.thetok.ch/profil) permet de consulter les informations liées à votre compte."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Offrir des Miamz à un proche",
+        "id": "offrir-des-miamz-a-un-proche"
+      },
+      {
+        "type": "paragraph",
+        "text": "Un cadeau peut être une invitation à découvrir une nouvelle adresse ou à préparer un prochain repas. TOK présente une possibilité d’offrir des Miamz entre proches. Avant de finaliser, regardez ce que le destinataire devra faire pour les réclamer et la durée de validité affichée."
+      },
+      {
+        "type": "paragraph",
+        "text": "Par exemple, vous pouvez souhaiter encourager un proche à explorer les restaurants genevois plutôt que de choisir un établissement à sa place. Il s’agit ici d’une idée d’usage, sans valeur de cadeau ou avantage chiffré annoncé. Le détail dépend du parcours effectivement proposé."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Comprendre la dimension solidaire",
+        "id": "comprendre-la-dimension-solidaire"
+      },
+      {
+        "type": "paragraph",
+        "text": "Les dons de Miamz contribuent à une cagnotte d’impact destinée à soutenir des repas solidaires. Il faut distinguer cette contribution d’une équivalence automatique entre une commande et un repas entier distribué."
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour suivre cette démarche, appuyez-vous sur les informations d’impact présentées par TOK. Une contribution collective se comprend avec son suivi : les points engagés, les opérations annoncées et les éléments de redistribution disponibles."
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette séparation entre fidélité, paiements et solidarité permet de mieux comprendre ce que vous faites lorsque vous utilisez vos points. Vous choisissez une action dans le programme ; vous ne réalisez pas un retrait d’argent."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Et si une commande est remboursée ?",
+        "id": "et-si-une-commande-est-remboursee"
+      },
+      {
+        "type": "paragraph",
+        "text": "La page du programme précise que les Miamz associés peuvent être ajustés ou repris en cas d’annulation ou de remboursement. Le solde n’est donc pas indépendant de l’opération qui a permis de les acquérir."
+      },
+      {
+        "type": "paragraph",
+        "text": "Si vous constatez une différence, vérifiez d’abord les opérations concernées. Pour une question qui reste sans réponse, utilisez [l’aide TOK](https://www.thetok.ch/aide) avec les références utiles à votre demande."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Un programme de fidélité devient plus intéressant lorsqu’il laisse place à plusieurs intentions. Avec les Miamz, nous souhaitons relier le plaisir de découvrir des restaurants, les attentions entre proches et la solidarité locale. La clarté des conditions est essentielle : chacun doit pouvoir comprendre l’usage qu’il choisit et ce qu’il implique."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Peut-on convertir les Miamz en argent ?",
+        "id": "peut-on-convertir-les-miamz-en-argent"
+      },
+      {
+        "type": "paragraph",
+        "text": "Non. Ce sont des points de fidélité non monétaires, sans valeur en espèces et non convertibles en espèces."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Combien de points vais-je recevoir pour mon repas ?",
+        "id": "combien-de-points-vais-je-recevoir-pour-mon-repas"
+      },
+      {
+        "type": "paragraph",
+        "text": "Cela dépend de l’éligibilité, du montant et des avantages actifs. Consultez les informations de l’opération plutôt que d’appliquer un taux supposé."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Les cadeaux ont-ils une durée de validité ?",
+        "id": "les-cadeaux-ont-ils-une-duree-de-validite"
+      },
+      {
+        "type": "paragraph",
+        "text": "Consultez la validité affichée dans le parcours concerné et les conditions de réclamation du destinataire avant de confirmer."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Une commande offre-t-elle automatiquement un repas entier ?",
+        "id": "une-commande-offre-t-elle-automatiquement-un-repas-entier"
+      },
+      {
+        "type": "paragraph",
+        "text": "Ne confondez pas fidélité et équivalence systématique. Les dons de points contribuent au dispositif de repas solidaires suivi par TOK."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Découvrir le programme",
+        "id": "decouvrir-le-programme"
+      },
+      {
+        "type": "paragraph",
+        "text": "Consultez les [Miamz solidaires](https://www.thetok.ch/miamz-solidaires) pour comprendre les possibilités, puis retrouvez votre solde et les informations de votre compte dans [votre profil](https://www.thetok.ch/profil)."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[Programme Miamz solidaires](https://www.thetok.ch/miamz-solidaires)",
+          "[Profil TOK](https://www.thetok.ch/profil)"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "ventes-flash-restaurants-geneve",
+    "title": "Ventes flash TOK : repérer les offres limitées des restaurants genevois",
+    "description": "Repérez les ventes flash TOK à Genève et vérifiez leur durée, leur prix et leurs conditions pour choisir une offre adaptée à votre prochain repas.",
+    "category": "Bons plans et fidélité",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 920,
+    "related": [
+      "anti-gaspi-geneve-paniers-tok",
+      "tok-one-avantages-geneve",
+      "trouver-restaurant-geneve-tok"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Une sortie au restaurant peut commencer par une envie de cuisine ou par une offre qui attire votre attention. Les ventes flash de TOK mettent en avant des propositions limitées dans le temps. Elles vous donnent une autre porte d’entrée pour découvrir un établissement, à condition de lire ce que comprend l’offre et jusqu’à quand elle reste valable. Voici les repères pour décider sans se laisser guider uniquement par l’urgence."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "Une vente flash est une offre dont la période est limitée.",
+          "Sur TOK, son expiration correspond à l’heure de fin choisie par le restaurateur.",
+          "Les conditions, le prix et les disponibilités se vérifient pour chaque proposition.",
+          "Les ventes flash et les offres anti-gaspi répondent à des logiques distinctes."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "À quoi sert une vente flash au restaurant ?",
+        "id": "a-quoi-sert-une-vente-flash-au-restaurant"
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour un client, une offre courte peut être l’occasion de découvrir une adresse, de varier ses habitudes ou de prévoir un repas dans une période qui lui convient. Son intérêt dépend de votre situation : êtes-vous disponible, le lieu vous convient-il et les plats correspondent-ils à vos goûts ?"
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour le restaurateur, une opération limitée permet de présenter une proposition précise sans modifier nécessairement l’ensemble de sa carte. Une vente flash se lit donc comme une offre particulière, avec son propre périmètre."
+      },
+      {
+        "type": "paragraph",
+        "text": "Le pourcentage de réduction, lorsqu’il est indiqué, n’est qu’une partie de l’information. Le contenu inclus, le montant final et les conditions d’utilisation déterminent ce que vous choisissez réellement."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Les informations à vérifier avant de confirmer",
+        "id": "les-informations-a-verifier-avant-de-confirmer"
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Point à vérifier",
+          "Pourquoi il compte"
+        ],
+        "rows": [
+          [
+            "Restaurant et adresse",
+            "Être certain du lieu concerné"
+          ],
+          [
+            "Contenu de l’offre",
+            "Comprendre les plats, quantités ou prestations incluses"
+          ],
+          [
+            "Prix affiché",
+            "Évaluer le coût de votre choix"
+          ],
+          [
+            "Période et horaire",
+            "Savoir quand l’offre peut être utilisée"
+          ],
+          [
+            "Disponibilité",
+            "Vérifier que la proposition est encore accessible"
+          ],
+          [
+            "Conditions particulières",
+            "Repérer les exclusions ou modalités indiquées"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "La [page Ventes flash TOK](https://www.thetok.ch/ventes-flash) est le point de départ pour consulter les opérations présentes. Une offre vue précédemment peut avoir expiré ; revenez toujours à sa situation actuelle avant de décider."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Comment choisir une vente flash utile ?",
+        "id": "comment-choisir-une-vente-flash-utile"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Partez de votre besoin.** Déjeuner près du bureau, dîner ou découverte d’une cuisine : définissez le repas que vous souhaitez organiser.",
+          "**Regardez les offres disponibles.** Comparez leur emplacement et leur contenu avec votre envie.",
+          "**Lisez les modalités.** Vérifiez les horaires, les quantités et les conditions de l’opération choisie.",
+          "**Contrôlez le montant final.** Ne supposez pas que d’autres avantages se cumulent si le parcours ne le précise pas.",
+          "**Finalisez et gardez le récapitulatif.** Il vous aidera à retrouver les informations de votre choix."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette méthode évite de choisir une promotion qui ne correspond pas à votre organisation. Une offre ne constitue une bonne occasion que si vous pouvez effectivement en profiter."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Vente flash, anti-gaspi et fidélité : trois repères",
+        "id": "vente-flash-anti-gaspi-et-fidelite-trois-reperes"
+      },
+      {
+        "type": "paragraph",
+        "text": "La vente flash est définie par sa durée. L’anti-gaspi s’intéresse aux portions restantes et aux invendus. La fidélité repose sur les conditions d’un programme et les usages éligibles d’un compte."
+      },
+      {
+        "type": "paragraph",
+        "text": "Ces dispositifs peuvent tous vous intéresser, mais leur présence ne permet pas de conclure qu’ils sont identiques ou cumulables. Consultez les [offres anti-gaspi](https://www.thetok.ch/anti-gaspi) pour les propositions concernées, et les [Miamz solidaires](https://www.thetok.ch/miamz-solidaires) pour comprendre le programme de points."
+      },
+      {
+        "type": "paragraph",
+        "text": "Ne partez pas non plus du principe qu’une remise couvre toute la carte. Le détail de l’offre reste la référence pour connaître ce qui est inclus."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Préparer une sortie à partir d’une offre",
+        "id": "preparer-une-sortie-a-partir-dune-offre"
+      },
+      {
+        "type": "paragraph",
+        "text": "Prenons une situation illustrative : vous cherchez une idée de dîner pour la semaine. Une vente flash attire votre attention dans un secteur pratique. Vous consultez le contenu, vérifiez que vos invités sont disponibles, puis contrôlez les modalités avant de poursuivre."
+      },
+      {
+        "type": "paragraph",
+        "text": "Cet exemple n’annonce aucune opération en cours. Il montre comment articuler l’offre et le repas : les disponibilités de votre groupe comptent autant que celles de la proposition. Pour une sortie déjà fixée, vous pouvez aussi commencer par la [recherche de restaurants](https://www.thetok.ch/recherche)."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Que faire lorsqu’aucune offre n’est active ?",
+        "id": "que-faire-lorsquaucune-offre-nest-active"
+      },
+      {
+        "type": "paragraph",
+        "text": "Il peut n’y avoir aucune vente flash au moment de votre visite. La page propose des alertes pour suivre les nouvelles opérations. Consultez les options disponibles sans supposer une fréquence ou un canal de notification particulier."
+      },
+      {
+        "type": "paragraph",
+        "text": "Une absence d’offre ne vous empêche pas de découvrir les établissements référencés sur TOK. Les ventes flash sont une possibilité supplémentaire pour préparer votre repas, avec un calendrier propre aux opérations proposées."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Une offre intéressante doit être compréhensible avant d’être urgente. Chez TOK, nous voulons aider les clients à repérer les propositions des restaurants et à vérifier si elles correspondent à leur sortie. Notre conseil : regardez d’abord ce que vous allez vivre et manger, puis le prix et les conditions qui accompagnent ce choix."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Quand une vente flash se termine-t-elle ?",
+        "id": "quand-une-vente-flash-se-termine-t-elle"
+      },
+      {
+        "type": "paragraph",
+        "text": "La page TOK précise qu’elle expire à l’heure de fin choisie par le restaurateur. Vérifiez la période indiquée pour l’opération concernée."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Peut-on cumuler une vente flash avec un autre avantage ?",
+        "id": "peut-on-cumuler-une-vente-flash-avec-un-autre-avantage"
+      },
+      {
+        "type": "paragraph",
+        "text": "Ne supposez pas un cumul automatique. Consultez les conditions et le montant présenté dans votre parcours avant de confirmer."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Une vente flash concerne-t-elle forcément des invendus ?",
+        "id": "une-vente-flash-concerne-t-elle-forcement-des-invendus"
+      },
+      {
+        "type": "paragraph",
+        "text": "Non. Une promotion limitée dans le temps n’est pas nécessairement une offre anti-gaspi. Lisez sa description."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Y a-t-il toujours des ventes flash disponibles ?",
+        "id": "y-a-t-il-toujours-des-ventes-flash-disponibles"
+      },
+      {
+        "type": "paragraph",
+        "text": "Les opérations dépendent des restaurants et de leur calendrier. La page peut ne présenter aucune offre active."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Voir les offres du moment",
+        "id": "voir-les-offres-du-moment"
+      },
+      {
+        "type": "paragraph",
+        "text": "Consultez les [ventes flash TOK](https://www.thetok.ch/ventes-flash) et choisissez une proposition qui correspond à votre prochain repas. Pour explorer plus largement, retrouvez les [restaurants sur TOK](https://www.thetok.ch/recherche)."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[Ventes flash TOK](https://www.thetok.ch/ventes-flash)",
+          "[Zéro Gaspi TOK](https://www.thetok.ch/anti-gaspi)",
+          "[Miamz solidaires](https://www.thetok.ch/miamz-solidaires)"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "tok-dor-creations-chefs",
+    "title": "La Tok d’Or : découvrir les créations limitées des chefs sur TOK",
+    "description": "Découvrez La Tok d’Or, la sélection TOK de créations de chefs en édition limitée, et les informations à vérifier avant de préparer votre expérience.",
+    "category": "Réserver et découvrir",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 876,
+    "related": [
+      "tok-one-avantages-geneve",
+      "reserver-table-geneve-tok",
+      "trouver-restaurant-geneve-tok"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Certaines sorties commencent par l’envie de vivre une expérience culinaire particulière. Un plat signature, une proposition ponctuelle ou une création disponible en petite quantité peuvent donner une autre dimension au choix du restaurant. La Tok d’Or est l’espace TOK consacré aux créations de chefs en édition limitée. Son principe : vous permettre de regarder les propositions disponibles et de préparer votre découverte à partir de leur contenu réel."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "La Tok d’Or met en avant des créations et plats signature en édition limitée.",
+          "Chaque offre possède ses propres informations, disponibilités et conditions.",
+          "La sélection peut ne proposer aucun drop au moment de votre visite.",
+          "La Tok d’Or et l’abonnement Tok One sont deux éléments distincts de l’expérience TOK."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Qu’est-ce qu’une création en édition limitée ?",
+        "id": "quest-ce-quune-creation-en-edition-limitee"
+      },
+      {
+        "type": "paragraph",
+        "text": "Une proposition limitée se découvre dans un périmètre précis : le contenu annoncé, les possibilités proposées et les quantités disponibles. Elle peut vous intéresser pour sortir de vos habitudes ou organiser un moment autour d’une expérience identifiée."
+      },
+      {
+        "type": "paragraph",
+        "text": "Le bon réflexe consiste à regarder la création elle-même plutôt qu’à lui attribuer des caractéristiques supposées. Un nom de chef, un ingrédient, une distinction ou un format de repas ne doivent être considérés comme inclus que s’ils sont effectivement présentés dans l’offre."
+      },
+      {
+        "type": "paragraph",
+        "text": "La [page La Tok d’Or](https://www.thetok.ch/chefs-table) sert à consulter la sélection. Elle distingue la découverte des propositions et leur confirmation. Lorsqu’aucune création n’est disponible, il faut attendre une nouvelle opération plutôt que considérer la présentation générale comme une réservation possible."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Pour quelle occasion regarder La Tok d’Or ?",
+        "id": "pour-quelle-occasion-regarder-la-tok-dor"
+      },
+      {
+        "type": "paragraph",
+        "text": "Une expérience limitée peut être une idée de sortie en couple, un cadeau à préparer ou un repas entre amateurs de cuisine. Le choix dépend toutefois des conditions de l’offre et de ce que recherchent les participants."
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Votre projet",
+          "Les informations à comparer"
+        ],
+        "rows": [
+          [
+            "Une soirée en couple",
+            "Contenu, lieu et possibilités de date"
+          ],
+          [
+            "Une découverte gastronomique",
+            "Présentation de la création et de son auteur"
+          ],
+          [
+            "Une sortie entre amis",
+            "Nombre de participants compatible avec l’offre"
+          ],
+          [
+            "Une occasion à offrir",
+            "Conditions de réservation et modalités prévues"
+          ],
+          [
+            "Un besoin alimentaire particulier",
+            "Informations disponibles et réponse du restaurant"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette grille vous aide à préparer une décision sans inventer de contenu. Une expérience attirante doit aussi correspondre aux goûts et aux contraintes de ceux qui vont la partager."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Préparer sa découverte en cinq étapes",
+        "id": "preparer-sa-decouverte-en-cinq-etapes"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Consultez la sélection active.** Vérifiez qu’une proposition est réellement disponible.",
+          "**Lisez la présentation complète.** Repérez les éléments inclus, le lieu et les conditions annoncées.",
+          "**Vérifiez vos participants.** Assurez-vous que le format et les disponibilités conviennent au groupe.",
+          "**Contrôlez le prix et les modalités.** Le montant de l’offre choisie est la référence pour votre décision.",
+          "**Suivez le parcours de confirmation.** Conservez les informations obtenues et les instructions pour votre visite."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour une allergie ou une demande qui nécessite une adaptation, contactez directement l’établissement avant de confirmer. Une édition limitée peut reposer sur une création précise ; il ne faut pas supposer qu’une modification sera possible."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Une expérience limitée n’est pas une table garantie",
+        "id": "une-experience-limitee-nest-pas-une-table-garantie"
+      },
+      {
+        "type": "paragraph",
+        "text": "La rareté d’une proposition demande de vérifier son état actuel. Une création peut ne plus être disponible lorsque vous revenez la consulter. Les droits d’un compte ou un intérêt exprimé ne remplacent pas la capacité réelle du restaurant."
+      },
+      {
+        "type": "paragraph",
+        "text": "La page propose de suivre les prochaines créations grâce aux alertes disponibles. Cela vous permet de vous intéresser aux nouveautés sans devoir interpréter une ancienne présentation comme une offre encore ouverte."
+      },
+      {
+        "type": "paragraph",
+        "text": "Si vous avez une date fixe et que la sélection ne convient pas, vous pouvez repartir de la [recherche de restaurants](https://www.thetok.ch/recherche) pour préparer une autre sortie."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Quelle différence avec Tok One ?",
+        "id": "quelle-difference-avec-tok-one"
+      },
+      {
+        "type": "paragraph",
+        "text": "La Tok d’Or désigne l’espace de créations limitées. [Tok One](https://www.thetok.ch/tok-one) est une formule d’abonnement client qui présente notamment des priorités sur les expériences compatibles avec ses avantages."
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette priorité dépend des opérations et des conditions actives. Elle ne signifie pas qu’une création est comprise sans supplément, qu’une place est garantie ou que toutes les offres sont accessibles de manière identique."
+      },
+      {
+        "type": "paragraph",
+        "text": "Avant toute décision, lisez les informations de l’abonnement et celles de l’expérience séparément. Elles répondent à deux questions : quels sont vos avantages de compte, et qu’est-ce que la proposition culinaire comprend ?"
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Une découverte culinaire commence par une proposition qui donne envie et que l’on comprend. Avec La Tok d’Or, nous souhaitons donner de la visibilité à des créations particulières et à leur savoir-faire. L’expérience doit se préparer à partir de ce que le chef propose réellement, avec des conditions lisibles avant la confirmation."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "La Tok d’Or est-elle un abonnement client ?",
+        "id": "la-tok-dor-est-elle-un-abonnement-client"
+      },
+      {
+        "type": "paragraph",
+        "text": "La page présente une sélection de créations limitées. Ne la confondez pas avec Tok One, la formule d’abonnement client de TOK."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Des créations sont-elles proposées en permanence ?",
+        "id": "des-creations-sont-elles-proposees-en-permanence"
+      },
+      {
+        "type": "paragraph",
+        "text": "Pas nécessairement. La sélection peut indiquer qu’aucun drop n’est disponible au moment de votre visite."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Tok One garantit-il une place ?",
+        "id": "tok-one-garantit-il-une-place"
+      },
+      {
+        "type": "paragraph",
+        "text": "Les priorités concernent les expériences compatibles et restent soumises aux conditions ainsi qu’aux capacités réelles. Vérifiez l’offre avant de confirmer."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Puis-je choisir cette expérience pour un groupe ?",
+        "id": "puis-je-choisir-cette-experience-pour-un-groupe"
+      },
+      {
+        "type": "paragraph",
+        "text": "Consultez les possibilités de l’offre. Le nombre de participants et les disponibilités doivent correspondre au format proposé."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Découvrir la sélection",
+        "id": "decouvrir-la-selection"
+      },
+      {
+        "type": "paragraph",
+        "text": "Explorez [La Tok d’Or](https://www.thetok.ch/chefs-table), regardez les créations disponibles et préparez votre prochain moment autour de la cuisine."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[La Tok d’Or](https://www.thetok.ch/chefs-table)",
+          "[Tok One](https://www.thetok.ch/tok-one)"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "tok-one-avantages-geneve",
+    "title": "Tok One : quels avantages pour les habitués des restaurants genevois ?",
+    "description": "Tok One à 9.90 CHF par mois : découvrez les avantages annoncés, les conditions d’éligibilité et les points à vérifier avant de choisir l’abonnement TOK.",
+    "category": "Bons plans et fidélité",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 898,
+    "related": [
+      "miamz-fidelite-dons-solidaires",
+      "tok-dor-creations-chefs",
+      "ventes-flash-restaurants-geneve"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Quand vous utilisez régulièrement une application pour organiser vos repas, les avantages d’un compte peuvent devenir un critère de choix. Tok One réunit des réductions réservées, des priorités sur certaines expériences et un support prioritaire. La question utile est de savoir lesquels correspondent à vos habitudes. Voici comment lire l’offre et décider à partir des avantages réellement disponibles pour vos sorties."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "La page Tok One affiche une formule à 9.90 CHF par mois.",
+          "L’abonnement se renouvelle automatiquement chaque mois tant qu’il n’est pas résilié.",
+          "Les avantages dépendent des restaurants, des opérations et des parcours éligibles.",
+          "Les conditions de paiement indiquent une résiliation jusqu’à trois jours avant le renouvellement."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Ce que Tok One rassemble",
+        "id": "ce-que-tok-one-rassemble"
+      },
+      {
+        "type": "paragraph",
+        "text": "La [présentation officielle de Tok One](https://www.thetok.ch/tok-one) annonce plusieurs familles d’avantages. Certaines concernent les prix, d’autres l’accès ou l’accompagnement. Cette différence compte : une priorité d’expérience ne se traduit pas automatiquement par une économie sur une commande."
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Avantage annoncé",
+          "Ce qu’il faut vérifier pour votre usage"
+        ],
+        "rows": [
+          [
+            "Réductions réservées",
+            "Restaurants et opérations concernés, taux effectivement applicable"
+          ],
+          [
+            "Priorité La Tok d’Or",
+            "Expériences compatibles et disponibilités proposées"
+          ],
+          [
+            "Ventes flash en avance",
+            "Offres éligibles à la priorité de votre compte"
+          ],
+          [
+            "Support prioritaire",
+            "Conditions de prise en charge de votre demande"
+          ],
+          [
+            "Attentions partenaires",
+            "Campagnes actives et modalités de participation"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "La présence d’un taux maximum dans une présentation ne signifie pas que toutes vos sorties bénéficient de ce taux. Regardez ce qui est appliqué dans le parcours choisi avant de compter un avantage dans votre budget."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Pour quel type d’utilisateur regarder l’abonnement ?",
+        "id": "pour-quel-type-dutilisateur-regarder-labonnement"
+      },
+      {
+        "type": "paragraph",
+        "text": "Si vous commandez, réservez ou découvrez régulièrement des adresses via TOK, vous pouvez comparer les avantages proposés à vos habitudes. Commencez par les restaurants et les usages qui vous concernent effectivement."
+      },
+      {
+        "type": "paragraph",
+        "text": "Une personne qui utilise rarement l’application regardera surtout si elle prévoit une sortie éligible. Un utilisateur régulier pourra examiner plusieurs opérations au fil du mois. Dans les deux cas, la décision gagne à reposer sur des avantages consultables plutôt que sur un nombre théorique de repas."
+      },
+      {
+        "type": "paragraph",
+        "text": "L’abonnement n’implique pas une économie garantie. Son intérêt dépend des offres auxquelles vous avez accès et de celles que vous choisissez réellement d’utiliser."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Comment évaluer l’intérêt pour vous ?",
+        "id": "comment-evaluer-linteret-pour-vous"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Identifiez vos usages habituels.** Réservation, commande ou expérience : regardez les parcours que vous utilisez déjà.",
+          "**Consultez les avantages actifs.** Vérifiez quels établissements et quelles opérations sont concernés.",
+          "**Distinguez les avantages financiers et les priorités.** Ils ne répondent pas au même besoin.",
+          "**Comparez avec le coût de l’abonnement.** Utilisez uniquement des économies effectivement applicables à vos choix.",
+          "**Relisez les conditions de renouvellement.** Vérifiez-les sur l’écran de souscription avant de confirmer."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour apprécier un résultat financier, le calcul est simple : avantages de prix réellement obtenus moins coût de l’abonnement sur la même période. Une priorité d’accès ou une attention non chiffrée ne doit pas être transformée arbitrairement en francs économisés."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Les avantages demandent-ils un code promotionnel ?",
+        "id": "les-avantages-demandent-ils-un-code-promotionnel"
+      },
+      {
+        "type": "paragraph",
+        "text": "La page Tok One présente des droits appliqués à partir de votre compte sur les parcours éligibles. L’intérêt est de ne pas avoir à rechercher un code pour chaque opération compatible."
+      },
+      {
+        "type": "paragraph",
+        "text": "Cela ne dispense pas de vérifier le résultat avant confirmation. Consultez le prix final, les conditions de l’offre et la situation de votre abonnement. Si un avantage attendu n’apparaît pas, ne supposez pas qu’il sera ajouté ultérieurement sans vérification."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Comprendre la priorité sur les expériences",
+        "id": "comprendre-la-priorite-sur-les-experiences"
+      },
+      {
+        "type": "paragraph",
+        "text": "La priorité annoncée pour les expériences compatibles de [La Tok d’Or](https://www.thetok.ch/chefs-table) concerne des propositions limitées. Elle reste encadrée par les conditions de l’opération et les disponibilités du restaurant."
+      },
+      {
+        "type": "paragraph",
+        "text": "Un statut prioritaire n’est donc pas une réservation déjà réalisée. Vous devez regarder la sélection, choisir une proposition compatible et suivre son parcours. La même vigilance s’applique aux ventes flash : disponibilité et conditions restent celles de l’offre consultée."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Renouvellement et résiliation : les repères à garder",
+        "id": "renouvellement-et-resiliation-les-reperes-a-garder"
+      },
+      {
+        "type": "paragraph",
+        "text": "Le tarif public consulté le 1er novembre 2026 est de 9.90 CHF par mois. La page indique un renouvellement automatique et une résiliation jusqu’à trois jours avant le renouvellement, avec un accès conservé jusqu’à la fin de la période payée."
+      },
+      {
+        "type": "paragraph",
+        "text": "Avant de souscrire, relisez le montant et les conditions affichés au paiement. Ils vous permettent de connaître la formule effectivement proposée et le calendrier applicable à votre abonnement."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Tok One a du sens lorsque ses avantages correspondent à votre manière de découvrir les restaurants. Nous vous invitons à regarder les opérations disponibles et les conditions concrètes avant de décider. Un abonnement utile doit rester facile à comprendre : un prix identifiable, des avantages éligibles et une gestion accessible depuis votre compte."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Combien coûte Tok One ?",
+        "id": "combien-coute-tok-one"
+      },
+      {
+        "type": "paragraph",
+        "text": "La page publique consultée le 1er novembre 2026 affiche 9.90 CHF par mois. Vérifiez le tarif proposé au moment de votre souscription."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Les réductions s’appliquent-elles dans tous les restaurants ?",
+        "id": "les-reductions-sappliquent-elles-dans-tous-les-restaurants"
+      },
+      {
+        "type": "paragraph",
+        "text": "Les avantages dépendent des partenaires et des opérations actives. Consultez les conditions du parcours concerné."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Tok One remplace-t-il les Miamz ?",
+        "id": "tok-one-remplace-t-il-les-miamz"
+      },
+      {
+        "type": "paragraph",
+        "text": "Les Miamz relèvent du programme de fidélité. Tok One est une formule d’abonnement ; lisez les règles de chaque dispositif séparément."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Peut-on arrêter le renouvellement ?",
+        "id": "peut-on-arreter-le-renouvellement"
+      },
+      {
+        "type": "paragraph",
+        "text": "La page prévoit une gestion de l’abonnement depuis le profil et indique un délai de trois jours avant le renouvellement. Relisez les conditions de votre formule."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Voir les avantages disponibles",
+        "id": "voir-les-avantages-disponibles"
+      },
+      {
+        "type": "paragraph",
+        "text": "Consultez [Tok One](https://www.thetok.ch/tok-one), comparez les avantages à vos usages et choisissez en fonction des sorties que vous souhaitez réellement organiser."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[Tarif et conditions Tok One](https://www.thetok.ch/tok-one)",
+          "[La Tok d’Or](https://www.thetok.ch/chefs-table)",
+          "[Miamz solidaires](https://www.thetok.ch/miamz-solidaires)"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "trouver-restaurant-geneve-tok",
+    "title": "Trouver un restaurant à Genève selon ses envies avec TOK",
+    "description": "Cuisine, quartier, carte et services : découvrez une méthode simple pour comparer les restaurants genevois avec TOK et préparer votre prochain repas.",
+    "category": "Réserver et découvrir",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 914,
+    "related": [
+      "reserver-table-geneve-tok",
+      "zero-attente-precommande-geneve",
+      "tok-dor-creations-chefs"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Vous savez que vous avez envie de sortir manger, mais pas encore où. À Genève, le choix peut commencer par une cuisine, un quartier ou l’occasion elle-même : un déjeuner rapide, un dîner entre amis, une sortie à deux. TOK rassemble des adresses et les informations utiles pour préparer ce choix. L’idée est de passer d’une envie assez large à une sélection qui correspond vraiment à votre repas."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "Commencez par définir votre lieu, votre occasion et vos préférences de cuisine.",
+          "Comparez les informations des fiches plutôt que de vous arrêter à la première photo.",
+          "Une adresse référencée n’est pas nécessairement réservable ou commandable sur TOK.",
+          "Le service actif et sa confirmation déterminent le parcours que vous pouvez utiliser."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Partir de l’occasion, avant de choisir l’adresse",
+        "id": "partir-de-loccasion-avant-de-choisir-ladresse"
+      },
+      {
+        "type": "paragraph",
+        "text": "Le bon restaurant dépend du repas que vous préparez. Un endroit pratique pour le midi ne sera pas toujours votre premier choix pour une longue soirée. Avant d’ouvrir plusieurs fiches, demandez-vous ce qui ferait réussir la sortie."
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Votre occasion",
+          "Votre premier critère de choix"
+        ],
+        "rows": [
+          [
+            "Déjeuner près du travail",
+            "Localisation et horaires compatibles"
+          ],
+          [
+            "Dîner avec plusieurs amis",
+            "Cuisine qui plaît au groupe et accueil possible"
+          ],
+          [
+            "Sortie en couple",
+            "Carte et cadre recherchés"
+          ],
+          [
+            "Repas à récupérer sur le trajet",
+            "Service à emporter effectivement proposé"
+          ],
+          [
+            "Découverte spontanée",
+            "Cuisine ou quartier que vous souhaitez explorer"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette préparation vous permet de comparer des adresses sur des critères communs. Vous évitez de retenir un restaurant uniquement parce qu’un plat photographié donne envie, avant de découvrir que les horaires ne correspondent pas."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Explorer les cuisines avec TOK",
+        "id": "explorer-les-cuisines-avec-tok"
+      },
+      {
+        "type": "paragraph",
+        "text": "La [page d’accueil TOK](https://www.thetok.ch/) présente différentes cuisines et des sélections d’adresses. Vous pouvez l’utiliser pour élargir vos idées, puis approfondir votre recherche sur les fiches qui vous intéressent."
+      },
+      {
+        "type": "paragraph",
+        "text": "L’envie de cuisine peut être précise : italien, libanais, japonais ou végétarien, par exemple. Elle peut aussi rester ouverte : un repas à partager, une carte courte ou une nouvelle spécialité à découvrir. Dans ce cas, comparez quelques propositions et regardez les plats annoncés plutôt que de choisir uniquement une catégorie."
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour un groupe, chacun peut exprimer une priorité avant la recherche : budget, secteur ou préférence de cuisine. Quelques critères partagés suffisent souvent à rendre la décision plus simple."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Comparer les fiches sans perdre le fil",
+        "id": "comparer-les-fiches-sans-perdre-le-fil"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Repérez un petit nombre d’adresses.** Une sélection que vous pouvez relire facilement est plus utile qu’une longue liste oubliée.",
+          "**Vérifiez la localisation.** Regardez le trajet depuis votre point de départ et celui des autres convives.",
+          "**Consultez la carte et les informations disponibles.** Comparez les plats et les prix effectivement présentés.",
+          "**Regardez les horaires et services.** Ils doivent correspondre au repas que vous préparez.",
+          "**Choisissez le parcours possible.** Réservation ou commande dépendent des options activées pour l’établissement."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Une information absente ne doit pas être complétée par une supposition. Pour une demande importante, utilisez les coordonnées de l’établissement et demandez une réponse directe."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Bien distinguer découverte, réservation et commande",
+        "id": "bien-distinguer-decouverte-reservation-et-commande"
+      },
+      {
+        "type": "paragraph",
+        "text": "Découvrir un restaurant et effectuer une action auprès de lui sont deux étapes différentes. TOK peut vous aider à repérer une adresse, mais sa présence dans les résultats ne suffit pas à établir qu’elle accepte la réservation ou la commande en ligne."
+      },
+      {
+        "type": "paragraph",
+        "text": "Consultez les services proposés sur la fiche. Pour une table, poursuivez jusqu’à la confirmation du parcours disponible. Pour un repas à emporter, vérifiez le mode de commande et les informations de retrait. Pour une livraison, contrôlez l’adresse desservie et les conditions présentées."
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour préparer votre sortie, découvrez nos guides pour [réserver une table à Genève](/blog/reserver-table-geneve-tok) et [précommander avec Zéro attente](/blog/zero-attente-precommande-geneve)."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Découvrir une adresse au-delà de ses habitudes",
+        "id": "decouvrir-une-adresse-au-dela-de-ses-habitudes"
+      },
+      {
+        "type": "paragraph",
+        "text": "Prenons une situation illustrative : vous retournez souvent dans le même secteur pour déjeuner. Vous pouvez utiliser TOK pour regarder d’autres cuisines à proximité, comparer une ou deux cartes et garder une nouvelle adresse en tête pour votre prochaine pause."
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette découverte ne demande pas forcément de transformer toute votre organisation. Changez un critère à la fois : la cuisine, le quartier ou le type de repas. Vous pourrez ainsi apprécier ce qui vous plaît sans cumuler trop d’inconnues."
+      },
+      {
+        "type": "paragraph",
+        "text": "Si votre envie dépend plutôt d’une proposition ponctuelle, regardez les [ventes flash](https://www.thetok.ch/ventes-flash), les [offres anti-gaspi](https://www.thetok.ch/anti-gaspi) ou les créations de [La Tok d’Or](https://www.thetok.ch/chefs-table), selon leurs disponibilités."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Découvrir un restaurant est plus agréable lorsque l’on comprend rapidement pourquoi il pourrait nous convenir. Chez TOK, nous voulons réunir les adresses, leurs informations et les services proposés pour vous aider à préparer ce choix. Le meilleur point de départ reste votre envie du moment, complétée par les détails pratiques qui feront réussir le repas."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Comment commencer si je n’ai pas de cuisine précise en tête ?",
+        "id": "comment-commencer-si-je-nai-pas-de-cuisine-precise-en-tete"
+      },
+      {
+        "type": "paragraph",
+        "text": "Partez du quartier, de votre occasion et de votre budget, puis comparez les cartes de quelques adresses. La cuisine peut venir dans un second temps."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Une fiche TOK signifie-t-elle que le restaurant est partenaire ?",
+        "id": "une-fiche-tok-signifie-t-elle-que-le-restaurant-est-partenaire"
+      },
+      {
+        "type": "paragraph",
+        "text": "Ne déduisez pas un statut de partenariat de la seule présence d’une adresse. Consultez les services et informations effectivement proposés sur sa fiche."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Peut-on réserver depuis chaque résultat ?",
+        "id": "peut-on-reserver-depuis-chaque-resultat"
+      },
+      {
+        "type": "paragraph",
+        "text": "La réservation dépend de l’établissement et du service activé. Vérifiez si un parcours est disponible et allez jusqu’à sa confirmation."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Que faire si une information manque ?",
+        "id": "que-faire-si-une-information-manque"
+      },
+      {
+        "type": "paragraph",
+        "text": "Contactez l’établissement pour les points qui conditionnent votre venue, notamment un besoin particulier ou une possibilité d’accueil du groupe."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Trouver votre prochaine adresse",
+        "id": "trouver-votre-prochaine-adresse"
+      },
+      {
+        "type": "paragraph",
+        "text": "Lancez une [recherche de restaurants avec TOK](https://www.thetok.ch/recherche), définissez vos critères et comparez les fiches qui correspondent à votre sortie."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[Découverte des restaurants TOK](https://www.thetok.ch/)",
+          "[Recherche TOK](https://www.thetok.ch/recherche)"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "tok-connect-chatgpt-restaurants",
+    "title": "TOK Connect : chercher un restaurant et préparer une réservation dans ChatGPT",
+    "description": "Découvrez TOK Connect : recherche de restaurants, fiches et préparation de réservations dans ChatGPT, avec connexion TOK et confirmation des actions.",
+    "category": "Réserver et découvrir",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 836,
+    "related": [
+      "reserver-table-geneve-tok",
+      "trouver-restaurant-geneve-tok",
+      "tableau-bord-restaurateur-tok"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Décrire votre envie de restaurant dans une conversation peut être plus naturel que de commencer par une longue série de filtres. Vous pouvez préciser une cuisine, un quartier et l’occasion, puis affiner votre choix. TOK Connect rapproche cette manière de chercher des informations proposées par TOK : des sélections de restaurants, des fiches et un parcours de préparation de réservation, dans les environnements ChatGPT compatibles."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "TOK Connect présente un module de restaurants utilisable dans ChatGPT.",
+          "La connexion à votre compte TOK passe par le parcours d’autorisation prévu.",
+          "Les fonctions annoncées comprennent la recherche, les fiches et la lecture des disponibilités.",
+          "La création d’une réservation nécessite une confirmation explicite ; une suggestion ne vaut pas réservation."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Chercher une adresse en décrivant son envie",
+        "id": "chercher-une-adresse-en-decrivant-son-envie"
+      },
+      {
+        "type": "paragraph",
+        "text": "Une conversation permet d’exprimer plusieurs critères ensemble. Vous pouvez, par exemple, demander des idées de cuisine italienne pour un dîner à deux, puis préciser votre secteur de départ. La recherche devient un échange : vous comparez les propositions, posez une question et réduisez la sélection."
+      },
+      {
+        "type": "paragraph",
+        "text": "Voici des exemples de formulations, qui ne constituent pas des résultats réels :"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "« Je cherche un restaurant italien à Genève pour un dîner à deux. »",
+          "« Compare des adresses de cuisine japonaise et libanaise pour notre déjeuner. »",
+          "« Montre-moi les informations du restaurant qui m’intéresse avant de choisir un créneau. »"
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Le bénéfice vient de la précision progressive. Plus votre demande décrit votre sortie, plus vous donnez d’éléments pour préparer une sélection pertinente."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Ce que TOK Connect présente dans la conversation",
+        "id": "ce-que-tok-connect-presente-dans-la-conversation"
+      },
+      {
+        "type": "paragraph",
+        "text": "La [page officielle TOK Connect](https://www.thetok.ch/tok-connect) décrit des cartes de restaurants et des fiches détaillées. Elle annonce également une consultation des disponibilités et des réservations contrôlées."
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Étape",
+          "Ce qu’elle permet de préparer"
+        ],
+        "rows": [
+          [
+            "Recherche",
+            "Repérer des restaurants selon les critères exprimés"
+          ],
+          [
+            "Consultation d’une fiche",
+            "Examiner les informations utiles de l’établissement"
+          ],
+          [
+            "Vérification des disponibilités",
+            "Regarder les créneaux effectivement proposés"
+          ],
+          [
+            "Confirmation",
+            "Valider l’action de réservation avant sa création"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Le parcours doit conserver cette distinction entre exploration et action. Comparer plusieurs adresses ne doit pas vous engager auprès de chacune d’elles."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Comment se prépare la connexion ?",
+        "id": "comment-se-prepare-la-connexion"
+      },
+      {
+        "type": "paragraph",
+        "text": "TOK publie les indications de connexion sur sa page dédiée. L’installation repose sur son adresse de serveur et sur une autorisation OAuth : vous êtes dirigé vers le parcours de connexion TOK pour accorder les accès prévus."
+      },
+      {
+        "type": "paragraph",
+        "text": "Les possibilités d’ajouter un connecteur dépendent de votre environnement ChatGPT. Consultez les options qui vous sont proposées et les indications officielles à jour plutôt que de supposer qu’un bouton ou une formule particulière est disponible dans tous les comptes."
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour commencer, ouvrez [TOK Connect](https://www.thetok.ch/tok-connect). La page présente aussi un aperçu du module pour comprendre son fonctionnement avant de préparer une réservation."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "De la sélection à la réservation : garder les bonnes étapes",
+        "id": "de-la-selection-a-la-reservation-garder-les-bonnes-etapes"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Exprimez votre envie.** Donnez les critères qui comptent pour votre repas.",
+          "**Comparez les propositions.** Ouvrez les informations du restaurant retenu et vérifiez le lieu.",
+          "**Précisez votre visite.** Indiquez date, horaire et nombre de convives.",
+          "**Relisez les disponibilités et les conditions.** Une proposition dépend des créneaux réellement accessibles.",
+          "**Confirmez explicitement.** Contrôlez ensuite le résultat et le statut de l’action."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Une réponse qui suggère un établissement n’atteste pas qu’une réservation a été créée. Pour votre déplacement, appuyez-vous sur le résultat confirmé du parcours."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Les restaurants disponibles et les permissions",
+        "id": "les-restaurants-disponibles-et-les-permissions"
+      },
+      {
+        "type": "paragraph",
+        "text": "La présentation TOK Connect précise que l’accès des restaurants au module est contrôlé côté TOK. Il ne faut donc pas supposer que toutes les adresses de l’annuaire sont accessibles à toutes les fonctions du connecteur."
+      },
+      {
+        "type": "paragraph",
+        "text": "De même, les permissions accordées lors de la connexion déterminent le périmètre prévu. Consultez-les avant d’accepter et gardez la confirmation pour les actions qui engagent votre compte."
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour une demande particulière au restaurant, assurez-vous qu’elle a été effectivement transmise et prise en compte. La conversation facilite la préparation ; les conditions et les réponses de l’établissement restent essentielles."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Une recherche de restaurant commence souvent par quelques mots : une envie, un lieu et les personnes avec qui l’on veut partager le repas. TOK Connect cherche à prolonger cette simplicité dans la conversation, tout en donnant accès à des informations et à un parcours contrôlé. L’objectif est d’aider à choisir puis à confirmer, avec une séparation claire entre ces deux moments."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Une demande à ChatGPT réserve-t-elle automatiquement une table ?",
+        "id": "une-demande-a-chatgpt-reserve-t-elle-automatiquement-une-table"
+      },
+      {
+        "type": "paragraph",
+        "text": "Non. TOK Connect présente un parcours dans lequel la création d’une réservation nécessite votre confirmation explicite."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Faut-il un compte TOK ?",
+        "id": "faut-il-un-compte-tok"
+      },
+      {
+        "type": "paragraph",
+        "text": "Le parcours de connexion présenté passe par votre compte TOK et l’autorisation des accès prévus. Consultez les indications de la page officielle."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Tous les restaurants TOK sont-ils accessibles par ce module ?",
+        "id": "tous-les-restaurants-tok-sont-ils-accessibles-par-ce-module"
+      },
+      {
+        "type": "paragraph",
+        "text": "L’accès au connecteur dépend des restaurants autorisés et des services disponibles. Une présence dans l’annuaire ne suffit pas à établir cette compatibilité."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Puis-je utiliser TOK sans le connecteur ?",
+        "id": "puis-je-utiliser-tok-sans-le-connecteur"
+      },
+      {
+        "type": "paragraph",
+        "text": "Vous pouvez découvrir les adresses depuis la [recherche TOK](https://www.thetok.ch/recherche) et utiliser les parcours disponibles sur leurs fiches."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Découvrir TOK Connect",
+        "id": "decouvrir-tok-connect"
+      },
+      {
+        "type": "paragraph",
+        "text": "Consultez la [présentation et les indications de connexion TOK Connect](https://www.thetok.ch/tok-connect), puis préparez une demande qui décrit votre prochain repas."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[Fonctionnalités et connexion TOK Connect](https://www.thetok.ch/tok-connect)",
+          "[Recherche TOK](https://www.thetok.ch/recherche)"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "tableau-bord-restaurateur-tok",
+    "title": "Restaurateurs : centraliser réservations, commandes et fidélité avec TOK",
+    "description": "Découvrez comment TOK réunit les réservations, commandes, offres et outils de fidélité pour aider les restaurants genevois à organiser leur activité.",
+    "category": "Restaurateurs",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 953,
+    "related": [
+      "reservations-tok-prix-table",
+      "marketing-restaurant-tok",
+      "zero-attente-precommande-geneve"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Une demande de table, une commande à emporter et une offre de fin de service concernent le même restaurant, mais ne demandent pas le même suivi. Lorsque les informations sont dispersées, il devient plus difficile de comprendre ce qui a été confirmé, ce qui doit être préparé et ce que l’équipe peut proposer. TOK présente un espace restaurateur qui rassemble plusieurs de ces usages, avec des services à activer selon votre activité et votre abonnement."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "TOK réunit des outils de réservation, de commande, d’offres et de fidélité.",
+          "Le tableau de bord sert à suivre les demandes et les services configurés.",
+          "Le périmètre des fonctionnalités et les droits varient selon le pack choisi.",
+          "Une démonstration permet d’examiner les parcours utiles à votre établissement avant de vous engager."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Partir des besoins de votre service",
+        "id": "partir-des-besoins-de-votre-service"
+      },
+      {
+        "type": "paragraph",
+        "text": "Le premier intérêt d’un outil de gestion est de rendre les informations plus faciles à retrouver. Avant de regarder les fonctions, identifiez les situations qui demandent aujourd’hui le plus d’attention à votre équipe : confirmer une table, mettre à jour une carte ou présenter une offre."
+      },
+      {
+        "type": "paragraph",
+        "text": "La [page TOK pour les restaurateurs genevois](https://www.thetok.ch/restaurateurs/geneve) présente plusieurs domaines réunis dans le tableau de bord. Leur intérêt se comprend avec vos usages réels."
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Besoin de l’établissement",
+          "Domaine à examiner dans TOK"
+        ],
+        "rows": [
+          [
+            "Organiser les demandes de table",
+            "Réservations, horaires et confirmations"
+          ],
+          [
+            "Préparer les commandes",
+            "Services de commande activés et suivi des demandes"
+          ],
+          [
+            "Proposer des portions restantes",
+            "Offres anti-gaspi"
+          ],
+          [
+            "Mettre en avant une opération courte",
+            "Ventes flash et promotions"
+          ],
+          [
+            "Encourager le retour des clients",
+            "Avantages Miamz et outils de relation client selon le pack"
+          ],
+          [
+            "Présenter votre carte",
+            "Fiche publique, menu et médias"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette lecture aide à choisir un périmètre de départ cohérent. Vous n’avez pas besoin de lancer chaque service le même jour pour commencer à organiser vos informations."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Construire une fiche qui prépare la visite",
+        "id": "construire-une-fiche-qui-prepare-la-visite"
+      },
+      {
+        "type": "paragraph",
+        "text": "Une fiche utile doit permettre au client de comprendre votre restaurant et les services qu’il peut y utiliser. Vérifiez d’abord le nom, l’adresse, les horaires, la carte et les photos. Ces informations conditionnent la qualité des demandes reçues."
+      },
+      {
+        "type": "paragraph",
+        "text": "Ensuite, regardez la cohérence entre votre présentation et vos services actifs. Si un parcours de réservation ou de commande est proposé, il doit correspondre à ce que votre établissement peut traiter. Une disponibilité ou un menu mal renseigné crée une difficulté que la plus belle photo ne résout pas."
+      },
+      {
+        "type": "paragraph",
+        "text": "Prévoyez aussi qui peut maintenir ces informations à jour dans votre équipe. Un responsable identifié et une vérification régulière sont des compléments utiles à tout outil de gestion."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Mettre en route les services dans le bon ordre",
+        "id": "mettre-en-route-les-services-dans-le-bon-ordre"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Définissez votre priorité.** Choisissez un besoin précis pour votre lancement : réservations, emporter ou offres ponctuelles, par exemple.",
+          "**Vérifiez votre fiche et votre carte.** Contrôlez les informations publiques avant de promouvoir votre présence.",
+          "**Configurez les services retenus.** Faites correspondre les horaires et les possibilités aux capacités réelles du restaurant.",
+          "**Présentez le parcours à l’équipe.** Chacun doit savoir où regarder et comment traiter les demandes qui le concernent.",
+          "**Suivez les premiers usages.** Identifiez les questions récurrentes et les points de configuration à ajuster."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Un démarrage limité à un objectif observable est souvent plus facile à évaluer qu’un lancement simultané de nombreuses opérations."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Un exemple d’organisation pour un bistrot",
+        "id": "un-exemple-dorganisation-pour-un-bistrot"
+      },
+      {
+        "type": "paragraph",
+        "text": "Imaginons un bistrot qui souhaite mieux structurer les demandes du déjeuner. Il commence par vérifier ses informations et ses services, puis présente à son équipe le parcours de réception et de confirmation. Dans un second temps, il prépare une offre courte pour un créneau choisi."
+      },
+      {
+        "type": "paragraph",
+        "text": "Ce scénario est une illustration d’usage. Il ne garantit ni une augmentation des réservations ni un résultat de chiffre d’affaires. Son intérêt tient à l’ordre de travail : fiabiliser les informations, organiser le traitement des demandes, puis donner davantage de visibilité à une proposition précise."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Relier les offres et la fidélité au fonctionnement du restaurant",
+        "id": "relier-les-offres-et-la-fidelite-au-fonctionnement-du-restaurant"
+      },
+      {
+        "type": "paragraph",
+        "text": "Les offres anti-gaspi, les ventes flash et les avantages Miamz répondent à des objectifs différents. Choisissez celui qui correspond à votre situation et vérifiez le périmètre inclus dans votre abonnement."
+      },
+      {
+        "type": "paragraph",
+        "text": "La [page des packs restaurateurs](https://www.thetok.ch/packs-restaurateur) distingue notamment les outils et droits selon la formule. Les fonctionnalités de relation client ou de création de contenu ne doivent pas être considérées comme identiques dans tous les abonnements."
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour évaluer une action, partez d’indicateurs concrets : demandes reçues, confirmations, réservations honorées et ventes effectivement réalisées. Une consultation de fiche et une table servie représentent deux étapes différentes."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Un restaurant a besoin d’outils qui restent compréhensibles pendant un service. Avec TOK, nous souhaitons réunir plusieurs usages autour du même établissement et rendre leur suivi plus lisible. La valeur du tableau de bord dépend de la qualité de sa configuration et de son appropriation par l’équipe, autant que du nombre de fonctions disponibles."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "TOK est-il uniquement un outil de réservation ?",
+        "id": "tok-est-il-uniquement-un-outil-de-reservation"
+      },
+      {
+        "type": "paragraph",
+        "text": "Sa présentation restaurateur couvre aussi les commandes, les offres, la fidélité, les médias et différents outils de pilotage. Consultez le périmètre de votre pack."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Toutes les fonctions sont-elles incluses dans chaque abonnement ?",
+        "id": "toutes-les-fonctions-sont-elles-incluses-dans-chaque-abonnement"
+      },
+      {
+        "type": "paragraph",
+        "text": "Non. La page des packs détaille des droits et des quotas différents selon les formules. Vérifiez les conditions avant votre choix."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Comment choisir les premiers services à activer ?",
+        "id": "comment-choisir-les-premiers-services-a-activer"
+      },
+      {
+        "type": "paragraph",
+        "text": "Partez de votre priorité et de ce que votre équipe peut traiter. Vérifiez la fiche, les horaires et le parcours avant de promouvoir le service."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Une demande de démonstration déclenche-t-elle un abonnement ?",
+        "id": "une-demande-de-demonstration-declenche-t-elle-un-abonnement"
+      },
+      {
+        "type": "paragraph",
+        "text": "La page restaurateurs présente une démonstration sans engagement et précise qu’une demande de démo ne déclenche ni abonnement ni paiement."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Découvrir l’espace restaurateur",
+        "id": "decouvrir-lespace-restaurateur"
+      },
+      {
+        "type": "paragraph",
+        "text": "Présentez votre établissement et votre priorité dans la [demande de démonstration TOK](https://www.thetok.ch/restaurateurs/geneve#demande-demo). Vous pourrez examiner les parcours adaptés à votre organisation."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[TOK pour les restaurateurs à Genève](https://www.thetok.ch/restaurateurs/geneve)",
+          "[Packs et périmètres des outils](https://www.thetok.ch/packs-restaurateur)"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "marketing-restaurant-tok",
+    "title": "Marketing restaurant : relier photos, offres et fidélité dans TOK",
+    "description": "Photos, actualités, offres et Miamz : découvrez une méthode pour préparer une action marketing de restaurant avec TOK et mesurer les résultats utiles.",
+    "category": "Restaurateurs",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 961,
+    "related": [
+      "tableau-bord-restaurateur-tok",
+      "ventes-flash-restaurants-geneve",
+      "miamz-fidelite-dons-solidaires"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Publier une photo donne de la visibilité à un plat. Pour transformer cet intérêt en demande, il faut aussi une information claire : ce que vous proposez, quand le client peut en profiter et comment il peut passer à l’action. TOK réunit des outils de présentation, d’offres et de fidélité qui peuvent accompagner cette démarche. Voici comment préparer une action cohérente, du premier visuel jusqu’au suivi des résultats."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "Choisissez un objectif précis avant de préparer votre contenu.",
+          "Reliez la photo, le texte et le lien à la même proposition.",
+          "Les outils disponibles, les droits et les quotas dépendent du pack.",
+          "Mesurez les demandes et les ventes pertinentes pour votre objectif, en distinguant chaque étape."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Commencer par un objectif de restaurant",
+        "id": "commencer-par-un-objectif-de-restaurant"
+      },
+      {
+        "type": "paragraph",
+        "text": "Une opération peut chercher à faire connaître un plat du jour, présenter une nouveauté ou soutenir un créneau moins demandé. Ces objectifs appellent des contenus différents. Une belle image ne dit pas, à elle seule, ce que vous attendez du client."
+      },
+      {
+        "type": "paragraph",
+        "text": "La [présentation restaurateur de TOK](https://www.thetok.ch/restaurateurs/geneve) regroupe notamment fiche publique, photos IA, actualités, campagnes, promotions et fidélité. Vous pouvez examiner ces outils à partir du résultat que vous souhaitez observer."
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Votre objectif",
+          "Un contenu à préparer",
+          "Un résultat à suivre"
+        ],
+        "rows": [
+          [
+            "Faire découvrir une nouveauté",
+            "Présentation exacte du plat et de sa disponibilité",
+            "Consultations et demandes liées à la nouveauté"
+          ],
+          [
+            "Renforcer un créneau",
+            "Offre et conditions limitées à la période choisie",
+            "Réservations confirmées puis honorées"
+          ],
+          [
+            "Proposer des portions restantes",
+            "Offre anti-gaspi avec modalités claires",
+            "Portions effectivement choisies"
+          ],
+          [
+            "Encourager le retour",
+            "Avantage de fidélité éligible",
+            "Utilisations de l’avantage et visites correspondantes"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Les résultats dépendent aussi de votre offre, de la demande et de l’organisation du service. Aucun outil de contenu ne garantit à lui seul une salle remplie."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Préparer une proposition facile à comprendre",
+        "id": "preparer-une-proposition-facile-a-comprendre"
+      },
+      {
+        "type": "paragraph",
+        "text": "Avant la photo, écrivez les informations essentielles en quelques lignes. Quel est le plat ou l’avantage ? Quel restaurant le propose ? À quelle période ? Avec quelles conditions ? Quelle action souhaitez-vous rendre possible ?"
+      },
+      {
+        "type": "paragraph",
+        "text": "Votre titre, votre visuel et votre lien doivent ensuite raconter la même chose. Si vous annoncez un déjeuner, le client doit arriver sur les informations qui lui permettent de préparer ce déjeuner, et non devoir rechercher l’offre à partir de zéro."
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette cohérence compte davantage que la multiplication des messages. Une information précise et à jour donne à l’équipe comme au client un point de référence commun."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Utiliser les photos IA avec une vérification métier",
+        "id": "utiliser-les-photos-ia-avec-une-verification-metier"
+      },
+      {
+        "type": "paragraph",
+        "text": "TOK présente des outils de photo et de création visuelle assistés par l’IA. Ils peuvent vous aider à préparer des contenus pour votre carte ou vos opérations, selon les droits de votre formule."
+      },
+      {
+        "type": "paragraph",
+        "text": "Le contrôle final doit rester fidèle à ce que vous servez. Vérifiez les ingrédients visibles, la portion, la présentation et les éléments qui pourraient faire croire à un accompagnement inclus. Si un visuel ne correspond pas au plat proposé, corrigez votre choix avant publication."
+      },
+      {
+        "type": "paragraph",
+        "text": "Une image attractive ne doit pas créer une attente que la cuisine ne pourra pas tenir. Pour un contenu dont l’apparence précise est importante, appuyez-vous sur une référence réelle du plat et sur la validation de l’équipe qui le prépare."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Organiser une action en six étapes",
+        "id": "organiser-une-action-en-six-etapes"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Définissez votre objectif et votre période.** Choisissez ce que vous souhaitez observer.",
+          "**Vérifiez l’offre.** Contrôlez carte, prix, quantités et conditions.",
+          "**Préparez le contenu.** Sélectionnez une photo cohérente et un texte lisible.",
+          "**Choisissez le bon parcours.** Réservation, commande ou consultation de fiche doivent correspondre à l’action annoncée.",
+          "**Diffusez par les canaux disponibles.** Vérifiez les droits de votre pack et les connexions effectivement configurées.",
+          "**Relisez les résultats.** Comparez l’intérêt obtenu et les actions qui ont réellement abouti."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Les [packs restaurateurs](https://www.thetok.ch/packs-restaurateur) détaillent notamment les possibilités et quotas. Vérifiez-les avant de préparer un volume de contenus ou une opération nécessitant une fonction particulière."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Ne pas confondre clics, demandes et revenus",
+        "id": "ne-pas-confondre-clics-demandes-et-revenus"
+      },
+      {
+        "type": "paragraph",
+        "text": "Un clic montre qu’une personne a suivi un lien. Une demande indique une intention supplémentaire. Une réservation honorée correspond à un client effectivement venu, et le revenu relève de la vente réalisée."
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour une campagne de réservation, regarder uniquement les visites peut donner une image incomplète. Suivez les étapes disponibles dans votre outil et rapprochez-les de votre objectif initial. Les liens et canaux traçables peuvent aider à comprendre l’origine des actions lorsqu’ils sont configurés."
+      },
+      {
+        "type": "paragraph",
+        "text": "Prenons un exemple illustratif : un restaurant annonce une proposition du mardi midi. Il prépare un contenu, le relie au bon parcours puis observe les demandes et les tables effectivement servies. Cet exemple décrit une méthode, sans prédire le nombre de clients ni le chiffre d’affaires."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Le marketing d’un restaurant fonctionne mieux lorsque le contenu reste proche du service réel. Chez TOK, nous voulons relier la présentation d’un plat, les offres et la fidélité aux actions que le client peut effectivement réaliser. Une photo fidèle, une proposition claire et un suivi compréhensible constituent une base plus utile qu’une promesse de résultat."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Les photos IA sont-elles prêtes à publier sans contrôle ?",
+        "id": "les-photos-ia-sont-elles-pretes-a-publier-sans-controle"
+      },
+      {
+        "type": "paragraph",
+        "text": "Vérifiez toujours qu’elles représentent fidèlement le plat et la proposition réellement servis. La validation métier reste indispensable."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Les actualités et le CRM sont-ils inclus dans chaque pack ?",
+        "id": "les-actualites-et-le-crm-sont-ils-inclus-dans-chaque-pack"
+      },
+      {
+        "type": "paragraph",
+        "text": "Le périmètre varie selon la formule. Consultez les droits détaillés sur la page des abonnements avant de préparer votre action."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Quel indicateur regarder en premier ?",
+        "id": "quel-indicateur-regarder-en-premier"
+      },
+      {
+        "type": "paragraph",
+        "text": "Celui qui correspond à votre objectif. Pour une réservation, suivez notamment la différence entre demande, confirmation et venue effective."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "TOK garantit-il un résultat commercial ?",
+        "id": "tok-garantit-il-un-resultat-commercial"
+      },
+      {
+        "type": "paragraph",
+        "text": "Un outil aide à préparer et suivre une action. Le résultat dépend de nombreux facteurs, dont l’offre, le calendrier et la demande locale."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Préparer votre prochaine action",
+        "id": "preparer-votre-prochaine-action"
+      },
+      {
+        "type": "paragraph",
+        "text": "Présentez votre priorité dans la [demande de démo restaurateur TOK](https://www.thetok.ch/restaurateurs/geneve#demande-demo) et regardez les outils adaptés à votre activité."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[Outils restaurateurs TOK](https://www.thetok.ch/restaurateurs/geneve)",
+          "[Fonctions et quotas par abonnement](https://www.thetok.ch/packs-restaurateur)"
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "reservations-tok-prix-table",
+    "title": "Réservations TOK : comprendre le prix par table honorée côté restaurateur",
+    "description": "Abonnement, table honorée et commandes : comprenez les postes de coût TOK pour comparer une offre de réservation avec les chiffres de votre restaurant.",
+    "category": "Restaurateurs",
+    "author": "Rédaction TOK",
+    "publishedAt": "2026-11-01",
+    "modifiedAt": "2026-11-01",
+    "wordCount": 906,
+    "related": [
+      "tableau-bord-restaurateur-tok",
+      "marketing-restaurant-tok",
+      "reserver-table-geneve-tok"
+    ],
+    "blocks": [
+      {
+        "type": "paragraph",
+        "text": "Comparer un outil de réservation demande de savoir ce qui est compté. Une table servie, un couvert et une commande ne désignent pas la même chose. Le modèle présenté par TOK associe un abonnement à des frais de réservation par table honorée, avec des conditions distinctes pour les commandes et les autres prestations. Voici comment lire ces postes et préparer une comparaison adaptée à votre établissement."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "En bref",
+        "id": "en-bref"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "Une table honorée correspond à un groupe effectivement venu manger, pas au nombre de meubles de la salle.",
+          "Les pages publiques consultées le 1er novembre 2026 affichent 5 CHF par réservation honorée, en plus de l’abonnement.",
+          "Les commandes et les autres prestations possèdent leurs propres conditions.",
+          "Pour choisir, appuyez-vous sur les conditions applicables à votre souscription et vérifiez les éventuels cas particuliers."
+        ]
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Table, couvert et commande : de quoi parle-t-on ?",
+        "id": "table-couvert-et-commande-de-quoi-parle-t-on"
+      },
+      {
+        "type": "paragraph",
+        "text": "Une réservation de quatre personnes représente un groupe, donc une table au sens du modèle présenté. Elle représente aussi quatre couverts. Le nombre de tables physiques de votre restaurant ne sert pas à compter les réservations honorées du mois."
+      },
+      {
+        "type": "paragraph",
+        "text": "Une commande à emporter constitue encore un autre usage. Elle peut contenir plusieurs plats, mais elle ne doit pas être ajoutée à une réservation comme s’il s’agissait automatiquement d’un second groupe servi en salle."
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Terme",
+          "Comment le lire"
+        ],
+        "rows": [
+          [
+            "Table honorée",
+            "Groupe venu manger dans le cadre d’une réservation"
+          ],
+          [
+            "Couvert",
+            "Personne qui participe au repas"
+          ],
+          [
+            "Table physique",
+            "Élément de mobilier et de capacité de la salle"
+          ],
+          [
+            "Commande",
+            "Ensemble de produits acheté dans un parcours de commande"
+          ],
+          [
+            "Abonnement",
+            "Montant récurrent de la formule choisie"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette distinction permet d’utiliser les bons volumes dans votre comparaison. Partir du nombre total de couverts en appliquant un prix par table donnerait un résultat erroné."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Les abonnements affichés par TOK",
+        "id": "les-abonnements-affiches-par-tok"
+      },
+      {
+        "type": "paragraph",
+        "text": "La [page des packs restaurateurs](https://www.thetok.ch/packs-restaurateur) consultée le 1er novembre 2026 présente les montants mensuels suivants :"
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Pack",
+          "Abonnement mensuel affiché"
+        ],
+        "rows": [
+          [
+            "Starter",
+            "69 CHF"
+          ],
+          [
+            "Business",
+            "129 CHF"
+          ],
+          [
+            "Premium",
+            "199 CHF"
+          ],
+          [
+            "Elite",
+            "499 CHF"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Ces montants concernent les abonnements. Ils ne représentent pas le coût total de toutes les réservations, commandes et prestations éventuelles du mois. La page détaille aussi des droits et quotas différents selon les formules."
+      },
+      {
+        "type": "paragraph",
+        "text": "Avant une souscription, relisez le tarif proposé et son périmètre. Pour une activité multi-site ou un besoin particulier, faites préciser ce qui est couvert plutôt que de supposer que chaque prestation suit le même tarif."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Construire un exemple avec vos propres chiffres",
+        "id": "construire-un-exemple-avec-vos-propres-chiffres"
+      },
+      {
+        "type": "paragraph",
+        "text": "Pour la seule composante abonnement et réservations facturables, le calcul est : montant de l’abonnement plus nombre de réservations facturables multiplié par le tarif applicable à ces réservations."
+      },
+      {
+        "type": "paragraph",
+        "text": "Voici un exemple illustratif fondé sur les montants publics consultés : un abonnement Starter à 69 CHF et dix réservations honorées facturables à 5 CHF donnent 69 + 10 × 5, soit 119 CHF pour ces deux postes."
+      },
+      {
+        "type": "paragraph",
+        "text": "Cet exemple n’est pas une facture ni une prévision d’activité. Il exclut les frais des commandes, les paiements, les options et les autres prestations éventuelles. Il doit être adapté aux conditions qui s’appliquent effectivement à votre établissement."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Annulation et absence : distinguer les frais",
+        "id": "annulation-et-absence-distinguer-les-frais"
+      },
+      {
+        "type": "paragraph",
+        "text": "La [présentation restaurateur](https://www.thetok.ch/restaurateurs/geneve) indique qu’une réservation annulée ou non honorée ne déclenche pas les frais de table, tandis que l’abonnement reste dû."
+      },
+      {
+        "type": "paragraph",
+        "text": "Cette règle de facturation du service de réservation ne doit pas être confondue avec les conditions d’une commande prépayée ou d’une garantie client. Chaque parcours peut comporter ses propres modalités. Lors de votre comparaison, séparez ce que paie le restaurant à TOK et ce que les conditions de réservation prévoient pour le client."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Les questions utiles avant de choisir",
+        "id": "les-questions-utiles-avant-de-choisir"
+      },
+      {
+        "type": "list",
+        "ordered": true,
+        "items": [
+          "**Quelles réservations sont facturables dans mon offre ?** Faites préciser le périmètre et les éventuelles différences entre sources de réservation.",
+          "**Quel tarif s’applique à mon établissement ?** Appuyez-vous sur les conditions de souscription et leur récapitulatif.",
+          "**Quels outils sont inclus ?** Comparez les droits, quotas et besoins de votre équipe.",
+          "**Quels frais restent distincts ?** Regardez les commandes, les paiements et les prestations supplémentaires.",
+          "**Comment suivre les statuts ?** Vous devez pouvoir distinguer une demande, une annulation et une réservation honorée."
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "Une comparaison utile ne se limite pas au prix annoncé dans un titre. Elle rapproche des postes équivalents, avec le même périmètre de service et les mêmes hypothèses d’activité."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Notre point de vue",
+        "id": "notre-point-de-vue"
+      },
+      {
+        "type": "paragraph",
+        "text": "Le coût d’un outil doit pouvoir se lire avec les chiffres du restaurant. Chez TOK, nous souhaitons rendre compréhensibles la formule choisie et la notion de table réellement servie. Le bon échange avant le lancement consiste à préciser votre fonctionnement, les services utilisés et les conditions applicables, puis à poser chaque poste de coût séparément."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "FAQ",
+        "id": "faq"
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Une réservation de quatre personnes représente-t-elle quatre tables facturables ?",
+        "id": "une-reservation-de-quatre-personnes-represente-t-elle-quatre-tables-facturables"
+      },
+      {
+        "type": "paragraph",
+        "text": "Non. Dans le modèle présenté, elle représente un groupe servi, donc une table, et quatre couverts."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "L’abonnement inclut-il tous les frais ?",
+        "id": "labonnement-inclut-il-tous-les-frais"
+      },
+      {
+        "type": "paragraph",
+        "text": "Non. Les pages publiques distinguent l’abonnement, les réservations et les autres usages. Consultez le détail des conditions de votre offre."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Une annulation supprime-t-elle l’abonnement du mois ?",
+        "id": "une-annulation-supprime-t-elle-labonnement-du-mois"
+      },
+      {
+        "type": "paragraph",
+        "text": "Non. L’absence de frais de table pour une réservation annulée ou non honorée ne supprime pas le montant de l’abonnement."
+      },
+      {
+        "type": "heading",
+        "level": 3,
+        "text": "Une démonstration est-elle payante ?",
+        "id": "une-demonstration-est-elle-payante"
+      },
+      {
+        "type": "paragraph",
+        "text": "La page restaurateurs présente une demande de démonstration gratuite, sans déclenchement d’abonnement ou de paiement par cette seule demande."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Comparer avec votre activité",
+        "id": "comparer-avec-votre-activite"
+      },
+      {
+        "type": "paragraph",
+        "text": "Consultez les [packs restaurateurs TOK](https://www.thetok.ch/packs-restaurateur), puis [demandez une démonstration](https://www.thetok.ch/restaurateurs/geneve#demande-demo) pour examiner le périmètre et les conditions adaptés à votre établissement."
+      },
+      {
+        "type": "heading",
+        "level": 2,
+        "text": "Sources",
+        "id": "sources"
+      },
+      {
+        "type": "list",
+        "ordered": false,
+        "items": [
+          "[Abonnements et périmètres TOK](https://www.thetok.ch/packs-restaurateur), consulté le 1er novembre 2026",
+          "[Modèle de réservation présenté aux restaurateurs](https://www.thetok.ch/restaurateurs/geneve), consulté le 1er novembre 2026"
+        ]
+      }
+    ]
+  }
+]

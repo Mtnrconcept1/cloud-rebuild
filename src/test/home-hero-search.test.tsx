@@ -42,7 +42,7 @@ describe("homepage semantic search", () => {
     );
     expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
       "srcset",
-      "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+      "/images/home-mobile/communes/TOK-GE-geneve.webp",
     );
   });
 
