@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `118efcc942ca34ad95b21917d765f43ef36e3469c2e485d9a37ec390e05cf5ea`
+- Empreinte SHA-256 des sources indexées : `a0ef29d0d74fb71d1de2f90932ce9875a5ee65cf6391fb39276547cc1ed8b7af`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -2092,7 +2092,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /menu.pdf | 1 | [src/test/app-page-navigation.test.tsx:26](../../src/test/app-page-navigation.test.tsx#L26) |
 | /mes-avis | 14 | [scripts/prerender-seo.mjs:1277](../../scripts/prerender-seo.mjs#L1277) |
 | /miamz | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:206](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L206) |
-| /miamz-solidaires | 15 | [scripts/prerender-seo.mjs:575](../../scripts/prerender-seo.mjs#L575) |
+| /miamz-solidaires | 17 | [scripts/prerender-seo.mjs:575](../../scripts/prerender-seo.mjs#L575) |
 | /mon-compte-facturation | 1 | [src/test/dashboard-design-preview-export.test.tsx:68](../../src/test/dashboard-design-preview-export.test.tsx#L68) |
 | /mon-espace | 45 | [scripts/prerender-seo.mjs:1274](../../scripts/prerender-seo.mjs#L1274) |
 | /mon-espace-public | 1 | [src/test/customer-workspace-routes.test.ts:29](../../src/test/customer-workspace-routes.test.ts#L29) |
