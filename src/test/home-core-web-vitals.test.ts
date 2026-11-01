@@ -16,14 +16,14 @@ describe("TOK homepage Core Web Vitals safeguards", () => {
   expect(hero).toContain("DEFAULT_HERO_DESKTOP");
   expect(hero).toContain("/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp");
   expect(hero).toContain("DEFAULT_HERO_MOBILE");
-  expect(hero).toContain("/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp");
+  expect(hero).toContain("/images/home-mobile/communes/TOK-GE-geneve.webp");
   expect(hero).toContain('media="(max-width: 767px)"');
   expect(hero).not.toContain("/images/home/tok-leman-signature.webp");
   expect(hero).toContain("mobileImage");
   expect(hero).toContain('loading="eager"');
   expect(hero).toContain('fetchpriority: "high"');
   expect(assetSize("images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp")).toBeLessThan(300_000);
-  expect(assetSize("images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp")).toBeLessThan(260_000);
+  expect(assetSize("images/home-mobile/communes/TOK-GE-geneve.webp")).toBeLessThan(260_000);
 });
 
   it("uses a lightweight visible logo without changing the canonical app icon", () => {
