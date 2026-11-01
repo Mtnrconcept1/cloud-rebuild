@@ -104,6 +104,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "campaign-portal": "la gestion des campagnes sponsorisées",
   "generate-campaign": "la génération d’une campagne marketing",
   "ai-marketing-agent": "la rédaction par IA d’un plan de campagne marketing soumis à approbation",
+  "marketing-growth-worker": "la génération de brouillons éditoriaux TOK par IA, avec contrôle des budgets et des validations",
   "marketing-orchestrator": "l’exécution gouvernée des campagnes marketing planifiées",
   "marketing-unsubscribe": "le désabonnement en un clic demandé par un destinataire de campagne",
   "marketing-provider-webhook": "la réception sécurisée des événements des fournisseurs marketing",
