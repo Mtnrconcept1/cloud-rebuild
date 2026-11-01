@@ -53,6 +53,16 @@ jobs:
             date_to:to, fields:"site,date,clicks,impressions", _renderer:"json", _max_rows:"7"});
           const result=await readJson(url);
           const rows=Array.isArray(result) ? result : result?.data;
+          const first=Array.isArray(rows) ? rows[0] : undefined;
+          const bodyText=JSON.stringify(result).slice(0,4000).toLowerCase();
+          console.log("Response format:", Array.isArray(result) ? "array" : Object.keys(result || {}).slice(0,20).join(","),
+            "rows", Array.isArray(rows) ? rows.length : "absent",
+            "fields", Object.keys(first || {}).slice(0,20).join(","),
+            "site", first?.site === "thetok.ch" || first?.site === property ? "TOK" : typeof first?.site,
+            "date", /^[0-9T:Z+. -]{4,35}$/.test(String(first?.date)) ? first.date : typeof first?.date,
+            "clicks type", typeof first?.clicks, "impressions type", typeof first?.impressions,
+            "sample evidence", /not your real numbers|demo data|sample data|reads are paused/.test(bodyText),
+            "plan or auth notice", /free plan|upgrade|permission denied|invalid api key/.test(bodyText));
           if(!Array.isArray(rows) || !rows.length || rows.length>7 ||
              rows.some(row => !["thetok.ch",property].includes(row.site) || typeof row.date!=="string" ||
                row.date<from || row.date>to || !Number.isSafeInteger(row.clicks) || row.clicks<0 ||
