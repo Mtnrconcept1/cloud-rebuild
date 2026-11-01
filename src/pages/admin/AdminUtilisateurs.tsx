@@ -32,6 +32,8 @@ import {
 import { COURIER_APPROVAL_STATUS_META, COURIER_VEHICLE_OPTIONS } from "@/lib/courier";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import AdminUserDirectoryFilters from "@/components/admin/AdminUserDirectoryFilters";
+import { DEFAULT_USER_FILTERS, filterAdminUsers, serializeAdminCsv, collectAdminUserPages, type AdminUserFilters, type AdminDirectoryUser } from "@/lib/adminUserDirectory";
 import AdminCommercialAccountsPanel from "@/components/admin/AdminCommercialAccountsPanel";
 import AdminDemoEntitiesDialog from "@/components/admin/AdminDemoEntitiesDialog";
 import AdminRealRestaurantAssignment from "@/components/admin/AdminRealRestaurantAssignment";
@@ -52,19 +54,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const supabase = getSupabase();
 
-type AdminUserRow = {
-  user_id: string;
-  full_name: string | null;
-  email: string | null;
-  city: string | null;
-  roles: string[] | null;
-  created_at?: string | null;
-  email_confirmed_at?: string | null;
-  account_status?: string | null;
-  application_status?: string | null;
-  courier_status?: string | null;
-  anomalies?: string[] | null;
-};
+type AdminUserRow = AdminDirectoryUser;
 
 type AdminCourierRow = {
   id: string;
@@ -226,20 +216,17 @@ function SignupDocumentPreview({ document }: { document: SignupApplicationDocume
   );
 }
 
-function csvEscape(value: unknown) {
-  const text = value == null ? "" : String(value);
-  return `"${text.replace(/"/g, '""')}"`;
-}
-
 function downloadCsv(filename: string, rows: Array<Array<unknown>>) {
-  const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const blob = new Blob([serializeAdminCsv(rows)], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  // Allow the browser to start reading the Blob before releasing it.
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function UserDetailPanel({ userId, embedded = false }: { userId: string | null; embedded?: boolean }) {
@@ -404,11 +391,8 @@ export default function AdminUtilisateurs() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [accountStatusFilter, setAccountStatusFilter] = useState("all");
-  const [anomalyFilter, setAnomalyFilter] = useState("all");
-  const [createdFilter, setCreatedFilter] = useState("all");
+  const [userFilters, setUserFilters] = useState<AdminUserFilters>(DEFAULT_USER_FILTERS);
+  const [userPage, setUserPage] = useState(1);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
   const [savingCommercialProfileUserId, setSavingCommercialProfileUserId] = useState<string | null>(null);
@@ -436,9 +420,13 @@ export default function AdminUtilisateurs() {
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ["admin-users-full"],
     queryFn: async () => {
-      const { data, error: rpcError } = await supabase.rpc("admin_list_users");
-      if (rpcError) throw rpcError;
-      return ((data || []) as AdminUserRow[]).map((user) => ({
+      const result = await collectAdminUserPages<AdminUserRow>(async (offset, size) => {
+        const { data, count, error: rpcError } = await supabase.rpc("admin_list_users", {} as never, { count: "exact" })
+          .order("user_id", { ascending: true }).range(offset, offset + size - 1);
+        if (rpcError) throw rpcError;
+        return { rows: (data || []) as AdminUserRow[], count };
+      });
+      return result.map((user) => ({
         ...user,
         roles: Array.isArray(user.roles) && user.roles.length > 0 ? user.roles : ["client"],
       }));
@@ -529,33 +517,13 @@ export default function AdminUtilisateurs() {
     [users, draftRoles],
   );
 
-  const filteredUsers = useMemo(() => {
-    return usersWithDraft.filter((user) => {
-      const roles = user.effectiveRoles;
-      if (roleFilter !== "all" && !roles.includes(roleFilter)) return false;
-      if (accountStatusFilter !== "all" && (user.account_status || "active") !== accountStatusFilter) return false;
-      if (anomalyFilter !== "all" && !(user.anomalies || []).includes(anomalyFilter)) return false;
-
-      if (createdFilter !== "all") {
-        const days = Number(createdFilter);
-        const createdAt = user.created_at ? new Date(user.created_at).getTime() : 0;
-        const minCreatedAt = Date.now() - days * 24 * 60 * 60 * 1000;
-        if (!createdAt || createdAt < minCreatedAt) return false;
-      }
-
-      if (!search.trim()) return true;
-      const query = search.trim().toLowerCase();
-      return (
-        (user.full_name || "").toLowerCase().includes(query) ||
-        (user.email || "").toLowerCase().includes(query) ||
-        (user.city || "").toLowerCase().includes(query) ||
-        (user.account_status || "").toLowerCase().includes(query) ||
-        (user.application_status || "").toLowerCase().includes(query) ||
-        (user.courier_status || "").toLowerCase().includes(query) ||
-        user.user_id.toLowerCase().includes(query)
-      );
-    });
-  }, [accountStatusFilter, anomalyFilter, createdFilter, roleFilter, search, usersWithDraft]);
+  const filteredUsers = useMemo(
+    () => filterAdminUsers(usersWithDraft, userFilters),
+    [usersWithDraft, userFilters],
+  );
+  const userPageCount = Math.max(1, Math.ceil(filteredUsers.length / 25));
+  const currentUserPage = Math.min(userPage, userPageCount);
+  const visibleUsers = filteredUsers.slice((currentUserPage - 1) * 25, currentUserPage * 25);
 
   const roleCounts = useMemo(() => {
     return users.reduce((acc, user) => {
@@ -573,15 +541,6 @@ export default function AdminUtilisateurs() {
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, { active: 0, suspended: 0 } as Record<string, number>);
-  }, [users]);
-
-  const anomalyCounts = useMemo(() => {
-    return users.reduce((acc, user) => {
-      for (const anomaly of user.anomalies || []) {
-        acc[anomaly] = (acc[anomaly] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
   }, [users]);
 
   const applicationCounts = useMemo(() => {
@@ -855,17 +814,19 @@ export default function AdminUtilisateurs() {
 
   const exportUsersCsv = () => {
     downloadCsv("admin-utilisateurs.csv", [
-      ["ID", "Nom", "Email", "Ville", "Rôles", "Statut", "Email confirmé", "Anomalies", "Créé le"],
+      ["ID", "Nom", "Email", "Ville", "Rôles", "Statut", "Email confirmé", "Anomalies", "Créé le", "Statut dossier", "Statut livreur"],
       ...filteredUsers.map((user) => [
         user.user_id,
         user.full_name,
         user.email,
         user.city,
-        (user.effectiveRoles || []).map(getRoleLabel).join(" | "),
+        (user.roles || []).map(getRoleLabel).join(" | "),
         user.account_status || "active",
         user.email_confirmed_at ? "oui" : "non",
         (user.anomalies || []).map((anomaly) => ANOMALY_LABELS[anomaly] || anomaly).join(" | "),
         user.created_at,
+        user.application_status,
+        user.courier_status,
       ]),
     ]);
   };
@@ -1031,63 +992,24 @@ export default function AdminUtilisateurs() {
             </div>
           ) : null}
 
-          <div className="grid gap-3 xl:grid-cols-[1fr_auto_auto_auto_auto_auto]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                className="pl-9"
-                placeholder="Rechercher par nom, email, ville, statut ou ID..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
+          <AdminUserDirectoryFilters
+            filters={userFilters}
+            onChange={(filters) => { setUserFilters(filters); setUserPage(1); }}
+            roleCounts={roleCounts}
+            anomalyLabels={ANOMALY_LABELS}
+            resultCount={filteredUsers.length}
+            totalCount={users.length}
+          />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">Page {currentUserPage} sur {userPageCount} · 25 comptes par page</p>
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="outline" disabled={currentUserPage <= 1} onClick={() => setUserPage(currentUserPage - 1)}>Précédent</Button>
+              <Button type="button" variant="outline" disabled={currentUserPage >= userPageCount} onClick={() => setUserPage(currentUserPage + 1)}>Suivant</Button>
+              <Button type="button" variant="outline" className="gap-2" onClick={exportUsersCsv} disabled={isLoading || Boolean(error) || filteredUsers.length === 0}>
+                <Download className="h-4 w-4" />
+                Exporter {filteredUsers.length} résultat{filteredUsers.length > 1 ? "s" : ""} en CSV
+              </Button>
             </div>
-            <select
-              value={roleFilter}
-              onChange={(event) => setRoleFilter(event.target.value)}
-              className="h-10 rounded-md border bg-background px-3 text-sm"
-            >
-              <option value="all">Tous les rôles</option>
-              <option value="client">Client</option>
-              <option value="restaurateur">Restaurateur</option>
-              <option value="admin">Admin</option>
-              <option value="courier">Livreur</option>
-              <option value="commercial">Commercial</option>
-            </select>
-            <select
-              value={accountStatusFilter}
-              onChange={(event) => setAccountStatusFilter(event.target.value)}
-              className="h-10 rounded-md border bg-background px-3 text-sm"
-            >
-              <option value="all">Tous les comptes</option>
-              <option value="active">Actifs</option>
-              <option value="suspended">Suspendus</option>
-            </select>
-            <select
-              value={anomalyFilter}
-              onChange={(event) => setAnomalyFilter(event.target.value)}
-              className="h-10 rounded-md border bg-background px-3 text-sm"
-            >
-              <option value="all">Toutes anomalies</option>
-              {Object.entries(ANOMALY_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label} ({anomalyCounts[value] || 0})
-                </option>
-              ))}
-            </select>
-            <select
-              value={createdFilter}
-              onChange={(event) => setCreatedFilter(event.target.value)}
-              className="h-10 rounded-md border bg-background px-3 text-sm"
-            >
-              <option value="all">Toute date</option>
-              <option value="7">7 derniers jours</option>
-              <option value="30">30 derniers jours</option>
-              <option value="90">90 derniers jours</option>
-            </select>
-            <Button type="button" variant="outline" className="gap-2" onClick={exportUsersCsv}>
-              <Download className="h-4 w-4" />
-              CSV
-            </Button>
           </div>
 
           <div className="flex flex-col gap-3 rounded-xl border border-orange-200 bg-orange-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1116,12 +1038,13 @@ export default function AdminUtilisateurs() {
             </div>
           ) : error ? (
             <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-              Impossible de charger les utilisateurs.
+              <p>Impossible de charger la liste complète des utilisateurs. Aucun export partiel ne sera proposé.</p>
+              <Button type="button" variant="outline" className="mt-3" onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-users-full"] })}>Réessayer</Button>
             </div>
           ) : (
             <>
               <div className="space-y-3">
-                {filteredUsers.map((user) => {
+                {visibleUsers.map((user) => {
                   const baseRoles = user.roles || ["client"];
                   const effectiveRoles = user.effectiveRoles;
                   const hasChanges =

@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a0ef29d0d74fb71d1de2f90932ce9875a5ee65cf6391fb39276547cc1ed8b7af`
+- Empreinte SHA-256 des sources indexées : `b855785a27e5f0170a1b859198cb87a83725e923c5be4ab7f89ce5d6844a0542`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 241 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4306 |
+| exportedSymbols | 4315 |
 | featureFlags | 100 |
 | frontendRoutes | 143 |
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 592 |
-| modules | 1944 |
+| modules | 1948 |
 | pages | 133 |
 | pathLiterals | 959 |
 | publicAssets | 743 |
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 19971 |
-| repositoryFiles | 3878 |
+| records | 19988 |
+| repositoryFiles | 3882 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7153,18 +7153,18 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 231 |
+| application-library | 232 |
 | automation-script | 93 |
 | documentation | 6 |
 | edge-function-source | 259 |
-| frontend-component | 315 |
+| frontend-component | 316 |
 | frontend-hook | 25 |
 | frontend-page | 133 |
 | frontend-source | 36 |
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 811 |
+| test | 813 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7479,7 +7479,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (231)</summary>
+<details><summary>application-library (232)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/acquisitionAttribution.ts`
@@ -7488,6 +7488,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/admin/auditLogNarrative.ts`
 - `src/lib/adminComptaActions.ts`
 - `src/lib/adminDomains.ts`
+- `src/lib/adminUserDirectory.ts`
 - `src/lib/advisorAttachments.ts`
 - `src/lib/ai/accountingPublicCopy.ts`
 - `src/lib/ai/aiCreationJobs.ts`
@@ -8923,7 +8924,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (328)</summary>
+<details><summary>frontend-component (329)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -8985,6 +8986,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/admin/AdminRealRestaurantAssignment.tsx`
 - `src/components/admin/AdminTheForkVisibilityControl.tsx`
 - `src/components/admin/AdminUrgentActions.tsx`
+- `src/components/admin/AdminUserDirectoryFilters.tsx`
 - `src/components/admin/GoldenTokReviewPanel.tsx`
 - `src/components/admin/GuardianApprovalPanel.tsx`
 - `src/components/admin/RestaurantSearchSelect.tsx`
@@ -10545,7 +10547,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (811)</summary>
+<details><summary>test (813)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10608,6 +10610,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/admin-security-business-audit-hardening.test.ts`
 - `src/test/admin-security-center-approval.test.ts`
 - `src/test/admin-thefork-only-filter.test.ts`
+- `src/test/admin-user-directory-controls.test.tsx`
+- `src/test/admin-user-directory.test.ts`
 - `src/test/admin-user-roles.test.ts`
 - `src/test/admin-users-governance.test.ts`
 - `src/test/advisor-secure-attachments.test.ts`
