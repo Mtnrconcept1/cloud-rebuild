@@ -107,6 +107,7 @@ const Abonnement = lazy(() => import("./pages/Abonnement"));
 const GiftPoints = lazy(() => import("./pages/GiftPoints"));
 const VentesFlash = lazy(() => import("./pages/VentesFlash"));
 const Actualites = lazy(() => import("./pages/Actualites"));
+const Blog = lazy(() => import("./pages/Blog"));
 const ActualitePost = lazy(() => import("./pages/ActualitePost"));
 const TokOne = lazy(() => import("./pages/TokOne"));
 const TokPulse = lazy(() => import("./pages/TokPulse"));
@@ -358,7 +359,7 @@ export function AdminRouteFrame({
 }) {
   const backButton = (
     <div
-      className="pointer-events-none fixed"
+      className="pointer-events-none fixed md:hidden"
       data-testid="admin-mobile-back-button"
       style={adminBackButtonPortalStyle}
     >
@@ -371,7 +372,7 @@ export function AdminRouteFrame({
   );
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background pb-24 pt-[calc(env(safe-area-inset-top,0px)+3.75rem)] md:pb-0">
+    <div className="min-h-screen overflow-x-hidden bg-background pb-24 pt-[calc(env(safe-area-inset-top,0px)+3.75rem)] md:pb-0 md:pl-20 md:pt-[calc(env(safe-area-inset-top,0px)+4.25rem)]">
       {typeof document === "undefined" ? backButton : createPortal(backButton, document.body)}
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
         <ChefHelpButton surface="admin" compact className="hidden w-auto md:flex" />
@@ -720,6 +721,8 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/restaurateurs/google-business" element={<RestaurateursGoogleBusiness />} />
           <Route path="/restaurateurs/alternative-commission-couvert" element={<AlternativeCommissionCouvert />} />
           <Route path="/aide" element={<Aide />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<Blog />} />
           <Route path="/guide" element={<Navigate to="/aide" replace />} />
           <Route path="/guide/restaurateur" element={<Navigate to="/aide" replace />} />
           <Route path="/guide/plateforme" element={<Navigate to="/aide" replace />} />

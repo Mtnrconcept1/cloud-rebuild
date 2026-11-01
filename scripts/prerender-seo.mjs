@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { formatSeoReadError, loadSeoPageWithRetry } from "./seo-query-retry.mjs";
 
 import { buildRestaurantSeoModel } from "../src/lib/seo/restaurantEntity.mjs";
+import { BLOG_STYLESHEET_PATH, getBlogSeoPages } from "../src/lib/seo/blog.mjs";
 import {
   getLocalInventoryDecision,
   resolveLocalInventoryPolicy,
@@ -49,6 +50,10 @@ const MAX_NEARBY_RESTAURANT_LINKS = Math.max(0, Number(process.env.SEO_MAX_NEARB
 const ACTUALITES_PRERENDER_BATCH_SIZE = 100;
 
 const SITEMAP_GROUPS = [
+  {
+    fileName: "sitemap-blog.xml",
+    matches: (page) => page.path === "/blog" || page.path.startsWith("/blog/"),
+  },
   {
     fileName: "sitemap-restaurants.xml",
     matches: (page) => page.path.startsWith("/restaurants/") || page.path.startsWith("/restaurant/"),
@@ -508,10 +513,10 @@ const PUBLIC_SEO_PAGES = [
           items: LOCAL_CITIES.map((city) => city.label),
         },
       ],
-      links: LOCAL_CITIES.map((city) => ({
+      links: [{ href: "/blog", label: "Blog et guides TOK" }, ...LOCAL_CITIES.map((city) => ({
         href: `/restaurants/${city.slug}`,
         label: `Restaurants à ${city.label}`,
-      })),
+      }))],
     },
   },
   {
@@ -2009,7 +2014,7 @@ async function collectSeoPages() {
     (!actualitesClosedByLaunchGate || page.path !== "/actualites")
     && (!restaurantsClosedByLaunchGate || !page.path.startsWith("/restaurants"))
   ));
-  const pages = dedupePages([...visiblePublicPages, ...restaurantPages, ...enabledActualitesPages]);
+  const pages = dedupePages([...visiblePublicPages, ...getBlogSeoPages(), ...restaurantPages, ...enabledActualitesPages]);
   const minimumInventoryForLocalPage = (page) =>
     page.localPageType === "city" ? MIN_LOCAL_RESTAURANTS : MIN_SPECIALIZED_LOCAL_RESTAURANTS;
   const localInventoryDecision = (page) => getLocalInventoryDecision({
@@ -2177,6 +2182,7 @@ function renderStaticLinks(links = []) {
 }
 
 function renderStaticContent(page) {
+  if (page.path === "/blog" || page.path.startsWith("/blog/")) return page.staticHtml;
   const staticContent = page.staticContent || {
     heading: page.title,
     paragraphs: [page.description],
@@ -2226,6 +2232,9 @@ function renderPreRenderedHtml(baseHtml, page) {
   const image = page.image || DEFAULT_IMAGE;
   const imageAlt = page.imageAlt || page.title;
   let html = upsertTitle(baseHtml, page.title);
+  if (page.path === "/blog" || page.path.startsWith("/blog/")) {
+    html = html.replace(/<\/head>/i, `  <link rel="stylesheet" href="${BLOG_STYLESHEET_PATH}" />\n</head>`);
+  }
   html = upsertTag(html, /<meta\s+name="description"[^>]*>/i, `<meta name="description" content="${escapeHtml(page.description)}" />`);
   html = upsertTag(
     html,

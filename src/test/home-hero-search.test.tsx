@@ -42,7 +42,7 @@ describe("homepage semantic search", () => {
     );
     expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
       "srcset",
-      "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+      "/images/home-mobile/communes/TOK-GE-geneve.webp",
     );
   });
 
@@ -110,6 +110,7 @@ describe("homepage semantic search", () => {
     expect(screen.getByRole("heading", { level: 1 })).not.toHaveClass("sr-only");
     expect(screen.getByRole("searchbox", { name: "Restaurant ou cuisine" })).toBeVisible();
     expect(screen.getByRole("link", { name: /Restaurateur/ })).toHaveAttribute("href", "/restaurateurs/geneve");
+    expect(screen.getByRole("link", { name: /Miamz solidaires/ })).toHaveAttribute("href", "/miamz-solidaires");
   });
   it("submits a trimmed and safely encoded query through the search form", () => {
     setup();

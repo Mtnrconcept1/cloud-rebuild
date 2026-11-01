@@ -1,3 +1,5 @@
+import mobileImages from "./homeMobileImages.json";
+
 // Generated from the verified tok-world-visuals-v GitHub Release. Each entry is one native WebP.
 export const CITY_ART: Record<string, {desktop?:string;mobile?:string;country:string}> = {
   "lisbonne": {
@@ -422,6 +424,26 @@ const ISO_COUNTRY: Record<string,string> = {
 };
 
 const simplify = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g,"");
+const mobileFiles: Readonly<Record<string, string>> = mobileImages;
+const mobileAliases: Readonly<Record<string, string>> = {
+  "le-grand-saconnex": "grand-saconnex",
+  "pekin": "beijing", "moscou": "moscow", "teheran": "tehran", "alexandrie": "alexandria",
+  "bagdad": "baghdad", "kaboul": "kabul", "saint-petersbourg": "saint-petersburg",
+  "saint-domingue": "santo-domingo", "damas": "damascus", "djeddah": "jeddah",
+  "addis-abeba": "addis-ababa", "mogadiscio": "mogadishu",
+  "rangoun": "yangon", "calcutta": "kolkata", "dacca": "dhaka",
+  "madras": "chennai", "bangalore": "bengaluru", "riyad": "riyadh",
+  "ho-chi-minh-ville": "ho-chi-minh-city", "xian": "xi-an",
+};
+
+export function resolveMobileCityImage(city?: string | null) {
+  for (const term of (city || "").replace(/œ/gi, "oe").split(",").map(simplify)) {
+    const key = mobileAliases[term] || CITY_ALIASES[term] || term;
+    if (Object.prototype.hasOwnProperty.call(mobileFiles, key)) return `/images/home-mobile/${mobileFiles[key]}`;
+  }
+  return null;
+}
+
 export function resolveWorldArt(city?: string | null, country?: string | null) {
   const cityTerms = (city || "").split(",").map(simplify).filter(Boolean);
   for (const term of cityTerms) {
