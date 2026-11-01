@@ -8,6 +8,7 @@ CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS
 $$ SELECT COALESCE(NULLIF(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
 CREATE TABLE public.marketing_contacts(
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), contact_type text NOT NULL,
+ created_at timestamptz NOT NULL DEFAULT now(),
  source_objectid bigint, lead_score integer, canton text, website text,
  email_normalized text, lawful_basis text NOT NULL DEFAULT 'none',
  consent_at timestamptz, opted_out_at timestamptz, suppression_reason text,

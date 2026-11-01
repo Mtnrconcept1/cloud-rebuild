@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `1a3c7d97da1a1124d115a321c3d672dfce17d0db3dfbad610f79fbf7d9c404e9`
+- Empreinte SHA-256 des sources indexées : `0f7938490820aee34e1a1150bacc147cea0d288f6f746c24e2a20832e2908764`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,16 +37,16 @@
 | frontendRoutes | 145 |
 | integrations | 11 |
 | marketingOperations | 45 |
-| migrations | 593 |
-| modules | 1967 |
+| migrations | 594 |
+| modules | 1968 |
 | pages | 134 |
 | pathLiterals | 971 |
 | publicAssets | 901 |
 | publicEntries | 938 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 20503 |
-| repositoryFiles | 4070 |
+| records | 20509 |
+| repositoryFiles | 4073 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -3799,7 +3799,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.service_revoke_tok_connect_broker_session` (1 définition(s))
 - `public.service_revoke_tok_marketing_link` (1 définition(s))
 - `public.service_rotate_tok_connect_broker_refresh` (2 définition(s))
-- `public.service_run_marketing_growth_autopilot` (2 définition(s))
+- `public.service_run_marketing_growth_autopilot` (3 définition(s))
 - `public.service_send_marketing_in_app_delivery` (1 définition(s))
 - `public.service_start_marketing_ai_run` (1 définition(s))
 - `public.service_store_marketing_auth_challenge` (1 définition(s))
@@ -7110,6 +7110,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261031063000 Marketing Growth Autopilot | 267 | 5 | [supabase/migrations/20261031063000_marketing_growth_autopilot.sql:1](../../supabase/migrations/20261031063000_marketing_growth_autopilot.sql#L1) |
 | 20261031214500 Marketing Growth Noon Refresh | 228 | 1 | [supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql:1](../../supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql#L1) |
 | 20261101080028 Marketing Growth Engine | 257 | 17 | [supabase/migrations/20261101080028_marketing_growth_engine.sql:1](../../supabase/migrations/20261101080028_marketing_growth_engine.sql#L1) |
+| 20261101200000 Marketing Growth Kpi Epoch | 290 | 1 | [supabase/migrations/20261101200000_marketing_growth_kpi_epoch.sql:1](../../supabase/migrations/20261101200000_marketing_growth_kpi_epoch.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7343,8 +7344,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 46 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 280 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 883 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 281 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 884 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7365,7 +7366,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 822 |
+| test | 823 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7492,7 +7493,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Répartition des responsabilités — prix, disponibilité, allergènes et qualité | 3 | [docs/legal/10-responsabilites-produits.md:1](../../docs/legal/10-responsabilites-produits.md#L1) |
 | Pack contractuel TOK | 3 | [docs/legal/README.md:1](../../docs/legal/README.md#L1) |
 | Pistes de backlinks TOK sans compte existant | 6 | [docs/marketing-backlink-opportunities.md:1](../../docs/marketing-backlink-opportunities.md#L1) |
-| TOK Growth AutoPilot — qualification et conversions à partir des preuves réelles | 8 | [docs/marketing/GROWTH_AUTOPILOT.md:1](../../docs/marketing/GROWTH_AUTOPILOT.md#L1) |
+| TOK Growth AutoPilot — qualification et conversions à partir des preuves réelles | 9 | [docs/marketing/GROWTH_AUTOPILOT.md:1](../../docs/marketing/GROWTH_AUTOPILOT.md#L1) |
 | Veille Instagram Genève | 7 | [docs/marketing/INSTAGRAM_RESEARCH.md:1](../../docs/marketing/INSTAGRAM_RESEARCH.md#L1) |
 | TOK — Suivi du site via Metricool | 6 | [docs/marketing/METRICOOL_WEBSITE_TRACKING.md:1](../../docs/marketing/METRICOOL_WEBSITE_TRACKING.md#L1) |
 | TOK — Première recette commerciale restaurateurs (31 octobre 2026) | 9 | [docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md:1](../../docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md#L1) |
@@ -8074,7 +8075,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (593)</summary>
+<details><summary>database-migration (594)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8669,6 +8670,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261031063000_marketing_growth_autopilot.sql`
 - `supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql`
 - `supabase/migrations/20261101080028_marketing_growth_engine.sql`
+- `supabase/migrations/20261101200000_marketing_growth_kpi_epoch.sql`
 
 </details>
 
@@ -10881,7 +10883,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>supabase-configuration (46)</summary>
+<details><summary>supabase-configuration (47)</summary>
 
 - `supabase/.branches/_current_branch`
 - `supabase/config.toml`
@@ -10916,6 +10918,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/tests/marketing_growth_autopilot_fixture.sql`
 - `supabase/tests/marketing_growth_engine.sql`
 - `supabase/tests/marketing_growth_engine_fixture.sql`
+- `supabase/tests/marketing_growth_epoch.sql`
 - `supabase/tests/marketing_mailing_image_upload.sql`
 - `supabase/tests/marketing_mailing_recipients.sql`
 - `supabase/tests/marketing_social_image_upload.sql`
@@ -10932,7 +10935,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (822)</summary>
+<details><summary>test (823)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11331,6 +11334,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/marketing-growth-budget.test.ts`
 - `src/test/marketing-growth-content.test.ts`
 - `src/test/marketing-growth-edge.test.ts`
+- `src/test/marketing-growth-epoch.test.ts`
 - `src/test/marketing-growth-view.test.tsx`
 - `src/test/marketing-growth-worker.test.ts`
 - `src/test/marketing-image-output.test.ts`

@@ -172,3 +172,11 @@ la démonstration qu'elles ont explicitement sollicitée.
 
 Tests : `src/test/restaurant-demo-lead-funnel.test.ts`, tests page
 `RestaurateursGeneve`, contrôles Deno et construction front.
+
+## Correctif du 1er novembre 2026 (PR non déployée)
+
+La nouvelle migration `20261101200000_marketing_growth_kpi_epoch.sql` borne les KPI temporels à **2026-11-01 00:00 Europe/Zurich**, conserve ensuite la fenêtre glissante de sept jours et recalcule les agrégats postérieurs à cette date sans changer leur heure enregistrée ni les snapshots précédents. Les compteurs de conversion, de contrat, de paiements et de réservations ne doivent plus inclure d'événements antérieurs à ce point de départ.
+
+Pour garantir qu'aucun snapshot n'est créé avant 12h, la qualification quotidienne et l'enregistrement de la ligne démarrent désormais **après midi local** ; la préparation à minuit est volontairement suspendue plutôt que de supprimer son marqueur d'idempotence. Ce décalage est à prendre en compte pour la fraîcheur du CRM. La pause du module éditorial distinct `marketing_growth_sites` reste conservée car son profil n'est pas encore approuvé et aucun budget n'a été validé. Aucun effet externe ni Instagram n'est activé.
+
+Vérifications : tests Vitest ciblés, puis tests SQL sur base jetable avec `supabase/tests/marketing_growth_epoch.sql`. La production ne change qu'après la procédure habituelle de migration ; ne pas confondre une PR avec un déploiement. Retour arrière : migration compensatoire rétablissant la fonction RPC antérieure, sans supprimer de données. Aucun `main` direct.
