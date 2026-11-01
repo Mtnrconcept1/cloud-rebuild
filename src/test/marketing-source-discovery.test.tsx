@@ -28,6 +28,20 @@ describe("marketing source discovery", () => {
     expect(select).toHaveBeenCalledWith(source, "2026-10-09T10:00:00Z");
     expect(request).toHaveBeenCalledTimes(1);
   });
+  it("limits community results to distinct public threads and preserves a private draft", async () => {
+    const thread = {...source, url:"https://www.reddit.com/r/geneva/comments/abc12/restaurants/", title:"Restaurants à Genève"};
+    request.mockResolvedValue({ sources:[source,thread,{...thread,url:thread.url+"comment"}], searchedAt:"2026-11-01" });
+    render(<MarketingSourceDiscovery enabled onSelect={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("Périmètre de recherche"),{target:{value:"reddit"}});
+    fireEvent.change(screen.getByLabelText("Sources recherchées"),{target:{value:"restaurants à Genève"}});
+    fireEvent.click(screen.getByRole("button",{name:"Chercher des sources"}));
+    expect(await screen.findByRole("link",{name:thread.title})).toHaveAttribute("href",thread.url);
+    expect(screen.queryByText(source.title)).toBeNull();
+    const draft=screen.getByLabelText("Brouillon privé de réponse");
+    fireEvent.change(draft,{target:{value:"Une réponse à vérifier."}});
+    expect(draft).toHaveValue("Une réponse à vérifier.");
+    expect(request).toHaveBeenCalledTimes(1);
+  });
   it("shows provider failure and retains the query for retry", async () => {
     request.mockRejectedValue(new Error("Recherche indisponible"));
     render(<MarketingSourceDiscovery enabled onSelect={vi.fn()} />);

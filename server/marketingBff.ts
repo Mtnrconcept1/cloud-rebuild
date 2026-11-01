@@ -2323,7 +2323,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
   const config = readConfig();
   const body = parseMarketingAgentBody(req);
   const action = stringField(body, "action", 32);
-  if (!["generate", "list_runs", "discover_sources", "mailing_facets", "interpret_mailing", "upload_mailing_image", "upload_social_image", "prepare_mailing_recipients"].includes(action)) {
+  if (!["generate", "list_runs", "discover_sources", "read_backlink_page", "mailing_facets", "interpret_mailing", "upload_mailing_image", "upload_social_image", "prepare_mailing_recipients"].includes(action)) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
 
@@ -2368,6 +2368,24 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     return;
   }
 
+  if (action === "read_backlink_page") {
+    const raw = stringField(body, "source", 2048);
+    let source: URL;
+    try { source = new URL(raw); } catch { throw new PublicBffError(400, "invalid_request", "URL source invalide."); }
+    if (Object.keys(body).some(k => !["action","source"].includes(k)) || source.protocol !== "https:" || source.username || source.password || source.port || /(^|\.)thetok\.ch$/i.test(source.hostname)) {
+      throw new PublicBffError(400, "invalid_request", "Source externe HTTPS requise.");
+    }
+    const result = await serviceRpc(config, "service_execute_marketing_outreach_operation", {
+      p_sid_hash: session.sessionHash, p_csrf_hash:session.csrfHash, p_operation:"admin_list_marketing_outreach", p_args:{ p_status:"allowlisted", p_limit:100 },
+    });
+    const targets = asRecord(result).targets;
+    if (!Array.isArray(targets) || !targets.some(row => isPlainObject(row) && row.domain === source.hostname && row.status === "allowlisted" && row.robots_checked_at && row.terms_checked_at)) {
+      throw new PublicBffError(403,"backlink_source_not_allowed","Le domaine doit figurer parmi les cibles autorisées et vérifiées.");
+    }
+    await consumeRateLimit(config, req, "source-discovery", session.userId, false);
+    sendJson(res, 200, await callMarketingAgent(config, session.userId, {action, source:source.href}));
+    return;
+  }
   if (action === "discover_sources") {
     if (Object.keys(body).some((key) => !["action", "query", "limit", "withoutAccountOnly"].includes(key))) {
       throw new PublicBffError(400, "invalid_request", "Requête invalide.");

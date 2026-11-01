@@ -39,6 +39,16 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("marketing agent service boundary", () => {
+  it.each([true,false])("reads partner HTML only after a checked domain is authorized (%s)",async allowed=>{
+    const base=upstream(); const mock=vi.fn(async(input:string|URL|Request)=>{
+      if(String(input).endsWith("/rpc/service_execute_marketing_outreach_operation")) return json({targets:allowed ? [{domain:"partner.example",status:"allowlisted",robots_checked_at:"2026-10-23",terms_checked_at:"2026-10-23"}] : []});
+      return base(input);
+    });
+    vi.stubGlobal("fetch",mock);const res=recorder();
+    await marketingAgentHandler(request({action:"read_backlink_page",source:"https://partner.example/story"}),res.response);
+    expect(res.response.statusCode).toBe(allowed ? 200 : 403);
+    expect(mock.mock.calls.some(([url])=>String(url).includes("/functions/v1/"))).toBe(allowed);
+  });
   const mailingRequest = () => ({ action: "generate", objective: "Quatre e-mails pour les pizzerias", channels: ["email"],
     startsAt: new Date(Date.now() + 86400000).toISOString(), endsAt: new Date(Date.now() + 29 * 86400000).toISOString(), itemCount: 4,
     mailingOptions: { selections: { city: ["Genève"], category: ["Pizzeria"] }, emailCount: 4, cadence: "weekly" } });

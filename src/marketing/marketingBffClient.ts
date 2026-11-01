@@ -50,6 +50,7 @@ export class MarketingBffError extends Error {
 }
 
 const MARKETING_OPERATION_ERRORS: Record<string, { status: number; message: string }> = {
+  backlink_source_not_allowed: { status:403, message:"Vérifiez les conditions et les règles robots du domaine, puis autorisez la cible avant la lecture." },
   search_console_unavailable: { status: 503, message: "Aucun relevé serveur disponible. Importez le fichier Search Console privé ou réessayez après son actualisation." },
   instagram_access_required: { status: 403,
     message: "Vérifiez les autorisations Instagram. Les commentaires de publications tierces doivent être consultés dans Instagram." },
