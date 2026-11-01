@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `800cda67ee14b53e0bc2b87549a720b1e6342102140e950883d86193d4be123e`
+- Empreinte SHA-256 des sources indexées : `50c750183d0a7e80e6b7df22c30c09cc6e9c3fb2abffe16b8ef1100fb35d0df8`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 39 |
 | migrations | 592 |
-| modules | 1948 |
+| modules | 1949 |
 | pages | 133 |
 | pathLiterals | 959 |
 | publicAssets | 743 |
 | publicEntries | 778 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 20016 |
-| repositoryFiles | 3883 |
+| records | 20018 |
+| repositoryFiles | 3884 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1483,7 +1483,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /actualites/post-1 | 4 | [src/test/seo-crawl-hardening.test.ts:114](../../src/test/seo-crawl-hardening.test.ts#L114) |
 | /actualites/post-thin | 2 | [src/test/seo-crawl-hardening.test.ts:119](../../src/test/seo-crawl-hardening.test.ts#L119) |
 | /actualites?post= | 1 | [src/test/actualites-search-seo.test.ts:36](../../src/test/actualites-search-seo.test.ts#L36) |
-| /admin | 80 | [scripts/application-index-core.mjs:167](../../scripts/application-index-core.mjs#L167) |
+| /admin | 89 | [scripts/application-index-core.mjs:167](../../scripts/application-index-core.mjs#L167) |
 | /admin/ | 4 | [src/App.tsx:332](../../src/App.tsx#L332) |
 | /admin/:path* | 1 | [src/test/vercel-rewrites.test.ts:90](../../src/test/vercel-rewrites.test.ts#L90) |
 | /admin/actualites | 5 | [src/App.tsx:694](../../src/App.tsx#L694) |
@@ -1500,25 +1500,25 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/commandes-reservations?view=payments | 2 | [src/pages/admin/AdminAuditLogs.tsx:446](../../src/pages/admin/AdminAuditLogs.tsx#L446) |
 | /admin/compta | 16 | [src/App.tsx:698](../../src/App.tsx#L698) |
 | /admin/compta/ | 1 | [src/components/navigation/BackNavigationButton.tsx:17](../../src/components/navigation/BackNavigationButton.tsx#L17) |
-| /admin/compta/entrees | 8 | [src/App.tsx:700](../../src/App.tsx#L700) |
+| /admin/compta/entrees | 9 | [src/App.tsx:700](../../src/App.tsx#L700) |
 | /admin/compta/ia | 5 | [src/App.tsx:702](../../src/App.tsx#L702) |
-| /admin/compta/sorties | 8 | [src/App.tsx:701](../../src/App.tsx#L701) |
+| /admin/compta/sorties | 9 | [src/App.tsx:701](../../src/App.tsx#L701) |
 | /admin/crm | 11 | [src/App.tsx:695](../../src/App.tsx#L695) |
 | /admin/crm?external=1 | 1 | [src/test/auth-post-login-routing.test.ts:18](../../src/test/auth-post-login-routing.test.ts#L18) |
 | /admin/drops | 4 | [src/App.tsx:692](../../src/App.tsx#L692) |
 | /admin/equipe | 5 | [src/App.tsx:686](../../src/App.tsx#L686) |
 | /admin/guardian | 10 | [src/App.tsx:706](../../src/App.tsx#L706) |
-| /admin/guide | 5 | [src/App.tsx:709](../../src/App.tsx#L709) |
+| /admin/guide | 6 | [src/App.tsx:709](../../src/App.tsx#L709) |
 | /admin/loyalty | 4 | [src/App.tsx:691](../../src/App.tsx#L691) |
-| /admin/notifications | 9 | [src/App.tsx:693](../../src/App.tsx#L693) |
+| /admin/notifications | 11 | [src/App.tsx:693](../../src/App.tsx#L693) |
 | /admin/oauth/clients | 1 | [src/test/tok-connect-broker.test.ts:51](../../src/test/tok-connect-broker.test.ts#L51) |
 | /admin/packs | 4 | [src/App.tsx:697](../../src/App.tsx#L697) |
-| /admin/platform | 7 | [src/App.tsx:684](../../src/App.tsx#L684) |
+| /admin/platform | 8 | [src/App.tsx:684](../../src/App.tsx#L684) |
 | /admin/restaurants | 13 | [src/App.tsx:685](../../src/App.tsx#L685) |
 | /admin/restaurants/google-business | 7 | [src/App.tsx:687](../../src/App.tsx#L687) |
-| /admin/security-center | 8 | [src/App.tsx:707](../../src/App.tsx#L707) |
-| /admin/security-center?view=audit | 1 | [src/pages/admin/AdminHome.tsx:841](../../src/pages/admin/AdminHome.tsx#L841) |
-| /admin/security-center?view=guardian | 1 | [src/pages/admin/AdminHome.tsx:248](../../src/pages/admin/AdminHome.tsx#L248) |
+| /admin/security-center | 9 | [src/App.tsx:707](../../src/App.tsx#L707) |
+| /admin/security-center?view=audit | 1 | [src/pages/admin/AdminHome.tsx:967](../../src/pages/admin/AdminHome.tsx#L967) |
+| /admin/security-center?view=guardian | 2 | [src/components/admin/AdminMobileNavigation.tsx:117](../../src/components/admin/AdminMobileNavigation.tsx#L117) |
 | /admin/sinistres | 8 | [src/App.tsx:704](../../src/App.tsx#L704) |
 | /admin/sinistres?incident= | 2 | [src/test/notifications-sinistres-governance.test.ts:202](../../src/test/notifications-sinistres-governance.test.ts#L202) |
 | /admin/sinistres?incident=incident-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:33](../../src/test/notifications-sinistres-governance.test.ts#L33) |
@@ -1527,9 +1527,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/tok-connect | 11 | [src/App.tsx:710](../../src/App.tsx#L710) |
 | /admin/tok-printer | 5 | [src/App.tsx:699](../../src/App.tsx#L699) |
 | /admin/utilisateurs | 7 | [src/App.tsx:688](../../src/App.tsx#L688) |
-| /admin/utilisateurs?tab=applications | 3 | [src/components/admin/AdminMobileNavigation.tsx:70](../../src/components/admin/AdminMobileNavigation.tsx#L70) |
-| /admin/utilisateurs?tab=commercials | 3 | [src/components/admin/AdminMobileNavigation.tsx:69](../../src/components/admin/AdminMobileNavigation.tsx#L69) |
-| /admin/utilisateurs?tab=couriers | 3 | [src/components/admin/AdminMobileNavigation.tsx:71](../../src/components/admin/AdminMobileNavigation.tsx#L71) |
+| /admin/utilisateurs?tab=applications | 3 | [src/components/admin/AdminMobileNavigation.tsx:72](../../src/components/admin/AdminMobileNavigation.tsx#L72) |
+| /admin/utilisateurs?tab=commercials | 3 | [src/components/admin/AdminMobileNavigation.tsx:74](../../src/components/admin/AdminMobileNavigation.tsx#L74) |
+| /admin/utilisateurs?tab=couriers | 3 | [src/components/admin/AdminMobileNavigation.tsx:73](../../src/components/admin/AdminMobileNavigation.tsx#L73) |
 | /advisor | 2 | [src/lib/commercialDemoAi.ts:293](../../src/lib/commercialDemoAi.ts#L293) |
 | /aide | 16 | [scripts/prerender-seo.mjs:1137](../../scripts/prerender-seo.mjs#L1137) |
 | /aligro-catalog-sync | 1 | [src/test/supplier-catalog-sync.test.ts:82](../../src/test/supplier-catalog-sync.test.ts#L82) |
@@ -1617,7 +1617,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commandes | 45 | [scripts/prerender-seo.mjs:1271](../../scripts/prerender-seo.mjs#L1271) |
 | /commandes/facture | 1 | [src/test/customer-workspace-routes.test.ts:29](../../src/test/customer-workspace-routes.test.ts#L29) |
 | /comments | 1 | [src/test/marketing-instagram-graph.test.ts:84](../../src/test/marketing-instagram-graph.test.ts#L84) |
-| /commercial | 54 | [scripts/application-index-core.mjs:171](../../scripts/application-index-core.mjs#L171) |
+| /commercial | 55 | [scripts/application-index-core.mjs:171](../../scripts/application-index-core.mjs#L171) |
 | /commercial/ | 4 | [src/App.tsx:336](../../src/App.tsx#L336) |
 | /commercial/anything | 1 | [src/test/commercial-domain-isolation.test.ts:177](../../src/test/commercial-domain-isolation.test.ts#L177) |
 | /commercial/comptabilite | 11 | [src/App.tsx:448](../../src/App.tsx#L448) |
@@ -2118,7 +2118,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /other/../equipe/mon-espace | 1 | [src/test/workforce-auth-continuation.test.ts:33](../../src/test/workforce-auth-continuation.test.ts#L33) |
 | /packs-restaurateur | 17 | [scripts/prerender-seo.mjs:606](../../scripts/prerender-seo.mjs#L606) |
 | /panier | 55 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
-| /parametres/securite | 5 | [src/App.tsx:380](../../src/App.tsx#L380) |
+| /parametres/securite | 6 | [src/App.tsx:380](../../src/App.tsx#L380) |
 | /performances | 1 | [src/test/dashboard-design-preview-export.test.tsx:63](../../src/test/dashboard-design-preview-export.test.tsx#L63) |
 | /photos | 1 | [src/test/dashboard-design-preview-export.test.tsx:68](../../src/test/dashboard-design-preview-export.test.tsx#L68) |
 | /placeholder.svg | 2 | [public/seo-trust-runtime.js:10](../../public/seo-trust-runtime.js#L10) |
@@ -7164,7 +7164,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 813 |
+| test | 814 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -10549,7 +10549,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (813)</summary>
+<details><summary>test (814)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/ci-change-plan.test.mjs`
@@ -10588,6 +10588,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/admin-compta-governance.test.ts`
 - `src/test/admin-courier-validation.test.ts`
 - `src/test/admin-crm-theme-csp.test.ts`
+- `src/test/admin-dashboard-responsive.test.ts`
 - `src/test/admin-dashboard-rls-visibility.test.ts`
 - `src/test/admin-demo-entity-management.test.ts`
 - `src/test/admin-destructive-actions.test.ts`

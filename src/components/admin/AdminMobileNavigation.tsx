@@ -1,12 +1,15 @@
-import DashboardMenuHeader from "@/components/dashboard/DashboardMenuHeader";
+import "@/components/dashboard/DashboardMenu.css";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Bell,
   Bike,
+  BookOpen,
+  Boxes,
   Brain,
   BriefcaseBusiness,
   Calculator,
+  CalendarRange,
   ClipboardList,
   Crown,
   FileText,
@@ -14,12 +17,15 @@ import {
   LayoutDashboard,
   MapPin,
   Menu,
+  Megaphone,
   MessageSquareText,
   Network,
   Newspaper,
+  PieChart,
   Printer,
   Settings2,
   Shield,
+  ShieldCheck,
   ShieldAlert,
   Store,
   Clock3,
@@ -34,11 +40,12 @@ import ChefHelpButton from "@/components/help/ChefHelpButton";
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import SignOutButton from "@/components/auth/SignOutButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { cn } from "@/lib/utils";
+import { OPTIMIZED_TOK_LOGO_SRC } from "@/lib/tokLogo";
 
 type AdminNavItem = {
   to: string;
@@ -51,62 +58,75 @@ type AdminNavItem = {
 
 type AdminNavSection = {
   title: string;
+  icon: AdminNavItem["icon"];
   items: AdminNavItem[];
 };
 
 const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
   {
-    title: "Pilotage",
+    title: "Utilisateurs, Partenaires et équipe",
+    icon: Users,
     items: [
-      { to: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
-      { to: "/admin/commandes-reservations", label: "Commandes et reservations", icon: ClipboardList, feature: "admin-operations-center" },
-      { to: "/admin/sinistres", label: "Sinistres et chat", icon: ShieldAlert, feature: "admin-operations-center", supportIncidentBadge: true },
-      { to: "/admin/support-resolution", label: "Résolution IA", icon: Brain, feature: "admin-support-resolution" },
-      { to: "/admin/restaurants", label: "Restaurants", icon: Store, feature: "admin-restaurants" },
-      { to: "/admin/equipe", label: "TOK Équipe", icon: Clock3 },
-      { to: "/admin/restaurants/google-business", label: "Boutons Google", icon: MapPin, feature: "admin-restaurants" },
       { to: "/admin/utilisateurs", label: "Utilisateurs", icon: Users, feature: "admin-utilisateurs" },
-      { to: "/admin/utilisateurs?tab=commercials", label: "Comptes commerciaux", icon: BriefcaseBusiness, feature: "admin-utilisateurs" },
+      { to: "/admin/restaurants", label: "Restaurants", icon: Store, feature: "admin-restaurants" },
       { to: "/admin/utilisateurs?tab=applications", label: "Dossiers d'inscription", icon: FileText, feature: "admin-utilisateurs", pendingSignupBadge: true },
       { to: "/admin/utilisateurs?tab=couriers", label: "Profils livreurs", icon: Bike, feature: "admin-utilisateurs" },
+      { to: "/admin/utilisateurs?tab=commercials", label: "Comptes commerciaux", icon: BriefcaseBusiness, feature: "admin-utilisateurs" },
+      { to: "/admin/equipe", label: "TOK Équipe", icon: Clock3 },
     ],
   },
   {
-    title: "Comptabilite",
+    title: "Réservations & services",
+    icon: CalendarRange,
     items: [
-      { to: "/admin/compta", label: "Vue comptable", icon: Calculator, feature: "admin-compta" },
-      { to: "/admin/compta/entrees", label: "Entrees", icon: Calculator, feature: "admin-compta" },
-      { to: "/admin/compta/sorties", label: "Sorties", icon: Calculator, feature: "admin-compta" },
-      { to: "/admin/compta/ia", label: "IA comptable", icon: Brain, feature: "ai_accounting_insights" },
-    ],
-  },
-  {
-    title: "Impression",
-    items: [
+      { to: "/admin/commandes-reservations", label: "Commandes et réservations", icon: ClipboardList, feature: "admin-operations-center" },
+      { to: "/admin/catalog", label: "Catalogue central", icon: Layers, feature: "admin-catalog" },
+      { to: "/admin/drops", label: "La Tok d’Or", icon: UtensilsCrossed, feature: "admin-drops" },
       { to: "/admin/tok-printer", label: "TOK Printer", icon: Printer },
     ],
   },
   {
-    title: "Croissance",
+    title: "Clients & marketing",
+    icon: Megaphone,
     items: [
-      { to: "/admin/avis", label: "Avis", icon: MessageSquareText, feature: "admin-avis" },
-      { to: "/admin/catalog", label: "Catalogue central", icon: Layers, feature: "admin-catalog" },
-      { to: "/admin/loyalty", label: "Fidelite et abonnement", icon: Crown, feature: "admin-loyalty" },
-      { to: "/admin/drops", label: "La Tok d’Or", icon: UtensilsCrossed, feature: "admin-drops" },
-      { to: "/admin/notifications", label: "Notifications", icon: Bell, feature: "admin-notifications" },
-      { to: "/admin/actualites", label: "Actualites sociales", icon: Newspaper, feature: "admin-actualites" },
       { to: "/admin/crm", label: "CRM clients", icon: Users, feature: "admin-crm" },
+      { to: "/admin/loyalty", label: "Fidélité et abonnement", icon: Crown, feature: "admin-loyalty" },
+      { to: "/admin/restaurants/google-business", label: "Boutons Google Business", icon: MapPin, feature: "admin-restaurants" },
+      { to: "/admin/notifications", label: "Notifications", icon: Bell, feature: "admin-notifications" },
+      { to: "/admin/actualites", label: "Actualités sociales", icon: Newspaper, feature: "admin-actualites" },
+      { to: "/admin/avis", label: "Avis", icon: MessageSquareText, feature: "admin-avis" },
       { to: "/commercial", label: "Prospection commerciale", icon: BriefcaseBusiness, feature: "commercial-prospection" },
     ],
   },
   {
-    title: "Gouvernance",
+    title: "Finances & abonnements",
+    icon: PieChart,
+    items: [
+      { to: "/admin/compta", label: "Comptabilité", icon: Calculator, feature: "admin-compta" },
+      { to: "/admin/compta/entrees", label: "Entrées comptables", icon: Calculator, feature: "admin-compta" },
+      { to: "/admin/compta/sorties", label: "Sorties comptables", icon: Calculator, feature: "admin-compta" },
+      { to: "/admin/compta/ia", label: "IA comptable", icon: Brain, feature: "ai_accounting_insights" },
+      { to: "/admin/packs", label: "Abonnements restaurateur", icon: Crown, feature: "admin-packs" },
+    ],
+  },
+  {
+    title: "Sécurité & assistance",
+    icon: ShieldCheck,
     items: [
       { to: "/admin/security-center", label: "Centre de sécurité", icon: Shield, feature: "admin-audit" },
+      { to: "/admin/security-center?view=guardian", label: "Guardian IA", icon: ShieldAlert, feature: "admin-guardian" },
+      { to: "/admin/sinistres", label: "Sinistres et chat", icon: MessageSquareText, feature: "admin-operations-center", supportIncidentBadge: true },
+      { to: "/admin/support-resolution", label: "Résolution IA", icon: Brain, feature: "admin-support-resolution" },
+    ],
+  },
+  {
+    title: "Plateforme & outils",
+    icon: Boxes,
+    items: [
       { to: "/admin/platform", label: "Configuration plateforme", icon: Settings2, feature: "admin-platform-config" },
-      { to: "/admin/ai-operations", label: "Operations IA", icon: Brain, feature: "ai_admin_monitoring" },
-      { to: "/admin/tok-connect", label: "TOK Connect", icon: Network, feature: "tok-connect" },
-      { to: "/admin/packs", label: "Abonnements restaurateur", icon: Crown, feature: "admin-packs" },
+      { to: "/admin/ai-operations", label: "Opérations IA", icon: Brain, feature: "ai_admin_monitoring" },
+      { to: "/admin/tok-connect", label: "TOK Connect", icon: Network, feature: "admin-tok-connect" },
+      { to: "/admin/guide", label: "Guide administrateur", icon: BookOpen },
     ],
   },
 ];
@@ -313,53 +333,89 @@ export default function AdminMobileNavigation() {
     [pathname, search, sections],
   );
 
+  const settingsTarget = activeFeatures.has("admin-platform-config") ? "/admin/platform" : "/parametres/securite";
+
   return (
-    <div className="tok-admin-navigation pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex justify-end pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pl-[calc(env(safe-area-inset-left,0px)+1rem)] pr-[calc(env(safe-area-inset-right,0px)+1rem)]">
+    <>
       {pathname === "/admin/restaurants" ? (
-        <div className="pointer-events-auto mr-2 flex items-center">
+        <div className="pointer-events-auto fixed bottom-24 right-3 z-[70] md:bottom-4">
           <AdminTheForkVisibilityControl />
         </div>
       ) : null}
+
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            className={cn(
-              "pointer-events-auto h-16 rounded-[1.45rem] border border-border bg-card px-2.5 pr-5 text-foreground shadow-sm ring-1 ring-white/15 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-muted shadow-sm dark:border-border dark:bg-card shadow-sm",
-              mobileMenuOpen && "border-orange-200 bg-primary text-primary-foreground hover:bg-primary",
-            )}
-            aria-label="Ouvrir le menu admin"
-            data-testid="admin-mobile-menu-trigger"
-          >
-            <span
-              className={cn(
-                "flex h-11 w-11 items-center justify-center rounded-[1rem] bg-primary text-primary-foreground shadow-sm transition-colors",
-                mobileMenuOpen && "bg-white/15 text-current shadow-none",
-              )}
+        <aside className="fixed inset-y-0 left-0 z-[70] hidden w-20 flex-col items-center border-r border-border/70 bg-card/95 shadow-sm backdrop-blur-xl md:flex">
+          <Link to="/admin" aria-label="Accueil administration" className="flex h-[5.5rem] w-full items-center justify-center overflow-hidden border-b bg-gradient-to-br from-[#ff7a1a] to-primary">
+            <img src={OPTIMIZED_TOK_LOGO_SRC} alt="TOK" className="h-16 w-16 scale-110 object-contain" />
+          </Link>
+          <nav className="flex flex-1 flex-col items-center gap-2 py-4" aria-label="Catégories admin">
+            <Link
+              to="/admin"
+              title="Accueil"
+              aria-current={pathname === "/admin" ? "page" : undefined}
+              className={cn("flex h-11 w-11 items-center justify-center rounded-xl transition", pathname === "/admin" ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-primary/10 hover:text-primary")}
             >
+              <LayoutDashboard className="h-5 w-5" />
+            </Link>
+            {sections.map((section) => {
+              const SectionIcon = section.icon;
+              const firstItem = section.items[0];
+              const sectionActive = section.items.some((item) => isAdminNavItemActive(pathname, search, item.to));
+              return firstItem ? (
+                <Link
+                  key={section.title}
+                  to={firstItem.to}
+                  title={section.title}
+                  aria-label={section.title}
+                  className={cn("flex h-11 w-11 items-center justify-center rounded-xl transition", sectionActive ? "bg-primary/12 text-primary" : "text-muted-foreground hover:bg-primary/10 hover:text-primary")}
+                >
+                  <SectionIcon className="h-5 w-5" />
+                </Link>
+              ) : null;
+            })}
+          </nav>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="mb-4 h-11 w-11 rounded-xl border" aria-label="Ouvrir le menu admin">
               <Menu className="h-5 w-5" />
-            </span>
-            <span className="flex min-w-0 flex-col items-start leading-tight">
-              <span
-                className={cn(
-                  "text-[10px] font-semibold uppercase tracking-[0.28em] text-primary",
-                  mobileMenuOpen && "text-primary-foreground/75",
-                )}
-              >
-                Admin
+            </Button>
+          </SheetTrigger>
+        </aside>
+
+        <nav className="fixed inset-x-2 bottom-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] z-[70] grid h-[4.25rem] grid-cols-4 rounded-[1.35rem] border border-border/70 bg-card/95 px-2 shadow-[0_16px_42px_rgba(26,20,15,0.18)] backdrop-blur-xl md:hidden" aria-label="Navigation admin mobile">
+          <Link to="/admin" aria-current={pathname === "/admin" ? "page" : undefined} className={cn("flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-semibold", pathname === "/admin" ? "text-primary" : "text-muted-foreground")}>
+            <LayoutDashboard className="h-5 w-5" /><span>Accueil</span>
+          </Link>
+          <SheetTrigger asChild>
+            <button type="button" aria-label="Ouvrir les outils admin" className={cn("flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-semibold", mobileMenuOpen ? "text-primary" : "text-muted-foreground")}>
+              <Menu className="h-5 w-5" /><span>Outils</span>
+            </button>
+          </SheetTrigger>
+          {activeFeatures.has("admin-notifications") ? <Link to="/admin/notifications" className={cn("relative flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-semibold", pathname === "/admin/notifications" ? "text-primary" : "text-muted-foreground")}>
+            <span className="relative"><Bell className="h-5 w-5" />{unreadNotifications.length > 0 ? <span className="absolute -right-2 -top-2 h-2.5 w-2.5 rounded-full border-2 border-card bg-red-500" /> : null}</span><span>Alertes</span>
+          </Link> : <span aria-hidden="true" />}
+          <Link to={settingsTarget} className={cn("flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-semibold", pathname === settingsTarget ? "text-primary" : "text-muted-foreground")}>
+            <Settings2 className="h-5 w-5" /><span>Réglages</span>
+          </Link>
+        </nav>
+
+        <SheetContent side="left" className="tok-dashboard-menu tok-mobile-dashboard-menu p-0">
+          <SheetTitle className="sr-only">Menu administration TOK</SheetTitle>
+          <SheetDescription className="sr-only">Outils regroupés par catégorie et accès aux espaces TOK.</SheetDescription>
+          <header className="border-b bg-gradient-to-br from-orange-50 to-card px-6 pb-5 pt-6 dark:from-orange-950/20">
+            <div className="flex items-center gap-3 pr-12">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#ff7a1a] to-primary shadow-md">
+                <img src={OPTIMIZED_TOK_LOGO_SRC} alt="TOK" className="h-full w-full scale-110 object-contain" />
               </span>
-              <span className="max-w-[10rem] truncate text-sm font-semibold">
-                {activeNavItem?.label ?? "Ouvrir le menu"}
-              </span>
-            </span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="tok-dashboard-menu tok-mobile-dashboard-menu">
-          <DashboardMenuHeader space="Espace administration" description="Navigation des outils du back-office TOK." />
-          <div data-sheet-scroll-area className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-4">
+              <span><span className="block text-[10px] font-bold uppercase tracking-[0.24em] text-primary">Back-office TOK</span><span className="font-display text-xl font-bold">Administration</span></span>
+            </div>
+          </header>
+          <div data-sheet-scroll-area className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-5 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-4">
             <div className="mb-4">
               <RoleSpaceMenuSection onNavigate={() => setMobileMenuOpen(false)} />
             </div>
+            <Link to="/admin" className="tok-workspace-nav-link mb-3 flex min-h-11 items-center gap-3 rounded-xl bg-primary/10 px-3 py-2 text-sm font-semibold text-primary">
+              <LayoutDashboard className="h-4 w-4" /> Vue d'ensemble
+            </Link>
             <nav className="flex flex-col gap-1 pb-4">
               <AdminNavItems
                 activeTo={activeNavItem?.to}
@@ -371,15 +427,12 @@ export default function AdminMobileNavigation() {
               />
               <div className="tok-menu-footer mt-3 border-t pt-3">
                 <ChefHelpButton surface="admin" menuCard onOpen={() => setMobileMenuOpen(false)} />
-                <SignOutButton
-                  onSignedOut={() => setMobileMenuOpen(false)}
-                  className="w-full justify-start rounded-xl px-3"
-                />
+                <SignOutButton onSignedOut={() => setMobileMenuOpen(false)} className="w-full justify-start rounded-xl px-3" />
               </div>
             </nav>
           </div>
         </SheetContent>
       </Sheet>
-    </div>
+    </>
   );
 }

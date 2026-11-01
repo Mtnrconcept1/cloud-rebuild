@@ -256,7 +256,7 @@ Le retour arrière doit restaurer le routage et la version précédente du lecte
 | Partenaires backlinks | Domaines prouvés et accords réels | Vérification de contrôle, contexte, droits et URL des placements |
 | CMS | Site et credential limités au rôle de publication | Création, mise à jour, brouillon, doublon, révocation et réconciliation testés par adaptateur |
 
-La liste de parité CMS à couvrir est : WordPress, WordPress.com, Shopify, Webflow, Wix, Ghost, Framer, GoHighLevel, Duda, BigCommerce et Snapps ; lecteur/blog propriétaire, API et webhook pour les sites sur mesure. Les assistants de construction Lovable, Bolt, v0, Replit et Base44 peuvent utiliser le même contrat API/webhook : la recette doit vérifier la réception du contenu dans chaque environnement effectivement revendiqué, sans inventer une API native inexistante.
+La liste de parité CMS à couvrir est : WordPress, WordPress.com, Shopify, Webflow, Wix, Ghost, Framer, GoHighLevel, Duda, BigCommerce et Snapps ; lecteur/blog propriétaire, API et webhook pour les sites sur mesure. Les assistants de construction Bolt, v0, Replit et Base44 peuvent utiliser le même contrat API/webhook : la recette doit vérifier la réception du contenu dans chaque environnement effectivement revendiqué, sans inventer une API native inexistante.
 
 Les imports catalogue doivent couvrir saisie manuelle, CSV/XML/Excel, flux Google/Facebook, Shopify et WooCommerce en lecture seule. Un import catalogue n’accorde pas le droit de publier un article dans le même CMS. Les adaptateurs non connectés restent visibles comme indisponibles, sans bouton donnant l’illusion d’une publication opérationnelle.
 
