@@ -64,6 +64,7 @@ const allowedNames = [
   "FIREBASE_PRIVATE_KEY",
   "FIREBASE_TOKEN_URI",
   "FIRECRAWL_API_KEY",
+  "WINDSOR_API_KEY",
   "ENVIRONMENT",
   "APP_ENV",
 ];

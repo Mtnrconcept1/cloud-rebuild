@@ -460,6 +460,7 @@ jobs:
           TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
           TELEGRAM_ADMIN_USER_ID: ${{ secrets.TELEGRAM_ADMIN_USER_ID }}
           TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+          WINDSOR_API_KEY: ${{ secrets.WINDSOR_API_KEY }}
         run: node ./scripts/write-supabase-secrets-env.mjs --out=${RUNNER_TEMP}/supabase.functions.env
 
       - name: Prepare dedicated commercial demo secrets without payment-provider credentials

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MARKETING_BFF_ENDPOINTS, marketingBffRequest } from "@/marketing/marketingBffClient";
+import { communityQuery, discussionId, type CommunityChannel } from "@/marketing/growth/communityWatch";
 import type { MarketingOutreachKind } from "@/marketing/types";
 
 export type DiscoveredMarketingSource = {
@@ -19,6 +20,8 @@ export default function MarketingSourceDiscovery({ enabled, onSelect }: {
   onSelect: (source: DiscoveredMarketingSource, searchedAt: string) => void;
 }) {
   const [query, setQuery] = useState("");
+  const [channel, setChannel] = useState<CommunityChannel>("web");
+  const [drafts, setDrafts] = useState<Record<string,string>>({});
   const [withoutAccountOnly, setWithoutAccountOnly] = useState(false);
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState<DiscoveryResult | null>(null);
@@ -34,10 +37,18 @@ export default function MarketingSourceDiscovery({ enabled, onSelect }: {
     setError("");
     try {
       const data = await marketingBffRequest<DiscoveryResult>(MARKETING_BFF_ENDPOINTS.agent, {
-        body: { action: "discover_sources", query: query.trim(), limit: 5, withoutAccountOnly },
+        body: { action: "discover_sources", query: communityQuery(channel,query), limit: 5, withoutAccountOnly: channel === "web" && withoutAccountOnly },
         requireCsrf: true, timeoutMs: 70_000, signal: request.signal,
       });
-      if (!request.signal.aborted) setResult(data);
+      if (!request.signal.aborted) {
+        const seen = new Set<string>();
+        const sources = data.sources.filter(source => {
+          const id = discussionId(channel, source.url);
+          if (!id || seen.has(id)) return false;
+          seen.add(id); return true;
+        });
+        setResult({ ...data, sources });
+      }
     } catch (failure) {
       if (!request.signal.aborted) setError(failure instanceof Error ? failure.message : "La recherche est indisponible. Réessayez plus tard.");
     } finally {
@@ -50,9 +61,12 @@ export default function MarketingSourceDiscovery({ enabled, onSelect }: {
     <CardContent className="space-y-4">
       <p className="text-sm text-muted-foreground">Décrivez votre audience, votre région et le sujet. L’outil recherche des pages sur le web et propose des cibles à vérifier.</p>
       <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); void search(); }}>
+        <label className="grid gap-1 text-sm">Périmètre de recherche<select className="rounded-md border bg-background p-2" value={channel} disabled={pending || !enabled} onChange={e => { setChannel(e.target.value as CommunityChannel); setResult(null); setError(""); }}>
+          <option value="web">Sources de backlinks</option><option value="reddit">Discussions Reddit</option><option value="quora">Questions Quora</option>
+        </select></label>
         <Label htmlFor="backlink-discovery-query">Sources recherchées</Label>
         <Textarea id="backlink-discovery-query" value={query} onChange={(event) => setQuery(event.target.value)} maxLength={1000} minLength={10} required disabled={pending || !enabled} placeholder="Communautés et médias locaux sur la gastronomie à Genève, pertinents pour présenter TOK" />
-        <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={withoutAccountOnly} disabled={pending || !enabled} onChange={(event) => setWithoutAccountOnly(event.target.checked)} />Uniquement les démarches déclarées sans création de compte</label>
+        <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={channel === "web" && withoutAccountOnly} disabled={channel !== "web" || pending || !enabled} onChange={(event) => setWithoutAccountOnly(event.target.checked)} />Uniquement les démarches déclarées sans création de compte</label>
         <Button type="submit" disabled={!enabled || pending || query.trim().length < 10}>{pending ? "Recherche en cours…" : "Chercher des sources"}</Button>
       </form>
       {pending ? <p role="status" className="text-sm">Recherche et vérification des sources…</p> : null}
@@ -66,6 +80,15 @@ export default function MarketingSourceDiscovery({ enabled, onSelect }: {
           <p className="text-xs text-muted-foreground">{source.accountRequirement === "none" ? "Sans compte selon les conditions citées — à contrôler" : source.accountRequirement === "required" ? "Compte requis" : "Besoin de compte non établi"} · {source.publicationMode === "editorial_review" ? "Décision éditoriale" : source.publicationMode === "directory_review" ? "Soumission à modération" : source.publicationMode === "direct" ? "Publication directe annoncée, à vérifier" : "Mode de publication à vérifier"}</p>
           {source.accountEvidence && source.evidenceUrl ? <p className="text-xs"><q>{source.accountEvidence}</q> — <a href={source.evidenceUrl} target="_blank" rel="noopener noreferrer" className="underline">Voir les conditions citées</a></p> : null}
           {source.submissionUrl ? <a href={source.submissionUrl} target="_blank" rel="noopener noreferrer" className="block text-sm underline">Voir la démarche de soumission</a> : null}
+          {channel !== "web" && <div className="space-y-2">
+            <Label htmlFor={"draft-" + source.url}>Brouillon privé de réponse</Label>
+            <Textarea id={"draft-" + source.url} maxLength={3000} disabled={!enabled} value={drafts[source.url] ?? ""} onChange={e => setDrafts(current => ({...current,[source.url]:e.target.value}))}
+              placeholder="Répondez à la question précise, vérifiez les faits et indiquez votre lien avec TOK si vous le recommandez."/>
+            <p className="text-xs text-muted-foreground">Ce brouillon reste dans cet onglet. Copiez-le pour le conserver.</p>
+            <Button type="button" variant="outline" disabled={!drafts[source.url]?.trim()} onClick={async () => {
+              try { await navigator.clipboard.writeText(drafts[source.url]); } catch { setError("La copie est indisponible. Sélectionnez le texte du brouillon."); }
+            }}>Copier le brouillon</Button>
+          </div>}
           <Button type="button" variant="outline" disabled={!enabled} onClick={() => onSelect(source, result.searchedAt)}>Préparer cette cible</Button>
         </article>)}
       </div> : null}

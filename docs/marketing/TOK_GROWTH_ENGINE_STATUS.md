@@ -1,8 +1,22 @@
 # Moteur TOK — état réel du premier lot éditorial
 
-Date : 1er novembre 2026. Risque 3. **Implémentation partielle, non déployée. Aucun des 51 critères n’est déclaré activé.**
+Date du premier lot : 1er novembre 2026. Risque 3. Ce document distingue le périmètre historique du premier lot, les constats de production et le code préparé dans la PR suivante.
 
 La demande « mets tout en place » valide la conception de la PR #1061. Le présent lot construit le domaine éditorial indépendant, sans modifier les campagnes, les publications Meta, les routes du blog, les paiements ni la stratégie de déploiement. La PR de conception reste distincte.
+
+## Lot suivant · Search Console, blog et veille
+
+Le tableau des 51 exigences ci-dessous décrit historiquement le **premier** lot. La PR de raccordement suivant apporte les éléments suivants.
+
+| Domaine | Parcours couvert par la PR | Limite |
+| --- | --- | --- |
+| Recherche et planification | Relevé privé Search Console, période précédente, pages publiques, requêtes observées, proposition sur 30 jours et préparation d’un brief | Le calendrier propose des sujets à relire. Il ne programme pas leur publication. |
+| Publication du blog | Export de la révision approuvée et relue, pré-rendu extensible, sitemap, flux public JSON Feed paginé à `/tok-blog-feed.json` | Le blog versionné publie par la chaîne normale de PR et de déploiement. |
+| Audit technique | Lecture du HTML publié, statut, titre, méta-description, canonique, H1, directives robots, attributs alt, JSON-LD | Ce contrôle ponctuel ne mesure pas les données terrain ni les classements. |
+| Communautés et liens | Recherche de discussions publiques Reddit/Quora, dédoublonnage, préparation privée de réponses et contrôle des ancres sur domaines autorisés | Pas d’envoi à des tiers. Les redirections et les indisponibilités ne sont pas comptées comme des backlinks. |
+| Accès IA et réseau partenaire | Profil TOK proposé dans l’éditeur, approbation et limite de dépenses existantes | Les campagnes de mesure multi-modèles, les crédits partenaires et les intégrations CMS spécifiques restent à développer et recetter. |
+
+La migration du **premier** lot et son worker étaient visibles sur le projet TOK lors du contrôle du 1er novembre. Le moteur était en pause, profil non approuvé, sans plafond mensuel. Les deux suites SQL ont été exécutées sur PostgreSQL jetable. La nouvelle table de relevés privés doit suivre la procédure habituelle de livraison. Voir [le guide Search Console](SEARCH_CONSOLE_TOK.md).
 
 ## Livré dans le code
 

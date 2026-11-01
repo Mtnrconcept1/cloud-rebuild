@@ -1,3 +1,5 @@
+import { isBlogPath, readTokBlogHtml } from "./marketingBlogAudit.js";
+import { parseSearchSnapshot } from "../supabase/functions/_shared/marketing-growth/search-console.js";
 import { MARKETING_GROWTH_OPERATION_NAMES, parseGrowthArgs } from "../supabase/functions/_shared/marketing-growth/operations.js";
 import { MetaPublishError, validateMetaMediaContent } from "../supabase/functions/_shared/meta-publishing.js";
 import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../supabase/functions/_shared/marketing-campaign-request.js";
@@ -134,6 +136,8 @@ const MARKETING_OPERATION_ALLOWLIST = new Set<string>([
   ...MARKETING_OUTREACH_OPERATION_NAMES,
   ...MARKETING_AUTOPILOT_OPERATION_NAMES,
   ...MARKETING_DAILY_OPERATION_NAMES,
+  "admin_audit_tok_blog",
+  "admin_read_tok_search_console",
   ...MARKETING_GROWTH_OPERATION_NAMES,
 ]);
 
@@ -1738,6 +1742,34 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
   }
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
+  if (operation === "admin_audit_tok_blog") {
+    if (Object.keys(args).length !== 1 || !isBlogPath(args.path)) throw new PublicBffError(400, "invalid_request", "Chemin du blog invalide.");
+    try { sendJson(res, 200, await readTokBlogHtml(args.path)); }
+    catch { throw new PublicBffError(502, "blog_audit_unavailable", "Le HTML public ne peut pas être vérifié."); }
+    return;
+  }
+  if (operation === "admin_read_tok_search_console") {
+    if (Object.keys(args).length) throw new PublicBffError(400, "invalid_request", "Aucun paramètre attendu.");
+    let accountLimit = false;
+    try {
+      const report = await callMarketingAgent(config, session.userId, {action:"read_search_console"});
+      accountLimit = report.status === "windsor_account_limit";
+      if (report.property === "sc-domain:thetok.ch" && Array.isArray(report.opportunities)) {
+        sendJson(res, 200, { ...report, source:"windsor" });
+        return;
+      }
+    } catch { /* The stored report remains available if the Edge or Windsor is unavailable. */ }
+    try {
+      const saved = await serviceRestRequest(config, "/marketing_search_console_report?select=snapshot&property=eq.sc-domain%3Athetok.ch&limit=1");
+      if (Array.isArray(saved) && saved.length === 1) {
+        const report = parseSearchSnapshot(asRecord(saved[0]).snapshot);
+        sendJson(res, 200, { ...report, source: "stored", ...(accountLimit ? {liveStatus:"windsor_account_limit"} : {}) });
+        return;
+      }
+    } catch { /* Missing migration and invalid snapshots never produce synthetic metrics. */ }
+    if (accountLimit) throw new PublicBffError(503, "windsor_account_limit", "Le forfait Windsor bloque la lecture de ce compte.");
+    throw new PublicBffError(503, "search_console_unavailable", "Aucun relevé serveur disponible. Vous pouvez importer un relevé privé.");
+  }
   await checkMarketingApprovalMedia(config, operation, args);
   try {
     const serviceOperation = (MARKETING_GROWTH_OPERATION_NAMES as readonly string[]).includes(operation)
@@ -2292,7 +2324,7 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
   const config = readConfig();
   const body = parseMarketingAgentBody(req);
   const action = stringField(body, "action", 32);
-  if (!["generate", "list_runs", "discover_sources", "mailing_facets", "interpret_mailing", "upload_mailing_image", "upload_social_image", "prepare_mailing_recipients"].includes(action)) {
+  if (!["generate", "list_runs", "discover_sources", "read_backlink_page", "mailing_facets", "interpret_mailing", "upload_mailing_image", "upload_social_image", "prepare_mailing_recipients"].includes(action)) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
   }
 
@@ -2337,6 +2369,24 @@ async function runMarketingAgent(req: MarketingApiRequest, res: MarketingApiResp
     return;
   }
 
+  if (action === "read_backlink_page") {
+    const raw = stringField(body, "source", 2048);
+    let source: URL;
+    try { source = new URL(raw); } catch { throw new PublicBffError(400, "invalid_request", "URL source invalide."); }
+    if (Object.keys(body).some(k => !["action","source"].includes(k)) || source.protocol !== "https:" || source.username || source.password || source.port || /(^|\.)thetok\.ch$/i.test(source.hostname)) {
+      throw new PublicBffError(400, "invalid_request", "Source externe HTTPS requise.");
+    }
+    const result = await serviceRpc(config, "service_execute_marketing_outreach_operation", {
+      p_sid_hash: session.sessionHash, p_csrf_hash:session.csrfHash, p_operation:"admin_list_marketing_outreach", p_args:{ p_status:"allowlisted", p_limit:100 },
+    });
+    const targets = asRecord(result).targets;
+    if (!Array.isArray(targets) || !targets.some(row => isPlainObject(row) && row.domain === source.hostname && row.status === "allowlisted" && row.robots_checked_at && row.terms_checked_at)) {
+      throw new PublicBffError(403,"backlink_source_not_allowed","Le domaine doit figurer parmi les cibles autorisées et vérifiées.");
+    }
+    await consumeRateLimit(config, req, "source-discovery", session.userId, false);
+    sendJson(res, 200, await callMarketingAgent(config, session.userId, {action, source:source.href}));
+    return;
+  }
   if (action === "discover_sources") {
     if (Object.keys(body).some((key) => !["action", "query", "limit", "withoutAccountOnly"].includes(key))) {
       throw new PublicBffError(400, "invalid_request", "Requête invalide.");

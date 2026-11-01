@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import MarketingBacklinkCheck from "@/components/marketing/MarketingBacklinkCheck";
 import MarketingSourceDiscovery from "@/components/marketing/MarketingSourceDiscovery";
 import {
   BookOpen,
@@ -557,10 +558,11 @@ export default function MarketingOutreachView({
         <CardContent className="space-y-4">
           {backlinkFormOpen ? (
             <div className="grid gap-3 rounded-2xl border bg-muted/20 p-4 md:grid-cols-2">
-              <div><Label htmlFor="outreach-backlink-source">URL source</Label><Input id="outreach-backlink-source" className="mt-2" value={backlinkForm.sourceUrl} onChange={(event) => setBacklinkForm((current) => ({ ...current, sourceUrl: event.target.value }))} placeholder="https://example.org/article" maxLength={2048} /></div>
-              <div><Label htmlFor="outreach-backlink-target">URL TheTOK</Label><Input id="outreach-backlink-target" className="mt-2" value={backlinkForm.targetUrl} onChange={(event) => setBacklinkForm((current) => ({ ...current, targetUrl: event.target.value }))} placeholder="https://www.thetok.ch/restaurants" maxLength={2048} /></div>
+              <div><Label htmlFor="outreach-backlink-source">URL source</Label><Input id="outreach-backlink-source" className="mt-2" value={backlinkForm.sourceUrl} onChange={(event) => setBacklinkForm((current) => ({ ...current, sourceUrl: event.target.value, ...(current.status === "verified" ? {status:"prospect", verificationNote:""} : {}) }))} placeholder="https://example.org/article" maxLength={2048} /></div>
+              <div><Label htmlFor="outreach-backlink-target">URL TheTOK</Label><Input id="outreach-backlink-target" className="mt-2" value={backlinkForm.targetUrl} onChange={(event) => setBacklinkForm((current) => ({ ...current, targetUrl: event.target.value, ...(current.status === "verified" ? {status:"prospect", verificationNote:""} : {}) }))} placeholder="https://www.thetok.ch/restaurants" maxLength={2048} /></div>
               <div><Label htmlFor="outreach-backlink-rel">Attribut rel</Label><Select value={backlinkForm.rel} onValueChange={(rel) => setBacklinkForm((current) => ({ ...current, rel: rel as MarketingBacklinkRel }))}><SelectTrigger id="outreach-backlink-rel" className="mt-2"><SelectValue /></SelectTrigger><SelectContent>{(["nofollow", "sponsored", "ugc", "follow"] as const).map((rel) => <SelectItem key={rel} value={rel}>{rel}</SelectItem>)}</SelectContent></Select></div>
               <div><Label htmlFor="outreach-backlink-status">État</Label><Select value={backlinkForm.status} onValueChange={(status) => setBacklinkForm((current) => ({ ...current, status: status as MarketingBacklinkStatus }))}><SelectTrigger id="outreach-backlink-status" className="mt-2"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(BACKLINK_STATUS_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
+              <MarketingBacklinkCheck key={backlinkForm.sourceUrl + "|" + backlinkForm.targetUrl} source={backlinkForm.sourceUrl} target={backlinkForm.targetUrl} disabled={!canMutateBackend || Boolean(pending)} onEvidence={(rel,note) => setBacklinkForm(current => current.sourceUrl === backlinkForm.sourceUrl && current.targetUrl === backlinkForm.targetUrl ? {...current,rel,status:"verified",verificationNote:note} : current)}/>
               <div className="md:col-span-2"><Label htmlFor="outreach-backlink-note">Preuve / note de vérification</Label><Textarea id="outreach-backlink-note" className="mt-2" value={backlinkForm.verificationNote} onChange={(event) => setBacklinkForm((current) => ({ ...current, verificationNote: event.target.value }))} placeholder="Date, emplacement public, rel observé, capture interne…" maxLength={2000} /></div>
               <div className="flex gap-2 md:col-span-2"><Button type="button" disabled={!canMutateBackend || pending === "save-backlink"} onClick={saveBacklink}>Enregistrer la preuve</Button><Button type="button" variant="ghost" onClick={() => setBacklinkFormOpen(false)}>Annuler</Button></div>
             </div>

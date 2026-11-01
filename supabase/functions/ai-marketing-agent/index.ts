@@ -26,12 +26,15 @@ import {
   type MarketingPostFormat,
 } from "../_shared/marketing-ai.ts";
 
+import { readSearchConsole, WindsorAccountLimit } from "../_shared/marketing-growth/windsor.ts";
+import { readBacklinkPage } from "../_shared/marketing-backlink-page.ts";
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_VISUALS = 6;
 const MIN_ITEMS = 1;
 const MAX_ITEMS = 12;
 
-type Action = "generate" | "list_runs" | "discover_sources" | "interpret_mailing";
+type Action = "generate" | "list_runs" | "discover_sources" | "read_search_console" | "read_backlink_page" | "interpret_mailing";
 
 /**
  * Mirrors the orchestrator: a service-role request may carry the human actor so
@@ -70,7 +73,7 @@ async function attachDelegatedAdminIdentity(
 
 function parseAction(value: unknown): Action {
   const action = typeof value === "string" ? value.trim() : "";
-  if (action === "generate" || action === "list_runs" || action === "discover_sources" || action === "interpret_mailing") return action;
+  if (action === "generate" || action === "list_runs" || action === "discover_sources" || action === "read_search_console" || action === "read_backlink_page" || action === "interpret_mailing") return action;
   throw new HttpError(400, "invalid_action");
 }
 
@@ -170,6 +173,26 @@ Deno.serve(async (req) => {
       const { data, error } = await client.rpc("service_list_marketing_ai_runs", { p_limit: 20 });
       if (error) throw new HttpError(503, "runs_unavailable");
       return jsonResponse({ ok: true, ...asRecord(data) }, 200, corsHeaders);
+    }
+
+    if (action === "read_search_console") {
+      if (actor.authMode !== "service_role" || !req.headers.get("x-marketing-actor-user-id")) throw new HttpError(403,"delegated_service_required");
+      if (Object.keys(payload).some(key => key !== "action")) throw new HttpError(400,"invalid_request");
+      const key = Deno.env.get("WINDSOR_API_KEY")?.trim();
+      if (!key) throw new HttpError(503,"windsor_unconfigured");
+      try {
+        const report = await readSearchConsole(key);
+        return jsonResponse(report, 200, corsHeaders);
+      } catch (error) {
+        if (error instanceof WindsorAccountLimit) return jsonResponse({status:"windsor_account_limit"},200,corsHeaders);
+        throw new HttpError(503,"windsor_unavailable");
+      }
+    }
+    if (action === "read_backlink_page") {
+      if (actor.authMode !== "service_role" || !req.headers.get("x-marketing-actor-user-id")) throw new HttpError(403, "delegated_service_required");
+      const page = await readBacklinkPage(payload.source);
+      await writeAuditLog({ adminClient:client, actor, request:req, functionName:"ai-marketing-agent", action, status:"success", metadata:{ host:new URL(page.source).hostname } });
+      return jsonResponse(page, 200, corsHeaders);
     }
 
     if (!OPENAI_API_KEY) throw new HttpError(503, "ai_service_unavailable");

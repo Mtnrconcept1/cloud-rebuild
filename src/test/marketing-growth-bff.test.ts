@@ -21,6 +21,55 @@ function upstream(admin = true, failure = false) {
 beforeEach(() => { vi.stubEnv("SUPABASE_URL", "https://project.supabase.co"); vi.stubEnv("SUPABASE_PUBLISHABLE_KEY", "publishable-key-longer-than-twenty"); vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "sb_secret_" + "x".repeat(32)); });
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 describe("growth BFF", () => {
+    it("rejects the Search Console read before contacting Windsor when the role is revoked", async () => {
+        const mock = upstream(false);
+        vi.stubGlobal("fetch", mock);
+        const r = recorder();
+        await marketingRpcHandler(req("admin_read_tok_search_console", {}), r.response);
+        expect(r.response.statusCode).toBeGreaterThanOrEqual(400);
+        expect(mock.mock.calls.some(([url]) => String(url).includes("/user_roles?"))).toBe(true);
+        expect(mock.mock.calls.some(([url]) => String(url).includes("windsor.ai"))).toBe(false);
+    });
+    it("serves the private stored period after admin authentication if the key is missing", async () => {
+        vi.stubEnv("WINDSOR_API_KEY", "");
+        const base = upstream();
+        vi.stubGlobal("fetch", (url: string, init: RequestInit) => String(url).includes("/marketing_search_console_report?")
+          ? json([{ snapshot: { property: "sc-domain:thetok.ch", from: "2026-10-23", to: "2026-10-29",
+            daily: [{ site: "thetok.ch", date: "2026-10-25", clicks: 3, impressions: 40 }], queries: [] } }]) : base(url, init));
+        const r = recorder();
+        await marketingRpcHandler(req("admin_read_tok_search_console", {}), r.response);
+        expect(r.response.statusCode).toBe(200);
+        expect(r.value()).toMatchObject({ source: "stored", observedDays: 1, totals: { clicks: 3, impressions: 40 } });
+    });
+    it("uses the Supabase Edge with the delegated actor and does not require a Vercel Windsor key", async () => {
+        vi.stubEnv("WINDSOR_API_KEY","");
+        const base=upstream();
+        const mock=vi.fn(async(input:string|URL|Request,init?:RequestInit)=>{
+          if(String(input).endsWith("/functions/v1/ai-marketing-agent")){
+            expect(JSON.parse(String(init?.body))).toEqual({action:"read_search_console"});
+            expect(new Headers(init?.headers).get("x-marketing-actor-user-id")).toBe(actor);
+            return json({property:"sc-domain:thetok.ch",opportunities:[],observedDays:7,totals:{clicks:31,impressions:5032}});
+          }
+          return base(input,init);
+        });
+        vi.stubGlobal("fetch",mock);const r=recorder();
+        await marketingRpcHandler(req("admin_read_tok_search_console",{}),r.response);
+        expect(r.response.statusCode).toBe(200);expect(r.value().source).toBe("windsor");
+    });
+    it("reports a provider account limit explicitly when no stored report is present",async()=>{
+        const base=upstream();
+        vi.stubGlobal("fetch",(input:string,init?:RequestInit)=>input.endsWith("/functions/v1/ai-marketing-agent")
+          ? json({status:"windsor_account_limit"}) : input.includes("/marketing_search_console_report?") ? json([]) : base(input,init));
+        const r=recorder(); await marketingRpcHandler(req("admin_read_tok_search_console",{}),r.response);
+        expect(r.response.statusCode).toBe(503); expect(r.value().error.code).toBe("windsor_account_limit");
+    });
+    it("reports an unavailable live source without fabricating metrics", async () => {
+        vi.stubEnv("WINDSOR_API_KEY", "");
+        vi.stubGlobal("fetch", upstream());
+        const r = recorder();
+        await marketingRpcHandler(req("admin_read_tok_search_console", {}), r.response);
+        expect(r.response.statusCode).toBe(503);
+    });
     it("routes the fixed TOK operation through MFA/CSRF proof and revalidated admin", async () => {
         const mock = upstream();
         vi.stubGlobal("fetch", mock);

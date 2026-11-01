@@ -97,7 +97,7 @@ function articleSchema(article) {
   return {
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "BlogPosting", "@id": `${url}#article`, image: article.coverAlt ? ORIGIN + coverPath(article) : IMAGE, headline: article.title, description: article.description, mainEntityOfPage: url, url, inLanguage: "fr-CH", datePublished: article.publishedAt, dateModified: article.modifiedAt, wordCount: article.wordCount, articleSection: article.category, isPartOf: { "@id": `${ORIGIN}/blog#blog` }, author: { "@type": "Organization", name: "Rédaction TOK", url: `${ORIGIN}/a-propos` }, publisher: { "@type": "Organization", name: "TOK", url: ORIGIN, logo: { "@type": "ImageObject", url: `${ORIGIN}/logotok.png` } } },
+      { "@type": "BlogPosting", "@id": `${url}#article`, ...(article.coverAlt ? { image: ORIGIN + coverPath(article) } : {}), headline: article.title, description: article.description, mainEntityOfPage: url, url, inLanguage: "fr-CH", datePublished: article.publishedAt, dateModified: article.modifiedAt, wordCount: article.wordCount, articleSection: article.category, isPartOf: { "@id": `${ORIGIN}/blog#blog` }, author: { "@type": "Organization", name: "Rédaction TOK", url: `${ORIGIN}/a-propos` }, publisher: { "@type": "Organization", name: "TOK", url: ORIGIN, logo: { "@type": "ImageObject", url: `${ORIGIN}/logotok.png` } } },
       { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Accueil", item: ORIGIN }, { "@type": "ListItem", position: 2, name: "Blog TOK", item: `${ORIGIN}/blog` }, { "@type": "ListItem", position: 3, name: article.title, item: url }] },
     ],
   };
@@ -107,7 +107,7 @@ let cachedPages;
 export function getBlogSeoPages() {
   if (cachedPages) return cachedPages;
   cachedPages = [
-    { path: "/blog", title: BLOG_TITLE, description: BLOG_DESCRIPTION, image: IMAGE, modifiedAt: "2026-11-01", staticHtml: renderIndex(), jsonLd: { "@context": "https://schema.org", "@type": "Blog", "@id": `${ORIGIN}/blog#blog`, name: "Le blog TOK", url: `${ORIGIN}/blog`, inLanguage: "fr-CH", description: BLOG_DESCRIPTION, blogPost: articles.map((article) => ({ "@id": `${ORIGIN}/blog/${article.slug}#article` })) } },
+    { path: "/blog", title: BLOG_TITLE, description: BLOG_DESCRIPTION, image: IMAGE, modifiedAt: articles.reduce((latest, article) => article.modifiedAt > latest ? article.modifiedAt : latest, articles[0].modifiedAt), staticHtml: renderIndex(), jsonLd: { "@context": "https://schema.org", "@type": "Blog", "@id": `${ORIGIN}/blog#blog`, name: "Le blog TOK", url: `${ORIGIN}/blog`, inLanguage: "fr-CH", description: BLOG_DESCRIPTION, blogPost: articles.map((article) => ({ "@id": `${ORIGIN}/blog/${article.slug}#article` })) } },
     ...articles.map((article) => ({ path: `/blog/${article.slug}`, title: article.title, description: article.description, image: article.coverAlt ? ORIGIN + coverPath(article) : IMAGE, ogType: "article", publishedAt: article.publishedAt, modifiedAt: article.modifiedAt, staticHtml: renderArticle(article), jsonLd: articleSchema(article) })),
   ];
   for (const page of cachedPages) page.lastmod = page.modifiedAt;
