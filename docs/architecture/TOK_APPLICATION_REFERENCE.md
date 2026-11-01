@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `e5a422f295f5ef5ec7c99331867eda4f5ca8641deaadf04d937387317fa5b2c0`
+- Empreinte SHA-256 des sources indexées : `5d1cff147c02d87c98080a1f5f8254a6c7ca806720cdecae869f552b6e062122`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,7 +29,7 @@
 | cronJobs | 37 |
 | databaseContract | 231 |
 | databaseObjects | 3170 |
-| documents | 243 |
+| documents | 244 |
 | edgeFunctions | 125 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 4330 |
@@ -45,8 +45,8 @@
 | publicEntries | 926 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 20336 |
-| repositoryFiles | 4039 |
+| records | 20364 |
+| repositoryFiles | 4040 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7550,6 +7550,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Parcours d'inscription — durcissement (client, restaurateur, livreur) | 24 | [docs/superpowers/specs/2026-05-30-parcours-inscription-design.md:1](../../docs/superpowers/specs/2026-05-30-parcours-inscription-design.md#L1) |
 | Marketing Studio Output Geometry Design | 15 | [docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md:1](../../docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md#L1) |
 | Conception — pièces jointes sécurisées pour l’assistant TOK | 12 | [docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md:1](../../docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md#L1) |
+| Moteur de croissance TOK — conception proposée et audit de parité | 26 | [docs/superpowers/specs/2026-11-01-tok-growth-engine-design.md:1](../../docs/superpowers/specs/2026-11-01-tok-growth-engine-design.md#L1) |
 | Actualités — identité des événements facturables | 5 | [docs/testing/actualites-billing-identity.md:1](../../docs/testing/actualites-billing-identity.md#L1) |
 | Scénario Actualités sponsorisées | 5 | [docs/testing/actualites-sponsored-scenario.md:1](../../docs/testing/actualites-sponsored-scenario.md#L1) |
 | Télémétrie navigateur et consentement | 5 | [docs/testing/browser-monitoring-consent.md:1](../../docs/testing/browser-monitoring-consent.md#L1) |
@@ -8628,7 +8629,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (194)</summary>
+<details><summary>documentation (195)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8808,6 +8809,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/superpowers/specs/2026-05-30-parcours-inscription-design.md`
 - `docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md`
 - `docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md`
+- `docs/superpowers/specs/2026-11-01-tok-growth-engine-design.md`
 - `docs/testing/actualites-billing-identity.md`
 - `docs/testing/actualites-sponsored-scenario.md`
 - `docs/testing/browser-monitoring-consent.md`
