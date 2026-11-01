@@ -1,3 +1,4 @@
+import { MARKETING_GROWTH_OPERATION_NAMES, parseGrowthArgs } from "../supabase/functions/_shared/marketing-growth/operations.js";
 import { MetaPublishError, validateMetaMediaContent } from "../supabase/functions/_shared/meta-publishing.js";
 import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../supabase/functions/_shared/marketing-campaign-request.js";
 import { CAMPAIGN_TEMPLATE_LABELS } from "../supabase/functions/_shared/marketing-campaign-templates.js";
@@ -133,6 +134,7 @@ const MARKETING_OPERATION_ALLOWLIST = new Set<string>([
   ...MARKETING_OUTREACH_OPERATION_NAMES,
   ...MARKETING_AUTOPILOT_OPERATION_NAMES,
   ...MARKETING_DAILY_OPERATION_NAMES,
+  ...MARKETING_GROWTH_OPERATION_NAMES,
 ]);
 
 type HeaderValue = string | string[] | undefined;
@@ -1669,6 +1671,8 @@ function marketingOperationError(value: unknown): PublicBffError | null {
     case "40001:Outreach target was modified by another administrator":
     case "40001:Backlink was modified by another administrator":
     case "40001:Daily series was modified by another administrator":
+    case "40001:Growth configuration conflict":
+    case "40001:Growth article conflict":
       return new PublicBffError(409, "marketing_edit_conflict",
         "Cet élément a été modifié depuis son ouverture. Actualisez les données avant de réessayer.");
     case "55000:Daily generation runtime is disabled":
@@ -1709,9 +1713,14 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
   if (!MARKETING_OPERATION_ALLOWLIST.has(operation)) {
     throw new PublicBffError(400, "operation_rejected", "Opération refusée.");
   }
-  const args = body.args === undefined ? {} : body.args;
+  let args = body.args === undefined ? {} : body.args;
   if (!isPlainObject(args) || Object.keys(body).some((key) => !["operation", "args"].includes(key))) {
     throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+  }
+  if ((MARKETING_GROWTH_OPERATION_NAMES as readonly string[]).includes(operation)) {
+    try { args = parseGrowthArgs(operation, args); } catch {
+      throw new PublicBffError(400, "invalid_request", "Requête invalide.");
+    }
   }
   if (MARKETING_DAILY_OPERATION_NAMES.includes(operation as MarketingDailyOperation)) {
     const payload = args.p_payload;
@@ -1731,7 +1740,9 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
   await ensureServiceAdmin(config, session.userId);
   await checkMarketingApprovalMedia(config, operation, args);
   try {
-    const serviceOperation = MARKETING_OUTREACH_OPERATION_NAMES.includes(
+    const serviceOperation = (MARKETING_GROWTH_OPERATION_NAMES as readonly string[]).includes(operation)
+      ? "service_marketing_growth_operation"
+      : MARKETING_OUTREACH_OPERATION_NAMES.includes(
       operation as MarketingOutreachOperation,
     )
       ? "service_execute_marketing_outreach_operation"

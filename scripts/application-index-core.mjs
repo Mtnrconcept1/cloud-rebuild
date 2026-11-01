@@ -756,15 +756,18 @@ function parseNamedStringArrays(sourceFile, names) {
 }
 
 function parseMarketingOperations(root, digestSources) {
-  const relativePath = "server/marketingBff.ts";
-  const source = readUtf8(root, relativePath, digestSources);
-  const sourceFile = ts.createSourceFile(relativePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  return parseNamedStringArrays(sourceFile, new Set([
+  const groups = new Set([
     "MARKETING_OPERATION_NAMES",
     "MARKETING_OUTREACH_OPERATION_NAMES",
     "MARKETING_AUTOPILOT_OPERATION_NAMES",
     "MARKETING_DAILY_OPERATION_NAMES",
-  ])).map((item) => ({ ...item, path: relativePath }));
+    "MARKETING_GROWTH_OPERATION_NAMES",
+  ]);
+  return ["server/marketingBff.ts", "supabase/functions/_shared/marketing-growth/operations.ts"].flatMap((relativePath) => {
+    const source = readUtf8(root, relativePath, digestSources);
+    const sourceFile = ts.createSourceFile(relativePath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+    return parseNamedStringArrays(sourceFile, groups).map((item) => ({ ...item, path: relativePath }));
+  });
 }
 
 function parsePublicRoutes(repositoryFiles) {
