@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
+  ArrowUpRight,
   Bell,
   BookOpen,
   Bike,
@@ -31,12 +32,18 @@ import {
   CheckCircle2,
   CircleAlert,
   Info,
+  Search,
+  ChevronRight,
+  Megaphone,
+  PieChart,
+  ShieldCheck,
+  Boxes,
+  CalendarRange,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -46,6 +53,8 @@ import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures, useFeatureFlags } from "@/lib/featureFlags";
 import { Switch } from "@/components/ui/switch";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { OPTIMIZED_TOK_LOGO_SRC } from "@/lib/tokLogo";
 import {
   MARKETPLACE_LIQUIDITY_BLOCKERS,
   MarketplaceLiquidityBlocker,
@@ -91,7 +100,7 @@ const ADMIN_TOOLS = [
     color: "text-orange-500",
   },
   {
-    title: "Comptabilite",
+    title: "Comptabilité",
     description: "Gérer les reversements et les parts TOK.",
     icon: Calculator,
     href: "/admin/compta",
@@ -226,7 +235,7 @@ const ADMIN_TOOLS = [
     color: "text-amber-500",
   },
   {
-    title: "Operations IA",
+    title: "Opérations IA",
     description: "Surveiller sécurité, coûts, performance et incidents IA.",
     icon: Brain,
     href: "/admin/ai-operations",
@@ -266,6 +275,57 @@ const ADMIN_TOOLS = [
     color: "text-violet-500",
   },
 ];
+
+const ADMIN_CATEGORY_SPECS = [
+  {
+    id: "people",
+    title: "Utilisateurs, Partenaires et équipe",
+    shortTitle: "Utilisateurs & équipe",
+    description: "Comptes, partenaires et collaborateurs TOK.",
+    icon: Users,
+    toolTitles: ["Utilisateurs", "Restaurants", "Dossiers d'inscription", "Profils livreurs", "Comptes commerciaux", "TOK Équipe"],
+  },
+  {
+    id: "services",
+    title: "Réservations & services",
+    shortTitle: "Réservations & services",
+    description: "Commandes, catalogue et services opérationnels.",
+    icon: CalendarRange,
+    toolTitles: ["Commandes et réservations", "Catalogue central", "La Tok d’Or", "TOK Printer"],
+  },
+  {
+    id: "marketing",
+    title: "Clients & marketing",
+    shortTitle: "Clients & marketing",
+    description: "Relation client, fidélisation et communication.",
+    icon: Megaphone,
+    toolTitles: ["CRM clients", "Fidélité et abonnement", "Boutons Google Business", "Notifications", "Actualités sociales", "Avis"],
+  },
+  {
+    id: "finance",
+    title: "Finances & abonnements",
+    shortTitle: "Finances & abonnements",
+    description: "Comptabilité, revenus et abonnements restaurants.",
+    icon: PieChart,
+    toolTitles: ["Comptabilité", "IA comptable", "Abonnements restaurateur"],
+  },
+  {
+    id: "security",
+    title: "Sécurité & assistance",
+    shortTitle: "Sécurité & assistance",
+    description: "Incidents, supervision et résolution assistée.",
+    icon: ShieldCheck,
+    toolTitles: ["Centre de sécurité", "Guardian IA", "Sinistres et chat", "Résolution IA"],
+  },
+  {
+    id: "platform",
+    title: "Plateforme & outils",
+    shortTitle: "Plateforme & outils",
+    description: "Pilotage technique, intégrations et documentation.",
+    icon: Boxes,
+    toolTitles: ["Opérations IA", "TOK Connect", "Guide administrateur"],
+  },
+] as const;
 
 function statusColor(status: string) {
   switch (status) {
@@ -316,6 +376,27 @@ export default function AdminHome() {
   const { unreadNotifications } = useNotificationCenter(50, { realtime: true });
   const adminPlatformConfigEnabled = activeFeatures.has(ADMIN_PLATFORM_CONFIG_LINK.feature);
   const visibleTools = ADMIN_TOOLS.filter((tool) => !tool.feature || activeFeatures.has(tool.feature));
+  const [toolSearch, setToolSearch] = useState("");
+  const [categorySearch, setCategorySearch] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const normalizedToolSearch = toolSearch.trim().toLocaleLowerCase("fr");
+  const categories = ADMIN_CATEGORY_SPECS.map((category) => ({
+    ...category,
+    tools: visibleTools.filter((tool) => (category.toolTitles as readonly string[]).includes(tool.title)),
+  })).filter((category) => category.tools.length > 0);
+  const filteredCategories = categories
+    .map((category) => ({
+      ...category,
+      tools: normalizedToolSearch
+        ? category.tools.filter((tool) => `${tool.title} ${tool.description}`.toLocaleLowerCase("fr").includes(normalizedToolSearch))
+        : category.tools,
+    }))
+    .filter((category) => category.tools.length > 0);
+  const selectedCategory = categories.find((category) => category.id === selectedCategoryId) ?? null;
+  const selectedCategoryTools = selectedCategory?.tools.filter((tool) => {
+    const query = categorySearch.trim().toLocaleLowerCase("fr");
+    return !query || `${tool.title} ${tool.description}`.toLocaleLowerCase("fr").includes(query);
+  }) ?? [];
 
   const { flags, setFlagState, loading: flagsLoading } = useFeatureFlags(true);
   const comingSoonFlag = flags.find((f) => f.name === "coming-soon");
@@ -541,110 +622,148 @@ export default function AdminHome() {
     },
   });
 
+  const dashboardMetrics = [
+    { label: "Restaurants", value: String(stats?.restaurants || 0), icon: UtensilsCrossed },
+    { label: "Commandes", value: String(stats?.orders || 0), icon: ShoppingCart },
+    { label: "Réservations", value: String(stats?.reservations || 0), icon: CalendarDays },
+    { label: "GMV (30j)", value: `${(revenueStats?.gmv || 0).toFixed(0)} CHF`, icon: DollarSign },
+    { label: "Panier moyen", value: `${(revenueStats?.avgTicket || 0).toFixed(2)} CHF`, icon: ShoppingCart },
+    { label: "Taux annulation", value: `${revenueStats?.cancelRate || 0}%`, icon: TrendingDown },
+    { label: "Tok One", value: `${(tokOneStats?.estimatedRevenue || 0).toFixed(2)} CHF`, icon: Crown, premium: true },
+  ];
+
+  const openCategory = (categoryId: string) => {
+    setCategorySearch("");
+    setSelectedCategoryId(categoryId);
+  };
+
   return (
-    <div className="container space-y-6 py-8">
-      <DashboardPageHero
-        badge="Back-office TOK"
-        title="Administration"
-        description="Tableau de bord global pour piloter les restaurants, les commandes, les réservations, la configuration et les modules admin actifs."
-        icon={Settings2}
-        tone="orange"
-        visualLabel="Admin"
-        illustration={DASHBOARD_ILLUSTRATIONS.adminAnalytics}
-        stats={[
-          { label: "Restaurants", value: stats?.restaurants || 0, icon: UtensilsCrossed },
-          { label: "Commandes", value: stats?.orders || 0, icon: ShoppingCart },
-          { label: "Reservations", value: stats?.reservations || 0, icon: CalendarDays },
-        ]}
-        actions={(
-        adminPlatformConfigEnabled ? (
-          <Button onClick={() => navigate(ADMIN_PLATFORM_CONFIG_LINK.href)} className="gap-2">
-            <Settings2 className="h-4 w-4" />
-            Configuration plateforme
-          </Button>
-        ) : null
-        )}
-      />
-
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Restaurants</CardTitle>
-            <UtensilsCrossed className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{stats?.restaurants || 0}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Commandes</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{stats?.orders || 0}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Reservations</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{stats?.reservations || 0}</p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">GMV (30j)</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{(revenueStats?.gmv || 0).toFixed(0)} <span className="text-sm font-normal">CHF</span></p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Panier moyen</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{(revenueStats?.avgTicket || 0).toFixed(2)} <span className="text-sm font-normal">CHF</span></p></CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Taux annulation</CardTitle>
-            <TrendingDown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent><p className="text-2xl font-bold">{revenueStats?.cancelRate || 0}%</p></CardContent>
-        </Card>
-        <Card className="col-span-2 border-amber-200 bg-amber-50 md:col-span-3 lg:col-span-2 xl:col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-            <CardTitle className="text-xs font-medium text-amber-800">Abonnements Tok One</CardTitle>
-            <Crown className="h-4 w-4 text-amber-700" />
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-2xl font-bold text-amber-900">
-              {(tokOneStats?.estimatedRevenue || 0).toFixed(2)} <span className="text-sm font-normal">CHF</span>
-            </p>
-            <p className="text-xs text-amber-800">
-              Revenu actif estimé pour {tokOneStats?.activeCount || 0} abonnement{(tokOneStats?.activeCount || 0) > 1 ? "s" : ""}
-            </p>
-            <p className="text-[11px] text-amber-700/90">
-              Revenu estimé sur base mensuelle, utilisé comme fallback de sécurité.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className={comingSoonActive ? "border-amber-400 bg-amber-50" : "border-green-200 bg-green-50/50"}>
-        <CardContent className="flex flex-col gap-4 py-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Rocket className={`h-5 w-5 ${comingSoonActive ? "text-amber-600" : "text-green-600"}`} />
-              <p className="font-semibold">Animation de lancement · accès clients</p>
-              <Badge variant={comingSoonActive ? "destructive" : "secondary"}>
-                {comingSoonActive ? "Activée" : "Désactivée"}
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {comingSoonActive
-                ? "Les clients attendent sur l’animation. Les restaurateurs préparent leur dashboard. Seule la désactivation ouvre l’application, même après la fin des 20 jours."
-                : "L’application est ouverte. Activer ce verrou démarre un compteur partagé de 20 jours et bloque les accès clients."}
+    <div className="mx-auto w-full max-w-[1680px] space-y-3 px-3 pb-10 pt-2 sm:px-5 lg:px-6">
+      <header className="relative overflow-hidden rounded-[1.6rem] border border-border/70 bg-card px-4 py-4 shadow-sm sm:px-6 lg:py-4">
+        <div className="relative z-10 flex items-center gap-3 lg:gap-5">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#ff7a1a] to-primary shadow-[0_12px_30px_rgba(241,93,34,0.24)] lg:h-[4.5rem] lg:w-[4.5rem]">
+            <img src={OPTIMIZED_TOK_LOGO_SRC} alt="TOK" className="h-full w-full scale-[1.16] object-contain" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="mb-1 hidden text-[10px] font-bold uppercase tracking-[0.28em] text-primary sm:block">Back-office TOK</p>
+            <h1 className="font-display text-[1.8rem] font-black leading-none tracking-[-0.035em] text-foreground sm:text-4xl">Administration</h1>
+            <p className="mt-1 hidden max-w-3xl text-sm text-muted-foreground lg:block">
+              Pilotez les opérations, les utilisateurs et les outils actifs depuis un espace unique.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <img
+            src={DASHBOARD_ILLUSTRATIONS.adminAnalytics.src}
+            alt=""
+            width={72}
+            height={72}
+            className="hidden h-[4.5rem] w-[4.5rem] object-contain opacity-90 xl:block"
+          />
+        </div>
+        <label className="relative mt-4 block lg:absolute lg:right-28 lg:top-1/2 lg:mt-0 lg:w-[min(28rem,34vw)] lg:-translate-y-1/2 xl:right-36">
+          <span className="sr-only">Rechercher un outil admin</span>
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
+          <input
+            value={toolSearch}
+            onChange={(event) => setToolSearch(event.target.value)}
+            placeholder="Rechercher un outil…"
+            className="h-11 w-full rounded-full border border-border/80 bg-background/90 pl-11 pr-4 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+          />
+        </label>
+      </header>
+
+      <section aria-label="Indicateurs clés" className="grid grid-flow-col auto-cols-[8.8rem] gap-2 overflow-x-auto pb-1 [scrollbar-width:none] xl:grid-flow-row xl:grid-cols-7 xl:overflow-visible xl:pb-0">
+        {dashboardMetrics.map((metric) => (
+          <Card key={metric.label} className={metric.premium ? "border-amber-300 bg-amber-50/80 dark:bg-amber-950/20" : "border-border/70"}>
+            <CardContent className="flex h-[5.35rem] flex-col justify-between p-3">
+              <div className="flex items-center justify-between gap-2 text-[11px] font-medium text-muted-foreground">
+                <span className="truncate">{metric.label}</span>
+                <metric.icon className={`h-4 w-4 shrink-0 ${metric.premium ? "text-amber-700" : "text-primary"}`} />
+              </div>
+              <p className={`truncate text-xl font-bold tabular-nums ${metric.premium ? "text-amber-950 dark:text-amber-100" : "text-foreground"}`}>{metric.value}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </section>
+
+      <section aria-labelledby="admin-spaces-title">
+        <div className="mb-2 flex items-end justify-between px-1 xl:hidden">
+          <div>
+            <h2 id="admin-spaces-title" className="font-display text-xl font-bold">Vos espaces</h2>
+            <p className="text-xs text-muted-foreground">{visibleTools.length} outils regroupés en 6 catégories</p>
+          </div>
+        </div>
+
+        <div className="grid gap-2 xl:hidden">
+          {filteredCategories.map((category) => (
+            <button
+              key={category.id}
+              type="button"
+              onClick={() => openCategory(category.id)}
+              className="group flex min-h-[4.65rem] items-center gap-3 rounded-2xl border border-border/70 bg-card px-4 py-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <category.icon className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-display text-[1rem] font-bold leading-tight">{category.shortTitle}</span>
+                <span className="mt-0.5 block truncate text-xs text-muted-foreground">{category.description}</span>
+              </span>
+              <span className="shrink-0 text-right">
+                <span className="block text-xs font-semibold text-primary">{category.tools.length} outils</span>
+                <ChevronRight className="ml-auto mt-1 h-4 w-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div className="hidden grid-cols-3 gap-3 xl:grid">
+          {filteredCategories.map((category) => (
+            <Card key={category.id} className="overflow-hidden border-border/70 shadow-sm">
+              <CardHeader className="border-b border-primary/10 bg-gradient-to-r from-primary/[0.10] to-orange-50/40 px-4 py-3 dark:to-transparent">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <category.icon className="h-5 w-5" />
+                  </span>
+                  <CardTitle className="min-w-0 flex-1 truncate font-display text-[1.05rem]">{category.title}</CardTitle>
+                  <span className="shrink-0 text-xs font-medium text-primary">{category.tools.length} outils</span>
+                </div>
+              </CardHeader>
+              <CardContent className="px-4 py-1.5">
+                {category.tools.map((tool) => (
+                  <button
+                    key={tool.href}
+                    type="button"
+                    onClick={() => navigate(tool.href)}
+                    className="group flex min-h-9 w-full items-center gap-3 border-b border-border/60 py-1.5 text-left last:border-0 hover:text-primary"
+                  >
+                    <tool.icon className={`h-4 w-4 shrink-0 ${tool.color}`} />
+                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{tool.title}</span>
+                    <NotificationMenuBadge route={tool.href} role={role} unreadNotifications={unreadNotifications} />
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
+                  </button>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredCategories.length === 0 ? (
+          <div className="rounded-2xl border border-dashed bg-card p-8 text-center">
+            <Search className="mx-auto h-6 w-6 text-muted-foreground" />
+            <p className="mt-2 font-semibold">Aucun outil ne correspond à « {toolSearch} »</p>
+            <button type="button" onClick={() => setToolSearch("")} className="mt-2 text-sm font-medium text-primary hover:underline">Effacer la recherche</button>
+          </div>
+        ) : null}
+      </section>
+
+      <section aria-label="Contrôles rapides" className="grid gap-2 lg:grid-cols-[1.15fr_0.85fr_1fr]">
+        <Card className={comingSoonActive ? "border-amber-300 bg-amber-50/80" : "border-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/20"}>
+          <CardContent className="flex min-h-[4.25rem] items-center gap-3 p-3.5">
+            <Rocket className={`h-5 w-5 shrink-0 ${comingSoonActive ? "text-amber-600" : "text-emerald-600"}`} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">Accès clients : {comingSoonActive ? "verrouillé" : "ouvert"}</p>
+              <p className="truncate text-[11px] text-muted-foreground">Animation de lancement partagée</p>
+            </div>
             <Switch
               aria-label="Verrouiller l’accès client avec l’animation de lancement"
               checked={comingSoonActive}
@@ -659,31 +778,68 @@ export default function AdminHome() {
                 setComingSoonToggling(false);
               }}
             />
-            <span className="text-sm font-medium">{comingSoonActive ? "Actif" : "Inactif"}</span>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+        {adminPlatformConfigEnabled ? (
+          <Button onClick={() => navigate(ADMIN_PLATFORM_CONFIG_LINK.href)} className="h-auto min-h-[4.25rem] rounded-2xl text-sm shadow-[0_10px_24px_rgba(241,93,34,0.22)]">
+            <Settings2 className="mr-2 h-4 w-4" /> Configuration plateforme
+          </Button>
+        ) : <div />}
+        <button
+          type="button"
+          onClick={() => document.getElementById("admin-city-capacity")?.scrollIntoView({ behavior: "smooth" })}
+          className="flex min-h-[4.25rem] items-center gap-3 rounded-2xl border border-border/70 bg-card px-4 text-left shadow-sm transition hover:border-primary/40"
+        >
+          <MapPin className="h-5 w-5 text-primary" />
+          <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">Capacité par ville</span><span className="block truncate text-[11px] text-muted-foreground">Zones, charge et recommandations</span></span>
+          <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+        </button>
+      </section>
 
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="flex flex-col gap-4 py-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Rocket className="h-5 w-5 text-primary" />
-              <p className="font-semibold">Configuration globale des fonctionnalités</p>
+      <Sheet open={Boolean(selectedCategory)} onOpenChange={(open) => !open && setSelectedCategoryId(null)}>
+        <SheetContent side="right" className="w-[min(28rem,calc(100vw-0.5rem))] bg-background p-0">
+          {selectedCategory ? (
+            <div className="flex min-h-full flex-col">
+              <SheetHeader className="border-b bg-card px-5 pb-5 pt-7 text-left">
+                <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <selectedCategory.icon className="h-6 w-6" />
+                </div>
+                <SheetTitle className="pr-10 font-display text-2xl leading-tight">{selectedCategory.title}</SheetTitle>
+                <SheetDescription>{selectedCategory.description} · {selectedCategory.tools.length} outils</SheetDescription>
+                <label className="relative mt-3 block">
+                  <span className="sr-only">Rechercher dans cette catégorie</span>
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    value={categorySearch}
+                    onChange={(event) => setCategorySearch(event.target.value)}
+                    placeholder="Rechercher dans cette catégorie…"
+                    className="h-11 w-full rounded-xl border bg-background pl-10 pr-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+                  />
+                </label>
+              </SheetHeader>
+              <nav className="flex-1 space-y-2 overflow-y-auto p-4" aria-label={selectedCategory.title}>
+                {selectedCategoryTools.map((tool) => (
+                  <button
+                    key={tool.href}
+                    type="button"
+                    onClick={() => navigate(tool.href)}
+                    className="group flex w-full items-center gap-3 rounded-2xl border bg-card p-3.5 text-left shadow-sm transition hover:border-primary/35 hover:bg-primary/[0.03]"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
+                      <tool.icon className={`h-5 w-5 ${tool.color}`} />
+                    </span>
+                    <span className="min-w-0 flex-1"><span className="block font-semibold">{tool.title}</span><span className="mt-0.5 line-clamp-2 block text-xs text-muted-foreground">{tool.description}</span></span>
+                    <NotificationMenuBadge route={tool.href} role={role} unreadNotifications={unreadNotifications} />
+                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
+                  </button>
+                ))}
+              </nav>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Activez ou coupez les paiements, parcours client, onglets restaurateur, modules coursier et outils admin.
-            </p>
-          </div>
-          {adminPlatformConfigEnabled ? (
-            <Button variant="secondary" onClick={() => navigate(ADMIN_PLATFORM_CONFIG_LINK.href)}>
-              Ouvrir la configuration
-            </Button>
           ) : null}
-        </CardContent>
-      </Card>
+        </SheetContent>
+      </Sheet>
 
-      <Card>
+      <Card id="admin-city-capacity" className="mt-6">
         <CardHeader className="space-y-4">
           <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
             <div className="space-y-1">
@@ -758,37 +914,6 @@ export default function AdminHome() {
             {cityLiquidity.length === 0 ? (
               <p className="py-4 text-center text-sm text-muted-foreground">Aucune ville active a afficher</p>
             ) : null}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            <CardTitle>Outils admin</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {visibleTools.map((tool) => (
-              <button
-                key={tool.href}
-                onClick={() => navigate(tool.href)}
-                className="rounded-xl border p-4 text-left transition-colors hover:border-primary/50 hover:bg-muted/30"
-              >
-                <div className="flex items-start gap-3">
-                  <tool.icon className={`mt-0.5 h-5 w-5 ${tool.color}`} />
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold">{tool.title}</p>
-                      <NotificationMenuBadge route={tool.href} role={role} unreadNotifications={unreadNotifications} />
-                    </div>
-                    <p className="text-sm text-muted-foreground">{tool.description}</p>
-                  </div>
-                </div>
-              </button>
-            ))}
           </div>
         </CardContent>
       </Card>

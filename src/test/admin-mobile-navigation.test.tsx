@@ -33,9 +33,13 @@ const allAdminFeatures = [
   "admin-drops",
   "admin-notifications",
   "admin-actualites",
+  "admin-crm",
   "admin-audit",
+  "admin-guardian",
+  "admin-support-resolution",
   "admin-platform-config",
   "ai_admin_monitoring",
+  "admin-tok-connect",
   "admin-packs",
 ];
 
@@ -44,7 +48,7 @@ describe("AdminMobileNavigation", () => {
     featureState.activeFeatures = new Set(allAdminFeatures);
   });
 
-  it("shows the floating admin menu trigger at every viewport width", () => {
+  it("exposes the six-category drawer from desktop and mobile navigation", () => {
     render(
       <MemoryRouter initialEntries={["/admin/restaurants"]}>
         <AdminMobileNavigation />
@@ -53,17 +57,18 @@ describe("AdminMobileNavigation", () => {
 
     const trigger = screen.getByRole("button", { name: "Ouvrir le menu admin" });
 
-    expect(trigger.textContent).toContain("Admin");
-    expect(trigger.textContent).toContain("Restaurants");
-    expect(trigger.parentElement?.parentElement?.className).not.toContain("md:hidden");
-
     fireEvent.click(trigger);
 
     expect(screen.getByRole("dialog")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Vue d'ensemble" }).getAttribute("href")).toBe("/admin");
-    expect(screen.getByRole("link", { name: "Commandes et reservations" }).getAttribute("href")).toBe("/admin/commandes-reservations");
-    expect(screen.getByRole("link", { name: "Configuration plateforme" }).getAttribute("href")).toBe("/admin/platform");
+    expect(screen.getByRole("link", { name: "Commandes et réservations" }).getAttribute("href")).toBe("/admin/commandes-reservations");
     expect(screen.getByRole("link", { name: "TOK Printer" }).getAttribute("href")).toBe("/admin/tok-printer");
+    expect(screen.getByText("Utilisateurs, Partenaires et équipe")).toBeTruthy();
+    expect(screen.getByText("Réservations & services")).toBeTruthy();
+    expect(screen.getByText("Clients & marketing")).toBeTruthy();
+    expect(screen.getByText("Finances & abonnements")).toBeTruthy();
+    expect(screen.getByText("Sécurité & assistance")).toBeTruthy();
+    expect(screen.getByText("Plateforme & outils")).toBeTruthy();
   });
 
   it("hides admin tabs whose feature flag is disabled", () => {
@@ -79,7 +84,6 @@ describe("AdminMobileNavigation", () => {
 
     expect(screen.getByRole("link", { name: "Restaurants" })).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Notifications" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Configuration plateforme" })).toBeNull();
     expect(screen.getByRole("link", { name: "TOK Printer" })).toBeTruthy();
   });
 });
