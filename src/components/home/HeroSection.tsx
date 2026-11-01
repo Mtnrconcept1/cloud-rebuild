@@ -134,7 +134,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         </div>
       </section>
       <aside className="tok-home-hero__secondary" aria-label="Rejoindre TOK">
-        <p className="tok-home-hero__signature"><Heart aria-hidden="true" /><span>Mangez mieux. Faites plus de bien, avec les Miamz solidaires.</span></p>
+        <Link className="tok-home-hero__signature" to="/miamz-solidaires"><Heart aria-hidden="true" /><span>Mangez mieux. Faites plus de bien, avec les Miamz solidaires.</span><ChevronRight className="tok-home-hero__signature-next" aria-hidden="true" /></Link>
         <Link className="tok-home-hero__pro-link" to="/restaurateurs/geneve">Restaurateur ? Découvrez TOK <ChevronRight aria-hidden="true" size={16} /></Link>
         <div data-testid="mobile-newsletter" className="tok-home-hero__newsletter">
           <Mail aria-hidden="true" className="tok-home-hero__mail-icon" />
