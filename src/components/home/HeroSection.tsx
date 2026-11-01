@@ -5,13 +5,13 @@ import { ArrowRight, ChevronRight, Heart, Mail, MapPin, Navigation, Percent, Sea
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
 import { cantonFromPlaceName, cantonHeroSrc, type SwissCantonCode } from "@/lib/homeCantonHero";
-import { resolveWorldArt } from "@/lib/homeWorldHero";
+import { resolveMobileCityImage, resolveWorldArt } from "@/lib/homeWorldHero";
 import { HALLOWEEN_FEATURE_FLAG } from "@/components/seasonal/HalloweenTheme";
 import "./HeroSection.css";
 
 const EMPTY_FEATURES: ReadonlySet<string> = new Set();
 const DEFAULT_HERO_DESKTOP = "/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp";
-const DEFAULT_HERO_MOBILE = "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp";
+const DEFAULT_HERO_MOBILE = "/images/home-mobile/communes/TOK-GE-geneve.webp";
 
 const newsletterConditions = [
   "Le bonus de bienvenue est réservé aux nouveaux comptes TOK qui s'inscrivent à la newsletter depuis cette offre.",
@@ -54,7 +54,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
     : cantonImage || worldArt?.desktop || (pending ? null : DEFAULT_HERO_DESKTOP);
   const mobileImage = halloweenEnabled
     ? "/images/seasonal/halloween/hero-mobile-20261030.webp"
-    : worldArt?.mobile || (!cantonImage && !worldArt?.desktop ? DEFAULT_HERO_MOBILE : desktopImage);
+    : (!pending && resolveMobileCityImage(selectedCity || gpsCity)) || worldArt?.mobile || (!cantonImage && !worldArt?.desktop ? DEFAULT_HERO_MOBILE : desktopImage);
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

@@ -1,9 +1,28 @@
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import mobileImages from "@/lib/homeMobileImages.json";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { resolveWorldArt, reverseWorldCoordinates } from "@/lib/homeWorldHero";
+import { resolveMobileCityImage, resolveWorldArt, reverseWorldCoordinates } from "@/lib/homeWorldHero";
 
 describe("TOK worldwide home illustrations", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("resolves all 145 published assets without missing files", () => {
+    expect(Object.keys(mobileImages)).toHaveLength(145);
+    for (const [city, filename] of Object.entries(mobileImages)) {
+      expect(resolveMobileCityImage(city)).toBe(`/images/home-mobile/${filename}`);
+      expect(existsSync(resolve("public/images/home-mobile", filename))).toBe(true);
+    }
+  });
+
+  it("selects the mobile illustration for the actual city or commune", () => {
+    expect(resolveMobileCityImage("Puplinge, Suisse")).toBe("/images/home-mobile/communes/TOK-GE-puplinge.webp");
+    expect(resolveMobileCityImage("Le Grand-Saconnex")).toContain("TOK-GE-grand-saconnex.webp");
+    expect(resolveMobileCityImage("Le Caire")).toContain("007-cairo.webp");
+    expect(resolveMobileCityImage("Tokyo")).toContain("003-tokyo.webp");
+    expect(resolveMobileCityImage("Ville inconnue")).toBeNull();
   });
 
   it("uses native Lisbon mobile and desktop files", () => {
