@@ -1,3 +1,4 @@
+import "@/components/dashboard/DashboardMenu.css";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -39,7 +40,7 @@ import ChefHelpButton from "@/components/help/ChefHelpButton";
 import RoleSpaceMenuSection from "@/components/navigation/RoleSpaceMenuSection";
 import SignOutButton from "@/components/auth/SignOutButton";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useNotificationCenter } from "@/hooks/useNotificationCenter";
 import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures } from "@/lib/featureFlags";
@@ -57,12 +58,14 @@ type AdminNavItem = {
 
 type AdminNavSection = {
   title: string;
+  icon: AdminNavItem["icon"];
   items: AdminNavItem[];
 };
 
 const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
   {
     title: "Utilisateurs, Partenaires et équipe",
+    icon: Users,
     items: [
       { to: "/admin/utilisateurs", label: "Utilisateurs", icon: Users, feature: "admin-utilisateurs" },
       { to: "/admin/restaurants", label: "Restaurants", icon: Store, feature: "admin-restaurants" },
@@ -74,6 +77,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
   },
   {
     title: "Réservations & services",
+    icon: CalendarRange,
     items: [
       { to: "/admin/commandes-reservations", label: "Commandes et réservations", icon: ClipboardList, feature: "admin-operations-center" },
       { to: "/admin/catalog", label: "Catalogue central", icon: Layers, feature: "admin-catalog" },
@@ -83,6 +87,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
   },
   {
     title: "Clients & marketing",
+    icon: Megaphone,
     items: [
       { to: "/admin/crm", label: "CRM clients", icon: Users, feature: "admin-crm" },
       { to: "/admin/loyalty", label: "Fidélité et abonnement", icon: Crown, feature: "admin-loyalty" },
@@ -90,18 +95,23 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
       { to: "/admin/notifications", label: "Notifications", icon: Bell, feature: "admin-notifications" },
       { to: "/admin/actualites", label: "Actualités sociales", icon: Newspaper, feature: "admin-actualites" },
       { to: "/admin/avis", label: "Avis", icon: MessageSquareText, feature: "admin-avis" },
+      { to: "/commercial", label: "Prospection commerciale", icon: BriefcaseBusiness, feature: "commercial-prospection" },
     ],
   },
   {
     title: "Finances & abonnements",
+    icon: PieChart,
     items: [
       { to: "/admin/compta", label: "Comptabilité", icon: Calculator, feature: "admin-compta" },
+      { to: "/admin/compta/entrees", label: "Entrées comptables", icon: Calculator, feature: "admin-compta" },
+      { to: "/admin/compta/sorties", label: "Sorties comptables", icon: Calculator, feature: "admin-compta" },
       { to: "/admin/compta/ia", label: "IA comptable", icon: Brain, feature: "ai_accounting_insights" },
       { to: "/admin/packs", label: "Abonnements restaurateur", icon: Crown, feature: "admin-packs" },
     ],
   },
   {
     title: "Sécurité & assistance",
+    icon: ShieldCheck,
     items: [
       { to: "/admin/security-center", label: "Centre de sécurité", icon: Shield, feature: "admin-audit" },
       { to: "/admin/security-center?view=guardian", label: "Guardian IA", icon: ShieldAlert, feature: "admin-guardian" },
@@ -111,15 +121,15 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
   },
   {
     title: "Plateforme & outils",
+    icon: Boxes,
     items: [
+      { to: "/admin/platform", label: "Configuration plateforme", icon: Settings2, feature: "admin-platform-config" },
       { to: "/admin/ai-operations", label: "Opérations IA", icon: Brain, feature: "ai_admin_monitoring" },
       { to: "/admin/tok-connect", label: "TOK Connect", icon: Network, feature: "admin-tok-connect" },
       { to: "/admin/guide", label: "Guide administrateur", icon: BookOpen },
     ],
   },
 ];
-
-const ADMIN_SECTION_ICONS = [Users, CalendarRange, Megaphone, PieChart, ShieldCheck, Boxes] as const;
 
 function splitAdminTarget(to: string) {
   const [pathname, search] = to.split("?");
@@ -347,8 +357,8 @@ export default function AdminMobileNavigation() {
             >
               <LayoutDashboard className="h-5 w-5" />
             </Link>
-            {sections.map((section, index) => {
-              const SectionIcon = ADMIN_SECTION_ICONS[index] ?? Menu;
+            {sections.map((section) => {
+              const SectionIcon = section.icon;
               const firstItem = section.items[0];
               const sectionActive = section.items.some((item) => isAdminNavItemActive(pathname, search, item.to));
               return firstItem ? (
@@ -380,15 +390,17 @@ export default function AdminMobileNavigation() {
               <Menu className="h-5 w-5" /><span>Outils</span>
             </button>
           </SheetTrigger>
-          <Link to="/admin/notifications" className={cn("relative flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-semibold", pathname === "/admin/notifications" ? "text-primary" : "text-muted-foreground")}>
+          {activeFeatures.has("admin-notifications") ? <Link to="/admin/notifications" className={cn("relative flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-semibold", pathname === "/admin/notifications" ? "text-primary" : "text-muted-foreground")}>
             <span className="relative"><Bell className="h-5 w-5" />{unreadNotifications.length > 0 ? <span className="absolute -right-2 -top-2 h-2.5 w-2.5 rounded-full border-2 border-card bg-red-500" /> : null}</span><span>Alertes</span>
-          </Link>
+          </Link> : <span aria-hidden="true" />}
           <Link to={settingsTarget} className={cn("flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-semibold", pathname === settingsTarget ? "text-primary" : "text-muted-foreground")}>
             <Settings2 className="h-5 w-5" /><span>Réglages</span>
           </Link>
         </nav>
 
         <SheetContent side="left" className="tok-dashboard-menu tok-mobile-dashboard-menu p-0">
+          <SheetTitle className="sr-only">Menu administration TOK</SheetTitle>
+          <SheetDescription className="sr-only">Outils regroupés par catégorie et accès aux espaces TOK.</SheetDescription>
           <header className="border-b bg-gradient-to-br from-orange-50 to-card px-6 pb-5 pt-6 dark:from-orange-950/20">
             <div className="flex items-center gap-3 pr-12">
               <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#ff7a1a] to-primary shadow-md">

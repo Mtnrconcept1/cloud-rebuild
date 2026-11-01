@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -41,9 +41,32 @@ const allAdminFeatures = [
   "ai_admin_monitoring",
   "admin-tok-connect",
   "admin-packs",
+  "commercial-prospection",
 ];
 
 describe("AdminMobileNavigation", () => {
+  it("preserves accounting, configuration and commercial destinations in the drawer", () => {
+    render(<MemoryRouter initialEntries={["/admin"]}><AdminMobileNavigation /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Ouvrir les outils admin" }));
+    const drawer = within(screen.getByRole("dialog"));
+    for (const href of ["/admin/compta/entrees", "/admin/compta/sorties", "/admin/platform", "/commercial"]) {
+      expect(drawer.getAllByRole("link").some((link) => link.getAttribute("href") === href)).toBe(true);
+    }
+  });
+
+  it("keeps category icons stable when feature flags hide other categories", () => {
+    featureState.activeFeatures = new Set(["admin-audit"]);
+    render(<MemoryRouter initialEntries={["/admin/security-center"]}><AdminMobileNavigation /></MemoryRouter>);
+    const rail = within(screen.getByRole("navigation", { name: "Catégories admin" }));
+    expect(rail.getByRole("link", { name: "Sécurité & assistance" }).querySelector("svg")?.classList.contains("lucide-shield-check")).toBe(true);
+  });
+
+  it("hides the mobile alerts shortcut when notifications are disabled", () => {
+    featureState.activeFeatures = new Set(["admin-restaurants"]);
+    render(<MemoryRouter initialEntries={["/admin"]}><AdminMobileNavigation /></MemoryRouter>);
+    expect(within(screen.getByRole("navigation", { name: "Navigation admin mobile" })).queryByRole("link", { name: "Alertes" })).toBeNull();
+  });
+
   beforeEach(() => {
     featureState.activeFeatures = new Set(allAdminFeatures);
   });

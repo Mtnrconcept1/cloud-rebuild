@@ -797,10 +797,10 @@ export default function AdminHome() {
       </section>
 
       <Sheet open={Boolean(selectedCategory)} onOpenChange={(open) => !open && setSelectedCategoryId(null)}>
-        <SheetContent side="right" className="w-[min(28rem,calc(100vw-0.5rem))] bg-background p-0">
+        <SheetContent side="right" className="w-[min(28rem,calc(100vw-0.5rem))] overflow-hidden bg-background p-0">
           {selectedCategory ? (
-            <div className="flex min-h-full flex-col">
-              <SheetHeader className="border-b bg-card px-5 pb-5 pt-7 text-left">
+            <div className="flex h-full min-h-0 flex-col">
+              <SheetHeader className="shrink-0 border-b bg-card px-5 pb-5 pt-7 text-left">
                 <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                   <selectedCategory.icon className="h-6 w-6" />
                 </div>
@@ -817,7 +817,8 @@ export default function AdminHome() {
                   />
                 </label>
               </SheetHeader>
-              <nav className="flex-1 space-y-2 overflow-y-auto p-4" aria-label={selectedCategory.title}>
+              <nav data-sheet-scroll-area className="min-h-0 flex-1 space-y-2 overflow-y-auto p-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]" aria-label={selectedCategory.title}>
+                {selectedCategoryTools.length === 0 ? <p role="status" className="p-4 text-sm text-muted-foreground">Aucun outil ne correspond à cette recherche.</p> : null}
                 {selectedCategoryTools.map((tool) => (
                   <button
                     key={tool.href}
