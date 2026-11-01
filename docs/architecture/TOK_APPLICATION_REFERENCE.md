@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `0963538e063506d5daff58c943192c6e2a88129c7218559b86ae045a20cc5395`
+- Empreinte SHA-256 des sources indexées : `66905572276283da6f6b3526bd2e67420e43f02caf8e1311764503241c22f50a`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -2025,7 +2025,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home-mobile/communes/TOK-GE-geneve.webp | 2 | [src/components/home/HeroSection.tsx:14](../../src/components/home/HeroSection.tsx#L14) |
+| /images/home-mobile/communes/TOK-GE-geneve.webp | 3 | [src/components/home/HeroSection.tsx:14](../../src/components/home/HeroSection.tsx#L14) |
 | /images/home-mobile/communes/TOK-GE-puplinge.webp | 1 | [src/test/home-world-hero.test.ts:21](../../src/test/home-world-hero.test.ts#L21) |
 | /images/home/tok-leman-signature.webp | 1 | [src/test/home-core-web-vitals.test.ts:21](../../src/test/home-core-web-vitals.test.ts#L21) |
 | /images/home/tok-logo-ui.webp | 5 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
@@ -2087,7 +2087,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:7](../../src/lib/homeWorldHero.ts#L7) |
 | /images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp | 1 | [src/lib/homeWorldHero.ts:145](../../src/lib/homeWorldHero.ts#L145) |
 | /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | 4 | [src/components/home/HeroSection.tsx:13](../../src/components/home/HeroSection.tsx#L13) |
-| /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | 2 | [src/lib/homeWorldHero.ts:13](../../src/lib/homeWorldHero.ts#L13) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | 1 | [src/lib/homeWorldHero.ts:13](../../src/lib/homeWorldHero.ts#L13) |
 | /images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp | 1 | [src/lib/homeWorldHero.ts:65](../../src/lib/homeWorldHero.ts#L65) |
 | /images/meringue-double.webp | 3 | [src/lib/securityUrls.ts:27](../../src/lib/securityUrls.ts#L27) |
 | /images/milkshake-oreo.jpg | 3 | [src/lib/securityUrls.ts:28](../../src/lib/securityUrls.ts#L28) |
