@@ -73,6 +73,9 @@ export function MarketingMailingBuilder({ pending, disabled, onGenerate }: {
   const [imageMode, setImageMode] = useState<MailingImageMode | null>(null);
   const [recipientMode, setRecipientMode] = useState<"filters" | "manual">("filters");
   const [recipientText, setRecipientText] = useState("");
+  const [attestConsent, setAttestConsent] = useState(false);
+  const [consentSource, setConsentSource] = useState("");
+  const [consentDate, setConsentDate] = useState("");
   const [filePreview, setFilePreview] = useState<{ name: string; report: MailingRecipientsReport } | null>(null);
   const [count, setCount] = useState(4);
   const [cadence, setCadence] = useState<MailingOptions["cadence"]>("weekly");
@@ -92,7 +95,7 @@ export function MarketingMailingBuilder({ pending, disabled, onGenerate }: {
   const activeSelections = recipientMode === "manual" ? {} : selections;
   const recipientInputValid = recipientMode === "filters" || Boolean(explicitRecipients?.length
     && !recipientInput.report?.invalidCount && !recipientInput.error && !filePreview);
-  const key = JSON.stringify({ mode: recipientMode, selections: activeSelections, recipientEmails: explicitRecipients });
+  const key = JSON.stringify({ mode: recipientMode, selections: activeSelections, recipientEmails: explicitRecipients, attestConsent, consentSource, consentDate });
   const currentEstimate = estimate?.key === key && recipientInputValid ? estimate.result : null;
   const startsAt = marketingZurichLocalDateTimeToIso(start);
   let options: MailingOptions | undefined;
@@ -122,11 +125,11 @@ export function MarketingMailingBuilder({ pending, disabled, onGenerate }: {
     finally { setBusy(null); }
   };
   const previewAudience = async () => {
-    if (locked || !options || !recipientInputValid) return;
+    if (locked || !options || !recipientInputValid || (recipientMode === "manual" && attestConsent && (!consentSource.trim() || !consentDate))) return;
     setBusy("estimate"); setError(""); setEstimate(null);
     try {
       if (recipientMode === "manual" && explicitRecipients) {
-        const prepared = await prepareMarketingMailingRecipients(explicitRecipients);
+        const prepared = await prepareMarketingMailingRecipients(explicitRecipients, attestConsent ? { confirmed: true, source: consentSource.trim(), consentDate } : undefined);
         setEstimate({ key, result: prepared.estimate, createdCount: prepared.createdCount });
       } else {
         setEstimate({ key, result: await estimateMarketingAudience(mailingAudience(selections), ["email"]) });
@@ -193,7 +196,9 @@ export function MarketingMailingBuilder({ pending, disabled, onGenerate }: {
             <details><summary className="cursor-pointer">Voir les adresses du fichier</summary><ul className="mt-2 max-h-48 overflow-y-auto break-all">{filePreview.report.emails.map((email) => <li key={email}>{email}</li>)}</ul></details>
             <div className="flex flex-wrap gap-2"><Button type="button" size="sm" disabled={!filePreview.report.emails.length} onClick={confirmFile}>Ajouter les {filePreview.report.emails.length} adresses valides à la liste</Button><Button type="button" size="sm" variant="outline" onClick={() => setFilePreview(null)}>Ignorer ce fichier</Button></div>
           </section> : null}
-          <p className="text-xs text-muted-foreground">« Enregistrer et vérifier les destinataires » ajoute les nouvelles adresses à vos contacts. Leur import n’attribue aucune autorisation de contact. Les nouvelles fiches restent non éligibles tant qu’une autorisation n’est pas renseignée dans Contacts ; les oppositions et préférences existantes sont conservées.</p>
+          <label className="flex items-start gap-2 rounded-lg border p-3 text-sm"><input type="checkbox" checked={attestConsent} onChange={(event) => { setAttestConsent(event.target.checked); setEstimate(null); }} />J’atteste détenir les preuves de consentement marketing de chaque destinataire importé. Cette déclaration sera journalisée et ne réactivera pas les oppositions existantes.</label>
+          {attestConsent ? <div className="grid gap-3 sm:grid-cols-2"><div><Label htmlFor="consent-source">Source des consentements</Label><Input id="consent-source" value={consentSource} maxLength={200} onChange={(event) => { setConsentSource(event.target.value); setEstimate(null); }} placeholder="Formulaire / CRM d’origine" /></div><div><Label htmlFor="consent-date">Date réelle des consentements (commune à cette liste)</Label><Input id="consent-date" type="date" value={consentDate} onChange={(event) => { setConsentDate(event.target.value); setEstimate(null); }} /></div><p className="text-xs text-muted-foreground sm:col-span-2">Utilisez cette option uniquement si tous les destinataires ont donné leur consentement à cette date et via cette source. Sinon, importez les lots séparément ou sans attestation.</p></div> : null}
+          <p className="text-xs text-muted-foreground">« Enregistrer et vérifier les destinataires » ajoute les nouvelles adresses à vos contacts. Sans attestation, les nouvelles fiches ne sont pas éligibles. Avec une attestation complète, seules les nouvelles adresses sont qualifiées ; les oppositions et préférences existantes restent intactes.</p>
         </div>}
         {recipientMode === "filters" && unresolved.length ? <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm" role="alert"><p className="font-semibold">Critères à vérifier</p><ul className="my-2 list-disc pl-5">{unresolved.map((warning, index) => <li key={index}>{warning}</li>)}</ul><label className="flex items-start gap-2"><input type="checkbox" className="mt-1" checked={reviewed} onChange={(event) => setReviewed(event.target.checked)} />J’ai corrigé ou accepté les critères affichés ci-dessus.</label></div> : null}
         <fieldset className="space-y-3"><legend className="mb-2 font-semibold">Image des e-mails · choix obligatoire</legend>
@@ -206,7 +211,7 @@ export function MarketingMailingBuilder({ pending, disabled, onGenerate }: {
           <div><Label htmlFor="mailing-start">Premier e-mail · heure de Genève</Label><Input id="mailing-start" type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} /></div>
         </div>
         {slots.length ? <p className="text-xs text-muted-foreground">Dates proposées : {slots.map((slot) => new Date(slot.scheduledAt).toLocaleString("fr-CH", { timeZone: "Europe/Zurich", dateStyle: "short", timeStyle: "short" })).join(" · ")}</p> : null}
-        <Button type="button" variant="outline" onClick={previewAudience} disabled={!options || !recipientInputValid}>{busy === "estimate" ? "Calcul de la cible…" : recipientMode === "manual" ? "Enregistrer et vérifier les destinataires" : "Vérifier les destinataires"}</Button>
+        <Button type="button" variant="outline" onClick={previewAudience} disabled={!options || !recipientInputValid || (recipientMode === "manual" && attestConsent && (!consentSource.trim() || !consentDate))}>{busy === "estimate" ? "Calcul de la cible…" : recipientMode === "manual" ? "Enregistrer et vérifier les destinataires" : "Vérifier les destinataires"}</Button>
       </fieldset>
       {currentEstimate ? <div role="status" className="rounded-xl border p-3 text-sm"><strong>{currentEstimate.total.toLocaleString("fr-CH")} {recipientMode === "manual" ? "destinataires sélectionnés" : "restaurants correspondants"}</strong> · {(currentEstimate.byChannel.email || 0).toLocaleString("fr-CH")} éligibles à l’e-mail aujourd’hui.
         {recipientMode === "manual" && estimate?.createdCount !== undefined ? <p>{estimate.createdCount} nouvelle(s) fiche(s) de contact enregistrée(s).</p> : null}
