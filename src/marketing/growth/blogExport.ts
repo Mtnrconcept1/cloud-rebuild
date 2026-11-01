@@ -1,8 +1,12 @@
 import type { BlogArticle, BlogBlock } from "@/lib/seo/blog.mjs";
-import { parseGrowthDocument } from "../../../supabase/functions/_shared/marketing-growth/content";
+import { parseGrowthDocument } from "../../../supabase/functions/_shared/marketing-growth/content.ts";
 import type { GrowthArticle, GrowthRevision } from "./client";
 
 export function approvedBlogEntry(article: GrowthArticle, revision: GrowthRevision | undefined, profile: number, publicationDay: string): BlogArticle {
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(article.slug) || article.slug.length < 3 || article.slug.length > 120 ||
+      !Number.isInteger(profile) || profile < 1 || !Number.isInteger(article.approved_revision) || (article.approved_revision ?? 0) < 1 ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(publicationDay) || !Number.isFinite(Date.parse(publicationDay)) || new Date(publicationDay).toISOString().slice(0,10) !== publicationDay)
+    throw new Error("Métadonnées de publication invalides.");
   if (!revision?.document || revision.article_id !== article.id || revision.revision !== article.current_revision ||
       revision.revision !== article.approved_revision || revision.profile_version !== profile)
     throw new Error("L’approbation a changé. Relisez la révision actuelle.");

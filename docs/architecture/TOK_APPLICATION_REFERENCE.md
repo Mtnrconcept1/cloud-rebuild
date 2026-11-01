@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `44d4ecdc216cd8b6803ffac8ef09dcd3662f58a7946493eaa704a71bae5f2c12`
+- Empreinte SHA-256 des sources indexées : `621cf67099fab8dcff6a569947499d4259e472eb16eddde8d7116c3e4aa5920e`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 45 |
 | migrations | 594 |
-| modules | 1986 |
+| modules | 1988 |
 | pages | 134 |
 | pathLiterals | 978 |
 | publicAssets | 901 |
 | publicEntries | 938 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 124 |
-| records | 20583 |
-| repositoryFiles | 4092 |
+| records | 20589 |
+| repositoryFiles | 4095 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7367,7 +7367,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 234 |
-| automation-script | 95 |
+| automation-script | 96 |
 | documentation | 6 |
 | edge-function-source | 265 |
 | frontend-component | 320 |
@@ -7377,7 +7377,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 4 |
-| test | 827 |
+| test | 828 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7508,7 +7508,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Veille Instagram Genève | 7 | [docs/marketing/INSTAGRAM_RESEARCH.md:1](../../docs/marketing/INSTAGRAM_RESEARCH.md#L1) |
 | TOK — Suivi du site via Metricool | 6 | [docs/marketing/METRICOOL_WEBSITE_TRACKING.md:1](../../docs/marketing/METRICOOL_WEBSITE_TRACKING.md#L1) |
 | TOK — Première recette commerciale restaurateurs (31 octobre 2026) | 9 | [docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md:1](../../docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md#L1) |
-| Recherche Google dans le moteur éditorial TOK | 4 | [docs/marketing/SEARCH_CONSOLE_TOK.md:1](../../docs/marketing/SEARCH_CONSOLE_TOK.md#L1) |
+| Recherche Google dans le moteur éditorial TOK | 5 | [docs/marketing/SEARCH_CONSOLE_TOK.md:1](../../docs/marketing/SEARCH_CONSOLE_TOK.md#L1) |
 | Légendes des campagnes TOK | 5 | [docs/marketing/SOCIAL_EDITORIAL_POLICY.md:1](../../docs/marketing/SOCIAL_EDITORIAL_POLICY.md#L1) |
 | Import d’une série de visuels sociaux | 2 | [docs/marketing/SOCIAL_SERIES_IMPORT.md:1](../../docs/marketing/SOCIAL_SERIES_IMPORT.md#L1) |
 | Mailings ciblés TOK | 8 | [docs/marketing/TARGETED_MAILING.md:1](../../docs/marketing/TARGETED_MAILING.md#L1) |
@@ -7938,7 +7938,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (108)</summary>
+<details><summary>automation-script (110)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -7991,11 +7991,13 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/launch-10k-load-check.mjs`
 - `scripts/lib/safe-public-fetch.mjs`
 - `scripts/lib/stoppin-venue-dedupe.mjs`
+- `scripts/marketing-approved-blog.sql`
 - `scripts/marketing-daily-sql-fixture.mjs`
 - `scripts/marketing-mailing-sql-fixture.mjs`
 - `scripts/mobile-android-build.ps1`
 - `scripts/mobile-verify.mjs`
 - `scripts/post-deploy-check.mjs`
+- `scripts/prepare-approved-blog.mts`
 - `scripts/prepare-ios-app-icon.sh`
 - `scripts/prerender-seo.mjs`
 - `scripts/prerender-stoppin-restaurants-bounded.mjs`
@@ -10962,7 +10964,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (827)</summary>
+<details><summary>test (828)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -10971,6 +10973,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/ci-migration-version-guard.test.mjs`
 - `scripts/dependabot-policy.test.mjs`
 - `scripts/dependency-security.test.mjs`
+- `scripts/prepare-approved-blog.test.mjs`
 - `scripts/stoppin-venue-seo.test.mjs`
 - `scripts/test-actualites-billing-runner.test.mjs`
 - `scripts/test-checkout-security-runner.test.mjs`
