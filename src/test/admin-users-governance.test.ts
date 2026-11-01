@@ -107,8 +107,8 @@ describe("admin users governance", () => {
     expect(source).toContain("exportUsersCsv");
     expect(source).toContain("exportApplicationsCsv");
     expect(source).toContain("exportCouriersCsv");
-    expect(source).toContain("anomalyFilter");
-    expect(source).toContain("createdFilter");
+    expect(source).toContain("AdminUserDirectoryFilters");
+    expect(source).toContain("filterAdminUsers");
     expect(source).toContain("Fiche utilisateur");
     expect(source).toContain("DialogContent");
     expect(source).toContain("open={Boolean(selectedUserId)}");
