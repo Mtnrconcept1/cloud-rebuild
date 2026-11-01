@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `22bdd681901311dc9fd2ce38676c35bc1b36a21fb0b19dff90ac3346bb9a12a1`
+- Empreinte SHA-256 des sources indexées : `979942b21d966819ea8ebf6ce7cc5e67114855ffdb2edb4ef7b2a1eb43ccf8da`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -29,7 +29,7 @@
 | cronJobs | 38 |
 | databaseContract | 231 |
 | databaseObjects | 3187 |
-| documents | 245 |
+| documents | 246 |
 | edgeFunctions | 126 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 4363 |
@@ -40,13 +40,13 @@
 | migrations | 593 |
 | modules | 1967 |
 | pages | 134 |
-| pathLiterals | 969 |
-| publicAssets | 888 |
-| publicEntries | 925 |
+| pathLiterals | 970 |
+| publicAssets | 889 |
+| publicEntries | 926 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 20447 |
-| repositoryFiles | 4056 |
+| records | 20478 |
+| repositoryFiles | 4058 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1576,6 +1576,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-slot-machine/assets/paytable.png | media | [public/tok-slot-machine/assets/paytable.png](../../public/tok-slot-machine/assets/paytable.png) |
 | /tok-slot-machine/ | navigable | [public/tok-slot-machine/index.html](../../public/tok-slot-machine/index.html) |
 | /tok-slot-machine/slot-machine.js | other | [public/tok-slot-machine/slot-machine.js](../../public/tok-slot-machine/slot-machine.js) |
+| /tok-social-share-20261031.jpg | media | [public/tok-social-share-20261031.jpg](../../public/tok-social-share-20261031.jpg) |
 | /tok-table-v2/app.js | other | [public/tok-table-v2/app.js](../../public/tok-table-v2/app.js) |
 | /tok-table-v2/ | navigable | [public/tok-table-v2/index.html](../../public/tok-table-v2/index.html) |
 | /tok-table-v2/styles.css | other | [public/tok-table-v2/styles.css](../../public/tok-table-v2/styles.css) |
@@ -1930,7 +1931,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /floor-plan/20_presentoir-gateau.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:143](../../src/components/floor-plan/floorPlanAssets.ts#L143) |
 | /floor-plan/21_buffet-reception.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:149](../../src/components/floor-plan/floorPlanAssets.ts#L149) |
 | /floor-plan/22_comptoir-mobile.webp | 1 | [src/components/floor-plan/floorPlanAssets.ts:155](../../src/components/floor-plan/floorPlanAssets.ts#L155) |
-| /fond3.png | 7 | [public/seo-trust-runtime.js:8](../../public/seo-trust-runtime.js#L8) |
+| /fond3.png | 6 | [public/seo-trust-runtime.js:8](../../public/seo-trust-runtime.js#L8) |
 | /fondbanniere.png | 1 | [src/test/dashboard-overview-google-compact.test.ts:24](../../src/test/dashboard-overview-google-compact.test.ts#L24) |
 | /formules | 1 | [src/test/dashboard-design-preview-export.test.tsx:61](../../src/test/dashboard-design-preview-export.test.tsx#L61) |
 | /functions/v1/ | 16 | [src/lib/commercialDemoEffects.ts:27](../../src/lib/commercialDemoEffects.ts#L27) |
@@ -2038,7 +2039,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/home/tok-logo-ui.webp | 5 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
 | /images/indian-feast.jpeg | 4 | [src/lib/menu-item-images.ts:92](../../src/lib/menu-item-images.ts#L92) |
-| /images/kebab-box-spread.jpeg | 22 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
+| /images/kebab-box-spread.jpeg | 22 | [public/seo-trust-runtime.js:10](../../public/seo-trust-runtime.js#L10) |
 | /images/kombucha.jpeg | 1 | [src/lib/menu-item-images.ts:91](../../src/lib/menu-item-images.ts#L91) |
 | /images/lebanese-mezze-fast.webp | 1 | [src/components/PromoCarousel.tsx:15](../../src/components/PromoCarousel.tsx#L15) |
 | /images/lebanese-mezze.jpeg | 4 | [src/components/AntiWasteCard.tsx:33](../../src/components/AntiWasteCard.tsx#L33) |
@@ -2286,7 +2287,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /parametres/securite | 6 | [src/App.tsx:381](../../src/App.tsx#L381) |
 | /performances | 1 | [src/test/dashboard-design-preview-export.test.tsx:63](../../src/test/dashboard-design-preview-export.test.tsx#L63) |
 | /photos | 1 | [src/test/dashboard-design-preview-export.test.tsx:68](../../src/test/dashboard-design-preview-export.test.tsx#L68) |
-| /placeholder.svg | 2 | [public/seo-trust-runtime.js:10](../../public/seo-trust-runtime.js#L10) |
+| /placeholder.svg | 2 | [public/seo-trust-runtime.js:11](../../public/seo-trust-runtime.js#L11) |
 | /plan-salle | 1 | [src/test/dashboard-design-preview-export.test.tsx:70](../../src/test/dashboard-design-preview-export.test.tsx#L70) |
 | /points-cadeau | 13 | [scripts/prerender-seo.mjs:1283](../../scripts/prerender-seo.mjs#L1283) |
 | /politique-confidentialite | 22 | [scripts/prerender-seo.mjs:1260](../../scripts/prerender-seo.mjs#L1260) |
@@ -2313,7 +2314,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/:slug | 3 | [src/App.tsx:602](../../src/App.tsx#L602) |
 | /r/:slug/reserver | 2 | [src/App.tsx:601](../../src/App.tsx#L601) |
 | /readyz | 3 | [src/test/application-search-index.test.ts:105](../../src/test/application-search-index.test.ts#L105) |
-| /recherche | 91 | [public/seo-trust-runtime.js:138](../../public/seo-trust-runtime.js#L138) |
+| /recherche | 91 | [public/seo-trust-runtime.js:139](../../public/seo-trust-runtime.js#L139) |
 | /recherche#cuisines | 1 | [src/test/app-page-navigation.test.tsx:29](../../src/test/app-page-navigation.test.tsx#L29) |
 | /recherche?city=Lausanne | 1 | [src/test/restaurant-search-preview.test.tsx:91](../../src/test/restaurant-search-preview.test.tsx#L91) |
 | /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:75](../../src/test/restaurant-search-preview.test.tsx#L75) |
@@ -2371,7 +2372,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants-pres/stade-de-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:84](../../src/test/stoppin-thetok-routes.test.ts#L84) |
 | /restaurants-pres/theatre-de-beaulieu-lausanne | 1 | [src/test/stoppin-thetok-routes.test.ts:85](../../src/test/stoppin-thetok-routes.test.ts#L85) |
 | /restaurants-pres/victoria-hall-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:81](../../src/test/stoppin-thetok-routes.test.ts#L81) |
-| /restaurants/ | 4 | [scripts/harden-seo-trust-signals.mjs:188](../../scripts/harden-seo-trust-signals.mjs#L188) |
+| /restaurants/ | 4 | [scripts/harden-seo-trust-signals.mjs:189](../../scripts/harden-seo-trust-signals.mjs#L189) |
 | /restaurants/${citySlug}/r/${restaurantSlug} | 2 | [src/test/responsive-seo-regressions.test.ts:101](../../src/test/responsive-seo-regressions.test.ts#L101) |
 | /restaurants/:city | 5 | [src/App.tsx:597](../../src/App.tsx#L597) |
 | /restaurants/:city/:category | 5 | [src/App.tsx:600](../../src/App.tsx#L600) |
@@ -2503,6 +2504,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-pulse | 11 | [scripts/prerender-seo.mjs:1252](../../scripts/prerender-seo.mjs#L1252) |
 | /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:92](../../supabase/functions/ai-image-enhance/index.ts#L92) |
 | /tok-slot-machine/index.html?v=20261028 | 1 | [src/components/DailyMiamzSlotMachine.tsx:16](../../src/components/DailyMiamzSlotMachine.tsx#L16) |
+| /tok-social-share-20261031.jpg | 3 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
 | /tok_connect_mcp_action_idempotency | 2 | [server/marketingBff.ts:2616](../../server/marketingBff.ts#L2616) |
 | /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
 | /token?grant_type=password | 1 | [server/marketingBff.ts:817](../../server/marketingBff.ts#L817) |
@@ -7577,6 +7579,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Parcours d'inscription — durcissement (client, restaurateur, livreur) | 24 | [docs/superpowers/specs/2026-05-30-parcours-inscription-design.md:1](../../docs/superpowers/specs/2026-05-30-parcours-inscription-design.md#L1) |
 | Marketing Studio Output Geometry Design | 15 | [docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md:1](../../docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md#L1) |
 | Conception — pièces jointes sécurisées pour l’assistant TOK | 12 | [docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md:1](../../docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md#L1) |
+| Moteur de croissance TOK — conception proposée et audit de parité | 26 | [docs/superpowers/specs/2026-11-01-tok-growth-engine-design.md:1](../../docs/superpowers/specs/2026-11-01-tok-growth-engine-design.md#L1) |
 | Actualités — identité des événements facturables | 5 | [docs/testing/actualites-billing-identity.md:1](../../docs/testing/actualites-billing-identity.md#L1) |
 | Scénario Actualités sponsorisées | 5 | [docs/testing/actualites-sponsored-scenario.md:1](../../docs/testing/actualites-sponsored-scenario.md#L1) |
 | Télémétrie navigateur et consentement | 5 | [docs/testing/browser-monitoring-consent.md:1](../../docs/testing/browser-monitoring-consent.md#L1) |
@@ -8656,7 +8659,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>documentation (196)</summary>
+<details><summary>documentation (197)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8838,6 +8841,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/superpowers/specs/2026-05-30-parcours-inscription-design.md`
 - `docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md`
 - `docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md`
+- `docs/superpowers/specs/2026-11-01-tok-growth-engine-design.md`
 - `docs/testing/actualites-billing-identity.md`
 - `docs/testing/actualites-sponsored-scenario.md`
 - `docs/testing/browser-monitoring-consent.md`
@@ -9744,7 +9748,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (925)</summary>
+<details><summary>public-asset (926)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -10668,6 +10672,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/tok-slot-machine/assets/paytable.png`
 - `public/tok-slot-machine/index.html`
 - `public/tok-slot-machine/slot-machine.js`
+- `public/tok-social-share-20261031.jpg`
 - `public/tok-table-v2/app.js`
 - `public/tok-table-v2/index.html`
 - `public/tok-table-v2/styles.css`

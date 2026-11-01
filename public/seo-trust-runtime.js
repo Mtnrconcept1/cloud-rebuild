@@ -6,6 +6,7 @@
   const INTENT_SEGMENTS = new Set(["reservation", "pas-cher", "meilleurs"]);
   const GENERIC_STRUCTURED_IMAGE_PATHS = new Set([
     "/fond3.png",
+  "/tok-social-share-20261031.jpg",
     "/images/kebab-box-spread.jpeg",
     "/placeholder.svg",
   ]);

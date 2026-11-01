@@ -22,12 +22,20 @@ describe("SEO growth readiness", () => {
     expect(html).not.toContain("noindex");
     expect(html).toContain('rel="canonical" href="https://www.thetok.ch/"');
     expect(html).toContain('property="og:url" content="https://www.thetok.ch/"');
-    expect(html).toContain('property="og:image" content="https://www.thetok.ch/fond3.png"');
+    expect(html).toContain('property="og:image" content="https://www.thetok.ch/tok-social-share-20261031.jpg"');
+    expect(html).toContain('name="twitter:image" content="https://www.thetok.ch/tok-social-share-20261031.jpg"');
     expect(html).toContain("tok - restaurants à genève : adresses, réservation et commande");
     expect(html).toContain("communes genevoises");
     expect(html).toContain("genève");
     expect(html).not.toContain("villes suisses");
     expect(html).not.toContain('name="keywords"');
+  });
+
+  it("ships the branded share image as a standalone compact JPEG", () => {
+    const image = readFileSync(resolve(process.cwd(), "public/tok-social-share-20261031.jpg"));
+    expect(image.byteLength).toBeGreaterThan(50_000);
+    expect(image.byteLength).toBeLessThan(500_000);
+    expect(image.subarray(0, 3).toString("hex")).toBe("ffd8ff");
   });
 
   it("keeps static SEO copy free of mojibake", () => {

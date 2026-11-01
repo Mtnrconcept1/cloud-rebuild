@@ -84,7 +84,7 @@ const DEFAULT_TARGETS = [
     url: "https://www.thetok.ch/restaurants/carouge/r/le-jardin-de-pinchat",
     expect: ["Le Jardin de Pinchat", "tok-nearby-seo-context"],
     jsonLdExpect: ['"priceRange":"$$"'],
-    jsonLdReject: ["fond3.png", "kebab-box-spread.jpeg", "CHF CHF"],
+    jsonLdReject: ["fond3.png", "tok-social-share-20261031.jpg", "kebab-box-spread.jpeg", "CHF CHF"],
   },
   {
     url: "https://www.thetok.ch/restaurants/geneve/r/le-samourai",
@@ -98,12 +98,12 @@ const DEFAULT_TARGETS = [
   },
   {
     url: "https://www.thetok.ch/restaurants/geneve/r/shogun",
-    expect: ["Shogun", "https://www.thetok.ch/fond3.png"],
+    expect: ["Shogun", "https://www.thetok.ch/tok-social-share-20261031.jpg"],
     reject: ["moto911.com"],
   },
   {
     url: "https://www.thetok.ch/restaurants/geneve/r/restaurant-le-safran",
-    expect: ["Restaurant Le Safran", "https://www.thetok.ch/fond3.png"],
+    expect: ["Restaurant Le Safran", "https://www.thetok.ch/tok-social-share-20261031.jpg"],
     reject: ["Safran_Open", "safran.com/hubfs"],
   },
   {
