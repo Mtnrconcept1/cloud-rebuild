@@ -11,6 +11,7 @@ const SEARCH_TITLE = "Recherche de restaurants à Genève | TOK";
 const SEARCH_DESCRIPTION = "Recherchez un restaurant à Genève et dans les communes genevoises par ville, cuisine, note, offre ou service réellement disponible sur TOK.";
 const GENERIC_STRUCTURED_IMAGE_PATHS = new Set([
   "/fond3.png",
+  "/tok-social-share-20261031.jpg",
   "/images/kebab-box-spread.jpeg",
   "/placeholder.svg",
 ]);

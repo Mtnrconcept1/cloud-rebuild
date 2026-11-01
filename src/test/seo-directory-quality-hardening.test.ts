@@ -66,7 +66,7 @@ describe("SEO directory quality hardening", () => {
     })}</script></head><body></body></html>`;
 
     const rewritten = applyDirectoryQualityToHtml(html, route, plan);
-    expect(rewritten).toContain('content="https://www.thetok.ch/fond3.png"');
+    expect(rewritten).toContain('content="https://www.thetok.ch/tok-social-share-20261031.jpg"');
     expect(rewritten).not.toContain('"image":"https://moto911.com/wrong.jpg"');
   });
 
