@@ -107,6 +107,7 @@ const Abonnement = lazy(() => import("./pages/Abonnement"));
 const GiftPoints = lazy(() => import("./pages/GiftPoints"));
 const VentesFlash = lazy(() => import("./pages/VentesFlash"));
 const Actualites = lazy(() => import("./pages/Actualites"));
+const Blog = lazy(() => import("./pages/Blog"));
 const ActualitePost = lazy(() => import("./pages/ActualitePost"));
 const TokOne = lazy(() => import("./pages/TokOne"));
 const TokPulse = lazy(() => import("./pages/TokPulse"));
@@ -720,6 +721,8 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/restaurateurs/google-business" element={<RestaurateursGoogleBusiness />} />
           <Route path="/restaurateurs/alternative-commission-couvert" element={<AlternativeCommissionCouvert />} />
           <Route path="/aide" element={<Aide />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<Blog />} />
           <Route path="/guide" element={<Navigate to="/aide" replace />} />
           <Route path="/guide/restaurateur" element={<Navigate to="/aide" replace />} />
           <Route path="/guide/plateforme" element={<Navigate to="/aide" replace />} />
