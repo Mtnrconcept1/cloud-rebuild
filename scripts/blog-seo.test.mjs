@@ -7,18 +7,35 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { blogArticles, getBlogSeoPages, renderBlogBody } from "../src/lib/seo/blog.mjs";
 
-test("native blog contains twelve distinct complete articles and canonical discovery links", () => {
+const launchSlugs = [
+    "reserver-table-geneve-tok",
+    "zero-attente-precommande-geneve",
+    "anti-gaspi-geneve-paniers-tok",
+    "miamz-fidelite-dons-solidaires",
+    "ventes-flash-restaurants-geneve",
+    "tok-dor-creations-chefs",
+    "tok-one-avantages-geneve",
+    "trouver-restaurant-geneve-tok",
+    "tok-connect-chatgpt-restaurants",
+    "tableau-bord-restaurateur-tok",
+    "marketing-restaurant-tok",
+    "reservations-tok-prix-table"
+  ];
+test("native blog preserves the launch guides and verifies every published article", () => {
   const pages = getBlogSeoPages();
-  assert.equal(blogArticles.length, 12);
-  assert.equal(pages.length, 13);
-  assert.equal(new Set(pages.map((page) => page.title)).size, 13);
-  assert.equal(new Set(pages.map((page) => page.description)).size, 13);
+  const slugs = new Set(blogArticles.map(article => article.slug));
+  for (const slug of launchSlugs) assert.ok(slugs.has(slug), `Guide initial absent : ${slug}`);
+  assert.equal(slugs.size, blogArticles.length);
+  assert.equal(pages.length, blogArticles.length + 1);
+  assert.equal(new Set(pages.map(page => page.title)).size, pages.length);
+  assert.equal(new Set(pages.map(page => page.description)).size, pages.length);
   for (const article of blogArticles) {
     const page = pages.find((entry) => entry.path === `/blog/${article.slug}`);
     assert.ok(page);
     assert.ok(page.description.length <= 160);
     assert.ok(article.wordCount >= 650);
-    assert.ok(page.staticHtml.includes("<table>"));
+    if (launchSlugs.includes(article.slug)) assert.ok(page.staticHtml.includes("<table>"));
+    assert.ok(article.blocks.some(block => block.type === "heading"));
     assert.equal((page.staticHtml.match(/<h1[ >]/g) || []).length, 1);
     assert.ok(page.staticHtml.includes('aria-label="Fil d’Ariane"'));
     assert.ok(page.staticHtml.includes('href="/blog"'));
@@ -66,7 +83,7 @@ test("production prerender emits complete blog HTML and a sitemap without any pu
     const sitemap = await readFile(path.join(root, "dist/sitemap-blog.xml"), "utf8");
     const index = await readFile(path.join(root, "dist/sitemap.xml"), "utf8");
     assert.ok(index.includes("https://www.thetok.ch/sitemap-blog.xml"));
-    assert.equal((sitemap.match(/<url>/g) || []).length, 13);
+    assert.equal((sitemap.match(/<url>/g) || []).length, blogArticles.length + 1);
     for (const article of blogArticles) {
       const url = `https://www.thetok.ch/blog/${article.slug}`;
       const html = await readFile(path.join(root, "dist/blog", article.slug, "index.html"), "utf8");
@@ -74,7 +91,7 @@ test("production prerender emits complete blog HTML and a sitemap without any pu
       assert.ok(html.includes('name="robots" content="index,follow'));
       assert.ok(html.includes('property="og:type" content="article"'));
       assert.ok(html.includes('href="/blog.css"'));
-      assert.ok(html.includes("Notre point de vue"));
+      if (launchSlugs.includes(article.slug)) assert.ok(html.includes("Notre point de vue"));
       assert.ok(html.includes("application/ld+json"));
       assert.ok(sitemap.includes(url));
       assert.ok(!html.includes("babylovegrowth"));
