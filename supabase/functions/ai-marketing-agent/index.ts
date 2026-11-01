@@ -26,7 +26,7 @@ import {
   type MarketingPostFormat,
 } from "../_shared/marketing-ai.ts";
 
-import { readSearchConsole } from "../_shared/marketing-growth/windsor.ts";
+import { readSearchConsole, WindsorAccountLimit } from "../_shared/marketing-growth/windsor.ts";
 import { readBacklinkPage } from "../_shared/marketing-backlink-page.ts";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -183,7 +183,10 @@ Deno.serve(async (req) => {
       try {
         const report = await readSearchConsole(key);
         return jsonResponse(report, 200, corsHeaders);
-      } catch { throw new HttpError(503,"windsor_unavailable"); }
+      } catch (error) {
+        if (error instanceof WindsorAccountLimit) return jsonResponse({status:"windsor_account_limit"},200,corsHeaders);
+        throw new HttpError(503,"windsor_unavailable");
+      }
     }
     if (action === "read_backlink_page") {
       if (actor.authMode !== "service_role" || !req.headers.get("x-marketing-actor-user-id")) throw new HttpError(403, "delegated_service_required");

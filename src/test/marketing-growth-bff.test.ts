@@ -56,6 +56,13 @@ describe("growth BFF", () => {
         await marketingRpcHandler(req("admin_read_tok_search_console",{}),r.response);
         expect(r.response.statusCode).toBe(200);expect(r.value().source).toBe("windsor");
     });
+    it("reports a provider account limit explicitly when no stored report is present",async()=>{
+        const base=upstream();
+        vi.stubGlobal("fetch",(input:string,init?:RequestInit)=>input.endsWith("/functions/v1/ai-marketing-agent")
+          ? json({status:"windsor_account_limit"}) : input.includes("/marketing_search_console_report?") ? json([]) : base(input,init));
+        const r=recorder(); await marketingRpcHandler(req("admin_read_tok_search_console",{}),r.response);
+        expect(r.response.statusCode).toBe(503); expect(r.value().error.code).toBe("windsor_account_limit");
+    });
     it("reports an unavailable live source without fabricating metrics", async () => {
         vi.stubEnv("WINDSOR_API_KEY", "");
         vi.stubGlobal("fetch", upstream());

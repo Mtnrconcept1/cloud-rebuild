@@ -6,6 +6,8 @@ Le centre marketing propose les impressions et les clics de la propriété `sc-d
 
 Le navigateur passe par le BFF marketing, avec session MFA, contrôle CSRF et rôle administrateur revérifié. Le BFF délègue la lecture à l’Edge Supabase `ai-marketing-agent` après vérification de la session et du rôle administrateur. Seule cette Edge lit `WINDSOR_API_KEY`. Le workflow de déploiement synchronise la clé depuis l’environnement GitHub `Production` vers le projet Supabase TOK. Une valeur GitHub absente n’écrase pas une clé Edge existante. La fenêtre couvre les sept jours se terminant à J−3 UTC. Si Windsor est indisponible, le BFF recherche le dernier relevé importé dans la table protégée. Le panneau affiche la provenance, la période et le nombre de jours observés. L’import local dans le panneau ne transmet pas le fichier au serveur.
 
+Le contrôle GitHub `Verify TOK Windsor connection` vérifie les métadonnées du secret Supabase et lit sept jours sur la propriété TOK sans publier le relevé. Une limite de comptes peut produire une réponse HTTP 200 contenant des données de démonstration. L’Edge refuse ces lignes et le panneau identifie la limite du fournisseur. Le relevé privé précédent reste disponible. La connexion de l’assistant Windsor et la clé de l’application peuvent présenter des listes de connexions différentes ; vérifier la limite avec la clé destinée au serveur.
+
 ## Relevé privé récurrent
 
 1. Dans Windsor, lire uniquement Search Console et le compte `sc-domain:thetok.ch`. Choisir les mêmes dates pour les deux lectures. Récupérer `site,date,clicks,impressions` pour les jours et `site,query,clicks,impressions,position` pour les requêtes, sans dimension date dans cette deuxième lecture.

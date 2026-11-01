@@ -2,7 +2,7 @@ export const TOK_SEARCH_PROPERTY = "sc-domain:thetok.ch";
 
 type SearchRow = { query: string; clicks: number; impressions: number; position: number };
 export type SearchReport = {
-  source?: "stored" | "windsor"; property: string; from: string; to: string; observedDays: number;
+  source?: "stored" | "windsor"; liveStatus?: "windsor_account_limit"; property: string; from: string; to: string; observedDays: number;
   totals: { clicks: number; impressions: number } | null;
   opportunities: SearchRow[];
   comparison: { from:string; to:string; observedDays:number; totals:{clicks:number;impressions:number}|null } | null;

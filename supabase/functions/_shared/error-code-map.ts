@@ -260,7 +260,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 195
+      "line": 198
     },
     {
       "file": "supabase/functions/ai-restaurant-agent/index.ts",
@@ -570,7 +570,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "campaign_post_count_mismatch": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 241
+      "line": 244
     }
   ],
   "campaign_preview_fields_required": [
@@ -588,7 +588,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "campaign_start_must_be_future": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 240
+      "line": 243
     }
   ],
   "campaign_studio_run_not_found": [
@@ -604,7 +604,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "campaign_window_too_short": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 244
+      "line": 247
     }
   ],
   "captcha_invalid": [
@@ -1050,7 +1050,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 189
+      "line": 192
     }
   ],
   "demo_checkout_requires_test_endpoint": [
@@ -1956,7 +1956,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "item_count_invalid": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 231
+      "line": 234
     }
   ],
   "item_required": [
@@ -1986,7 +1986,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "mailing_facets_unavailable": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 201
+      "line": 204
     }
   ],
   "marketing_reference_ids_required": [
@@ -3088,7 +3088,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "run_start_unavailable": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 258
+      "line": 261
     }
   ],
   "runs_unavailable": [
@@ -4286,13 +4286,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "window_invalid": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 227
+      "line": 230
     }
   ],
   "windsor_unavailable": [
     {
       "file": "supabase/functions/ai-marketing-agent/index.ts",
-      "line": 186
+      "line": 188
     }
   ],
   "windsor_unconfigured": [

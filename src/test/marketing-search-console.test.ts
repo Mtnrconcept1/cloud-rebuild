@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseSearchSnapshot } from "../marketing/growth/searchConsole";
 import { editorialPlan } from "../marketing/growth/editorialPlan";
-import { readSearchConsole } from "../../supabase/functions/_shared/marketing-growth/windsor";
+import { readSearchConsole, WindsorAccountLimit } from "../../supabase/functions/_shared/marketing-growth/windsor";
 
 const period = { property: "sc-domain:thetok.ch", from: "2026-10-23", to: "2026-10-29" };
 const day = { site: "thetok.ch", date: period.from, clicks: 2, impressions: 70 };
@@ -41,6 +41,10 @@ describe("TOK Search Console", () => {
     { queries: [query, query] }, { queries: [{ ...query, position: 0 }] },
   ])("rejects invalid or synthetic rows", delta => {
     expect(() => parseSearchSnapshot({ ...sample, ...delta })).toThrow();
+  });
+  it("recognizes a Windsor account quota without turning synthetic zeroes into metrics",async()=>{
+    const read=vi.fn(async()=>({ok:true,value:{data:[{site:"Uh-oh! These are not your real numbers: reads are paused because you have 2 accounts connected",date:period.to,clicks:0,impressions:0}]}}));
+    await expect(readSearchConsole("fixture",read)).rejects.toBeInstanceOf(WindsorAccountLimit);
   });
   it("reads the fixed account and the same delayed period for both breakdowns", async () => {
     const prior = {...day,date:"2026-10-16"};

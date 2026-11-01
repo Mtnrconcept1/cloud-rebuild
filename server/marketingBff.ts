@@ -1750,8 +1750,10 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
   }
   if (operation === "admin_read_tok_search_console") {
     if (Object.keys(args).length) throw new PublicBffError(400, "invalid_request", "Aucun paramètre attendu.");
+    let accountLimit = false;
     try {
       const report = await callMarketingAgent(config, session.userId, {action:"read_search_console"});
+      accountLimit = report.status === "windsor_account_limit";
       if (report.property === "sc-domain:thetok.ch" && Array.isArray(report.opportunities)) {
         sendJson(res, 200, { ...report, source:"windsor" });
         return;
@@ -1761,10 +1763,11 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
       const saved = await serviceRestRequest(config, "/marketing_search_console_report?select=snapshot&property=eq.sc-domain%3Athetok.ch&limit=1");
       if (Array.isArray(saved) && saved.length === 1) {
         const report = parseSearchSnapshot(asRecord(saved[0]).snapshot);
-        sendJson(res, 200, { ...report, source: "stored" });
+        sendJson(res, 200, { ...report, source: "stored", ...(accountLimit ? {liveStatus:"windsor_account_limit"} : {}) });
         return;
       }
     } catch { /* Missing migration and invalid snapshots never produce synthetic metrics. */ }
+    if (accountLimit) throw new PublicBffError(503, "windsor_account_limit", "Le forfait Windsor bloque la lecture de ce compte.");
     throw new PublicBffError(503, "search_console_unavailable", "Aucun relevé serveur disponible. Vous pouvez importer un relevé privé.");
   }
   await checkMarketingApprovalMedia(config, operation, args);
