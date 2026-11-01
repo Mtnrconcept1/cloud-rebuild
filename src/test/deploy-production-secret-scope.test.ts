@@ -175,9 +175,13 @@ describe("production deployment secret scope", () => {
       "TOK_IMAGE_FAST_INTERACTIVE",
       "TOK_INTERACTIVE_IMAGE_TIMEOUT_MS",
       "TOK_SOURCE_IMAGE_TIMEOUT_MS",
+      "WINDSOR_API_KEY",
     ].sort();
 
     expect(secretEnvironmentNames(prepareSecrets)).toEqual(expectedFunctionSecrets);
+    expect(buildFrontend).not.toContain("WINDSOR_API_KEY");
+    expect(prepareDemoSecrets).not.toContain("WINDSOR_API_KEY");
+    expect(demoSecretWriter).not.toContain("WINDSOR_API_KEY");
     expect(prepareSecrets).not.toContain("SUPABASE_ACCESS_TOKEN:");
     expect(prepareSecrets).not.toContain("SUPABASE_DB_PASSWORD:");
     expect(prepareSecrets).not.toContain(
