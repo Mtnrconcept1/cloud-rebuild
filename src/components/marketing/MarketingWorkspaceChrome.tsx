@@ -55,6 +55,7 @@ const NAV_ITEMS: Array<{
   icon: typeof Gauge;
 }> = [
   { id: "overview", label: "Vue d'ensemble", shortLabel: "Aperçu", description: "Santé, volumes et prochaines actions", icon: Gauge },
+  { id: "growth", label: "Moteur éditorial", shortLabel: "Articles", description: "Sujets, révisions et profil TOK", icon: BookOpen },
   { id: "agent", label: "Studio IA", shortLabel: "Studio IA", description: "Génère une campagne complète en brouillon", icon: Sparkles },
   { id: "calendar", label: "Calendrier", shortLabel: "Calendrier", description: "Publications et envois planifiés", icon: CalendarDays },
   { id: "campaigns", label: "Campagnes", shortLabel: "Campagnes", description: "Création, validation et diffusion", icon: Megaphone },

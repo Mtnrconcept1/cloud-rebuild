@@ -385,3 +385,7 @@ verify_jwt = false
 # Private mailbox capability; GET never grants consent and mutations validate the token server-side.
 [functions.commercial-consent-confirmation]
 verify_jwt = false
+
+# Server/cron-only editorial worker authenticates its own service secret.
+[functions.marketing-growth-worker]
+verify_jwt = false

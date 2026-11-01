@@ -71,13 +71,15 @@ describe("application search index", () => {
     expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "ai-restaurant-editor")).toBe(true);
     expect(index.catalogs.edgeFunctions.some((fn: { name: string }) => fn.name === "golden-tok-membership")).toBe(true);
     expect(index.catalogs.edgeHttpRoutes).toHaveLength(20);
-    expect(index.catalogs.marketingOperations).toHaveLength(39);
+    expect(index.catalogs.marketingOperations).toHaveLength(45);
+    expect(index.catalogs.marketingOperations.filter((operation: { group: string }) => operation.group === "MARKETING_GROWTH_OPERATION_NAMES").map((operation: { name: string }) => operation.name)).toEqual(["admin_get_marketing_growth", "admin_save_marketing_growth_profile", "admin_configure_marketing_growth", "admin_save_marketing_growth_article", "admin_approve_marketing_growth_article", "admin_enqueue_marketing_growth_article"]);
     expect(
       index.catalogs.marketingOperations
         .filter((operation: { group: string }) => operation.group === "MARKETING_DAILY_OPERATION_NAMES")
         .map((operation: { name: string }) => operation.name),
     ).toEqual(["admin_get_marketing_daily_series", "admin_upsert_marketing_daily_series"]);
-    expect(index.catalogs.cronJobs).toHaveLength(37);
+    expect(index.catalogs.cronJobs).toHaveLength(38);
+    expect(index.catalogs.cronJobs.find((job: { name: string }) => job.name === "tok-marketing-growth-worker")).toMatchObject({ schedules: ["*/5 * * * *"] });
     expect(
       index.catalogs.cronJobs.find((job: { name: string }) => job.name === "tok-consent-retention"),
     ).toMatchObject({ schedules: ["19 3 * * *"] });
