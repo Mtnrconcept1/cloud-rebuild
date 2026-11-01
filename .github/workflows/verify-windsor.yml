@@ -1,0 +1,63 @@
+name: Verify TOK Windsor connection
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [agent/tok-growth-windsor-20261101]
+    paths: [.github/workflows/verify-windsor.yml]
+
+permissions: {}
+
+jobs:
+  read-only:
+    if: github.repository == 'Mtnrconcept1/cloud-rebuild' && (github.ref == 'refs/heads/main' || (github.ref == 'refs/heads/agent/tok-growth-windsor-20261101' && github.actor == 'mtnrconcept'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment:
+      name: Production
+      deployment: false
+    steps:
+      - name: Verify the TOK property and Supabase secret metadata
+        env:
+          WINDSOR_API_KEY: ${{ secrets.WINDSOR_API_KEY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { createHash } from "node:crypto";
+          const project = "wwcrtyoueexyxkkikaos";
+          const property = "sc-domain:thetok.ch";
+          const key = process.env.WINDSOR_API_KEY;
+          if (!key || !process.env.SUPABASE_ACCESS_TOKEN) throw Error("Missing Production secret");
+          async function readJson(url, headers = {}) {
+            let response;
+            try { response = await fetch(url, { headers, redirect:"error", signal:AbortSignal.timeout(25000) }); }
+            catch { throw Error("Provider request did not complete"); }
+            if (!response.ok) throw Error("Provider HTTP " + response.status);
+            try { return await response.json(); } catch { throw Error("Invalid JSON response"); }
+          }
+          const list = await readJson("https://api.supabase.com/v1/projects/"+project+"/secrets",
+            { Authorization:"Bearer " + process.env.SUPABASE_ACCESS_TOKEN });
+          const entry = Array.isArray(list) && list.find(item => item.name === "WINDSOR_API_KEY");
+          if (!entry) throw Error("WINDSOR_API_KEY absent from TOK Edge secrets");
+          console.log("Confirmed WINDSOR_API_KEY in TOK Edge secret metadata.");
+          if (typeof entry.value === "string" && /^[0-9a-f]{64}$/i.test(entry.value)) {
+            if (createHash("sha256").update(key).digest("hex") !== entry.value.toLowerCase())
+              throw Error("GitHub and Supabase secret fingerprints differ");
+            console.log("GitHub and Supabase fingerprints match.");
+          }
+          const dateAt = days => new Date(Date.now()-days*86400000).toISOString().slice(0,10);
+          const from=dateAt(9), to=dateAt(3);
+          const url = new URL("https://connectors.windsor.ai/searchconsole");
+          url.search = new URLSearchParams({api_key:key, select_accounts:property, date_from:from,
+            date_to:to, fields:"site,date,clicks,impressions", _renderer:"json", _max_rows:"7"});
+          const result=await readJson(url);
+          const rows=Array.isArray(result) ? result : result?.data;
+          if(!Array.isArray(rows) || !rows.length || rows.length>7 ||
+             rows.some(row => !["thetok.ch",property].includes(row.site) || typeof row.date!=="string" ||
+               row.date<from || row.date>to || !Number.isSafeInteger(row.clicks) || row.clicks<0 ||
+               !Number.isSafeInteger(row.impressions) || row.impressions<0) || new Set(rows.map(r=>r.date)).size!==rows.length)
+             throw Error("Windsor did not return valid TOK daily observations");
+          console.log("Verified", property, from, to, "days", rows.length,
+            "clicks", rows.reduce((n,r)=>n+r.clicks,0), "impressions", rows.reduce((n,r)=>n+r.impressions,0));
+          NODE

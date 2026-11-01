@@ -1,7 +1,27 @@
-import { parseSearchSnapshot, TOK_SEARCH_PROPERTY } from "../src/marketing/growth/searchConsole.js";
+import { parseSearchSnapshot, TOK_SEARCH_PROPERTY } from "./search-console.ts";
 
 type ReadJson = (url: string, options: RequestInit, timeout: number, maxBytes: number) => Promise<{ ok: boolean; value: unknown }>;
-export async function readSearchConsole(key: string, readJson: ReadJson, now = new Date()) {
+const readProviderJson: ReadJson = async (url, options, timeout, limit) => {
+  const response = await fetch(url,{ ...options, redirect:"error", signal:AbortSignal.timeout(timeout) });
+  if (!response.ok || !response.body || Number(response.headers.get("content-length")) > limit) {
+    await response.body?.cancel();
+    throw new Error("windsor_unavailable");
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let text="", size=0;
+  try {
+    for (;;) {
+      const {value,done}=await reader.read();
+      if (done) break;
+      size+=value.byteLength;
+      if (size>limit) { await reader.cancel(); throw new Error("windsor_response_too_large"); }
+      text+=decoder.decode(value,{stream:true});
+    }
+  } finally { reader.releaseLock(); }
+  return {ok:true,value:JSON.parse(text+decoder.decode())};
+};
+export async function readSearchConsole(key: string, readJson: ReadJson = readProviderJson, now = new Date()) {
   const dateAt = (daysAgo: number) => new Date(now.getTime() - daysAgo * 86400000).toISOString().slice(0, 10);
   const from = dateAt(9), to = dateAt(3);
   const read = async (fields: string, limit: number, start=from, end=to) => {

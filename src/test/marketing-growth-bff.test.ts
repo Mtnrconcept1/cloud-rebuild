@@ -41,7 +41,22 @@ describe("growth BFF", () => {
         expect(r.response.statusCode).toBe(200);
         expect(r.value()).toMatchObject({ source: "stored", observedDays: 1, totals: { clicks: 3, impressions: 40 } });
     });
-    it("reports a missing Windsor key without fabricating metrics", async () => {
+    it("uses the Supabase Edge with the delegated actor and does not require a Vercel Windsor key", async () => {
+        vi.stubEnv("WINDSOR_API_KEY","");
+        const base=upstream();
+        const mock=vi.fn(async(input:string|URL|Request,init?:RequestInit)=>{
+          if(String(input).endsWith("/functions/v1/ai-marketing-agent")){
+            expect(JSON.parse(String(init?.body))).toEqual({action:"read_search_console"});
+            expect(new Headers(init?.headers).get("x-marketing-actor-user-id")).toBe(actor);
+            return json({property:"sc-domain:thetok.ch",opportunities:[],observedDays:7,totals:{clicks:31,impressions:5032}});
+          }
+          return base(input,init);
+        });
+        vi.stubGlobal("fetch",mock);const r=recorder();
+        await marketingRpcHandler(req("admin_read_tok_search_console",{}),r.response);
+        expect(r.response.statusCode).toBe(200);expect(r.value().source).toBe("windsor");
+    });
+    it("reports an unavailable live source without fabricating metrics", async () => {
         vi.stubEnv("WINDSOR_API_KEY", "");
         vi.stubGlobal("fetch", upstream());
         const r = recorder();

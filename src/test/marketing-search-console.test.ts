@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseSearchSnapshot } from "../marketing/growth/searchConsole";
 import { editorialPlan } from "../marketing/growth/editorialPlan";
-import { readSearchConsole } from "../../server/marketingSearchConsole";
+import { readSearchConsole } from "../../supabase/functions/_shared/marketing-growth/windsor";
 
 const period = { property: "sc-domain:thetok.ch", from: "2026-10-23", to: "2026-10-29" };
 const day = { site: "thetok.ch", date: period.from, clicks: 2, impressions: 70 };

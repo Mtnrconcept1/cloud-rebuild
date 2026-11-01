@@ -1,6 +1,5 @@
 import { isBlogPath, readTokBlogHtml } from "./marketingBlogAudit.js";
-import { parseSearchSnapshot } from "../src/marketing/growth/searchConsole.js";
-import { readSearchConsole } from "./marketingSearchConsole.js";
+import { parseSearchSnapshot } from "../supabase/functions/_shared/marketing-growth/search-console.js";
 import { MARKETING_GROWTH_OPERATION_NAMES, parseGrowthArgs } from "../supabase/functions/_shared/marketing-growth/operations.js";
 import { MetaPublishError, validateMetaMediaContent } from "../supabase/functions/_shared/meta-publishing.js";
 import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../supabase/functions/_shared/marketing-campaign-request.js";
@@ -1751,14 +1750,13 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
   }
   if (operation === "admin_read_tok_search_console") {
     if (Object.keys(args).length) throw new PublicBffError(400, "invalid_request", "Aucun paramètre attendu.");
-    const key = process.env.WINDSOR_API_KEY?.trim();
-    if (key) {
-      try {
-        const report = await readSearchConsole(key, boundedFetch);
-        sendJson(res, 200, { ...report, source: "windsor" });
+    try {
+      const report = await callMarketingAgent(config, session.userId, {action:"read_search_console"});
+      if (report.property === "sc-domain:thetok.ch" && Array.isArray(report.opportunities)) {
+        sendJson(res, 200, { ...report, source:"windsor" });
         return;
-      } catch { /* Try the last privately imported report when the provider is unavailable. */ }
-    }
+      }
+    } catch { /* The stored report remains available if the Edge or Windsor is unavailable. */ }
     try {
       const saved = await serviceRestRequest(config, "/marketing_search_console_report?select=snapshot&property=eq.sc-domain%3Athetok.ch&limit=1");
       if (Array.isArray(saved) && saved.length === 1) {
