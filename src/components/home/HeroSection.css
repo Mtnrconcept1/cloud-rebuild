@@ -618,15 +618,17 @@ body:has(.tok-home-first-screen) .tok-site-header .tok-desktop-guest-hide{displa
   }
 
   :root:not([data-seasonal-theme="halloween"]) .tok-home-first-screen .tok-home-hero {
-    justify-content: flex-end;
+    justify-content: flex-start;
     min-height: max(875px, 100svh);
     min-height: max(875px, 100dvh);
-    padding: clamp(285px, 37svh, 370px) 14px 106px;
+    /* Copy in the sky, chef in the middle, booking tools below his face. */
+    padding: clamp(86px, 10svh, 108px) 14px 84px;
   }
 
   :root:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__background img {
     object-fit: cover;
-    object-position: center center;
+    /* Keep the coat of arms inset and the chef in frame on narrow screens. */
+    object-position: 92% center;
   }
 
   /* Lift the chef above the headline on the original Geneva portrait without
@@ -651,8 +653,11 @@ body:has(.tok-home-first-screen) .tok-site-header .tok-desktop-guest-hide{displa
   }
 
   :root:not([data-seasonal-theme="halloween"]) .tok-home-first-screen .tok-home-hero .tok-home-hero__content {
+    display: flex;
+    flex-direction: column;
     width: min(100%, 480px);
     max-width: 480px;
+    min-height: calc(max(875px, 100dvh) - clamp(86px, 10svh, 108px) - 84px);
     margin: 0 auto;
   }
 
@@ -694,8 +699,9 @@ body:has(.tok-home-first-screen) .tok-site-header .tok-desktop-guest-hide{displa
   }
 
   :root:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__form {
-    gap: 5px;
-    padding: 9px;
+    gap: 6px;
+    margin-top: auto;
+    padding: 8px;
     border: 1px solid rgb(255 247 237 / 84%);
     border-radius: 26px;
     background: rgb(255 250 245 / 96%);
@@ -712,8 +718,9 @@ body:has(.tok-home-first-screen) .tok-site-header .tok-desktop-guest-hide{displa
   :root:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__field,
   :root:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__field--city {
     width: 84%;
-    min-height: 52px;
-    padding: 5px 12px;
+    min-height: 48px;
+    margin-inline: auto;
+    padding: 4px 12px;
     border: 1px solid #dbcfc3;
     border-radius: 16px;
     background: rgb(255 254 252 / 96%);
@@ -738,12 +745,12 @@ body:has(.tok-home-first-screen) .tok-site-header .tok-desktop-guest-hide{displa
   }
 
   :root:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__filters {
-    margin-top: 14px;
+    margin-top: 12px;
     gap: 6px;
   }
 
   :root:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__filters a {
-    min-height: 58px;
+    min-height: 54px;
     padding: 8px 2px;
     border: 1px solid rgb(234 166 112 / 68%);
     border-radius: 999px;
@@ -828,7 +835,8 @@ body:has(.tok-home-first-screen) .tok-site-header .tok-desktop-guest-hide{displa
 
 @media (max-width: 359px) {
   :root:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__title {
-    font-size: clamp(30px, 10vw, 35px);
+    /* Leave room for the heraldic shield beside the title on small phones. */
+    font-size: clamp(28px, 9vw, 31px);
   }
   :root:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__title span {
     font-size: 1em;
