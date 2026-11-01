@@ -216,7 +216,8 @@
           "[Aide TOK](https://www.thetok.ch/aide)"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Le chef TOK accueille les convives sur une terrasse face au Jet d’eau."
   },
   {
     "slug": "zero-attente-precommande-geneve",
@@ -439,7 +440,8 @@
           "[Aide TOK](https://www.thetok.ch/aide)"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Le chef soulève une cloche devant une cliente à table."
   },
   {
     "slug": "anti-gaspi-geneve-paniers-tok",
@@ -662,7 +664,8 @@
           "[Ventes flash TOK](https://www.thetok.ch/ventes-flash)"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Une cliente reçoit son panier anti-gaspi au comptoir."
   },
   {
     "slug": "miamz-fidelite-dons-solidaires",
@@ -895,7 +898,8 @@
           "[Profil TOK](https://www.thetok.ch/profil)"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Une cliente dépose un jeton Miamz dans une tirelire solidaire."
   },
   {
     "slug": "ventes-flash-restaurants-geneve",
@@ -1141,7 +1145,8 @@
           "[Miamz solidaires](https://www.thetok.ch/miamz-solidaires)"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Le chef présente le plat proposé en vente flash."
   },
   {
     "slug": "tok-dor-creations-chefs",
@@ -1376,7 +1381,8 @@
           "[Tok One](https://www.thetok.ch/tok-one)"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Le chef termine son assiette à côté du trophée TOK d’Or."
   },
   {
     "slug": "tok-one-avantages-geneve",
@@ -1618,7 +1624,8 @@
           "[Miamz solidaires](https://www.thetok.ch/miamz-solidaires)"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Un client présente sa carte TOK One au bistrot."
   },
   {
     "slug": "trouver-restaurant-geneve-tok",
@@ -1853,7 +1860,8 @@
           "[Recherche TOK](https://www.thetok.ch/recherche)"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Le chef indique une adresse sur un plan de Genève."
   },
   {
     "slug": "tok-connect-chatgpt-restaurants",
@@ -2093,7 +2101,8 @@
           "[Recherche TOK](https://www.thetok.ch/recherche)"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Un téléphone affiche une conversation sur la recherche d’une table."
   },
   {
     "slug": "tableau-bord-restaurateur-tok",
@@ -2332,7 +2341,8 @@
           "[Packs et périmètres des outils](https://www.thetok.ch/packs-restaurateur)"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Le chef consulte le plan de salle sur sa tablette."
   },
   {
     "slug": "marketing-restaurant-tok",
@@ -2573,7 +2583,8 @@
           "[Fonctions et quotas par abonnement](https://www.thetok.ch/packs-restaurateur)"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Le chef photographie son plat du jour."
   },
   {
     "slug": "reservations-tok-prix-table",
@@ -2833,6 +2844,7 @@
           "[Modèle de réservation présenté aux restaurateurs](https://www.thetok.ch/restaurateurs/geneve), consulté le 1er novembre 2026"
         ]
       }
-    ]
+    ],
+    "coverAlt": "Le chef compare une addition au registre des tables honorées."
   }
 ]
