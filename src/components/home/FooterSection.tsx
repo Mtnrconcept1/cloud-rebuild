@@ -62,6 +62,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
               <h4 className="font-sans text-[11px] font-bold uppercase tracking-[0.16em] text-[#9d8f82]">Informations</h4>
               <nav className="flex flex-col gap-0.5 text-[0.9375rem] text-[#e6d9cb]">
                 <Link to="/a-propos" className="inline-flex min-h-11 items-center transition-colors hover:text-white">À propos</Link>
+                <a href="/blog" className="inline-flex min-h-11 items-center transition-colors hover:text-white">Blog et guides TOK</a>
                 <Link to="/contact" className="inline-flex min-h-11 items-center transition-colors hover:text-white">Contact</Link>
                 <Link to="/guide" className="inline-flex min-h-11 items-center transition-colors hover:text-white">Guides d’utilisation</Link>
                 <Link to="/aide" className="inline-flex min-h-11 items-center transition-colors hover:text-white">Centre d'aide</Link>
