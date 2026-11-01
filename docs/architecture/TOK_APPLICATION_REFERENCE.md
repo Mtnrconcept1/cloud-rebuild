@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `5d1cff147c02d87c98080a1f5f8254a6c7ca806720cdecae869f552b6e062122`
+- Empreinte SHA-256 des sources indexées : `7955fa1a6d13c9bd0f4fa7a14b6ad06034b81f613a6add12f6b0769040753e1b`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,13 +40,13 @@
 | migrations | 592 |
 | modules | 1954 |
 | pages | 134 |
-| pathLiterals | 969 |
-| publicAssets | 889 |
-| publicEntries | 926 |
+| pathLiterals | 970 |
+| publicAssets | 901 |
+| publicEntries | 938 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 20364 |
-| repositoryFiles | 4040 |
+| records | 20389 |
+| repositoryFiles | 4052 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -670,6 +670,18 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /Miamz3.webp | media | [public/Miamz3.webp](../../public/Miamz3.webp) |
 | /aide.png | media | [public/aide.png](../../public/aide.png) |
 | /banniere1.png | media | [public/banniere1.png](../../public/banniere1.png) |
+| /blog-images/anti-gaspi-geneve-paniers-tok.webp | media | [public/blog-images/anti-gaspi-geneve-paniers-tok.webp](../../public/blog-images/anti-gaspi-geneve-paniers-tok.webp) |
+| /blog-images/marketing-restaurant-tok.webp | media | [public/blog-images/marketing-restaurant-tok.webp](../../public/blog-images/marketing-restaurant-tok.webp) |
+| /blog-images/miamz-fidelite-dons-solidaires.webp | media | [public/blog-images/miamz-fidelite-dons-solidaires.webp](../../public/blog-images/miamz-fidelite-dons-solidaires.webp) |
+| /blog-images/reservations-tok-prix-table.webp | media | [public/blog-images/reservations-tok-prix-table.webp](../../public/blog-images/reservations-tok-prix-table.webp) |
+| /blog-images/reserver-table-geneve-tok.webp | media | [public/blog-images/reserver-table-geneve-tok.webp](../../public/blog-images/reserver-table-geneve-tok.webp) |
+| /blog-images/tableau-bord-restaurateur-tok.webp | media | [public/blog-images/tableau-bord-restaurateur-tok.webp](../../public/blog-images/tableau-bord-restaurateur-tok.webp) |
+| /blog-images/tok-connect-chatgpt-restaurants.webp | media | [public/blog-images/tok-connect-chatgpt-restaurants.webp](../../public/blog-images/tok-connect-chatgpt-restaurants.webp) |
+| /blog-images/tok-dor-creations-chefs.webp | media | [public/blog-images/tok-dor-creations-chefs.webp](../../public/blog-images/tok-dor-creations-chefs.webp) |
+| /blog-images/tok-one-avantages-geneve.webp | media | [public/blog-images/tok-one-avantages-geneve.webp](../../public/blog-images/tok-one-avantages-geneve.webp) |
+| /blog-images/trouver-restaurant-geneve-tok.webp | media | [public/blog-images/trouver-restaurant-geneve-tok.webp](../../public/blog-images/trouver-restaurant-geneve-tok.webp) |
+| /blog-images/ventes-flash-restaurants-geneve.webp | media | [public/blog-images/ventes-flash-restaurants-geneve.webp](../../public/blog-images/ventes-flash-restaurants-geneve.webp) |
+| /blog-images/zero-attente-precommande-geneve.webp | media | [public/blog-images/zero-attente-precommande-geneve.webp](../../public/blog-images/zero-attente-precommande-geneve.webp) |
 | /blog.css | other | [public/blog.css](../../public/blog.css) |
 | /chef.png | media | [public/chef.png](../../public/chef.png) |
 | /chef2.png | media | [public/chef2.png](../../public/chef2.png) |
@@ -1738,6 +1750,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /avis | 1 | [src/test/dashboard-design-preview-export.test.tsx:64](../../src/test/dashboard-design-preview-export.test.tsx#L64) |
 | /blog | 15 | [scripts/harden-seo-crawl.mjs:249](../../scripts/harden-seo-crawl.mjs#L249) |
 | /blog-admin | 1 | [src/test/seo-native-blog.test.tsx:20](../../src/test/seo-native-blog.test.tsx#L20) |
+| /blog-images/ | 1 | [src/lib/seo/blog.mjs:63](../../src/lib/seo/blog.mjs#L63) |
 | /blog.css | 1 | [src/lib/seo/blog.mjs:9](../../src/lib/seo/blog.mjs#L9) |
 | /blog/ | 3 | [scripts/prerender-seo.mjs:55](../../scripts/prerender-seo.mjs#L55) |
 | /blog/:slug | 3 | [src/App.tsx:725](../../src/App.tsx#L725) |
@@ -9709,7 +9722,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (926)</summary>
+<details><summary>public-asset (938)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -9734,6 +9747,18 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/Miamz3.webp`
 - `public/aide.png`
 - `public/banniere1.png`
+- `public/blog-images/anti-gaspi-geneve-paniers-tok.webp`
+- `public/blog-images/marketing-restaurant-tok.webp`
+- `public/blog-images/miamz-fidelite-dons-solidaires.webp`
+- `public/blog-images/reservations-tok-prix-table.webp`
+- `public/blog-images/reserver-table-geneve-tok.webp`
+- `public/blog-images/tableau-bord-restaurateur-tok.webp`
+- `public/blog-images/tok-connect-chatgpt-restaurants.webp`
+- `public/blog-images/tok-dor-creations-chefs.webp`
+- `public/blog-images/tok-one-avantages-geneve.webp`
+- `public/blog-images/trouver-restaurant-geneve-tok.webp`
+- `public/blog-images/ventes-flash-restaurants-geneve.webp`
+- `public/blog-images/zero-attente-precommande-geneve.webp`
 - `public/blog.css`
 - `public/chef.png`
 - `public/chef2.png`
