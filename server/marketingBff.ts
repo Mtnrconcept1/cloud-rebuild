@@ -1,3 +1,6 @@
+import { isBlogPath, readTokBlogHtml } from "./marketingBlogAudit.js";
+import { parseSearchSnapshot } from "../src/marketing/growth/searchConsole.js";
+import { readSearchConsole } from "./marketingSearchConsole.js";
 import { MARKETING_GROWTH_OPERATION_NAMES, parseGrowthArgs } from "../supabase/functions/_shared/marketing-growth/operations.js";
 import { MetaPublishError, validateMetaMediaContent } from "../supabase/functions/_shared/meta-publishing.js";
 import { buildCampaignSlots, CampaignOptionsError, parseCampaignOptions } from "../supabase/functions/_shared/marketing-campaign-request.js";
@@ -134,6 +137,8 @@ const MARKETING_OPERATION_ALLOWLIST = new Set<string>([
   ...MARKETING_OUTREACH_OPERATION_NAMES,
   ...MARKETING_AUTOPILOT_OPERATION_NAMES,
   ...MARKETING_DAILY_OPERATION_NAMES,
+  "admin_audit_tok_blog",
+  "admin_read_tok_search_console",
   ...MARKETING_GROWTH_OPERATION_NAMES,
 ]);
 
@@ -1738,6 +1743,32 @@ async function executeMarketingRpc(req: MarketingApiRequest, res: MarketingApiRe
   }
   const session = await activeSession(config, req, true);
   await ensureServiceAdmin(config, session.userId);
+  if (operation === "admin_audit_tok_blog") {
+    if (Object.keys(args).length !== 1 || !isBlogPath(args.path)) throw new PublicBffError(400, "invalid_request", "Chemin du blog invalide.");
+    try { sendJson(res, 200, await readTokBlogHtml(args.path)); }
+    catch { throw new PublicBffError(502, "blog_audit_unavailable", "Le HTML public ne peut pas être vérifié."); }
+    return;
+  }
+  if (operation === "admin_read_tok_search_console") {
+    if (Object.keys(args).length) throw new PublicBffError(400, "invalid_request", "Aucun paramètre attendu.");
+    const key = process.env.WINDSOR_API_KEY?.trim();
+    if (key) {
+      try {
+        const report = await readSearchConsole(key, boundedFetch);
+        sendJson(res, 200, { ...report, source: "windsor" });
+        return;
+      } catch { /* Try the last privately imported report when the provider is unavailable. */ }
+    }
+    try {
+      const saved = await serviceRestRequest(config, "/marketing_search_console_report?select=snapshot&property=eq.sc-domain%3Athetok.ch&limit=1");
+      if (Array.isArray(saved) && saved.length === 1) {
+        const report = parseSearchSnapshot(asRecord(saved[0]).snapshot);
+        sendJson(res, 200, { ...report, source: "stored" });
+        return;
+      }
+    } catch { /* Missing migration and invalid snapshots never produce synthetic metrics. */ }
+    throw new PublicBffError(503, "search_console_unavailable", "Aucun relevé serveur disponible. Vous pouvez importer un relevé privé.");
+  }
   await checkMarketingApprovalMedia(config, operation, args);
   try {
     const serviceOperation = (MARKETING_GROWTH_OPERATION_NAMES as readonly string[]).includes(operation)
