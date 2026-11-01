@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 const DEFAULT_BASE_URL = "https://www.thetok.ch";
-const DEFAULT_IMAGE_PATH = "/fond3.png";
+const DEFAULT_IMAGE_PATH = "/tok-social-share-20261031.jpg";
 const INDEX_ROBOTS = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1";
 const NOINDEX_ROBOTS = "noindex,nofollow,noarchive";
 
@@ -30,6 +30,10 @@ const PRIVATE_ROUTE_PREFIXES = [
 ] as const;
 
 const PUBLIC_ROUTE_FALLBACKS: Record<string, { title: string; description: string }> = {
+  "/blog": {
+    title: "Le blog TOK : restaurants à Genève, réservation et bons plans",
+    description: "Guides TOK pour découvrir les restaurants à Genève, réserver une table, précommander, profiter des offres et piloter votre restaurant.",
+  },
   "/": {
     title: "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
     description: "Avec TOK, trouvez un restaurant, réservez, commandez et profitez d'offres locales en Suisse romande.",

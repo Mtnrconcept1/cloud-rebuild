@@ -246,6 +246,7 @@ function enrichHome(html, cityDocuments, restaurantCount) {
     href: document.route,
     label: `Restaurants à ${cityLabelFromDocument(document)}`,
   }));
+  links.push({ href: "/blog", label: "Blog TOK : guides restaurants, réservation et bons plans" });
   return replaceSectionById(html, "tok-prerendered-content", renderPrerenderedContent({
     heading: "Réservez un restaurant à Genève et dans les communes couvertes par TOK",
     paragraphs: [

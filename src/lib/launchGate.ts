@@ -24,6 +24,8 @@ const launchLegalRoutes = ['/cgu', '/politique-confidentialite', '/cookies'];
 const launchAuthRoutes = ['/auth', '/coming-soon'];
 /** UI routing only: Supabase policies and Edge checks remain authoritative. */
 export function launchRouteAllowed(path: string, actor: LaunchRouteActor): boolean {
+  // Editorial pages contain public, versioned content, never customer actions.
+  if (at(path, '/blog')) return true;
   // Before signup, the visitor may freely discover the public application.
   if (!actor.authenticated) return true;
   // Consent authenticates the external client; business access stays server-gated.

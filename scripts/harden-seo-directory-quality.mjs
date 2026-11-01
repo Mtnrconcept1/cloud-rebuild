@@ -15,7 +15,7 @@ import {
 
 const ROOT = process.cwd();
 const DIST_DIR = path.resolve(ROOT, process.env.SEO_DIST_DIR || "dist");
-const DEFAULT_IMAGE = "https://www.thetok.ch/fond3.png";
+const DEFAULT_IMAGE = "https://www.thetok.ch/tok-social-share-20261031.jpg";
 const BATCH_SIZE = 500;
 const MAX_ROWS = Math.max(500, Number(process.env.SEO_SITEMAP_MAX_RESTAURANTS || 10000) || 10000);
 const LEGAL_SUFFIX_RE = /(?:[\s,.-]+)(?:s\.?\s*a\.?|s[àa]rl|sagl|gmbh|ag|ltd|llc|inc\.?|snc)\s*$/i;
