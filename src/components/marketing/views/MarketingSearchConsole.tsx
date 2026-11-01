@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { MARKETING_BFF_ENDPOINTS, marketingBffRequest } from "@/marketing/marketingBffClient";
+import { editorialPlan } from "@/marketing/growth/editorialPlan";
 import { parseSearchSnapshot, type SearchReport } from "@/marketing/growth/searchConsole";
 
 export default function MarketingSearchConsole({ onBrief }: { onBrief?: (brief: string) => void }) {
@@ -13,6 +14,8 @@ export default function MarketingSearchConsole({ onBrief }: { onBrief?: (brief: 
       body: { operation: "admin_read_tok_search_console" }, signal, timeoutMs: 15000,
     }), staleTime: 300000, gcTime: 0, retry: false, refetchOnWindowFocus: false });
   const report = imported ?? live.data;
+  const [start,setStart] = useState(() => new Intl.DateTimeFormat("sv-SE",{ timeZone:"Europe/Zurich" }).format(new Date()));
+  const plan = report ? editorialPlan(report,start) : [];
   async function importFile(file: File) {
     setImported(undefined); setImportError("");
     try {
@@ -35,6 +38,13 @@ export default function MarketingSearchConsole({ onBrief }: { onBrief?: (brief: 
       {!imported && live.isError && <p role="alert">{live.error.message}</p>}
       {report && <div className="space-y-2"><p>{imported ? "Relevé importé dans cet onglet" : report.source === "stored" ? "Dernier relevé privé enregistré" : "Lecture directe Windsor"} · {report.from} – {report.to} · {report.observedDays} jours observés</p>
       {report.totals ? <p><strong>{report.totals.impressions.toLocaleString("fr-CH")} impressions</strong> · {report.totals.clicks} clics · CTR {report.totals.impressions ? (report.totals.clicks * 100 / report.totals.impressions).toFixed(2) + " %" : "indisponible"}</p> : <p>Aucun total quotidien disponible.</p>}
+      {report.comparison?.totals && <p>Du {report.comparison.from} au {report.comparison.to} · {report.comparison.observedDays} jours observés · {report.comparison.totals.impressions.toLocaleString("fr-CH")} impressions et {report.comparison.totals.clicks} clics.</p>}
+      {!!report.pages?.length && <details><summary>Pages publiques à examiner</summary><ul className="space-y-1">{report.pages.map(page=><li key={page.page}><a href={page.page} target="_blank" rel="noopener noreferrer" className="break-all underline">{new URL(page.page).pathname}</a> · {page.impressions} impressions · {page.clicks} clics</li>)}</ul></details>}
+      <details className="space-y-2"><summary>Proposition de calendrier sur 30 jours</summary>
+        <label className="grid gap-1 text-sm">Premier jour<input type="date" value={start} onChange={e=>setStart(e.target.value)}/></label>
+        <p className="text-sm">Les sujets observés sont répartis sur les jours ouvrés. Relisez l’intention et vérifiez les pages existantes avant de programmer une publication.</p>
+        {plan.length ? <ol className="list-decimal pl-6">{plan.map(row=><li key={row.date}><time dateTime={row.date}>{row.date}</time> · {row.query}</li>)}</ol> : <p>Aucun sujet à planifier sur ce relevé.</p>}
+      </details>
       <h4 className="font-semibold">Requêtes à travailler</h4><p className="text-sm">Positions moyennes 4 à 30, triées par impressions parmi les lignes reçues.</p>
       {report.opportunities.length ? <ul className="space-y-2">{report.opportunities.map(row => <li className="rounded border p-2" key={row.query}><strong className="break-words">{row.query}</strong><p>{row.impressions} impressions · {row.clicks} clics · position {row.position.toFixed(1)}</p>
         {onBrief && <Button variant="outline" onClick={() => onBrief(`Étudier l’intention de la requête « ${row.query} ». Search Console, ${report.from} au ${report.to} : ${row.impressions} impressions, ${row.clicks} clics, position moyenne ${row.position.toFixed(1)}. Vérifier la page existante et les faits avant de proposer un article.`)}>Préparer un brief</Button>}

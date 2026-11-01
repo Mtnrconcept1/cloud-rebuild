@@ -1,11 +1,12 @@
 import { readFileSync } from "node:fs";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { createClient } from "@supabase/supabase-js";
 import { formatSeoReadError, loadSeoPageWithRetry } from "./seo-query-retry.mjs";
 
 import { buildRestaurantSeoModel } from "../src/lib/seo/restaurantEntity.mjs";
+import { blogFeedFiles } from "./blog-feed.mjs";
 import { BLOG_STYLESHEET_PATH, getBlogSeoPages } from "../src/lib/seo/blog.mjs";
 import {
   getLocalInventoryDecision,
@@ -2233,7 +2234,7 @@ function renderPreRenderedHtml(baseHtml, page) {
   const imageAlt = page.imageAlt || page.title;
   let html = upsertTitle(baseHtml, page.title);
   if (page.path === "/blog" || page.path.startsWith("/blog/")) {
-    html = html.replace(/<\/head>/i, `  <link rel="stylesheet" href="${BLOG_STYLESHEET_PATH}" />\n</head>`);
+    html = html.replace(/<\/head>/i, `  <link rel="stylesheet" href="${BLOG_STYLESHEET_PATH}" />\n  <link rel="alternate" type="application/feed+json" title="Le blog TOK" href="https://www.thetok.ch/tok-blog-feed.json" />\n</head>`);
   }
   html = upsertTag(html, /<meta\s+name="description"[^>]*>/i, `<meta name="description" content="${escapeHtml(page.description)}" />`);
   html = upsertTag(
@@ -2331,6 +2332,14 @@ async function main() {
     }
     await writeIfDirectoryExists(DIST_DIR, "robots.txt", robots);
 
+    const feeds = blogFeedFiles();
+    const feedNames = new Set(feeds.map(file => file.name));
+    for (const name of await readdir(DIST_DIR)) {
+      if (/^tok-blog-feed-\d+\.json$/.test(name) && !feedNames.has(name)) await rm(path.join(DIST_DIR,name));
+    }
+    for (const {name,feed} of feeds) {
+      await writeFile(path.join(DIST_DIR,name), JSON.stringify(feed), "utf8");
+    }
     for (const page of pages) {
       const outPath = outputPathForRoute(page.path);
       await mkdir(path.dirname(outPath), { recursive: true });

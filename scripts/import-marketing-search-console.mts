@@ -8,7 +8,7 @@ const raw = readFileSync(process.argv[2], "utf8");
 const snapshot = JSON.parse(raw);
 const report = parseSearchSnapshot(snapshot);
 if (!report.observedDays) throw new Error("Aucune journée observée. Le relevé précédent est conservé.");
-const json = JSON.stringify({ property: report.property, from: report.from, to: report.to, daily: snapshot.daily, queries: snapshot.queries });
+const json = JSON.stringify({ property: report.property, from: report.from, to: report.to, daily: snapshot.daily, queries: snapshot.queries, previousDaily: snapshot.previousDaily, pages: report.pages?.map(p => ({ ...p, site: "thetok.ch" })) });
 if (Buffer.byteLength(json, "utf8") > 700000) throw new Error("Relevé privé trop volumineux.");
 const payload = Buffer.from(json, "utf8").toString("base64");
 process.stdout.write(`WITH input AS (SELECT convert_from(decode('${payload}', 'base64'), 'UTF8')::jsonb AS doc)

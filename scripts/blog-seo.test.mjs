@@ -82,6 +82,21 @@ test("production prerender emits complete blog HTML and a sitemap without any pu
     assert.ok((await readFile(path.join(root, "dist/index.html"), "utf8")).includes('href="/blog"'));
     const sitemap = await readFile(path.join(root, "dist/sitemap-blog.xml"), "utf8");
     const index = await readFile(path.join(root, "dist/sitemap.xml"), "utf8");
+    let next = "https://www.thetok.ch/tok-blog-feed.json";
+    const ids = new Set(), files = new Set();
+    while (next) {
+      assert.ok(!files.has(next)); files.add(next);
+      const feed = JSON.parse(await readFile(path.join(root,"dist",new URL(next).pathname.slice(1)),"utf8"));
+      assert.equal(feed.version,"https://jsonfeed.org/version/1.1");
+      assert.ok(feed.items.length <= 10);
+      for (const item of feed.items) {
+        assert.ok(!ids.has(item.id)); ids.add(item.id);
+        assert.ok(item.content_html.includes("<h2"));
+        assert.ok(!/href="[\\/#]/.test(item.content_html));
+      }
+      next=feed.next_url;
+    }
+    assert.deepEqual(ids,new Set(blogArticles.map(article=>"https://www.thetok.ch/blog/"+article.slug)));
     assert.ok(index.includes("https://www.thetok.ch/sitemap-blog.xml"));
     assert.equal((sitemap.match(/<url>/g) || []).length, blogArticles.length + 1);
     for (const article of blogArticles) {
