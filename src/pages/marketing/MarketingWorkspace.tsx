@@ -1,3 +1,4 @@
+import MarketingGrowthView from "@/components/marketing/views/MarketingGrowthView";
 import { AlertCircle, CheckCircle2, Info, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -30,6 +31,7 @@ import type { MarketingView } from "@/marketing/types";
 
 const VIEW_TITLES: Record<MarketingView, string> = {
   overview: "Vue d’ensemble",
+  growth: "Moteur éditorial",
   agent: "Studio IA",
   calendar: "Calendrier",
   campaigns: "Campagnes",
@@ -155,6 +157,8 @@ export default function MarketingWorkspace() {
 
   const content = operations.loading ? <LoadingWorkspace /> : (() => {
     switch (filters.view) {
+      case "growth":
+        return <MarketingGrowthView canMutateBackend={operations.canMutateBackend} />;
       case "faq":
         return <MarketingFaqView />;
       case "agent":

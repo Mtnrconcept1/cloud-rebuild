@@ -47,6 +47,7 @@ export type OpenAIResponseUsage = {
 };
 
 type OpenAIRequestOptions = {
+  serviceTier?: "default";
   input: OpenAIMessage[];
   model?: string;
   maxOutputTokens?: number;
@@ -220,6 +221,8 @@ export async function createOpenAIResponse(options: OpenAIRequestOptions) {
     store: false,
     text: buildTextFormat(options.jsonSchema, options.verbosity),
   };
+
+  if (options.serviceTier) payload.service_tier = options.serviceTier;
 
   if (options.maxOutputTokens) {
     payload.max_output_tokens = options.maxOutputTokens;

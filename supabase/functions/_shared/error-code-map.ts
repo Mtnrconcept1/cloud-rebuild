@@ -94,7 +94,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_empty_response": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 400
+      "line": 403
     },
     {
       "file": "supabase/functions/commercial-demo-ai/index.ts",
@@ -108,7 +108,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_input_rejected": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 155
+      "line": 156
     }
   ],
   "ai_invalid_plan": [
@@ -120,7 +120,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_invalid_response": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 410
+      "line": 413
     },
     {
       "file": "supabase/functions/ai-social-post-copy/index.ts",
@@ -146,7 +146,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_provider_billing_unavailable": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 276
+      "line": 279
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
@@ -182,7 +182,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_rate_limited": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 272
+      "line": 275
     },
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
@@ -206,7 +206,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_service_error": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 279
+      "line": 282
     },
     {
       "file": "supabase/functions/floorplan-ai/index.ts",
@@ -220,7 +220,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_service_unavailable": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 214
+      "line": 215
     },
     {
       "file": "supabase/functions/ai-accounting-agent/index.ts",
@@ -270,7 +270,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "ai_timeout": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 263
+      "line": 266
     }
   ],
   "ai_usage_recording_failed": [
@@ -334,7 +334,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "attachment_content_rejected": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 209
+      "line": 210
     },
     {
       "file": "supabase/functions/ai-restaurant-editor/index.ts",
@@ -2206,23 +2206,23 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "moderation_service_unavailable": [
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 169
+      "line": 170
     },
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 187
+      "line": 188
     },
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 189
+      "line": 190
     },
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 194
+      "line": 195
     },
     {
       "file": "supabase/functions/_shared/openai.ts",
-      "line": 198
+      "line": 199
     }
   ],
   "only_image_id_is_accepted": [
