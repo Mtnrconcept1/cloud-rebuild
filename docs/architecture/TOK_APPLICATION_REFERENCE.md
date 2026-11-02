@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `74f455a586eab9836de3f76a6e43d2fc357d01e5403117db7285559d79e3613d`
+- Empreinte SHA-256 des sources indexées : `3081b45156c0d0e99ed08e7eb8169edd4f0e8572945d56e82968c6d28e6649f9`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 45 |
 | migrations | 593 |
-| modules | 1969 |
+| modules | 1970 |
 | pages | 134 |
 | pathLiterals | 976 |
-| publicAssets | 901 |
-| publicEntries | 939 |
+| publicAssets | 904 |
+| publicEntries | 942 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 122 |
-| records | 20523 |
-| repositoryFiles | 4073 |
+| records | 20531 |
+| repositoryFiles | 4077 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1413,6 +1413,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/tok-connect/chatgpt-mcp-oidc.png | media | [public/images/tok-connect/chatgpt-mcp-oidc.png](../../public/images/tok-connect/chatgpt-mcp-oidc.png) |
 | /images/tok-connect/tok-connect-widget-details.svg | media | [public/images/tok-connect/tok-connect-widget-details.svg](../../public/images/tok-connect/tok-connect-widget-details.svg) |
 | /images/tok-connect/tok-connect-widget-restaurants.svg | media | [public/images/tok-connect/tok-connect-widget-restaurants.svg](../../public/images/tok-connect/tok-connect-widget-restaurants.svg) |
+| /images/tok-refonte/chef-invitation.webp | media | [public/images/tok-refonte/chef-invitation.webp](../../public/images/tok-refonte/chef-invitation.webp) |
+| /images/tok-refonte/geneve-aquarelle.webp | media | [public/images/tok-refonte/geneve-aquarelle.webp](../../public/images/tok-refonte/geneve-aquarelle.webp) |
+| /images/tok-refonte/panier-vide.webp | media | [public/images/tok-refonte/panier-vide.webp](../../public/images/tok-refonte/panier-vide.webp) |
 | /images/tok-restaurant-placeholder.svg | media | [public/images/tok-restaurant-placeholder.svg](../../public/images/tok-restaurant-placeholder.svg) |
 | /images/tokone.webp | media | [public/images/tokone.webp](../../public/images/tokone.webp) |
 | /images/truffe nera pizza | other | [public/images/truffe nera pizza](../../public/images/truffe%20nera%20pizza) |
@@ -7372,7 +7375,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 822 |
+| test | 823 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -9770,7 +9773,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (939)</summary>
+<details><summary>public-asset (942)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -10531,6 +10534,9 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/tok-connect/chatgpt-mcp-oidc.png`
 - `public/images/tok-connect/tok-connect-widget-details.svg`
 - `public/images/tok-connect/tok-connect-widget-restaurants.svg`
+- `public/images/tok-refonte/chef-invitation.webp`
+- `public/images/tok-refonte/geneve-aquarelle.webp`
+- `public/images/tok-refonte/panier-vide.webp`
 - `public/images/tok-restaurant-placeholder.svg`
 - `public/images/tokone.webp`
 - `public/images/truffe nera pizza`
@@ -10942,7 +10948,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (822)</summary>
+<details><summary>test (823)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11050,6 +11056,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/campaign-visibility.test.ts`
 - `src/test/carouge-seo-consolidation.test.ts`
 - `src/test/cart-checkout-steps.test.ts`
+- `src/test/cart-empty-state-design.test.ts`
 - `src/test/cart-item-list.test.tsx`
 - `src/test/cart-replace.test.tsx`
 - `src/test/cart-restaurant-summary.test.ts`
