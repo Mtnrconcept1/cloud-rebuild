@@ -182,3 +182,140 @@
 @media (min-width: 62rem) {
   .tok-editorial-heading:has(.tok-editorial-heading__art) .tok-editorial-heading__copy { max-width: 66%; }
 }
+
+/* TOK dashboard hero subtitles — five treatments matching the approved visual references.
+   All lettering stays in the DOM so every dashboard keeps its real, accessible copy. */
+.tok-editorial-heading[data-subtitle-style] .tok-editorial-heading__description {
+  position: relative;
+  isolation: isolate;
+  width: fit-content;
+  max-width: min(100%, 44rem);
+  margin-top: .8rem;
+  color: #211a15;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.04rem, 1.6vw, 1.35rem);
+  font-weight: 760;
+  line-height: 1.48;
+  letter-spacing: -.021em;
+  text-wrap: pretty;
+}
+.tok-editorial-heading[data-subtitle-style] .tok-editorial-heading__description p { margin: 0; }
+.tok-editorial-heading[data-subtitle-style] .tok-editorial-heading__description p + p { margin-top: .35em; }
+.tok-editorial-heading[data-subtitle-style] .tok-editorial-heading__description::before,
+.tok-editorial-heading[data-subtitle-style] .tok-editorial-heading__description::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+/* 01 — Orange paint dragged with a wide, imperfect brush. */
+.tok-editorial-heading[data-subtitle-style="brosse-orange"] .tok-editorial-heading__description {
+  padding: .35em .8em .36em .52em;
+}
+.tok-editorial-heading[data-subtitle-style="brosse-orange"] .tok-editorial-heading__description::before {
+  z-index: -1;
+  inset: -.08em -.22em -.08em -.25em;
+  background:
+    repeating-linear-gradient(178deg, transparent 0 3px, rgb(255 200 141 / 26%) 3px 4px, transparent 4px 9px),
+    linear-gradient(91deg, #ff742b, #ff6b1e 36%, #f15d22 75%, rgb(241 93 34 / 48%) 95%, transparent);
+  clip-path: polygon(0 26%, 2% 14%, 8% 5%, 31% 2%, 56% 4%, 79% 9%, 95% 16%, 100% 26%, 94% 33%, 100% 41%, 96% 51%, 100% 65%, 96% 75%, 99% 86%, 83% 92%, 61% 98%, 29% 96%, 8% 93%, 2% 85%, 0 73%, 1% 62%, 0 49%);
+  transform: rotate(-.6deg);
+  box-shadow: 0 .35rem .7rem rgb(230 95 30 / 12%);
+}
+
+/* 02 — Soft peach marker, with a stripe behind each line. */
+.tok-editorial-heading[data-subtitle-style="surligneur-abricot"] .tok-editorial-heading__description {
+  padding: .11em .55em .18em .52em;
+  background: repeating-linear-gradient(
+    180deg,
+    rgb(255 211 172 / 90%) 0,
+    rgb(255 211 172 / 90%) 1.25em,
+    transparent 1.25em,
+    transparent 1.48em
+  );
+  clip-path: polygon(1.1% 0, 97.5% 0, 100% 9%, 99% 31%, 100% 49%, 98% 67%, 100% 88%, 97.5% 100%, .8% 100%, 0 84%, 1% 64%, 0 45%, 1% 22%, 0 10%);
+}
+
+/* 03 — A slightly tilted kitchen docket held by orange tape. */
+.tok-editorial-heading[data-subtitle-style="ticket-de-brigade"] .tok-editorial-heading__description {
+  margin-left: .25rem;
+  padding: .82em 1.12em .78em 1.35em;
+  border: 1px solid rgb(169 122 75 / 13%);
+  background: linear-gradient(176deg, #fffaf1 4%, #fff2e1 100%);
+  box-shadow: 0 .55rem 1.1rem rgb(76 42 22 / 15%), 0 .15rem .3rem rgb(76 42 22 / 6%);
+  transform: rotate(-.9deg);
+  transform-origin: left center;
+}
+.tok-editorial-heading[data-subtitle-style="ticket-de-brigade"] .tok-editorial-heading__description::before {
+  z-index: 1;
+  top: -.32rem;
+  left: -.8rem;
+  width: 3.15rem;
+  height: .85rem;
+  background: rgb(255 139 51 / 85%);
+  transform: rotate(-29deg);
+  box-shadow: 0 .15rem .25rem rgb(76 42 22 / 9%);
+}
+
+/* 04 — Dark editorial copy finished by a fast orange brush underline. */
+.tok-editorial-heading[data-subtitle-style="soulignement-au-pinceau"] .tok-editorial-heading__description {
+  padding: .12em 0 .55em;
+}
+.tok-editorial-heading[data-subtitle-style="soulignement-au-pinceau"] .tok-editorial-heading__description::after {
+  z-index: -1;
+  bottom: .05em;
+  left: 29%;
+  width: 57%;
+  height: .27em;
+  min-height: 3px;
+  background: linear-gradient(90deg, #f15d22 0%, #fa6b2e 78%, transparent 100%);
+  clip-path: polygon(0 40%, 4% 8%, 17% 6%, 52% 21%, 83% 10%, 100% 61%, 89% 48%, 49% 65%, 15% 88%, 2% 100%);
+  transform: rotate(-1.2deg);
+}
+
+/* 05 — A bold red-orange restaurant-menu ribbon, with a folded tip. */
+.tok-editorial-heading[data-subtitle-style="ruban-de-menu"] .tok-editorial-heading__description {
+  margin-right: .7rem;
+  padding: .55em 1.1em .58em .85em;
+  border-radius: .62rem .24rem .24rem .62rem;
+  background: linear-gradient(95deg, #dc3e08 0%, #e9470c 58%, #f15d22 100%);
+  color: #fff;
+  box-shadow: 0 .65rem 1.1rem rgb(130 47 14 / 17%);
+}
+.tok-editorial-heading[data-subtitle-style="ruban-de-menu"] .tok-editorial-heading__description::after {
+  z-index: -1;
+  right: -.06rem;
+  bottom: -.54rem;
+  width: 2.7rem;
+  height: .6rem;
+  background: #b42f0a;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 40%);
+  transform: skewX(-12deg);
+}
+
+.dark .tok-editorial-heading[data-subtitle-style] .tok-editorial-heading__description {
+  color: #251a13;
+}
+.dark .tok-editorial-heading[data-subtitle-style="soulignement-au-pinceau"] .tok-editorial-heading__description {
+  color: #fff5e9;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 20%);
+}
+.dark .tok-editorial-heading[data-subtitle-style="ruban-de-menu"] .tok-editorial-heading__description {
+  color: #fff;
+}
+@media (max-width: 40rem) {
+  .tok-editorial-heading[data-subtitle-style] .tok-editorial-heading__description {
+    max-width: 100%;
+    margin-top: .55rem;
+    font-size: clamp(.9rem, 3.65vw, 1.08rem);
+    line-height: 1.42;
+  }
+  .tok-editorial-heading[data-subtitle-style="ticket-de-brigade"] .tok-editorial-heading__description {
+    margin-left: .15rem;
+    padding: .7em .85em .67em 1.15em;
+  }
+  .tok-editorial-heading[data-subtitle-style="ruban-de-menu"] .tok-editorial-heading__description {
+    margin-right: .4rem;
+    padding: .5em .75em .55em;
+  }
+}
