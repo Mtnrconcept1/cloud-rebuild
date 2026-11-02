@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { getEditorialHeroVisual } from "@/lib/editorialHeroVisuals";
+import { getHeroSubtitleStyle } from "@/lib/heroSubtitleStyles";
 import "./editorial.css";
 
 type Props = {
@@ -46,6 +47,9 @@ export default function PageHeading({
   const heroStyle = resolvedHero
     ? ({ "--tok-editorial-hero-image": `url("${resolvedHero}")` } as CSSProperties)
     : undefined;
+  const subtitleStyle = description && resolvedHero && typeof window !== "undefined"
+    ? getHeroSubtitleStyle(window.location.pathname, window.location.search)
+    : undefined;
 
   return (
     <header
@@ -56,6 +60,7 @@ export default function PageHeading({
         className,
       )}
       data-editorial-hero={resolvedHero}
+      data-subtitle-style={subtitleStyle}
       style={heroStyle}
     >
       <div className="tok-editorial-heading__copy">
