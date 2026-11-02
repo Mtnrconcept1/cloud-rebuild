@@ -6,7 +6,6 @@ import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Calculator, Leaf, Flame, Heart, Ban,
@@ -21,6 +20,14 @@ import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFr
 import { getCommercialDemoClientMenuItems, getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
 
 const supabase = getSupabase();
+
+const COURSE_CHOICES = [
+  { key: "starter", label: "Entrée", image: "/images/fattouche.webp" },
+  { key: "main", label: "Plat", image: "/images/pasta-assortment.jpeg" },
+  { key: "dessert", label: "Dessert", image: "/images/pannacotta.webp" },
+] as const;
+
+const BUDGET_OPTIONS = Array.from({ length: 19 }, (_, index) => 10 + index * 5);
 
 interface DietTag {
   id: string;
@@ -451,91 +458,74 @@ export default function BudgetAuto() {
   return (
     <FeatureWizard
       title="Budget automatique"
-      subtitle={showResults ? "Sélectionnez le menu parfait pour chaque personne" : "Menus optimisés selon vos objectifs et vos critères"}
+      subtitle={showResults ? "Sélectionnez le menu parfait pour chaque personne" : "Des menus gourmands adaptés à votre budget."}
       icon={Calculator}
-      colorClass="cyan-500"
+      colorClass="primary"
       steps={steps}
       currentStepId={currentStepId}
     >
       <div className="space-y-8">
         {!showResults && !confirmed && (
           <>
-            {/* Number of People */}
-            <div className="rounded-xl border bg-card p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-semibold flex items-center gap-2">
-                  <Users className="h-5 w-5 text-cyan-500" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="grid gap-2 rounded-2xl border bg-card p-4">
+                <span className="flex items-center gap-2 font-semibold">
+                  <Users className="h-5 w-5 text-primary" aria-hidden="true" />
                   Nombre de personnes
-                </h2>
-                <span className="text-2xl font-bold text-cyan-600">{peopleCount}</span>
-              </div>
-              <Slider
-                value={[peopleCount]}
-                onValueChange={(v) => setPeopleCount(v[0])}
-                min={1}
-                max={10}
-                step={1}
-                className="py-2"
-              />
-            </div>
-
-            {/* Budget Per Person */}
-            <div className="rounded-xl border bg-card p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-semibold flex items-center gap-2">
-                  <Coins className="h-5 w-5 text-cyan-500" />
+                </span>
+                <select className="h-11 rounded-lg border bg-background px-3" value={peopleCount}
+                  onChange={(event) => setPeopleCount(Number(event.target.value))}>
+                  {Array.from({ length: 10 }, (_, index) => index + 1).map((count) => (
+                    <option key={count} value={count}>{count} {count === 1 ? "personne" : "personnes"}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-2 rounded-2xl border bg-card p-4">
+                <span className="flex items-center gap-2 font-semibold">
+                  <Coins className="h-5 w-5 text-primary" aria-hidden="true" />
                   Budget max par personne
-                </h2>
-                <span className="text-2xl font-bold text-cyan-600">{budget} CHF</span>
-              </div>
-              <Slider
-                value={[budget]}
-                onValueChange={(v) => { setBudget(v[0]); savePrefsMutation.mutate({ max_budget: v[0], dietary_tags: Array.from(selectedTags) }); }}
-                min={10}
-                max={100}
-                step={5}
-                className="py-2"
-              />
+                </span>
+                <select className="h-11 rounded-lg border bg-background px-3" value={budget}
+                  onChange={(event) => {
+                    const amount = Number(event.target.value);
+                    setBudget(amount);
+                    savePrefsMutation.mutate({ max_budget: amount, dietary_tags: Array.from(selectedTags) });
+                  }}>
+                  {!BUDGET_OPTIONS.includes(budget) && <option value={budget}>{budget} CHF</option>}
+                  {BUDGET_OPTIONS.map((amount) => <option key={amount} value={amount}>{amount} CHF</option>)}
+                </select>
+              </label>
             </div>
 
-            {/* Desired Courses */}
-            <div className="space-y-3">
-              <h2 className="font-semibold">Plats souhaités</h2>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => toggleCourse("starter")}
-                  className={`px-4 py-2 rounded-xl border-2 text-sm transition-all ${desiredCourses.starter ? "border-cyan-500 bg-cyan-500/10 text-cyan-700 font-bold" : "border-border"}`}
-                >
-                  Entrée
-                </button>
-                <button
-                  onClick={() => toggleCourse("main")}
-                  className={`px-4 py-2 rounded-xl border-2 text-sm transition-all ${desiredCourses.main ? "border-cyan-500 bg-cyan-500/10 text-cyan-700 font-bold" : "border-border"}`}
-                >
-                  Plat
-                </button>
-                <button
-                  onClick={() => toggleCourse("dessert")}
-                  className={`px-4 py-2 rounded-xl border-2 text-sm transition-all ${desiredCourses.dessert ? "border-cyan-500 bg-cyan-500/10 text-cyan-700 font-bold" : "border-border"}`}
-                >
-                  Dessert
-                </button>
+            <fieldset className="min-w-0 space-y-2 rounded-2xl border bg-card px-3 pb-3">
+              <legend className="px-1 font-semibold">Plats souhaités</legend>
+              <div className="grid grid-cols-3 gap-2">
+                {COURSE_CHOICES.map(({ key, label, image }) => (
+                  <button key={key} type="button" aria-pressed={desiredCourses[key]}
+                    onClick={() => toggleCourse(key)}
+                    className="relative min-w-0 overflow-hidden rounded-xl border-2 border-border bg-background text-sm font-semibold aria-pressed:border-primary">
+                    <img alt="" src={image} className="aspect-[4/3] w-full object-cover" />
+                    <span className="block py-1.5">{label}</span>
+                    {desiredCourses[key] && <CheckCircle2 aria-hidden="true" className="absolute right-1 top-1 h-5 w-5 rounded-full bg-background text-primary" />}
+                  </button>
+                ))}
               </div>
-            </div>
+            </fieldset>
 
             {/* Cuisine Types */}
             {cuisineTypes && cuisineTypes.length > 0 && (
               <div className="space-y-3">
                 <h2 className="font-semibold flex items-center gap-2">
-                  <UtensilsCrossed className="h-5 w-5 text-cyan-500" />
+                  <UtensilsCrossed className="h-5 w-5 text-primary" />
                   Types de cuisine (Optionnel)
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {cuisineTypes.map((cuisine) => (
                     <button
                       key={cuisine}
+                      aria-pressed={selectedCuisines.has(cuisine)}
                       onClick={() => toggleCuisine(cuisine)}
-                      className={`px-3 py-2 rounded-full border-2 text-sm transition-all ${selectedCuisines.has(cuisine) ? "border-cyan-500 bg-cyan-500/10 text-cyan-700 font-medium" : "border-border"}`}
+                      className={`px-3 py-2 rounded-full border-2 text-sm transition-all ${selectedCuisines.has(cuisine) ? "border-primary bg-primary/10 text-foreground font-medium" : "border-border"}`}
                     >
                       {cuisine}
                     </button>
@@ -546,7 +536,7 @@ export default function BudgetAuto() {
 
             <Button
               onClick={handleStartProcess}
-              className="w-full bg-cyan-500 hover:bg-cyan-600 gap-2"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
               size="lg"
             >
               <Sparkles className="h-5 w-5" />
@@ -591,7 +581,7 @@ export default function BudgetAuto() {
                   <div className="flex justify-between items-center border-b pb-3">
                     <div>
                       <h3 className="font-bold text-lg">Modification du menu</h3>
-                      <p className="text-sm text-cyan-600 font-medium">{editingCombo.restaurant?.name}</p>
+                      <p className="text-sm text-foreground font-medium">{editingCombo.restaurant?.name}</p>
                     </div>
                   </div>
 
@@ -641,16 +631,16 @@ export default function BudgetAuto() {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between rounded-xl bg-cyan-50 border border-cyan-100 p-5 shadow-sm">
+                <div className="flex items-center justify-between rounded-xl bg-accent border border-border p-5 shadow-sm">
                   <div>
                     <p className="text-sm text-muted-foreground font-medium">Total pour ce menu</p>
-                    <p className={`text-2xl font-bold ${isOverBudget ? 'text-destructive' : 'text-cyan-600'}`}>
+                    <p className={`text-2xl font-bold ${isOverBudget ? 'text-destructive' : 'text-foreground'}`}>
                       {customPrice.toFixed(2)} CHF
                     </p>
                     {isOverBudget && <p className="text-xs text-destructive font-bold mt-1">Dépasse le budget de {budget} CHF</p>}
                   </div>
                   <Button
-                    className="bg-cyan-500 hover:bg-cyan-600 px-8"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 px-8"
                     size="lg"
                     disabled={isOverBudget || ([customS, customM, customD].filter(Boolean).length === 0)}
                     onClick={saveEditedCombo}
@@ -675,7 +665,7 @@ export default function BudgetAuto() {
                     {restaurantOptions.map(r => (
                       <div
                         key={r.id}
-                        className="rounded-xl border bg-card p-4 hover:border-cyan-500 hover:shadow-md transition-all cursor-pointer group"
+                        className="rounded-xl border bg-card p-4 hover:border-primary hover:shadow-md transition-all cursor-pointer group"
                         onClick={() => setViewingRestaurantId(r.id)}
                       >
                         <div className="flex gap-4 items-center">
@@ -683,9 +673,9 @@ export default function BudgetAuto() {
                             <img src={r.image_url || "/images/kebab-box-spread.jpeg"} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-lg leading-tight truncate group-hover:text-cyan-600 transition-colors">{r.name}</h3>
+                            <h3 className="font-bold text-lg leading-tight truncate group-hover:text-foreground transition-colors">{r.name}</h3>
                             <p className="text-sm text-muted-foreground truncate">{r.cuisine_type || "Cuisine variée"}</p>
-                            <Badge variant="secondary" className="mt-3 font-semibold bg-cyan-50 text-cyan-700 border-cyan-100 hover:bg-cyan-100">
+                            <Badge variant="secondary" className="mt-3 font-semibold bg-accent text-foreground border-border hover:bg-accent">
                               Menus dès {r.minPrice.toFixed(2)} CHF
                             </Badge>
                           </div>
@@ -705,13 +695,13 @@ export default function BudgetAuto() {
                 ) : (
                   <div className="grid gap-4 sm:grid-cols-2">
                     {allProposals.map((combo: any) => (
-                      <div key={combo.id} className="rounded-xl border bg-card overflow-hidden hover:border-cyan-500/30 transition-colors flex flex-col shadow-sm">
+                      <div key={combo.id} className="rounded-xl border bg-card overflow-hidden hover:border-primary/30 transition-colors flex flex-col shadow-sm">
                         <div className="p-4 border-b bg-muted/20 flex justify-between items-start">
                           <div>
                             <Badge variant="outline" className="mb-2 bg-background">{combo.items.length} plats optimisés</Badge>
                           </div>
                           <div className="text-right shrink-0 ml-2">
-                            <p className="font-extrabold text-cyan-600 text-lg">{combo.pricePerPerson.toFixed(2)} CHF</p>
+                            <p className="font-extrabold text-foreground text-lg">{combo.pricePerPerson.toFixed(2)} CHF</p>
                           </div>
                         </div>
 
@@ -743,14 +733,14 @@ export default function BudgetAuto() {
                           <Button
                             variant="outline"
                             onClick={() => openEditor(combo)}
-                            className="flex-1 border-cyan-200 text-cyan-700 hover:bg-cyan-50"
+                            className="flex-1 border-primary/30 text-foreground hover:bg-accent"
                           >
                             <PenSquare className="h-4 w-4 mr-2" />
                             Modifier
                           </Button>
                           <Button
                             onClick={() => handleSelectCombo(combo)}
-                            className="flex-1 bg-cyan-500 hover:bg-cyan-600 font-bold shadow-sm"
+                            className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-sm"
                           >
                             Sélect.
                           </Button>
@@ -763,8 +753,8 @@ export default function BudgetAuto() {
             ) : (
               // Recap View
               <div className="space-y-6 animate-in zoom-in-95">
-                <div className="rounded-2xl bg-cyan-500/10 border border-cyan-500/20 p-8 text-center space-y-3 shadow-sm">
-                  <CheckCircle2 className="h-16 w-16 text-cyan-500 mx-auto drop-shadow-sm" />
+                <div className="rounded-2xl bg-primary/10 border border-primary/20 p-8 text-center space-y-3 shadow-sm">
+                  <CheckCircle2 className="h-16 w-16 text-primary mx-auto drop-shadow-sm" />
                   <h2 className="font-display text-2xl font-bold">Sélection terminée !</h2>
                   <p className="text-muted-foreground max-w-sm mx-auto">Voici un récapitulatif des menus parfaitement ajustés à votre groupe.</p>
                 </div>
@@ -773,7 +763,7 @@ export default function BudgetAuto() {
                   {personChoices.map((choice, i) => (
                     <div key={i} className="rounded-xl border bg-card p-5 shadow-sm">
                       <div className="flex justify-between items-center mb-3 pb-3 border-b">
-                        <span className="font-extrabold text-cyan-600 text-lg">Personne {choice.personIndex}</span>
+                        <span className="font-extrabold text-foreground text-lg">Personne {choice.personIndex}</span>
                         <span className="font-extrabold text-lg">{choice.pricePerPerson.toFixed(2)} CHF</span>
                       </div>
                       <div className="space-y-2">
@@ -806,7 +796,7 @@ export default function BudgetAuto() {
                 <WizardCartSummary
                   count={personChoices.reduce((sum, c) => sum + c.items.length, 0)}
                   subtotal={cartTotal}
-                  colorClass="cyan-500"
+                  colorClass="primary"
                   total={cartTotal}
                   onValidate={handleCheckout}
                   validateLabel="Valider ma sélection"
@@ -818,8 +808,8 @@ export default function BudgetAuto() {
 
         {confirmed && (
           <div className="space-y-6">
-            <div className="rounded-2xl bg-cyan-500/5 border border-cyan-500/20 p-6 text-center space-y-2">
-              <CheckCircle2 className="h-12 w-12 text-cyan-500 mx-auto" />
+            <div className="rounded-2xl bg-primary/5 border border-primary/20 p-6 text-center space-y-2">
+              <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
               <h2 className="font-display text-xl font-bold">Panier validé !</h2>
               <p className="text-muted-foreground">Les menus ont été ajoutés à votre panier.</p>
             </div>
@@ -827,7 +817,7 @@ export default function BudgetAuto() {
             <WizardNextButton
               onClick={handleGoToCart}
               label="Procéder au paiement"
-              colorClass="cyan-500"
+              colorClass="primary"
             />
           </div>
         )}

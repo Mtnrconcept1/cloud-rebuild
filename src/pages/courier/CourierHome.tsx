@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useMemo, useState, type ReactNode } from "react";
 import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -124,17 +125,9 @@ function CourierHomePresentation({
   return (
     <CourierDashboardLayout>
       <div className="space-y-6" data-testid={demo ? "commercial-demo-courier-home" : "courier-home"}>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <h1 className="font-dashboard text-3xl font-bold">Vue d'ensemble</h1>
-              <Badge className={viewModel.approvalTone}>{viewModel.approvalLabel}</Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {viewModel.courierName} · {viewModel.identityDetail}
-            </p>
-          </div>
-
+        <PageHeading title="Vue d’ensemble" description={<>{viewModel.courierName} · {viewModel.identityDetail}</>}
+          eyebrow={<Badge className={viewModel.approvalTone}>{viewModel.approvalLabel}</Badge>}
+          actions={
           <Button
             onClick={onToggleOnline}
             disabled={isToggling}
@@ -143,7 +136,8 @@ function CourierHomePresentation({
           >
             {viewModel.isOnline ? "Passer hors ligne" : "Passer en ligne"}
           </Button>
-        </div>
+          }
+        />
 
         {!viewModel.isApproved ? (
           <Card className="border-amber-300 bg-amber-50 dark:bg-amber-950/20">

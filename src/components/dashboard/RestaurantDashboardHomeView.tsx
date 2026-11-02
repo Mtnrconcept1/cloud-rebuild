@@ -423,25 +423,33 @@ function MobileOverviewHeading({
 }) {
   return (
     <section className="md:hidden" aria-labelledby="mobile-restaurant-dashboard-title">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <h1 id="mobile-restaurant-dashboard-title" className="truncate text-[1.72rem] font-black leading-tight tracking-[-0.035em] text-stone-950 dark:text-white">
+      <div className="tok-editorial-heading tok-editorial-heading--illustrated flex items-center justify-between gap-4">
+        <div className="tok-editorial-heading__copy min-w-0">
+          <h1 id="mobile-restaurant-dashboard-title" className="text-[1.72rem] font-black leading-tight tracking-[-0.035em] text-stone-950 dark:text-white">
             Bonjour, {firstName} !
           </h1>
           <p className="mt-0.5 truncate text-[0.98rem] text-stone-700 dark:text-slate-300">
             Bienvenue sur l&apos;app {restaurantName}.
           </p>
         </div>
+        <img
+          src="/images/tok-refonte/chef-presentateur.webp"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-8 -right-3 h-52 w-52 object-contain object-bottom drop-shadow-[0_14px_18px_rgba(131,51,14,0.24)]"
+          loading="eager"
+          decoding="async"
+        />
         {avatarUrl ? (
           <img
             src={avatarUrl}
             alt={`Portrait de ${firstName}`}
-            className="h-14 w-14 shrink-0 rounded-full border-2 border-white object-cover shadow-[0_7px_20px_rgba(42,31,22,0.18)] dark:border-white/15"
+            className="relative z-[3] h-12 w-12 shrink-0 self-start rounded-full border-2 border-white object-cover shadow-[0_7px_20px_rgba(42,31,22,0.18)] dark:border-white/15"
           />
         ) : (
           <span
             aria-label={`Profil de ${firstName}`}
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-stone-200 to-orange-100 text-base font-black text-stone-700 shadow-[0_7px_20px_rgba(42,31,22,0.18)] dark:border-white/15 dark:from-slate-700 dark:to-orange-900 dark:text-white"
+            className="relative z-[3] flex h-12 w-12 shrink-0 self-start items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-stone-200 to-orange-100 text-sm font-black text-stone-700 shadow-[0_7px_20px_rgba(42,31,22,0.18)] dark:border-white/15 dark:from-slate-700 dark:to-orange-900 dark:text-white"
           >
             {getInitials(firstName)}
           </span>

@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -360,18 +361,10 @@ export default function Abonnement() {
   };
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="tok-product-page min-h-screen bg-background">
       <div className="container max-w-2xl space-y-8 py-8">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-500/10">
-              <Repeat className="h-6 w-6 text-purple-500" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="font-display text-3xl font-bold">Abonnement repas</h1>
-              <p className="text-sm text-muted-foreground">Planifiez vos repas de la semaine</p>
-            </div>
-          </div>
+          <PageHeading title="Abonnement repas" description="Planifiez vos repas de la semaine" mascot="cloche" className="flex-1" />
 
           {subscribed ? (
             <Button

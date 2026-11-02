@@ -1,5 +1,6 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   BellRing,
   Bookmark,
@@ -178,60 +179,28 @@ function ActualitesBoostBanner({ onSponsorClick }: { onSponsorClick: () => void 
   return (
     <section
       aria-label="Mettre votre restaurant en avant"
-      className="relative isolate overflow-hidden rounded-[1.35rem] bg-[#F15D22] bg-[image:url('/fondbanniere.png')] bg-cover bg-center shadow-xl shadow-orange-500/20 max-sm:h-[33rem] max-sm:rounded-[1.15rem] max-sm:bg-[image:url('/fondbanniere2.png')] max-[379px]:h-[42rem]"
+      className="relative isolate min-h-[20rem] overflow-hidden rounded-[1.5rem] border border-orange-100 bg-[#fff8ee] shadow-xl shadow-orange-100/60 sm:min-h-[17rem]"
     >
-      <div className="relative z-10 grid min-h-[22rem] grid-cols-[minmax(0,1.1fr)_minmax(15rem,0.86fr)] gap-4 px-5 pb-5 pt-4 sm:min-h-[20rem] sm:px-6 sm:py-6 md:grid-cols-[minmax(18rem,1.1fr)_minmax(16rem,0.82fr)] md:items-center lg:min-h-[21rem] max-sm:block max-sm:h-full max-sm:min-h-0 max-sm:p-0">
-        <div className="relative min-h-[19rem] sm:min-h-[20rem] max-sm:absolute max-sm:inset-0 max-sm:min-h-0">
-          <img
-            src="/chef3.png"
-            alt="Ton resto mis en avant a partir de CHF 1.-"
-            loading="eager"
-            className="absolute left-[-2.8rem] top-0 ml-[9px] mt-[-35px] h-[28rem] w-[34rem] max-w-none object-contain object-top pl-[39px] drop-shadow-2xl [mask-image:radial-gradient(ellipse_at_45%_42%,black_64%,transparent_88%)] sm:left-[-3.4rem] sm:top-[-0.25rem] sm:h-[29rem] sm:w-[36rem] md:left-[-3.75rem] md:h-[30rem] md:w-[36rem] lg:left-[-3.25rem] lg:h-[31rem] lg:w-[37rem] max-sm:left-[-4.55rem] max-sm:top-[-1.05rem] max-sm:ml-0 max-sm:mt-0 max-sm:h-auto max-sm:w-[29.5rem] max-sm:object-contain max-sm:pl-0 max-[379px]:left-[-3rem] max-[379px]:w-[25rem]"
-          />
-        </div>
-
-        <div className="flex min-w-0 flex-col justify-center gap-4 text-white md:pl-4 lg:pl-6 max-sm:absolute max-sm:inset-x-4 max-sm:bottom-4 max-sm:z-20 max-sm:gap-3">
-          <div className="space-y-3 max-sm:mb-2 max-sm:ml-[12.5rem] max-sm:grid max-sm:grid-cols-1 max-sm:gap-2 max-sm:space-y-0 max-[379px]:ml-0 max-[379px]:rounded-2xl max-[379px]:bg-orange-950/30 max-[379px]:p-3 max-[379px]:backdrop-blur-sm">
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-orange-600 shadow-lg shadow-orange-900/15 max-sm:h-8 max-sm:w-8">
-                <TrendingUp className="h-5 w-5 max-sm:h-4 max-sm:w-4" aria-hidden="true" />
-              </span>
-              <span>
-                <strong className="block text-lg font-black leading-tight max-sm:text-[12px]">Plus de visibilite</strong>
-                <span className="block text-sm font-medium leading-snug text-white/90 max-sm:text-[11px]">
-                  Soyez vu par des milliers de gourmands
-                </span>
-              </span>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-orange-600 shadow-lg shadow-orange-900/15 max-sm:h-8 max-sm:w-8">
-                <BellRing className="h-5 w-5 max-sm:h-4 max-sm:w-4" aria-hidden="true" />
-              </span>
-              <span>
-                <strong className="block text-lg font-black leading-tight max-sm:text-[12px]">Plus de clients</strong>
-                <span className="block text-sm font-medium leading-snug text-white/90 max-sm:text-[11px]">
-                  Attirez de nouveaux clients chaque jour
-                </span>
-              </span>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-orange-600 shadow-lg shadow-orange-900/15 max-sm:h-8 max-sm:w-8">
-                <Rocket className="h-5 w-5 max-sm:h-4 max-sm:w-4" aria-hidden="true" />
-              </span>
-              <span>
-                <strong className="block text-lg font-black leading-tight max-sm:text-[12px]">Resultats rapides</strong>
-                <span className="block text-sm font-medium leading-snug text-white/90 max-sm:text-[11px]">
-                  Des resultats des les premieres heures
-                </span>
-              </span>
-            </div>
+      <img
+        src="/images/tok-refonte/chef-invitation.webp"
+        alt=""
+        loading="lazy"
+        className="absolute inset-0 h-full w-full object-cover object-left"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#fff8ee]/45 to-[#fff8ee] max-sm:bg-gradient-to-t max-sm:from-[#fff8ee] max-sm:via-[#fff8ee]/75 max-sm:to-transparent" />
+      <div className="relative z-10 flex min-h-[20rem] items-end p-4 sm:min-h-[17rem] sm:items-center sm:justify-end sm:p-5">
+        <div className="w-full rounded-[1.25rem] border border-white/80 bg-white/90 p-4 shadow-lg shadow-orange-950/10 backdrop-blur sm:w-[59%] md:w-[55%]">
+          <Badge className="mb-2 rounded-full bg-orange-100 text-orange-800 hover:bg-orange-100">Visibilité locale</Badge>
+          <h2 className="font-display text-2xl font-bold leading-tight text-slate-950">Votre cuisine mérite d’être remarquée.</h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+            Présentez votre plat fort aux gourmands proches de votre restaurant, dès CHF 1.–.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1.5"><TrendingUp className="h-3.5 w-3.5 text-primary" /> Plus de visibilité</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1.5"><BellRing className="h-3.5 w-3.5 text-primary" /> Public local</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1.5"><Rocket className="h-3.5 w-3.5 text-primary" /> Mise en ligne rapide</span>
           </div>
-
-          <Button
-            type="button"
-            className="mt-1 h-12 rounded-2xl bg-white px-5 text-base font-black text-orange-600 shadow-xl shadow-orange-900/20 transition hover:bg-orange-50 hover:text-orange-700 max-sm:h-11 max-sm:w-full max-sm:text-sm"
-            onClick={onSponsorClick}
-          >
+          <Button type="button" className="mt-4 h-10 w-full rounded-full font-bold shadow-lg shadow-orange-500/20" onClick={onSponsorClick}>
             Mettre mon restaurant en avant
           </Button>
         </div>
@@ -315,6 +284,17 @@ export default function Actualites() {
       })
       .slice(0, 4);
   }, [filteredPosts]);
+  const storyPosts = useMemo(() => {
+    const seenRestaurants = new Set<string>();
+
+    return posts
+      .filter((post) => {
+        if (seenRestaurants.has(post.restaurantId)) return false;
+        seenRestaurants.add(post.restaurantId);
+        return true;
+      })
+      .slice(0, 7);
+  }, [posts]);
   const feedStats = useMemo(() => {
     const restaurantsCount = new Set(filteredPosts.map((post) => post.restaurantId)).size;
     const offersCount = filteredPosts.filter((post) => post.postType === "promo" || post.ctaType === "offer").length;
@@ -412,12 +392,31 @@ export default function Actualites() {
   };
 
   return (
-    <main className="min-h-screen overflow-x-clip bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.12),transparent_28rem),linear-gradient(180deg,rgba(255,247,237,0.85),rgba(255,255,255,0.96)_13rem,rgba(248,250,252,0.85))] py-3 md:py-6">
-      <h1 className="sr-only">Actualités, plats, offres et événements des restaurants TOK</h1>
-      <div className="container grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]">
+    <main className="min-h-screen overflow-x-clip bg-[#fffaf4] py-3 md:py-6">
+      <div className="tok-feed-grid container min-w-0">
+        <aside className="tok-feed-menu">
+          <nav className="grid gap-1 rounded-2xl border bg-card p-3 shadow-soft" aria-label="Votre espace actualités">
+            <h2 className="mb-1 font-display text-lg font-bold">Votre espace</h2>
+            {SOCIAL_FEED_SCOPES.map((item) => (
+              <Button key={item.value} variant={scope === item.value ? "secondary" : "ghost"}
+                aria-pressed={scope === item.value} className="min-h-11 justify-start"
+                onClick={() => { setSearchQuery(""); changeScope(item.value); }}>
+                {item.label}
+              </Button>
+            ))}
+          </nav>
+          <section className="tok-chef-invitation">
+            <div><h2>Faites parler de votre resto</h2>
+              <Link className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold underline" to="/restaurateurs/geneve">Découvrir TOK Pro</Link>
+            </div>
+          </section>
+        </aside>
         <section className="min-w-0 max-w-full space-y-2 md:space-y-3">
+          <div data-testid="actualites-hero">
+            <PageHeading title="Le rendez-vous des gourmands." description="Les bonnes adresses se partagent." mascot="megaphone" />
+          </div>
           <div className="relative overflow-hidden rounded-[1.5rem] border border-orange-100/80 bg-background/95 p-2 shadow-lg shadow-orange-100/35 backdrop-blur md:p-3">
-            <div className="relative z-10 flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center">
+            <div className="relative z-10 flex min-w-0 flex-col gap-2">
               <div className="relative min-w-0 flex-1">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -446,12 +445,12 @@ export default function Actualites() {
               </div>
 
               {normalizedSearchQuery.length >= 2 ? (
-                <Badge variant="outline" className="h-10 justify-center gap-2 rounded-2xl border-orange-200 bg-orange-50 px-4 text-orange-800 lg:w-[29rem]">
+                <Badge variant="outline" className="h-10 justify-center gap-2 rounded-2xl border-orange-200 bg-orange-50 px-4 text-orange-800 w-full">
                   <Search className="h-4 w-4" aria-hidden="true" />
                   Recherche globale dans tout le fil
                 </Badge>
               ) : (
-                <Tabs value={scope} onValueChange={changeScope} className="min-w-0 lg:w-[29rem]">
+                <Tabs value={scope} onValueChange={changeScope} className="min-w-0 w-full">
                   <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-muted/50 p-1 sm:grid-cols-5">
                     {SOCIAL_FEED_SCOPES.map((item) => (
                       <TabsTrigger
@@ -484,6 +483,55 @@ export default function Actualites() {
               }
             </p>
           </div>
+
+        {storyPosts.length > 0 || canManage ? (
+          <section aria-labelledby="actualites-stories-title" className="rounded-[1.5rem] border border-orange-100 bg-white/90 p-3 shadow-sm sm:p-4">
+            <div className="mb-3 flex items-center justify-between gap-3 px-1">
+              <div>
+                <h2 id="actualites-stories-title" className="font-display text-lg font-bold text-slate-950">À découvrir aujourd’hui</h2>
+                <p className="text-xs text-slate-500">Un aperçu des dernières tables qui font parler d’elles.</p>
+              </div>
+              <Badge variant="outline" className="hidden rounded-full border-orange-200 text-orange-800 sm:inline-flex">En direct</Badge>
+            </div>
+            <div className="flex min-w-0 gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-testid="actualites-stories">
+              {canManage ? (
+                <button
+                  type="button"
+                  className="group flex w-[4.75rem] shrink-0 flex-col items-center gap-1.5 text-center"
+                  onClick={() => document.getElementById("actualites-composer")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                >
+                  <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-orange-300 bg-orange-50 text-2xl font-light text-primary transition group-hover:border-primary group-hover:bg-orange-100">+</span>
+                  <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-slate-700">Votre actualité</span>
+                </button>
+              ) : null}
+              {storyPosts.map((post) => {
+                const storyImage = post.media.find((media) => media.mediaType === "image")?.mediaUrl || post.restaurant.imageUrl;
+
+                return (
+                  <button
+                    key={post.restaurantId}
+                    type="button"
+                    className="group flex w-[4.75rem] shrink-0 flex-col items-center gap-1.5 text-center"
+                    aria-label={`Voir l’actualité de ${post.restaurant.name}`}
+                    onClick={() => navigate(`/actualites/${encodeURIComponent(post.id)}`)}
+                  >
+                    <span className="rounded-full bg-gradient-to-br from-orange-400 via-primary to-amber-300 p-[2px] shadow-sm transition group-hover:scale-[1.04]">
+                      <span className="flex h-[3.75rem] w-[3.75rem] items-center justify-center overflow-hidden rounded-full border-2 border-white bg-orange-50">
+                        {storyImage ? (
+                          <img src={storyImage} alt="" loading="lazy" className="h-full w-full object-cover" />
+                        ) : (
+                          <Store className="h-5 w-5 text-primary" aria-hidden="true" />
+                        )}
+                      </span>
+                    </span>
+                    <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-slate-700 group-hover:text-primary">{post.restaurant.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
 
           {canManage ? <ActualitesBoostBanner onSponsorClick={() => setSponsorDialogRequest((request) => request + 1)} /> : null}
 

@@ -1,3 +1,5 @@
+import { OPTIMIZED_TOK_LOGO_SRC } from "@/lib/tokLogo";
+import PageHeading from "@/components/editorial/PageHeading";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -44,7 +46,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
 import NotificationMenuBadge from "@/components/notifications/NotificationMenuBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
@@ -54,7 +55,6 @@ import { useAuth } from "@/lib/auth-context";
 import { useActiveFeatures, useFeatureFlags } from "@/lib/featureFlags";
 import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { OPTIMIZED_TOK_LOGO_SRC } from "@/lib/tokLogo";
 import {
   MARKETPLACE_LIQUIDITY_BLOCKERS,
   MarketplaceLiquidityBlocker,
@@ -279,6 +279,7 @@ const ADMIN_TOOLS = [
 const ADMIN_CATEGORY_SPECS = [
   {
     id: "people",
+    image: "/images/dashboard-generated/restaurant_accueil_hero.webp",
     title: "Utilisateurs, Partenaires et équipe",
     shortTitle: "Utilisateurs & équipe",
     description: "Comptes, partenaires et collaborateurs TOK.",
@@ -287,6 +288,7 @@ const ADMIN_CATEGORY_SPECS = [
   },
   {
     id: "services",
+    image: "/images/dashboard-generated/restaurant_reservations_hero.webp",
     title: "Réservations & services",
     shortTitle: "Réservations & services",
     description: "Commandes, catalogue et services opérationnels.",
@@ -295,6 +297,7 @@ const ADMIN_CATEGORY_SPECS = [
   },
   {
     id: "marketing",
+    image: "/images/dashboard-generated/restaurant_campagnes_hero.webp",
     title: "Clients & marketing",
     shortTitle: "Clients & marketing",
     description: "Relation client, fidélisation et communication.",
@@ -303,6 +306,7 @@ const ADMIN_CATEGORY_SPECS = [
   },
   {
     id: "finance",
+    image: "/images/dashboard-generated/restaurant_comptabilite_hero.webp",
     title: "Finances & abonnements",
     shortTitle: "Finances & abonnements",
     description: "Comptabilité, revenus et abonnements restaurants.",
@@ -311,6 +315,7 @@ const ADMIN_CATEGORY_SPECS = [
   },
   {
     id: "security",
+    image: "/images/dashboard-generated/restaurant_pilotage_service_hero.webp",
     title: "Sécurité & assistance",
     shortTitle: "Sécurité & assistance",
     description: "Incidents, supervision et résolution assistée.",
@@ -319,6 +324,7 @@ const ADMIN_CATEGORY_SPECS = [
   },
   {
     id: "platform",
+    image: "/images/dashboard-generated/restaurant_tok_connect_hero.webp",
     title: "Plateforme & outils",
     shortTitle: "Plateforme & outils",
     description: "Pilotage technique, intégrations et documentation.",
@@ -639,27 +645,10 @@ export default function AdminHome() {
 
   return (
     <div className="mx-auto w-full max-w-[1680px] space-y-3 px-3 pb-10 pt-2 sm:px-5 lg:px-6">
-      <header className="relative overflow-hidden rounded-[1.6rem] border border-border/70 bg-card px-4 py-4 shadow-sm sm:px-6 lg:py-4">
-        <div className="relative z-10 flex items-center gap-3 lg:gap-5">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#ff7a1a] to-primary shadow-[0_12px_30px_rgba(241,93,34,0.24)] lg:h-[4.5rem] lg:w-[4.5rem]">
-            <img src={OPTIMIZED_TOK_LOGO_SRC} alt="TOK" className="h-full w-full scale-[1.16] object-contain" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="mb-1 hidden text-[10px] font-bold uppercase tracking-[0.28em] text-primary sm:block">Back-office TOK</p>
-            <h1 className="font-display text-[1.8rem] font-black leading-none tracking-[-0.035em] text-foreground sm:text-4xl">Administration</h1>
-            <p className="mt-1 hidden max-w-3xl text-sm text-muted-foreground lg:block">
-              Pilotez les opérations, les utilisateurs et les outils actifs depuis un espace unique.
-            </p>
-          </div>
-          <img
-            src={DASHBOARD_ILLUSTRATIONS.adminAnalytics.src}
-            alt=""
-            width={72}
-            height={72}
-            className="hidden h-[4.5rem] w-[4.5rem] object-contain opacity-90 xl:block"
-          />
-        </div>
-        <label className="relative mt-4 block lg:absolute lg:right-28 lg:top-1/2 lg:mt-0 lg:w-[min(28rem,34vw)] lg:-translate-y-1/2 xl:right-36">
+      <div className="space-y-3">
+        <PageHeading title="Administration" description="Gérez votre plateforme TOK en toute simplicité."
+          eyebrow={<span className="flex items-center gap-2"><img src={OPTIMIZED_TOK_LOGO_SRC} alt="TOK" width={40} height={40} className="h-10 w-10 object-contain" />Back-office TOK</span>} />
+        <label className="relative block max-w-2xl">
           <span className="sr-only">Rechercher un outil admin</span>
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
           <input
@@ -669,7 +658,7 @@ export default function AdminHome() {
             className="h-11 w-full rounded-full border border-border/80 bg-background/90 pl-11 pr-4 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
           />
         </label>
-      </header>
+      </div>
 
       <section aria-label="Indicateurs clés" className="grid grid-flow-col auto-cols-[8.8rem] gap-2 overflow-x-auto pb-1 [scrollbar-width:none] xl:grid-flow-row xl:grid-cols-7 xl:overflow-visible xl:pb-0">
         {dashboardMetrics.map((metric) => (
@@ -719,7 +708,8 @@ export default function AdminHome() {
         <div className="hidden grid-cols-3 gap-3 xl:grid">
           {filteredCategories.map((category) => (
             <Card key={category.id} className="overflow-hidden border-border/70 shadow-sm">
-              <CardHeader className="border-b border-primary/10 bg-gradient-to-r from-primary/[0.10] to-orange-50/40 px-4 py-3 dark:to-transparent">
+              <img src={category.image} alt="" loading="lazy" width="640" height="128" className="h-20 w-full object-cover" />
+              <CardHeader className="border-b px-4 py-3">
                 <div className="flex items-center gap-3">
                   <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <category.icon className="h-5 w-5" />

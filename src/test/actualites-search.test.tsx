@@ -162,6 +162,9 @@ describe("Actualites search", () => {
   it("places search above the feed and filters by restaurant, cuisine, city and post tags", () => {
     renderActualites();
 
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole("heading", { level: 1, name: "Le rendez-vous des gourmands." })).toBeVisible();
+
     const search = screen.getByRole("searchbox", {
       name: /rechercher dans les actualit[eé]s/i,
     });

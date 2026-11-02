@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useJourneyFocus } from "@/hooks/useJourneyFocus";
 import { useRef, ReactNode } from "react";
 import {
@@ -668,7 +669,7 @@ function GoldenTokFeatureWizard({
   );
 }
 
-export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, currentStepId, onStepChange, headerAction, children }: FeatureWizardProps) {
+export function FeatureWizard({ title, subtitle, colorClass, steps, currentStepId, onStepChange, headerAction, children }: FeatureWizardProps) {
   const stepRef = useRef<HTMLElement>(null);
   useJourneyFocus(stepRef, currentStepId, "section", true);
   if (title === "La Tok d’Or") {
@@ -690,15 +691,9 @@ export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, 
   const currentStep = steps[Math.max(0, currentIdx)] ?? steps[0];
   const progress = steps.length > 0 ? Math.round(((Math.max(0, currentIdx) + 1) / steps.length) * 100) : 0;
   return (
-    <main ref={stepRef} tabIndex={-1} aria-label={`${title} : ${currentStep?.label || ""}`} className="tok-journey-step scroll-mt-28 min-h-screen bg-background">
+    <main ref={stepRef} tabIndex={-1} aria-label={`${title} : ${currentStep?.label || ""}`} className="tok-product-page tok-journey-step scroll-mt-28 min-h-screen bg-background">
       <div className="container py-8 max-w-2xl space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-2xl bg-${colorClass}/10 flex items-center justify-center shrink-0`}><Icon className={`h-6 w-6 text-${colorClass}`} /></div>
-            <div><h1 className="font-display text-2xl font-bold">{title}</h1><p className="text-muted-foreground text-sm">{subtitle}</p></div>
-          </div>
-          {headerAction && <div className="shrink-0">{headerAction}</div>}
-        </div>
+        <PageHeading title={title} description={subtitle} actions={headerAction} />
         <div className="space-y-3 rounded-xl border bg-card/80 p-2 sm:hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -709,7 +704,7 @@ export function FeatureWizard({ title, subtitle, icon: Icon, colorClass, steps, 
             </div>
             <Badge variant="secondary" className="shrink-0">{progress}%</Badge>
           </div>
-          <div className="flex items-center gap-1" aria-label="Progression">
+          <div className="flex flex-wrap items-center gap-1" aria-label="Progression">
             {steps.map((s, i) => {
               const isCurrent = s.id === currentStepId;
               const isPast = i < currentIdx;

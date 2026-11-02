@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -117,12 +118,9 @@ export default function MultiStop() {
   const allAddressesFilled = stops.every((s) => s.address.trim().length > 0);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="tok-product-page min-h-screen bg-background">
       <div className="container py-8 max-w-2xl space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center"><Route className="h-6 w-6 text-orange-500" /></div>
-          <div><h1 className="font-display text-2xl font-bold">Multi-stop</h1><p className="text-muted-foreground text-xs">Un trajet, plusieurs livraisons</p></div>
-        </div>
+        <PageHeading title="Multi-stop" description="Un trajet, plusieurs livraisons" mascot="presenter" className="flex-1" />
 
         {step === "stops" && (<div className="space-y-4">
           <div className="rounded-xl bg-orange-500/5 border border-orange-500/10 p-4">

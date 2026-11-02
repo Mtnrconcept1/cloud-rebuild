@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { Link } from "react-router-dom";
 import { ArrowRight, Gift, HeartHandshake, ShieldCheck, Sparkles, Utensils } from "lucide-react";
 
@@ -39,18 +40,13 @@ export default function MiamzSolidaires() {
   });
 
   return (
-    <main className="min-h-screen bg-white text-slate-950">
+    <main className="tok-product-page min-h-screen bg-white text-slate-950">
       <section className="relative overflow-hidden border-b border-rose-100">
         <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-rose-50 lg:block" aria-hidden="true" />
-        <div className="container relative grid gap-10 py-12 md:py-16 lg:grid-cols-[0.96fr_1.04fr] lg:items-center">
+        <div className="container relative grid gap-5 py-5 md:py-8 lg:grid-cols-[0.96fr_1.04fr] lg:items-center">
           <div className="max-w-2xl space-y-7">
             <div className="space-y-4">
-              <h1 className="font-display text-4xl font-black leading-[1.02] md:text-6xl">
-                Miamz solidaires, chaque repas peut compter.
-              </h1>
-              <p className="max-w-xl text-base leading-7 text-slate-600 md:text-lg">
-                Les Miamz relient fidélité, cadeaux et dons. Vous profitez de vos repas, vous cumulez des points, puis vous choisissez comment les utiliser ou les reverser.
-              </p>
+              <PageHeading title="Miamz solidaires, chaque repas compte" description="Bien manger aujourd’hui, pour un demain plus solidaire." mascot="presenter" />
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="bg-slate-950 text-white hover:bg-slate-800">

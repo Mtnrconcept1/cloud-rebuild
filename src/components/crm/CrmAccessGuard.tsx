@@ -543,7 +543,7 @@ export default function CrmAccessGuard({
   return (
     <Card className="overflow-hidden border-sky-200 bg-gradient-to-br from-sky-50 via-background to-background">
       <CardContent className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-center">
-        <div className="space-y-4">
+        <div className="relative space-y-4 overflow-hidden rounded-2xl bg-gradient-to-br from-white/80 to-orange-50/70 p-4 pr-24">
           <Badge className="w-fit gap-1 bg-sky-100 text-sky-800">
             <ShieldCheck className="h-3.5 w-3.5" />
             Données sensibles
@@ -555,6 +555,13 @@ export default function CrmAccessGuard({
           <div className="rounded-2xl border bg-background/80 p-4 text-sm text-muted-foreground">
             Le contrôle est aussi appliqué côté Supabase : une session non vérifiée ne peut pas lire la RPC CRM.
           </div>
+          <img
+            src="/images/tok-refonte/chef-presentateur.webp"
+            alt=""
+            className="pointer-events-none absolute -bottom-5 -right-6 h-36 w-36 object-contain object-bottom drop-shadow-[0_12px_18px_rgba(131,51,14,0.22)]"
+            loading="eager"
+            decoding="async"
+          />
         </div>
 
         <div className="rounded-2xl border bg-background p-4 shadow-sm">

@@ -64,7 +64,7 @@ export default function LegalConsentBanner() {
         aria-label="Gérer mes cookies"
         onClick={() => { setDetails(true); setOpen(true); }}
         className={cn(
-          "fixed z-[1300] max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-full border border-border/80 bg-background/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur-xl hover:border-primary/60 hover:text-primary",
+          "tok-cookie-settings fixed z-[1300] max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-full border border-border/80 bg-background/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur-xl hover:border-primary/60 hover:text-primary",
           pathname === "/" ? "hidden lg:inline-flex" : "inline-flex",
           isRestaurantProspectLanding
             ? "left-auto right-3 bottom-auto top-[calc(env(safe-area-inset-top,0px)+4.75rem)] md:top-auto md:bottom-4 md:left-auto md:right-4"

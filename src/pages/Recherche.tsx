@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Crown, Leaf, Map as MapIcon, Percent, Search, SlidersHorizontal, X, Zap } from "lucide-react";
 
 import { getSupabase } from "@/integrations/supabase/client";
 import CityAutocomplete from "@/components/CityAutocomplete";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CampaignBanner from "@/components/CampaignBanner";
+import NearbyRestaurantsMap from "@/components/NearbyRestaurantsMap";
 import RestaurantCard from "@/components/RestaurantCard";
 import { trackSearch, getActiveSponsoredRestaurants } from "@/lib/analytics";
 import { prioritizeSponsoredCards } from "@/lib/sponsoredPlacement";
@@ -21,9 +22,13 @@ import { useActiveFeatures } from "@/lib/featureFlags";
 import { useAuth } from "@/lib/auth-context";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getCommercialDemoClientRestaurants } from "@/lib/commercialDemoClientCatalog";
+import { getBusinessDateKey } from "@/lib/businessTime";
+import { isAntiWasteOfferPubliclyVisible, isFlashSalePubliclyVisible } from "@/lib/specialOffers";
 
 const supabase = getSupabase();
 const SEARCH_PAGE_SIZE = 54;
+const MAX_AUTOMATIC_OFFER_PAGES = 6;
+const PUBLIC_OFFER_SIGNALS_LIMIT = 1_000;
 
 type SortValue =
   | "pertinence"
@@ -35,6 +40,60 @@ type SortValue =
   | "mieux_notes_mois"
   | "plus_reserves_mois";
 type SortDirection = "asc" | "desc";
+type OfferFilter = "promotion" | "flash" | "anti_waste" | "tok_dor";
+
+interface OfferSignals {
+  promotion: Set<string>;
+  flash: Set<string>;
+  anti_waste: Set<string>;
+  tok_dor: Set<string>;
+  failedSources: string[];
+}
+
+const EMPTY_OFFER_SIGNALS: OfferSignals = {
+  promotion: new Set<string>(),
+  flash: new Set<string>(),
+  anti_waste: new Set<string>(),
+  tok_dor: new Set<string>(),
+  failedSources: [],
+};
+
+const OFFER_FILTERS: {
+  value: OfferFilter;
+  label: string;
+  icon: typeof Percent;
+  activeClassName: string;
+  iconClassName: string;
+}[] = [
+  {
+    value: "promotion",
+    label: "Promotions",
+    icon: Percent,
+    activeClassName: "border-red-600 bg-red-600 text-white",
+    iconClassName: "text-red-600",
+  },
+  {
+    value: "anti_waste",
+    label: "Anti-gaspi",
+    icon: Leaf,
+    activeClassName: "border-emerald-600 bg-emerald-600 text-white",
+    iconClassName: "text-emerald-600",
+  },
+  {
+    value: "flash",
+    label: "Ventes flash",
+    icon: Zap,
+    activeClassName: "border-orange-600 bg-orange-600 text-white",
+    iconClassName: "text-orange-600",
+  },
+  {
+    value: "tok_dor",
+    label: "La Tok d’Or",
+    icon: Crown,
+    activeClassName: "border-amber-500 bg-amber-500 text-slate-950",
+    iconClassName: "text-amber-600",
+  },
+];
 
 const SORT_OPTIONS: { value: SortValue; label: string }[] = [
   { value: "pertinence", label: "Pertinence" },
@@ -199,6 +258,16 @@ function getRestaurantCuisineSummary(restaurant: any): string {
   );
 }
 
+function getRestaurantOfferTypes(restaurant: any, signals: OfferSignals): OfferFilter[] {
+  const restaurantId = String(restaurant?.id || "");
+  const types: OfferFilter[] = [];
+  if (signals.promotion.has(restaurantId) || toNumber(restaurant?.promotion_score) > 0) types.push("promotion");
+  if (signals.anti_waste.has(restaurantId)) types.push("anti_waste");
+  if (signals.flash.has(restaurantId)) types.push("flash");
+  if (signals.tok_dor.has(restaurantId)) types.push("tok_dor");
+  return types;
+}
+
 function toCardProps(r: any) {
   return {
     id: r.id,
@@ -238,11 +307,19 @@ export default function Recherche() {
   const activeQuery = searchParams.get("q") || "";
   const [query, setQuery] = useState(activeQuery);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const cityChangedByVisitor = useRef(searchParams.has("city"));
   const cuisine = searchParams.get("cuisine") || "";
   const city = searchParams.get("city") || "";
   const promo = searchParams.get("promo") || "";
+  const offerParam = searchParams.get("offer") || "";
+  const offerFilter: OfferFilter | "" = OFFER_FILTERS.some((option) => option.value === offerParam)
+    ? offerParam as OfferFilter
+    : promo === "true"
+      ? "promotion"
+      : "";
   const price = searchParams.get("price") || "";
   const delivery = searchParams.get("delivery") || "";
   const minRatingParam = searchParams.get("rating") || "";
@@ -402,6 +479,74 @@ export default function Recherche() {
   );
   const quickCuisineOptions = useMemo(() => sortedCuisineOptions.slice(0, 6), [sortedCuisineOptions]);
 
+  const {
+    data: offerSignals = EMPTY_OFFER_SIGNALS,
+    isLoading: offerSignalsLoading,
+    isError: offerSignalsError,
+  } = useQuery({
+    queryKey: ["search-offer-signals", demoSessionKey],
+    enabled: !isCommercialDemoClient,
+    staleTime: 30_000,
+    retry: 1,
+    queryFn: async (): Promise<OfferSignals> => {
+      const today = getBusinessDateKey();
+      const requests = [
+        (supabase.from("meal_formulas") as any)
+          .select("restaurant_id,discount_percent")
+          .eq("is_active", true)
+          .gt("discount_percent", 0)
+          .limit(PUBLIC_OFFER_SIGNALS_LIMIT),
+        (supabase.from("anti_waste_offers") as any)
+          .select("restaurant_id,available_date,pickup_end,quantity_available,is_active")
+          .eq("is_active", true)
+          .gt("quantity_available", 0)
+          .gte("available_date", today)
+          .limit(PUBLIC_OFFER_SIGNALS_LIMIT),
+        (supabase.from("flash_sales" as any) as any)
+          .select("restaurant_id,sale_date,sale_start,sale_end,quantity_available,is_active")
+          .eq("is_active", true)
+          .eq("sale_date", today)
+          .gt("quantity_available", 0)
+          .limit(PUBLIC_OFFER_SIGNALS_LIMIT),
+        (supabase.from("chef_table_drops" as any) as any)
+          .select("restaurant_id,remaining_portions,is_active,drop_time")
+          .eq("is_active", true)
+          .gt("remaining_portions", 0)
+          .limit(PUBLIC_OFFER_SIGNALS_LIMIT),
+      ];
+      const sourceNames = ["promotion", "anti_waste", "flash", "tok_dor"] as const;
+      const settled = await Promise.allSettled(requests);
+      const rows = settled.map((result, index) => {
+        if (result.status === "rejected" || result.value?.error) return null;
+        return Array.isArray(result.value?.data) ? result.value.data : [];
+      });
+      const failedSources = settled.flatMap((result, index) => (
+        result.status === "rejected" || result.value?.error ? [sourceNames[index]] : []
+      ));
+      if (failedSources.length === requests.length) {
+        throw new Error("Les signaux d’offres ne sont pas disponibles.");
+      }
+
+      return {
+        promotion: new Set((rows[0] || []).map((row: any) => String(row.restaurant_id || "")).filter(Boolean)),
+        anti_waste: new Set(
+          (rows[1] || [])
+            .filter((row: any) => isAntiWasteOfferPubliclyVisible(row))
+            .map((row: any) => String(row.restaurant_id || ""))
+            .filter(Boolean),
+        ),
+        flash: new Set(
+          (rows[2] || [])
+            .filter((row: any) => isFlashSalePubliclyVisible(row))
+            .map((row: any) => String(row.restaurant_id || ""))
+            .filter(Boolean),
+        ),
+        tok_dor: new Set((rows[3] || []).map((row: any) => String(row.restaurant_id || "")).filter(Boolean)),
+        failedSources,
+      };
+    },
+  });
+
   const organicRestaurantById = useMemo(
     () => new Map((organicSearchResults || []).map((restaurant: any) => [String(restaurant.id), restaurant])),
     [organicSearchResults],
@@ -411,6 +556,15 @@ export default function Recherche() {
     const params = new URLSearchParams(searchParams);
     if (value) params.set(key, value);
     else params.delete(key);
+    setSearchParams(params);
+  };
+
+  const updateOfferFilter = (value: OfferFilter) => {
+    const params = new URLSearchParams(searchParams);
+    const nextValue = offerFilter === value ? "" : value;
+    params.delete("promo");
+    if (nextValue) params.set("offer", nextValue);
+    else params.delete("offer");
     setSearchParams(params);
   };
 
@@ -495,6 +649,25 @@ export default function Recherche() {
     [isCommercialDemoClient, organicSearchResults, sponsoredCards, sponsoredRotationSeed],
   );
 
+  const cardsWithOfferSignals = useMemo(
+    () => mergedCards.map((restaurant: any) => ({
+      ...restaurant,
+      _offerTypes: getRestaurantOfferTypes(restaurant, offerSignals),
+    })),
+    [mergedCards, offerSignals],
+  );
+
+  const offerFilterUnavailable = Boolean(offerFilter) && (
+    offerSignalsError || offerSignals.failedSources.includes(offerFilter)
+  );
+
+  const visibleCards = useMemo(() => {
+    if (!offerFilter || offerSignalsLoading || offerFilterUnavailable) return cardsWithOfferSignals;
+    return cardsWithOfferSignals.filter((restaurant: any) => (
+      Array.isArray(restaurant._offerTypes) && restaurant._offerTypes.includes(offerFilter)
+    ));
+  }, [cardsWithOfferSignals, offerFilter, offerFilterUnavailable, offerSignalsLoading]);
+
   const activeFilterLabels = useMemo(() => {
     const labels: string[] = [];
     if (activeQuery) labels.push(`Recherche: ${activeQuery}`);
@@ -506,12 +679,39 @@ export default function Recherche() {
     if (price) labels.push(`Budget: ${price === "1" ? "CHF" : price === "2" ? "CHF++" : "CHF+++"}`);
     if (minRating10 > 0) labels.push(`Note: ${minRating10.toFixed(1)}/10+`);
     if (deliveryEnabled && delivery === "true") labels.push("Livraison");
-    if (promo === "true") labels.push("Bons plans");
+    if (offerFilter) {
+      labels.push(OFFER_FILTERS.find((option) => option.value === offerFilter)?.label || "Offre");
+    }
     return labels;
-  }, [activeQuery, city, cuisine, sortedCuisineOptions, price, minRating10, deliveryEnabled, delivery, promo]);
+  }, [activeQuery, city, cuisine, sortedCuisineOptions, price, minRating10, deliveryEnabled, delivery, offerFilter]);
+
+  const loadedPageCount = organicSearchPages?.pages.length || 0;
 
   useEffect(() => {
-    if (isCommercialDemoClient || !hasNextPage || typeof IntersectionObserver === "undefined") {
+    if (!offerFilter || offerSignalsLoading || isCommercialDemoClient) return;
+    if (!hasNextPage || isFetchingNextPage || isFetchNextPageError) return;
+    if (loadedPageCount >= MAX_AUTOMATIC_OFFER_PAGES) return;
+    void fetchNextPage();
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    isCommercialDemoClient,
+    isFetchNextPageError,
+    isFetchingNextPage,
+    loadedPageCount,
+    offerFilter,
+    offerSignalsLoading,
+  ]);
+
+  useEffect(() => {
+    if (!selectedRestaurantId) return;
+    if (!visibleCards.some((restaurant: any) => String(restaurant.id) === selectedRestaurantId)) {
+      setSelectedRestaurantId(null);
+    }
+  }, [selectedRestaurantId, visibleCards]);
+
+  useEffect(() => {
+    if (isCommercialDemoClient || offerFilter || !hasNextPage || typeof IntersectionObserver === "undefined") {
       return;
     }
 
@@ -529,13 +729,22 @@ export default function Recherche() {
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isCommercialDemoClient, isFetchingNextPage, isFetchNextPageError]);
+  }, [fetchNextPage, hasNextPage, isCommercialDemoClient, isFetchingNextPage, isFetchNextPageError, offerFilter]);
 
   useEffect(() => {
-    if (!isCommercialDemoClient && mergedCards.length > 0 && (activeQuery || cuisine || city)) {
-      trackSearch(activeQuery || cuisine || city, mergedCards.length);
+    if (!isCommercialDemoClient && visibleCards.length > 0 && (activeQuery || cuisine || city || offerFilter)) {
+      trackSearch(activeQuery || cuisine || city || offerFilter, visibleCards.length);
     }
-  }, [activeQuery, city, cuisine, isCommercialDemoClient, mergedCards.length]);
+  }, [activeQuery, city, cuisine, isCommercialDemoClient, offerFilter, visibleCards.length]);
+
+  const offerSearchPending = Boolean(offerFilter) && (
+    !offerFilterUnavailable && (offerSignalsLoading
+    || (isFetchingNextPage && loadedPageCount < MAX_AUTOMATIC_OFFER_PAGES)
+    )
+  );
+  const displayedResultCount = offerFilter && !offerSignalsLoading && !offerFilterUnavailable
+    ? visibleCards.length
+    : organicSearchTotal;
 
   return (
     <main className="min-h-screen bg-background">
@@ -565,6 +774,30 @@ export default function Recherche() {
               <Button type="submit" aria-label="Rechercher" className="h-12 w-12 shrink-0 rounded-full p-0 sm:w-auto sm:px-6"><Search className="h-5 w-5 sm:hidden" aria-hidden="true" /><span className="hidden sm:inline">Rechercher</span></Button>
             </form>
 
+            <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Filtres d’offres">
+              {OFFER_FILTERS.map((option) => {
+                const Icon = option.icon;
+                const active = offerFilter === option.value;
+                const resultCount = offerSignals[option.value].size;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => updateOfferFilter(option.value)}
+                    className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${active ? option.activeClassName : "border-border bg-background text-foreground hover:border-primary/40 hover:bg-primary/5"}`}
+                  >
+                    <Icon className={`h-4 w-4 ${active ? "text-current" : option.iconClassName}`} aria-hidden="true" />
+                    {option.label}
+                    {!offerSignalsLoading && resultCount > 0 ? (
+                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${active ? "bg-white/20" : "bg-muted text-muted-foreground"}`}>
+                        {resultCount}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
 
             <div className="flex items-center justify-between gap-3 border-t pt-3">
               <Button type="button" variant="outline" aria-expanded={filtersOpen} aria-controls="search-filters" onClick={() => setFiltersOpen(!filtersOpen)} className="min-h-11 gap-2 rounded-full">
@@ -667,21 +900,49 @@ export default function Recherche() {
                 </Button>
               </div>
             ) : null}
+            {offerSignalsError || offerSignals.failedSources.length > 0 ? (
+              <p role="status" className="text-xs text-amber-700 dark:text-amber-300">
+                Certains filtres d’offres sont temporairement indisponibles. La liste générale reste affichée.
+              </p>
+            ) : null}
           </div>
         </div>
 
         {!isCommercialDemoClient ? <CampaignBanner page="search" maxBanners={1} /> : null}
 
-        <section aria-label="Résultats de recherche" aria-busy={isLoading} className="space-y-6">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="font-display text-2xl font-semibold">{promo === "true" ? "Les bons plans" : "Les restaurants"}{city ? ` à ${city}` : ""}</h2>
-            <p role="status" className="mt-1 text-sm text-muted-foreground">{isLoading ? "Recherche en cours…" : isError && !organicSearchPages ? "Résultats indisponibles" : `${organicSearchTotal.toLocaleString("fr-CH")} adresse${organicSearchTotal > 1 ? "s" : ""} correspondant à votre recherche`}</p>
-          </div>
-          <div className="grid w-full grid-cols-2 items-center gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
+        <section aria-label="Résultats de recherche" aria-busy={isLoading || offerSearchPending} className="space-y-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-display text-2xl font-semibold">
+                {offerFilter ? OFFER_FILTERS.find((option) => option.value === offerFilter)?.label : "Les restaurants"}
+                {city ? ` à ${city}` : ""}
+              </h2>
+              <p role="status" className="mt-1 text-sm text-muted-foreground">
+                {isLoading
+                  ? "Recherche en cours…"
+                  : isError && !organicSearchPages
+                    ? "Résultats indisponibles"
+                    : offerSearchPending
+                      ? `Vérification des offres… ${visibleCards.length} adresse${visibleCards.length > 1 ? "s" : ""} trouvée${visibleCards.length > 1 ? "s" : ""}`
+                      : `${displayedResultCount.toLocaleString("fr-CH")} adresse${displayedResultCount > 1 ? "s" : ""} correspondant à votre recherche`}
+              </p>
+            </div>
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                aria-expanded={mapOpen}
+                aria-controls="restaurant-search-map"
+                onClick={() => setMapOpen((open) => !open)}
+                className="min-h-11 flex-1 gap-2 rounded-full sm:flex-none xl:hidden"
+              >
+                <MapIcon className="h-4 w-4" aria-hidden="true" />
+                {mapOpen ? "Masquer la carte" : "Afficher la carte"}
+              </Button>
+              <div className="grid flex-1 grid-cols-2 items-center gap-2 sm:flex sm:flex-none sm:flex-wrap sm:justify-end">
                 <span className="sr-only">Trier par :</span>
                 <Select value={sortBy} onValueChange={(v) => updateFilter("sort", v)}>
-                  <SelectTrigger aria-label="Trier les restaurants" className="h-[44px] min-w-0 w-full sm:w-44 bg-secondary/20 text-xs font-semibold dark:border-white/20 dark:bg-slate-950/80 dark:text-white xl:w-44"><SelectValue placeholder="Pertinence" /></SelectTrigger>
+                  <SelectTrigger aria-label="Trier les restaurants" className="h-[44px] min-w-0 w-full bg-secondary/20 text-xs font-semibold dark:border-white/20 dark:bg-slate-950/80 dark:text-white sm:w-44"><SelectValue placeholder="Pertinence" /></SelectTrigger>
                   <SelectContent>
                     {SORT_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -689,7 +950,7 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
                 <Select value={sortDirection} onValueChange={(v) => updateFilter("order", v)}>
-                  <SelectTrigger aria-label="Ordre de tri" className="h-[44px] min-w-0 w-full sm:w-32 bg-secondary/20 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white"><SelectValue placeholder="Ordre" /></SelectTrigger>
+                  <SelectTrigger aria-label="Ordre de tri" className="h-[44px] min-w-0 w-full bg-secondary/20 text-xs dark:border-white/20 dark:bg-slate-950/80 dark:text-white sm:w-32"><SelectValue placeholder="Ordre" /></SelectTrigger>
                   <SelectContent>
                     {ORDER_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -697,59 +958,104 @@ export default function Recherche() {
                   </SelectContent>
                 </Select>
               </div>
-        </div>
-        {isError && !isFetchNextPageError ? <div role="alert" className="rounded-2xl border border-destructive/30 bg-card p-6">
-          <h3 className="font-semibold">La recherche est momentanément indisponible</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Vos critères sont conservés. Réessayez pour retrouver les restaurants.</p>
-          <Button type="button" onClick={() => void refetch()} disabled={isFetching} className="mt-4 min-h-11">{isFetching ? "Nouvelle tentative…" : "Réessayer"}</Button>
-        </div> : null}
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-[360px] animate-pulse rounded-3xl bg-muted motion-reduce:animate-none" />
-            ))}
-          </div>
-        ) : mergedCards.length > 0 ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {mergedCards.map((restaurant: any) => (
-                <RestaurantCard key={`${restaurant.id}-${restaurant.campaign_id || "organic"}`} {...toCardProps(restaurant)} />
-              ))}
             </div>
-            {isFetchNextPageError ? <p role="alert" className="text-sm text-destructive">Les adresses suivantes n’ont pas pu être chargées. Vous pouvez réessayer ci-dessous.</p> : null}
-            {hasNextPage && !isCommercialDemoClient ? (
-              <div
-                ref={loadMoreRef}
-                className="flex min-h-20 items-center justify-center"
-                aria-live="polite"
-              >
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="min-h-11 w-full rounded-full sm:w-auto sm:min-w-64"
-                  onClick={() => void fetchNextPage()}
-                  disabled={isFetchingNextPage}
-                >
-                  {isFetchingNextPage
-                    ? `Chargement de ${SEARCH_PAGE_SIZE} restaurants…`
-                    : `Charger les ${SEARCH_PAGE_SIZE} suivants`}
-                </Button>
-              </div>
-            ) : organicSearchTotal > 0 ? (
-              <p className="text-center text-sm text-muted-foreground dark:text-slate-300">
-                Tous les restaurants correspondants sont affichés.
-              </p>
-            ) : null}
           </div>
-        ) : !isError ? (
-          <div className="rounded-[28px] border border-dashed py-20 text-center text-muted-foreground dark:text-slate-300">
-            <p className="text-lg font-semibold text-foreground dark:text-white">Aucun restaurant ne correspond à ces critères</p>
-            <p className="mt-2 text-sm">Essayez une autre ville, une cuisine plus large ou réinitialisez les filtres.</p>
-            <Button type="button" variant="outline" className="mt-5 rounded-full" onClick={clearFilters}>
-              Réinitialiser la recherche
-            </Button>
+
+          {isError && !isFetchNextPageError ? (
+            <div role="alert" className="rounded-2xl border border-destructive/30 bg-card p-6">
+              <h3 className="font-semibold">La recherche est momentanément indisponible</h3>
+              <p className="mt-2 text-sm text-muted-foreground">Vos critères sont conservés. Réessayez pour retrouver les restaurants.</p>
+              <Button type="button" onClick={() => void refetch()} disabled={isFetching} className="mt-4 min-h-11">{isFetching ? "Nouvelle tentative…" : "Réessayer"}</Button>
+            </div>
+          ) : null}
+
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)] xl:items-start">
+            <div className="order-2 min-w-0 xl:order-1">
+              {isLoading ? (
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="h-[360px] animate-pulse rounded-3xl bg-muted motion-reduce:animate-none" />
+                  ))}
+                </div>
+              ) : visibleCards.length > 0 ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    {visibleCards.map((restaurant: any) => {
+                      const isSelected = selectedRestaurantId === String(restaurant.id);
+                      const offerTypes = Array.isArray(restaurant._offerTypes) ? restaurant._offerTypes as OfferFilter[] : [];
+                      return (
+                        <div
+                          key={`${restaurant.id}-${restaurant.campaign_id || "organic"}`}
+                          onMouseEnter={() => setSelectedRestaurantId(String(restaurant.id))}
+                          onFocusCapture={() => setSelectedRestaurantId(String(restaurant.id))}
+                          className={`relative rounded-[26px] transition-shadow ${isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`}
+                        >
+                          {offerTypes.length > 0 ? (
+                            <div className="pointer-events-none absolute left-4 top-4 z-20 flex max-w-[calc(100%-5rem)] flex-wrap gap-1.5">
+                              {offerTypes.slice(0, 2).map((type) => {
+                                const option = OFFER_FILTERS.find((entry) => entry.value === type);
+                                if (!option) return null;
+                                const Icon = option.icon;
+                                return (
+                                  <span key={type} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide shadow-md ${option.activeClassName}`}>
+                                    <Icon className="h-3 w-3" aria-hidden="true" />{option.label}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          ) : null}
+                          <RestaurantCard {...toCardProps(restaurant)} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {isFetchNextPageError ? <p role="alert" className="text-sm text-destructive">Les adresses suivantes n’ont pas pu être chargées. Vous pouvez réessayer ci-dessous.</p> : null}
+                  {hasNextPage && !isCommercialDemoClient ? (
+                    <div ref={loadMoreRef} className="flex min-h-20 items-center justify-center" aria-live="polite">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="min-h-11 w-full rounded-full sm:w-auto sm:min-w-64"
+                        onClick={() => void fetchNextPage()}
+                        disabled={isFetchingNextPage}
+                      >
+                        {isFetchingNextPage
+                          ? `Chargement de ${SEARCH_PAGE_SIZE} restaurants…`
+                          : `Charger les ${SEARCH_PAGE_SIZE} suivants`}
+                      </Button>
+                    </div>
+                  ) : organicSearchTotal > 0 ? (
+                    <p className="text-center text-sm text-muted-foreground dark:text-slate-300">
+                      Tous les restaurants correspondants sont affichés.
+                    </p>
+                  ) : null}
+                </div>
+              ) : !isError && !offerSearchPending ? (
+                <div className="rounded-[28px] border border-dashed px-5 py-20 text-center text-muted-foreground dark:text-slate-300">
+                  <p className="text-lg font-semibold text-foreground dark:text-white">Aucun restaurant ne correspond à ces critères</p>
+                  <p className="mt-2 text-sm">Essayez une autre ville, une cuisine plus large ou réinitialisez les filtres.</p>
+                  <Button type="button" variant="outline" className="mt-5 rounded-full" onClick={clearFilters}>
+                    Réinitialiser la recherche
+                  </Button>
+                </div>
+              ) : (
+                <div className="h-[360px] animate-pulse rounded-3xl bg-muted motion-reduce:animate-none" />
+              )}
+            </div>
+
+            <aside
+              id="restaurant-search-map"
+              aria-label="Carte des restaurants"
+              className={`order-1 min-w-0 xl:sticky xl:top-24 xl:order-2 ${mapOpen ? "block" : "hidden xl:block"}`}
+            >
+              <NearbyRestaurantsMap
+                restaurants={visibleCards}
+                selectedRestaurantId={selectedRestaurantId}
+                onRestaurantSelect={(restaurantId) => setSelectedRestaurantId(restaurantId)}
+                className="h-[58vh] min-h-[360px] w-full rounded-[28px] border shadow-soft xl:h-[calc(100vh-8.5rem)] xl:min-h-[560px]"
+              />
+            </aside>
           </div>
-        ) : null}
         </section>
       </div>
     </main>

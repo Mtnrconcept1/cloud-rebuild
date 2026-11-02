@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -1594,13 +1595,7 @@ export default function CommercialProspection() {
                 <BriefcaseBusiness className="h-3.5 w-3.5" />
                 Espace commercial
               </div>
-              <h1 className="mt-4 break-words font-display text-3xl font-black leading-tight md:text-5xl">
-                Carte commerciale des restaurants genevois
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
-                Connecté avec vos identifiants commerciaux, recherchez un établissement, ouvrez sa fiche sur la carte,
-                puis marquez l'avancement. Les signatures restent rattachées au commercial qui les enregistre.
-              </p>
+              <PageHeading title="Carte commerciale" description="Trouvez et développez les meilleures adresses à Genève." />
               <div className="mt-4 flex min-w-0 flex-wrap gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
                 <span className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-full border bg-white/80 px-3 py-1.5 dark:border-white/10 dark:bg-white/5">
                   <UserRound className="h-3.5 w-3.5 text-primary" />

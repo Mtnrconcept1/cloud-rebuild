@@ -492,15 +492,25 @@ export default function Profil() {
           </TabsList>
 
           <TabsContent value="infos" className="tok-customer-profile-information space-y-6 pt-4">
-            {isCommercialDemoClient ? (
-              <SignupApplicationStatusCard
-                application={null}
-                title="Vérification du compte client"
-                emptyDescription="Compte client local prêt pour la démonstration."
-              />
-            ) : (
-              <ProductionSignupApplicationStatus />
-            )}
+            <div className="tok-profile-identity">
+              <section className="flex min-w-0 items-center gap-4">
+                {avatarUrl ? <img src={avatarUrl} alt="" width="72" height="72" className="h-[4.5rem] w-[4.5rem] rounded-full border-2 border-primary object-cover" /> :
+                  <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"><User aria-hidden="true" /></span>}
+                <div className="min-w-0"><h2 className="break-words font-display text-2xl font-semibold">{fullName || "Mon profil"}</h2>
+                  {city && <p className="mt-1 text-sm text-muted-foreground">{city}</p>}</div>
+              </section>
+              <div className="min-w-0">
+              {isCommercialDemoClient ? (
+                <SignupApplicationStatusCard
+                  application={null}
+                  title="Vérification du compte client"
+                  emptyDescription="Compte client local prêt pour la démonstration."
+                />
+              ) : (
+                <ProductionSignupApplicationStatus />
+              )}
+              </div>
+            </div>
 
             <div className="tok-customer-profile-columns">
               <section className="tok-customer-profile-form-card">
@@ -629,10 +639,8 @@ export default function Profil() {
                 </div>
               </section>
               <aside className="tok-customer-profile-aside">
-                <section className="tok-customer-note-card">
-                  <User aria-hidden="true" />
-                  <h2>Votre profil</h2>
-                  <p>Une photo et des coordonnées à jour aident les restaurants à préparer votre accueil et à vous contacter.</p>
+                <section className="tok-chef-invitation" aria-label="Votre profil TOK">
+                  <div><h2>Votre profil</h2><p className="mt-2 text-sm">Une photo et des coordonnées à jour pour préparer votre accueil.</p></div>
                 </section>
                 <Link
                   className="tok-customer-profile-shortcut"

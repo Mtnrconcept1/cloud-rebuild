@@ -95,6 +95,7 @@ type ClientDashboardOverviewData = {
 };
 
 type QuickAction = {
+  image: string;
   label: string;
   description: string;
   to: string;
@@ -113,6 +114,7 @@ const QUICK_ACTIONS: QuickAction[] = [
     label: "Trouver une table",
     description: "Restaurants et disponibilités",
     to: "/recherche",
+    image: "/images/dashboard-generated/client_accueil_hero.webp",
     icon: Search,
     feature: "reservation",
     accent: "bg-orange-500/10 text-orange-600",
@@ -121,6 +123,7 @@ const QUICK_ACTIONS: QuickAction[] = [
     label: "Zéro attente",
     description: "Réserver, choisir et payer",
     to: "/zero-attente",
+    image: "/images/dashboard-generated/client_zero_attente_hero.webp",
     icon: Zap,
     feature: "zero-attente",
     accent: "bg-indigo-500/10 text-indigo-600",
@@ -129,6 +132,7 @@ const QUICK_ACTIONS: QuickAction[] = [
     label: "Anti-gaspi",
     description: "Sauver de bons produits",
     to: "/anti-gaspi",
+    image: "/images/dashboard-generated/client_anti_gaspi_hero.webp",
     icon: Heart,
     feature: "anti-gaspi",
     accent: "bg-emerald-500/10 text-emerald-600",
@@ -137,6 +141,7 @@ const QUICK_ACTIONS: QuickAction[] = [
     label: "Ventes flash",
     description: "Offres à durée limitée",
     to: "/ventes-flash",
+    image: "/images/dashboard-generated/client_ventes_flash_hero.webp",
     icon: Sparkles,
     feature: "ventes-flash",
     accent: "bg-pink-500/10 text-pink-600",
@@ -145,6 +150,7 @@ const QUICK_ACTIONS: QuickAction[] = [
     label: "La Tok d’Or",
     description: "Expériences exclusives",
     to: "/chefs-table",
+    image: "/images/dashboard-generated/client_tok_dor_hero.webp",
     icon: ChefHat,
     feature: "chefs-table",
     accent: "bg-amber-500/10 text-amber-700",
@@ -153,6 +159,7 @@ const QUICK_ACTIONS: QuickAction[] = [
     label: "Actualités",
     description: "Nouveautés de vos restaurants",
     to: "/actualites",
+    image: "/images/dashboard-generated/client_actualites_hero.webp",
     icon: MessageSquareText,
     feature: "actualites-sociales",
     accent: "bg-sky-500/10 text-sky-600",
@@ -413,8 +420,8 @@ function LiveClientDashboardHome() {
     <CustomerDashboardLayout>
       <div className="tok-customer-page tok-customer-home space-y-6">
         <CustomerPageHero
-          title={<>Bonjour{firstName ? <> <em className="tok-title-accent">{firstName}</em></> : ""},</>}
-          subtitle="Votre prochaine belle table vous attend."
+          title="Mon espace"
+          subtitle={firstName ? `Bonjour ${firstName}. Votre prochaine belle table vous attend.` : "Votre prochaine belle table vous attend."}
           description="Vos prochaines actions, vos avantages et toute votre activité en un seul endroit."
           actions={
             <Button asChild className="min-h-11 gap-2">
@@ -547,10 +554,10 @@ function LiveClientDashboardHome() {
                     <div className={cn("mb-3 flex h-10 w-10 items-center justify-center rounded-xl", action.accent)}>
                       <action.icon className="h-5 w-5" aria-hidden="true" />
                     </div>
-                    <action.icon className="tok-client-action-watermark" aria-hidden="true" />
+                    <img src={action.image} alt="" loading="lazy" className="tok-client-action-photo" />
                     <ArrowRight className="tok-client-card-arrow h-4 w-4" aria-hidden="true" />
                     <p className="relative break-words text-sm font-bold sm:text-base">{action.label}</p>
-                    <p className="mt-1 hidden text-xs text-muted-foreground sm:block">{action.description}</p>
+                    <p className="relative mt-1 hidden text-xs text-muted-foreground sm:block">{action.description}</p>
                   </Link>
                 ))}
               </div>

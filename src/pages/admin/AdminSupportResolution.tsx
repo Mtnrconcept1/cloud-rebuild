@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -239,14 +240,7 @@ const linkedOpsIncidents = useMemo<OpsIncidentSummary[]>(() => {
           <Bot className="h-4 w-4" />
           TOK Support & Resolution
         </div>
-        <h1 className="mt-3 font-dashboard text-3xl font-bold">
-          Diagnostiquer puis résoudre avec validation
-        </h1>
-        <p className="mt-3 max-w-4xl text-muted-foreground">
-          L’agent rassemble la chronologie, les preuves et les options. Les
-          remboursements, avoirs, clôtures et changements sensibles restent
-          contrôlés par un administrateur.
-        </p>
+        <PageHeading title="Diagnostiquer puis résoudre avec validation" description="L’agent rassemble la chronologie, les preuves et les options. Les remboursements, avoirs, clôtures et changements sensibles restent contrôlés par un administrateur." />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">

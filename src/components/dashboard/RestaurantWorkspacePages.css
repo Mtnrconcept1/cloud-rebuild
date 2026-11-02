@@ -254,6 +254,9 @@
 .tok-hospitality-workspace .tok-floorplan-restaurant { display: inline-flex; min-width: 0; align-items: center; gap: 6px; color: #574b40; font-size: 11px; font-weight: 720; }
 .tok-hospitality-workspace .tok-floorplan-restaurant svg { color: var(--workspace-orange); }
 .tok-hospitality-workspace .tok-floorplan-hero-illustration { grid-area: art; width: 104px; height: 104px; justify-self: end; border-radius: 22px; background: radial-gradient(circle at center, rgb(255 174 93 / 28%), transparent 68%); }
+.tok-hospitality-workspace .tok-floorplan-hero-visual { position: relative; overflow: visible; }
+.tok-hospitality-workspace .tok-floorplan-hero-context { position: absolute; inset: 12% 24% 18% -12%; width: 72%; height: 72%; opacity: .58; }
+.tok-hospitality-workspace .tok-floorplan-hero-chef { position: absolute; right: -12%; bottom: -8%; width: 88%; height: 104%; object-fit: contain; object-position: right bottom; filter: drop-shadow(0 12px 18px rgb(131 51 14 / 22%)); }
 .tok-hospitality-workspace .tok-floorplan-toolbar {
   display: flex;
   width: 100%;

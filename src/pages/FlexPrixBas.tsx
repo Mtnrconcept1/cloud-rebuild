@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -123,12 +124,9 @@ export default function FlexPrixBas() {
   const stepIdx = (s: Step) => ["window", "restaurant", "menu", "confirm"].indexOf(s);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="tok-product-page min-h-screen bg-background">
       <div className="container py-8 space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center"><Gift className="h-6 w-6 text-emerald-500" /></div>
-          <div><h1 className="font-display text-2xl font-bold">Offres</h1><p className="text-muted-foreground text-xs">Acceptez une fenêtre flexible et payez moins cher</p></div>
-        </div>
+        <PageHeading title="Offres flexibles" description="Acceptez une fenêtre flexible et payez moins cher" mascot="megaphone" className="flex-1" />
 
         <div className="flex items-center gap-1">
           {(["window", "restaurant", "menu", "confirm"] as Step[]).map((s, i) => {

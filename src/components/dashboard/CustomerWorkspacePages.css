@@ -328,3 +328,12 @@
 .tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 > div { gap: 12px; }
 .tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 > div > span:first-child { min-width: 0; overflow-wrap: anywhere; }
 .tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 > div > span:last-child { flex-shrink: 0; }
+
+.tok-client-action-photo {
+  position: absolute; inset: 0 0 0 auto; width: 48%; height: 100%; object-fit: cover;
+  mask-image: linear-gradient(to right, transparent, black 70%); pointer-events: none;
+}
+.tok-client-quick-action > p { max-width: 70%; }
+
+.tok-profile-identity { display: grid; gap: 1rem; align-items: center; padding: 1rem; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 1rem; }
+@media (min-width: 860px) { .tok-profile-identity { grid-template-columns: minmax(12rem, .8fr) minmax(0, 1.2fr); } }

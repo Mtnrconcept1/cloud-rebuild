@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -246,14 +247,7 @@ export default function AdminGuardian({ embedded = false }: { embedded?: boolean
           <Shield className="h-4 w-4" />
           TOK Guardian
         </div>
-        <h1 className="mt-3 font-dashboard text-3xl font-bold">
-          Observer, comprendre, vérifier
-        </h1>
-        <p className="mt-3 max-w-4xl text-muted-foreground">
-          Guardian complète la file d’incidents existante. Il analyse les
-          preuves, prépare un plan réversible et contrôle le retour à la
-          normale, sans jamais fusionner ni déployer automatiquement.
-        </p>
+        <PageHeading title="Observer, comprendre, vérifier" description="Guardian complète la file d’incidents existante. Il analyse les preuves, prépare un plan réversible et contrôle le retour à la normale, sans jamais fusionner ni déployer automatiquement." />
       </div> : null}
 
       {overviewQuery.isError ? (

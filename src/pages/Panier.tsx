@@ -1653,12 +1653,47 @@ export default function Panier() {
 
   if (items.length === 0) {
     return (
-      <main className="min-h-screen bg-background">
-        <div className="container py-16 text-center space-y-4">
-          <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground" />
-          <h1 className="font-display text-2xl font-bold">Votre panier est vide</h1>
-          <p className="text-muted-foreground">Explorez nos restaurants et ajoutez des plats</p>
-          <Button asChild><Link to="/recherche">Voir les restaurants</Link></Button>
+      <main className="min-h-screen overflow-hidden bg-[#fffaf4] py-5 sm:py-10">
+        <div className="container">
+          <section
+            data-testid="empty-cart-state"
+            className="relative mx-auto grid max-w-5xl overflow-hidden rounded-[2rem] border border-orange-100 bg-white shadow-2xl shadow-orange-100/60 md:min-h-[34rem] md:grid-cols-[minmax(0,0.9fr)_minmax(22rem,1.1fr)]"
+          >
+            <div className="relative z-10 flex flex-col justify-center px-6 py-9 sm:px-10 md:px-12 md:py-12">
+              <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-primary ring-1 ring-orange-100">
+                <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary">Votre sélection TOK</p>
+              <h1 className="mt-3 max-w-md font-display text-4xl font-bold leading-[0.98] tracking-[-0.035em] text-slate-950 sm:text-5xl">
+                Votre prochaine découverte commence ici.
+              </h1>
+              <p className="mt-4 max-w-md text-base leading-relaxed text-slate-600">
+                Votre panier est encore vide. Explorez les tables proches de vous et ajoutez les plats qui vous font envie.
+              </p>
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Button asChild size="lg" className="h-12 rounded-full px-6 font-bold shadow-lg shadow-orange-500/20">
+                  <Link to="/recherche">
+                    Voir les restaurants
+                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="h-12 rounded-full border-orange-200 bg-white px-6 text-slate-800">
+                  <Link to="/actualites">Voir les nouveautés</Link>
+                </Button>
+              </div>
+              <p className="mt-6 text-xs leading-relaxed text-slate-500">
+                Commande, livraison ou retrait : vous choisirez le service avant le paiement.
+              </p>
+            </div>
+            <div className="relative min-h-[18rem] overflow-hidden bg-[#fff7ed] md:min-h-full">
+              <div className="absolute inset-x-0 top-0 z-10 h-20 bg-gradient-to-b from-white to-transparent md:inset-y-0 md:left-0 md:h-auto md:w-24 md:bg-gradient-to-r" />
+              <img
+                src="/images/tok-refonte/panier-vide.webp"
+                alt="Le chef TOK présente un panier prêt à accueillir vos plats"
+                className="absolute inset-0 h-full w-full object-contain object-center p-3 sm:p-5"
+              />
+            </div>
+          </section>
         </div>
       </main>
     );

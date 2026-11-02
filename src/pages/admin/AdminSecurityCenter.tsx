@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useQuery } from "@tanstack/react-query";
 import { Activity, Bot, CreditCard, ScrollText, ShieldAlert } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
@@ -82,11 +83,7 @@ export default function AdminSecurityCenter() {
           <ShieldAlert className="h-5 w-5" />
           <span className="text-sm font-semibold">Administration TOK</span>
         </div>
-        <h1 className="mt-2 font-dashboard text-2xl font-bold">Centre de sécurité</h1>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Surveillance, preuves et assistance à la résolution. Les correctifs sont préparés
-          sur une branche isolée après votre approbation renforcée, jamais appliqués directement en production.
-        </p>
+        <PageHeading title="Centre de sécurité" description="Surveillance, preuves et assistance à la résolution. Les correctifs sont préparés sur une branche isolée après votre approbation renforcée, jamais appliqués directement en production." />
         <nav aria-label="Sections du centre de sécurité" className="mt-5 flex flex-wrap gap-2">
           {tabs.map(({ id, label, icon: Icon }) => (
             <Button

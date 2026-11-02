@@ -905,14 +905,14 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="relative h-64 bg-secondary md:h-80">
+      <div className="tok-restaurant-cover relative mx-auto max-w-screen-2xl overflow-hidden bg-secondary md:rounded-2xl">
         <Button variant="ghost" size="icon" aria-label="Retour à l'accueil" className="absolute left-4 top-4 z-20 rounded-full border-white/10 bg-black/30 text-white backdrop-blur-md hover:bg-black/50" onClick={() => navigate('/')}><ArrowLeft className="h-5 w-5" /></Button>
         <Button variant="ghost" size="icon" aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"} className="absolute right-4 top-4 z-20 rounded-full border-white/10 bg-black/30 text-white backdrop-blur-md hover:bg-black/50" onClick={toggleFavorite}><Heart className={isFavorite ? "h-5 w-5 fill-red-500 text-red-500" : "h-5 w-5"} /></Button>
         {galleryPhotos.length > 0 ? (
           <button
             type="button"
             aria-label="Ouvrir la galerie photo du restaurant"
-            className="block h-full w-full cursor-zoom-in text-left"
+            className="tok-restaurant-cover__gallery block h-full w-full cursor-zoom-in text-left"
             onClick={openCoverGallery}
           >
             <img
@@ -941,14 +941,14 @@ export default function RestaurantDetail({ resolvedRestaurantId, canonicalPath }
             <Camera className="h-4 w-4" /> {galleryPhotos.length} photos
           </Button>
         )}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+        <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/80 via-black/35 to-transparent md:block" />
+        <div className="tok-restaurant-cover__caption bg-card p-4 md:absolute md:inset-x-0 md:bottom-0 md:bg-transparent md:p-8">
           <div className="container">
             <div className="flex items-center gap-2 mb-2">
               {restaurant.cuisine_type && <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/20">{restaurant.cuisine_type}</Badge>}
               {showDelivery && <Badge className="bg-blue-500/80 backdrop-blur-sm text-white border-0"><Bike className="h-3 w-3 mr-1" /> Livraison</Badge>}
             </div>
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-white">{restaurant.name}</h1>
+            <h1 className="font-display text-3xl font-bold text-foreground md:text-5xl md:text-white">{restaurant.name}</h1>
             <div className="flex flex-wrap items-center gap-3 mt-3">
               {hasPublicRating ? (
                 <>

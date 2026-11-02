@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -212,19 +213,9 @@ export default function CreneauxGarantis() {
   const stepIdx = (s: Step) => ["when", "restaurant", "menu", "confirm"].indexOf(s);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="tok-product-page min-h-screen bg-background">
       <div className="container px-4 py-8 space-y-6 overflow-hidden">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center shrink-0">
-            <Shield className="h-6 w-6 text-blue-500" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="font-display text-xl sm:text-2xl font-bold">Créneaux garantis</h1>
-            <p className="text-muted-foreground text-xs">
-              Choisissez quand vous voulez être livré — on vous garantit le créneau
-            </p>
-          </div>
-        </div>
+        <PageHeading title="Créneaux garantis" description="Choisissez quand vous voulez être livré — on vous garantit le créneau" mascot="cloche" className="flex-1" />
 
         <div className="flex items-center gap-1">
           {(["when", "restaurant", "menu", "confirm"] as Step[]).map((s, i) => {
