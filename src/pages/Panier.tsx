@@ -1670,7 +1670,7 @@ export default function Panier() {
               <p className="mt-4 max-w-md text-base leading-relaxed text-slate-600">
                 Votre panier est encore vide. Explorez les tables proches de vous et ajoutez les plats qui vous font envie.
               </p>
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Button asChild size="lg" className="h-12 rounded-full px-6 font-bold shadow-lg shadow-orange-500/20">
                   <Link to="/recherche">
                     Voir les restaurants

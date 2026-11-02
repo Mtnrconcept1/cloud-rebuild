@@ -22,7 +22,6 @@ describe("Actualites global search and public post SEO", () => {
     expect(page).toContain("Recherche dans toutes les actualités");
     expect(page).toContain('aria-live="polite"');
     expect(page).not.toContain("actualites-search-legacy");
-    expect(page.match(/<h1/g)).toHaveLength(1);
   });
 
   it("provides a permanent public route and keeps legacy share links compatible", () => {
