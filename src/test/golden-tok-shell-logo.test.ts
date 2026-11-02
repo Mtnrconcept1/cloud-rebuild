@@ -30,17 +30,17 @@ describe("Golden TOK public chrome", () => {
   });
 
   it("loads the reference-driven V4 refinement after the hero artwork layer", () => {
-    const main = read("src/main.tsx");
+    const page = read("src/pages/ChefsTable.tsx");
     const v2 = read("src/styles/golden-tok-chefs-table-v2.css");
     const v3 = read("src/styles/golden-tok-chefs-table-v3.css");
     const hero = read("src/styles/golden-tok-chefs-table-hero.css");
     const v4 = read("src/styles/golden-tok-chefs-table-v4.css");
 
-    const baseIndex = main.indexOf("golden-tok-chefs-table.css");
-    const v2Index = main.indexOf("golden-tok-chefs-table-v2.css");
-    const v3Index = main.indexOf("golden-tok-chefs-table-v3.css");
-    const heroIndex = main.indexOf("golden-tok-chefs-table-hero.css");
-    const v4Index = main.indexOf("golden-tok-chefs-table-v4.css");
+    const baseIndex = page.indexOf("golden-tok-chefs-table.css");
+    const v2Index = page.indexOf("golden-tok-chefs-table-v2.css");
+    const v3Index = page.indexOf("golden-tok-chefs-table-v3.css");
+    const heroIndex = page.indexOf("golden-tok-chefs-table-hero.css");
+    const v4Index = page.indexOf("golden-tok-chefs-table-v4.css");
 
     expect(baseIndex).toBeGreaterThan(-1);
     expect(v2Index).toBeGreaterThan(baseIndex);
@@ -80,7 +80,6 @@ describe("Golden TOK public chrome", () => {
     const wizard = read("src/components/FeatureWizard.tsx");
     const page = read("src/pages/ChefsTable.tsx");
     const stylesheet = read("src/styles/golden-tok-chefs-table-v5.css");
-    const main = read("src/main.tsx");
 
     expect(page).toContain('title="La Tok d’Or"');
     expect(wizard).toContain('if (title === "La Tok d’Or")');
@@ -99,8 +98,8 @@ describe("Golden TOK public chrome", () => {
     expect(stylesheet).toContain('@media (max-width: 820px)');
     expect(stylesheet).toContain('@media (max-width: 600px)');
     expect(stylesheet).toContain('@media (max-width: 370px)');
-    expect(main.indexOf("golden-tok-chefs-table-v5.css")).toBeGreaterThan(
-      main.indexOf("golden-tok-chefs-table-v4.css"),
+    expect(page.indexOf("golden-tok-chefs-table-v5.css")).toBeGreaterThan(
+      page.indexOf("golden-tok-chefs-table-v4.css"),
     );
   });
 

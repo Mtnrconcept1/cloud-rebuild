@@ -104,6 +104,16 @@ describe("SEO and public restaurant performance remediation", () => {
     expect(vercel).toContain("public, max-age=31536000, immutable");
   });
 
+  it("keeps La Tok d’Or styles out of the shared critical CSS", () => {
+    const main = read("src/main.tsx");
+    const chefsTable = read("src/pages/ChefsTable.tsx");
+
+    expect(main).not.toContain("golden-tok-chefs-table.css");
+    expect(main).not.toContain("golden-tok-chefs-table-v6.css");
+    expect(chefsTable).toContain('import "@/styles/golden-tok-chefs-table.css"');
+    expect(chefsTable).toContain('import "@/styles/golden-tok-chefs-table-v6.css"');
+  });
+
   it("does not present empty ratings or unverified directory phone data as facts", () => {
     expect(rewriteZeroRatingCopy("<b>0.0/10</b><span>0 avis</span>"))
       .toContain("Pas encore d’avis");

@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `d5d8a2517aaacf7150878f36e0d5d9dd16d8e4f532c9e5487f2c9a400259df40`
+- Empreinte SHA-256 des sources indexées : `42a0173df44bf481cfab2c256b84604624d1addb18d941d8091d8779b53b63cf`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -42,11 +42,11 @@
 | pages | 134 |
 | pathLiterals | 971 |
 | publicAssets | 901 |
-| publicEntries | 938 |
+| publicEntries | 939 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 20503 |
-| repositoryFiles | 4070 |
+| records | 20505 |
+| repositoryFiles | 4071 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1464,6 +1464,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /launch/barlow.woff2 | media | [public/launch/barlow.woff2](../../public/launch/barlow.woff2) |
 | /launch/chef.png | media | [public/launch/chef.png](../../public/launch/chef.png) |
 | /launch/props.png | media | [public/launch/props.png](../../public/launch/props.png) |
+| /llms.txt | data | [public/llms.txt](../../public/llms.txt) |
 | /logotok.png | media | [public/logotok.png](../../public/logotok.png) |
 | /mangez.png | media | [public/mangez.png](../../public/mangez.png) |
 | /manifest.json | platform | [public/manifest.json](../../public/manifest.json) |
@@ -2670,7 +2671,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 2 | [src/test/marketing-studio-references.test.ts:36](../../src/test/marketing-studio-references.test.ts#L36) |
 | returnTo | — | 1 | [src/test/marketing-bff-client.test.ts:176](../../src/test/marketing-bff-client.test.ts#L176) |
 | scope | /actualites | 4 | [src/pages/Actualites.tsx:249](../../src/pages/Actualites.tsx#L249) |
-| session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:691](../../src/pages/ChefsTable.tsx#L691) |
+| session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:698](../../src/pages/ChefsTable.tsx#L698) |
 | signup_operation_id | /auth, /auth/callback, /auth/demo | 5 | [src/lib/workforceContinuation.ts:38](../../src/lib/workforceContinuation.ts#L38) |
 | slug | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:172](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L172) |
 | sort | /recherche | 1 | [src/pages/Recherche.tsx:252](../../src/pages/Recherche.tsx#L252) |
@@ -9761,7 +9762,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (938)</summary>
+<details><summary>public-asset (939)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -10573,6 +10574,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/launch/barlow.woff2`
 - `public/launch/chef.png`
 - `public/launch/props.png`
+- `public/llms.txt`
 - `public/logotok.png`
 - `public/mangez.png`
 - `public/manifest.json`

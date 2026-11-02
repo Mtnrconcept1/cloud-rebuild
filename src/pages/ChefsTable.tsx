@@ -35,6 +35,13 @@ import {
 import { cn } from "@/lib/utils";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { getCommercialDemoClientMenuItems } from "@/lib/commercialDemoClientCatalog";
+import "@/styles/golden-tok-chefs-table.css";
+import "@/styles/golden-tok-chefs-table-v2.css";
+import "@/styles/golden-tok-chefs-table-v3.css";
+import "@/styles/golden-tok-chefs-table-hero.css";
+import "@/styles/golden-tok-chefs-table-v4.css";
+import "@/styles/golden-tok-chefs-table-v5.css";
+import "@/styles/golden-tok-chefs-table-v6.css";
 
 const supabase = getSupabase();
 const CHEFS_TABLE_DROPS_LIMIT = 24;

@@ -6,7 +6,7 @@ const DEFAULT_TARGETS = [
   {
     url: "https://www.thetok.ch/",
     expect: [
-      "TOK - Restaurants à Genève : adresses, réservation et commande",
+      "Restaurants à Genève : réservation, commande et adresses",
       "Communes avec inventaire public",
       "Restaurants à Genève et dans les communes genevoises",
     ],
@@ -38,6 +38,15 @@ const DEFAULT_TARGETS = [
       "User-agent: GPTBot",
       "Sitemap: https://www.thetok.ch/sitemap.xml",
     ],
+  },
+  {
+    url: "https://www.thetok.ch/llms.txt",
+    expect: [
+      "# TOK — restaurants, réservation et commande à Genève",
+      "https://www.thetok.ch/recherche",
+      "https://www.thetok.ch/blog",
+    ],
+    contentType: "text/plain",
   },
   {
     url: "https://www.thetok.ch/sitemap.xml",

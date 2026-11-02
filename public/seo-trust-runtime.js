@@ -1,5 +1,5 @@
 (() => {
-  const ROOT_TITLE = "TOK - Restaurants à Genève : adresses, réservation et commande";
+  const ROOT_TITLE = "Restaurants à Genève : réservation, commande et adresses";
   const ROOT_DESCRIPTION = "Trouvez des restaurants à Genève et dans les communes genevoises. Comparez cuisines et adresses, puis réservez ou commandez lorsque le service est activé.";
   const SEARCH_TITLE = "Recherche de restaurants à Genève | TOK";
   const SEARCH_DESCRIPTION = "Recherchez un restaurant à Genève et dans les communes genevoises par ville, cuisine, note, offre ou service réellement disponible sur TOK.";
