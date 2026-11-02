@@ -11,6 +11,16 @@ const state = vi.hoisted(() => ({
   user: null as { id: string } | null,
   activeFeatures: [] as string[],
   sponsoredCampaigns: [] as { id: string; restaurants: { id: string; name: string; rating: number } }[],
+  items: [] as Array<Record<string, unknown>>,
+  offerSignals: {
+    promotion: new Set<string>(),
+    flash: new Set<string>(),
+    anti_waste: new Set<string>(),
+    tok_dor: new Set<string>(),
+    failedSources: [] as string[],
+  },
+  offerSignalsLoading: false,
+  offerSignalsError: false,
   searchQueryFn: null as ((context: { pageParam: number }) => Promise<unknown>) | null,
   rpc: vi.fn().mockResolvedValue({ data: { items: [], total_count: 0, next_offset: null }, error: null }),
   refetch: vi.fn(),
@@ -21,7 +31,12 @@ vi.mock("@/lib/auth-context", () => ({ useAuth: () => ({ user: state.user }) }))
 vi.mock("@/lib/featureFlags", () => ({ useActiveFeatures: () => new Set(state.activeFeatures) }));
 vi.mock("@/components/commercial/CommercialDemoFrameProvider", () => ({ useCommercialDemoFrame: () => null }));
 vi.mock("@/components/CampaignBanner", () => ({ default: () => null }));
-vi.mock("@/components/RestaurantCard", () => ({ default: ({ name }: { name: string }) => <article>{name}</article> }));
+vi.mock("@/components/RestaurantCard", () => ({ default: ({ id, name }: { id: string; name: string }) => <article data-testid={`restaurant-card-${id}`}>{name}</article> }));
+vi.mock("@/components/NearbyRestaurantsMap", () => ({
+  default: ({ restaurants }: { restaurants: Array<{ id: string }> }) => (
+    <div role="region" aria-label="Carte des restaurants test">{restaurants.length} restaurants cartographiés</div>
+  ),
+}));
 vi.mock("@/components/CityAutocomplete", () => ({
   default: ({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) => (
     <input aria-label="Ville" value={value} onChange={(event) => onValueChange(event.target.value)} />
@@ -32,11 +47,18 @@ vi.mock("@tanstack/react-query", () => ({
   useQuery: ({ queryKey }: { queryKey: unknown[] }) => ({
     data: queryKey[0] === "search-profile-city"
       ? state.profileCity
-      : queryKey[0] === "sponsored-search" ? state.sponsoredCampaigns : [],
+      : queryKey[0] === "sponsored-search"
+        ? state.sponsoredCampaigns
+        : queryKey[0] === "search-offer-signals"
+          ? state.offerSignals
+          : [],
+    isLoading: queryKey[0] === "search-offer-signals" ? state.offerSignalsLoading : false,
+    isError: queryKey[0] === "search-offer-signals" ? state.offerSignalsError : false,
   }),
   useInfiniteQuery: ({ queryFn }: { queryFn: NonNullable<typeof state.searchQueryFn> }) => {
     state.searchQueryFn = queryFn;
-    return { data: state.error && !state.nextError ? undefined : { pages: [{ items: state.nextError ? [{ id: "1", name: "Chez TOK" }] : [], totalCount: state.nextError ? 2 : 0 }] }, isLoading: state.loading, isError: state.error, isFetchNextPageError: state.nextError, refetch: state.refetch, fetchNextPage: state.next, hasNextPage: state.nextError, isFetchingNextPage: false, isFetching: false };
+    const items = state.nextError ? [{ id: "1", name: "Chez TOK" }] : state.items;
+    return { data: state.error && !state.nextError ? undefined : { pages: [{ items, totalCount: state.nextError ? 2 : items.length }] }, isLoading: state.loading, isError: state.error, isFetchNextPageError: state.nextError, refetch: state.refetch, fetchNextPage: state.next, hasNextPage: state.nextError, isFetchingNextPage: false, isFetching: false };
   },
 }));
 function LocationProbe() { const l = useLocation(); return <output data-testid="url">{l.search}</output>; }
@@ -50,6 +72,16 @@ afterEach(() => {
   state.user = null;
   state.activeFeatures = [];
   state.sponsoredCampaigns = [];
+  state.items = [];
+  state.offerSignals = {
+    promotion: new Set<string>(),
+    flash: new Set<string>(),
+    anti_waste: new Set<string>(),
+    tok_dor: new Set<string>(),
+    failedSources: [],
+  };
+  state.offerSignalsLoading = false;
+  state.offerSignalsError = false;
   state.searchQueryFn = null;
   vi.clearAllMocks();
 });
@@ -115,5 +147,46 @@ describe("restaurant search recovery and URL criteria", () => {
     expect(screen.getByText("Chez TOK")).toBeVisible();
     expect(screen.getByRole("alert")).toHaveTextContent("suivantes");
     fireEvent.click(screen.getByRole("button", { name: /Charger les/ })); expect(state.next).toHaveBeenCalledTimes(1);
+  });
+  it("filters cards and the map from an offer chip while keeping the criterion in the URL", () => {
+    state.items = [
+      { id: "flash", name: "Flash TOK", latitude: 46.2, longitude: 6.14 },
+      { id: "regular", name: "Adresse classique", latitude: 46.21, longitude: 6.15 },
+    ];
+    state.offerSignals.flash = new Set(["flash"]);
+    setup();
+
+    expect(screen.getByText("Flash TOK")).toBeVisible();
+    expect(screen.getByText("Adresse classique")).toBeVisible();
+    expect(screen.getByRole("region", { name: "Carte des restaurants test" })).toHaveTextContent("2 restaurants");
+
+    fireEvent.click(screen.getByRole("button", { name: /Ventes flash/ }));
+
+    expect(screen.getByTestId("url")).toHaveTextContent("offer=flash");
+    expect(screen.getByText("Flash TOK")).toBeVisible();
+    expect(screen.queryByText("Adresse classique")).not.toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Carte des restaurants test" })).toHaveTextContent("1 restaurants");
+  });
+  it("keeps the general list visible when the selected offer source is unavailable", () => {
+    state.items = [
+      { id: "first", name: "Première adresse", latitude: 46.2, longitude: 6.14 },
+      { id: "second", name: "Deuxième adresse", latitude: 46.21, longitude: 6.15 },
+    ];
+    state.offerSignalsError = true;
+    setup("/recherche?offer=flash");
+
+    expect(screen.getByText("Première adresse")).toBeVisible();
+    expect(screen.getByText("Deuxième adresse")).toBeVisible();
+    expect(screen.getByText(/La liste générale reste affichée/)).toBeVisible();
+    expect(screen.getByRole("region", { name: "Carte des restaurants test" })).toHaveTextContent("2 restaurants");
+  });
+  it("exposes a mobile map toggle without hiding the desktop map from assistive technologies", () => {
+    state.items = [{ id: "mapped", name: "Adresse cartographiée", latitude: 46.2, longitude: 6.14 }];
+    setup();
+
+    const toggle = screen.getByRole("button", { name: "Afficher la carte" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(toggle);
+    expect(screen.getByRole("button", { name: "Masquer la carte" })).toHaveAttribute("aria-expanded", "true");
   });
 });
