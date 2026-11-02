@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fireEvent, render, screen, cleanup } from "@testing-library/react";
+import { fireEvent, render, screen, cleanup, within } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import HeroSection from "@/components/home/HeroSection";
@@ -42,8 +42,25 @@ describe("homepage semantic search", () => {
     );
     expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
       "srcset",
-      "/images/home-mobile/communes/TOK-GE-geneve.webp",
+      "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
     );
+  });
+
+  it("uses the shield-free Geneva portrait for Geneva communes without changing their desktop selection", () => {
+    render(<MemoryRouter><HeroSection profileCity="Puplinge" /></MemoryRouter>);
+    expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
+      "srcset", "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+    );
+    expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "GE");
+  });
+
+  it("provides a gated mobile discovery grid linking to real routes", () => {
+    setup(new Set(["ventes-flash", "anti-gaspi", "chefs-table"]));
+    const shortcuts = within(screen.getByRole("navigation", { name: "Découvrir les services TOK" }));
+    expect(shortcuts.getByRole("link", { name: "Ventes flash" })).toHaveAttribute("href", "/ventes-flash");
+    expect(shortcuts.getByRole("link", { name: "Anti-gaspi" })).toHaveAttribute("href", "/anti-gaspi");
+    expect(shortcuts.getByRole("link", { name: "La Tok d’Or" })).toHaveAttribute("href", "/chefs-table");
+    expect(shortcuts.getByRole("link", { name: "Offres & promos" })).toHaveAttribute("href", "/recherche");
   });
 
   it("preserves the independent Halloween desktop and mobile imagery", () => {
@@ -101,7 +118,7 @@ describe("homepage semantic search", () => {
   });
   it("only exposes feature-flagged quick links when the corresponding feature is enabled", () => {
     setup(new Set(["ventes-flash", "chefs-table"]));
-    expect(screen.getByRole("link", { name: /Offres/ })).toHaveAttribute("href", "/ventes-flash");
+    expect(screen.getByRole("link", { name: "Offres", exact: true })).toHaveAttribute("href", "/ventes-flash");
     expect(screen.getByRole("link", { name: /Grandes tables/ })).toHaveAttribute("href", "/chefs-table");
   });
   it("shows one readable headline and a labeled field immediately, even before animation", () => {

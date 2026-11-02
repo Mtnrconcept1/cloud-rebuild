@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronRight, Heart, Mail, MapPin, Navigation, Percent, Search, ShoppingBag, Users } from "lucide-react";
+import { ArrowRight, ChevronRight, Crown, Heart, Leaf, Mail, MapPin, Navigation, Percent, Search, ShoppingBag, Tag, Users, UtensilsCrossed, Zap } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
@@ -11,7 +11,7 @@ import "./HeroSection.css";
 
 const EMPTY_FEATURES: ReadonlySet<string> = new Set();
 const DEFAULT_HERO_DESKTOP = "/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp";
-const DEFAULT_HERO_MOBILE = "/images/home-mobile/communes/TOK-GE-geneve.webp";
+const DEFAULT_HERO_MOBILE = "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp";
 
 const newsletterConditions = [
   "Le bonus de bienvenue est réservé aux nouveaux comptes TOK qui s'inscrivent à la newsletter depuis cette offre.",
@@ -52,9 +52,13 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
   const desktopImage = halloweenEnabled
     ? "/images/seasonal/halloween/hero-desktop.webp"
     : cantonImage || worldArt?.desktop || (pending ? null : DEFAULT_HERO_DESKTOP);
+  // The commune variations contain added heraldic shields. Keep location-aware
+  // artwork where possible, but use the original shield-free Geneva portrait.
+  const mobileCityImage = !pending ? resolveMobileCityImage(selectedCity || gpsCity) : null;
+  const shieldFreeMobileCityImage = mobileCityImage?.startsWith("/images/home-mobile/communes/") ? null : mobileCityImage;
   const mobileImage = halloweenEnabled
     ? "/images/seasonal/halloween/hero-mobile-20261030.webp"
-    : (!pending && resolveMobileCityImage(selectedCity || gpsCity)) || worldArt?.mobile || (!cantonImage && !worldArt?.desktop ? DEFAULT_HERO_MOBILE : desktopImage);
+    : shieldFreeMobileCityImage || worldArt?.mobile || (canton && canton !== "GE" ? desktopImage : worldArt?.desktop && !cantonImage ? desktopImage : DEFAULT_HERO_MOBILE);
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -88,6 +92,10 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
               : "Une table, un repas à emporter, une nouvelle envie. Trouvez le restaurant qui vous correspond."}
           </p>
           <form role="search" aria-label="Rechercher un restaurant" onSubmit={handleSearch} className="tok-home-hero__form">
+            <div className="tok-home-hero__mobile-search-tabs" role="group" aria-label="Type de recherche">
+              <span className="tok-home-hero__mobile-search-tab tok-home-hero__mobile-search-tab--active"><UtensilsCrossed aria-hidden="true" /> Restaurant ou cuisine</span>
+              <Link to="/recherche" className="tok-home-hero__mobile-search-tab"><ShoppingBag aria-hidden="true" /> À emporter / Livraison</Link>
+            </div>
             <div className="tok-home-hero__field">
               <label htmlFor="home-restaurant-search">Restaurant ou cuisine</label>
               <div className="tok-home-hero__input-row">
@@ -122,6 +130,12 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
             {activeFeatures.has("ventes-flash") ? <Link to="/ventes-flash"><Percent aria-hidden="true" /> Offres</Link> : null}
             <Link to="/recherche"><ShoppingBag aria-hidden="true" /> À emporter</Link>
             {activeFeatures.has("chefs-table") ? <Link to="/chefs-table"><Users aria-hidden="true" /> Grandes tables</Link> : null}
+          </nav>
+          <nav className="tok-home-hero__mobile-actions" aria-label="Découvrir les services TOK">
+            {activeFeatures.has("ventes-flash") ? <Link to="/ventes-flash"><Zap aria-hidden="true" /><span>Ventes flash</span></Link> : <Link to="/recherche"><Navigation aria-hidden="true" /><span>Autour de moi</span></Link>}
+            {activeFeatures.has("anti-gaspi") ? <Link to="/anti-gaspi"><Leaf aria-hidden="true" /><span>Anti-gaspi</span></Link> : <Link to="/recherche"><ShoppingBag aria-hidden="true" /><span>À emporter</span></Link>}
+            {activeFeatures.has("chefs-table") ? <Link to="/chefs-table"><Crown aria-hidden="true" /><span>La Tok d’Or</span></Link> : <Link to="/recherche"><Users aria-hidden="true" /><span>Grandes tables</span></Link>}
+            <Link to="/recherche"><Tag aria-hidden="true" /><span>Offres &amp; promos</span></Link>
           </nav>
         </div>
         <div className="tok-home-hero__art" aria-hidden="true" data-canton-image={Boolean(cantonImage)}>
