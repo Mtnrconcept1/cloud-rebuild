@@ -71,7 +71,7 @@
 
 .tok-feed-grid .tok-editorial-heading { container-type: inline-size; padding-inline: .75rem; min-height: 6.5rem; }
 .tok-feed-grid .tok-editorial-heading h1 { font-size: clamp(1.75rem, 5.4cqw, 2.75rem); }
-.tok-feed-grid .tok-editorial-heading__copy { max-width: 75%; }
+.tok-feed-grid .tok-editorial-heading__copy { max-width: 100%; }
 .tok-editorial-heading:has(#mobile-restaurant-dashboard-title) { display: flex; }
 
 .tok-editorial-heading__art { display: none; }

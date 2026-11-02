@@ -1,5 +1,6 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   BellRing,
   Bookmark,
@@ -392,31 +393,96 @@ export default function Actualites() {
 
   return (
     <main className="min-h-screen overflow-x-clip bg-[#fffaf4] py-3 md:py-6">
-      <div className="container min-w-0 space-y-4 md:space-y-5">
-        <section
-          data-testid="actualites-hero"
-          className="relative isolate min-h-[18rem] overflow-hidden rounded-[1.75rem] border border-orange-100 bg-[#fff7ed] shadow-xl shadow-orange-100/55 md:min-h-[20rem]"
-        >
-          <img
-            src="/images/tok-refonte/geneve-aquarelle.webp"
-            alt="Panorama aquarelle de Genève, du Jet d’eau aux montagnes"
-            className="absolute inset-0 h-full w-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#fffaf4] via-[#fffaf4]/95 to-[#fffaf4]/15" />
-          <div className="relative z-10 flex min-h-[18rem] max-w-2xl flex-col justify-center px-5 py-8 sm:px-8 md:min-h-[20rem] md:px-12">
-            <Badge className="mb-4 w-fit rounded-full bg-white/90 px-3 py-1 text-orange-800 shadow-sm hover:bg-white">La table locale, en direct</Badge>
-            <h1 className="max-w-xl font-display text-4xl font-bold leading-[0.98] tracking-[-0.035em] text-slate-950 sm:text-5xl md:text-6xl">
-              Le rendez-vous des gourmands.
-            </h1>
-            <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-700 sm:text-base">
-              Nouveaux plats, coulisses, offres et tables libres : suivez ce qui se passe aujourd’hui dans les restaurants près de chez vous.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
-              <span className="rounded-full border border-white/80 bg-white/80 px-3 py-1.5 shadow-sm">Genève & Suisse romande</span>
-              <span className="rounded-full border border-white/80 bg-white/80 px-3 py-1.5 shadow-sm">Publications vérifiées</span>
+      <div className="tok-feed-grid container min-w-0">
+        <aside className="tok-feed-menu">
+          <nav className="grid gap-1 rounded-2xl border bg-card p-3 shadow-soft" aria-label="Votre espace actualités">
+            <h2 className="mb-1 font-display text-lg font-bold">Votre espace</h2>
+            {SOCIAL_FEED_SCOPES.map((item) => (
+              <Button key={item.value} variant={scope === item.value ? "secondary" : "ghost"}
+                aria-pressed={scope === item.value} className="min-h-11 justify-start"
+                onClick={() => { setSearchQuery(""); changeScope(item.value); }}>
+                {item.label}
+              </Button>
+            ))}
+          </nav>
+          <section className="tok-chef-invitation">
+            <div><h2>Faites parler de votre resto</h2>
+              <Link className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold underline" to="/restaurateurs/geneve">Découvrir TOK Pro</Link>
             </div>
+          </section>
+        </aside>
+        <section className="min-w-0 max-w-full space-y-2 md:space-y-3">
+          <div data-testid="actualites-hero">
+            <PageHeading title="Le rendez-vous des gourmands." description="Les bonnes adresses se partagent." />
           </div>
-        </section>
+          <div className="relative overflow-hidden rounded-[1.5rem] border border-orange-100/80 bg-background/95 p-2 shadow-lg shadow-orange-100/35 backdrop-blur md:p-3">
+            <div className="relative z-10 flex min-w-0 flex-col gap-2">
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="actualites-search"
+                  type="search"
+                  value={searchQuery}
+                  aria-label="Rechercher dans les actualités"
+                  aria-describedby="actualites-search-status"
+                  data-testid="actualites-search"
+                  placeholder="Rechercher un plat, ingrédient, restaurant, cuisine, ville..."
+                  className="h-10 rounded-2xl border-orange-100 bg-white pl-10 pr-10 text-sm shadow-sm"
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                />
+                {searchQuery ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-orange-50 hover:text-primary"
+                    aria-label="Effacer la recherche"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                ) : null}
+              </div>
+
+              {normalizedSearchQuery.length >= 2 ? (
+                <Badge variant="outline" className="h-10 justify-center gap-2 rounded-2xl border-orange-200 bg-orange-50 px-4 text-orange-800 w-full">
+                  <Search className="h-4 w-4" aria-hidden="true" />
+                  Recherche globale dans tout le fil
+                </Badge>
+              ) : (
+                <Tabs value={scope} onValueChange={changeScope} className="min-w-0 w-full">
+                  <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-muted/50 p-1 sm:grid-cols-5">
+                    {SOCIAL_FEED_SCOPES.map((item) => (
+                      <TabsTrigger
+                        key={item.value}
+                        value={item.value}
+                        className="min-w-0 whitespace-normal rounded-xl px-1.5 py-2 text-center text-[11px] font-semibold leading-tight data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm sm:text-xs"
+                      >
+                        {item.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              )}
+            </div>
+            <p
+              id="actualites-search-status"
+              role="status"
+              aria-live="polite"
+              className="px-2 pt-1 text-xs text-muted-foreground"
+            >
+              {searchLoading
+                ? "Recherche dans toutes les actualités…"
+                : globalSearchEnabled && !globalSearch.isError
+                  ? `${globalSearchTotal} publication${globalSearchTotal > 1 ? "s" : ""} trouvée${globalSearchTotal > 1 ? "s" : ""} dans tout le fil.`
+                  : normalizedSearchQuery.length === 1
+                    ? "Saisissez au moins deux caractères pour lancer la recherche globale."
+                    : normalizedSearchQuery
+                      ? `${filteredPosts.length} résultat${filteredPosts.length > 1 ? "s" : ""} visible${filteredPosts.length > 1 ? "s" : ""}.`
+                      : "La recherche porte aussi sur les plats, ingrédients et descriptions d’images, sans hashtag."
+              }
+            </p>
+          </div>
 
         {storyPosts.length > 0 || canManage ? (
           <section aria-labelledby="actualites-stories-title" className="rounded-[1.5rem] border border-orange-100 bg-white/90 p-3 shadow-sm sm:p-4">
@@ -466,76 +532,6 @@ export default function Actualites() {
           </section>
         ) : null}
 
-        <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]">
-        <section className="min-w-0 max-w-full space-y-2 md:space-y-3">
-          <div className="relative overflow-hidden rounded-[1.5rem] border border-orange-100/80 bg-background/95 p-2 shadow-lg shadow-orange-100/35 backdrop-blur md:p-3">
-            <div className="relative z-10 flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center">
-              <div className="relative min-w-0 flex-1">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="actualites-search"
-                  type="search"
-                  value={searchQuery}
-                  aria-label="Rechercher dans les actualités"
-                  aria-describedby="actualites-search-status"
-                  data-testid="actualites-search"
-                  placeholder="Rechercher un plat, ingrédient, restaurant, cuisine, ville..."
-                  className="h-10 rounded-2xl border-orange-100 bg-white pl-10 pr-10 text-sm shadow-sm"
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                />
-                {searchQuery ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-orange-50 hover:text-primary"
-                    aria-label="Effacer la recherche"
-                    onClick={() => setSearchQuery("")}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                ) : null}
-              </div>
-
-              {normalizedSearchQuery.length >= 2 ? (
-                <Badge variant="outline" className="h-10 justify-center gap-2 rounded-2xl border-orange-200 bg-orange-50 px-4 text-orange-800 lg:w-[29rem]">
-                  <Search className="h-4 w-4" aria-hidden="true" />
-                  Recherche globale dans tout le fil
-                </Badge>
-              ) : (
-                <Tabs value={scope} onValueChange={changeScope} className="min-w-0 lg:w-[29rem]">
-                  <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-muted/50 p-1 sm:grid-cols-5">
-                    {SOCIAL_FEED_SCOPES.map((item) => (
-                      <TabsTrigger
-                        key={item.value}
-                        value={item.value}
-                        className="min-w-0 whitespace-normal rounded-xl px-1.5 py-2 text-center text-[11px] font-semibold leading-tight data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm sm:text-xs"
-                      >
-                        {item.label}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
-              )}
-            </div>
-            <p
-              id="actualites-search-status"
-              role="status"
-              aria-live="polite"
-              className="px-2 pt-1 text-xs text-muted-foreground"
-            >
-              {searchLoading
-                ? "Recherche dans toutes les actualités…"
-                : globalSearchEnabled && !globalSearch.isError
-                  ? `${globalSearchTotal} publication${globalSearchTotal > 1 ? "s" : ""} trouvée${globalSearchTotal > 1 ? "s" : ""} dans tout le fil.`
-                  : normalizedSearchQuery.length === 1
-                    ? "Saisissez au moins deux caractères pour lancer la recherche globale."
-                    : normalizedSearchQuery
-                      ? `${filteredPosts.length} résultat${filteredPosts.length > 1 ? "s" : ""} visible${filteredPosts.length > 1 ? "s" : ""}.`
-                      : "La recherche porte aussi sur les plats, ingrédients et descriptions d’images, sans hashtag."
-              }
-            </p>
-          </div>
 
           {canManage ? <ActualitesBoostBanner onSponsorClick={() => setSponsorDialogRequest((request) => request + 1)} /> : null}
 
@@ -759,7 +755,6 @@ export default function Actualites() {
             </CardContent>
           </Card>
         </aside>
-        </div>
       </div>
     </main>
   );

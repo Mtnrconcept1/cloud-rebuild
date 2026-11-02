@@ -312,7 +312,7 @@ export default function CommercialMultiSpaceDemo() {
               <RealtimeConnectionBadge status={realtimeStatus} />
               <Badge variant="outline" className="rounded-full border-violet-300 text-violet-700"><TestTube2 className="mr-1.5 h-3.5 w-3.5" />Stripe Test uniquement</Badge>
             </div>
-            <PageHeading title="Démo multi-espace TOK" description="Pilotez les espaces client, restaurateur, commercial et livreur depuis cette console." />
+            <PageHeading title="Démo multi-espace TOK" description="Pilotez les quatre espaces Client, Restaurateur, Commercial et Livreur depuis cette console." />
           </div>
           <Button type="button" variant="outline" className="h-10 shrink-0 rounded-xl" onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
             {resetMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}Réinitialiser

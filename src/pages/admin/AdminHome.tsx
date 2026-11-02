@@ -1,3 +1,4 @@
+import { OPTIMIZED_TOK_LOGO_SRC } from "@/lib/tokLogo";
 import PageHeading from "@/components/editorial/PageHeading";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -645,7 +646,8 @@ export default function AdminHome() {
   return (
     <div className="mx-auto w-full max-w-[1680px] space-y-3 px-3 pb-10 pt-2 sm:px-5 lg:px-6">
       <div className="space-y-3">
-        <PageHeading title="Administration" description="Gérez votre plateforme TOK en toute simplicité." />
+        <PageHeading title="Administration" description="Gérez votre plateforme TOK en toute simplicité."
+          eyebrow={<span className="flex items-center gap-2"><img src={OPTIMIZED_TOK_LOGO_SRC} alt="TOK" width={40} height={40} className="h-10 w-10 object-contain" />Back-office TOK</span>} />
         <label className="relative block max-w-2xl">
           <span className="sr-only">Rechercher un outil admin</span>
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
