@@ -46,7 +46,8 @@ describe("Actualites responsive guards", () => {
     expect(page).toContain("grid-cols-1 gap-2 sm:grid-cols-2");
     expect(page).not.toContain('src="/chef2.png"');
     expect(page).not.toContain('src="/chef3.png"');
-    expect(editorialStyles).toContain("/images/tok-refonte/geneve-aquarelle.webp");
+    expect(editorialStyles).toContain("--tok-editorial-hero-image");
+    expect(editorialStyles).not.toContain("/images/tok-refonte/geneve-aquarelle.webp");
     expect(page).toContain('src="/images/tok-refonte/chef-invitation.webp"');
     expect(page).toContain('data-testid="actualites-hero"');
     expect(page).toContain('data-testid="actualites-stories"');

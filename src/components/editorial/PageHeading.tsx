@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { getEditorialHeroVisual } from "@/lib/editorialHeroVisuals";
 import "./editorial.css";
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
   eyebrow?: ReactNode;
   actions?: ReactNode;
   artwork?: ReactNode;
+  heroImage?: string | false;
   mascot?: "presenter" | "megaphone" | "cloche" | false;
   className?: string;
 };
@@ -24,9 +26,14 @@ export default function PageHeading({
   eyebrow,
   actions,
   artwork,
+  heroImage,
   mascot = "presenter",
   className,
 }: Props) {
+  const routeHero = typeof window === "undefined"
+    ? undefined
+    : getEditorialHeroVisual(window.location.pathname, window.location.search);
+  const resolvedHero = heroImage === false ? undefined : heroImage ?? routeHero;
   const resolvedArtwork = artwork ?? (mascot ? (
     <img
       src={mascotSources[mascot]}
@@ -36,9 +43,21 @@ export default function PageHeading({
       decoding="async"
     />
   ) : null);
+  const heroStyle = resolvedHero
+    ? ({ "--tok-editorial-hero-image": `url("${resolvedHero}")` } as CSSProperties)
+    : undefined;
 
   return (
-    <header className={cn("tok-editorial-heading", resolvedArtwork && "tok-editorial-heading--illustrated", className)}>
+    <header
+      className={cn(
+        "tok-editorial-heading",
+        resolvedHero && "tok-editorial-heading--with-hero",
+        resolvedArtwork && "tok-editorial-heading--illustrated",
+        className,
+      )}
+      data-editorial-hero={resolvedHero}
+      style={heroStyle}
+    >
       <div className="tok-editorial-heading__copy">
         {eyebrow && <div className="tok-editorial-heading__eyebrow">{eyebrow}</div>}
         <h1>{title}</h1>

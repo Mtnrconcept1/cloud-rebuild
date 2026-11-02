@@ -20,12 +20,19 @@
   content: "";
   position: absolute;
   z-index: -1;
-  inset: 0 0 0 38%;
+  inset: 0;
   border-radius: inherit;
-  background: url("/images/tok-refonte/geneve-aquarelle.webp") right center / auto 100% no-repeat;
-  opacity: .72;
-  mask-image: linear-gradient(to right, transparent 2%, black 42%);
+  opacity: 0;
   pointer-events: none;
+}
+.tok-editorial-heading--with-hero::before {
+  background-image:
+    linear-gradient(90deg, rgba(255,253,249,.98) 0%, rgba(255,250,243,.9) 36%, rgba(255,247,237,.34) 58%, rgba(255,247,237,.05) 76%),
+    var(--tok-editorial-hero-image);
+  background-position: center, center;
+  background-size: 100% 100%, cover;
+  background-repeat: no-repeat;
+  opacity: .98;
 }
 .tok-editorial-heading::after {
   content: "";
@@ -67,7 +74,12 @@
 .tok-editorial-stat dt { color: hsl(var(--muted-foreground)); font-size: .75rem; }
 .tok-editorial-stat dd { font-weight: 700; overflow-wrap: anywhere; }
 .dark .tok-editorial-heading { background: linear-gradient(125deg, hsl(var(--card)), #3b241b); color: hsl(var(--foreground)); }
-.dark .tok-editorial-heading::before { opacity: .24; }
+.dark .tok-editorial-heading--with-hero::before {
+  background-image:
+    linear-gradient(90deg, rgba(26,22,20,.96) 0%, rgba(31,25,22,.84) 38%, rgba(31,25,22,.28) 65%, rgba(31,25,22,.08) 82%),
+    var(--tok-editorial-hero-image);
+  opacity: .74;
+}
 .tok-feed-grid { display: grid; gap: 1rem; align-items: start; }
 .tok-feed-menu { display: none; }
 .tok-chef-invitation {
@@ -83,7 +95,19 @@
 }
 @media (max-width: 40rem) {
   .tok-editorial-heading { padding: 1.15rem 1rem 7.7rem; gap: .5rem; min-height: 18rem; }
-  .tok-editorial-heading::before { inset: 42% 0 0 18%; opacity: .82; background-position: right bottom; }
+  .tok-editorial-heading--with-hero::before {
+    background-image:
+      linear-gradient(180deg, rgba(255,253,249,.98) 0%, rgba(255,250,243,.92) 35%, rgba(255,247,237,.38) 58%, rgba(255,247,237,.04) 82%),
+      var(--tok-editorial-hero-image);
+    background-position: center, right bottom;
+    background-size: 100% 100%, auto 100%;
+    opacity: .96;
+  }
+  .dark .tok-editorial-heading--with-hero::before {
+    background-image:
+      linear-gradient(180deg, rgba(26,22,20,.98) 0%, rgba(31,25,22,.9) 38%, rgba(31,25,22,.34) 63%, rgba(31,25,22,.08) 84%),
+      var(--tok-editorial-hero-image);
+  }
   .tok-editorial-heading::after { right: 1.2rem; top: 7rem; width: 2.8rem; height: 1.8rem; }
   .tok-editorial-heading__copy { max-width: 100%; }
   .tok-editorial-heading h1 { font-size: clamp(2.4rem, 12vw, 4rem); }

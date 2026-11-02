@@ -4,6 +4,7 @@ import "@/components/dashboard/RestaurantWorkspacePages.css";
 import { useJourneyFocus } from "@/hooks/useJourneyFocus";
 import WorkspaceNavigationSection from "@/components/dashboard/WorkspaceNavigationSection";
 import WorkspaceToolbar, { WorkspaceAccountLink, WorkspaceToolSearch } from "@/components/dashboard/WorkspaceToolbar";
+import RouteHeroBanner from "@/components/dashboard/RouteHeroBanner";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -66,6 +67,7 @@ import ThemeToggleButton from "@/components/theme/ThemeToggleButton";
 import SignOutButton from "@/components/auth/SignOutButton";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { useWorkforceSettings } from "@/hooks/useTokWorkforce";
+import { getRestaurantDashboardVisual, getTokHeroStyle } from "@/lib/dashboardVisuals";
 
 type NavItem = {
   to: string;
@@ -324,6 +326,7 @@ export default function DashboardLayout({
   constrainToViewport = false,
 }: DashboardLayoutProps) {
   const { pathname, hash } = useLocation();
+  const routeHero = getRestaurantDashboardVisual(pathname)?.hero;
   const pageRef = useRef<HTMLElement>(null);
   useJourneyFocus(pageRef, hash ? null : pathname);
   const queryClient = useQueryClient();
@@ -413,7 +416,7 @@ export default function DashboardLayout({
   });
 
   return (
-    <div className={cn("tok-workspace-shell tok-hospitality-workspace tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row", pathname === "/dashboard/plan-salle" && "tok-floorplan-shell")}>
+    <div className={cn("tok-workspace-shell tok-hospitality-workspace tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row", pathname === "/dashboard/plan-salle" && "tok-floorplan-shell")} style={getTokHeroStyle(routeHero)}>
       {/* SIDEBAR */}
       <aside
         ref={sidebarRef}
@@ -575,7 +578,7 @@ export default function DashboardLayout({
       >
         <div
           className={cn(
-            "relative z-10 w-full",
+            "tok-workspace-page-stack relative z-10 w-full",
             constrainToViewport && "flex min-h-0 flex-1 flex-col",
             contentWidth === "full" ? "max-w-none" : "mx-auto max-w-7xl",
           )}
@@ -584,6 +587,7 @@ export default function DashboardLayout({
             fallback={backFallback}
             className={cn("tok-workspace-back mb-4", constrainToViewport && "shrink-0")}
           />
+          <RouteHeroBanner src={routeHero} />
           {isDemoMode ? (
             <div className="mb-6 rounded-3xl border border-sky-200 bg-sky-50/95 p-5 text-sky-950 shadow-sm dark:border-sky-400/25 dark:bg-sky-500/10 dark:text-sky-50" role="status" data-testid="commercial-demo-banner">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start">

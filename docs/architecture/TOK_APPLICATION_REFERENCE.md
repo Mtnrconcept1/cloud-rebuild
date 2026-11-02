@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b2f2d9f54766db4e5da10887f0b9bfa6366b50cfe210b794c892b553dbdf4f88`
+- Empreinte SHA-256 des sources indexées : `b3a5455492464dca7651058fc4eec9fdace97c96d247ff821ed84646c36b621c`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1845,12 +1845,12 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/advisor | 8 | [src/App.tsx:645](../../src/App.tsx#L645) |
 | /dashboard/ai | 3 | [src/test/tok-ai-platform-plan.test.ts:229](../../src/test/tok-ai-platform-plan.test.ts#L229) |
 | /dashboard/avis | 8 | [src/App.tsx:652](../../src/App.tsx#L652) |
-| /dashboard/campagne-overview | 2 | [src/App.tsx:664](../../src/App.tsx#L664) |
+| /dashboard/campagne-overview | 3 | [src/App.tsx:664](../../src/App.tsx#L664) |
 | /dashboard/campagnes | 21 | [scripts/stoppin-venue-seo.test.mjs:146](../../scripts/stoppin-venue-seo.test.mjs#L146) |
 | /dashboard/campaign-studio | 8 | [src/App.tsx:668](../../src/App.tsx#L668) |
 | /dashboard/commandes | 27 | [src/App.tsx:648](../../src/App.tsx#L648) |
 | /dashboard/comparaison | 6 | [src/App.tsx:651](../../src/App.tsx#L651) |
-| /dashboard/compta | 3 | [src/App.tsx:653](../../src/App.tsx#L653) |
+| /dashboard/compta | 4 | [src/App.tsx:653](../../src/App.tsx#L653) |
 | /dashboard/credits | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:215](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L215) |
 | /dashboard/crm | 7 | [src/App.tsx:669](../../src/App.tsx#L669) |
 | /dashboard/crm-clients | 2 | [supabase/functions/tok-connect-full-app-mcp/index.ts:221](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L221) |
@@ -1874,9 +1874,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/photos | 19 | [src/App.tsx:662](../../src/App.tsx#L662) |
 | /dashboard/plan-de-salle | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:211](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L211) |
 | /dashboard/plan-salle | 11 | [src/App.tsx:674](../../src/App.tsx#L674) |
-| /dashboard/plan-salle-v2 | 2 | [src/App.tsx:676](../../src/App.tsx#L676) |
+| /dashboard/plan-salle-v2 | 3 | [src/App.tsx:676](../../src/App.tsx#L676) |
 | /dashboard/promotions | 6 | [src/App.tsx:663](../../src/App.tsx#L663) |
-| /dashboard/recommandations | 2 | [src/App.tsx:649](../../src/App.tsx#L649) |
+| /dashboard/recommandations | 3 | [src/App.tsx:649](../../src/App.tsx#L649) |
 | /dashboard/reseaux-sociaux | 6 | [src/App.tsx:665](../../src/App.tsx#L665) |
 | /dashboard/reservations | 26 | [src/App.tsx:647](../../src/App.tsx#L647) |
 | /dashboard/reservations?reservation=res-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:29](../../src/test/notifications-sinistres-governance.test.ts#L29) |
@@ -2016,12 +2016,12 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/marketing.webp | 1 | [src/lib/dashboardIllustrations.ts:16](../../src/lib/dashboardIllustrations.ts#L16) |
 | /images/dashboard-3d/photo-add.webp | 1 | [src/lib/dashboardIllustrations.ts:18](../../src/lib/dashboardIllustrations.ts#L18) |
 | /images/dashboard-3d/photopro.webp | 1 | [src/lib/dashboardIllustrations.ts:17](../../src/lib/dashboardIllustrations.ts#L17) |
-| /images/dashboard-3d/restaurant-advisor.webp | 1 | [src/lib/dashboardIllustrations.ts:27](../../src/lib/dashboardIllustrations.ts#L27) |
-| /images/dashboard-3d/restaurant-billing.webp | 1 | [src/lib/dashboardIllustrations.ts:40](../../src/lib/dashboardIllustrations.ts#L40) |
-| /images/dashboard-3d/restaurant-campaigns.webp | 1 | [src/lib/dashboardIllustrations.ts:32](../../src/lib/dashboardIllustrations.ts#L32) |
+| /images/dashboard-3d/restaurant-advisor.webp | 3 | [src/lib/dashboardIllustrations.ts:27](../../src/lib/dashboardIllustrations.ts#L27) |
+| /images/dashboard-3d/restaurant-billing.webp | 3 | [src/lib/dashboardIllustrations.ts:40](../../src/lib/dashboardIllustrations.ts#L40) |
+| /images/dashboard-3d/restaurant-campaigns.webp | 3 | [src/lib/dashboardIllustrations.ts:32](../../src/lib/dashboardIllustrations.ts#L32) |
 | /images/dashboard-3d/restaurant-comparison.webp | 1 | [src/lib/dashboardIllustrations.ts:29](../../src/lib/dashboardIllustrations.ts#L29) |
 | /images/dashboard-3d/restaurant-crm.webp | 1 | [src/lib/dashboardIllustrations.ts:30](../../src/lib/dashboardIllustrations.ts#L30) |
-| /images/dashboard-3d/restaurant-floor-plan.webp | 1 | [src/lib/dashboardIllustrations.ts:25](../../src/lib/dashboardIllustrations.ts#L25) |
+| /images/dashboard-3d/restaurant-floor-plan.webp | 3 | [src/lib/dashboardIllustrations.ts:25](../../src/lib/dashboardIllustrations.ts#L25) |
 | /images/dashboard-3d/restaurant-formulas.webp | 1 | [src/lib/dashboardIllustrations.ts:37](../../src/lib/dashboardIllustrations.ts#L37) |
 | /images/dashboard-3d/restaurant-invoice-settings.webp | 1 | [src/lib/dashboardIllustrations.ts:41](../../src/lib/dashboardIllustrations.ts#L41) |
 | /images/dashboard-3d/restaurant-news.webp | 1 | [src/lib/dashboardIllustrations.ts:36](../../src/lib/dashboardIllustrations.ts#L36) |
@@ -2217,11 +2217,11 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/thai-spread.jpeg | 3 | [src/lib/menu-item-images.ts:51](../../src/lib/menu-item-images.ts#L51) |
 | /images/tok-connect/tok-connect-widget-details.svg | 1 | [src/pages/TokConnect.tsx:103](../../src/pages/TokConnect.tsx#L103) |
 | /images/tok-connect/tok-connect-widget-restaurants.svg | 1 | [src/pages/TokConnect.tsx:97](../../src/pages/TokConnect.tsx#L97) |
-| /images/tok-refonte/chef-cloche.webp | 2 | [src/components/editorial/PageHeading.tsx:18](../../src/components/editorial/PageHeading.tsx#L18) |
+| /images/tok-refonte/chef-cloche.webp | 2 | [src/components/editorial/PageHeading.tsx:20](../../src/components/editorial/PageHeading.tsx#L20) |
 | /images/tok-refonte/chef-invitation.webp | 1 | [src/pages/Actualites.tsx:185](../../src/pages/Actualites.tsx#L185) |
-| /images/tok-refonte/chef-megaphone.webp | 1 | [src/components/editorial/PageHeading.tsx:17](../../src/components/editorial/PageHeading.tsx#L17) |
+| /images/tok-refonte/chef-megaphone.webp | 1 | [src/components/editorial/PageHeading.tsx:19](../../src/components/editorial/PageHeading.tsx#L19) |
 | /images/tok-refonte/chef-presentateur.webp | 5 | [src/components/crm/CrmAccessGuard.tsx:559](../../src/components/crm/CrmAccessGuard.tsx#L559) |
-| /images/tok-refonte/geneve-aquarelle.webp | 1 | [src/test/actualites-responsive-guards.test.ts:49](../../src/test/actualites-responsive-guards.test.ts#L49) |
+| /images/tok-refonte/geneve-aquarelle.webp | 1 | [src/test/actualites-responsive-guards.test.ts:50](../../src/test/actualites-responsive-guards.test.ts#L50) |
 | /images/tok-refonte/panier-vide.webp | 1 | [src/pages/Panier.tsx:1691](../../src/pages/Panier.tsx#L1691) |
 | /images/tok-restaurant-placeholder.svg | 5 | [src/components/NearbyRestaurantsMap.tsx:104](../../src/components/NearbyRestaurantsMap.tsx#L104) |
 | /images/user-guide/abonnement-mobile.png | 2 | [src/data/userGuideContent.ts:371](../../src/data/userGuideContent.ts#L371) |
@@ -2336,10 +2336,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /profil | 21 | [scripts/prerender-seo.mjs:1236](../../scripts/prerender-seo.mjs#L1236) |
 | /profil/edit | 1 | [src/test/customer-workspace-routes.test.ts:28](../../src/test/customer-workspace-routes.test.ts#L28) |
 | /profil?mode=edit | 1 | [src/test/navigation.test.ts:28](../../src/test/navigation.test.ts#L28) |
-| /profil?tab=abonnement | 6 | [src/components/CustomerDashboardLayout.tsx:121](../../src/components/CustomerDashboardLayout.tsx#L121) |
-| /profil?tab=favoris | 6 | [src/components/CustomerDashboardLayout.tsx:119](../../src/components/CustomerDashboardLayout.tsx#L119) |
-| /profil?tab=fidelite | 6 | [src/components/CustomerDashboardLayout.tsx:120](../../src/components/CustomerDashboardLayout.tsx#L120) |
-| /profil?tab=infos | 8 | [src/components/CustomerDashboardLayout.tsx:133](../../src/components/CustomerDashboardLayout.tsx#L133) |
+| /profil?tab=abonnement | 6 | [src/components/CustomerDashboardLayout.tsx:122](../../src/components/CustomerDashboardLayout.tsx#L122) |
+| /profil?tab=favoris | 6 | [src/components/CustomerDashboardLayout.tsx:120](../../src/components/CustomerDashboardLayout.tsx#L120) |
+| /profil?tab=fidelite | 6 | [src/components/CustomerDashboardLayout.tsx:121](../../src/components/CustomerDashboardLayout.tsx#L121) |
+| /profil?tab=infos | 8 | [src/components/CustomerDashboardLayout.tsx:134](../../src/components/CustomerDashboardLayout.tsx#L134) |
 | /profil?tab=infos#coordonnees | 1 | [src/test/dashboard-journey-focus.test.tsx:97](../../src/test/dashboard-journey-focus.test.tsx#L97) |
 | /profil?tab=infos&filter=recent | 1 | [src/test/dashboard-journey-focus.test.tsx:94](../../src/test/dashboard-journey-focus.test.tsx#L94) |
 | /profil?tab=notifications | 1 | [src/pages/Notifications.tsx:23](../../src/pages/Notifications.tsx#L23) |
