@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `934b098eed9155595fd24297d3a0ec9001817ad92a9a4633d6cc4ab29c5fcef8`
+- Empreinte SHA-256 des sources indexées : `42a0173df44bf481cfab2c256b84604624d1addb18d941d8091d8779b53b63cf`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -42,11 +42,11 @@
 | pages | 134 |
 | pathLiterals | 971 |
 | publicAssets | 901 |
-| publicEntries | 938 |
+| publicEntries | 939 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 121 |
-| records | 20503 |
-| repositoryFiles | 4070 |
+| records | 20505 |
+| repositoryFiles | 4071 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1464,6 +1464,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /launch/barlow.woff2 | media | [public/launch/barlow.woff2](../../public/launch/barlow.woff2) |
 | /launch/chef.png | media | [public/launch/chef.png](../../public/launch/chef.png) |
 | /launch/props.png | media | [public/launch/props.png](../../public/launch/props.png) |
+| /llms.txt | data | [public/llms.txt](../../public/llms.txt) |
 | /logotok.png | media | [public/logotok.png](../../public/logotok.png) |
 | /mangez.png | media | [public/mangez.png](../../public/mangez.png) |
 | /manifest.json | platform | [public/manifest.json](../../public/manifest.json) |
@@ -9761,7 +9762,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (938)</summary>
+<details><summary>public-asset (939)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -10573,6 +10574,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/launch/barlow.woff2`
 - `public/launch/chef.png`
 - `public/launch/props.png`
+- `public/llms.txt`
 - `public/logotok.png`
 - `public/mangez.png`
 - `public/manifest.json`
