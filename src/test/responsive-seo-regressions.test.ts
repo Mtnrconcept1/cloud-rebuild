@@ -67,6 +67,12 @@ describe("responsive and SEO regression guards", () => {
     // Keep the mobile hero/newsletter responsive on narrow and short screens.
     expect(heroCss).toContain("@media(max-width:380px)");
     expect(heroCss).toContain("@media(max-width:767px) and (max-height:760px)");
+    expect(heroCss).toContain("/* Mobile viewport-fit matrix.");
+    expect(heroCss).toContain("height: 100dvh;");
+    expect(heroCss).toContain("@media (max-width: 767px) and (orientation: landscape) and (max-height: 600px)");
+    expect(heroCss).toContain("@media (min-width: 768px) and (max-height: 760px)");
+    expect(heroCss).toContain("transform: none;");
+    expect(heroCss).not.toContain("min-height: max(875px");
     expect(heroCss).toContain(".tok-home-first-screen");
   });
 
