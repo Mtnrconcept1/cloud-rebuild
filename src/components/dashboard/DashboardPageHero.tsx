@@ -41,7 +41,22 @@ export default function DashboardPageHero({
         eyebrow={badge}
         description={description}
         actions={actions}
-        artwork={currentIllustration && <DashboardIllustrationMedia illustration={currentIllustration} className="h-full w-full" />}
+        artwork={(
+          <div className="tok-dashboard-hero-art">
+            {currentIllustration && (
+              <DashboardIllustrationMedia illustration={currentIllustration} className="tok-dashboard-hero-art__context" />
+            )}
+            <DashboardIllustrationMedia
+              illustration={{
+                src: "/images/tok-refonte/chef-presentateur.webp",
+                width: 1536,
+                height: 1024,
+                alt: "",
+              }}
+              className="tok-dashboard-hero-art__chef"
+            />
+          </div>
+        )}
       />
       {stats.length > 0 && (
         <dl className="tok-editorial-stats" aria-label={visualLabel || "Indicateurs"}>

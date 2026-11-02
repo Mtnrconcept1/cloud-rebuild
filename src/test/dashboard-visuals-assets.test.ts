@@ -5,6 +5,7 @@ import path from "node:path";
 import { getRestaurantDashboardVisual, getCustomerDashboardVisual, getTokHeroStyle } from "@/lib/dashboardVisuals";
 
 const assetDir = path.resolve(process.cwd(), "public/images/dashboard-generated");
+const refonteAssetDir = path.resolve(process.cwd(), "public/images/tok-refonte");
 
 describe("TOK dashboard image collection", () => {
   it("ships all 124 independently named WebP images", () => {
@@ -19,6 +20,18 @@ describe("TOK dashboard image collection", () => {
       .update(readFileSync(path.join(assetDir, name)))
       .digest("hex"));
     expect(new Set(heroHashes).size).toBe(62);
+  });
+
+  it("ships the three reusable transparent chef poses used by the editorial shell", () => {
+    const assets = ["chef-presentateur.webp", "chef-megaphone.webp", "chef-cloche.webp"];
+    for (const asset of assets) {
+      const file = path.join(refonteAssetDir, asset);
+      expect(existsSync(file)).toBe(true);
+      expect(readFileSync(file).byteLength).toBeGreaterThan(100_000);
+    }
+
+    const heading = readFileSync(path.resolve(process.cwd(), "src/components/editorial/PageHeading.tsx"), "utf8");
+    for (const asset of assets) expect(heading).toContain(`/images/tok-refonte/${asset}`);
   });
 
   it("renders client photographs in the shared hero instead of leaving them unused", () => {

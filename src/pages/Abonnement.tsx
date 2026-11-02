@@ -361,10 +361,10 @@ export default function Abonnement() {
   };
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="tok-product-page min-h-screen bg-background">
       <div className="container max-w-2xl space-y-8 py-8">
         <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <PageHeading title="Abonnement repas" description="Planifiez vos repas de la semaine" className="flex-1" />
+          <PageHeading title="Abonnement repas" description="Planifiez vos repas de la semaine" mascot="cloche" className="flex-1" />
 
           {subscribed ? (
             <Button

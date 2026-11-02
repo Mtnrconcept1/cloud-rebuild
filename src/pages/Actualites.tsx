@@ -413,7 +413,7 @@ export default function Actualites() {
         </aside>
         <section className="min-w-0 max-w-full space-y-2 md:space-y-3">
           <div data-testid="actualites-hero">
-            <PageHeading title="Le rendez-vous des gourmands." description="Les bonnes adresses se partagent." />
+            <PageHeading title="Le rendez-vous des gourmands." description="Les bonnes adresses se partagent." mascot="megaphone" />
           </div>
           <div className="relative overflow-hidden rounded-[1.5rem] border border-orange-100/80 bg-background/95 p-2 shadow-lg shadow-orange-100/35 backdrop-blur md:p-3">
             <div className="relative z-10 flex min-w-0 flex-col gap-2">

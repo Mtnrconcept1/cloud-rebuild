@@ -213,9 +213,9 @@ export default function CreneauxGarantis() {
   const stepIdx = (s: Step) => ["when", "restaurant", "menu", "confirm"].indexOf(s);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="tok-product-page min-h-screen bg-background">
       <div className="container px-4 py-8 space-y-6 overflow-hidden">
-        <PageHeading title="Créneaux garantis" description="Choisissez quand vous voulez être livré — on vous garantit le créneau" className="flex-1" />
+        <PageHeading title="Créneaux garantis" description="Choisissez quand vous voulez être livré — on vous garantit le créneau" mascot="cloche" className="flex-1" />
 
         <div className="flex items-center gap-1">
           {(["when", "restaurant", "menu", "confirm"] as Step[]).map((s, i) => {

@@ -691,7 +691,7 @@ export function FeatureWizard({ title, subtitle, colorClass, steps, currentStepI
   const currentStep = steps[Math.max(0, currentIdx)] ?? steps[0];
   const progress = steps.length > 0 ? Math.round(((Math.max(0, currentIdx) + 1) / steps.length) * 100) : 0;
   return (
-    <main ref={stepRef} tabIndex={-1} aria-label={`${title} : ${currentStep?.label || ""}`} className="tok-journey-step scroll-mt-28 min-h-screen bg-background">
+    <main ref={stepRef} tabIndex={-1} aria-label={`${title} : ${currentStep?.label || ""}`} className="tok-product-page tok-journey-step scroll-mt-28 min-h-screen bg-background">
       <div className="container py-8 max-w-2xl space-y-6">
         <PageHeading title={title} description={subtitle} actions={headerAction} />
         <div className="space-y-3 rounded-xl border bg-card/80 p-2 sm:hidden">

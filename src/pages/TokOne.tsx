@@ -1002,7 +1002,7 @@ export default function TokOne() {
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground dark:bg-slate-950 dark:text-white">
+    <main className="tok-product-page min-h-screen bg-background text-foreground dark:bg-slate-950 dark:text-white">
       <section className="relative isolate overflow-hidden border-b border-border bg-[linear-gradient(180deg,rgba(255,247,237,0.8),rgba(255,255,255,0.96)_48%,rgba(255,255,255,1))] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(15,23,42,1),rgba(2,6,23,1))]">
         <div className="mx-auto grid w-full max-w-7xl items-center gap-12 px-4 py-5 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-8">
           <motion.div
@@ -1015,7 +1015,7 @@ export default function TokOne() {
               <Sparkles className="h-4 w-4" aria-hidden="true" />
               Le statut premium des habitués TOK
             </p>
-            <PageHeading title="Tok One" description="Une seule formule pour mieux profiter de TOK." />
+            <PageHeading title="Tok One" description="Une seule formule pour mieux profiter de TOK." mascot="cloche" />
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               {activeSubscription ? (
                 <Button

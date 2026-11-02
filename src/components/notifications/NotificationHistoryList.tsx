@@ -78,7 +78,7 @@ export default function NotificationHistoryList({
 
   return (
     <section className={cn("space-y-5", className)}>
-      <PageHeading title={title} description={<>
+      <PageHeading title={title} mascot="megaphone" description={<>
         <p>{description}</p>
         {!inAppEnabled && <p className="mt-2 text-xs">Le canal in-app est désactivé dans vos préférences. L’historique reste consultable.</p>}
       </>} eyebrow={unreadCount > 0 && <Badge>{unreadCount} non lue{unreadCount > 1 ? "s" : ""}</Badge>} actions={

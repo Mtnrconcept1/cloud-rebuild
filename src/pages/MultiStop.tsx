@@ -118,9 +118,9 @@ export default function MultiStop() {
   const allAddressesFilled = stops.every((s) => s.address.trim().length > 0);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="tok-product-page min-h-screen bg-background">
       <div className="container py-8 max-w-2xl space-y-6">
-        <PageHeading title="Multi-stop" description="Un trajet, plusieurs livraisons" className="flex-1" />
+        <PageHeading title="Multi-stop" description="Un trajet, plusieurs livraisons" mascot="presenter" className="flex-1" />
 
         {step === "stops" && (<div className="space-y-4">
           <div className="rounded-xl bg-orange-500/5 border border-orange-500/10 p-4">

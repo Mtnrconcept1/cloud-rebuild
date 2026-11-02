@@ -1236,6 +1236,13 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
               </h1>
               <p className="truncate text-xs text-muted-foreground">Un coup de main pour chaque décision, à partir de vos données.</p>
             </div>
+            <img
+              src="/images/tok-refonte/chef-presentateur.webp"
+              alt=""
+              className="h-16 w-16 shrink-0 object-contain drop-shadow-[0_10px_16px_rgba(131,51,14,0.2)]"
+              loading="eager"
+              decoding="async"
+            />
           </div>
           <div className="tok-advisor-actions flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
             <Button type="button" variant={editMode ? "default" : "outline"} size="sm"

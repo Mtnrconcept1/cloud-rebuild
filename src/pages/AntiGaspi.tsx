@@ -58,7 +58,7 @@ export default function AntiGaspi() {
   ];
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="tok-product-page min-h-screen bg-background">
       <div className="container px-4 py-8 space-y-8">
         {!isCommercialDemoClient ? <CampaignBanner page="anti_waste" maxBanners={1} /> : null}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

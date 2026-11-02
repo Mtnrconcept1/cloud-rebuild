@@ -124,9 +124,9 @@ export default function FlexPrixBas() {
   const stepIdx = (s: Step) => ["window", "restaurant", "menu", "confirm"].indexOf(s);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="tok-product-page min-h-screen bg-background">
       <div className="container py-8 space-y-6">
-        <PageHeading title="Offres flexibles" description="Acceptez une fenêtre flexible et payez moins cher" className="flex-1" />
+        <PageHeading title="Offres flexibles" description="Acceptez une fenêtre flexible et payez moins cher" mascot="megaphone" className="flex-1" />
 
         <div className="flex items-center gap-1">
           {(["window", "restaurant", "menu", "confirm"] as Step[]).map((s, i) => {

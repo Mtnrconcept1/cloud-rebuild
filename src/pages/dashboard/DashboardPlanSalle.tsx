@@ -4769,10 +4769,19 @@ export default function DashboardPlanSalle() {
               </span>
             </div>
 
-            <DashboardIllustrationMedia
-              illustration={DASHBOARD_ILLUSTRATIONS.restaurantFloorPlan}
-              className="tok-floorplan-hero-illustration bg-transparent"
-            />
+            <div className="tok-floorplan-hero-illustration tok-floorplan-hero-visual">
+              <DashboardIllustrationMedia
+                illustration={DASHBOARD_ILLUSTRATIONS.restaurantFloorPlan}
+                className="tok-floorplan-hero-context bg-transparent"
+              />
+              <img
+                src="/images/tok-refonte/chef-cloche.webp"
+                alt=""
+                className="tok-floorplan-hero-chef"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
 
           </div>
           <div className="tok-floorplan-toolbar">

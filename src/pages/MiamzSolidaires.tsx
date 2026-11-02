@@ -40,13 +40,13 @@ export default function MiamzSolidaires() {
   });
 
   return (
-    <main className="min-h-screen bg-white text-slate-950">
+    <main className="tok-product-page min-h-screen bg-white text-slate-950">
       <section className="relative overflow-hidden border-b border-rose-100">
         <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-rose-50 lg:block" aria-hidden="true" />
         <div className="container relative grid gap-5 py-5 md:py-8 lg:grid-cols-[0.96fr_1.04fr] lg:items-center">
           <div className="max-w-2xl space-y-7">
             <div className="space-y-4">
-              <PageHeading title="Miamz solidaires, chaque repas compte" description="Bien manger aujourd’hui, pour un demain plus solidaire." />
+              <PageHeading title="Miamz solidaires, chaque repas compte" description="Bien manger aujourd’hui, pour un demain plus solidaire." mascot="presenter" />
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="bg-slate-950 text-white hover:bg-slate-800">

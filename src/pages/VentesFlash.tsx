@@ -270,11 +270,11 @@ export default function VentesFlash() {
   }, 0);
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="tok-product-page min-h-screen bg-background">
       <div className="container py-8 space-y-6">
         {!isCommercialDemoClient ? <CampaignBanner page="flash_sales" maxBanners={1} /> : null}
         <div className="flex items-center justify-between">
-          <PageHeading title="Ventes Flash" description="Offres limitées dans le temps" className="flex-1" />
+          <PageHeading title="Ventes Flash" description="Offres limitées dans le temps" mascot="megaphone" className="flex-1" />
           <Button
             variant={notifyEnabled ? "default" : "outline"}
             size="sm"

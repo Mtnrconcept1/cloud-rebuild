@@ -585,9 +585,9 @@ export default function MatchGroupes() {
   };
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="tok-product-page min-h-screen bg-background">
       <div className="container py-8 space-y-6">
-        <PageHeading title="Match de groupes" description="30 minutes pour se regrouper : chaque client prépayé ajoute 5% de réduction, jusqu'à 50%." className="flex-1" />
+        <PageHeading title="Match de groupes" description="30 minutes pour se regrouper : chaque client prépayé ajoute 5% de réduction, jusqu'à 50%." mascot="presenter" className="flex-1" />
 
         {confirmReturn.isPending ? (
           <div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground flex items-center gap-2">
