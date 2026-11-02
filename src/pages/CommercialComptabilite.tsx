@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useMemo, useState, type ComponentType } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarClock, Coins, MapPin, PiggyBank, ReceiptText, Store, TrendingUp, Users } from "lucide-react";
@@ -367,12 +368,7 @@ export default function CommercialComptabilite() {
                 <Badge className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-100">
                   Lecture seule
                 </Badge>
-                <h1 className="mt-4 font-display text-4xl font-black tracking-tight md:text-5xl">
-                  Comptabilité commerciale
-                </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground md:text-base">
-                  Consultez les commissions, le fixe, les bonus et les restaurants signés. Tous les montants sont calculés côté serveur. Cette page est strictement en lecture seule ; les bonus, primes et ajustements se gèrent uniquement depuis le profil commercial du Dashboard admin.
-                </p>
+                <PageHeading title="Comptabilité commerciale" description="Consultez les commissions, le fixe, les bonus et les restaurants signés. Tous les montants sont calculés côté serveur. Cette page est strictement en lecture seule ; les bonus, primes et ajustements se gèrent uniquement depuis le profil commercial du Dashboard admin." />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">

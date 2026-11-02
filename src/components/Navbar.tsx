@@ -1,5 +1,5 @@
 import { type MouseEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   Bell,
   Calculator,
@@ -7,6 +7,7 @@ import {
   ChefHat,
   Crown,
   Gift,
+  House,
   Layers,
   Leaf,
   LogOut,
@@ -132,6 +133,10 @@ export default function Navbar() {
       : getRoleHomePath(role);
   const showCartShortcut = showClientSurface && (user || itemCount > 0);
   const isDesktopHomeReference = showClientSurface && location.pathname === "/";
+  const showMobileDiscoveryDock = showClientSurface && (
+    ["/recherche", "/actualites", "/anti-gaspi", "/ventes-flash", "/tok-one", "/miamz-solidaires"].includes(location.pathname)
+    || (location.pathname === "/panier" && itemCount === 0)
+  );
   const showSignedInDesktopHomeMenu = isDesktopHomeReference && Boolean(user);
   const isMobileHomeHeader = isDesktopHomeReference;
 
@@ -712,6 +717,18 @@ export default function Navbar() {
         </div>
         {showHalloweenCanopy ? <HalloweenCanopy /> : null}
       </header>
+      {showMobileDiscoveryDock && (
+        <nav aria-label="Navigation de découverte" className="tok-discovery-dock">
+          {[
+            { to: "/", label: "Accueil", icon: House },
+            { to: "/recherche", label: "Explorer", icon: Search },
+            ...(showSocialFeedSurface && actualitesEnabled ? [{ to: "/actualites", label: "Actualités", icon: Newspaper }] : []),
+            { to: user ? "/profil" : "/auth", label: "Profil", icon: User },
+          ].map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to} end><Icon size={19} aria-hidden="true" />{label}</NavLink>
+          ))}
+        </nav>
+      )}
     </>
   );
 }

@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -1003,7 +1004,7 @@ export default function TokOne() {
   return (
     <main className="min-h-screen bg-background text-foreground dark:bg-slate-950 dark:text-white">
       <section className="relative isolate overflow-hidden border-b border-border bg-[linear-gradient(180deg,rgba(255,247,237,0.8),rgba(255,255,255,0.96)_48%,rgba(255,255,255,1))] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(15,23,42,1),rgba(2,6,23,1))]">
-        <div className="mx-auto grid w-full max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-20">
+        <div className="mx-auto grid w-full max-w-7xl items-center gap-12 px-4 py-5 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-8">
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1014,15 +1015,7 @@ export default function TokOne() {
               <Sparkles className="h-4 w-4" aria-hidden="true" />
               Le statut premium des habitués TOK
             </p>
-            <h1 className="font-display text-5xl font-semibold leading-[0.96] tracking-normal text-slate-950 sm:text-6xl lg:text-7xl dark:text-white">
-              Tok One
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-700 dark:text-white/70">
-              Avantages réservés, accès VIP aux expériences, réductions
-              partenaires et support prioritaire. Une formule claire pour les
-              clients qui commandent, réservent et découvrent les meilleures
-              tables de Genève.
-            </p>
+            <PageHeading title="Tok One" description="Une seule formule pour mieux profiter de TOK." />
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               {activeSubscription ? (
                 <Button

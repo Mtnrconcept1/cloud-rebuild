@@ -132,7 +132,7 @@ describe("dashboard 3D illustrations", () => {
     const photos = read("src/pages/dashboard/DashboardPhotos.tsx");
     expect(photos).toContain("IllustratedActionCard");
     expect(photos).toMatch(/<DashboardPageHero\b[\s\S]*?title="Studio Marketing"/);
-    expect(read("src/components/dashboard/DashboardPageHero.tsx")).toMatch(/<h1\b[^>]*>\s*\{title\}\s*<\/h1>/);
+    expect(read("src/components/editorial/PageHeading.tsx")).toMatch(/<h1\b[^>]*>\s*\{title\}\s*<\/h1>/);
     expect(photos).toContain("sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3");
 
     for (const key of ["photoMarketing", "photoPro", "photoAdd", "photoGallery", "photoCreations"]) {
@@ -172,8 +172,8 @@ describe("dashboard 3D illustrations", () => {
         .toContain("illustration={DASHBOARD_ILLUSTRATIONS." + key + "}");
     }
 
+    expect(read("src/pages/admin/AdminHome.tsx")).toContain("src={category.image}");
     const targetedStates = [
-      ["src/pages/admin/AdminHome.tsx", "adminAnalytics"],
       ["src/pages/dashboard/DashboardPlanSalle.tsx", "restaurantFloorPlan"],
       ["src/pages/dashboard/DashboardAdvisor.tsx", "restaurantAdvisor"],
       ["src/pages/Commandes.tsx", "clientOrdersEmpty"],

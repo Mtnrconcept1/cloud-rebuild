@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -586,17 +587,7 @@ export default function MatchGroupes() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container py-8 space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center">
-            <Users className="h-6 w-6 text-violet-500" />
-          </div>
-          <div>
-            <h1 className="font-display text-2xl font-bold">Match de groupes</h1>
-            <p className="text-muted-foreground text-xs">
-              30 minutes pour se regrouper : chaque client prépayé ajoute 5% de réduction, jusqu'à 50%.
-            </p>
-          </div>
-        </div>
+        <PageHeading title="Match de groupes" description="30 minutes pour se regrouper : chaque client prépayé ajoute 5% de réduction, jusqu'à 50%." className="flex-1" />
 
         {confirmReturn.isPending ? (
           <div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground flex items-center gap-2">

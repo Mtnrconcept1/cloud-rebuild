@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useQuery } from "@tanstack/react-query";
 import CampaignBanner from "@/components/CampaignBanner";
 import { getSupabase } from "@/integrations/supabase/client";
@@ -61,15 +62,7 @@ export default function AntiGaspi() {
       <div className="container px-4 py-8 space-y-8">
         {!isCommercialDemoClient ? <CampaignBanner page="anti_waste" maxBanners={1} /> : null}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center shrink-0">
-              <Leaf className="h-6 w-6 text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <h1 className="font-display text-2xl sm:text-3xl font-bold">Zéro Gaspi</h1>
-              <p className="text-muted-foreground text-sm">Sauvez la planète, un repas à la fois.</p>
-            </div>
-          </div>
+          <PageHeading title="Zéro Gaspi" description="Sauvez la planète, un repas à la fois." className="flex-1" />
           <div className="flex items-center gap-2 bg-secondary/50 p-2 rounded-xl">
             <Info className="h-4 w-4 text-muted-foreground" />
             <span className="text-xs font-medium">{portionsAvailable} portion{portionsAvailable > 1 ? "s" : ""} à sauver</span>

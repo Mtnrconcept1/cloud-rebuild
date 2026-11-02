@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useEffect, useRef, useState, type ComponentType } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -311,8 +312,7 @@ export default function CommercialMultiSpaceDemo() {
               <RealtimeConnectionBadge status={realtimeStatus} />
               <Badge variant="outline" className="rounded-full border-violet-300 text-violet-700"><TestTube2 className="mr-1.5 h-3.5 w-3.5" />Stripe Test uniquement</Badge>
             </div>
-            <h1 className="mt-2 break-words font-display text-2xl font-black tracking-tight sm:text-3xl">Contrôle à distance des quatre espaces</h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">La console pilote simultanément les véritables interfaces Client, Restaurateur, Commercial et Livreur. Tous les outils actifs dans l’Admin restent disponibles ; seul le paiement utilise Stripe Test.</p>
+            <PageHeading title="Démo multi-espace TOK" description="Pilotez les espaces client, restaurateur, commercial et livreur depuis cette console." />
           </div>
           <Button type="button" variant="outline" className="h-10 shrink-0 rounded-xl" onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
             {resetMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}Réinitialiser

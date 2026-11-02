@@ -1,13 +1,14 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { invokeSupabaseFunction } from "@/lib/session";
-import { Loader2, Printer, RefreshCw, RotateCcw, ShieldAlert } from "lucide-react";
+import { Loader2, RefreshCw, RotateCcw, ShieldAlert } from "lucide-react";
 
 type AdminPrintOrder = {
   id: string;
@@ -167,7 +168,7 @@ export default function AdminPrintOrders() {
       <Card className="rounded-3xl border-orange-500/20">
         <CardHeader className="flex-row items-start justify-between gap-4">
           <div>
-            <CardTitle className="flex items-center gap-2"><Printer className="h-5 w-5" /> TOK Printer — opérations</CardTitle>
+            <PageHeading title="TOK Printer" description="Catalogue, commandes et opérations d’impression." />
             <CardDescription>Cloudprinter, marges, commandes, incidents, réconciliation et SAV.</CardDescription>
           </div>
           <Button variant="outline" disabled={loading || working !== null} onClick={() => void load()}>{loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}Actualiser</Button>

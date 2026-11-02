@@ -423,9 +423,9 @@ function MobileOverviewHeading({
 }) {
   return (
     <section className="md:hidden" aria-labelledby="mobile-restaurant-dashboard-title">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <h1 id="mobile-restaurant-dashboard-title" className="truncate text-[1.72rem] font-black leading-tight tracking-[-0.035em] text-stone-950 dark:text-white">
+      <div className="tok-editorial-heading flex items-center justify-between gap-4">
+        <div className="tok-editorial-heading__copy min-w-0">
+          <h1 id="mobile-restaurant-dashboard-title" className="text-[1.72rem] font-black leading-tight tracking-[-0.035em] text-stone-950 dark:text-white">
             Bonjour, {firstName} !
           </h1>
           <p className="mt-0.5 truncate text-[0.98rem] text-stone-700 dark:text-slate-300">

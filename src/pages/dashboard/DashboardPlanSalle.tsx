@@ -4742,7 +4742,7 @@ export default function DashboardPlanSalle() {
       <div className="tok-floorplan-workspace fp-workspace flex min-h-0 min-w-0 flex-col gap-2 xl:h-[calc(100dvh-5rem)] xl:overflow-hidden">
         <header className="tok-editorial-header tok-floorplan-header fp-header shrink-0">
           <div className="tok-floorplan-hero-grid">
-            <div className="tok-floorplan-hero-copy min-w-0">
+            <div className="tok-floorplan-hero-copy tok-editorial-heading min-w-0">
               <span className="tok-floorplan-eyebrow">
                 <LayoutPanelTop className="h-4 w-4" aria-hidden="true" />
                 Organisation de salle

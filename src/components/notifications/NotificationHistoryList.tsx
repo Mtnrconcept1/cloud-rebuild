@@ -1,6 +1,7 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, CheckCheck, ExternalLink, Inbox } from "lucide-react";
+import { CheckCheck, ExternalLink, Inbox } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -77,26 +78,10 @@ export default function NotificationHistoryList({
 
   return (
     <section className={cn("space-y-5", className)}>
-      <div className="flex flex-col gap-4 rounded-3xl border bg-card p-5 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:p-6">
-        <div className="flex min-w-0 items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10">
-            <Bell className="h-6 w-6 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{title}</h1>
-              {unreadCount > 0 ? (
-                <Badge className="bg-red-600 text-white hover:bg-red-600">{unreadCount} non lue{unreadCount > 1 ? "s" : ""}</Badge>
-              ) : null}
-            </div>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
-            {!inAppEnabled ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Le canal in-app est désactivé dans vos préférences, mais l'historique reste consultable.
-              </p>
-            ) : null}
-          </div>
-        </div>
+      <PageHeading title={title} description={<>
+        <p>{description}</p>
+        {!inAppEnabled && <p className="mt-2 text-xs">Le canal in-app est désactivé dans vos préférences. L’historique reste consultable.</p>}
+      </>} eyebrow={unreadCount > 0 && <Badge>{unreadCount} non lue{unreadCount > 1 ? "s" : ""}</Badge>} actions={
         <Button
           type="button"
           variant="outline"
@@ -108,7 +93,7 @@ export default function NotificationHistoryList({
           <CheckCheck className="h-4 w-4" />
           Tout marquer comme lu
         </Button>
-      </div>
+      } />
 
       {isLoading ? (
         <div className="space-y-3">

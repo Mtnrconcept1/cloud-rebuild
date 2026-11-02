@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -806,12 +807,7 @@ function GuidePage({ audience }: { audience: Audience }) {
               <Badge className={isRestaurant ? "bg-orange-100 text-orange-800 hover:bg-orange-100" : "bg-violet-100 text-violet-800 hover:bg-violet-100"}>
                 {isRestaurant ? "Parcours restaurateur uniquement" : "Référence complète & administration"}
               </Badge>
-              <h1 className="mt-5 max-w-4xl font-display text-4xl font-black tracking-tight md:text-6xl">{title}</h1>
-              <p className="mt-5 max-w-3xl text-lg leading-relaxed text-slate-600 dark:text-slate-300">
-                {isRestaurant
-                  ? "Le mode d’emploi opérationnel pour configurer votre établissement, gérer le service et développer votre activité, du menu à la facturation."
-                  : "Manuel complet réservé aux administrateurs TOK : supervision, opérations, risques, surfaces applicatives et inventaire des outils serveur."}
-              </p>
+              <PageHeading title={title} description="Toutes les clés pour comprendre, gérer et faire grandir la plateforme TOK." />
               <div className="mt-7 flex flex-wrap gap-3 text-sm font-bold">
                 {isRestaurant ? <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm dark:bg-slate-950"><BookOpen className="h-4 w-4 text-[#ff6a1a]" /> {chapters.length} rubriques expliquées</span> : <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm dark:bg-slate-950"><Map className="h-4 w-4 text-[#ff6a1a]" /> {routeCount} routes couvertes</span>}
                 <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm dark:bg-slate-950"><Search className="h-4 w-4 text-[#ff6a1a]" /> Recherche instantanée</span>

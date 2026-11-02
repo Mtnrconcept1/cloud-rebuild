@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `3081b45156c0d0e99ed08e7eb8169edd4f0e8572945d56e82968c6d28e6649f9`
+- Empreinte SHA-256 des sources indexées : `98e8bfe98d176db8829c2d924b2f376f8c5df445b0d013daef06867477651560`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 246 |
 | edgeFunctions | 126 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4371 |
+| exportedSymbols | 4372 |
 | featureFlags | 100 |
 | frontendRoutes | 145 |
 | integrations | 11 |
 | marketingOperations | 45 |
 | migrations | 593 |
-| modules | 1970 |
+| modules | 1972 |
 | pages | 134 |
-| pathLiterals | 976 |
+| pathLiterals | 988 |
 | publicAssets | 904 |
 | publicEntries | 942 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 122 |
-| records | 20531 |
-| repositoryFiles | 4077 |
+| records | 20549 |
+| repositoryFiles | 4080 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1601,7 +1601,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 301 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 302 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 8 | [src/test/admin-crm-theme-csp.test.ts:88](../../src/test/admin-crm-theme-csp.test.ts#L88) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:102](../../src/test/application-search-index.test.ts#L102) |
@@ -1627,7 +1627,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /CN=webhook-runtime.test | 2 | [scripts/security/run-webhook-deno-runtime.mjs:17](../../scripts/security/run-webhook-deno-runtime.mjs#L17) |
 | /EmbeddedFile | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
 | /FontFile2 | 1 | [src/test/tokWorkforcePdf.test.ts:41](../../src/test/tokWorkforcePdf.test.ts#L41) |
-| /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 4 | [src/components/FeatureWizard.tsx:20](../../src/components/FeatureWizard.tsx#L20) |
+| /Image%20Codex%203%20sept.%202026,%2002_31_12.png | 4 | [src/components/FeatureWizard.tsx:21](../../src/components/FeatureWizard.tsx#L21) |
 | /JS | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
 | /JavaScript | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
 | /Launch | 1 | [supabase/functions/_shared/advisor-attachments.ts:25](../../supabase/functions/_shared/advisor-attachments.ts#L25) |
@@ -1650,7 +1650,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /a-propos | 14 | [scripts/prerender-seo.mjs:1089](../../scripts/prerender-seo.mjs#L1089) |
 | /abonnement | 16 | [scripts/prerender-seo.mjs:1025](../../scripts/prerender-seo.mjs#L1025) |
 | /actions/runs/$FAILED_WORKFLOW_ID/jobs | 1 | [src/test/incident-automation-readiness.test.ts:602](../../src/test/incident-automation-readiness.test.ts#L602) |
-| /actualites | 38 | [scripts/harden-seo-crawl.mjs:381](../../scripts/harden-seo-crawl.mjs#L381) |
+| /actualites | 40 | [scripts/harden-seo-crawl.mjs:381](../../scripts/harden-seo-crawl.mjs#L381) |
 | /actualites/ | 2 | [scripts/prerender-seo.mjs:64](../../scripts/prerender-seo.mjs#L64) |
 | /actualites/:postId | 2 | [src/App.tsx:642](../../src/App.tsx#L642) |
 | /actualites/post-1 | 4 | [src/test/seo-crawl-hardening.test.ts:114](../../src/test/seo-crawl-hardening.test.ts#L114) |
@@ -1690,7 +1690,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/restaurants | 13 | [src/App.tsx:686](../../src/App.tsx#L686) |
 | /admin/restaurants/google-business | 7 | [src/App.tsx:688](../../src/App.tsx#L688) |
 | /admin/security-center | 9 | [src/App.tsx:708](../../src/App.tsx#L708) |
-| /admin/security-center?view=audit | 1 | [src/pages/admin/AdminHome.tsx:967](../../src/pages/admin/AdminHome.tsx#L967) |
+| /admin/security-center?view=audit | 1 | [src/pages/admin/AdminHome.tsx:955](../../src/pages/admin/AdminHome.tsx#L955) |
 | /admin/security-center?view=guardian | 2 | [src/components/admin/AdminMobileNavigation.tsx:117](../../src/components/admin/AdminMobileNavigation.tsx#L117) |
 | /admin/sinistres | 8 | [src/App.tsx:705](../../src/App.tsx#L705) |
 | /admin/sinistres?incident= | 2 | [src/test/notifications-sinistres-governance.test.ts:202](../../src/test/notifications-sinistres-governance.test.ts#L202) |
@@ -1707,7 +1707,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /africain | 1 | [src/test/local-restaurants-pagination.test.tsx:301](../../src/test/local-restaurants-pagination.test.tsx#L301) |
 | /aide | 16 | [scripts/prerender-seo.mjs:1105](../../scripts/prerender-seo.mjs#L1105) |
 | /aligro-catalog-sync | 1 | [src/test/supplier-catalog-sync.test.ts:82](../../src/test/supplier-catalog-sync.test.ts#L82) |
-| /anti-gaspi | 27 | [scripts/prerender-seo.mjs:318](../../scripts/prerender-seo.mjs#L318) |
+| /anti-gaspi | 28 | [scripts/prerender-seo.mjs:318](../../scripts/prerender-seo.mjs#L318) |
 | /api | 2 | [src/test/tok-connect-delivery-address.test.ts:14](../../src/test/tok-connect-delivery-address.test.ts#L14) |
 | /api-keys?reveal=true | 1 | [src/test/restaurant-image-backfill-auth.test.ts:15](../../src/test/restaurant-image-backfill-auth.test.ts#L15) |
 | /api/ | 1 | [src/lib/commercialDemoEffects.ts:80](../../src/lib/commercialDemoEffects.ts#L80) |
@@ -1732,7 +1732,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /assets/app.js | 1 | [src/test/app-page-navigation.test.tsx:25](../../src/test/app-page-navigation.test.tsx#L25) |
 | /assets/missing.js | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /attachments? | 1 | [src/test/resend-inbound-forward.test.ts:25](../../src/test/resend-inbound-forward.test.ts#L25) |
-| /auth | 59 | [scripts/prerender-seo.mjs:1248](../../scripts/prerender-seo.mjs#L1248) |
+| /auth | 60 | [scripts/prerender-seo.mjs:1248](../../scripts/prerender-seo.mjs#L1248) |
 | /auth/ | 1 | [src/components/ComingSoonGate.tsx:13](../../src/components/ComingSoonGate.tsx#L13) |
 | /auth/callback | 20 | [src/App.tsx:591](../../src/App.tsx#L591) |
 | /auth/callback? | 1 | [src/lib/deep-links.ts:33](../../src/lib/deep-links.ts#L33) |
@@ -1875,7 +1875,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/promotions | 6 | [src/App.tsx:663](../../src/App.tsx#L663) |
 | /dashboard/recommandations | 2 | [src/App.tsx:649](../../src/App.tsx#L649) |
 | /dashboard/reseaux-sociaux | 6 | [src/App.tsx:665](../../src/App.tsx#L665) |
-| /dashboard/reservations | 25 | [src/App.tsx:647](../../src/App.tsx#L647) |
+| /dashboard/reservations | 26 | [src/App.tsx:647](../../src/App.tsx#L647) |
 | /dashboard/reservations?reservation=res-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:29](../../src/test/notifications-sinistres-governance.test.ts#L29) |
 | /dashboard/restaurant | 8 | [src/App.tsx:644](../../src/App.tsx#L644) |
 | /dashboard/service | 10 | [src/App.tsx:672](../../src/App.tsx#L672) |
@@ -2033,19 +2033,31 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/dashboard-3d/restaurant-support.webp | 1 | [src/lib/dashboardIllustrations.ts:31](../../src/lib/dashboardIllustrations.ts#L31) |
 | /images/dashboard-3d/restaurant-tok-connect.webp | 1 | [src/lib/dashboardIllustrations.ts:38](../../src/lib/dashboardIllustrations.ts#L38) |
 | /images/dashboard-generated/ | 1 | [src/lib/dashboardVisuals.ts:3](../../src/lib/dashboardVisuals.ts#L3) |
+| /images/dashboard-generated/client_accueil_hero.webp | 1 | [src/pages/ClientDashboardHome.tsx:117](../../src/pages/ClientDashboardHome.tsx#L117) |
+| /images/dashboard-generated/client_actualites_hero.webp | 1 | [src/pages/ClientDashboardHome.tsx:162](../../src/pages/ClientDashboardHome.tsx#L162) |
+| /images/dashboard-generated/client_anti_gaspi_hero.webp | 1 | [src/pages/ClientDashboardHome.tsx:135](../../src/pages/ClientDashboardHome.tsx#L135) |
 | /images/dashboard-generated/client_confirmation_commande_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:55](../../src/test/dashboard-visuals-assets.test.ts#L55) |
 | /images/dashboard-generated/client_favoris_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:46](../../src/test/dashboard-visuals-assets.test.ts#L46) |
 | /images/dashboard-generated/client_miamz_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:48](../../src/test/dashboard-visuals-assets.test.ts#L48) |
 | /images/dashboard-generated/client_mon_abonnement_3d.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:50](../../src/test/dashboard-visuals-assets.test.ts#L50) |
 | /images/dashboard-generated/client_suivi_commande_3d.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:57](../../src/test/dashboard-visuals-assets.test.ts#L57) |
+| /images/dashboard-generated/client_tok_dor_hero.webp | 1 | [src/pages/ClientDashboardHome.tsx:153](../../src/pages/ClientDashboardHome.tsx#L153) |
+| /images/dashboard-generated/client_ventes_flash_hero.webp | 1 | [src/pages/ClientDashboardHome.tsx:144](../../src/pages/ClientDashboardHome.tsx#L144) |
+| /images/dashboard-generated/client_zero_attente_hero.webp | 1 | [src/pages/ClientDashboardHome.tsx:126](../../src/pages/ClientDashboardHome.tsx#L126) |
+| /images/dashboard-generated/restaurant_accueil_hero.webp | 1 | [src/pages/admin/AdminHome.tsx:281](../../src/pages/admin/AdminHome.tsx#L281) |
+| /images/dashboard-generated/restaurant_campagnes_hero.webp | 1 | [src/pages/admin/AdminHome.tsx:299](../../src/pages/admin/AdminHome.tsx#L299) |
+| /images/dashboard-generated/restaurant_comptabilite_hero.webp | 1 | [src/pages/admin/AdminHome.tsx:308](../../src/pages/admin/AdminHome.tsx#L308) |
 | /images/dashboard-generated/restaurant_performances_hero.webp | 1 | [src/test/dashboard-visuals-assets.test.ts:64](../../src/test/dashboard-visuals-assets.test.ts#L64) |
+| /images/dashboard-generated/restaurant_pilotage_service_hero.webp | 1 | [src/pages/admin/AdminHome.tsx:317](../../src/pages/admin/AdminHome.tsx#L317) |
+| /images/dashboard-generated/restaurant_reservations_hero.webp | 1 | [src/pages/admin/AdminHome.tsx:290](../../src/pages/admin/AdminHome.tsx#L290) |
+| /images/dashboard-generated/restaurant_tok_connect_hero.webp | 1 | [src/pages/admin/AdminHome.tsx:326](../../src/pages/admin/AdminHome.tsx#L326) |
 | /images/dashboard/restaurant-ambience.webp | 3 | [scripts/dashboard-design-preview.fixtures.ts:10](../../scripts/dashboard-design-preview.fixtures.ts#L10) |
 | /images/doner-kebab-plate.jpeg | 2 | [src/lib/menu-item-images.ts:48](../../src/lib/menu-item-images.ts#L48) |
 | /images/edamame.webp | 1 | [src/lib/menu-item-images.ts:49](../../src/lib/menu-item-images.ts#L49) |
 | /images/edits | 3 | [src/test/marketing-daily-visual.test.ts:151](../../src/test/marketing-daily-visual.test.ts#L151) |
 | /images/emails/tok-reservation-hero.jpg | 2 | [src/test/transactional-email-templates.test.ts:105](../../src/test/transactional-email-templates.test.ts#L105) |
 | /images/emails/tok-reservation-hero.webp | 1 | [src/test/transactional-email-templates.test.ts:106](../../src/test/transactional-email-templates.test.ts#L106) |
-| /images/fattouche.webp | 5 | [src/lib/menu-item-images.ts:21](../../src/lib/menu-item-images.ts#L21) |
+| /images/fattouche.webp | 6 | [src/lib/menu-item-images.ts:21](../../src/lib/menu-item-images.ts#L21) |
 | /images/fondue%20moiti%C3%A9%20moiti%C3%A9.jpg | 2 | [src/test/menu-item-images.test.ts:9](../../src/test/menu-item-images.test.ts#L9) |
 | /images/fondue-moitie-moitie.jpg | 5 | [src/lib/securityUrls.ts:26](../../src/lib/securityUrls.ts#L26) |
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
@@ -2163,8 +2175,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/moshi%20glac%C3%A9s.jpg | 1 | [src/test/security-url-helpers.test.ts:23](../../src/test/security-url-helpers.test.ts#L23) |
 | /images/octopus-fine-dining-fast.webp | 1 | [src/components/PromoCarousel.tsx:32](../../src/components/PromoCarousel.tsx#L32) |
 | /images/octopus-fine-dining.jpeg | 11 | [src/components/AntiWasteCard.tsx:36](../../src/components/AntiWasteCard.tsx#L36) |
-| /images/pannacotta.webp | 4 | [scripts/dashboard-design-preview.fixtures.ts:25](../../scripts/dashboard-design-preview.fixtures.ts#L25) |
-| /images/pasta-assortment.jpeg | 5 | [src/components/AntiWasteCard.tsx:38](../../src/components/AntiWasteCard.tsx#L38) |
+| /images/pannacotta.webp | 5 | [scripts/dashboard-design-preview.fixtures.ts:25](../../scripts/dashboard-design-preview.fixtures.ts#L25) |
+| /images/pasta-assortment.jpeg | 6 | [src/components/AntiWasteCard.tsx:38](../../src/components/AntiWasteCard.tsx#L38) |
 | /images/poke-bowls.jpeg | 8 | [src/components/AntiWasteCard.tsx:37](../../src/components/AntiWasteCard.tsx#L37) |
 | /images/raita.webp | 1 | [src/lib/menu-item-images.ts:102](../../src/lib/menu-item-images.ts#L102) |
 | /images/restaurant.jpg | 3 | [src/test/restaurant-entity-seo.test.ts:40](../../src/test/restaurant-entity-seo.test.ts#L40) |
@@ -2279,9 +2291,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /menu.pdf | 1 | [src/test/app-page-navigation.test.tsx:26](../../src/test/app-page-navigation.test.tsx#L26) |
 | /mes-avis | 14 | [scripts/prerender-seo.mjs:1245](../../scripts/prerender-seo.mjs#L1245) |
 | /miamz | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:206](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L206) |
-| /miamz-solidaires | 17 | [scripts/prerender-seo.mjs:543](../../scripts/prerender-seo.mjs#L543) |
+| /miamz-solidaires | 18 | [scripts/prerender-seo.mjs:543](../../scripts/prerender-seo.mjs#L543) |
 | /mon-compte-facturation | 1 | [src/test/dashboard-design-preview-export.test.tsx:68](../../src/test/dashboard-design-preview-export.test.tsx#L68) |
-| /mon-espace | 45 | [scripts/prerender-seo.mjs:1242](../../scripts/prerender-seo.mjs#L1242) |
+| /mon-espace | 44 | [scripts/prerender-seo.mjs:1242](../../scripts/prerender-seo.mjs#L1242) |
 | /mon-espace-public | 1 | [src/test/customer-workspace-routes.test.ts:29](../../src/test/customer-workspace-routes.test.ts#L29) |
 | /mon-espace?source=pwa-shortcut | 1 | [src/test/application-search-index.test.ts:129](../../src/test/application-search-index.test.ts#L129) |
 | /multi-restaurant | 17 | [scripts/prerender-seo.mjs:1057](../../scripts/prerender-seo.mjs#L1057) |
@@ -2304,7 +2316,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /other | 3 | [src/test/tok-connect-broker.test.ts:106](../../src/test/tok-connect-broker.test.ts#L106) |
 | /other/../equipe/mon-espace | 1 | [src/test/workforce-auth-continuation.test.ts:33](../../src/test/workforce-auth-continuation.test.ts#L33) |
 | /packs-restaurateur | 17 | [scripts/prerender-seo.mjs:574](../../scripts/prerender-seo.mjs#L574) |
-| /panier | 55 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
+| /panier | 56 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
 | /parametres/securite | 6 | [src/App.tsx:381](../../src/App.tsx#L381) |
 | /performances | 1 | [src/test/dashboard-design-preview-export.test.tsx:63](../../src/test/dashboard-design-preview-export.test.tsx#L63) |
 | /photos | 1 | [src/test/dashboard-design-preview-export.test.tsx:68](../../src/test/dashboard-design-preview-export.test.tsx#L68) |
@@ -2315,7 +2327,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /prices/lookup | 1 | [supabase/functions/_shared/print/cloudprinter.ts:283](../../supabase/functions/_shared/print/cloudprinter.ts#L283) |
 | /products | 3 | [src/test/cloudprinter-edge-runtime.test.ts:64](../../src/test/cloudprinter-edge-runtime.test.ts#L64) |
 | /products/info | 1 | [supabase/functions/_shared/print/cloudprinter.ts:273](../../supabase/functions/_shared/print/cloudprinter.ts#L273) |
-| /profil | 20 | [scripts/prerender-seo.mjs:1236](../../scripts/prerender-seo.mjs#L1236) |
+| /profil | 21 | [scripts/prerender-seo.mjs:1236](../../scripts/prerender-seo.mjs#L1236) |
 | /profil/edit | 1 | [src/test/customer-workspace-routes.test.ts:28](../../src/test/customer-workspace-routes.test.ts#L28) |
 | /profil?mode=edit | 1 | [src/test/navigation.test.ts:28](../../src/test/navigation.test.ts#L28) |
 | /profil?tab=abonnement | 6 | [src/components/CustomerDashboardLayout.tsx:121](../../src/components/CustomerDashboardLayout.tsx#L121) |
@@ -2335,7 +2347,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/:slug | 3 | [src/App.tsx:602](../../src/App.tsx#L602) |
 | /r/:slug/reserver | 2 | [src/App.tsx:601](../../src/App.tsx#L601) |
 | /readyz | 3 | [src/test/application-search-index.test.ts:105](../../src/test/application-search-index.test.ts#L105) |
-| /recherche | 91 | [public/seo-trust-runtime.js:139](../../public/seo-trust-runtime.js#L139) |
+| /recherche | 93 | [public/seo-trust-runtime.js:139](../../public/seo-trust-runtime.js#L139) |
 | /recherche#cuisines | 1 | [src/test/app-page-navigation.test.tsx:29](../../src/test/app-page-navigation.test.tsx#L29) |
 | /recherche?city=Lausanne | 1 | [src/test/restaurant-search-preview.test.tsx:123](../../src/test/restaurant-search-preview.test.tsx#L123) |
 | /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:107](../../src/test/restaurant-search-preview.test.tsx#L107) |
@@ -2350,7 +2362,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
 | /register | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
 | /reseaux-sociaux | 2 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
-| /reservations | 34 | [scripts/prerender-seo.mjs:1241](../../scripts/prerender-seo.mjs#L1241) |
+| /reservations | 36 | [scripts/prerender-seo.mjs:1241](../../scripts/prerender-seo.mjs#L1241) |
 | /reserver | 1 | [src/test/google-actions-center-readiness.test.ts:31](../../src/test/google-actions-center-readiness.test.ts#L31) |
 | /responses | 4 | [src/test/marketing-daily-visual.test.ts:112](../../src/test/marketing-daily-visual.test.ts#L112) |
 | /rest/v1/ | 4 | [src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx:106](../../src/components/commercial/CommercialDemoSafeEffectsBoundary.tsx#L106) |
@@ -2521,7 +2533,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-connect/developer/:path* | 2 | [src/test/vercel-rewrites.test.ts:117](../../src/test/vercel-rewrites.test.ts#L117) |
 | /tok-connect/mcp-widget | 6 | [src/App.tsx:632](../../src/App.tsx#L632) |
 | /tok-connect/mcp-widget?mode=sandbox | 1 | [src/test/tok-connect-preview-sandbox.test.tsx:15](../../src/test/tok-connect-preview-sandbox.test.tsx#L15) |
-| /tok-one | 30 | [scripts/prerender-seo.mjs:527](../../scripts/prerender-seo.mjs#L527) |
+| /tok-one | 31 | [scripts/prerender-seo.mjs:527](../../scripts/prerender-seo.mjs#L527) |
 | /tok-one?status=success | 1 | [src/test/security-url-helpers.test.ts:62](../../src/test/security-url-helpers.test.ts#L62) |
 | /tok-pulse | 11 | [scripts/prerender-seo.mjs:1215](../../scripts/prerender-seo.mjs#L1215) |
 | /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:92](../../supabase/functions/ai-image-enhance/index.ts#L92) |
@@ -2571,7 +2583,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /v3/feeds/services | 2 | [src/test/google-actions-center-readiness.test.ts:98](../../src/test/google-actions-center-readiness.test.ts#L98) |
 | /v3/feeds/services/ | 3 | [scripts/google-actions-center-export-feeds.mjs:16](../../scripts/google-actions-center-export-feeds.mjs#L16) |
 | /v3/feeds/services/?limit=25 | 1 | [src/test/google-actions-center-feed-exporter.test.ts:114](../../src/test/google-actions-center-feed-exporter.test.ts#L114) |
-| /ventes-flash | 27 | [scripts/prerender-seo.mjs:319](../../scripts/prerender-seo.mjs#L319) |
+| /ventes-flash | 28 | [scripts/prerender-seo.mjs:319](../../scripts/prerender-seo.mjs#L319) |
 | /webhooks/tok | 4 | [src/lib/tokConnect.ts:169](../../src/lib/tokConnect.ts#L169) |
 | /workers/image-ai-worker | 1 | [scripts/dependabot-policy.test.mjs:40](../../scripts/dependabot-policy.test.mjs#L40) |
 | /zero-attente | 31 | [scripts/prerender-seo.mjs:658](../../scripts/prerender-seo.mjs#L658) |
@@ -2601,7 +2613,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | code | — | 4 | [server/marketingBff.ts:2682](../../server/marketingBff.ts#L2682) |
 | code_challenge_method | — | 1 | [src/test/tok-connect-broker.test.ts:241](../../src/test/tok-connect-broker.test.ts#L241) |
 | commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:916](../../src/pages/Auth.tsx#L916) |
-| commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:280](../../src/pages/CommercialComptabilite.tsx#L280) |
+| commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:281](../../src/pages/CommercialComptabilite.tsx#L281) |
 | confirmed | /auth, /auth/callback, /auth/demo | 3 | [src/lib/workforceContinuation.ts:37](../../src/lib/workforceContinuation.ts#L37) |
 | countrycode | — | 1 | [src/test/tok-connect-delivery-address.test.ts:15](../../src/test/tok-connect-delivery-address.test.ts#L15) |
 | cuisine | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/pages/Recherche.tsx:314](../../src/pages/Recherche.tsx#L314) |
@@ -2609,7 +2621,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | date | /restaurant/:id, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/lib/zeroAttenteReservationContext.ts:76](../../src/lib/zeroAttenteReservationContext.ts#L76) |
 | days | — | 1 | [scripts/google-actions-center-export-feeds.mjs:55](../../scripts/google-actions-center-export-feeds.mjs#L55) |
 | delivery | /recherche | 2 | [src/pages/Recherche.tsx:324](../../src/pages/Recherche.tsx#L324) |
-| demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:85](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L85) |
+| demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:86](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L86) |
 | demo_session_id | — | 4 | [src/components/commercial/CommercialDemoActorWorkspace.tsx:88](../../src/components/commercial/CommercialDemoActorWorkspace.tsx#L88) |
 | domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2385](../../src/pages/Auth.tsx#L2385) |
 | fields | — | 2 | [src/test/marketing-instagram-graph.test.ts:15](../../src/test/marketing-instagram-graph.test.ts#L15) |
@@ -2619,16 +2631,16 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | fields[appStoreVersions] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:162](../../scripts/app-store-connect-upload-screenshots.mjs#L162) |
 | filter[bundleId] | — | 2 | [scripts/app-store-connect-preflight.mjs:76](../../scripts/app-store-connect-preflight.mjs#L76) |
 | filter[platform] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:160](../../scripts/app-store-connect-upload-screenshots.mjs#L160) |
-| fonction | /admin/guide, /dashboard/guide | 3 | [src/pages/GuideUtilisateur.tsx:500](../../src/pages/GuideUtilisateur.tsx#L500) |
+| fonction | /admin/guide, /dashboard/guide | 3 | [src/pages/GuideUtilisateur.tsx:501](../../src/pages/GuideUtilisateur.tsx#L501) |
 | format | — | 1 | [src/lib/optimizedImages.ts:41](../../src/lib/optimizedImages.ts#L41) |
 | from | — | 1 | [src/marketing/useMarketingUrlState.ts:119](../../src/marketing/useMarketingUrlState.ts#L119) |
-| function | /admin/guardian | 1 | [src/pages/admin/AdminGuardian.tsx:108](../../src/pages/admin/AdminGuardian.tsx#L108) |
+| function | /admin/guardian | 1 | [src/pages/admin/AdminGuardian.tsx:109](../../src/pages/admin/AdminGuardian.tsx#L109) |
 | geometry | — | 1 | [src/test/home-canton-hero.test.ts:55](../../src/test/home-canton-hero.test.ts#L55) |
 | guarantee_session_id | /reservations | 2 | [src/pages/Reservations.tsx:166](../../src/pages/Reservations.tsx#L166) |
 | height | — | 1 | [src/lib/optimizedImages.ts:38](../../src/lib/optimizedImages.ts#L38) |
 | host | — | 2 | [src/test/tok-connect-broker.test.ts:115](../../src/test/tok-connect-broker.test.ts#L115) |
 | id | — | 1 | [src/test/marketing-mailing-image-bff.test.ts:80](../../src/test/marketing-mailing-image-bff.test.ts#L80) |
-| incident | /admin/guardian, /admin/sinistres, /admin/support-resolution | 4 | [src/pages/admin/AdminGuardian.tsx:107](../../src/pages/admin/AdminGuardian.tsx#L107) |
+| incident | /admin/guardian, /admin/sinistres, /admin/support-resolution | 4 | [src/pages/admin/AdminGuardian.tsx:108](../../src/pages/admin/AdminGuardian.tsx#L108) |
 | itemId | — | 1 | [src/marketing/useMarketingUrlState.ts:122](../../src/marketing/useMarketingUrlState.ts#L122) |
 | job | /courier/jobs | 1 | [src/pages/courier/CourierJobs.tsx:54](../../src/pages/courier/CourierJobs.tsx#L54) |
 | lat | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 3 | [src/pages/LocalRestaurants.tsx:467](../../src/pages/LocalRestaurants.tsx#L467) |
@@ -2639,10 +2651,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | lng | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 1 | [src/pages/LocalRestaurants.tsx:470](../../src/pages/LocalRestaurants.tsx#L470) |
 | lon | — | 2 | [src/test/address-autocomplete-location-bias.test.tsx:79](../../src/test/address-autocomplete-location-bias.test.tsx#L79) |
 | longitude | — | 1 | [src/test/home-world-hero.test.ts:59](../../src/test/home-world-hero.test.ts#L59) |
-| match_group_authorized | /match-groupes | 2 | [src/pages/MatchGroupes.tsx:389](../../src/pages/MatchGroupes.tsx#L389) |
+| match_group_authorized | /match-groupes | 2 | [src/pages/MatchGroupes.tsx:390](../../src/pages/MatchGroupes.tsx#L390) |
 | max_lat | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:121](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L121) |
 | max_lng | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:123](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L123) |
-| member_order_id | /match-groupes | 2 | [src/pages/MatchGroupes.tsx:390](../../src/pages/MatchGroupes.tsx#L390) |
+| member_order_id | /match-groupes | 2 | [src/pages/MatchGroupes.tsx:391](../../src/pages/MatchGroupes.tsx#L391) |
 | messagingSenderId | — | 1 | [src/lib/push.ts:83](../../src/lib/push.ts#L83) |
 | min_lat | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:120](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L120) |
 | min_lng | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:122](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L122) |
@@ -2688,7 +2700,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | sr | — | 1 | [src/test/home-canton-hero.test.ts:56](../../src/test/home-canton-hero.test.ts#L56) |
 | state | — | 2 | [src/test/tok-connect-broker.test.ts:104](../../src/test/tok-connect-broker.test.ts#L104) |
 | status | /chefs-table, /dashboard, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 12 | [src/lib/iosCommerceFetch.ts:137](../../src/lib/iosCommerceFetch.ts#L137) |
-| stripe_session_id | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:81](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L81) |
+| stripe_session_id | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:82](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L82) |
 | subscriptionPlan | /auth, /auth/callback, /auth/demo, /commercial | 2 | [src/pages/Auth.tsx:927](../../src/pages/Auth.tsx#L927) |
 | tab | /admin/commandes-reservations, /admin/utilisateurs, /profil | 9 | [src/pages/Profil.tsx:188](../../src/pages/Profil.tsx#L188) |
 | ticket | /admin/sinistres | 2 | [src/pages/admin/AdminSinistres.tsx:874](../../src/pages/admin/AdminSinistres.tsx#L874) |
@@ -7354,7 +7366,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 46 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 280 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 883 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 884 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7368,14 +7380,14 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 93 |
 | documentation | 6 |
 | edge-function-source | 264 |
-| frontend-component | 317 |
+| frontend-component | 318 |
 | frontend-hook | 25 |
 | frontend-page | 134 |
 | frontend-source | 37 |
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 823 |
+| test | 824 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -9155,7 +9167,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (330)</summary>
+<details><summary>frontend-component (332)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -9301,6 +9313,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/dashboard/performance/PerformanceInsights.tsx`
 - `src/components/dashboard/performance/PerformanceServiceSplit.tsx`
 - `src/components/dashboard/performance/PerformanceTodayTab.tsx`
+- `src/components/editorial/PageHeading.tsx`
+- `src/components/editorial/editorial.css`
 - `src/components/floor-plan/DynamicTableSvg.tsx`
 - `src/components/floor-plan/EventFurnitureSvg.tsx`
 - `src/components/floor-plan/FloorPlanAIPanel.tsx`
@@ -10948,7 +10962,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (823)</summary>
+<details><summary>test (824)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11045,6 +11059,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/authenticated-security-audit-hardening.test.ts`
 - `src/test/b2b-seo-cluster.test.ts`
 - `src/test/back-navigation.test.ts`
+- `src/test/budget-auto-preferences.test.tsx`
 - `src/test/business-time.test.ts`
 - `src/test/business-wiring-audit.test.ts`
 - `src/test/campaign-auto-plan.test.ts`
@@ -11158,7 +11173,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/dashboard-design-preview-export.test.tsx`
 - `src/test/dashboard-floor-plan-integration.test.tsx`
 - `src/test/dashboard-grouping.test.ts`
-- `src/test/dashboard-hero-readability.test.ts`
+- `src/test/dashboard-hero-readability.test.tsx`
 - `src/test/dashboard-home-recovery.test.tsx`
 - `src/test/dashboard-illustration-media.test.tsx`
 - `src/test/dashboard-illustrations.test.ts`

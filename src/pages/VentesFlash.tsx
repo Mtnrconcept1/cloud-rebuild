@@ -1,3 +1,4 @@
+import PageHeading from "@/components/editorial/PageHeading";
 import { useEffect, useMemo, useState } from "react";
 import CampaignBanner from "@/components/CampaignBanner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -273,15 +274,7 @@ export default function VentesFlash() {
       <div className="container py-8 space-y-6">
         {!isCommercialDemoClient ? <CampaignBanner page="flash_sales" maxBanners={1} /> : null}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center">
-              <Zap className="h-6 w-6 text-amber-500 fill-amber-500" />
-            </div>
-            <div>
-              <h1 className="font-display text-2xl font-bold">Ventes Flash</h1>
-              <p className="text-muted-foreground text-xs">Offres limitées dans le temps</p>
-            </div>
-          </div>
+          <PageHeading title="Ventes Flash" description="Offres limitées dans le temps" className="flex-1" />
           <Button
             variant={notifyEnabled ? "default" : "outline"}
             size="sm"
