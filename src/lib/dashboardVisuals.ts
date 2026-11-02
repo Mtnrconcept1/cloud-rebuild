@@ -41,6 +41,25 @@ const restaurantRoutes: Record<string, string> = {
   "/dashboard/guide": "guide",
 };
 
+const restaurantRouteOverrides = {
+  "/dashboard/recommandations": {
+    hero: "/images/dashboard-3d/restaurant-advisor.webp",
+    illustration: "/images/dashboard-3d/restaurant-advisor.webp",
+  },
+  "/dashboard/compta": {
+    hero: "/images/dashboard-3d/restaurant-billing.webp",
+    illustration: "/images/dashboard-3d/restaurant-billing.webp",
+  },
+  "/dashboard/campagne-overview": {
+    hero: "/images/dashboard-3d/restaurant-campaigns.webp",
+    illustration: "/images/dashboard-3d/restaurant-campaigns.webp",
+  },
+  "/dashboard/plan-salle-v2": {
+    hero: "/images/dashboard-3d/restaurant-floor-plan.webp",
+    illustration: "/images/dashboard-3d/restaurant-floor-plan.webp",
+  },
+} as const;
+
 const clientRoutes: Record<string, string> = {
   "/mon-espace": "accueil",
   "/reservations": "reservations",
@@ -71,7 +90,10 @@ const clientRoutes: Record<string, string> = {
 };
 
 export function getRestaurantDashboardVisual(pathname: string) {
-  const slug = restaurantRoutes[pathname.replace(/\/$/, "")] ?? undefined;
+  const normalizedPath = pathname.replace(/\/$/, "");
+  const override = restaurantRouteOverrides[normalizedPath as keyof typeof restaurantRouteOverrides];
+  if (override) return override;
+  const slug = restaurantRoutes[normalizedPath] ?? undefined;
   return slug ? image("restaurant", slug) : undefined;
 }
 

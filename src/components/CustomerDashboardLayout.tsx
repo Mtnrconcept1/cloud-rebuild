@@ -49,6 +49,7 @@ import { useCart } from "@/lib/cart-context";
 import { isCommercialDemoClientPathAllowed } from "@/lib/commercialDemoClientRoutes";
 import { useActiveFeatures } from "@/lib/featureFlags";
 import { getCustomerDashboardVisual, getTokHeroStyle } from "@/lib/dashboardVisuals";
+import RouteHeroBanner from "@/components/dashboard/RouteHeroBanner";
 import { cn } from "@/lib/utils";
 
 type CustomerNavItem = {
@@ -152,6 +153,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   const tab = new URLSearchParams(search).get("tab") || "infos";
   useJourneyFocus(pageRef, hash ? null : `${currentPathname}:${tab}`);
   const pathname = currentPathname.replace(/\/+$/, "").toLowerCase();
+  const routeHero = getCustomerDashboardVisual(pathname, search)?.hero;
   const { role } = useAuth();
   const { itemCount } = useCart();
   const logoSrc = useTokLogoSrc();
@@ -211,7 +213,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   };
 
   return (
-    <div className="tok-workspace-shell tok-hospitality-workspace tok-client-shell min-h-screen bg-background" style={getTokHeroStyle(getCustomerDashboardVisual(pathname, search)?.hero)}>
+    <div className="tok-workspace-shell tok-hospitality-workspace tok-client-shell min-h-screen bg-background" style={getTokHeroStyle(routeHero)}>
       <aside className="tok-dashboard-menu tok-workspace-sidebar tok-client-sidebar hidden shrink-0 md:flex">
         <div className="tok-workspace-brand">
           <Link to="/" aria-label="TOK — Accueil du site" className="tok-workspace-logo-link">
@@ -277,8 +279,9 @@ export default function CustomerDashboardLayout({ children }: { children: React.
           ))}
         </CustomerMobileNavigation>
         <main ref={pageRef} tabIndex={-1} aria-label={currentMobilePage?.label || "Espace client"} className="tok-workspace-content min-h-[500px] min-w-0 px-4 pb-8 pt-4 sm:px-6">
-          <div className="mx-auto min-w-0 max-w-7xl">
+          <div className="tok-workspace-page-stack mx-auto min-w-0 max-w-7xl">
             {!isHome ? <BackNavigationButton fallback="/mon-espace" className="tok-workspace-back mb-4" /> : null}
+            <RouteHeroBanner src={routeHero} />
             {children}
             {!commercialDemoFrame ? (
               <div className="mt-8 border-t pt-4 md:hidden">
