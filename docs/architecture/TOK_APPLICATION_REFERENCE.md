@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `ed79ab227e0a96edf0ce6c96a48c8ae777c34f946844915108be5b643742d1b5`
+- Empreinte SHA-256 des sources indexées : `74f455a586eab9836de3f76a6e43d2fc357d01e5403117db7285559d79e3613d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 593 |
 | modules | 1969 |
 | pages | 134 |
-| pathLiterals | 973 |
+| pathLiterals | 976 |
 | publicAssets | 901 |
 | publicEntries | 939 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 122 |
-| records | 20520 |
+| records | 20523 |
 | repositoryFiles | 4073 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1647,7 +1647,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /a-propos | 14 | [scripts/prerender-seo.mjs:1089](../../scripts/prerender-seo.mjs#L1089) |
 | /abonnement | 16 | [scripts/prerender-seo.mjs:1025](../../scripts/prerender-seo.mjs#L1025) |
 | /actions/runs/$FAILED_WORKFLOW_ID/jobs | 1 | [src/test/incident-automation-readiness.test.ts:602](../../src/test/incident-automation-readiness.test.ts#L602) |
-| /actualites | 37 | [scripts/harden-seo-crawl.mjs:381](../../scripts/harden-seo-crawl.mjs#L381) |
+| /actualites | 38 | [scripts/harden-seo-crawl.mjs:381](../../scripts/harden-seo-crawl.mjs#L381) |
 | /actualites/ | 2 | [scripts/prerender-seo.mjs:64](../../scripts/prerender-seo.mjs#L64) |
 | /actualites/:postId | 2 | [src/App.tsx:642](../../src/App.tsx#L642) |
 | /actualites/post-1 | 4 | [src/test/seo-crawl-hardening.test.ts:114](../../src/test/seo-crawl-hardening.test.ts#L114) |
@@ -1772,7 +1772,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /cgu | 22 | [scripts/prerender-seo.mjs:1194](../../scripts/prerender-seo.mjs#L1194) |
 | /chef.png | 1 | [src/components/plinko/PlinkoDialog.tsx:41](../../src/components/plinko/PlinkoDialog.tsx#L41) |
 | /chef2.png | 4 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
-| /chef3.png | 4 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:672](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L672) |
+| /chef3.png | 3 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:672](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L672) |
 | /chefs-table | 28 | [scripts/prerender-seo.mjs:1017](../../scripts/prerender-seo.mjs#L1017) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:31](../../src/test/tok-logo-calendar.test.ts#L31) |
@@ -2199,6 +2199,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/thai-spread.jpeg | 3 | [src/lib/menu-item-images.ts:51](../../src/lib/menu-item-images.ts#L51) |
 | /images/tok-connect/tok-connect-widget-details.svg | 1 | [src/pages/TokConnect.tsx:103](../../src/pages/TokConnect.tsx#L103) |
 | /images/tok-connect/tok-connect-widget-restaurants.svg | 1 | [src/pages/TokConnect.tsx:97](../../src/pages/TokConnect.tsx#L97) |
+| /images/tok-refonte/chef-invitation.webp | 1 | [src/pages/Actualites.tsx:184](../../src/pages/Actualites.tsx#L184) |
+| /images/tok-refonte/geneve-aquarelle.webp | 1 | [src/pages/Actualites.tsx:401](../../src/pages/Actualites.tsx#L401) |
+| /images/tok-refonte/panier-vide.webp | 1 | [src/pages/Panier.tsx:1691](../../src/pages/Panier.tsx#L1691) |
 | /images/tok-restaurant-placeholder.svg | 5 | [src/components/NearbyRestaurantsMap.tsx:104](../../src/components/NearbyRestaurantsMap.tsx#L104) |
 | /images/user-guide/abonnement-mobile.png | 2 | [src/data/userGuideContent.ts:371](../../src/data/userGuideContent.ts#L371) |
 | /images/user-guide/accueil-mobile.png | 3 | [src/data/userGuideContent.ts:207](../../src/data/userGuideContent.ts#L207) |
@@ -2653,7 +2656,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | party_size | /restaurant/:id, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/lib/zeroAttenteReservationContext.ts:78](../../src/lib/zeroAttenteReservationContext.ts#L78) |
 | payment_attempt_id | /dashboard, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/lib/iosCommerceFetch.ts:138](../../src/lib/iosCommerceFetch.ts#L138) |
 | place | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 1 | [src/pages/LocalRestaurants.tsx:465](../../src/pages/LocalRestaurants.tsx#L465) |
-| post | /actualites | 1 | [src/pages/Actualites.tsx:261](../../src/pages/Actualites.tsx#L261) |
+| post | /actualites | 1 | [src/pages/Actualites.tsx:229](../../src/pages/Actualites.tsx#L229) |
 | post_id | /dashboard/actualites | 1 | [src/pages/dashboard/DashboardActualites.tsx:306](../../src/pages/dashboard/DashboardActualites.tsx#L306) |
 | price | /recherche | 1 | [src/pages/Recherche.tsx:323](../../src/pages/Recherche.tsx#L323) |
 | print_order_id | — | 1 | [supabase/functions/print-sandbox-complete/index.ts:38](../../supabase/functions/print-sandbox-complete/index.ts#L38) |
@@ -2673,7 +2676,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | restaurant | /equipe/gestion, /equipe/mon-espace, /zero-attente | 3 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
 | restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 2 | [src/test/marketing-studio-references.test.ts:36](../../src/test/marketing-studio-references.test.ts#L36) |
 | returnTo | — | 1 | [src/test/marketing-bff-client.test.ts:176](../../src/test/marketing-bff-client.test.ts#L176) |
-| scope | /actualites | 4 | [src/pages/Actualites.tsx:249](../../src/pages/Actualites.tsx#L249) |
+| scope | /actualites | 4 | [src/pages/Actualites.tsx:217](../../src/pages/Actualites.tsx#L217) |
 | session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:698](../../src/pages/ChefsTable.tsx#L698) |
 | signup_operation_id | /auth, /auth/callback, /auth/demo | 5 | [src/lib/workforceContinuation.ts:38](../../src/lib/workforceContinuation.ts#L38) |
 | slug | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:172](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L172) |

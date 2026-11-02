@@ -110,7 +110,7 @@ describe("homepage positioning guards", () => {
     const index = read("src/pages/Index.tsx");
 
     expect(map).toContain("validCoordinates(restaurant)");
-    expect(map).toContain("resizeObserver.observe(mapRef.current)");
+    expect(map).toMatch(/resizeObserver\??\.observe\(mapRef\.current\)/);
     expect(map).toContain("map.invalidateSize({ pan: false })");
     expect(map).not.toContain("pseudoRandomOffset");
     expect(map).toContain("if (hasUserLocation)");

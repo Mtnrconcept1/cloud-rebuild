@@ -34,7 +34,8 @@ describe("Actualites responsive guards", () => {
     );
     expect(page).toContain("overflow-x-clip");
     expect(page).toContain("xl:grid-cols-[minmax(0,1fr)_minmax(18rem,21rem)]");
-    expect(page).toContain("container grid min-w-0 gap-5");
+    expect(page).toContain("container min-w-0 space-y-4");
+    expect(page).toContain("grid min-w-0 gap-5");
     expect(page).toContain("min-w-0 max-w-full space-y-2");
     expect(page).not.toContain("max-sm:w-[calc(100%+37px)]");
     expect(page).not.toContain("max-sm:-ml-[9px]");
@@ -43,16 +44,21 @@ describe("Actualites responsive guards", () => {
     );
     expect(page).toContain("grid-cols-1 gap-2 sm:grid-cols-2");
     expect(page).not.toContain('src="/chef2.png"');
-    expect(page).toContain('src="/chef3.png"');
-    expect(page).toContain("bg-[image:url('/fondbanniere.png')]");
-    expect(page).toContain("max-sm:bg-[image:url('/fondbanniere2.png')]");
+    expect(page).not.toContain('src="/chef3.png"');
+    expect(page).toContain('src="/images/tok-refonte/geneve-aquarelle.webp"');
+    expect(page).toContain('src="/images/tok-refonte/chef-invitation.webp"');
+    expect(page).toContain('data-testid="actualites-hero"');
+    expect(page).toContain('data-testid="actualites-stories"');
+    expect(page).toContain("Le rendez-vous des gourmands.");
+    expect(page).toContain("overflow-x-auto");
+    expect(page).toContain("storyPosts");
     expect(page).toContain("ActualitesBoostBanner");
     expect(page).toContain("Mettre mon restaurant en avant");
     expect(page).toContain("<TrendingUp");
     expect(page).toContain("<BellRing");
     expect(page).toContain("<Rocket");
-    expect(page).toContain("max-sm:ml-[12.5rem]");
-    expect(page).toContain("max-[379px]:ml-0");
+    expect(page).toContain("sm:w-[59%]");
+    expect(page).toContain("max-sm:bg-gradient-to-t");
     expect(page).toContain("onSponsorClick={() => setSponsorDialogRequest");
     expect(page).toContain('id="actualites-composer"');
     expect(page).not.toContain(
