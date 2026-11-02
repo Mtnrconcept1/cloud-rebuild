@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `d5d8a2517aaacf7150878f36e0d5d9dd16d8e4f532c9e5487f2c9a400259df40`
+- Empreinte SHA-256 des sources indexées : `0a2ff4102183d88a60e7b575245c22ca3488c3254d4137f64761dcf34fdba49b`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,26 +32,26 @@
 | documents | 246 |
 | edgeFunctions | 126 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4363 |
+| exportedSymbols | 4281 |
 | featureFlags | 100 |
 | frontendRoutes | 145 |
 | integrations | 11 |
-| marketingOperations | 45 |
+| marketingOperations | 6 |
 | migrations | 593 |
 | modules | 1967 |
 | pages | 134 |
-| pathLiterals | 971 |
+| pathLiterals | 968 |
 | publicAssets | 901 |
 | publicEntries | 938 |
 | publicNavigableRoutes | 3 |
-| queryParameters | 121 |
-| records | 20503 |
+| queryParameters | 122 |
+| records | 18228 |
 | repositoryFiles | 4070 |
-| routingAuthorities | 35 |
+| routingAuthorities | 22 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 9 |
-| workerRoutes | 2 |
+| workerRoutes | 0 |
 | workflows | 33 |
 
 ## État distant observé
@@ -381,25 +381,16 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 
 | Type | Valeur | Nom | Sources | Première source |
 | --- | --- | --- | --- | --- |
-| android-app-link | `admin.thetok.ch` | — | 1 | [android/app/src/main/AndroidManifest.xml:51](../../android/app/src/main/AndroidManifest.xml#L51) |
-| android-app-link | `app.thetok.ch` | — | 1 | [android/app/src/main/AndroidManifest.xml:50](../../android/app/src/main/AndroidManifest.xml#L50) |
-| android-app-link | `app.tok.ch` | — | 1 | [android/app/src/main/AndroidManifest.xml:47](../../android/app/src/main/AndroidManifest.xml#L47) |
-| android-app-link | `thetok.ch` | — | 1 | [android/app/src/main/AndroidManifest.xml:48](../../android/app/src/main/AndroidManifest.xml#L48) |
-| android-app-link | `tok.ch` | — | 1 | [android/app/src/main/AndroidManifest.xml:45](../../android/app/src/main/AndroidManifest.xml#L45) |
-| android-app-link | `www.thetok.ch` | — | 1 | [android/app/src/main/AndroidManifest.xml:49](../../android/app/src/main/AndroidManifest.xml#L49) |
-| android-app-link | `www.tok.ch` | — | 1 | [android/app/src/main/AndroidManifest.xml:46](../../android/app/src/main/AndroidManifest.xml#L46) |
-| android-scheme | `https://*` | — | 7 | [android/app/src/main/AndroidManifest.xml:45](../../android/app/src/main/AndroidManifest.xml#L45) |
-| android-scheme | `tok://*` | — | 1 | [android/app/src/main/AndroidManifest.xml:38](../../android/app/src/main/AndroidManifest.xml#L38) |
-| application-host | `admin.thetok.ch` | — | 5 | [src/lib/adminDomains.ts:5](../../src/lib/adminDomains.ts#L5) |
-| application-host | `app.thetok.ch` | — | 4 | [src/lib/commercialDomains.ts:31](../../src/lib/commercialDomains.ts#L31) |
+| application-host | `admin.thetok.ch` | — | 3 | [src/lib/adminDomains.ts:5](../../src/lib/adminDomains.ts#L5) |
+| application-host | `app.thetok.ch` | — | 2 | [src/lib/commercialDomains.ts:31](../../src/lib/commercialDomains.ts#L31) |
 | application-host | `auth.thetok.ch` | — | 1 | [src/lib/commercialDomains.ts:33](../../src/lib/commercialDomains.ts#L33) |
 | application-host | `commercial.thetok.ch` | — | 1 | [src/lib/demoWorkspaces.ts:59](../../src/lib/demoWorkspaces.ts#L59) |
 | application-host | `demo-client.thetok.ch` | — | 1 | [src/lib/demoWorkspaces.ts:17](../../src/lib/demoWorkspaces.ts#L17) |
 | application-host | `demo-livreur.thetok.ch` | — | 1 | [src/lib/demoWorkspaces.ts:31](../../src/lib/demoWorkspaces.ts#L31) |
 | application-host | `demo-restaurateur.thetok.ch` | — | 1 | [src/lib/demoWorkspaces.ts:24](../../src/lib/demoWorkspaces.ts#L24) |
 | application-host | `marketing.thetok.ch` | — | 1 | [src/lib/marketingDomains.ts:6](../../src/lib/marketingDomains.ts#L6) |
-| application-host | `thetok.ch` | — | 4 | [src/lib/commercialDomains.ts:29](../../src/lib/commercialDomains.ts#L29) |
-| application-host | `www.thetok.ch` | — | 8 | [src/lib/adminDomains.ts:3](../../src/lib/adminDomains.ts#L3) |
+| application-host | `thetok.ch` | — | 2 | [src/lib/commercialDomains.ts:29](../../src/lib/commercialDomains.ts#L29) |
+| application-host | `www.thetok.ch` | — | 6 | [src/lib/adminDomains.ts:3](../../src/lib/adminDomains.ts#L3) |
 | capacitor-scheme | `tok://*` | — | 1 | [capacitor.config.ts:28](../../capacitor.config.ts#L28) |
 | commercial-frame | `/commercial/demo-live/frame/:surface/:sessionId/*` | — | 1 | [src/lib/commercialDemoFrame.ts:1](../../src/lib/commercialDemoFrame.ts#L1) |
 | deep-link | `tok://auth/callback` | — | 1 | [src/lib/authDomains.ts:5](../../src/lib/authDomains.ts#L5) |
@@ -408,10 +399,6 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | deep-link | `tok://campaign-preview/{restaurant_id}` | — | 1 | [src/lib/tokConnect.ts:259](../../src/lib/tokConnect.ts#L259) |
 | deep-link | `tok://restaurants` | — | 1 | [src/lib/tokConnect.ts:244](../../src/lib/tokConnect.ts#L244) |
 | deep-link | `tok://restaurants/{restaurant_id}` | — | 1 | [src/lib/tokConnect.ts:249](../../src/lib/tokConnect.ts#L249) |
-| ios-universal-link | `admin.thetok.ch` | — | 1 | [ios/App/App/App.entitlements:10](../../ios/App/App/App.entitlements#L10) |
-| ios-universal-link | `app.thetok.ch` | — | 1 | [ios/App/App/App.entitlements:9](../../ios/App/App/App.entitlements#L9) |
-| ios-universal-link | `thetok.ch` | — | 1 | [ios/App/App/App.entitlements:7](../../ios/App/App/App.entitlements#L7) |
-| ios-universal-link | `www.thetok.ch` | — | 1 | [ios/App/App/App.entitlements:8](../../ios/App/App/App.entitlements#L8) |
 | pwa-shortcut | `/actualites` | Actualités | 1 | [public/manifest.json:89](../../public/manifest.json#L89) |
 | pwa-shortcut | `/mon-espace?source=pwa-shortcut` | Mon espace | 1 | [public/manifest.json:50](../../public/manifest.json#L50) |
 | pwa-shortcut | `/recherche?mode=reservation` | Réserver | 1 | [public/manifest.json:63](../../public/manifest.json#L63) |
@@ -421,61 +408,22 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 
 | Route | Méthodes | Handler | Intégrations | Source |
 | --- | --- | --- | --- | --- |
-| /api/marketing/agent | POST | marketingAgentHandler | google, supabase, vercel | [api/marketing/agent.ts](../../api/marketing/agent.ts) |
-| /api/marketing/launch | POST | marketingLaunchHandler | google, supabase, vercel | [api/marketing/launch.ts](../../api/marketing/launch.ts) |
-| /api/marketing/login | POST | marketingLoginHandler | google, supabase, vercel | [api/marketing/login.ts](../../api/marketing/login.ts) |
-| /api/marketing/logout | POST | marketingLogoutHandler | google, supabase, vercel | [api/marketing/logout.ts](../../api/marketing/logout.ts) |
-| /api/marketing/mcp-link | GET, POST | marketingMcpLinkHandler | google, supabase, vercel | [api/marketing/mcp-link.ts](../../api/marketing/mcp-link.ts) |
-| /api/marketing/mcp | POST | marketingMcpHandler | google, supabase, vercel | [api/marketing/mcp.ts](../../api/marketing/mcp.ts) |
-| /api/marketing/mfa/enroll | POST | marketingMfaEnrollHandler | google, supabase, vercel | [api/marketing/mfa/enroll.ts](../../api/marketing/mfa/enroll.ts) |
-| /api/marketing/mfa/verify | POST | marketingMfaVerifyHandler | google, supabase, vercel | [api/marketing/mfa/verify.ts](../../api/marketing/mfa/verify.ts) |
-| /api/marketing/orchestrator | POST | marketingOrchestratorHandler | google, supabase, vercel | [api/marketing/orchestrator.ts](../../api/marketing/orchestrator.ts) |
-| /api/marketing/rpc | POST | marketingRpcHandler | google, supabase, vercel | [api/marketing/rpc.ts](../../api/marketing/rpc.ts) |
-| /api/marketing/session | DELETE, GET | marketingSessionHandler | google, supabase, vercel | [api/marketing/session.ts](../../api/marketing/session.ts) |
+| /api/marketing/agent | ANY | — | — | [api/marketing/agent.ts](../../api/marketing/agent.ts) |
+| /api/marketing/launch | ANY | — | — | [api/marketing/launch.ts](../../api/marketing/launch.ts) |
+| /api/marketing/login | ANY | — | — | [api/marketing/login.ts](../../api/marketing/login.ts) |
+| /api/marketing/logout | ANY | — | — | [api/marketing/logout.ts](../../api/marketing/logout.ts) |
+| /api/marketing/mcp-link | ANY | — | — | [api/marketing/mcp-link.ts](../../api/marketing/mcp-link.ts) |
+| /api/marketing/mcp | ANY | — | — | [api/marketing/mcp.ts](../../api/marketing/mcp.ts) |
+| /api/marketing/mfa/enroll | ANY | — | — | [api/marketing/mfa/enroll.ts](../../api/marketing/mfa/enroll.ts) |
+| /api/marketing/mfa/verify | ANY | — | — | [api/marketing/mfa/verify.ts](../../api/marketing/mfa/verify.ts) |
+| /api/marketing/orchestrator | ANY | — | — | [api/marketing/orchestrator.ts](../../api/marketing/orchestrator.ts) |
+| /api/marketing/rpc | ANY | — | — | [api/marketing/rpc.ts](../../api/marketing/rpc.ts) |
+| /api/marketing/session | ANY | — | — | [api/marketing/session.ts](../../api/marketing/session.ts) |
 
 ## Opérations du BFF marketing
 
 | Opération | Groupe | Source |
 | --- | --- | --- |
-| admin_approve_marketing_campaign | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:65](../../server/marketingBff.ts#L65) |
-| admin_approve_marketing_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:66](../../server/marketingBff.ts#L66) |
-| admin_cancel_marketing_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:67](../../server/marketingBff.ts#L67) |
-| admin_complete_manual_marketing_delivery | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:68](../../server/marketingBff.ts#L68) |
-| admin_complete_manual_marketing_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:69](../../server/marketingBff.ts#L69) |
-| admin_create_marketing_campaign_bundle | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:70](../../server/marketingBff.ts#L70) |
-| admin_estimate_marketing_audience | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:71](../../server/marketingBff.ts#L71) |
-| admin_get_marketing_overview | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:72](../../server/marketingBff.ts#L72) |
-| admin_list_marketing_automations | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:73](../../server/marketingBff.ts#L73) |
-| admin_list_marketing_calendar | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:74](../../server/marketingBff.ts#L74) |
-| admin_list_marketing_campaigns | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:75](../../server/marketingBff.ts#L75) |
-| admin_list_marketing_campaign_items | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:76](../../server/marketingBff.ts#L76) |
-| admin_list_marketing_contacts | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:77](../../server/marketingBff.ts#L77) |
-| admin_list_marketing_deliveries | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:78](../../server/marketingBff.ts#L78) |
-| admin_list_marketing_integrations | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:79](../../server/marketingBff.ts#L79) |
-| admin_reveal_manual_delivery_target | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:80](../../server/marketingBff.ts#L80) |
-| admin_retry_marketing_delivery | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:81](../../server/marketingBff.ts#L81) |
-| admin_set_marketing_global_pause | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:82](../../server/marketingBff.ts#L82) |
-| admin_suppress_marketing_contact | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:83](../../server/marketingBff.ts#L83) |
-| admin_sync_marketing_client_consents | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:84](../../server/marketingBff.ts#L84) |
-| admin_sync_marketing_prospect_catalog | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:85](../../server/marketingBff.ts#L85) |
-| admin_upsert_marketing_automation | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:86](../../server/marketingBff.ts#L86) |
-| admin_upsert_marketing_calendar_item | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:87](../../server/marketingBff.ts#L87) |
-| admin_upsert_marketing_campaign | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:88](../../server/marketingBff.ts#L88) |
-| admin_upsert_marketing_contact | MARKETING_OPERATION_NAMES | [server/marketingBff.ts:89](../../server/marketingBff.ts#L89) |
-| admin_list_marketing_outreach | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:95](../../server/marketingBff.ts#L95) |
-| admin_upsert_marketing_outreach_target | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:96](../../server/marketingBff.ts#L96) |
-| admin_upsert_marketing_outreach_opportunity | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:97](../../server/marketingBff.ts#L97) |
-| admin_upsert_marketing_outreach_draft | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:98](../../server/marketingBff.ts#L98) |
-| admin_approve_marketing_outreach_draft | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:99](../../server/marketingBff.ts#L99) |
-| admin_record_marketing_outreach_result | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:100](../../server/marketingBff.ts#L100) |
-| admin_upsert_marketing_backlink | MARKETING_OUTREACH_OPERATION_NAMES | [server/marketingBff.ts:101](../../server/marketingBff.ts#L101) |
-| admin_get_marketing_autopilot_dashboard | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:113](../../server/marketingBff.ts#L113) |
-| admin_prepare_marketing_automation_action | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:114](../../server/marketingBff.ts#L114) |
-| admin_simulate_marketing_automation | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:115](../../server/marketingBff.ts#L115) |
-| admin_update_marketing_provider_control | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:116](../../server/marketingBff.ts#L116) |
-| admin_upsert_marketing_asset | MARKETING_AUTOPILOT_OPERATION_NAMES | [server/marketingBff.ts:117](../../server/marketingBff.ts#L117) |
-| admin_get_marketing_daily_series | MARKETING_DAILY_OPERATION_NAMES | [server/marketingBff.ts:126](../../server/marketingBff.ts#L126) |
-| admin_upsert_marketing_daily_series | MARKETING_DAILY_OPERATION_NAMES | [server/marketingBff.ts:127](../../server/marketingBff.ts#L127) |
 | admin_get_marketing_growth | MARKETING_GROWTH_OPERATION_NAMES | [supabase/functions/_shared/marketing-growth/operations.ts:4](../../supabase/functions/_shared/marketing-growth/operations.ts#L4) |
 | admin_save_marketing_growth_profile | MARKETING_GROWTH_OPERATION_NAMES | [supabase/functions/_shared/marketing-growth/operations.ts:4](../../supabase/functions/_shared/marketing-growth/operations.ts#L4) |
 | admin_configure_marketing_growth | MARKETING_GROWTH_OPERATION_NAMES | [supabase/functions/_shared/marketing-growth/operations.ts:4](../../supabase/functions/_shared/marketing-growth/operations.ts#L4) |
@@ -643,8 +591,6 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 
 | Worker | Méthode statique | Route | Source |
 | --- | --- | --- | --- |
-| image-ai-worker | ANY | /healthz | [workers/image-ai-worker/index.js:251](../../workers/image-ai-worker/index.js#L251) |
-| image-ai-worker | ANY | /readyz | [workers/image-ai-worker/index.js:252](../../workers/image-ai-worker/index.js#L252) |
 
 ## Routes statiques et chemins référencés
 
@@ -1597,7 +1543,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 
 | Chemin | Occurrences | Première source |
 | --- | --- | --- |
-| / | 301 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
+| / | 300 | [public/firebase-messaging-sw.js:20](../../public/firebase-messaging-sw.js#L20) |
 | /(.*) | 8 | [src/test/admin-crm-theme-csp.test.ts:88](../../src/test/admin-crm-theme-csp.test.ts#L88) |
 | /* | 6 | [scripts/write-apple-app-site-association.mjs:30](../../scripts/write-apple-app-site-association.mjs#L30) |
 | /.well-known/apple-app-site-association | 4 | [src/test/application-search-index.test.ts:102](../../src/test/application-search-index.test.ts#L102) |
@@ -1706,7 +1652,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /api | 2 | [src/test/tok-connect-delivery-address.test.ts:14](../../src/test/tok-connect-delivery-address.test.ts#L14) |
 | /api-keys?reveal=true | 1 | [src/test/restaurant-image-backfill-auth.test.ts:15](../../src/test/restaurant-image-backfill-auth.test.ts#L15) |
 | /api/ | 1 | [src/lib/commercialDemoEffects.ts:80](../../src/lib/commercialDemoEffects.ts#L80) |
-| /api/embed | 2 | [src/test/image-metadata-ai.test.ts:131](../../src/test/image-metadata-ai.test.ts#L131) |
+| /api/embed | 1 | [src/test/image-metadata-ai.test.ts:131](../../src/test/image-metadata-ai.test.ts#L131) |
 | /api/embeddings | 1 | [src/test/image-metadata-ai.test.ts:132](../../src/test/image-metadata-ai.test.ts#L132) |
 | /api/generate | 1 | [src/test/image-metadata-ai.test.ts:130](../../src/test/image-metadata-ai.test.ts#L130) |
 | /api/marketing/agent | 15 | [src/marketing/marketingBffClient.ts:15](../../src/marketing/marketingBffClient.ts#L15) |
@@ -1910,7 +1856,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /equipe\mon-espace?restaurant= | 1 | [src/test/workforce-auth-continuation.test.ts:40](../../src/test/workforce-auth-continuation.test.ts#L40) |
 | /espace-client | 4 | [scripts/prerender-seo.mjs:1281](../../scripts/prerender-seo.mjs#L1281) |
 | /espaces | 31 | [scripts/prerender-seo.mjs:1287](../../scripts/prerender-seo.mjs#L1287) |
-| /factors | 1 | [server/marketingBff.ts:876](../../server/marketingBff.ts#L876) |
 | /factures | 1 | [src/test/dashboard-design-preview-export.test.tsx:66](../../src/test/dashboard-design-preview-export.test.tsx#L66) |
 | /factures/entrees | 1 | [src/test/dashboard-design-preview-export.test.tsx:66](../../src/test/dashboard-design-preview-export.test.tsx#L66) |
 | /factures/parametres | 1 | [src/test/dashboard-design-preview-export.test.tsx:67](../../src/test/dashboard-design-preview-export.test.tsx#L67) |
@@ -1972,7 +1917,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /guide | 6 | [src/App.tsx:726](../../src/App.tsx#L726) |
 | /guide/plateforme | 2 | [src/App.tsx:728](../../src/App.tsx#L728) |
 | /guide/restaurateur | 3 | [src/App.tsx:727](../../src/App.tsx#L727) |
-| /healthz | 2 | [src/test/application-search-index.test.ts:105](../../src/test/application-search-index.test.ts#L105) |
+| /healthz | 1 | [src/test/application-search-index.test.ts:105](../../src/test/application-search-index.test.ts#L105) |
 | /help.png | 1 | [src/components/help/ChefHelpButton.tsx:40](../../src/components/help/ChefHelpButton.tsx#L40) |
 | /help@tok_bot | 1 | [src/test/telegram-codex-request.test.ts:23](../../src/test/telegram-codex-request.test.ts#L23) |
 | /higgsfield/tok-intro-desktop.mp4 | 1 | [src/test/mobile-logo-intro.test.tsx:55](../../src/test/mobile-logo-intro.test.tsx#L55) |
@@ -2197,7 +2142,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/thai-spread.jpeg | 3 | [src/lib/menu-item-images.ts:51](../../src/lib/menu-item-images.ts#L51) |
 | /images/tok-connect/tok-connect-widget-details.svg | 1 | [src/pages/TokConnect.tsx:103](../../src/pages/TokConnect.tsx#L103) |
 | /images/tok-connect/tok-connect-widget-restaurants.svg | 1 | [src/pages/TokConnect.tsx:97](../../src/pages/TokConnect.tsx#L97) |
-| /images/tok-restaurant-placeholder.svg | 4 | [src/components/RestaurantCard.tsx:52](../../src/components/RestaurantCard.tsx#L52) |
+| /images/tok-restaurant-placeholder.svg | 5 | [src/components/NearbyRestaurantsMap.tsx:104](../../src/components/NearbyRestaurantsMap.tsx#L104) |
 | /images/user-guide/abonnement-mobile.png | 2 | [src/data/userGuideContent.ts:371](../../src/data/userGuideContent.ts#L371) |
 | /images/user-guide/accueil-mobile.png | 3 | [src/data/userGuideContent.ts:207](../../src/data/userGuideContent.ts#L207) |
 | /images/user-guide/dashboard-restaurateur.png | 4 | [src/data/userGuideContent.ts:35](../../src/data/userGuideContent.ts#L35) |
@@ -2241,7 +2186,6 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /launch | 1 | [src/components/launch/LaunchArtwork.tsx:51](../../src/components/launch/LaunchArtwork.tsx#L51) |
 | /logo.png | 1 | [src/test/workspace-layout-controls.test.tsx:23](../../src/test/workspace-layout-controls.test.tsx#L23) |
 | /logotok.png | 10 | [public/tok-slot-machine/slot-machine.js:5](../../public/tok-slot-machine/slot-machine.js#L5) |
-| /logout?scope=local | 1 | [server/marketingBff.ts:825](../../server/marketingBff.ts#L825) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:30](../../src/hooks/useTokLogo.ts#L30) |
 | /marketing | 35 | [scripts/application-index-core.mjs:168](../../scripts/application-index-core.mjs#L168) |
 | /marketing-public | 1 | [src/test/marketing-domain-isolation.test.ts:25](../../src/test/marketing-domain-isolation.test.ts#L25) |
@@ -2326,18 +2270,19 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/ | 2 | [scripts/harden-seo-crawl.mjs:118](../../scripts/harden-seo-crawl.mjs#L118) |
 | /r/:slug | 3 | [src/App.tsx:602](../../src/App.tsx#L602) |
 | /r/:slug/reserver | 2 | [src/App.tsx:601](../../src/App.tsx#L601) |
-| /readyz | 3 | [src/test/application-search-index.test.ts:105](../../src/test/application-search-index.test.ts#L105) |
+| /readyz | 2 | [src/test/application-search-index.test.ts:105](../../src/test/application-search-index.test.ts#L105) |
 | /recherche | 91 | [public/seo-trust-runtime.js:139](../../public/seo-trust-runtime.js#L139) |
 | /recherche#cuisines | 1 | [src/test/app-page-navigation.test.tsx:29](../../src/test/app-page-navigation.test.tsx#L29) |
-| /recherche?city=Lausanne | 1 | [src/test/restaurant-search-preview.test.tsx:91](../../src/test/restaurant-search-preview.test.tsx#L91) |
-| /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:75](../../src/test/restaurant-search-preview.test.tsx#L75) |
+| /recherche?city=Lausanne | 1 | [src/test/restaurant-search-preview.test.tsx:123](../../src/test/restaurant-search-preview.test.tsx#L123) |
+| /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:107](../../src/test/restaurant-search-preview.test.tsx#L107) |
 | /recherche?mode=reservation | 2 | [src/pages/TokPulse.tsx:30](../../src/pages/TokPulse.tsx#L30) |
+| /recherche?offer=flash | 1 | [src/test/restaurant-search-preview.test.tsx:176](../../src/test/restaurant-search-preview.test.tsx#L176) |
 | /recherche?q=Sushi%20%26%20th%C3%A9%20%2B%20riz%20%23Gen%C3%A8ve | 1 | [src/test/workspace-toolbar.test.tsx:59](../../src/test/workspace-toolbar.test.tsx#L59) |
 | /recherche?q=francais | 1 | [src/test/home-cuisine-accessibility.test.tsx:53](../../src/test/home-cuisine-accessibility.test.tsx#L53) |
 | /recherche?q=pizza&ville=geneve | 1 | [scripts/launch-10k-load-check.mjs:19](../../scripts/launch-10k-load-check.mjs#L19) |
 | /recherche?q=sushi | 1 | [src/test/app-page-navigation.test.tsx:53](../../src/test/app-page-navigation.test.tsx#L53) |
-| /recherche?q=sushi&city=Genève | 2 | [src/test/restaurant-search-preview.test.tsx:98](../../src/test/restaurant-search-preview.test.tsx#L98) |
-| /recherche?rating=9 | 1 | [src/test/restaurant-search-preview.test.tsx:70](../../src/test/restaurant-search-preview.test.tsx#L70) |
+| /recherche?q=sushi&city=Genève | 2 | [src/test/restaurant-search-preview.test.tsx:130](../../src/test/restaurant-search-preview.test.tsx#L130) |
+| /recherche?rating=9 | 1 | [src/test/restaurant-search-preview.test.tsx:102](../../src/test/restaurant-search-preview.test.tsx#L102) |
 | /reconcile-paid-order-checkouts | 1 | [src/test/reconcile-paid-order-checkouts.test.ts:39](../../src/test/reconcile-paid-order-checkouts.test.ts#L39) |
 | /register | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
 | /reseaux-sociaux | 2 | [src/lib/commercialDemoAi.ts:299](../../src/lib/commercialDemoAi.ts#L299) |
@@ -2518,10 +2463,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-reference-food-webp | 1 | [supabase/functions/ai-image-enhance/index.ts:92](../../supabase/functions/ai-image-enhance/index.ts#L92) |
 | /tok-slot-machine/index.html?v=20261028 | 1 | [src/components/DailyMiamzSlotMachine.tsx:16](../../src/components/DailyMiamzSlotMachine.tsx#L16) |
 | /tok-social-share-20261031.jpg | 3 | [public/seo-trust-runtime.js:9](../../public/seo-trust-runtime.js#L9) |
-| /tok_connect_mcp_action_idempotency | 2 | [server/marketingBff.ts:2616](../../server/marketingBff.ts#L2616) |
+| /tok_connect_mcp_action_idempotency | 1 | [src/test/tok-connect-marketing-bff.test.ts:58](../../src/test/tok-connect-marketing-bff.test.ts#L58) |
 | /token | 1 | [supabase/functions/_shared/tok-connect-broker.ts:235](../../supabase/functions/_shared/tok-connect-broker.ts#L235) |
-| /token?grant_type=password | 1 | [server/marketingBff.ts:817](../../server/marketingBff.ts#L817) |
-| /user | 1 | [server/marketingBff.ts:806](../../server/marketingBff.ts#L806) |
 | /user_roles? | 12 | [src/test/marketing-agent-bff.test.ts:28](../../src/test/marketing-agent-bff.test.ts#L28) |
 | /users/[email] | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /users/private%40example.test#token | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
@@ -2583,23 +2526,23 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | campaign_id | /dashboard/actualites, /dashboard/campagnes | 3 | [src/pages/dashboard/DashboardActualites.tsx:305](../../src/pages/dashboard/DashboardActualites.tsx#L305) |
 | channel | — | 1 | [src/marketing/useMarketingUrlState.ts:108](../../src/marketing/useMarketingUrlState.ts#L108) |
 | checkout_kind | /dashboard/mon-compte-facturation | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:883](../../src/pages/dashboard/DashboardAccountBilling.tsx#L883) |
-| city | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 9 | [src/pages/Recherche.tsx:242](../../src/pages/Recherche.tsx#L242) |
+| city | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 9 | [src/pages/Recherche.tsx:313](../../src/pages/Recherche.tsx#L313) |
 | claimAddress | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:83](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L83) |
 | claimCity | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:82](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L82) |
 | claimName | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:84](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L84) |
 | claimPhone | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:81](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L81) |
 | claimRestaurant | — | 2 | [src/components/DirectoryClaimPersistenceBridge.tsx:37](../../src/components/DirectoryClaimPersistenceBridge.tsx#L37) |
-| code | — | 4 | [server/marketingBff.ts:2682](../../server/marketingBff.ts#L2682) |
+| code | — | 3 | [src/test/tok-connect-marketing-bff.test.ts:106](../../src/test/tok-connect-marketing-bff.test.ts#L106) |
 | code_challenge_method | — | 1 | [src/test/tok-connect-broker.test.ts:241](../../src/test/tok-connect-broker.test.ts#L241) |
 | commercialReferral | /auth, /auth/callback, /auth/demo, /commercial | 4 | [src/pages/Auth.tsx:916](../../src/pages/Auth.tsx#L916) |
 | commercialUserId | /commercial/comptabilite | 1 | [src/pages/CommercialComptabilite.tsx:280](../../src/pages/CommercialComptabilite.tsx#L280) |
 | confirmed | /auth, /auth/callback, /auth/demo | 3 | [src/lib/workforceContinuation.ts:37](../../src/lib/workforceContinuation.ts#L37) |
 | countrycode | — | 1 | [src/test/tok-connect-delivery-address.test.ts:15](../../src/test/tok-connect-delivery-address.test.ts#L15) |
-| cuisine | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/pages/Recherche.tsx:243](../../src/pages/Recherche.tsx#L243) |
+| cuisine | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/pages/Recherche.tsx:314](../../src/pages/Recherche.tsx#L314) |
 | cursor | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 1 | [supabase/functions/tok-connect-api/index.ts:210](../../supabase/functions/tok-connect-api/index.ts#L210) |
 | date | /restaurant/:id, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/lib/zeroAttenteReservationContext.ts:76](../../src/lib/zeroAttenteReservationContext.ts#L76) |
 | days | — | 1 | [scripts/google-actions-center-export-feeds.mjs:55](../../scripts/google-actions-center-export-feeds.mjs#L55) |
-| delivery | /recherche | 2 | [src/pages/Recherche.tsx:247](../../src/pages/Recherche.tsx#L247) |
+| delivery | /recherche | 2 | [src/pages/Recherche.tsx:324](../../src/pages/Recherche.tsx#L324) |
 | demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:85](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L85) |
 | demo_session_id | — | 4 | [src/components/commercial/CommercialDemoActorWorkspace.tsx:88](../../src/components/commercial/CommercialDemoActorWorkspace.tsx#L88) |
 | domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2385](../../src/pages/Auth.tsx#L2385) |
@@ -2638,12 +2581,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | min_lat | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:120](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L120) |
 | min_lng | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:122](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L122) |
 | mode | /auth, /auth/callback, /auth/demo, /recherche | 3 | [src/pages/Auth.tsx:958](../../src/pages/Auth.tsx#L958) |
+| offer | /recherche | 3 | [src/pages/Recherche.tsx:317](../../src/pages/Recherche.tsx#L317) |
 | offset | — | 4 | [scripts/prerender-stoppin-restaurants-bounded.mjs:118](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L118) |
 | on_conflict | — | 1 | [scripts/restaurant-image-truth-worker.mjs:548](../../scripts/restaurant-image-truth-worker.mjs#L548) |
 | open | /restaurant/:id | 2 | [src/pages/RestaurantDetail.tsx:148](../../src/pages/RestaurantDetail.tsx#L148) |
 | operation | /admin/commandes-reservations | 2 | [src/pages/admin/AdminOperationsCenter.tsx:65](../../src/pages/admin/AdminOperationsCenter.tsx#L65) |
 | or | — | 1 | [src/test/marketing-studio-references.test.ts:37](../../src/test/marketing-studio-references.test.ts#L37) |
-| order | /courier/jobs, /dashboard/commandes, /recherche | 3 | [src/pages/Recherche.tsx:253](../../src/pages/Recherche.tsx#L253) |
+| order | /courier/jobs, /dashboard/commandes, /recherche | 3 | [src/pages/Recherche.tsx:330](../../src/pages/Recherche.tsx#L330) |
 | page | — | 1 | [src/marketing/useMarketingUrlState.ts:118](../../src/marketing/useMarketingUrlState.ts#L118) |
 | partySize | — | 1 | [src/lib/zeroAttenteReservationContext.ts:78](../../src/lib/zeroAttenteReservationContext.ts#L78) |
 | party_size | /restaurant/:id, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 3 | [src/lib/zeroAttenteReservationContext.ts:78](../../src/lib/zeroAttenteReservationContext.ts#L78) |
@@ -2651,14 +2595,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | place | /restaurants-pres/:venueSlug, /restaurants/:city, /restaurants/:city/:category, /restaurants/:city/r/:restaurantSlug | 1 | [src/pages/LocalRestaurants.tsx:475](../../src/pages/LocalRestaurants.tsx#L475) |
 | post | /actualites | 1 | [src/pages/Actualites.tsx:261](../../src/pages/Actualites.tsx#L261) |
 | post_id | /dashboard/actualites | 1 | [src/pages/dashboard/DashboardActualites.tsx:306](../../src/pages/dashboard/DashboardActualites.tsx#L306) |
-| price | /recherche | 1 | [src/pages/Recherche.tsx:246](../../src/pages/Recherche.tsx#L246) |
+| price | /recherche | 1 | [src/pages/Recherche.tsx:323](../../src/pages/Recherche.tsx#L323) |
 | print_order_id | — | 1 | [supabase/functions/print-sandbox-complete/index.ts:38](../../supabase/functions/print-sandbox-complete/index.ts#L38) |
 | progressiveOfferId | /restaurant/:id | 3 | [src/pages/RestaurantDetail.tsx:288](../../src/pages/RestaurantDetail.tsx#L288) |
 | projectId | — | 1 | [src/lib/push.ts:82](../../src/lib/push.ts#L82) |
-| promo | /recherche | 1 | [src/pages/Recherche.tsx:245](../../src/pages/Recherche.tsx#L245) |
+| promo | /recherche | 2 | [src/pages/Recherche.tsx:316](../../src/pages/Recherche.tsx#L316) |
 | q | /recherche | 5 | [src/marketing/useMarketingUrlState.ts:113](../../src/marketing/useMarketingUrlState.ts#L113) |
 | quality | — | 1 | [src/lib/optimizedImages.ts:39](../../src/lib/optimizedImages.ts#L39) |
-| rating | /recherche | 1 | [src/pages/Recherche.tsx:248](../../src/pages/Recherche.tsx#L248) |
+| rating | /recherche | 1 | [src/pages/Recherche.tsx:325](../../src/pages/Recherche.tsx#L325) |
 | redirect | /auth, /auth/callback, /auth/demo | 11 | [src/lib/workforceContinuation.ts:40](../../src/lib/workforceContinuation.ts#L40) |
 | redirect_uri | — | 1 | [src/test/tok-connect-broker.test.ts:239](../../src/test/tok-connect-broker.test.ts#L239) |
 | removeRestaurant | — | 1 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:171](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L171) |
@@ -2673,7 +2617,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:691](../../src/pages/ChefsTable.tsx#L691) |
 | signup_operation_id | /auth, /auth/callback, /auth/demo | 5 | [src/lib/workforceContinuation.ts:38](../../src/lib/workforceContinuation.ts#L38) |
 | slug | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:172](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L172) |
-| sort | /recherche | 1 | [src/pages/Recherche.tsx:252](../../src/pages/Recherche.tsx#L252) |
+| sort | /recherche | 1 | [src/pages/Recherche.tsx:329](../../src/pages/Recherche.tsx#L329) |
 | source | /mon-espace | 1 | [public/manifest.json:50](../../public/manifest.json#L50) |
 | sr | — | 1 | [src/test/home-canton-hero.test.ts:56](../../src/test/home-canton-hero.test.ts#L56) |
 | state | — | 2 | [src/test/tok-connect-broker.test.ts:104](../../src/test/tok-connect-broker.test.ts#L104) |
@@ -7338,15 +7282,15 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | --- | --- | --- |
 | Cloudflare | 5 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Firebase | 25 | [public/firebase-messaging-sw.js:1](../../public/firebase-messaging-sw.js#L1) |
-| Google | 126 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Openai | 153 | [public/tok-connect-preview-bridge.js:1](../../public/tok-connect-preview-bridge.js#L1) |
+| Google | 125 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Openai | 151 | [public/tok-connect-preview-bridge.js:1](../../public/tok-connect-preview-bridge.js#L1) |
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 46 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 280 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 883 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 873 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
+| Vercel | 78 | [middleware.js:1](../../middleware.js#L1) |
 
 ## Modules et symboles exportés
 
@@ -7373,66 +7317,66 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Document | Sections | Source |
 | --- | --- | --- |
-| Integration routing | 3 | [.agents/skills/stripe-best-practices/SKILL.md:1](../../.agents/skills/stripe-best-practices/SKILL.md#L1) |
-| Billing / Subscriptions | 6 | [.agents/skills/stripe-best-practices/references/billing.md:1](../../.agents/skills/stripe-best-practices/references/billing.md#L1) |
-| Connect / platforms | 19 | [.agents/skills/stripe-best-practices/references/connect.md:1](../../.agents/skills/stripe-best-practices/references/connect.md#L1) |
-| Payments | 9 | [.agents/skills/stripe-best-practices/references/payments.md:1](../../.agents/skills/stripe-best-practices/references/payments.md#L1) |
-| Security best practices | 12 | [.agents/skills/stripe-best-practices/references/security.md:1](../../.agents/skills/stripe-best-practices/references/security.md#L1) |
-| Tax / Stripe Tax | 6 | [.agents/skills/stripe-best-practices/references/tax.md:1](../../.agents/skills/stripe-best-practices/references/tax.md#L1) |
-| Treasury / Financial Accounts | 4 | [.agents/skills/stripe-best-practices/references/treasury.md:1](../../.agents/skills/stripe-best-practices/references/treasury.md#L1) |
-| Stripe Directory Search | 3 | [.agents/skills/stripe-directory/SKILL.md:1](../../.agents/skills/stripe-directory/SKILL.md#L1) |
-| Stripe Projects — Service Provisioning | 9 | [.agents/skills/stripe-projects/SKILL.md:1](../../.agents/skills/stripe-projects/SKILL.md#L1) |
-| Changelog | 10 | [.agents/skills/supabase-postgres-best-practices/CHANGELOG.md:1](../../.agents/skills/supabase-postgres-best-practices/CHANGELOG.md#L1) |
-| Supabase Postgres Best Practices | 5 | [.agents/skills/supabase-postgres-best-practices/SKILL.md:1](../../.agents/skills/supabase-postgres-best-practices/SKILL.md#L1) |
-| Writing Guidelines for Postgres References | 15 | [.agents/skills/supabase-postgres-best-practices/references/_contributing.md:1](../../.agents/skills/supabase-postgres-best-practices/references/_contributing.md#L1) |
-| Section Definitions | 9 | [.agents/skills/supabase-postgres-best-practices/references/_sections.md:1](../../.agents/skills/supabase-postgres-best-practices/references/_sections.md#L1) |
-| [Rule Title] | 1 | [.agents/skills/supabase-postgres-best-practices/references/_template.md:1](../../.agents/skills/supabase-postgres-best-practices/references/_template.md#L1) |
-| Use tsvector for Full-Text Search | 1 | [.agents/skills/supabase-postgres-best-practices/references/advanced-full-text-search.md:1](../../.agents/skills/supabase-postgres-best-practices/references/advanced-full-text-search.md#L1) |
-| Index JSONB Columns for Efficient Querying | 1 | [.agents/skills/supabase-postgres-best-practices/references/advanced-jsonb-indexing.md:1](../../.agents/skills/supabase-postgres-best-practices/references/advanced-jsonb-indexing.md#L1) |
-| Configure Idle Connection Timeouts | 2 | [.agents/skills/supabase-postgres-best-practices/references/conn-idle-timeout.md:1](../../.agents/skills/supabase-postgres-best-practices/references/conn-idle-timeout.md#L1) |
-| Set Appropriate Connection Limits | 1 | [.agents/skills/supabase-postgres-best-practices/references/conn-limits.md:1](../../.agents/skills/supabase-postgres-best-practices/references/conn-limits.md#L1) |
-| Use Connection Pooling for All Applications | 1 | [.agents/skills/supabase-postgres-best-practices/references/conn-pooling.md:1](../../.agents/skills/supabase-postgres-best-practices/references/conn-pooling.md#L1) |
-| Use Prepared Statements Correctly with Pooling | 1 | [.agents/skills/supabase-postgres-best-practices/references/conn-prepared-statements.md:1](../../.agents/skills/supabase-postgres-best-practices/references/conn-prepared-statements.md#L1) |
-| Batch INSERT Statements for Bulk Data | 1 | [.agents/skills/supabase-postgres-best-practices/references/data-batch-inserts.md:1](../../.agents/skills/supabase-postgres-best-practices/references/data-batch-inserts.md#L1) |
-| Eliminate N+1 Queries with Batch Loading | 1 | [.agents/skills/supabase-postgres-best-practices/references/data-n-plus-one.md:1](../../.agents/skills/supabase-postgres-best-practices/references/data-n-plus-one.md#L1) |
-| Use Cursor-Based Pagination Instead of OFFSET | 1 | [.agents/skills/supabase-postgres-best-practices/references/data-pagination.md:1](../../.agents/skills/supabase-postgres-best-practices/references/data-pagination.md#L1) |
-| Use UPSERT for Insert-or-Update Operations | 1 | [.agents/skills/supabase-postgres-best-practices/references/data-upsert.md:1](../../.agents/skills/supabase-postgres-best-practices/references/data-upsert.md#L1) |
-| Use Advisory Locks for Application-Level Locking | 1 | [.agents/skills/supabase-postgres-best-practices/references/lock-advisory.md:1](../../.agents/skills/supabase-postgres-best-practices/references/lock-advisory.md#L1) |
-| Prevent Deadlocks with Consistent Lock Ordering | 1 | [.agents/skills/supabase-postgres-best-practices/references/lock-deadlock-prevention.md:1](../../.agents/skills/supabase-postgres-best-practices/references/lock-deadlock-prevention.md#L1) |
-| Keep Transactions Short to Reduce Lock Contention | 1 | [.agents/skills/supabase-postgres-best-practices/references/lock-short-transactions.md:1](../../.agents/skills/supabase-postgres-best-practices/references/lock-short-transactions.md#L1) |
-| Use SKIP LOCKED for Non-Blocking Queue Processing | 1 | [.agents/skills/supabase-postgres-best-practices/references/lock-skip-locked.md:1](../../.agents/skills/supabase-postgres-best-practices/references/lock-skip-locked.md#L1) |
-| Use EXPLAIN ANALYZE to Diagnose Slow Queries | 1 | [.agents/skills/supabase-postgres-best-practices/references/monitor-explain-analyze.md:1](../../.agents/skills/supabase-postgres-best-practices/references/monitor-explain-analyze.md#L1) |
-| Enable pg_stat_statements for Query Analysis | 1 | [.agents/skills/supabase-postgres-best-practices/references/monitor-pg-stat-statements.md:1](../../.agents/skills/supabase-postgres-best-practices/references/monitor-pg-stat-statements.md#L1) |
-| Maintain Table Statistics with VACUUM and ANALYZE | 1 | [.agents/skills/supabase-postgres-best-practices/references/monitor-vacuum-analyze.md:1](../../.agents/skills/supabase-postgres-best-practices/references/monitor-vacuum-analyze.md#L1) |
-| Create Composite Indexes for Multi-Column Queries | 1 | [.agents/skills/supabase-postgres-best-practices/references/query-composite-indexes.md:1](../../.agents/skills/supabase-postgres-best-practices/references/query-composite-indexes.md#L1) |
-| Use Covering Indexes to Avoid Table Lookups | 1 | [.agents/skills/supabase-postgres-best-practices/references/query-covering-indexes.md:1](../../.agents/skills/supabase-postgres-best-practices/references/query-covering-indexes.md#L1) |
-| Choose the Right Index Type for Your Data | 1 | [.agents/skills/supabase-postgres-best-practices/references/query-index-types.md:1](../../.agents/skills/supabase-postgres-best-practices/references/query-index-types.md#L1) |
-| Add Indexes on WHERE and JOIN Columns | 1 | [.agents/skills/supabase-postgres-best-practices/references/query-missing-indexes.md:1](../../.agents/skills/supabase-postgres-best-practices/references/query-missing-indexes.md#L1) |
-| Use Partial Indexes for Filtered Queries | 1 | [.agents/skills/supabase-postgres-best-practices/references/query-partial-indexes.md:1](../../.agents/skills/supabase-postgres-best-practices/references/query-partial-indexes.md#L1) |
-| Add Constraints Safely in Migrations | 1 | [.agents/skills/supabase-postgres-best-practices/references/schema-constraints.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-constraints.md#L1) |
-| Choose Appropriate Data Types | 1 | [.agents/skills/supabase-postgres-best-practices/references/schema-data-types.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-data-types.md#L1) |
-| Index Foreign Key Columns | 1 | [.agents/skills/supabase-postgres-best-practices/references/schema-foreign-key-indexes.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-foreign-key-indexes.md#L1) |
-| Use Lowercase Identifiers for Compatibility | 1 | [.agents/skills/supabase-postgres-best-practices/references/schema-lowercase-identifiers.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-lowercase-identifiers.md#L1) |
-| Partition Large Tables for Better Performance | 1 | [.agents/skills/supabase-postgres-best-practices/references/schema-partitioning.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-partitioning.md#L1) |
-| Select Optimal Primary Key Strategy | 1 | [.agents/skills/supabase-postgres-best-practices/references/schema-primary-keys.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-primary-keys.md#L1) |
-| Apply Principle of Least Privilege | 1 | [.agents/skills/supabase-postgres-best-practices/references/security-privileges.md:1](../../.agents/skills/supabase-postgres-best-practices/references/security-privileges.md#L1) |
-| Enable Row Level Security for Multi-Tenant Data | 1 | [.agents/skills/supabase-postgres-best-practices/references/security-rls-basics.md:1](../../.agents/skills/supabase-postgres-best-practices/references/security-rls-basics.md#L1) |
-| Optimize RLS Policies for Performance | 1 | [.agents/skills/supabase-postgres-best-practices/references/security-rls-performance.md:1](../../.agents/skills/supabase-postgres-best-practices/references/security-rls-performance.md#L1) |
-| Changelog | 10 | [.agents/skills/supabase/CHANGELOG.md:1](../../.agents/skills/supabase/CHANGELOG.md#L1) |
-| Supabase | 9 | [.agents/skills/supabase/SKILL.md:1](../../.agents/skills/supabase/SKILL.md#L1) |
-| What happened | 3 | [.agents/skills/supabase/assets/feedback-issue-template.md:1](../../.agents/skills/supabase/assets/feedback-issue-template.md#L1) |
-| Skill Feedback | 2 | [.agents/skills/supabase/references/skill-feedback.md:1](../../.agents/skills/supabase/references/skill-feedback.md#L1) |
-| Upgrading Stripe Versions | 18 | [.agents/skills/upgrade-stripe/SKILL.md:1](../../.agents/skills/upgrade-stripe/SKILL.md#L1) |
-| Integration routing | 3 | [.claude/skills/stripe-best-practices/SKILL.md:1](../../.claude/skills/stripe-best-practices/SKILL.md#L1) |
-| Billing / Subscriptions | 6 | [.claude/skills/stripe-best-practices/references/billing.md:1](../../.claude/skills/stripe-best-practices/references/billing.md#L1) |
-| Connect / platforms | 19 | [.claude/skills/stripe-best-practices/references/connect.md:1](../../.claude/skills/stripe-best-practices/references/connect.md#L1) |
-| Payments | 9 | [.claude/skills/stripe-best-practices/references/payments.md:1](../../.claude/skills/stripe-best-practices/references/payments.md#L1) |
-| Security best practices | 12 | [.claude/skills/stripe-best-practices/references/security.md:1](../../.claude/skills/stripe-best-practices/references/security.md#L1) |
-| Tax / Stripe Tax | 6 | [.claude/skills/stripe-best-practices/references/tax.md:1](../../.claude/skills/stripe-best-practices/references/tax.md#L1) |
-| Treasury / Financial Accounts | 4 | [.claude/skills/stripe-best-practices/references/treasury.md:1](../../.claude/skills/stripe-best-practices/references/treasury.md#L1) |
-| Stripe Directory Search | 3 | [.claude/skills/stripe-directory/SKILL.md:1](../../.claude/skills/stripe-directory/SKILL.md#L1) |
-| Stripe Projects — Service Provisioning | 9 | [.claude/skills/stripe-projects/SKILL.md:1](../../.claude/skills/stripe-projects/SKILL.md#L1) |
-| Upgrading Stripe Versions | 18 | [.claude/skills/upgrade-stripe/SKILL.md:1](../../.claude/skills/upgrade-stripe/SKILL.md#L1) |
+| SKILL | 0 | [.agents/skills/stripe-best-practices/SKILL.md:1](../../.agents/skills/stripe-best-practices/SKILL.md#L1) |
+| Billing | 0 | [.agents/skills/stripe-best-practices/references/billing.md:1](../../.agents/skills/stripe-best-practices/references/billing.md#L1) |
+| Connect | 0 | [.agents/skills/stripe-best-practices/references/connect.md:1](../../.agents/skills/stripe-best-practices/references/connect.md#L1) |
+| Payments | 0 | [.agents/skills/stripe-best-practices/references/payments.md:1](../../.agents/skills/stripe-best-practices/references/payments.md#L1) |
+| Security | 0 | [.agents/skills/stripe-best-practices/references/security.md:1](../../.agents/skills/stripe-best-practices/references/security.md#L1) |
+| Tax | 0 | [.agents/skills/stripe-best-practices/references/tax.md:1](../../.agents/skills/stripe-best-practices/references/tax.md#L1) |
+| Treasury | 0 | [.agents/skills/stripe-best-practices/references/treasury.md:1](../../.agents/skills/stripe-best-practices/references/treasury.md#L1) |
+| SKILL | 0 | [.agents/skills/stripe-directory/SKILL.md:1](../../.agents/skills/stripe-directory/SKILL.md#L1) |
+| SKILL | 0 | [.agents/skills/stripe-projects/SKILL.md:1](../../.agents/skills/stripe-projects/SKILL.md#L1) |
+| CHANGELOG | 0 | [.agents/skills/supabase-postgres-best-practices/CHANGELOG.md:1](../../.agents/skills/supabase-postgres-best-practices/CHANGELOG.md#L1) |
+| SKILL | 0 | [.agents/skills/supabase-postgres-best-practices/SKILL.md:1](../../.agents/skills/supabase-postgres-best-practices/SKILL.md#L1) |
+| Contributing | 0 | [.agents/skills/supabase-postgres-best-practices/references/_contributing.md:1](../../.agents/skills/supabase-postgres-best-practices/references/_contributing.md#L1) |
+| Sections | 0 | [.agents/skills/supabase-postgres-best-practices/references/_sections.md:1](../../.agents/skills/supabase-postgres-best-practices/references/_sections.md#L1) |
+| Template | 0 | [.agents/skills/supabase-postgres-best-practices/references/_template.md:1](../../.agents/skills/supabase-postgres-best-practices/references/_template.md#L1) |
+| Advanced Full Text Search | 0 | [.agents/skills/supabase-postgres-best-practices/references/advanced-full-text-search.md:1](../../.agents/skills/supabase-postgres-best-practices/references/advanced-full-text-search.md#L1) |
+| Advanced Jsonb Indexing | 0 | [.agents/skills/supabase-postgres-best-practices/references/advanced-jsonb-indexing.md:1](../../.agents/skills/supabase-postgres-best-practices/references/advanced-jsonb-indexing.md#L1) |
+| Conn Idle Timeout | 0 | [.agents/skills/supabase-postgres-best-practices/references/conn-idle-timeout.md:1](../../.agents/skills/supabase-postgres-best-practices/references/conn-idle-timeout.md#L1) |
+| Conn Limits | 0 | [.agents/skills/supabase-postgres-best-practices/references/conn-limits.md:1](../../.agents/skills/supabase-postgres-best-practices/references/conn-limits.md#L1) |
+| Conn Pooling | 0 | [.agents/skills/supabase-postgres-best-practices/references/conn-pooling.md:1](../../.agents/skills/supabase-postgres-best-practices/references/conn-pooling.md#L1) |
+| Conn Prepared Statements | 0 | [.agents/skills/supabase-postgres-best-practices/references/conn-prepared-statements.md:1](../../.agents/skills/supabase-postgres-best-practices/references/conn-prepared-statements.md#L1) |
+| Data Batch Inserts | 0 | [.agents/skills/supabase-postgres-best-practices/references/data-batch-inserts.md:1](../../.agents/skills/supabase-postgres-best-practices/references/data-batch-inserts.md#L1) |
+| Data N Plus One | 0 | [.agents/skills/supabase-postgres-best-practices/references/data-n-plus-one.md:1](../../.agents/skills/supabase-postgres-best-practices/references/data-n-plus-one.md#L1) |
+| Data Pagination | 0 | [.agents/skills/supabase-postgres-best-practices/references/data-pagination.md:1](../../.agents/skills/supabase-postgres-best-practices/references/data-pagination.md#L1) |
+| Data Upsert | 0 | [.agents/skills/supabase-postgres-best-practices/references/data-upsert.md:1](../../.agents/skills/supabase-postgres-best-practices/references/data-upsert.md#L1) |
+| Lock Advisory | 0 | [.agents/skills/supabase-postgres-best-practices/references/lock-advisory.md:1](../../.agents/skills/supabase-postgres-best-practices/references/lock-advisory.md#L1) |
+| Lock Deadlock Prevention | 0 | [.agents/skills/supabase-postgres-best-practices/references/lock-deadlock-prevention.md:1](../../.agents/skills/supabase-postgres-best-practices/references/lock-deadlock-prevention.md#L1) |
+| Lock Short Transactions | 0 | [.agents/skills/supabase-postgres-best-practices/references/lock-short-transactions.md:1](../../.agents/skills/supabase-postgres-best-practices/references/lock-short-transactions.md#L1) |
+| Lock Skip Locked | 0 | [.agents/skills/supabase-postgres-best-practices/references/lock-skip-locked.md:1](../../.agents/skills/supabase-postgres-best-practices/references/lock-skip-locked.md#L1) |
+| Monitor Explain Analyze | 0 | [.agents/skills/supabase-postgres-best-practices/references/monitor-explain-analyze.md:1](../../.agents/skills/supabase-postgres-best-practices/references/monitor-explain-analyze.md#L1) |
+| Monitor Pg Stat Statements | 0 | [.agents/skills/supabase-postgres-best-practices/references/monitor-pg-stat-statements.md:1](../../.agents/skills/supabase-postgres-best-practices/references/monitor-pg-stat-statements.md#L1) |
+| Monitor Vacuum Analyze | 0 | [.agents/skills/supabase-postgres-best-practices/references/monitor-vacuum-analyze.md:1](../../.agents/skills/supabase-postgres-best-practices/references/monitor-vacuum-analyze.md#L1) |
+| Query Composite Indexes | 0 | [.agents/skills/supabase-postgres-best-practices/references/query-composite-indexes.md:1](../../.agents/skills/supabase-postgres-best-practices/references/query-composite-indexes.md#L1) |
+| Query Covering Indexes | 0 | [.agents/skills/supabase-postgres-best-practices/references/query-covering-indexes.md:1](../../.agents/skills/supabase-postgres-best-practices/references/query-covering-indexes.md#L1) |
+| Query Index Types | 0 | [.agents/skills/supabase-postgres-best-practices/references/query-index-types.md:1](../../.agents/skills/supabase-postgres-best-practices/references/query-index-types.md#L1) |
+| Query Missing Indexes | 0 | [.agents/skills/supabase-postgres-best-practices/references/query-missing-indexes.md:1](../../.agents/skills/supabase-postgres-best-practices/references/query-missing-indexes.md#L1) |
+| Query Partial Indexes | 0 | [.agents/skills/supabase-postgres-best-practices/references/query-partial-indexes.md:1](../../.agents/skills/supabase-postgres-best-practices/references/query-partial-indexes.md#L1) |
+| Schema Constraints | 0 | [.agents/skills/supabase-postgres-best-practices/references/schema-constraints.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-constraints.md#L1) |
+| Schema Data Types | 0 | [.agents/skills/supabase-postgres-best-practices/references/schema-data-types.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-data-types.md#L1) |
+| Schema Foreign Key Indexes | 0 | [.agents/skills/supabase-postgres-best-practices/references/schema-foreign-key-indexes.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-foreign-key-indexes.md#L1) |
+| Schema Lowercase Identifiers | 0 | [.agents/skills/supabase-postgres-best-practices/references/schema-lowercase-identifiers.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-lowercase-identifiers.md#L1) |
+| Schema Partitioning | 0 | [.agents/skills/supabase-postgres-best-practices/references/schema-partitioning.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-partitioning.md#L1) |
+| Schema Primary Keys | 0 | [.agents/skills/supabase-postgres-best-practices/references/schema-primary-keys.md:1](../../.agents/skills/supabase-postgres-best-practices/references/schema-primary-keys.md#L1) |
+| Security Privileges | 0 | [.agents/skills/supabase-postgres-best-practices/references/security-privileges.md:1](../../.agents/skills/supabase-postgres-best-practices/references/security-privileges.md#L1) |
+| Security Rls Basics | 0 | [.agents/skills/supabase-postgres-best-practices/references/security-rls-basics.md:1](../../.agents/skills/supabase-postgres-best-practices/references/security-rls-basics.md#L1) |
+| Security Rls Performance | 0 | [.agents/skills/supabase-postgres-best-practices/references/security-rls-performance.md:1](../../.agents/skills/supabase-postgres-best-practices/references/security-rls-performance.md#L1) |
+| CHANGELOG | 0 | [.agents/skills/supabase/CHANGELOG.md:1](../../.agents/skills/supabase/CHANGELOG.md#L1) |
+| SKILL | 0 | [.agents/skills/supabase/SKILL.md:1](../../.agents/skills/supabase/SKILL.md#L1) |
+| Feedback Issue Template | 0 | [.agents/skills/supabase/assets/feedback-issue-template.md:1](../../.agents/skills/supabase/assets/feedback-issue-template.md#L1) |
+| Skill Feedback | 0 | [.agents/skills/supabase/references/skill-feedback.md:1](../../.agents/skills/supabase/references/skill-feedback.md#L1) |
+| SKILL | 0 | [.agents/skills/upgrade-stripe/SKILL.md:1](../../.agents/skills/upgrade-stripe/SKILL.md#L1) |
+| SKILL | 0 | [.claude/skills/stripe-best-practices/SKILL.md:1](../../.claude/skills/stripe-best-practices/SKILL.md#L1) |
+| Billing | 0 | [.claude/skills/stripe-best-practices/references/billing.md:1](../../.claude/skills/stripe-best-practices/references/billing.md#L1) |
+| Connect | 0 | [.claude/skills/stripe-best-practices/references/connect.md:1](../../.claude/skills/stripe-best-practices/references/connect.md#L1) |
+| Payments | 0 | [.claude/skills/stripe-best-practices/references/payments.md:1](../../.claude/skills/stripe-best-practices/references/payments.md#L1) |
+| Security | 0 | [.claude/skills/stripe-best-practices/references/security.md:1](../../.claude/skills/stripe-best-practices/references/security.md#L1) |
+| Tax | 0 | [.claude/skills/stripe-best-practices/references/tax.md:1](../../.claude/skills/stripe-best-practices/references/tax.md#L1) |
+| Treasury | 0 | [.claude/skills/stripe-best-practices/references/treasury.md:1](../../.claude/skills/stripe-best-practices/references/treasury.md#L1) |
+| SKILL | 0 | [.claude/skills/stripe-directory/SKILL.md:1](../../.claude/skills/stripe-directory/SKILL.md#L1) |
+| SKILL | 0 | [.claude/skills/stripe-projects/SKILL.md:1](../../.claude/skills/stripe-projects/SKILL.md#L1) |
+| SKILL | 0 | [.claude/skills/upgrade-stripe/SKILL.md:1](../../.claude/skills/upgrade-stripe/SKILL.md#L1) |
 | Objectif | 5 | [.github/PULL_REQUEST_TEMPLATE.md:1](../../.github/PULL_REQUEST_TEMPLATE.md#L1) |
 | AGENTS.md — TOK \| Contrat opérationnel des agents | 13 | [AGENTS.md:1](../../AGENTS.md#L1) |
 | TOK / TheTok | 10 | [README.md:1](../../README.md#L1) |
@@ -7440,10 +7384,10 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Security Policy | 7 | [SECURITY.md:1](../../SECURITY.md#L1) |
 | Audit des couvertures de restaurants TOK — 21 octobre 2026 | 8 | [TOK_RESTAURANT_PHOTO_AUDIT_2026-10-21.md:1](../../TOK_RESTAURANT_PHOTO_AUDIT_2026-10-21.md#L1) |
 | SKILL | 0 | [codex-skills/mobile-fullstack-architect/SKILL.md:1](../../codex-skills/mobile-fullstack-architect/SKILL.md#L1) |
-| React + Capacitor Review | 4 | [codex-skills/mobile-fullstack-architect/references/react-capacitor.md:1](../../codex-skills/mobile-fullstack-architect/references/react-capacitor.md#L1) |
-| Repo Mapping | 5 | [codex-skills/mobile-fullstack-architect/references/repo-mapping.md:1](../../codex-skills/mobile-fullstack-architect/references/repo-mapping.md#L1) |
-| Security Review | 6 | [codex-skills/mobile-fullstack-architect/references/security.md:1](../../codex-skills/mobile-fullstack-architect/references/security.md#L1) |
-| Supabase Backend Review | 6 | [codex-skills/mobile-fullstack-architect/references/supabase-backend.md:1](../../codex-skills/mobile-fullstack-architect/references/supabase-backend.md#L1) |
+| React Capacitor | 0 | [codex-skills/mobile-fullstack-architect/references/react-capacitor.md:1](../../codex-skills/mobile-fullstack-architect/references/react-capacitor.md#L1) |
+| Repo Mapping | 0 | [codex-skills/mobile-fullstack-architect/references/repo-mapping.md:1](../../codex-skills/mobile-fullstack-architect/references/repo-mapping.md#L1) |
+| Security | 0 | [codex-skills/mobile-fullstack-architect/references/security.md:1](../../codex-skills/mobile-fullstack-architect/references/security.md#L1) |
+| Supabase Backend | 0 | [codex-skills/mobile-fullstack-architect/references/supabase-backend.md:1](../../codex-skills/mobile-fullstack-architect/references/supabase-backend.md#L1) |
 | Centre d’opérations marketing TheTOK | 11 | [docs/MARKETING_OPERATIONS_CENTER.md:1](../../docs/MARKETING_OPERATIONS_CENTER.md#L1) |
 | Print fulfillment protocol — controlled rollout and recovery | 5 | [docs/PRINT_FULFILLMENT_PROTOCOL.md:1](../../docs/PRINT_FULFILLMENT_PROTOCOL.md#L1) |
 | Réception des e-mails TOK dans Outlook | 3 | [docs/TOK_INBOUND_EMAIL_FORWARDING.md:1](../../docs/TOK_INBOUND_EMAIL_FORWARDING.md#L1) |
@@ -7451,87 +7395,87 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | TOK Équipe — couverture fonctionnelle de SwissTime | 22 | [docs/architecture/TOK_EQUIPE_FUNCTIONAL_PARITY.md:1](../../docs/architecture/TOK_EQUIPE_FUNCTIONAL_PARITY.md#L1) |
 | État d’exécution TOK observé le 3 octobre 2026 | 6 | [docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md:1](../../docs/architecture/TOK_RUNTIME_EVIDENCE_2026-10-03.md#L1) |
 | Audit Execution Plan | 22 | [docs/audit-execution-plan.md:1](../../docs/audit-execution-plan.md#L1) |
-| Supabase production audit — project `wwcrtyoueexyxkkikaos` (Tok) | 12 | [docs/audits/2026-04-18-supabase-production-audit.md:1](../../docs/audits/2026-04-18-supabase-production-audit.md#L1) |
-| Audit global TOK — routes, fonctionnalités et manques prioritaires | 22 | [docs/audits/2026-05-31-global-site-gap-audit.md:1](../../docs/audits/2026-05-31-global-site-gap-audit.md#L1) |
-| Audit d'authentification Supabase — 2026-08-02 | 19 | [docs/audits/2026-08-02-supabase-auth-audit.md:1](../../docs/audits/2026-08-02-supabase-auth-audit.md#L1) |
-| Plan de finalisation TOK — 27 octobre 2026 | 5 | [docs/audits/2026-10-27-application-finalisation-plan.md:1](../../docs/audits/2026-10-27-application-finalisation-plan.md#L1) |
-| TOK — audit et corrections du 27 octobre 2026 | 9 | [docs/audits/2026-10-27-application-finalisation-report.md:1](../../docs/audits/2026-10-27-application-finalisation-report.md#L1) |
-| Parcours des dashboards TOK — 27 octobre 2026 | 7 | [docs/audits/2026-10-27-dashboard-ux.md:1](../../docs/audits/2026-10-27-dashboard-ux.md#L1) |
-| Remédiation des dépendances TOK — 3 octobre 2026 | 9 | [docs/audits/DEPENDABOT_2026-10-03.md:1](../../docs/audits/DEPENDABOT_2026-10-03.md#L1) |
-| Audit des campagnes marketing TOK — 28 juillet 2026 | 17 | [docs/audits/MARKETING_CAMPAIGNS_AUDIT_2026-07-28.md:1](../../docs/audits/MARKETING_CAMPAIGNS_AUDIT_2026-07-28.md#L1) |
-| TOK — audit des notifications et du temps réel | 6 | [docs/audits/TOK_NOTIFICATION_REALTIME_AUDIT_2026-10-11.md:1](../../docs/audits/TOK_NOTIFICATION_REALTIME_AUDIT_2026-10-11.md#L1) |
-| Audit complet codebase TOK - 2026-06-19 | 25 | [docs/audits/codebase-audit-2026-06-19.md:1](../../docs/audits/codebase-audit-2026-06-19.md#L1) |
-| Audit codebase TOK - 2026-06-26 | 16 | [docs/audits/codebase-audit-2026-06-26.md:1](../../docs/audits/codebase-audit-2026-06-26.md#L1) |
-| Mobile release readiness | 9 | [docs/audits/mobile-release-readiness-2026-04-30.md:1](../../docs/audits/mobile-release-readiness-2026-04-30.md#L1) |
-| Audit Supabase TOK - 2026-06-19 | 52 | [docs/audits/supabase-audit-2026-06-19.md:1](../../docs/audits/supabase-audit-2026-06-19.md#L1) |
+| 2026 04 18 Supabase Production Audit | 0 | [docs/audits/2026-04-18-supabase-production-audit.md:1](../../docs/audits/2026-04-18-supabase-production-audit.md#L1) |
+| 2026 05 31 Global Site Gap Audit | 0 | [docs/audits/2026-05-31-global-site-gap-audit.md:1](../../docs/audits/2026-05-31-global-site-gap-audit.md#L1) |
+| 2026 08 02 Supabase Auth Audit | 0 | [docs/audits/2026-08-02-supabase-auth-audit.md:1](../../docs/audits/2026-08-02-supabase-auth-audit.md#L1) |
+| 2026 10 27 Application Finalisation Plan | 0 | [docs/audits/2026-10-27-application-finalisation-plan.md:1](../../docs/audits/2026-10-27-application-finalisation-plan.md#L1) |
+| 2026 10 27 Application Finalisation Report | 0 | [docs/audits/2026-10-27-application-finalisation-report.md:1](../../docs/audits/2026-10-27-application-finalisation-report.md#L1) |
+| 2026 10 27 Dashboard Ux | 0 | [docs/audits/2026-10-27-dashboard-ux.md:1](../../docs/audits/2026-10-27-dashboard-ux.md#L1) |
+| DEPENDABOT 2026 10 03 | 0 | [docs/audits/DEPENDABOT_2026-10-03.md:1](../../docs/audits/DEPENDABOT_2026-10-03.md#L1) |
+| MARKETING CAMPAIGNS AUDIT 2026 07 28 | 0 | [docs/audits/MARKETING_CAMPAIGNS_AUDIT_2026-07-28.md:1](../../docs/audits/MARKETING_CAMPAIGNS_AUDIT_2026-07-28.md#L1) |
+| TOK NOTIFICATION REALTIME AUDIT 2026 10 11 | 0 | [docs/audits/TOK_NOTIFICATION_REALTIME_AUDIT_2026-10-11.md:1](../../docs/audits/TOK_NOTIFICATION_REALTIME_AUDIT_2026-10-11.md#L1) |
+| Codebase Audit 2026 06 19 | 0 | [docs/audits/codebase-audit-2026-06-19.md:1](../../docs/audits/codebase-audit-2026-06-19.md#L1) |
+| Codebase Audit 2026 06 26 | 0 | [docs/audits/codebase-audit-2026-06-26.md:1](../../docs/audits/codebase-audit-2026-06-26.md#L1) |
+| Mobile Release Readiness 2026 04 30 | 0 | [docs/audits/mobile-release-readiness-2026-04-30.md:1](../../docs/audits/mobile-release-readiness-2026-04-30.md#L1) |
+| Supabase Audit 2026 06 19 | 0 | [docs/audits/supabase-audit-2026-06-19.md:1](../../docs/audits/supabase-audit-2026-06-19.md#L1) |
 | Blog natif TOK | 6 | [docs/blog-tok.md:1](../../docs/blog-tok.md#L1) |
 | 20260531 Actualites Sponsored Posts | 0 | [docs/ci-triggers/20260531-actualites-sponsored-posts.md:1](../../docs/ci-triggers/20260531-actualites-sponsored-posts.md#L1) |
-| TOK — Argumentaire commercial restaurateurs | 27 | [docs/commercial/tok-argumentaire-commerciaux.md:1](../../docs/commercial/tok-argumentaire-commerciaux.md#L1) |
-| Déploiement — carte commerciale TheFork Genève | 1 | [docs/deployments/2026-07-24-commercial-map-thefork-520.md:1](../../docs/deployments/2026-07-24-commercial-map-thefork-520.md#L1) |
-| Plan de salle — placement des réservations | 10 | [docs/design/plan-de-salle-placement.md:1](../../docs/design/plan-de-salle-placement.md#L1) |
-| Plan de salle — thème clair / sombre | 9 | [docs/design/plan-de-salle-theme.md:1](../../docs/design/plan-de-salle-theme.md#L1) |
-| Plan de salle — studio professionnel TOK | 9 | [docs/design/plan-salle-studio-2026-10-28.md:1](../../docs/design/plan-salle-studio-2026-10-28.md#L1) |
-| Fabrication des assets | 4 | [docs/design/tok-launch/ASSETS.md:1](../../docs/design/tok-launch/ASSETS.md#L1) |
-| TOK — Affiche animée et décompte de lancement | 6 | [docs/design/tok-launch/README.md:1](../../docs/design/tok-launch/README.md#L1) |
-| TOK — Proposition UX/UI du 10 octobre 2026 | 12 | [docs/design/tok-ux-ui-audit-20261010.md:1](../../docs/design/tok-ux-ui-audit-20261010.md#L1) |
+| Tok Argumentaire Commerciaux | 0 | [docs/commercial/tok-argumentaire-commerciaux.md:1](../../docs/commercial/tok-argumentaire-commerciaux.md#L1) |
+| 2026 07 24 Commercial Map Thefork 520 | 0 | [docs/deployments/2026-07-24-commercial-map-thefork-520.md:1](../../docs/deployments/2026-07-24-commercial-map-thefork-520.md#L1) |
+| Plan De Salle Placement | 0 | [docs/design/plan-de-salle-placement.md:1](../../docs/design/plan-de-salle-placement.md#L1) |
+| Plan De Salle Theme | 0 | [docs/design/plan-de-salle-theme.md:1](../../docs/design/plan-de-salle-theme.md#L1) |
+| Plan Salle Studio 2026 10 28 | 0 | [docs/design/plan-salle-studio-2026-10-28.md:1](../../docs/design/plan-salle-studio-2026-10-28.md#L1) |
+| ASSETS | 0 | [docs/design/tok-launch/ASSETS.md:1](../../docs/design/tok-launch/ASSETS.md#L1) |
+| README | 0 | [docs/design/tok-launch/README.md:1](../../docs/design/tok-launch/README.md#L1) |
+| Tok Ux Ui Audit 20261010 | 0 | [docs/design/tok-ux-ui-audit-20261010.md:1](../../docs/design/tok-ux-ui-audit-20261010.md#L1) |
 | Modèle économique restaurateur — hypothèses | 8 | [docs/fair-growth-business-model.md:1](../../docs/fair-growth-business-model.md#L1) |
-| Plinko de bienvenue TOK | 8 | [docs/features/tok-welcome-plinko.md:1](../../docs/features/tok-welcome-plinko.md#L1) |
-| Intégration de `marketing.thetok.ch` | 9 | [docs/implementation/MARKETING_SUBDOMAIN_INTEGRATION.md:1](../../docs/implementation/MARKETING_SUBDOMAIN_INTEGRATION.md#L1) |
-| TOK Équipe — intégration de SwissTime Tracker | 10 | [docs/integrations/TOK_WORKFORCE.md:1](../../docs/integrations/TOK_WORKFORCE.md#L1) |
-| Audit de candidature — TOK comme fournisseur de réservation Google | 11 | [docs/integrations/google-actions-center-audit.md:1](../../docs/integrations/google-actions-center-audit.md#L1) |
-| Google Actions Center / Reserve with Google | 10 | [docs/integrations/google-actions-center.md:1](../../docs/integrations/google-actions-center.md#L1) |
-| Conditions générales clients TOK | 12 | [docs/legal/01-cgv-cgu-clients.md:1](../../docs/legal/01-cgv-cgu-clients.md#L1) |
-| Contrat-cadre restaurateur TOK | 12 | [docs/legal/02-contrat-restaurateur.md:1](../../docs/legal/02-contrat-restaurateur.md#L1) |
-| Abonnements, réservations et commissions TOK | 7 | [docs/legal/03-abonnements-commissions.md:1](../../docs/legal/03-abonnements-commissions.md#L1) |
-| Contrat partenaire TOK Connect / API | 9 | [docs/legal/04-tok-connect-api.md:1](../../docs/legal/04-tok-connect-api.md#L1) |
-| Contrat coursier et grille d’analyse du statut | 8 | [docs/legal/05-contrat-coursier-statut.md:1](../../docs/legal/05-contrat-coursier-statut.md#L1) |
-| Politique d’annulation, remboursement, no-show et chargeback | 9 | [docs/legal/06-annulation-remboursement-no-show-chargeback.md:1](../../docs/legal/06-annulation-remboursement-no-show-chargeback.md#L1) |
-| Règles Miamz et Miamz solidaires | 8 | [docs/legal/07-miamz-solidaires.md:1](../../docs/legal/07-miamz-solidaires.md#L1) |
-| Règles des ventes flash et offres anti-gaspi | 7 | [docs/legal/08-ventes-flash-anti-gaspi.md:1](../../docs/legal/08-ventes-flash-anti-gaspi.md#L1) |
-| Licence sur les images, menus, marques et contenus des restaurants | 8 | [docs/legal/09-licence-contenus-restaurants.md:1](../../docs/legal/09-licence-contenus-restaurants.md#L1) |
-| Répartition des responsabilités — prix, disponibilité, allergènes et qualité | 3 | [docs/legal/10-responsabilites-produits.md:1](../../docs/legal/10-responsabilites-produits.md#L1) |
-| Pack contractuel TOK | 3 | [docs/legal/README.md:1](../../docs/legal/README.md#L1) |
+| Tok Welcome Plinko | 0 | [docs/features/tok-welcome-plinko.md:1](../../docs/features/tok-welcome-plinko.md#L1) |
+| MARKETING SUBDOMAIN INTEGRATION | 0 | [docs/implementation/MARKETING_SUBDOMAIN_INTEGRATION.md:1](../../docs/implementation/MARKETING_SUBDOMAIN_INTEGRATION.md#L1) |
+| TOK WORKFORCE | 0 | [docs/integrations/TOK_WORKFORCE.md:1](../../docs/integrations/TOK_WORKFORCE.md#L1) |
+| Google Actions Center Audit | 0 | [docs/integrations/google-actions-center-audit.md:1](../../docs/integrations/google-actions-center-audit.md#L1) |
+| Google Actions Center | 0 | [docs/integrations/google-actions-center.md:1](../../docs/integrations/google-actions-center.md#L1) |
+| 01 Cgv Cgu Clients | 0 | [docs/legal/01-cgv-cgu-clients.md:1](../../docs/legal/01-cgv-cgu-clients.md#L1) |
+| 02 Contrat Restaurateur | 0 | [docs/legal/02-contrat-restaurateur.md:1](../../docs/legal/02-contrat-restaurateur.md#L1) |
+| 03 Abonnements Commissions | 0 | [docs/legal/03-abonnements-commissions.md:1](../../docs/legal/03-abonnements-commissions.md#L1) |
+| 04 Tok Connect Api | 0 | [docs/legal/04-tok-connect-api.md:1](../../docs/legal/04-tok-connect-api.md#L1) |
+| 05 Contrat Coursier Statut | 0 | [docs/legal/05-contrat-coursier-statut.md:1](../../docs/legal/05-contrat-coursier-statut.md#L1) |
+| 06 Annulation Remboursement No Show Chargeback | 0 | [docs/legal/06-annulation-remboursement-no-show-chargeback.md:1](../../docs/legal/06-annulation-remboursement-no-show-chargeback.md#L1) |
+| 07 Miamz Solidaires | 0 | [docs/legal/07-miamz-solidaires.md:1](../../docs/legal/07-miamz-solidaires.md#L1) |
+| 08 Ventes Flash Anti Gaspi | 0 | [docs/legal/08-ventes-flash-anti-gaspi.md:1](../../docs/legal/08-ventes-flash-anti-gaspi.md#L1) |
+| 09 Licence Contenus Restaurants | 0 | [docs/legal/09-licence-contenus-restaurants.md:1](../../docs/legal/09-licence-contenus-restaurants.md#L1) |
+| 10 Responsabilites Produits | 0 | [docs/legal/10-responsabilites-produits.md:1](../../docs/legal/10-responsabilites-produits.md#L1) |
+| README | 0 | [docs/legal/README.md:1](../../docs/legal/README.md#L1) |
 | Pistes de backlinks TOK sans compte existant | 6 | [docs/marketing-backlink-opportunities.md:1](../../docs/marketing-backlink-opportunities.md#L1) |
-| TOK Growth AutoPilot — qualification et conversions à partir des preuves réelles | 8 | [docs/marketing/GROWTH_AUTOPILOT.md:1](../../docs/marketing/GROWTH_AUTOPILOT.md#L1) |
-| Veille Instagram Genève | 7 | [docs/marketing/INSTAGRAM_RESEARCH.md:1](../../docs/marketing/INSTAGRAM_RESEARCH.md#L1) |
-| TOK — Suivi du site via Metricool | 6 | [docs/marketing/METRICOOL_WEBSITE_TRACKING.md:1](../../docs/marketing/METRICOOL_WEBSITE_TRACKING.md#L1) |
-| TOK — Première recette commerciale restaurateurs (31 octobre 2026) | 9 | [docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md:1](../../docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md#L1) |
-| Légendes des campagnes TOK | 5 | [docs/marketing/SOCIAL_EDITORIAL_POLICY.md:1](../../docs/marketing/SOCIAL_EDITORIAL_POLICY.md#L1) |
-| Import d’une série de visuels sociaux | 2 | [docs/marketing/SOCIAL_SERIES_IMPORT.md:1](../../docs/marketing/SOCIAL_SERIES_IMPORT.md#L1) |
-| Mailings ciblés TOK | 8 | [docs/marketing/TARGETED_MAILING.md:1](../../docs/marketing/TARGETED_MAILING.md#L1) |
-| Validation Telegram des contenus Marketing | 12 | [docs/marketing/TELEGRAM_CONTENT_REVIEWS.md:1](../../docs/marketing/TELEGRAM_CONTENT_REVIEWS.md#L1) |
-| Références visuelles des campagnes TOK | 4 | [docs/marketing/TOK_BRAND_REFERENCES.md:1](../../docs/marketing/TOK_BRAND_REFERENCES.md#L1) |
-| Moteur TOK — état réel du premier lot éditorial | 9 | [docs/marketing/TOK_GROWTH_ENGINE_STATUS.md:1](../../docs/marketing/TOK_GROWTH_ENGINE_STATUS.md#L1) |
-| Audit du marketing automatique TOK — 8 octobre 2026 | 7 | [docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md:1](../../docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md#L1) |
-| TOK Marketing Autopilot — runbook d'exploitation | 13 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
-| Marketing : session, recherche de sources et diagnostic Meta | 5 | [docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md:1](../../docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md#L1) |
-| Analytics TOK — données et preuves | 13 | [docs/marketing/analytics-evidence.md:1](../../docs/marketing/analytics-evidence.md#L1) |
-| TOK — Série Instagram quotidienne | 14 | [docs/marketing/daily-instagram.md:1](../../docs/marketing/daily-instagram.md#L1) |
+| GROWTH AUTOPILOT | 0 | [docs/marketing/GROWTH_AUTOPILOT.md:1](../../docs/marketing/GROWTH_AUTOPILOT.md#L1) |
+| INSTAGRAM RESEARCH | 0 | [docs/marketing/INSTAGRAM_RESEARCH.md:1](../../docs/marketing/INSTAGRAM_RESEARCH.md#L1) |
+| METRICOOL WEBSITE TRACKING | 0 | [docs/marketing/METRICOOL_WEBSITE_TRACKING.md:1](../../docs/marketing/METRICOOL_WEBSITE_TRACKING.md#L1) |
+| RESTAURATEUR ACQUISITION CANARY 20261031 | 0 | [docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md:1](../../docs/marketing/RESTAURATEUR_ACQUISITION_CANARY_20261031.md#L1) |
+| SOCIAL EDITORIAL POLICY | 0 | [docs/marketing/SOCIAL_EDITORIAL_POLICY.md:1](../../docs/marketing/SOCIAL_EDITORIAL_POLICY.md#L1) |
+| SOCIAL SERIES IMPORT | 0 | [docs/marketing/SOCIAL_SERIES_IMPORT.md:1](../../docs/marketing/SOCIAL_SERIES_IMPORT.md#L1) |
+| TARGETED MAILING | 0 | [docs/marketing/TARGETED_MAILING.md:1](../../docs/marketing/TARGETED_MAILING.md#L1) |
+| TELEGRAM CONTENT REVIEWS | 0 | [docs/marketing/TELEGRAM_CONTENT_REVIEWS.md:1](../../docs/marketing/TELEGRAM_CONTENT_REVIEWS.md#L1) |
+| TOK BRAND REFERENCES | 0 | [docs/marketing/TOK_BRAND_REFERENCES.md:1](../../docs/marketing/TOK_BRAND_REFERENCES.md#L1) |
+| TOK GROWTH ENGINE STATUS | 0 | [docs/marketing/TOK_GROWTH_ENGINE_STATUS.md:1](../../docs/marketing/TOK_GROWTH_ENGINE_STATUS.md#L1) |
+| TOK MARKETING AUDIT 2026 10 08 | 0 | [docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md:1](../../docs/marketing/TOK_MARKETING_AUDIT_2026-10-08.md#L1) |
+| TOK MARKETING AUTOPILOT RUNBOOK | 0 | [docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md:1](../../docs/marketing/TOK_MARKETING_AUTOPILOT_RUNBOOK.md#L1) |
+| TOK MARKETING SESSION DISCOVERY 2026 10 09 | 0 | [docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md:1](../../docs/marketing/TOK_MARKETING_SESSION_DISCOVERY_2026-10-09.md#L1) |
+| Analytics Evidence | 0 | [docs/marketing/analytics-evidence.md:1](../../docs/marketing/analytics-evidence.md#L1) |
+| Daily Instagram | 0 | [docs/marketing/daily-instagram.md:1](../../docs/marketing/daily-instagram.md#L1) |
 | Revue Mobile Fullstack - 2026-03-29 | 25 | [docs/mobile-fullstack-review-2026-03-29.md:1](../../docs/mobile-fullstack-review-2026-03-29.md#L1) |
-| Cloudprinter : formats de génération et d’impression | 9 | [docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md:1](../../docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md#L1) |
-| TOK Équipe — dossier de livraison du 28 octobre 2026 | 19 | [docs/operations/TOK_EQUIPE_RELEASE_2026-10-28.md:1](../../docs/operations/TOK_EQUIPE_RELEASE_2026-10-28.md#L1) |
-| TOK Intelligence Suite — Campaign Studio, Customer Memory, Support & Resolution, Guardian | 11 | [docs/operations/TOK_INTELLIGENCE_SUITE.md:1](../../docs/operations/TOK_INTELLIGENCE_SUITE.md#L1) |
-| TOK — intelligence d’incident unifiée | 12 | [docs/operations/incident-intelligence-unification.md:1](../../docs/operations/incident-intelligence-unification.md#L1) |
-| Préparation des PR — IA, catalogue fournisseur et incidents | 8 | [docs/operations/pr-readiness-2026-07-28.md:1](../../docs/operations/pr-readiness-2026-07-28.md#L1) |
-| TOK — incidents Telegram avec réparation Codex approuvée | 18 | [docs/operations/telegram-codex-incidents.md:1](../../docs/operations/telegram-codex-incidents.md#L1) |
-| Projet — Finalisation de TOK Marketing Autopilot | 29 | [docs/projects/TOK_MARKETING_AUTOPILOT_COMPLETION.md:1](../../docs/projects/TOK_MARKETING_AUTOPILOT_COMPLETION.md#L1) |
-| OpenAI dans la démonstration commerciale | 6 | [docs/runbooks/commercial-demo-ai.md:1](../../docs/runbooks/commercial-demo-ai.md#L1) |
-| Simulateur de paiement — démonstration commerciale TOK | 4 | [docs/runbooks/commercial-demo-payment-simulator.md:1](../../docs/runbooks/commercial-demo-payment-simulator.md#L1) |
-| Local Git Auto Sync | 4 | [docs/runbooks/local-git-auto-sync.md:1](../../docs/runbooks/local-git-auto-sync.md#L1) |
-| Hébergement des associations mobiles | 3 | [docs/runbooks/mobile-association-hosting.md:1](../../docs/runbooks/mobile-association-hosting.md#L1) |
-| Runbook release production securisee | 8 | [docs/runbooks/production-release-readiness.md:1](../../docs/runbooks/production-release-readiness.md#L1) |
-| Runbook Stripe et reconciliation financiere | 8 | [docs/runbooks/stripe-financial-ops.md:1](../../docs/runbooks/stripe-financial-ops.md#L1) |
-| Versement développeur sans Stripe Connect : PostFinance | 4 | [docs/runbooks/tok-developer-bank-payouts.md:1](../../docs/runbooks/tok-developer-bank-payouts.md#L1) |
-| TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet) | 5 | [docs/runbooks/tok-stripe-connect-platform-profile-20261017.md:1](../../docs/runbooks/tok-stripe-connect-platform-profile-20261017.md#L1) |
-| Protection SEO et anti-scraping de TOK | 10 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
-| TOK Sentinel — Runbook d'incident et déploiement (v1) | 9 | [docs/security/TOK_SENTINEL_RUNBOOK.md:1](../../docs/security/TOK_SENTINEL_RUNBOOK.md#L1) |
-| Réservation des crédits pour les images IA | 10 | [docs/security/ai-image-credit-reservations.md:1](../../docs/security/ai-image-credit-reservations.md#L1) |
-| Tok audit readiness — plan 10/10 | 5 | [docs/security/audit-readiness-10-10.md:1](../../docs/security/audit-readiness-10-10.md#L1) |
-| Audit d’intégrité des paiements — 15 juillet 2026 | 15 | [docs/security/payment-integrity-audit-2026-07-15.md:1](../../docs/security/payment-integrity-audit-2026-07-15.md#L1) |
-| Audit SEO complet TOK — 28 juillet 2026 | 25 | [docs/seo/SEO_AUDIT_2026-07-28.md:1](../../docs/seo/SEO_AUDIT_2026-07-28.md#L1) |
-| Réunification des communes scindées par une variante d'orthographe — 2 septembre 2026 | 10 | [docs/seo/SEO_IDENTITE_COMMUNE_2026-09-02.md:1](../../docs/seo/SEO_IDENTITE_COMMUNE_2026-09-02.md#L1) |
-| Audit indexation et correctifs SEO — 2 septembre 2026 | 15 | [docs/seo/SEO_INDEXATION_2026-09-02.md:1](../../docs/seo/SEO_INDEXATION_2026-09-02.md#L1) |
-| TOK : déduplication des lieux Stoppin et redirections — 20 septembre 2026 | 7 | [docs/seo/SEO_SEARCH_CONSOLE_2026-09-20.md:1](../../docs/seo/SEO_SEARCH_CONSOLE_2026-09-20.md#L1) |
+| CLOUDPRINTER FORMAT MAPPING | 0 | [docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md:1](../../docs/operations/CLOUDPRINTER_FORMAT_MAPPING.md#L1) |
+| TOK EQUIPE RELEASE 2026 10 28 | 0 | [docs/operations/TOK_EQUIPE_RELEASE_2026-10-28.md:1](../../docs/operations/TOK_EQUIPE_RELEASE_2026-10-28.md#L1) |
+| TOK INTELLIGENCE SUITE | 0 | [docs/operations/TOK_INTELLIGENCE_SUITE.md:1](../../docs/operations/TOK_INTELLIGENCE_SUITE.md#L1) |
+| Incident Intelligence Unification | 0 | [docs/operations/incident-intelligence-unification.md:1](../../docs/operations/incident-intelligence-unification.md#L1) |
+| Pr Readiness 2026 07 28 | 0 | [docs/operations/pr-readiness-2026-07-28.md:1](../../docs/operations/pr-readiness-2026-07-28.md#L1) |
+| Telegram Codex Incidents | 0 | [docs/operations/telegram-codex-incidents.md:1](../../docs/operations/telegram-codex-incidents.md#L1) |
+| TOK MARKETING AUTOPILOT COMPLETION | 0 | [docs/projects/TOK_MARKETING_AUTOPILOT_COMPLETION.md:1](../../docs/projects/TOK_MARKETING_AUTOPILOT_COMPLETION.md#L1) |
+| Commercial Demo Ai | 0 | [docs/runbooks/commercial-demo-ai.md:1](../../docs/runbooks/commercial-demo-ai.md#L1) |
+| Commercial Demo Payment Simulator | 0 | [docs/runbooks/commercial-demo-payment-simulator.md:1](../../docs/runbooks/commercial-demo-payment-simulator.md#L1) |
+| Local Git Auto Sync | 0 | [docs/runbooks/local-git-auto-sync.md:1](../../docs/runbooks/local-git-auto-sync.md#L1) |
+| Mobile Association Hosting | 0 | [docs/runbooks/mobile-association-hosting.md:1](../../docs/runbooks/mobile-association-hosting.md#L1) |
+| Production Release Readiness | 0 | [docs/runbooks/production-release-readiness.md:1](../../docs/runbooks/production-release-readiness.md#L1) |
+| Stripe Financial Ops | 0 | [docs/runbooks/stripe-financial-ops.md:1](../../docs/runbooks/stripe-financial-ops.md#L1) |
+| Tok Developer Bank Payouts | 0 | [docs/runbooks/tok-developer-bank-payouts.md:1](../../docs/runbooks/tok-developer-bank-payouts.md#L1) |
+| Tok Stripe Connect Platform Profile 20261017 | 0 | [docs/runbooks/tok-stripe-connect-platform-profile-20261017.md:1](../../docs/runbooks/tok-stripe-connect-platform-profile-20261017.md#L1) |
+| SEO BOT PROTECTION RUNBOOK | 0 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
+| TOK SENTINEL RUNBOOK | 0 | [docs/security/TOK_SENTINEL_RUNBOOK.md:1](../../docs/security/TOK_SENTINEL_RUNBOOK.md#L1) |
+| Ai Image Credit Reservations | 0 | [docs/security/ai-image-credit-reservations.md:1](../../docs/security/ai-image-credit-reservations.md#L1) |
+| Audit Readiness 10 10 | 0 | [docs/security/audit-readiness-10-10.md:1](../../docs/security/audit-readiness-10-10.md#L1) |
+| Payment Integrity Audit 2026 07 15 | 0 | [docs/security/payment-integrity-audit-2026-07-15.md:1](../../docs/security/payment-integrity-audit-2026-07-15.md#L1) |
+| SEO AUDIT 2026 07 28 | 0 | [docs/seo/SEO_AUDIT_2026-07-28.md:1](../../docs/seo/SEO_AUDIT_2026-07-28.md#L1) |
+| SEO IDENTITE COMMUNE 2026 09 02 | 0 | [docs/seo/SEO_IDENTITE_COMMUNE_2026-09-02.md:1](../../docs/seo/SEO_IDENTITE_COMMUNE_2026-09-02.md#L1) |
+| SEO INDEXATION 2026 09 02 | 0 | [docs/seo/SEO_INDEXATION_2026-09-02.md:1](../../docs/seo/SEO_INDEXATION_2026-09-02.md#L1) |
+| SEO SEARCH CONSOLE 2026 09 20 | 0 | [docs/seo/SEO_SEARCH_CONSOLE_2026-09-20.md:1](../../docs/seo/SEO_SEARCH_CONSOLE_2026-09-20.md#L1) |
 | TOK IDE Skills | 5 | [docs/skills/README.md:1](../../docs/skills/README.md#L1) |
 | TOK Admin Support Skill | 6 | [docs/skills/TOK_ADMIN_SUPPORT_SKILL.md:1](../../docs/skills/TOK_ADMIN_SUPPORT_SKILL.md#L1) |
 | TOK Application Skill File | 26 | [docs/skills/TOK_APPLICATION_SKILL.md:1](../../docs/skills/TOK_APPLICATION_SKILL.md#L1) |
@@ -7545,80 +7489,80 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | TOK SEO Skill | 6 | [docs/skills/TOK_SEO_SKILL.md:1](../../docs/skills/TOK_SEO_SKILL.md#L1) |
 | TOK Supabase RLS Skill | 5 | [docs/skills/TOK_SUPABASE_RLS_SKILL.md:1](../../docs/skills/TOK_SUPABASE_RLS_SKILL.md#L1) |
 | TOK Testing Skill | 10 | [docs/skills/TOK_TESTING_SKILL.md:1](../../docs/skills/TOK_TESTING_SKILL.md#L1) |
-| Audit SECURITY DEFINER executable by anon | 5 | [docs/supabase/anon-security-definer-audit.md:1](../../docs/supabase/anon-security-definer-audit.md#L1) |
-| Reservation Billing & Anti-Fraud Dashboard Implementation Plan | 12 | [docs/superpowers/plans/2026-04-17-reservation-billing.md:1](../../docs/superpowers/plans/2026-04-17-reservation-billing.md#L1) |
-| Compta Home + Inflows/Outflows Implementation Plan | 11 | [docs/superpowers/plans/2026-04-21-compta-home-inflows-outflows.md:1](../../docs/superpowers/plans/2026-04-21-compta-home-inflows-outflows.md#L1) |
-| Dashboard Readability Implementation Plan | 13 | [docs/superpowers/plans/2026-04-21-dashboard-readability.md:1](../../docs/superpowers/plans/2026-04-21-dashboard-readability.md#L1) |
-| Compta campagnes pub et Tok One - Implementation Plan | 9 | [docs/superpowers/plans/2026-04-22-compta-campaigns-tok-one.md:1](../../docs/superpowers/plans/2026-04-22-compta-campaigns-tok-one.md#L1) |
-| Dashboard restaurateur - commandes anti-gaspi et ventes flash - Implementation Plan | 11 | [docs/superpowers/plans/2026-04-22-dashboard-commandes-special-orders.md:1](../../docs/superpowers/plans/2026-04-22-dashboard-commandes-special-orders.md#L1) |
-| Invoice Line Details Implementation Plan | 11 | [docs/superpowers/plans/2026-04-22-invoice-line-details.md:1](../../docs/superpowers/plans/2026-04-22-invoice-line-details.md#L1) |
-| Plan d'implémentation Plan De Salle Structure | 6 | [docs/superpowers/plans/2026-04-22-plan-salle-structure-studio-implementation.md:1](../../docs/superpowers/plans/2026-04-22-plan-salle-structure-studio-implementation.md#L1) |
-| Annulation avec remboursement (restaurateur + admin) & nettoyage Miamz — Plan d'implémentation | 31 | [docs/superpowers/plans/2026-04-25-cancellation-refund-and-miamz-cleanup.md:1](../../docs/superpowers/plans/2026-04-25-cancellation-refund-and-miamz-cleanup.md#L1) |
-| Uber/TheFork Readiness Implementation Plan | 21 | [docs/superpowers/plans/2026-05-25-uber-thefork-readiness.md:1](../../docs/superpowers/plans/2026-05-25-uber-thefork-readiness.md#L1) |
-| Abonnements Entitlements Implementation Plan | 14 | [docs/superpowers/plans/2026-05-26-abonnements-entitlements.md:1](../../docs/superpowers/plans/2026-05-26-abonnements-entitlements.md#L1) |
-| Parcours d'inscription durci — Implementation Plan | 12 | [docs/superpowers/plans/2026-05-30-parcours-inscription.md:1](../../docs/superpowers/plans/2026-05-30-parcours-inscription.md#L1) |
-| TOK Global Application Audit Implementation Plan | 9 | [docs/superpowers/plans/2026-06-05-global-application-audit.md:1](../../docs/superpowers/plans/2026-06-05-global-application-audit.md#L1) |
-| Audit Remediation Consolidation Implementation Plan | 6 | [docs/superpowers/plans/2026-09-04-audit-remediation.md:1](../../docs/superpowers/plans/2026-09-04-audit-remediation.md#L1) |
-| Restaurant Image Truth and Catalog Backfill Implementation Plan | 6 | [docs/superpowers/plans/2026-09-04-restaurant-image-truth-backfill.md:1](../../docs/superpowers/plans/2026-09-04-restaurant-image-truth-backfill.md#L1) |
-| TOK notifications, AI and admin hardening plan | 9 | [docs/superpowers/plans/2026-09-07-notifications-ai-admin-hardening.md:1](../../docs/superpowers/plans/2026-09-07-notifications-ai-admin-hardening.md#L1) |
-| TOK SEO & Performance Remediation Implementation Plan | 10 | [docs/superpowers/plans/2026-09-07-seo-performance-remediation.md:1](../../docs/superpowers/plans/2026-09-07-seo-performance-remediation.md#L1) |
-| TheTok Print + Cloudprinter Implementation Plan | 16 | [docs/superpowers/plans/2026-09-07-thetok-cloudprinter-print.md:1](../../docs/superpowers/plans/2026-09-07-thetok-cloudprinter-print.md#L1) |
-| Commercial Demo Multi-Space Fidelity Implementation Plan | 7 | [docs/superpowers/plans/2026-09-08-commercial-demo-multispace-fidelity.md:1](../../docs/superpowers/plans/2026-09-08-commercial-demo-multispace-fidelity.md#L1) |
-| Marketing Studio Output Geometry Implementation Plan | 8 | [docs/superpowers/plans/2026-09-08-marketing-studio-output-geometry.md:1](../../docs/superpowers/plans/2026-09-08-marketing-studio-output-geometry.md#L1) |
-| Admin TheFork-only filter plan | 1 | [docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md:1](../../docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md#L1) |
-| Refonte TOK — application réelle en preview | 8 | [docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md:1](../../docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md#L1) |
-| TOK marketing publication repair | 6 | [docs/superpowers/plans/2026-10-11-marketing-publication-repair.md:1](../../docs/superpowers/plans/2026-10-11-marketing-publication-repair.md#L1) |
-| Consentement restaurateur dans le Cockpit commercial | 8 | [docs/superpowers/plans/2026-10-27-commercial-consent.md:1](../../docs/superpowers/plans/2026-10-27-commercial-consent.md#L1) |
-| Consentement signé immédiat et confirmation e-mail complémentaire | 5 | [docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md:1](../../docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md#L1) |
-| Cloudprinter native artwork implementation plan | 6 | [docs/superpowers/plans/2026-10-28-cloudprinter-native-artwork.md:1](../../docs/superpowers/plans/2026-10-28-cloudprinter-native-artwork.md#L1) |
-| Préremplissage du consentement restaurateur — plan et décision | 5 | [docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md:1](../../docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md#L1) |
-| Plan d’implémentation — assistant TOK avec pièces jointes sécurisées | 11 | [docs/superpowers/plans/2026-10-28-tok-advisor-secure-attachments-implementation.md:1](../../docs/superpowers/plans/2026-10-28-tok-advisor-secure-attachments-implementation.md#L1) |
-| Moteur TOK autonome — plan d’implémentation | 10 | [docs/superpowers/plans/2026-11-01-tok-growth-engine.md:1](../../docs/superpowers/plans/2026-11-01-tok-growth-engine.md#L1) |
-| Facturation des réservations (5.-/resa) & détection anti-fraude | 26 | [docs/superpowers/specs/2026-04-17-reservation-billing-design.md:1](../../docs/superpowers/specs/2026-04-17-reservation-billing-design.md#L1) |
-| Refonte compta: accueil + entrees/sorties | 52 | [docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md:1](../../docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md#L1) |
-| Lisibilite dashboard: factures, reservations et commandes | 39 | [docs/superpowers/specs/2026-04-21-dashboard-readability-design.md:1](../../docs/superpowers/specs/2026-04-21-dashboard-readability-design.md#L1) |
-| Comptabilite TOK - campagnes publicitaires et abonnements Tok One | 32 | [docs/superpowers/specs/2026-04-22-compta-campaigns-tok-one-design.md:1](../../docs/superpowers/specs/2026-04-22-compta-campaigns-tok-one-design.md#L1) |
-| Dashboard restaurateur — commandes anti-gaspi et ventes flash | 27 | [docs/superpowers/specs/2026-04-22-dashboard-commandes-special-orders-design.md:1](../../docs/superpowers/specs/2026-04-22-dashboard-commandes-special-orders-design.md#L1) |
-| Factures compta - detail complet des lignes | 42 | [docs/superpowers/specs/2026-04-22-invoice-line-details-design.md:1](../../docs/superpowers/specs/2026-04-22-invoice-line-details-design.md#L1) |
-| Refonte Plan De Salle Structure: studio simplifie et visuel | 58 | [docs/superpowers/specs/2026-04-22-plan-salle-structure-studio-design.md:1](../../docs/superpowers/specs/2026-04-22-plan-salle-structure-studio-design.md#L1) |
-| Refonte Plan De Table Tablette: service-first | 67 | [docs/superpowers/specs/2026-04-22-plan-salle-tablette-design.md:1](../../docs/superpowers/specs/2026-04-22-plan-salle-tablette-design.md#L1) |
-| Social Preview Image Design | 9 | [docs/superpowers/specs/2026-04-22-social-preview-image-design.md:1](../../docs/superpowers/specs/2026-04-22-social-preview-image-design.md#L1) |
-| Refonte Plan De Salle Studio: mobilier, labels et resize | 53 | [docs/superpowers/specs/2026-04-23-plan-salle-studio-mobilier-design.md:1](../../docs/superpowers/specs/2026-04-23-plan-salle-studio-mobilier-design.md#L1) |
-| Annulation avec remboursement (restaurateur + admin) & nettoyage Miamz | 45 | [docs/superpowers/specs/2026-04-25-cancellation-refund-and-miamz-cleanup-design.md:1](../../docs/superpowers/specs/2026-04-25-cancellation-refund-and-miamz-cleanup-design.md#L1) |
-| Dashboard Performances Dual Surface Design | 30 | [docs/superpowers/specs/2026-04-25-dashboard-performances-dual-surface-design.md:1](../../docs/superpowers/specs/2026-04-25-dashboard-performances-dual-surface-design.md#L1) |
-| Geneva Demo Restaurants Design | 12 | [docs/superpowers/specs/2026-04-25-geneva-demo-restaurants-design.md:1](../../docs/superpowers/specs/2026-04-25-geneva-demo-restaurants-design.md#L1) |
-| Actualites sociales - parametres et promotions | 38 | [docs/superpowers/specs/2026-05-25-social-actualites-settings-promotions-design.md:1](../../docs/superpowers/specs/2026-05-25-social-actualites-settings-promotions-design.md#L1) |
-| Abonnements Et Entitlements Design | 17 | [docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md:1](../../docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md#L1) |
-| Parcours d'inscription — durcissement (client, restaurateur, livreur) | 24 | [docs/superpowers/specs/2026-05-30-parcours-inscription-design.md:1](../../docs/superpowers/specs/2026-05-30-parcours-inscription-design.md#L1) |
-| Marketing Studio Output Geometry Design | 15 | [docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md:1](../../docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md#L1) |
-| Conception — pièces jointes sécurisées pour l’assistant TOK | 12 | [docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md:1](../../docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md#L1) |
-| Moteur de croissance TOK — conception proposée et audit de parité | 26 | [docs/superpowers/specs/2026-11-01-tok-growth-engine-design.md:1](../../docs/superpowers/specs/2026-11-01-tok-growth-engine-design.md#L1) |
-| Actualités — identité des événements facturables | 5 | [docs/testing/actualites-billing-identity.md:1](../../docs/testing/actualites-billing-identity.md#L1) |
-| Scénario Actualités sponsorisées | 5 | [docs/testing/actualites-sponsored-scenario.md:1](../../docs/testing/actualites-sponsored-scenario.md#L1) |
-| Télémétrie navigateur et consentement | 5 | [docs/testing/browser-monitoring-consent.md:1](../../docs/testing/browser-monitoring-consent.md#L1) |
-| Recette de sécurité checkout et menus — issue #710 | 8 | [docs/testing/checkout-security-710.md:1](../../docs/testing/checkout-security-710.md#L1) |
-| Plan de tests lancement 10k | 6 | [docs/testing/launch-10k-load-plan.md:1](../../docs/testing/launch-10k-load-plan.md#L1) |
-| Tests de garde Supabase / RPC | 7 | [docs/testing/supabase-rpc-guards.md:1](../../docs/testing/supabase-rpc-guards.md#L1) |
-| Livraison de la parité fonctionnelle TOK Connect | 10 | [docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md:1](../../docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md#L1) |
-| TOK Connect — prévention des commandes fantômes avant Stripe Connect | 6 | [docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md:1](../../docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md#L1) |
-| TOK Connect — échec Checkout à emporter hors horaire de service | 6 | [docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md:1](../../docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md#L1) |
-| Publication Suisse | 3 | [docs/tok-connect/PUBLICATION.md:1](../../docs/tok-connect/PUBLICATION.md#L1) |
-| TOK Connect | 20 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
-| TOK Connect Remote MCP | 10 | [docs/tok-connect/REMOTE_MCP.md:1](../../docs/tok-connect/REMOTE_MCP.md#L1) |
-| TOK Connect — sécurisation et mise en service | 12 | [docs/tok-connect/SECURITY_HARDENING.md:1](../../docs/tok-connect/SECURITY_HARDENING.md#L1) |
-| Recette TOK Connect dans ChatGPT | 9 | [docs/tok-connect/TESTING.md:1](../../docs/tok-connect/TESTING.md#L1) |
-| TOK Connect Full App MCP (surface historique interne) | 9 | [docs/tok-connect/full-app-mcp.md:1](../../docs/tok-connect/full-app-mcp.md#L1) |
-| Portail marketing dans TOK Connect | 4 | [docs/tok-connect/marketing-mcp.md:1](../../docs/tok-connect/marketing-mcp.md#L1) |
+| Anon Security Definer Audit | 0 | [docs/supabase/anon-security-definer-audit.md:1](../../docs/supabase/anon-security-definer-audit.md#L1) |
+| 2026 04 17 Reservation Billing | 0 | [docs/superpowers/plans/2026-04-17-reservation-billing.md:1](../../docs/superpowers/plans/2026-04-17-reservation-billing.md#L1) |
+| 2026 04 21 Compta Home Inflows Outflows | 0 | [docs/superpowers/plans/2026-04-21-compta-home-inflows-outflows.md:1](../../docs/superpowers/plans/2026-04-21-compta-home-inflows-outflows.md#L1) |
+| 2026 04 21 Dashboard Readability | 0 | [docs/superpowers/plans/2026-04-21-dashboard-readability.md:1](../../docs/superpowers/plans/2026-04-21-dashboard-readability.md#L1) |
+| 2026 04 22 Compta Campaigns Tok One | 0 | [docs/superpowers/plans/2026-04-22-compta-campaigns-tok-one.md:1](../../docs/superpowers/plans/2026-04-22-compta-campaigns-tok-one.md#L1) |
+| 2026 04 22 Dashboard Commandes Special Orders | 0 | [docs/superpowers/plans/2026-04-22-dashboard-commandes-special-orders.md:1](../../docs/superpowers/plans/2026-04-22-dashboard-commandes-special-orders.md#L1) |
+| 2026 04 22 Invoice Line Details | 0 | [docs/superpowers/plans/2026-04-22-invoice-line-details.md:1](../../docs/superpowers/plans/2026-04-22-invoice-line-details.md#L1) |
+| 2026 04 22 Plan Salle Structure Studio Implementation | 0 | [docs/superpowers/plans/2026-04-22-plan-salle-structure-studio-implementation.md:1](../../docs/superpowers/plans/2026-04-22-plan-salle-structure-studio-implementation.md#L1) |
+| 2026 04 25 Cancellation Refund And Miamz Cleanup | 0 | [docs/superpowers/plans/2026-04-25-cancellation-refund-and-miamz-cleanup.md:1](../../docs/superpowers/plans/2026-04-25-cancellation-refund-and-miamz-cleanup.md#L1) |
+| 2026 05 25 Uber Thefork Readiness | 0 | [docs/superpowers/plans/2026-05-25-uber-thefork-readiness.md:1](../../docs/superpowers/plans/2026-05-25-uber-thefork-readiness.md#L1) |
+| 2026 05 26 Abonnements Entitlements | 0 | [docs/superpowers/plans/2026-05-26-abonnements-entitlements.md:1](../../docs/superpowers/plans/2026-05-26-abonnements-entitlements.md#L1) |
+| 2026 05 30 Parcours Inscription | 0 | [docs/superpowers/plans/2026-05-30-parcours-inscription.md:1](../../docs/superpowers/plans/2026-05-30-parcours-inscription.md#L1) |
+| 2026 06 05 Global Application Audit | 0 | [docs/superpowers/plans/2026-06-05-global-application-audit.md:1](../../docs/superpowers/plans/2026-06-05-global-application-audit.md#L1) |
+| 2026 09 04 Audit Remediation | 0 | [docs/superpowers/plans/2026-09-04-audit-remediation.md:1](../../docs/superpowers/plans/2026-09-04-audit-remediation.md#L1) |
+| 2026 09 04 Restaurant Image Truth Backfill | 0 | [docs/superpowers/plans/2026-09-04-restaurant-image-truth-backfill.md:1](../../docs/superpowers/plans/2026-09-04-restaurant-image-truth-backfill.md#L1) |
+| 2026 09 07 Notifications Ai Admin Hardening | 0 | [docs/superpowers/plans/2026-09-07-notifications-ai-admin-hardening.md:1](../../docs/superpowers/plans/2026-09-07-notifications-ai-admin-hardening.md#L1) |
+| 2026 09 07 Seo Performance Remediation | 0 | [docs/superpowers/plans/2026-09-07-seo-performance-remediation.md:1](../../docs/superpowers/plans/2026-09-07-seo-performance-remediation.md#L1) |
+| 2026 09 07 Thetok Cloudprinter Print | 0 | [docs/superpowers/plans/2026-09-07-thetok-cloudprinter-print.md:1](../../docs/superpowers/plans/2026-09-07-thetok-cloudprinter-print.md#L1) |
+| 2026 09 08 Commercial Demo Multispace Fidelity | 0 | [docs/superpowers/plans/2026-09-08-commercial-demo-multispace-fidelity.md:1](../../docs/superpowers/plans/2026-09-08-commercial-demo-multispace-fidelity.md#L1) |
+| 2026 09 08 Marketing Studio Output Geometry | 0 | [docs/superpowers/plans/2026-09-08-marketing-studio-output-geometry.md:1](../../docs/superpowers/plans/2026-09-08-marketing-studio-output-geometry.md#L1) |
+| 2026 09 15 Admin Thefork Only Filter | 0 | [docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md:1](../../docs/superpowers/plans/2026-09-15-admin-thefork-only-filter.md#L1) |
+| 2026 10 10 Tok Ui Ux Preview | 0 | [docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md:1](../../docs/superpowers/plans/2026-10-10-tok-ui-ux-preview.md#L1) |
+| 2026 10 11 Marketing Publication Repair | 0 | [docs/superpowers/plans/2026-10-11-marketing-publication-repair.md:1](../../docs/superpowers/plans/2026-10-11-marketing-publication-repair.md#L1) |
+| 2026 10 27 Commercial Consent | 0 | [docs/superpowers/plans/2026-10-27-commercial-consent.md:1](../../docs/superpowers/plans/2026-10-27-commercial-consent.md#L1) |
+| 2026 10 27 Commercial Email Confirmation | 0 | [docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md:1](../../docs/superpowers/plans/2026-10-27-commercial-email-confirmation.md#L1) |
+| 2026 10 28 Cloudprinter Native Artwork | 0 | [docs/superpowers/plans/2026-10-28-cloudprinter-native-artwork.md:1](../../docs/superpowers/plans/2026-10-28-cloudprinter-native-artwork.md#L1) |
+| 2026 10 28 Commercial Consent Prefill | 0 | [docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md:1](../../docs/superpowers/plans/2026-10-28-commercial-consent-prefill.md#L1) |
+| 2026 10 28 Tok Advisor Secure Attachments Implementation | 0 | [docs/superpowers/plans/2026-10-28-tok-advisor-secure-attachments-implementation.md:1](../../docs/superpowers/plans/2026-10-28-tok-advisor-secure-attachments-implementation.md#L1) |
+| 2026 11 01 Tok Growth Engine | 0 | [docs/superpowers/plans/2026-11-01-tok-growth-engine.md:1](../../docs/superpowers/plans/2026-11-01-tok-growth-engine.md#L1) |
+| 2026 04 17 Reservation Billing Design | 0 | [docs/superpowers/specs/2026-04-17-reservation-billing-design.md:1](../../docs/superpowers/specs/2026-04-17-reservation-billing-design.md#L1) |
+| 2026 04 21 Compta Home Inflows Outflows Design | 0 | [docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md:1](../../docs/superpowers/specs/2026-04-21-compta-home-inflows-outflows-design.md#L1) |
+| 2026 04 21 Dashboard Readability Design | 0 | [docs/superpowers/specs/2026-04-21-dashboard-readability-design.md:1](../../docs/superpowers/specs/2026-04-21-dashboard-readability-design.md#L1) |
+| 2026 04 22 Compta Campaigns Tok One Design | 0 | [docs/superpowers/specs/2026-04-22-compta-campaigns-tok-one-design.md:1](../../docs/superpowers/specs/2026-04-22-compta-campaigns-tok-one-design.md#L1) |
+| 2026 04 22 Dashboard Commandes Special Orders Design | 0 | [docs/superpowers/specs/2026-04-22-dashboard-commandes-special-orders-design.md:1](../../docs/superpowers/specs/2026-04-22-dashboard-commandes-special-orders-design.md#L1) |
+| 2026 04 22 Invoice Line Details Design | 0 | [docs/superpowers/specs/2026-04-22-invoice-line-details-design.md:1](../../docs/superpowers/specs/2026-04-22-invoice-line-details-design.md#L1) |
+| 2026 04 22 Plan Salle Structure Studio Design | 0 | [docs/superpowers/specs/2026-04-22-plan-salle-structure-studio-design.md:1](../../docs/superpowers/specs/2026-04-22-plan-salle-structure-studio-design.md#L1) |
+| 2026 04 22 Plan Salle Tablette Design | 0 | [docs/superpowers/specs/2026-04-22-plan-salle-tablette-design.md:1](../../docs/superpowers/specs/2026-04-22-plan-salle-tablette-design.md#L1) |
+| 2026 04 22 Social Preview Image Design | 0 | [docs/superpowers/specs/2026-04-22-social-preview-image-design.md:1](../../docs/superpowers/specs/2026-04-22-social-preview-image-design.md#L1) |
+| 2026 04 23 Plan Salle Studio Mobilier Design | 0 | [docs/superpowers/specs/2026-04-23-plan-salle-studio-mobilier-design.md:1](../../docs/superpowers/specs/2026-04-23-plan-salle-studio-mobilier-design.md#L1) |
+| 2026 04 25 Cancellation Refund And Miamz Cleanup Design | 0 | [docs/superpowers/specs/2026-04-25-cancellation-refund-and-miamz-cleanup-design.md:1](../../docs/superpowers/specs/2026-04-25-cancellation-refund-and-miamz-cleanup-design.md#L1) |
+| 2026 04 25 Dashboard Performances Dual Surface Design | 0 | [docs/superpowers/specs/2026-04-25-dashboard-performances-dual-surface-design.md:1](../../docs/superpowers/specs/2026-04-25-dashboard-performances-dual-surface-design.md#L1) |
+| 2026 04 25 Geneva Demo Restaurants Design | 0 | [docs/superpowers/specs/2026-04-25-geneva-demo-restaurants-design.md:1](../../docs/superpowers/specs/2026-04-25-geneva-demo-restaurants-design.md#L1) |
+| 2026 05 25 Social Actualites Settings Promotions Design | 0 | [docs/superpowers/specs/2026-05-25-social-actualites-settings-promotions-design.md:1](../../docs/superpowers/specs/2026-05-25-social-actualites-settings-promotions-design.md#L1) |
+| 2026 05 26 Abonnements Entitlements Design | 0 | [docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md:1](../../docs/superpowers/specs/2026-05-26-abonnements-entitlements-design.md#L1) |
+| 2026 05 30 Parcours Inscription Design | 0 | [docs/superpowers/specs/2026-05-30-parcours-inscription-design.md:1](../../docs/superpowers/specs/2026-05-30-parcours-inscription-design.md#L1) |
+| 2026 09 08 Marketing Studio Output Geometry Design | 0 | [docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md:1](../../docs/superpowers/specs/2026-09-08-marketing-studio-output-geometry-design.md#L1) |
+| 2026 10 28 Tok Advisor Secure Attachments Design | 0 | [docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md:1](../../docs/superpowers/specs/2026-10-28-tok-advisor-secure-attachments-design.md#L1) |
+| 2026 11 01 Tok Growth Engine Design | 0 | [docs/superpowers/specs/2026-11-01-tok-growth-engine-design.md:1](../../docs/superpowers/specs/2026-11-01-tok-growth-engine-design.md#L1) |
+| Actualites Billing Identity | 0 | [docs/testing/actualites-billing-identity.md:1](../../docs/testing/actualites-billing-identity.md#L1) |
+| Actualites Sponsored Scenario | 0 | [docs/testing/actualites-sponsored-scenario.md:1](../../docs/testing/actualites-sponsored-scenario.md#L1) |
+| Browser Monitoring Consent | 0 | [docs/testing/browser-monitoring-consent.md:1](../../docs/testing/browser-monitoring-consent.md#L1) |
+| Checkout Security 710 | 0 | [docs/testing/checkout-security-710.md:1](../../docs/testing/checkout-security-710.md#L1) |
+| Launch 10k Load Plan | 0 | [docs/testing/launch-10k-load-plan.md:1](../../docs/testing/launch-10k-load-plan.md#L1) |
+| Supabase Rpc Guards | 0 | [docs/testing/supabase-rpc-guards.md:1](../../docs/testing/supabase-rpc-guards.md#L1) |
+| FUNCTIONAL PARITY DELIVERY | 0 | [docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md:1](../../docs/tok-connect/FUNCTIONAL_PARITY_DELIVERY.md#L1) |
+| MARKETPLACE CONNECT PREFLIGHT 20261017 | 0 | [docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md:1](../../docs/tok-connect/MARKETPLACE_CONNECT_PREFLIGHT_20261017.md#L1) |
+| PICKUP SLOT CHECKOUT POSTMORTEM 20261017 | 0 | [docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md:1](../../docs/tok-connect/PICKUP_SLOT_CHECKOUT_POSTMORTEM_20261017.md#L1) |
+| PUBLICATION | 0 | [docs/tok-connect/PUBLICATION.md:1](../../docs/tok-connect/PUBLICATION.md#L1) |
+| README | 0 | [docs/tok-connect/README.md:1](../../docs/tok-connect/README.md#L1) |
+| REMOTE MCP | 0 | [docs/tok-connect/REMOTE_MCP.md:1](../../docs/tok-connect/REMOTE_MCP.md#L1) |
+| SECURITY HARDENING | 0 | [docs/tok-connect/SECURITY_HARDENING.md:1](../../docs/tok-connect/SECURITY_HARDENING.md#L1) |
+| TESTING | 0 | [docs/tok-connect/TESTING.md:1](../../docs/tok-connect/TESTING.md#L1) |
+| Full App Mcp | 0 | [docs/tok-connect/full-app-mcp.md:1](../../docs/tok-connect/full-app-mcp.md#L1) |
+| Marketing Mcp | 0 | [docs/tok-connect/marketing-mcp.md:1](../../docs/tok-connect/marketing-mcp.md#L1) |
 | Espace Comptabilité Administrateur | 11 | [implementation_plan_compta.md:1](../../implementation_plan_compta.md#L1) |
 | Refonte de la Facturation avec Suivi des Commandes | 11 | [implementation_plan_invoice_refactor.md:1](../../implementation_plan_invoice_refactor.md#L1) |
-| CapApp-SPM | 1 | [ios/App/CapApp-SPM/README.md:1](../../ios/App/CapApp-SPM/README.md#L1) |
+| README | 0 | [ios/App/CapApp-SPM/README.md:1](../../ios/App/CapApp-SPM/README.md#L1) |
 | TOK floor-plan sprites | 1 | [public/floor-plan/README.md:1](../../public/floor-plan/README.md#L1) |
 | Visuels TOK — 45 communes genevoises | 1 | [public/images/home-mobile/communes/TOK-Geneve-sources-et-credits.md:1](../../public/images/home-mobile/communes/TOK-Geneve-sources-et-credits.md#L1) |
 | Security Best Practices Audit Report | 24 | [security_best_practices_report.md:1](../../security_best_practices_report.md#L1) |
 | Tâches - Module Comptabilité Administrateur | 1 | [task_compta.md:1](../../task_compta.md#L1) |
 | Tâches - Facturation au réel TOK | 1 | [task_invoice_match.md:1](../../task_invoice_match.md#L1) |
 | Implémentation du Module Comptabilité Administration (Réconciliation) & Facturation au Réel | 3 | [walkthrough_compta.md:1](../../walkthrough_compta.md#L1) |
-| Worker d’analyse d’images TOK — 100 % local | 8 | [workers/image-ai-worker/README.md:1](../../workers/image-ai-worker/README.md#L1) |
+| README | 0 | [workers/image-ai-worker/README.md:1](../../workers/image-ai-worker/README.md#L1) |
 
 ## Inventaire exhaustif des fichiers versionnés
 
