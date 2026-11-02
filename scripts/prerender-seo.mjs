@@ -471,7 +471,7 @@ function buildLocalSeoPage(page, overrides = {}) {
 const PUBLIC_SEO_PAGES = [
   {
     path: "/",
-    title: "TOK - Réservez, commandez et trouvez un restaurant en Suisse",
+    title: "Restaurants à Genève : réservation, commande et adresses",
     description:
       "Réservation restaurant, bonnes adresses, pizzerias et restaurants pas chers : trouvez où manger à Genève et dans les villes suisses avec TOK.",
     priority: "1.0",

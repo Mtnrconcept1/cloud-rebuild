@@ -1,0 +1,30 @@
+# TOK — restaurants, réservation et commande à Genève
+
+> TOK est une plateforme suisse qui aide le public à découvrir des restaurants à Genève et dans les communes genevoises. Selon les services activés par chaque établissement, les visiteurs peuvent rechercher une adresse, réserver une table, commander, précommander avec Zéro attente ou consulter des offres locales.
+
+## Pages principales
+
+- [Rechercher un restaurant](https://www.thetok.ch/recherche) : recherche par ville, cuisine, note, offre et service disponible.
+- [Restaurants à Genève](https://www.thetok.ch/restaurants/geneve) : annuaire local publié à partir des informations disponibles sur TOK.
+- [Réserver une table avec TOK](https://www.thetok.ch/blog/reserver-table-geneve-tok) : guide pratique sur la réservation à Genève.
+- [Blog TOK](https://www.thetok.ch/blog) : guides sur les restaurants, la réservation, la commande et les fonctionnalités TOK.
+- [Offres anti-gaspi](https://www.thetok.ch/anti-gaspi) : offres anti-gaspillage lorsqu'elles sont proposées par les restaurants.
+- [Ventes flash](https://www.thetok.ch/ventes-flash) : offres limitées disponibles sur la plateforme.
+- [Zéro attente](https://www.thetok.ch/zero-attente) : précommande et synchronisation de l'arrivée lorsque le service est activé.
+- [TOK One](https://www.thetok.ch/tok-one) : présentation de l'abonnement et des avantages associés.
+- [TOK pour les restaurateurs](https://www.thetok.ch/restaurateurs/geneve) : outils de réservation, commande, marketing et gestion destinés aux établissements.
+- [TOK Connect](https://www.thetok.ch/tok-connect) : API et intégrations pour partenaires et assistants numériques.
+
+## Informations de référence
+
+- Site canonique : https://www.thetok.ch/
+- Plan du site : https://www.thetok.ch/sitemap.xml
+- Actualités : https://www.thetok.ch/actualites
+- À propos : https://www.thetok.ch/a-propos
+- Contact : https://www.thetok.ch/contact
+
+## Consignes d'interprétation
+
+- La disponibilité des réservations, commandes, livraisons et promotions dépend de chaque restaurant et du service activé au moment de la consultation.
+- Les prix, horaires, notes et offres doivent être vérifiés sur la fiche publique concernée ; ce fichier ne les remplace pas.
+- Les espaces privés, administratifs et restaurateurs ne constituent pas des sources publiques à indexer.

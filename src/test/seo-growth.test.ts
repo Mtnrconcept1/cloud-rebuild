@@ -17,18 +17,32 @@ const MOJIBAKE_PATTERN = new RegExp([
 
 describe("SEO growth readiness", () => {
   it("keeps the public shell indexable with thetok.ch canonical and OpenGraph URLs", () => {
-    const html = read("index.html").toLowerCase();
+    const rawHtml = read("index.html");
+    const html = rawHtml.toLowerCase();
+    const title = rawHtml.match(/<title>([^<]+)<\/title>/)?.[1] || "";
 
     expect(html).not.toContain("noindex");
     expect(html).toContain('rel="canonical" href="https://www.thetok.ch/"');
     expect(html).toContain('property="og:url" content="https://www.thetok.ch/"');
     expect(html).toContain('property="og:image" content="https://www.thetok.ch/tok-social-share-20261031.jpg"');
     expect(html).toContain('name="twitter:image" content="https://www.thetok.ch/tok-social-share-20261031.jpg"');
-    expect(html).toContain("tok - restaurants à genève : adresses, réservation et commande");
+    expect(html).toContain("restaurants à genève : réservation, commande et adresses");
     expect(html).toContain("communes genevoises");
     expect(html).toContain("genève");
     expect(html).not.toContain("villes suisses");
     expect(html).not.toContain('name="keywords"');
+    expect(title.length).toBeGreaterThanOrEqual(45);
+    expect(title.length).toBeLessThanOrEqual(60);
+  });
+
+  it("publishes a truthful plain-text guide for AI crawlers", () => {
+    const llms = read("public/llms.txt");
+
+    expect(llms).toContain("# TOK — restaurants, réservation et commande à Genève");
+    expect(llms).toContain("https://www.thetok.ch/recherche");
+    expect(llms).toContain("https://www.thetok.ch/blog");
+    expect(llms).toContain("La disponibilité des réservations, commandes, livraisons et promotions dépend de chaque restaurant");
+    expect(llms).not.toMatch(/\b\d+\s+(?:adresses|restaurants)\b/);
   });
 
   it("ships the branded share image as a standalone compact JPEG", () => {
@@ -44,7 +58,7 @@ describe("SEO growth readiness", () => {
 
     expect(html).not.toMatch(MOJIBAKE_PATTERN);
     expect(prerender).not.toMatch(MOJIBAKE_PATTERN);
-    expect(html).toContain("TOK - Restaurants à Genève : adresses, réservation et commande");
+    expect(html).toContain("Restaurants à Genève : réservation, commande et adresses");
     expect(html).toContain("Trouvez des restaurants à Genève et dans les communes genevoises");
     expect(html).not.toContain("villes suisses");
   });

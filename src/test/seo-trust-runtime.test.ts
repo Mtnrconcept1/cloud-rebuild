@@ -11,7 +11,7 @@ describe("SEO trust runtime", () => {
     const runtime = readFileSync(resolve(root, "public/seo-trust-runtime.js"), "utf8");
 
     expect(index).toContain('<script src="/seo-trust-runtime.js" defer></script>');
-    expect(index).toContain("TOK - Restaurants à Genève : adresses, réservation et commande");
+    expect(index).toContain("Restaurants à Genève : réservation, commande et adresses");
     expect(runtime).toContain("noindex,nofollow,noarchive");
     expect(runtime).toContain("GENERIC_STRUCTURED_IMAGE_PATHS");
     expect(runtime).toContain('output[key] = "$".repeat');

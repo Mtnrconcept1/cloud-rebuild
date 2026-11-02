@@ -7,14 +7,14 @@ const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf
 describe("La Tok d’Or — refonte conforme aux références", () => {
   it("uses the uploaded native WebP in the final, page-scoped stylesheet", () => {
     const css = source("src/styles/golden-tok-chefs-table-v6.css");
-    const main = source("src/main.tsx");
+    const page = source("src/pages/ChefsTable.tsx");
     const fixture = source("src/test/fixtures/golden-tok-preview.tsx");
 
     expect(css).toContain("url('/images/converted_tok_dor.webp')");
     expect(css).toContain("@keyframes golden-tok-gold-glint");
     expect(css).toContain("backdrop-filter: blur(23px)");
-    expect(main.indexOf("golden-tok-chefs-table-v6.css")).toBeGreaterThan(
-      main.indexOf("golden-tok-chefs-table-v5.css"),
+    expect(page.indexOf("golden-tok-chefs-table-v6.css")).toBeGreaterThan(
+      page.indexOf("golden-tok-chefs-table-v5.css"),
     );
     expect(fixture).toContain('import "@/styles/golden-tok-chefs-table-v6.css"');
   });

@@ -35,7 +35,7 @@ const PUBLIC_ROUTE_FALLBACKS: Record<string, { title: string; description: strin
     description: "Guides TOK pour découvrir les restaurants à Genève, réserver une table, précommander, profiter des offres et piloter votre restaurant.",
   },
   "/": {
-    title: "TOK - Réservez, commandez et profitez des meilleures offres food à Genève",
+    title: "Restaurants à Genève : réservation, commande et adresses",
     description: "Avec TOK, trouvez un restaurant, réservez, commandez et profitez d'offres locales en Suisse romande.",
   },
   "/recherche": {
