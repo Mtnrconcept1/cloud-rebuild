@@ -3,13 +3,17 @@ on:
   pull_request:
     paths:
       - 'supabase/migrations/*tok_workforce*.sql'
+      - 'supabase/migrations/*kitchen*.sql'
       - 'src/test/sql/tok_workforce*.sql'
+      - 'src/test/sql/tok_kitchen_workforce_smoke.sql'
       - '.github/workflows/tok-workforce-postgres.yml'
   push:
     branches: [feat/tok-workforce-clock-employee-portal-20261014]
     paths:
       - 'supabase/migrations/*tok_workforce*.sql'
+      - 'supabase/migrations/*kitchen*.sql'
       - 'src/test/sql/tok_workforce*.sql'
+      - 'src/test/sql/tok_kitchen_workforce_smoke.sql'
       - '.github/workflows/tok-workforce-postgres.yml'
 permissions:
   contents: read
@@ -45,3 +49,5 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/tok_workforce_postgres_smoke.sql
       - name: Verify real concurrent signatures, corrections and overnight planning
         run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/tok_workforce_concurrency_smoke.sql
+      - name: Verify TOK Équipe kitchen submission, permissions and tenant isolation
+        run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/tok_kitchen_workforce_smoke.sql

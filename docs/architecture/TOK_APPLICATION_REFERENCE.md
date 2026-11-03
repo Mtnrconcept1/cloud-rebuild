@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `5f81348dc9aed56337f2c27d7820be8a85f1fe5484c9423e1f47295f795b2924`
+- Empreinte SHA-256 des sources indexées : `8be115572db62f716b6059f817de4ce6da6e756f8addbf60de5e7fbccc3357c7`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 11 |
 | cronJobs | 38 |
 | databaseContract | 231 |
-| databaseObjects | 3200 |
+| databaseObjects | 3204 |
 | documents | 246 |
 | edgeFunctions | 126 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4397 |
+| exportedSymbols | 4399 |
 | featureFlags | 100 |
 | frontendRoutes | 147 |
 | integrations | 11 |
 | marketingOperations | 45 |
-| migrations | 594 |
-| modules | 1981 |
-| pages | 135 |
+| migrations | 595 |
+| modules | 1984 |
+| pages | 136 |
 | pathLiterals | 1007 |
 | publicAssets | 918 |
 | publicEntries | 956 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 122 |
-| records | 20657 |
-| repositoryFiles | 4104 |
+| records | 20672 |
+| repositoryFiles | 4108 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1878,7 +1878,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/formules | 8 | [src/App.tsx:665](../../src/App.tsx#L665) |
 | /dashboard/guide | 11 | [src/App.tsx:681](../../src/App.tsx#L681) |
 | /dashboard/guide?tab=commandes | 2 | [src/test/workspace-toolbar.test.tsx:17](../../src/test/workspace-toolbar.test.tsx#L17) |
-| /dashboard/menu | 27 | [src/App.tsx:649](../../src/App.tsx#L649) |
+| /dashboard/menu | 28 | [src/App.tsx:649](../../src/App.tsx#L649) |
 | /dashboard/menu/ | 1 | [src/test/hero-subtitle-styles.test.tsx:33](../../src/test/hero-subtitle-styles.test.tsx#L33) |
 | /dashboard/mon-compte-facturation | 19 | [src/App.tsx:662](../../src/App.tsx#L662) |
 | /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1254](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1254) |
@@ -1888,7 +1888,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/performances | 10 | [src/App.tsx:654](../../src/App.tsx#L654) |
 | /dashboard/photos | 20 | [src/App.tsx:666](../../src/App.tsx#L666) |
 | /dashboard/plan-de-salle | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:211](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L211) |
-| /dashboard/plan-salle | 12 | [src/App.tsx:678](../../src/App.tsx#L678) |
+| /dashboard/plan-salle | 13 | [src/App.tsx:678](../../src/App.tsx#L678) |
 | /dashboard/plan-salle-v2 | 4 | [src/App.tsx:680](../../src/App.tsx#L680) |
 | /dashboard/promotions | 7 | [src/App.tsx:667](../../src/App.tsx#L667) |
 | /dashboard/recommandations | 4 | [src/App.tsx:653](../../src/App.tsx#L653) |
@@ -1916,13 +1916,13 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /equipe | 3 | [src/test/dashboard-design-preview-export.test.tsx:70](../../src/test/dashboard-design-preview-export.test.tsx#L70) |
 | /equipe/ | 1 | [src/pages/Auth.tsx:1132](../../src/pages/Auth.tsx#L1132) |
 | /equipe/gestion | 12 | [src/App.tsx:597](../../src/App.tsx#L597) |
-| /equipe/gestion-salle | 1 | [src/App.tsx:596](../../src/App.tsx#L596) |
-| /equipe/gestion-salle?restaurant= | 2 | [src/pages/WorkspaceChooser.tsx:157](../../src/pages/WorkspaceChooser.tsx#L157) |
+| /equipe/gestion-salle | 3 | [src/App.tsx:596](../../src/App.tsx#L596) |
+| /equipe/gestion-salle?restaurant= | 6 | [src/pages/WorkspaceChooser.tsx:157](../../src/pages/WorkspaceChooser.tsx#L157) |
 | /equipe/gestion/private | 1 | [src/test/workforce-auth-continuation.test.ts:100](../../src/test/workforce-auth-continuation.test.ts#L100) |
 | /equipe/gestion?next=/admin | 1 | [src/test/auth-post-login-routing.test.ts:70](../../src/test/auth-post-login-routing.test.ts#L70) |
 | /equipe/gestion?restaurant= | 6 | [src/pages/workforce/MyWorkforce.tsx:185](../../src/pages/workforce/MyWorkforce.tsx#L185) |
 | /equipe/gestion?restaurant=invalid | 1 | [src/test/workforce-auth-continuation.test.ts:29](../../src/test/workforce-auth-continuation.test.ts#L29) |
-| /equipe/mon-espace | 14 | [src/App.tsx:595](../../src/App.tsx#L595) |
+| /equipe/mon-espace | 16 | [src/App.tsx:595](../../src/App.tsx#L595) |
 | /equipe/mon-espace/ | 1 | [src/test/workforce-auth-continuation.test.ts:28](../../src/test/workforce-auth-continuation.test.ts#L28) |
 | /equipe/mon-espace/private | 1 | [src/test/workforce-auth-continuation.test.ts:100](../../src/test/workforce-auth-continuation.test.ts#L100) |
 | /equipe/mon-espace/settings | 1 | [src/test/workforce-auth-continuation.test.ts:29](../../src/test/workforce-auth-continuation.test.ts#L29) |
@@ -2723,7 +2723,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | reservationStep | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:153](../../src/pages/RestaurantDetail.tsx#L153) |
 | reserve | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:149](../../src/pages/RestaurantDetail.tsx#L149) |
 | resize | — | 1 | [src/lib/optimizedImages.ts:40](../../src/lib/optimizedImages.ts#L40) |
-| restaurant | /equipe/gestion, /equipe/mon-espace, /zero-attente | 3 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
+| restaurant | /equipe/gestion, /equipe/gestion-salle, /equipe/mon-espace, /zero-attente | 4 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
 | restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 2 | [src/test/marketing-studio-references.test.ts:36](../../src/test/marketing-studio-references.test.ts#L36) |
 | returnTo | — | 1 | [src/test/marketing-bff-client.test.ts:176](../../src/test/marketing-bff-client.test.ts#L176) |
 | scope | /actualites | 4 | [src/pages/Actualites.tsx:218](../../src/pages/Actualites.tsx#L218) |
@@ -3047,6 +3047,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 | Marketing Login | /marketing/login | oui | default | [src/pages/marketing/MarketingLogin.tsx](../../src/pages/marketing/MarketingLogin.tsx) |
 | Marketing Workspace | /marketing | oui | default | [src/pages/marketing/MarketingWorkspace.tsx](../../src/pages/marketing/MarketingWorkspace.tsx) |
 | Tok Connect Mcp Widget | /tok-connect/mcp-widget | oui | default | [src/pages/tok-connect/TokConnectMcpWidget.tsx](../../src/pages/tok-connect/TokConnectMcpWidget.tsx) |
+| My Room Management | /equipe/gestion-salle | oui | default | [src/pages/workforce/MyRoomManagement.tsx](../../src/pages/workforce/MyRoomManagement.tsx) |
 | My Workforce | /equipe/mon-espace | oui | default | [src/pages/workforce/MyWorkforce.tsx](../../src/pages/workforce/MyWorkforce.tsx) |
 | My Workforce Manager | /equipe/gestion | oui | default | [src/pages/workforce/MyWorkforceManager.tsx](../../src/pages/workforce/MyWorkforceManager.tsx) |
 
@@ -3054,7 +3055,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (924)</summary>
+<details><summary>function (926)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3574,7 +3575,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.is_truthy_text` (1 définition(s))
 - `public.jsonb_target_pages_has_actualites` (2 définition(s))
 - `public.kitchen_advance_ticket` (1 définition(s))
-- `public.kitchen_create_ticket` (1 définition(s))
+- `public.kitchen_can_submit` (1 définition(s))
+- `public.kitchen_create_ticket` (2 définition(s))
+- `public.kitchen_get_setup` (1 définition(s))
 - `public.kitchen_list_tickets` (1 définition(s))
 - `public.launch_gate_enabled` (1 définition(s))
 - `public.launch_rpc_allowed` (4 définition(s))
@@ -3983,7 +3986,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (753)</summary>
+<details><summary>index (754)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -4692,6 +4695,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `tok_workforce_entries_week_idx` (1 définition(s))
 - `tok_workforce_exchanges_status_idx` (1 définition(s))
 - `tok_workforce_invitations_restaurant_idx` (1 définition(s))
+- `tok_workforce_kitchen_employee_access_idx` (1 définition(s))
 - `tok_workforce_request_entry_idx` (1 définition(s))
 - `tok_workforce_requests_status_idx` (1 définition(s))
 - `tok_workforce_shifts_employee_idx` (1 définition(s))
@@ -4741,7 +4745,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>policy (824)</summary>
+<details><summary>policy (825)</summary>
 
 - `ad_campaigns.Admins can manage ad campaigns` (1 définition(s))
 - `ad_campaigns.Anyone can read active campaigns` (1 définition(s))
@@ -5065,6 +5069,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.kitchen_ticket_events.kitchen_ticket_events_owner_read` (1 définition(s))
 - `public.kitchen_ticket_items.kitchen_ticket_items_owner_read` (1 définition(s))
 - `public.kitchen_tickets.kitchen_tickets_owner_read` (1 définition(s))
+- `public.kitchen_tickets.kitchen_tickets_workforce_own_read` (1 définition(s))
 - `public.launch_pack_service_fulfillments.fulfillments_admin_all` (1 définition(s))
 - `public.launch_pack_service_fulfillments.fulfillments_owner_read` (1 définition(s))
 - `public.launch_packs.launch_packs_admin_all` (1 définition(s))
@@ -7182,6 +7187,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261031214500 Marketing Growth Noon Refresh | 228 | 1 | [supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql:1](../../supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql#L1) |
 | 20261101080028 Marketing Growth Engine | 257 | 17 | [supabase/migrations/20261101080028_marketing_growth_engine.sql:1](../../supabase/migrations/20261101080028_marketing_growth_engine.sql#L1) |
 | 20261103062023 Kitchen Table Service | 285 | 13 | [supabase/migrations/20261103062023_kitchen_table_service.sql:1](../../supabase/migrations/20261103062023_kitchen_table_service.sql#L1) |
+| 20261103114909 Kitchen Tok Workforce Access | 226 | 5 | [supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql:1](../../supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7416,7 +7422,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 46 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 280 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 888 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 889 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7430,14 +7436,14 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 93 |
 | documentation | 6 |
 | edge-function-source | 264 |
-| frontend-component | 319 |
+| frontend-component | 320 |
 | frontend-hook | 25 |
-| frontend-page | 135 |
+| frontend-page | 136 |
 | frontend-source | 37 |
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 828 |
+| test | 829 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -8151,7 +8157,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (594)</summary>
+<details><summary>database-migration (595)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8747,6 +8753,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql`
 - `supabase/migrations/20261101080028_marketing_growth_engine.sql`
 - `supabase/migrations/20261103062023_kitchen_table_service.sql`
+- `supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql`
 
 </details>
 
@@ -9221,7 +9228,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (333)</summary>
+<details><summary>frontend-component (334)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -9340,6 +9347,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/dashboard/GoldenTokPanel.tsx`
 - `src/components/dashboard/GoogleBusinessBookingCard.tsx`
 - `src/components/dashboard/IllustratedActionCard.tsx`
+- `src/components/dashboard/KitchenOrderEntry.tsx`
 - `src/components/dashboard/RestaurantDashboardHomeView.css`
 - `src/components/dashboard/RestaurantDashboardHomeView.tsx`
 - `src/components/dashboard/RestaurantMenuCardsBar.tsx`
@@ -9589,7 +9597,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-page (135)</summary>
+<details><summary>frontend-page (136)</summary>
 
 - `src/pages/APropos.tsx`
 - `src/pages/Abonnement.tsx`
@@ -9724,6 +9732,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/pages/marketing/MarketingLogin.tsx`
 - `src/pages/marketing/MarketingWorkspace.tsx`
 - `src/pages/tok-connect/TokConnectMcpWidget.tsx`
+- `src/pages/workforce/MyRoomManagement.tsx`
 - `src/pages/workforce/MyWorkforce.tsx`
 - `src/pages/workforce/MyWorkforceManager.tsx`
 
@@ -11032,7 +11041,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (828)</summary>
+<details><summary>test (829)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11512,6 +11521,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/monitoring-consent.test.ts`
 - `src/test/monitoring.test.ts`
 - `src/test/mtnr-unlimited-openai.test.ts`
+- `src/test/my-room-management.test.tsx`
 - `src/test/native-oauth.test.ts`
 - `src/test/navbar-action-stability.test.ts`
 - `src/test/navbar-dashboard-access-design.test.ts`
