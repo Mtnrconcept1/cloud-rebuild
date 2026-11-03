@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Clock3, Home, MailCheck, RefreshCw, UserRoundCheck } from "lucide-react";
+import { Clock3, Home, MailCheck, RefreshCw, UserRoundCheck, UtensilsCrossed } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,13 +9,13 @@ import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth-context";
 import { workforceDb } from "@/hooks/useTokWorkforce";
-import type { WorkforceEmployee } from "@/lib/tokWorkforce";
+import { workforceZurichClock, type WorkforceEmployee } from "@/lib/tokWorkforce";
 import { getWorkforceContinuationTarget, WORKFORCE_SELF_PATH } from "@/lib/workforceContinuation";
 import WorkforcePersonal from "@/components/workforce/WorkforcePersonal";
 
 type Member = { restaurant_id: string; employee_id: string; restaurant_name: string; linked: boolean };
 type EmployeeProfile = Pick<WorkforceEmployee,
-  "id" | "restaurant_id" | "first_name" | "last_name" | "role" | "contracted_hours_per_week" | "vacation_days_per_year" | "started_on" | "ended_on"
+  "id" | "restaurant_id" | "first_name" | "last_name" | "role" | "is_active" | "contracted_hours_per_week" | "vacation_days_per_year" | "started_on" | "ended_on"
 >;
 
 export default function MyWorkforce() {
@@ -53,7 +53,7 @@ export default function MyWorkforce() {
     enabled: !!user?.id && !!selected?.linked && !changingAccount,
     queryFn: async () => {
       const { data, error } = await workforceDb().from("tok_workforce_employees")
-        .select("id,restaurant_id,first_name,last_name,role,contracted_hours_per_week,vacation_days_per_year,started_on,ended_on")
+        .select("id,restaurant_id,first_name,last_name,role,is_active,contracted_hours_per_week,vacation_days_per_year,started_on,ended_on")
         .eq("id", selected!.employee_id).eq("restaurant_id", selected!.restaurant_id)
         .eq("user_id", user!.id).single();
       if (error) throw error;
@@ -114,6 +114,11 @@ export default function MyWorkforce() {
       setSearchParams({ restaurant: restaurantId }, { replace: true });
     }
   };
+
+  const activeEmployee = selected?.linked && profile.data?.is_active === true
+    && ["employee", "manager"].includes(profile.data.role)
+    && (!profile.data.started_on || profile.data.started_on <= workforceZurichClock().date)
+    && (!profile.data.ended_on || profile.data.ended_on >= workforceZurichClock().date);
 
   return <main className="container mx-auto min-h-screen space-y-5 px-3 py-6 sm:px-6">
     <DashboardPageHero compact badge="Espace collaborateur" title="Mon équipe TOK"
@@ -178,6 +183,7 @@ export default function MyWorkforce() {
         {selected.linked && profile.isPending ? <p className="text-muted-foreground">Chargement de votre profil…</p> : null}
         {profile.isError ? <p role="alert" className="text-destructive">Impossible de charger votre profil employé. Actualisez vos accès pour réessayer.</p> : null}
         {selected.linked && !profile.isError && profile.data?.role === "manager" ? <Button asChild className="w-fit"><Link to={"/equipe/gestion?restaurant="+selected.restaurant_id}>Gérer mon équipe</Link></Button> : null}
+        {activeEmployee && !profile.isError ? <Button asChild className="w-fit gap-2"><Link to={"/equipe/gestion-salle?restaurant="+selected.restaurant_id}><UtensilsCrossed className="h-4 w-4" />Gestion de salle</Link></Button> : null}
         {selected.linked && !profile.isError && profile.data ? <WorkforcePersonal key={selected.employee_id}
           restaurantId={selected.restaurant_id} employeeId={selected.employee_id}
           contractHours={Number(profile.data.contracted_hours_per_week)} vacationDays={Number(profile.data.vacation_days_per_year)} startedOn={profile.data.started_on} endedOn={profile.data.ended_on} firstName={profile.data.first_name} lastName={profile.data.last_name} /> : null}
