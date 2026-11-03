@@ -123,6 +123,7 @@ const DashboardRestaurant = lazy(() => import("./pages/dashboard/DashboardRestau
 const DashboardMenu = lazy(() => import("./pages/dashboard/DashboardMenu"));
 const DashboardReservations = lazy(() => import("./pages/dashboard/DashboardReservations"));
 const DashboardCommandes = lazy(() => import("./pages/dashboard/DashboardCommandes"));
+const DashboardCuisine = lazy(() => import("./pages/dashboard/DashboardCuisine"));
 const DashboardOffres = lazy(() => import("./pages/dashboard/DashboardOffres"));
 const DashboardVentesFlash = lazy(() => import("./pages/dashboard/DashboardVentesFlash"));
 const DashboardFormules = lazy(() => import("./pages/dashboard/DashboardFormules"));
@@ -646,6 +647,7 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
           <Route path="/dashboard/menu" element={<DashboardRoute><FeatureSwitch enabled={dashboardMenuEnabled} fallback="/dashboard"><DashboardMenu /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/reservations" element={<DashboardRoute><FeatureSwitch enabled={dashboardReservationsEnabled} fallback="/dashboard"><DashboardReservations /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/commandes" element={<DashboardRoute><FeatureSwitch enabled={dashboardCommandesEnabled} fallback="/dashboard"><DashboardCommandes /></FeatureSwitch></DashboardRoute>} />
+          <Route path="/dashboard/cuisine" element={<DashboardRoute><DashboardCuisine /></DashboardRoute>} />
           <Route path="/dashboard/recommandations" element={<Navigate to="/dashboard/advisor" replace />} />
           <Route path="/dashboard/performances" element={<DashboardRoute><FeatureSwitch enabled={dashboardPerformancesEnabled} fallback="/dashboard"><DashboardPerformances /></FeatureSwitch></DashboardRoute>} />
           <Route path="/dashboard/comparaison" element={<DashboardRoute><FeatureSwitch enabled={dashboardComparaisonEnabled} fallback="/dashboard"><DashboardComparaison /></FeatureSwitch></DashboardRoute>} />
