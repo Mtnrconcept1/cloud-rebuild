@@ -13,6 +13,7 @@ type Props = {
   /** Conservé pour les anciens appels, sans ajouter de mascotte dans le hero. */
   mascot?: "presenter" | "megaphone" | "cloche" | false;
   className?: string;
+  presentation?: boolean;
 };
 
 export default function PageHeading({
@@ -22,6 +23,7 @@ export default function PageHeading({
   actions,
   heroImage,
   className,
+  presentation = false,
 }: Props) {
   const routeHero = typeof window === "undefined"
     ? undefined
@@ -36,6 +38,7 @@ export default function PageHeading({
 
   return (
     <header
+      role={presentation ? "presentation" : undefined}
       className={cn(
         "tok-editorial-heading",
         resolvedHero && "tok-editorial-heading--with-hero",

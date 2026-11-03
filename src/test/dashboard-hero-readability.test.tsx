@@ -30,6 +30,7 @@ describe("en-têtes éditoriaux TOK", () => {
     );
     const hero = container.querySelector(".tok-route-hero-fallback");
     expect(hero).toHaveClass("tok-editorial-heading");
+    expect(hero).toHaveAttribute("role", "presentation");
     expect(hero).toHaveAttribute("data-editorial-hero", "/images/dashboard-generated/client_mon_abonnement_hero.webp");
     expect(screen.getByRole("heading", { name: "Mon abonnement" })).toBeVisible();
     expect(screen.getByText("Retrouvez votre abonnement et vos avantages.")).toBeVisible();

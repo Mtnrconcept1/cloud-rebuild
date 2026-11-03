@@ -21,6 +21,7 @@ export default function RouteHeroBanner({ src, title, eyebrow, description }: Ro
       eyebrow={eyebrow}
       description={description}
       className="tok-route-hero-fallback"
+      presentation
     />
   );
 }

@@ -122,7 +122,8 @@ describe("dashboard 3D illustrations", () => {
     expect(media).toContain('decoding="async"');
     expect(media).toContain("object-contain");
     expect(media).toContain("data-dashboard-illustration-fallback");
-    expect(hero).toContain("DashboardIllustrationMedia");
+    // The contextual photograph is now the only hero media: 3D art is kept for cards below.
+    expect(hero).not.toContain("DashboardIllustrationMedia");
     expect(actionCard).toContain("DashboardIllustrationMedia");
     expect(hero).not.toContain("<img");
     expect(actionCard).not.toContain("<img");
