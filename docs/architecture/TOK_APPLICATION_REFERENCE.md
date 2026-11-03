@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `babb2013c6157001396ca5a05c4a1cbb2ba1da9145ec386a3bfaf1cc7be766f6`
+- Empreinte SHA-256 des sources indexées : `42abe937a193f3b72f6f2b95ae785ec0ad94dd48ec667a64de835167514da89d`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1867,7 +1867,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/credits | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:215](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L215) |
 | /dashboard/crm | 8 | [src/App.tsx:673](../../src/App.tsx#L673) |
 | /dashboard/crm-clients | 2 | [supabase/functions/tok-connect-full-app-mcp/index.ts:221](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L221) |
-| /dashboard/cuisine | 2 | [src/App.tsx:652](../../src/App.tsx#L652) |
+| /dashboard/cuisine | 3 | [src/App.tsx:652](../../src/App.tsx#L652) |
 | /dashboard/equipe | 7 | [src/App.tsx:677](../../src/App.tsx#L677) |
 | /dashboard/facturation | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:223](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L223) |
 | /dashboard/factures | 20 | [src/App.tsx:657](../../src/App.tsx#L657) |
@@ -1916,7 +1916,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /equipe | 3 | [src/test/dashboard-design-preview-export.test.tsx:70](../../src/test/dashboard-design-preview-export.test.tsx#L70) |
 | /equipe/ | 1 | [src/pages/Auth.tsx:1132](../../src/pages/Auth.tsx#L1132) |
 | /equipe/gestion | 12 | [src/App.tsx:597](../../src/App.tsx#L597) |
-| /equipe/gestion-salle | 3 | [src/App.tsx:596](../../src/App.tsx#L596) |
+| /equipe/gestion-salle | 4 | [src/App.tsx:596](../../src/App.tsx#L596) |
 | /equipe/gestion-salle?restaurant= | 6 | [src/pages/WorkspaceChooser.tsx:157](../../src/pages/WorkspaceChooser.tsx#L157) |
 | /equipe/gestion/private | 1 | [src/test/workforce-auth-continuation.test.ts:100](../../src/test/workforce-auth-continuation.test.ts#L100) |
 | /equipe/gestion?next=/admin | 1 | [src/test/auth-post-login-routing.test.ts:70](../../src/test/auth-post-login-routing.test.ts#L70) |
