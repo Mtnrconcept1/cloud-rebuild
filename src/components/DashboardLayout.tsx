@@ -587,7 +587,12 @@ export default function DashboardLayout({
             fallback={backFallback}
             className={cn("tok-workspace-back mb-4", constrainToViewport && "shrink-0")}
           />
-          <RouteHeroBanner src={routeHero} />
+          <RouteHeroBanner
+            src={routeHero}
+            eyebrow="Espace restaurateur TOK"
+            title={activeNavItem?.label || "Mon restaurant"}
+            description="Retrouvez vos outils et pilotez votre activité."
+          />
           {isDemoMode ? (
             <div className="mb-6 rounded-3xl border border-sky-200 bg-sky-50/95 p-5 text-sky-950 shadow-sm dark:border-sky-400/25 dark:bg-sky-500/10 dark:text-sky-50" role="status" data-testid="commercial-demo-banner">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start">

@@ -1,8 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import { useLocation } from "react-router-dom";
-import { getRestaurantDashboardVisual } from "@/lib/dashboardVisuals";
 import type { DashboardIllustration } from "@/lib/dashboardIllustrations";
-import DashboardIllustrationMedia from "@/components/dashboard/DashboardIllustrationMedia";
 import PageHeading from "@/components/editorial/PageHeading";
 
 type DashboardHeroTone = "orange" | "sky" | "emerald" | "amber" | "violet" | "rose" | "primary";
@@ -29,11 +26,8 @@ type DashboardPageHeroProps = {
 
 export default function DashboardPageHero({
   badge, title, description, icon: Icon, actions, stats = [], visualLabel,
-  illustration, className,
+  className,
 }: DashboardPageHeroProps) {
-  const { pathname } = useLocation();
-  const visual = getRestaurantDashboardVisual(pathname);
-  const currentIllustration = visual ? { src: visual.illustration, width: 512, height: 512, alt: "" as const } : illustration;
   return (
     <section className={className}>
       <PageHeading
@@ -41,22 +35,6 @@ export default function DashboardPageHero({
         eyebrow={badge}
         description={description}
         actions={actions}
-        artwork={(
-          <div className="tok-dashboard-hero-art">
-            {currentIllustration && (
-              <DashboardIllustrationMedia illustration={currentIllustration} className="tok-dashboard-hero-art__context" />
-            )}
-            <DashboardIllustrationMedia
-              illustration={{
-                src: "/images/tok-refonte/chef-presentateur.webp",
-                width: 1536,
-                height: 1024,
-                alt: "",
-              }}
-              className="tok-dashboard-hero-art__chef"
-            />
-          </div>
-        )}
       />
       {stats.length > 0 && (
         <dl className="tok-editorial-stats" aria-label={visualLabel || "Indicateurs"}>
