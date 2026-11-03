@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `9393ae25141a25d408b232b59835d1c87f6fefc27617419831b62d9cbda8bea5`
+- Empreinte SHA-256 des sources indexées : `f6e4bc888beedfc84fedb3dc23ec643630c3a7e14fa3c5a36b7846746028481a`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 11 |
 | cronJobs | 38 |
 | databaseContract | 231 |
-| databaseObjects | 3210 |
-| documents | 246 |
+| databaseObjects | 3224 |
+| documents | 247 |
 | edgeFunctions | 126 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4411 |
+| exportedSymbols | 4414 |
 | featureFlags | 100 |
 | frontendRoutes | 149 |
 | integrations | 11 |
 | marketingOperations | 45 |
-| migrations | 596 |
-| modules | 1989 |
-| pages | 136 |
+| migrations | 597 |
+| modules | 1993 |
+| pages | 138 |
 | pathLiterals | 1009 |
 | publicAssets | 918 |
 | publicEntries | 956 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 123 |
-| records | 20709 |
-| repositoryFiles | 4116 |
+| records | 20745 |
+| repositoryFiles | 4122 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2995,6 +2995,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 | Admin Notifications | /admin/notifications | oui | default | [src/pages/admin/AdminNotifications.tsx](../../src/pages/admin/AdminNotifications.tsx) |
 | Admin Operations Center | /admin/commandes-reservations | oui | default | [src/pages/admin/AdminOperationsCenter.tsx](../../src/pages/admin/AdminOperationsCenter.tsx) |
 | Admin Orders Reservations | — | non | default | [src/pages/admin/AdminOrdersReservations.tsx](../../src/pages/admin/AdminOrdersReservations.tsx) |
+| Admin Parrainages | /admin/parrainages | oui | default | [src/pages/admin/AdminParrainages.tsx](../../src/pages/admin/AdminParrainages.tsx) |
 | Admin Platform Config | /admin/platform | oui | default | [src/pages/admin/AdminPlatformConfig.tsx](../../src/pages/admin/AdminPlatformConfig.tsx) |
 | Admin Print Orders | /admin/tok-printer | oui | default | [src/pages/admin/AdminPrintOrders.tsx](../../src/pages/admin/AdminPrintOrders.tsx) |
 | Admin Restaurants | /admin/restaurants | oui | default | [src/pages/admin/AdminRestaurants.tsx](../../src/pages/admin/AdminRestaurants.tsx) |
@@ -3034,6 +3035,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 | Dashboard Menu | /dashboard/menu | oui | default | [src/pages/dashboard/DashboardMenu.tsx](../../src/pages/dashboard/DashboardMenu.tsx) |
 | Dashboard Notifications | /dashboard/notifications | oui | default | [src/pages/dashboard/DashboardNotifications.tsx](../../src/pages/dashboard/DashboardNotifications.tsx) |
 | Dashboard Offres | /dashboard/offres | oui | default | [src/pages/dashboard/DashboardOffres.tsx](../../src/pages/dashboard/DashboardOffres.tsx) |
+| Dashboard Parrainage | /dashboard/parrainage | oui | default | [src/pages/dashboard/DashboardParrainage.tsx](../../src/pages/dashboard/DashboardParrainage.tsx) |
 | Dashboard Performances | /dashboard/performances | oui | default | [src/pages/dashboard/DashboardPerformances.tsx](../../src/pages/dashboard/DashboardPerformances.tsx) |
 | Dashboard Photos | /dashboard/photos | oui | default | [src/pages/dashboard/DashboardPhotos.tsx](../../src/pages/dashboard/DashboardPhotos.tsx) |
 | Dashboard Plan Salle | /dashboard/plan-salle | oui | default | [src/pages/dashboard/DashboardPlanSalle.tsx](../../src/pages/dashboard/DashboardPlanSalle.tsx) |
@@ -3060,7 +3062,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (929)</summary>
+<details><summary>function (936)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3324,6 +3326,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.cancel_reservation` (1 définition(s))
 - `public.cancel_reservation_by_customer` (4 définition(s))
 - `public.cancel_reservation_by_restaurant` (3 définition(s))
+- `public.capture_restaurant_signup_referral` (1 définition(s))
 - `public.capture_signup_application_draft` (1 définition(s))
 - `public.check_restaurant_ai_quota` (6 définition(s))
 - `public.claim_ai_image_operation` (1 définition(s))
@@ -3351,6 +3354,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.claim_restaurant_image_discovery_jobs` (2 définition(s))
 - `public.claim_restaurant_image_discovery_jobs_for_edge` (2 définition(s))
 - `public.claim_restaurant_image_truth_reviews` (1 définition(s))
+- `public.claim_restaurant_referral_credit` (1 définition(s))
 - `public.claim_restaurant_subscription_activation_jobs` (2 définition(s))
 - `public.claim_stripe_webhook_event` (1 définition(s))
 - `public.claim_tok_connect_webhook_deliveries` (1 définition(s))
@@ -3535,6 +3539,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.get_restaurant_payment_history` (2 définition(s))
 - `public.get_restaurant_performance` (6 définition(s))
 - `public.get_restaurant_recommendations` (2 définition(s))
+- `public.get_restaurant_referral_dashboard` (1 définition(s))
 - `public.get_restaurant_reservation_slot_availability` (4 définition(s))
 - `public.get_restaurant_review_submission_state` (1 définition(s))
 - `public.get_restaurant_subscription_self_service_state` (1 définition(s))
@@ -3578,6 +3583,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.is_special_paid_order_locked` (2 définition(s))
 - `public.is_special_paid_reservation_locked` (2 définition(s))
 - `public.is_truthy_text` (1 définition(s))
+- `public.is_valid_restaurant_referral_code` (1 définition(s))
 - `public.jsonb_target_pages_has_actualites` (2 définition(s))
 - `public.kitchen_advance_ticket` (1 définition(s))
 - `public.kitchen_can_submit` (1 définition(s))
@@ -3587,6 +3593,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.launch_gate_enabled` (1 définition(s))
 - `public.launch_rpc_allowed` (4 définition(s))
 - `public.launch_table_allowed` (4 définition(s))
+- `public.list_admin_restaurant_referrals` (1 définition(s))
 - `public.list_tok_connect_oauth_restaurants` (1 définition(s))
 - `public.log_audit` (1 définition(s))
 - `public.log_feature_flag_audit` (1 définition(s))
@@ -3704,6 +3711,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.provision_commercial_demo_account` (2 définition(s))
 - `public.public_restaurant_all_sources_enabled` (3 définition(s))
 - `public.publish_restaurant_daily_dish` (2 définition(s))
+- `public.qualify_restaurant_referral_from_paid_event` (1 définition(s))
 - `public.queue_directory_image_candidate` (1 définition(s))
 - `public.queue_notification_deliveries` (3 définition(s))
 - `public.queue_reservation_card_cancellation_fee` (1 définition(s))
@@ -3751,6 +3759,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.refresh_restaurant_daily_kpis_recent_days` (1 définition(s))
 - `public.refresh_social_comment_counts` (1 définition(s))
 - `public.refresh_social_post_counts` (1 définition(s))
+- `public.reject_admin_restaurant_referral` (1 définition(s))
 - `public.reject_signup_review_event_mutation` (1 définition(s))
 - `public.release_ai_image_operation` (1 définition(s))
 - `public.release_chef_table_checkout_hold` (1 définition(s))
@@ -3994,7 +4003,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (756)</summary>
+<details><summary>index (759)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -4612,6 +4621,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `restaurant_paid_modules_requested_by_idx` (1 définition(s))
 - `restaurant_preferred_tables_branch_idx` (1 définition(s))
 - `restaurant_preferred_tables_table_idx` (1 définition(s))
+- `restaurant_referrals_by_referrer` (1 définition(s))
+- `restaurant_referrals_due` (1 définition(s))
+- `restaurant_referrals_first_invoice` (1 définition(s))
 - `restaurants_city_trgm_idx` (1 définition(s))
 - `restaurants_cuisine_type_trgm_idx` (1 définition(s))
 - `restaurants_name_trgm_idx` (1 définition(s))
@@ -5585,7 +5597,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (414)</summary>
+<details><summary>table (416)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5898,6 +5910,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restaurant_preferred_tables` (1 définition(s))
 - `public.restaurant_promotions` (1 définition(s))
 - `public.restaurant_recommendations` (1 définition(s))
+- `public.restaurant_referral_codes` (1 définition(s))
+- `public.restaurant_referrals` (1 définition(s))
 - `public.restaurant_service_areas` (1 définition(s))
 - `public.restaurant_settings` (1 définition(s))
 - `public.restaurant_staff` (1 définition(s))
@@ -6004,7 +6018,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (279)</summary>
+<details><summary>trigger (281)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -6217,7 +6231,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `tg_orders_apply_miamz_metadata` (1 définition(s))
 - `tg_reservations_apply_miamz_metadata` (1 définition(s))
 - `tg_support_incidents_apply_miamz_priority` (1 définition(s))
+- `tok_capture_restaurant_signup_referral` (1 définition(s))
 - `tok_consent_immutable` (1 définition(s))
+- `tok_qualify_restaurant_referral_paid` (1 définition(s))
 - `tok_workforce_absence_shift_guard` (2 définition(s))
 - `tok_workforce_entry_integrity` (1 définition(s))
 - `tok_workforce_exchange_insert_integrity` (1 définition(s))
@@ -7200,6 +7216,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261103062023 Kitchen Table Service | 285 | 13 | [supabase/migrations/20261103062023_kitchen_table_service.sql:1](../../supabase/migrations/20261103062023_kitchen_table_service.sql#L1) |
 | 20261103114909 Kitchen Tok Workforce Access | 226 | 5 | [supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql:1](../../supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql#L1) |
 | 20261103140056 Restaurant Order Insights | 468 | 6 | [supabase/migrations/20261103140056_restaurant_order_insights.sql:1](../../supabase/migrations/20261103140056_restaurant_order_insights.sql#L1) |
+| 20261103175914 Tok Restaurant Referrals | 381 | 14 | [supabase/migrations/20261103175914_tok_restaurant_referrals.sql:1](../../supabase/migrations/20261103175914_tok_restaurant_referrals.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7433,8 +7450,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 46 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 280 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 893 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 284 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 896 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7447,15 +7464,15 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 240 |
 | automation-script | 93 |
 | documentation | 6 |
-| edge-function-source | 264 |
+| edge-function-source | 265 |
 | frontend-component | 321 |
 | frontend-hook | 25 |
-| frontend-page | 136 |
+| frontend-page | 138 |
 | frontend-source | 37 |
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 832 |
+| test | 833 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7699,6 +7716,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Recette TOK Connect dans ChatGPT | 9 | [docs/tok-connect/TESTING.md:1](../../docs/tok-connect/TESTING.md#L1) |
 | TOK Connect Full App MCP (surface historique interne) | 9 | [docs/tok-connect/full-app-mcp.md:1](../../docs/tok-connect/full-app-mcp.md#L1) |
 | Portail marketing dans TOK Connect | 4 | [docs/tok-connect/marketing-mcp.md:1](../../docs/tok-connect/marketing-mcp.md#L1) |
+| TOK — Programme de parrainage restaurateurs | 5 | [docs/tok-restaurant-parrainage.md:1](../../docs/tok-restaurant-parrainage.md#L1) |
 | Espace Comptabilité Administrateur | 11 | [implementation_plan_compta.md:1](../../implementation_plan_compta.md#L1) |
 | Refonte de la Facturation avec Suivi des Commandes | 11 | [implementation_plan_invoice_refactor.md:1](../../implementation_plan_invoice_refactor.md#L1) |
 | CapApp-SPM | 1 | [ios/App/CapApp-SPM/README.md:1](../../ios/App/CapApp-SPM/README.md#L1) |
@@ -8170,7 +8188,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (596)</summary>
+<details><summary>database-migration (597)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8768,10 +8786,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261103062023_kitchen_table_service.sql`
 - `supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql`
 - `supabase/migrations/20261103140056_restaurant_order_insights.sql`
+- `supabase/migrations/20261103175914_tok_restaurant_referrals.sql`
 
 </details>
 
-<details><summary>documentation (197)</summary>
+<details><summary>documentation (198)</summary>
 
 - `docs/MARKETING_OPERATIONS_CENTER.md`
 - `docs/PRINT_FULFILLMENT_PROTOCOL.md`
@@ -8970,10 +8989,11 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `docs/tok-connect/TESTING.md`
 - `docs/tok-connect/full-app-mcp.md`
 - `docs/tok-connect/marketing-mcp.md`
+- `docs/tok-restaurant-parrainage.md`
 
 </details>
 
-<details><summary>edge-function-source (264)</summary>
+<details><summary>edge-function-source (265)</summary>
 
 - `supabase/functions/_shared/advisor-attachment-policy.ts`
 - `supabase/functions/_shared/advisor-attachments.ts`
@@ -9070,6 +9090,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/restaurant-cover-evidence.ts`
 - `supabase/functions/_shared/restaurant-credits.ts`
 - `supabase/functions/_shared/restaurant-demo.ts`
+- `supabase/functions/_shared/restaurant-referral-credits.ts`
 - `supabase/functions/_shared/restaurant-stripe-price-catalog.ts`
 - `supabase/functions/_shared/restaurant-subscription-billing.ts`
 - `supabase/functions/_shared/return-url.ts`
@@ -9612,7 +9633,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-page (136)</summary>
+<details><summary>frontend-page (138)</summary>
 
 - `src/pages/APropos.tsx`
 - `src/pages/Abonnement.tsx`
@@ -9690,6 +9711,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/pages/admin/AdminNotifications.tsx`
 - `src/pages/admin/AdminOperationsCenter.tsx`
 - `src/pages/admin/AdminOrdersReservations.tsx`
+- `src/pages/admin/AdminParrainages.tsx`
 - `src/pages/admin/AdminPlatformConfig.tsx`
 - `src/pages/admin/AdminPrintOrders.tsx`
 - `src/pages/admin/AdminRestaurants.tsx`
@@ -9729,6 +9751,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/pages/dashboard/DashboardMenu.tsx`
 - `src/pages/dashboard/DashboardNotifications.tsx`
 - `src/pages/dashboard/DashboardOffres.tsx`
+- `src/pages/dashboard/DashboardParrainage.tsx`
 - `src/pages/dashboard/DashboardPerformances.tsx`
 - `src/pages/dashboard/DashboardPhotos.tsx`
 - `src/pages/dashboard/DashboardPlanSalle.tsx`
@@ -11058,7 +11081,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (832)</summary>
+<details><summary>test (833)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11672,6 +11695,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-preactivation-ai-credits.test.ts`
 - `src/test/restaurant-promotions-governance.test.ts`
 - `src/test/restaurant-public-data-consistency.test.ts`
+- `src/test/restaurant-referral-program.test.ts`
 - `src/test/restaurant-reservation-commission-collection.test.ts`
 - `src/test/restaurant-reservation-sidebar.test.ts`
 - `src/test/restaurant-search-preview.test.tsx`
