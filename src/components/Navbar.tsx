@@ -322,10 +322,10 @@ export default function Navbar() {
 
           {isMobileHomeHeader ? (
             <nav className="tok-mobile-home-tabs" aria-label="Navigation principale sur mobile">
-              <NavLink to="/" end className="tok-mobile-home-tabs__link">
+              <NavLink to="/" end aria-label="Accueil" className="tok-mobile-home-tabs__link">
                 <House aria-hidden="true" /><span>Accueil</span>
               </NavLink>
-              <NavLink to="/recherche" className="tok-mobile-home-tabs__link">
+              <NavLink to="/recherche" aria-label="Explorer les restaurants" className="tok-mobile-home-tabs__link">
                 <Search aria-hidden="true" /><span>Explorer</span>
               </NavLink>
             </nav>
