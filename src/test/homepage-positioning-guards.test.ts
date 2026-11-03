@@ -13,7 +13,8 @@ describe("homepage positioning guards", () => {
     const features = read("src/components/home/FeaturesSection.tsx");
     const index = read("src/pages/Index.tsx");
 
-    expect(hero.match(/<h1/g)).toHaveLength(1);
+    // One semantic heading per rendered variant: editorial home or seasonal Halloween.
+    expect(hero.match(/<h1/g)).toHaveLength(2);
     expect(hero).toContain("Miamz");
     expect(hero).toContain('role="search"');
     expect(hero).toContain("Restaurateur");

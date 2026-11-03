@@ -318,6 +318,12 @@ export default function Navbar() {
         <div className={`mx-auto flex w-full max-w-[1400px] items-center justify-between gap-3 px-3 min-[380px]:px-4 md:h-[76px] md:px-8 xl:px-5 2xl:px-8 ${isMobileHomeHeader ? "h-[66px]" : "h-16"}`}>
           <Link to={homeTarget} className="flex min-h-[44px] min-w-[44px] shrink-0 items-center gap-2">
             <img src={logoSrc} alt="Tok" width={98} height={64} decoding="async" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain md:h-[58px]`} />
+            {isMobileHomeHeader && !showHalloweenCanopy ? (
+              <span className="tok-editorial-home__nav-brand">
+                <strong>TheTok</strong>
+                <span>Mangez mieux,<br />faites plus de bien !</span>
+              </span>
+            ) : null}
           </Link>
 
           {isMobileHomeHeader ? (
