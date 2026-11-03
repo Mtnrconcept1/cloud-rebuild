@@ -51,6 +51,7 @@ export type PrivilegedSignupRecoveryDraft = {
   selectedSubscriptionPlanLabel?: string | null;
   selectedSubscriptionPriceLabel?: string | null;
   commercialReferralToken?: string;
+  restaurantReferralCode?: string;
   createdAt: number;
   expiresAt: number;
 };
@@ -139,6 +140,7 @@ export async function savePrivilegedSignupRecoveryDraft(
     selectedSubscriptionPriceLabel:
       input.selectedSubscriptionPriceLabel ?? null,
     commercialReferralToken: input.commercialReferralToken,
+    restaurantReferralCode: input.restaurantReferralCode,
     createdAt: now,
     expiresAt: now + ttlMs,
   };

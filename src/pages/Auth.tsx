@@ -183,6 +183,7 @@ type PrivilegedSignupPayload = {
   contractSignature?: RestaurateurContractSignature;
   contractContentSha256?: string | null;
   commercialReferralToken?: string;
+  restaurantReferralCode?: string;
 };
 
 type SignupApplicationSubmission = {
@@ -294,6 +295,7 @@ function getInitialSignupRole(searchParams: URLSearchParams): SignupRole {
 }
 
 const COMMERCIAL_REFERRAL_SESSION_KEY = "tok:commercial-signup-referral";
+const RESTAURANT_REFERRAL_SESSION_KEY = "tok:restaurant-signup-referral";
 const RESTAURANT_CONTRACT_ACCEPTANCE_TEXT =
   "J'ai lu et j'accepte l'intégralité du contrat restaurateur TOK et je déclare être habilité à engager le restaurateur.";
 
@@ -719,6 +721,9 @@ async function finalizeSignupApplication(
               ...(payload.commercialReferralToken
                 ? { commercial_referral_token: payload.commercialReferralToken }
                 : {}),
+              ...(payload.restaurantReferralCode
+                ? { restaurant_referral_code: payload.restaurantReferralCode }
+                : {}),
               contract_version: RESTAURANT_PARTNER_CONTRACT_VERSION,
               contract_title: RESTAURANT_PARTNER_CONTRACT_TITLE,
               contract_signer_name:
@@ -919,6 +924,17 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
       return String(
         window.sessionStorage.getItem(COMMERCIAL_REFERRAL_SESSION_KEY) || "",
       ).trim();
+    } catch {
+      return "";
+    }
+  });
+  const [restaurantReferralCode] = useState(() => {
+    const urlCode = String(searchParams.get("parrain") || "").trim().toUpperCase();
+    if (/^[A-F0-9]{20}$/.test(urlCode)) return urlCode;
+    if (typeof window === "undefined") return "";
+    try {
+      const stored = window.sessionStorage.getItem(RESTAURANT_REFERRAL_SESSION_KEY) || "";
+      return /^[A-F0-9]{20}$/.test(stored) ? stored : "";
     } catch {
       return "";
     }
@@ -1154,6 +1170,20 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     }
   }, [commercialReferralToken]);
 
+  useEffect(() => {
+    if (!restaurantReferralCode || typeof window === "undefined") return;
+    try {
+      window.sessionStorage.setItem(RESTAURANT_REFERRAL_SESSION_KEY, restaurantReferralCode);
+    } catch {
+      // The signup metadata still preserves the code without browser storage.
+    }
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("parrain")) {
+      url.searchParams.delete("parrain");
+      window.history.replaceState(window.history.state, document.title, url.pathname + url.search + url.hash);
+    }
+  }, [restaurantReferralCode]);
+
   const getPostAuthTarget = useCallback(
     (selectedRole: UserRole) => {
       return getPostAuthTargetForRole(selectedRole, postAuthRedirectTarget, {
@@ -1381,6 +1411,8 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             : undefined;
         const recoveredReferralToken =
           recovery?.commercialReferralToken || commercialReferralToken;
+        const recoveredRestaurantReferralCode =
+          recovery?.restaurantReferralCode || restaurantReferralCode;
 
         privilegedSignupOperationRef.current = {
           key: `${user.id}:${draft.requested_role}`,
@@ -1474,6 +1506,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             draft.requested_role === "restaurateur"
               ? recoveredReferralToken || undefined
               : undefined,
+          restaurantReferralCode:
+            draft.requested_role === "restaurateur"
+              ? recoveredRestaurantReferralCode || undefined
+              : undefined,
         };
 
         const finalizeRecoveredSignup = () =>
@@ -1555,6 +1591,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     };
   }, [
     commercialReferralToken,
+    restaurantReferralCode,
     contractSignatureDataUrl,
     contractSignerName,
     documents,
@@ -2005,6 +2042,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
               submittedRole === "restaurateur"
                 ? commercialReferralToken || undefined
                 : undefined,
+            restaurantReferralCode:
+              submittedRole === "restaurateur"
+                ? restaurantReferralCode || undefined
+                : undefined,
           });
         } catch {
           recoveryDraftSaved = false;
@@ -2141,6 +2182,10 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           submittedRole === "restaurateur"
             ? commercialReferralToken || undefined
             : undefined,
+        restaurantReferralCode:
+          submittedRole === "restaurateur"
+            ? restaurantReferralCode || undefined
+            : undefined,
       };
 
       if (!activeSession) {
@@ -2182,6 +2227,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
 
       try {
         window.sessionStorage.removeItem(COMMERCIAL_REFERRAL_SESSION_KEY);
+        window.sessionStorage.removeItem(RESTAURANT_REFERRAL_SESSION_KEY);
       } catch {
         // The server-side dossier is authoritative even if browser storage cannot be cleared.
       }
@@ -2355,6 +2401,12 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {!isLogin && roleMode === "restaurateur" && restaurantReferralCode ? (
+            <div role="status" className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm">
+              <p className="font-semibold">Invitation d'un restaurateur TOK</p>
+              <p className="mt-1 text-muted-foreground">Votre code de parrainage {restaurantReferralCode} est conservé avec votre inscription. Votre parrain recevra un mois offert après validation et 30 jours d'abonnement payant.</p>
+            </div>
+          ) : null}
           {clientConfirmationPending && !session && !isLogin ? (
             <div className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950" role="status">
               <p className="font-semibold">Vérifiez votre boîte de réception</p>

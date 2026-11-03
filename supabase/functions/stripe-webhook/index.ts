@@ -3156,6 +3156,7 @@ Deno.serve(async (req) => {
             p_stripe_mode: event.livemode ? "live" : "test",
             p_metadata: {
               event_type: event.type,
+              stripe_mode: event.livemode ? "live" : "test",
               invoice_status: invoice.status || null,
               stripe_subscription_status: context.subscription?.status || null,
               activation_job_id: context.subscriptionMetadata.activation_job_id || null,

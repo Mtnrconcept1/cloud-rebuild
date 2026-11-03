@@ -8,6 +8,7 @@ import {
 } from "../_shared/auth.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { getStripeRuntimeForCheckoutKindAndMode } from "../_shared/stripe-client.ts";
+import { reconcileRestaurantReferralCredits } from "../_shared/restaurant-referral-credits.ts";
 
 const FUNCTION_NAME = "stripe-subscription-reconcile";
 const DEFAULT_LIMIT = 50;
@@ -188,6 +189,17 @@ Deno.serve(async (req) => {
       }
     }
 
+    let referralCredits = { checked: 0, credited: 0, skipped: 0, failed: 0, failure_codes: [] as string[] };
+    try {
+      referralCredits = await reconcileRestaurantReferralCredits(actor.adminClient);
+      failed += referralCredits.failed;
+      referralCredits.failure_codes.forEach((code) => failureCodes.add(code));
+    } catch (error) {
+      failed += 1;
+      failureCodes.add(stableFailureCode(error));
+      log.warn("restaurant referral credit reconciliation failed", { code: stableFailureCode(error) });
+    }
+
     const stableFailureCodes = [...failureCodes].sort().slice(0, 10);
     await writeAuditLog({
       adminClient: actor.adminClient,
@@ -206,6 +218,7 @@ Deno.serve(async (req) => {
         unchanged,
         failed,
         failure_codes: stableFailureCodes,
+        referral_credits: referralCredits,
       },
     });
 
@@ -217,6 +230,7 @@ Deno.serve(async (req) => {
       unchanged,
       failed,
       failure_codes: stableFailureCodes,
+      referral_credits: referralCredits,
     }, responseStatus, cors);
   } catch (error) {
     const candidateStatus = Number((error as { status?: unknown })?.status);
