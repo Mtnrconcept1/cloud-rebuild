@@ -188,29 +188,67 @@
   box-shadow: 0 10px 22px rgba(31, 25, 21, .22);
 }
 
-/* Keep the original warm photograph intact in dark mode. Only the browser
- * controls are styled; the source picture is never darkened. */
+/* Dark mode: the banner becomes a warm dark card instead of a cream slab.
+ * The photograph is shown unaltered (no mask, filter, veil or opacity) in a
+ * framed window on the right; only its framing crop changes, as on mobile. */
 .dark [data-section-showcase-header] {
-  --tok-header-ink: #1f1915;
-  --tok-header-muted: #5f5650;
-  background: #fffaf5;
-  border-color: #3a302a;
-  box-shadow: 0 18px 44px rgba(0, 0, 0, .35);
+  --tok-header-ink: #f8f1e9;
+  --tok-header-muted: #c9bcae;
+  --tok-header-tint: color-mix(in srgb, var(--tok-header-accent) 22%, transparent);
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--tok-header-accent) 10%, transparent), transparent 55%),
+    hsl(var(--card));
+  border-color: var(--tok-hairline);
+  box-shadow: 0 1px 0 rgb(255 240 225 / 4%) inset, 0 18px 44px rgb(0 0 0 / 35%);
+}
+
+.dark:not([data-seasonal-theme="halloween"]) [data-section-showcase-header]:not([data-image-kind="illustration"]) .tok-section-header__visual {
+  inset-block: 10px;
+  inset-inline-end: 10px;
+  width: 48%;
+  height: auto;
+  border-radius: calc(clamp(22px, 2.4vw, 32px) - 10px);
+  box-shadow: 0 0 0 1px rgb(255 240 225 / 8%), 0 12px 30px rgb(0 0 0 / 35%);
+}
+
+.dark:not([data-seasonal-theme="halloween"]) [data-section-showcase-header]:not([data-image-kind="illustration"]) .tok-section-header__image {
+  object-fit: cover;
+  object-position: right center;
+}
+
+.dark [data-section-showcase-header] .tok-section-header__symbol {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tok-header-accent) 35%, transparent);
+}
+
+.dark [data-section-showcase-header] .tok-section-header__glyph {
+  color: color-mix(in srgb, var(--tok-header-accent) 62%, #fff);
 }
 
 .dark [data-section-showcase-header] .tok-section-header__eyebrow {
-  color: #1f1915;
+  color: var(--tok-header-ink);
 }
 
 .dark [data-section-showcase-header] [data-section-action-row] a {
-  border-color: #1f1915;
-  background: #1f1915;
-  color: #fffaf5;
+  border-color: #f8f1e9;
+  background: #f8f1e9;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 35%);
+  color: #1f1915;
 }
 
 .dark [data-section-showcase-header] [data-section-action-row] a:hover,
 .dark [data-section-showcase-header] [data-section-action-row] a:focus-visible {
-  background: #000;
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary));
+  color: #fff;
+}
+
+@media (max-width: 639px) {
+  .dark:not([data-seasonal-theme="halloween"]) [data-section-showcase-header]:not([data-image-kind="illustration"]) .tok-section-header__visual {
+    inset-block: 8px;
+    inset-inline-end: 8px;
+    width: 38%;
+    border-radius: 15px;
+  }
 }
 
 @media (max-width: 639px) {

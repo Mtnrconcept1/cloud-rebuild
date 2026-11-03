@@ -360,7 +360,7 @@ export default function CommercialComptabilite() {
   return (
     <>
       <CommercialWorkspaceChrome activeLabel="Comptabilité" />
-      <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#020617_0%,#0f172a_52%,#08111f_100%)] dark:text-white md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
+      <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#14110f_0%,#1e1a17_52%,#191513_100%)] dark:text-white md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
         <div className="mx-auto max-w-7xl space-y-6">
           <section className="rounded-[2rem] border border-orange-200/70 bg-white/90 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] dark:border-orange-400/20 dark:bg-slate-950/75">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

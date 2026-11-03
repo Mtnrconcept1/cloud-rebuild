@@ -1008,7 +1008,7 @@ function LiveDashboard() {
                 {adminCorrectionRequests.map((request) => (
                   <div
                     key={request.id}
-                    className="rounded-2xl border border-amber-200 bg-background/80 p-4 text-sm shadow-sm dark:border-amber-400/20 dark:bg-[#07142b]/80"
+                    className="rounded-2xl border border-amber-200 bg-background/80 p-4 text-sm shadow-sm dark:border-amber-400/20 dark:bg-card/80"
                   >
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                       <div className="space-y-2">

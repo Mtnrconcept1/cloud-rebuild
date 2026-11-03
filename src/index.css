@@ -83,34 +83,46 @@
     --shadow-soft: 0 1px 2px rgb(52 34 20 / 4%), 0 4px 14px rgb(52 34 20 / 5%);
     --shadow-lift: 0 2px 4px rgb(52 34 20 / 4%), 0 14px 34px rgb(52 34 20 / 9%);
     --shadow-float: 0 10px 20px rgb(52 34 20 / 6%), 0 30px 70px rgb(52 34 20 / 14%);
+    /* Palette slate Tailwind d'origine (mode clair inchangé). */
+    --tok-slate-50: 248 250 252;
+    --tok-slate-100: 241 245 249;
+    --tok-slate-200: 226 232 240;
+    --tok-slate-300: 203 213 225;
+    --tok-slate-400: 148 163 184;
+    --tok-slate-500: 100 116 139;
+    --tok-slate-600: 71 85 105;
+    --tok-slate-700: 51 65 85;
+    --tok-slate-800: 30 41 59;
+    --tok-slate-900: 15 23 42;
+    --tok-slate-950: 2 6 23;
   }
 
   .dark {
     --background: 24 14% 8%;
-    --foreground: 210 30% 98%;
+    --foreground: 36 33% 95%;
     --card: 24 12% 12%;
-    --card-foreground: 210 30% 98%;
+    --card-foreground: 36 33% 95%;
     --popover: 24 11% 11%;
-    --popover-foreground: 210 30% 98%;
+    --popover-foreground: 36 33% 95%;
     --primary: 17.101449 88.085106% 53.921569%;
     --primary-foreground: 0 0% 100%;
     --secondary: 24 9% 16%;
     --secondary-foreground: 36 30% 95%;
     --muted: 24 9% 15%;
-    --muted-foreground: 214 20% 80%;
+    --muted-foreground: 30 12% 71%;
     --accent: 156 58% 47%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 68% 38%;
+    --destructive: 0 70% 52%;
     --destructive-foreground: 0 0% 98%;
     --border: 24 8% 28%;
     --input: 24 8% 26%;
     --ring: 17.101449 88.085106% 53.921569%;
     --sidebar-background: 24 12% 11%;
-    --sidebar-foreground: 210 25% 96%;
+    --sidebar-foreground: 36 30% 94%;
     --sidebar-primary: 17.101449 88.085106% 53.921569%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 24 10% 18%;
-    --sidebar-accent-foreground: 210 25% 96%;
+    --sidebar-accent-foreground: 36 30% 94%;
     --sidebar-border: 24 8% 28%;
     --sidebar-ring: 17.101449 88.085106% 53.921569%;
     --miamz-green: 152 60% 48%;
@@ -125,6 +137,18 @@
     --shadow-soft: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 14px rgb(0 0 0 / 24%);
     --shadow-lift: 0 2px 4px rgb(0 0 0 / 30%), 0 16px 36px rgb(0 0 0 / 38%);
     --shadow-float: 0 12px 24px rgb(0 0 0 / 34%), 0 32px 80px rgb(0 0 0 / 48%);
+    /* Gris chauds TOK : remplacent les gris-bleus slate dans tout le mode sombre. */
+    --tok-slate-50: 250 246 241;
+    --tok-slate-100: 244 239 233;
+    --tok-slate-200: 230 222 212;
+    --tok-slate-300: 212 202 191;
+    --tok-slate-400: 166 155 144;
+    --tok-slate-500: 122 112 103;
+    --tok-slate-600: 92 83 75;
+    --tok-slate-700: 68 60 54;
+    --tok-slate-800: 45 39 35;
+    --tok-slate-900: 30 26 23;
+    --tok-slate-950: 20 17 15;
   }
 }
 
@@ -268,12 +292,12 @@
   }
   .dark ::selection {
     background: rgba(255, 170, 64, 0.92);
-    color: #020617;
+    color: #14110f;
     text-shadow: none;
   }
   .dark ::-moz-selection {
     background: rgba(255, 170, 64, 0.92);
-    color: #020617;
+    color: #14110f;
     text-shadow: none;
   }
 
@@ -681,4 +705,37 @@
   .tok-restaurant-cover__caption :is(.text-white\/80, .text-white\/50, .text-white\/90, .text-white) { color: hsl(var(--foreground)); }
   .tok-restaurant-cover__caption .bg-white\/20, .tok-restaurant-cover__caption .bg-white\/15 { background: hsl(var(--secondary)); }
   .tok-restaurant-cover > button.absolute.bottom-20 { top: 4rem; bottom: auto; }
+}
+
+/* Mode sombre : variante sombre du visuel « Photo à venir » (même contenu). */
+.dark img[src*="/images/tok-restaurant-placeholder.svg"] {
+  content: url("/images/tok-restaurant-placeholder-dark.svg");
+}
+
+/* Mode sombre : contrôles Leaflet alignés sur les surfaces TOK. Les tuiles
+   cartographiques restent intactes pour préserver la lisibilité des plans. */
+.dark .leaflet-bar a,
+.dark .leaflet-bar a:hover {
+  border-bottom-color: hsl(var(--border));
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+.dark .leaflet-bar a.leaflet-disabled {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+.dark .leaflet-bar {
+  border-color: hsl(var(--border)) !important;
+}
+.dark .leaflet-container .leaflet-control-attribution {
+  background: hsl(var(--card) / 0.85);
+  color: hsl(var(--muted-foreground));
+}
+.dark .leaflet-container .leaflet-control-attribution a {
+  color: hsl(var(--foreground));
+}
+.dark .leaflet-popup-content-wrapper,
+.dark .leaflet-popup-tip {
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
 }

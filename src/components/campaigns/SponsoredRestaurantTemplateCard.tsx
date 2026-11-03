@@ -202,7 +202,7 @@ export function SponsoredRestaurantTemplateCard({
           className,
         )}
       >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_13%_15%,rgba(255,255,255,1),transparent_63%),linear-gradient(110deg,#fffdfa_0%,#fff8ed_68%,#ffebce_100%)] dark:bg-[linear-gradient(110deg,#0f172a_0%,#1e293b_67%,#7c2d12_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_13%_15%,rgba(255,255,255,1),transparent_63%),linear-gradient(110deg,#fffdfa_0%,#fff8ed_68%,#ffebce_100%)] dark:bg-[linear-gradient(110deg,#1e1a17_0%,#2d2723_67%,#7c2d12_100%)]" />
         <div className="relative grid aspect-[2.05/1] grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:aspect-auto [@container_sponsored-banner_(min-width:48rem)]:grid-cols-[minmax(0,0.47fr)_minmax(0,0.53fr)] [@container_sponsored-banner_(min-width:48rem)]:grid-rows-1">
           <div
             className={cn(

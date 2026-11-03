@@ -183,8 +183,8 @@ describe("TOK Connect Edge Functions", () => {
       ["accent", "accent", "152 48% 30%", "156 58% 47%"],
       ["background", "background", "40 43% 97%", "24 14% 8%"],
       ["card", "surface", "0 0% 100%", "24 12% 12%"],
-      ["foreground", "text", "24 16% 13%", "210 30% 98%"],
-      ["muted-foreground", "muted", "25 9% 40%", "214 20% 80%"],
+      ["foreground", "text", "24 16% 13%", "36 33% 95%"],
+      ["muted-foreground", "muted", "25 9% 40%", "30 12% 71%"],
       ["border", "line", "32 22% 86%", "24 8% 28%"],
     ];
     for (const [appToken, widgetToken, light, dark] of tokens) {

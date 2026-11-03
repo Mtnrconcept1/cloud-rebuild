@@ -93,7 +93,7 @@ function providerLabel(value: string | null) {
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3 dark:border-[#5f7aad]/25 dark:bg-[#07142b]/75">
+    <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3 dark:border-[#8b7f74]/25 dark:bg-card/75">
       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
       <p className="mt-1 text-2xl font-black tracking-tight">{value}</p>
     </div>

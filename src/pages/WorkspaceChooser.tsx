@@ -230,7 +230,7 @@ export default function WorkspaceChooser() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.16),transparent_38%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_52%,#eef6ff_100%)] px-4 py-[max(2rem,env(safe-area-inset-top))] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.16),transparent_38%),linear-gradient(135deg,#020617_0%,#0f172a_58%,#08111f_100%)]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.16),transparent_38%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_52%,#eef6ff_100%)] px-4 py-[max(2rem,env(safe-area-inset-top))] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.16),transparent_38%),linear-gradient(135deg,#14110f_0%,#1e1a17_58%,#191513_100%)]">
       <div className="mx-auto max-w-5xl">
         <header className="mb-8 flex items-start justify-between gap-4">
           <div className="min-w-0">

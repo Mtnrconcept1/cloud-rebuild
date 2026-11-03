@@ -72,7 +72,7 @@ export default function AntiGaspi() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {specialActions.map((action) => (
             <div key={action.id} className={`flex flex-col items-center text-center p-6 rounded-2xl border-2 border-transparent hover:border-border transition-all ${action.bg}`}>
-              <div className={`p-4 rounded-full bg-white shadow-sm mb-3 ${action.color}`}>
+              <div className={`p-4 rounded-full bg-white shadow-sm mb-3 dark:bg-card dark:ring-1 dark:ring-border ${action.color}`}>
                 <action.icon className="h-6 w-6" />
               </div>
               <h3 className="font-bold text-sm mb-1">{action.title}</h3>

@@ -528,7 +528,7 @@ export default function RestaurantCard({
           )}
 
           {isSponsored ? (
-            <div className="mt-3 rounded-[22px] border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,248,230,0.95),rgba(255,255,255,0.94))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-amber-300/25 dark:bg-[linear-gradient(135deg,rgba(251,191,36,0.16),rgba(15,23,42,0.88))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_0_28px_rgba(249,115,22,0.16)]">
+            <div className="mt-3 rounded-[22px] border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,248,230,0.95),rgba(255,255,255,0.94))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] dark:border-amber-300/25 dark:bg-[linear-gradient(135deg,rgba(251,191,36,0.16),rgba(30,26,23,0.88))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_0_28px_rgba(249,115,22,0.16)]">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffedd5] via-[#fff7ed] to-[#fef3c7] text-amber-600 shadow-[0_10px_22px_rgba(249,115,22,0.14)] dark:from-amber-400/25 dark:via-orange-500/20 dark:to-slate-900 dark:text-amber-200 dark:shadow-[0_0_26px_rgba(249,115,22,0.25)]">
                   <Sparkles className="h-4 w-4" />
