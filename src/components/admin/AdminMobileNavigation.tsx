@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Crown,
   FileText,
+  Gift,
   Layers,
   LayoutDashboard,
   MapPin,
@@ -69,6 +70,7 @@ const ADMIN_NAV_SECTIONS: AdminNavSection[] = [
     items: [
       { to: "/admin/utilisateurs", label: "Utilisateurs", icon: Users, feature: "admin-utilisateurs" },
       { to: "/admin/restaurants", label: "Restaurants", icon: Store, feature: "admin-restaurants" },
+      { to: "/admin/parrainages", label: "Parrainages restaurants", icon: Gift },
       { to: "/admin/utilisateurs?tab=applications", label: "Dossiers d'inscription", icon: FileText, feature: "admin-utilisateurs", pendingSignupBadge: true },
       { to: "/admin/utilisateurs?tab=couriers", label: "Profils livreurs", icon: Bike, feature: "admin-utilisateurs" },
       { to: "/admin/utilisateurs?tab=commercials", label: "Comptes commerciaux", icon: BriefcaseBusiness, feature: "admin-utilisateurs" },

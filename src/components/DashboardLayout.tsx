@@ -35,6 +35,7 @@ import {
   Map,
   ChevronDown,
   CreditCard,
+  Gift,
   Store,
   Lock,
   ShieldCheck,
@@ -117,6 +118,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Finances",
     items: [
       { to: "/dashboard/mon-compte-facturation", label: "Mon compte / Facturation", icon: CreditCard, feature: "dashboard-billing" },
+      { to: "/dashboard/parrainage", label: "Parrainage", icon: Gift },
       { to: "/dashboard/factures", label: "Comptabilité & factures", icon: ReceiptText, feature: "dashboard-factures" },
     ],
   },
