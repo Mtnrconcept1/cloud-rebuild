@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `94edb33231d50098f759cbbe9b2c0fadfe89fea5e82aad3f2a00ab7803f895f3`
+- Empreinte SHA-256 des sources indexées : `75c95f0e45b23076bc479dbc1a3518238bc28ee8a12e91a60d7c519d966fb7f3`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -40,12 +40,12 @@
 | migrations | 593 |
 | modules | 1977 |
 | pages | 134 |
-| pathLiterals | 1003 |
+| pathLiterals | 1004 |
 | publicAssets | 918 |
 | publicEntries | 956 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 122 |
-| records | 20608 |
+| records | 20609 |
 | repositoryFiles | 4099 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -1904,8 +1904,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /database/query | 1 | [src/test/production-preflight-hardening.test.ts:204](../../src/test/production-preflight-hardening.test.ts#L204) |
 | /demo-restaurant.jpg | 1 | [src/test/commercial-demo-client-data-isolation.test.ts:19](../../src/test/commercial-demo-client-data-isolation.test.ts#L19) |
 | /desig%20app/tok-ch- | 2 | [src/lib/homeCantonHero.ts:72](../../src/lib/homeCantonHero.ts#L72) |
-| /desig%20app/tok-ch-ju.webp | 1 | [src/test/home-hero-search.test.tsx:79](../../src/test/home-hero-search.test.tsx#L79) |
-| /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:85](../../src/test/home-hero-search.test.tsx#L85) |
+| /desig%20app/tok-ch-ju.webp | 1 | [src/test/home-hero-search.test.tsx:93](../../src/test/home-hero-search.test.tsx#L93) |
+| /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:99](../../src/test/home-hero-search.test.tsx#L99) |
 | /emails | 1 | [supabase/functions/_shared/resend-inbound-forward.ts:190](../../supabase/functions/_shared/resend-inbound-forward.ts#L190) |
 | /enrich-directory-cuisines | 1 | [src/test/directory-cuisine-enrichment.test.ts:40](../../src/test/directory-cuisine-enrichment.test.ts#L40) |
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
@@ -2080,6 +2080,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
 | /images/home-mobile/communes/ | 1 | [src/components/home/HeroSection.tsx:58](../../src/components/home/HeroSection.tsx#L58) |
 | /images/home-mobile/communes/TOK-GE-puplinge.webp | 1 | [src/test/home-world-hero.test.ts:21](../../src/test/home-world-hero.test.ts#L21) |
+| /images/home/tok-geneve-mobile-sans-parasol.webp | 6 | [src/components/home/HeroSection.tsx:14](../../src/components/home/HeroSection.tsx#L14) |
 | /images/home/tok-leman-signature.webp | 1 | [src/test/home-core-web-vitals.test.ts:21](../../src/test/home-core-web-vitals.test.ts#L21) |
 | /images/home/tok-logo-ui.webp | 5 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
@@ -2140,7 +2141,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:7](../../src/lib/homeWorldHero.ts#L7) |
 | /images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp | 1 | [src/lib/homeWorldHero.ts:145](../../src/lib/homeWorldHero.ts#L145) |
 | /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | 4 | [src/components/home/HeroSection.tsx:13](../../src/components/home/HeroSection.tsx#L13) |
-| /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | 5 | [src/components/home/HeroSection.tsx:14](../../src/components/home/HeroSection.tsx#L14) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | 1 | [src/lib/homeWorldHero.ts:13](../../src/lib/homeWorldHero.ts#L13) |
 | /images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp | 1 | [src/lib/homeWorldHero.ts:65](../../src/lib/homeWorldHero.ts#L65) |
 | /images/meringue-double.webp | 3 | [src/lib/securityUrls.ts:27](../../src/lib/securityUrls.ts#L27) |
 | /images/milkshake-oreo.jpg | 3 | [src/lib/securityUrls.ts:28](../../src/lib/securityUrls.ts#L28) |

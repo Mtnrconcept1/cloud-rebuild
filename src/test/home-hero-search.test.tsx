@@ -42,16 +42,30 @@ describe("homepage semantic search", () => {
     );
     expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
       "srcset",
-      "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+      "/images/home/tok-geneve-mobile-sans-parasol.webp",
     );
   });
 
   it("uses the shield-free Geneva portrait for Geneva communes without changing their desktop selection", () => {
     render(<MemoryRouter><HeroSection profileCity="Puplinge" /></MemoryRouter>);
     expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
-      "srcset", "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp",
+      "srcset", "/images/home/tok-geneve-mobile-sans-parasol.webp",
     );
     expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "GE");
+  });
+
+  it("prioritizes shield-free mobile art when Geneva is matched as a city", () => {
+    render(<MemoryRouter><HeroSection profileCity="Genève" /></MemoryRouter>);
+    expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
+      "srcset", "/images/home/tok-geneve-mobile-sans-parasol.webp",
+    );
+  });
+
+  it("prioritizes the Geneva mobile portrait for a GPS-only city", () => {
+    render(<MemoryRouter><HeroSection gpsCity="Genève" gpsCountry="Suisse" /></MemoryRouter>);
+    expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
+      "srcset", "/images/home/tok-geneve-mobile-sans-parasol.webp",
+    );
   });
 
   it("provides a gated mobile discovery grid linking to real routes", () => {

@@ -1484,7 +1484,18 @@ body:has(.tok-home-first-screen) .tok-site-header .tok-desktop-guest-hide{displa
   }
 }
 
-@media (max-width: 420px) {
+@media (min-width: 360px) and (max-width: 420px) {
+  :root:not([data-seasonal-theme="halloween"]) .tok-home-header .tok-mobile-home-tabs__link {
+    min-width: 48px;
+    padding-inline: 2px;
+    font-size: 9.5px;
+  }
+  :root:not([data-seasonal-theme="halloween"]) body:has(.tok-home-hero[data-authenticated="true"]) .tok-home-header .tok-mobile-home-tabs__link span {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
   :root:not([data-seasonal-theme="halloween"]) .tok-home-header .tok-mobile-home-tabs__link span {
     display: none;
   }

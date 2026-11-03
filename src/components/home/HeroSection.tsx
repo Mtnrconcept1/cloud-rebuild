@@ -11,7 +11,7 @@ import "./HeroSection.css";
 
 const EMPTY_FEATURES: ReadonlySet<string> = new Set();
 const DEFAULT_HERO_DESKTOP = "/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp";
-const DEFAULT_HERO_MOBILE = "/images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp";
+const DEFAULT_HERO_MOBILE = "/images/home/tok-geneve-mobile-sans-parasol.webp";
 
 const newsletterConditions = [
   "Le bonus de bienvenue est réservé aux nouveaux comptes TOK qui s'inscrivent à la newsletter depuis cette offre.",
@@ -58,7 +58,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
   const shieldFreeMobileCityImage = mobileCityImage?.startsWith("/images/home-mobile/communes/") ? null : mobileCityImage;
   const mobileImage = halloweenEnabled
     ? "/images/seasonal/halloween/hero-mobile-20261030.webp"
-    : shieldFreeMobileCityImage || worldArt?.mobile || (canton && canton !== "GE" ? desktopImage : worldArt?.desktop && !cantonImage ? desktopImage : DEFAULT_HERO_MOBILE);
+    : canton === "GE" || (!selectedCity && cantonFromPlaceName(gpsCity) === "GE") ? DEFAULT_HERO_MOBILE : shieldFreeMobileCityImage || worldArt?.mobile || (canton ? desktopImage : worldArt?.desktop && !cantonImage ? desktopImage : DEFAULT_HERO_MOBILE);
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
