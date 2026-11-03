@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronRight, Crown, Heart, Leaf, Mail, MapPin, Navigation, Percent, Search, ShoppingBag, Tag, Users, UtensilsCrossed, Zap } from "lucide-react";
+import { ArrowRight, ChevronRight, Crown, Leaf, Mail, MapPin, Navigation, Percent, Search, ShoppingBag, Tag, Users, Zap } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
@@ -92,10 +92,6 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
               : "Une table, un repas à emporter, une nouvelle envie. Trouvez le restaurant qui vous correspond."}
           </p>
           <form role="search" aria-label="Rechercher un restaurant" onSubmit={handleSearch} className="tok-home-hero__form">
-            <div className="tok-home-hero__mobile-search-tabs" role="group" aria-label="Type de recherche">
-              <span className="tok-home-hero__mobile-search-tab tok-home-hero__mobile-search-tab--active"><UtensilsCrossed aria-hidden="true" /> Restaurant ou cuisine</span>
-              <Link to="/recherche" className="tok-home-hero__mobile-search-tab"><ShoppingBag aria-hidden="true" /> À emporter / Livraison</Link>
-            </div>
             <div className="tok-home-hero__field">
               <label htmlFor="home-restaurant-search">Restaurant ou cuisine</label>
               <div className="tok-home-hero__input-row">
@@ -148,7 +144,6 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         </div>
       </section>
       <aside className="tok-home-hero__secondary" aria-label="Rejoindre TOK">
-        <Link className="tok-home-hero__signature" to="/miamz-solidaires"><Heart aria-hidden="true" /><span>Mangez mieux. Faites plus de bien, avec les Miamz solidaires.</span><ChevronRight className="tok-home-hero__signature-next" aria-hidden="true" /></Link>
         <Link className="tok-home-hero__pro-link" to="/restaurateurs/geneve">Restaurateur ? Découvrez TOK <ChevronRight aria-hidden="true" size={16} /></Link>
         <div data-testid="mobile-newsletter" className="tok-home-hero__newsletter">
           <Mail aria-hidden="true" className="tok-home-hero__mail-icon" />
