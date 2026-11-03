@@ -1,8 +1,8 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "baf60172def7a12fb5063d8ea8c9bb2f98d8b671de7578469a2093ab911bd098",
-  "routeCount": 145,
+  "sourceDigest": "5e748df55e0e240cb9a6fb8aad0489a543aa27cb53ef299023d3fd3a339e9f4c",
+  "routeCount": 146,
   "toolCount": 126
 } as const;
 
@@ -736,6 +736,17 @@ export const TOK_USER_GUIDE_ROUTES = [
     ],
     "requiredRoles": [],
     "featureGate": "dashboardCommandesEnabled",
+    "redirectTo": null
+  },
+  {
+    "path": "/dashboard/cuisine",
+    "surface": "restaurant",
+    "components": [
+      "DashboardCuisine",
+      "DashboardRoute"
+    ],
+    "requiredRoles": [],
+    "featureGate": null,
     "redirectTo": null
   },
   {

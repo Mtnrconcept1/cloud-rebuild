@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `baf60172def7a12fb5063d8ea8c9bb2f98d8b671de7578469a2093ab911bd098`
+- Empreinte SHA-256 des sources indexées : `5e748df55e0e240cb9a6fb8aad0489a543aa27cb53ef299023d3fd3a339e9f4c`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 11 |
 | cronJobs | 38 |
 | databaseContract | 231 |
-| databaseObjects | 3187 |
+| databaseObjects | 3200 |
 | documents | 246 |
 | edgeFunctions | 126 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4378 |
+| exportedSymbols | 4394 |
 | featureFlags | 100 |
-| frontendRoutes | 145 |
+| frontendRoutes | 146 |
 | integrations | 11 |
 | marketingOperations | 45 |
-| migrations | 593 |
-| modules | 1977 |
-| pages | 134 |
-| pathLiterals | 1004 |
+| migrations | 594 |
+| modules | 1981 |
+| pages | 135 |
+| pathLiterals | 1005 |
 | publicAssets | 918 |
 | publicEntries | 956 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 122 |
-| records | 20609 |
-| repositoryFiles | 4099 |
+| records | 20651 |
+| repositoryFiles | 4104 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -95,7 +95,7 @@ GitHub Actions : contrôles, synchronisation, déploiement et opérations planif
 | courier | 5 |
 | marketing | 3 |
 | public | 55 |
-| restaurant | 35 |
+| restaurant | 36 |
 | system | 1 |
 
 ### Groupes de fonctionnalités
@@ -113,151 +113,152 @@ GitHub Actions : contrôles, synchronisation, déploiement et opérations planif
 
 | Route | Surface | Composants | Protection | Flag | Redirection | Source |
 | --- | --- | --- | --- | --- | --- | --- |
-| `/coming-soon` | public | ComingSoon | — | — | — | [src/App.tsx:587](../../src/App.tsx#L587) |
-| `/` | public | ClientSurfaceRoute, Index | ClientSurfaceRoute | — | — | [src/App.tsx:588](../../src/App.tsx#L588) |
-| `/auth` | public | Auth | — | — | — | [src/App.tsx:589](../../src/App.tsx#L589) |
-| `/auth/demo` | public | Auth | — | — | — | [src/App.tsx:590](../../src/App.tsx#L590) |
-| `/auth/callback` | public | Auth | — | — | — | [src/App.tsx:591](../../src/App.tsx#L591) |
-| `/espaces` | public | ProtectedRoute, WorkspaceChooser | ProtectedRoute | — | — | [src/App.tsx:592](../../src/App.tsx#L592) |
-| `/equipe/mon-espace` | public | MyWorkforce, ProtectedRoute | ProtectedRoute | — | — | [src/App.tsx:593](../../src/App.tsx#L593) |
-| `/equipe/gestion` | public | MyWorkforceManager, ProtectedRoute | ProtectedRoute | — | — | [src/App.tsx:594](../../src/App.tsx#L594) |
-| `/oauth/consent` | public | OAuthConsent | — | — | — | [src/App.tsx:595](../../src/App.tsx#L595) |
-| `/recherche` | public | ClientSurfaceRoute, Recherche | ClientSurfaceRoute | — | — | [src/App.tsx:596](../../src/App.tsx#L596) |
-| `/restaurants/:city` | public | ClientSurfaceRoute, LocalRestaurants | ClientSurfaceRoute | — | — | [src/App.tsx:597](../../src/App.tsx#L597) |
-| `/restaurants-pres/:venueSlug` | public | ClientSurfaceRoute, LocalRestaurants | ClientSurfaceRoute | — | — | [src/App.tsx:598](../../src/App.tsx#L598) |
-| `/restaurants/:city/r/:restaurantSlug` | public | ClientSurfaceRoute, LocalRestaurants | ClientSurfaceRoute | — | — | [src/App.tsx:599](../../src/App.tsx#L599) |
-| `/restaurants/:city/:category` | public | ClientSurfaceRoute, LocalRestaurants | ClientSurfaceRoute | — | — | [src/App.tsx:600](../../src/App.tsx#L600) |
-| `/r/:slug/reserver` | public | ClientSurfaceRoute, RestaurantBookingRedirect | ClientSurfaceRoute | — | — | [src/App.tsx:601](../../src/App.tsx#L601) |
-| `/r/:slug` | public | ClientSurfaceRoute, RestaurantBookingRedirect | ClientSurfaceRoute | — | — | [src/App.tsx:602](../../src/App.tsx#L602) |
-| `/restaurant/:id` | public | ClientSurfaceRoute, RestaurantDetail | ClientSurfaceRoute | — | — | [src/App.tsx:603](../../src/App.tsx#L603) |
-| `/anti-gaspi` | public | AntiGaspi, ClientSurfaceRoute, FeatureSwitch | ClientSurfaceRoute | antiWasteEnabled | — | [src/App.tsx:604](../../src/App.tsx#L604) |
-| `/panier` | public | ClientSurfaceRoute, Panier | ClientSurfaceRoute | — | — | [src/App.tsx:605](../../src/App.tsx#L605) |
-| `/commandes` | client-account | Commandes, ProtectedRoute | ProtectedRoute, client | — | — | [src/App.tsx:606](../../src/App.tsx#L606) |
-| `/commande/confirmation` | client-account | ClientSurfaceRoute, OrderConfirmation | ClientSurfaceRoute | — | — | [src/App.tsx:607](../../src/App.tsx#L607) |
-| `/commande/:id` | client-account | ProtectedRoute, SuiviCommande | ProtectedRoute, client | — | — | [src/App.tsx:608](../../src/App.tsx#L608) |
-| `/mon-espace` | client-account | ClientDashboardHome, ProtectedRoute | ProtectedRoute, client | — | — | [src/App.tsx:609](../../src/App.tsx#L609) |
-| `/compte` | client-account | Navigate | — | — | /mon-espace | [src/App.tsx:610](../../src/App.tsx#L610) |
-| `/espace-client` | client-account | Navigate | — | — | /mon-espace | [src/App.tsx:611](../../src/App.tsx#L611) |
-| `/reservations` | client-account | FeatureSwitch, ProtectedRoute, Reservations | ProtectedRoute, client | reservationEnabled | — | [src/App.tsx:612](../../src/App.tsx#L612) |
-| `/mes-avis` | client-account | ClientReviews, ProtectedRoute | ProtectedRoute, client | — | — | [src/App.tsx:613](../../src/App.tsx#L613) |
-| `/profil` | client-account | Profil, ProtectedRoute | ProtectedRoute, client | — | — | [src/App.tsx:614](../../src/App.tsx#L614) |
-| `/parametres/securite` | client-account | AccountSecurity, ProtectedRoute | ProtectedRoute | — | — | [src/App.tsx:615](../../src/App.tsx#L615) |
-| `/memoire-tok` | client-account | CustomerMemory, FeatureSwitch, ProtectedRoute | ProtectedRoute, client | customerMemoryEnabled | — | [src/App.tsx:616](../../src/App.tsx#L616) |
-| `/notifications` | client-account | Notifications, ProtectedRoute | ProtectedRoute, client | — | — | [src/App.tsx:617](../../src/App.tsx#L617) |
-| `/creneaux-garantis` | public | ClientSurfaceRoute, CreneauxGarantis, FeatureSwitch | ClientSurfaceRoute | hasFeature("creneaux-garantis") | — | [src/App.tsx:618](../../src/App.tsx#L618) |
-| `/flex-prix-bas` | public | ClientSurfaceRoute, FeatureSwitch, FlexPrixBas | ClientSurfaceRoute | hasFeature("flex-prix-bas") | — | [src/App.tsx:619](../../src/App.tsx#L619) |
-| `/match-groupes` | public | ClientSurfaceRoute, FeatureSwitch, MatchGroupes | ClientSurfaceRoute | hasFeature("match-groupes") | — | [src/App.tsx:620](../../src/App.tsx#L620) |
-| `/multi-stop` | public | ClientSurfaceRoute, FeatureSwitch, MultiStop | ClientSurfaceRoute | hasFeature("multi-stop") | — | [src/App.tsx:621](../../src/App.tsx#L621) |
-| `/multi-restaurant` | public | ClientSurfaceRoute, FeatureSwitch, MultiRestaurant | ClientSurfaceRoute | hasFeature("multi-restaurant") | — | [src/App.tsx:622](../../src/App.tsx#L622) |
-| `/chefs-table` | public | ChefsTable, ClientSurfaceRoute, FeatureSwitch | ClientSurfaceRoute | hasFeature("chefs-table") | — | [src/App.tsx:623](../../src/App.tsx#L623) |
-| `/zero-attente` | public | ClientSurfaceRoute, FeatureSwitch, ZeroAttente | ClientSurfaceRoute | hasFeature("zero-attente") | — | [src/App.tsx:624](../../src/App.tsx#L624) |
-| `/garantie-qualite` | public | ClientSurfaceRoute, FeatureSwitch, GarantieQualite | ClientSurfaceRoute | hasFeature("garantie-qualite") | — | [src/App.tsx:625](../../src/App.tsx#L625) |
-| `/budget-auto` | public | BudgetAuto, ClientSurfaceRoute, FeatureSwitch | ClientSurfaceRoute | hasFeature("budget-auto") | — | [src/App.tsx:626](../../src/App.tsx#L626) |
-| `/abonnement` | public | Abonnement, ClientSurfaceRoute, FeatureSwitch | ClientSurfaceRoute | abonnementEnabled | — | [src/App.tsx:627](../../src/App.tsx#L627) |
-| `/tok-one` | public | ClientSurfaceRoute, FeatureSwitch, TokOne | ClientSurfaceRoute | tokOneEnabled | — | [src/App.tsx:628](../../src/App.tsx#L628) |
-| `/tok-pulse` | public | ClientSurfaceRoute, FeatureSwitch, TokPulse | ClientSurfaceRoute | hasFeature("tok-pulse") | — | [src/App.tsx:629](../../src/App.tsx#L629) |
-| `/tok-connect` | public | FeatureSwitch, TokConnect | — | tokConnectEnabled | — | [src/App.tsx:630](../../src/App.tsx#L630) |
-| `/tok-connect/developer` | public | FeatureSwitch, ProtectedRoute, TokConnectDeveloper | ProtectedRoute | tokConnectEnabled | — | [src/App.tsx:631](../../src/App.tsx#L631) |
-| `/tok-connect/mcp-widget` | public | TokConnectMcpWidget | — | — | — | [src/App.tsx:632](../../src/App.tsx#L632) |
-| `/commercial` | commercial | CommercialProspection, FeatureSwitch, ProtectedRoute | ProtectedRoute, admin, commercial | commercialProspectionEnabled | — | [src/App.tsx:633](../../src/App.tsx#L633) |
-| `/commercial/prospection` | commercial | Navigate | — | — | /commercial | [src/App.tsx:634](../../src/App.tsx#L634) |
-| `/commercial/comptabilite` | commercial | CommercialComptabilite, FeatureSwitch, ProtectedRoute | ProtectedRoute, admin, commercial | commercialProspectionEnabled | — | [src/App.tsx:635](../../src/App.tsx#L635) |
-| `/commercial/notifications` | commercial | CommercialNotifications, FeatureSwitch, ProtectedRoute | ProtectedRoute, admin, commercial | commercialProspectionEnabled | — | [src/App.tsx:636](../../src/App.tsx#L636) |
-| `/commercial/demo-live` | commercial | CommercialDemoLive, FeatureSwitch, ProtectedRoute | ProtectedRoute, admin, commercial | commercialProspectionEnabled | — | [src/App.tsx:637](../../src/App.tsx#L637) |
-| `/miamz-solidaires` | public | MiamzSolidaires | — | — | — | [src/App.tsx:638](../../src/App.tsx#L638) |
-| `/points-cadeau` | client-account | FeatureSwitch, GiftPoints, ProtectedRoute | ProtectedRoute, client | giftPointsEnabled | — | [src/App.tsx:639](../../src/App.tsx#L639) |
-| `/ventes-flash` | public | ClientSurfaceRoute, FeatureSwitch, VentesFlash | ClientSurfaceRoute | flashSalesEnabled | — | [src/App.tsx:640](../../src/App.tsx#L640) |
-| `/actualites` | public | Actualites, FeatureSwitch | — | actualitesSocialesEnabled | — | [src/App.tsx:641](../../src/App.tsx#L641) |
-| `/actualites/:postId` | public | ActualitePost, FeatureSwitch | — | actualitesSocialesEnabled | — | [src/App.tsx:642](../../src/App.tsx#L642) |
-| `/dashboard` | restaurant | DashboardHome, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardOverviewEnabled | — | [src/App.tsx:643](../../src/App.tsx#L643) |
-| `/dashboard/restaurant` | restaurant | DashboardRestaurant, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardRestaurantEnabled | — | [src/App.tsx:644](../../src/App.tsx#L644) |
-| `/dashboard/advisor` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardAdvisor, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardAdvisorEnabled | — | [src/App.tsx:645](../../src/App.tsx#L645) |
-| `/dashboard/menu` | restaurant | DashboardMenu, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardMenuEnabled | — | [src/App.tsx:646](../../src/App.tsx#L646) |
-| `/dashboard/reservations` | restaurant | DashboardReservations, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardReservationsEnabled | — | [src/App.tsx:647](../../src/App.tsx#L647) |
-| `/dashboard/commandes` | restaurant | DashboardCommandes, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardCommandesEnabled | — | [src/App.tsx:648](../../src/App.tsx#L648) |
-| `/dashboard/recommandations` | restaurant | Navigate | — | — | /dashboard/advisor | [src/App.tsx:649](../../src/App.tsx#L649) |
-| `/dashboard/performances` | restaurant | DashboardPerformances, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardPerformancesEnabled | — | [src/App.tsx:650](../../src/App.tsx#L650) |
-| `/dashboard/comparaison` | restaurant | DashboardComparaison, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardComparaisonEnabled | — | [src/App.tsx:651](../../src/App.tsx#L651) |
-| `/dashboard/avis` | restaurant | DashboardAvis, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardAvisEnabled | — | [src/App.tsx:652](../../src/App.tsx#L652) |
-| `/dashboard/compta` | restaurant | Navigate, div | — | — | dashboardFacturesEnabled ? "/dashboard/factures" : "/dashboard" | [src/App.tsx:653](../../src/App.tsx#L653) |
-| `/dashboard/factures` | restaurant | DashboardFactures, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardFacturesEnabled | — | [src/App.tsx:654](../../src/App.tsx#L654) |
-| `/dashboard/factures/entrees` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardFacturesInflow, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardFacturesEnabled | — | [src/App.tsx:655](../../src/App.tsx#L655) |
-| `/dashboard/factures/sorties` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardFacturesOutflow, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardFacturesEnabled | — | [src/App.tsx:656](../../src/App.tsx#L656) |
-| `/dashboard/factures/parametres` | restaurant | DashboardInvoiceSettings, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardFacturesParametresEnabled | — | [src/App.tsx:657](../../src/App.tsx#L657) |
-| `/dashboard/mon-compte-facturation` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardAccountBilling, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardBillingEnabled | — | [src/App.tsx:658](../../src/App.tsx#L658) |
-| `/dashboard/offres` | restaurant | DashboardOffres, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardOffresEnabled | — | [src/App.tsx:659](../../src/App.tsx#L659) |
-| `/dashboard/ventes-flash` | restaurant | DashboardRoute, DashboardVentesFlash, FeatureSwitch | DashboardRoute | dashboardVentesFlashEnabled | — | [src/App.tsx:660](../../src/App.tsx#L660) |
-| `/dashboard/formules` | restaurant | DashboardFormules, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardFormulesEnabled | — | [src/App.tsx:661](../../src/App.tsx#L661) |
-| `/dashboard/photos` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardPhotos, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardPhotosEnabled | — | [src/App.tsx:662](../../src/App.tsx#L662) |
-| `/dashboard/promotions` | restaurant | DashboardPromotions, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardPromotionsEnabled | — | [src/App.tsx:663](../../src/App.tsx#L663) |
-| `/dashboard/campagne-overview` | restaurant | Navigate | — | — | /dashboard/campagnes | [src/App.tsx:664](../../src/App.tsx#L664) |
-| `/dashboard/reseaux-sociaux` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardReseauxSociaux, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardReseauxSociauxEnabled | — | [src/App.tsx:665](../../src/App.tsx#L665) |
-| `/dashboard/actualites` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardActualites, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardActualitesEnabled | — | [src/App.tsx:666](../../src/App.tsx#L666) |
-| `/dashboard/campagnes` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardCampagnes, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardCampagnesEnabled | — | [src/App.tsx:667](../../src/App.tsx#L667) |
-| `/dashboard/campaign-studio` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardCampaignStudio, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardCampaignStudioEnabled | — | [src/App.tsx:668](../../src/App.tsx#L668) |
-| `/dashboard/crm` | restaurant | DashboardCrm, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardCrmEnabled | — | [src/App.tsx:669](../../src/App.tsx#L669) |
-| `/dashboard/notifications` | restaurant | DashboardNotifications, DashboardRoute | DashboardRoute | — | — | [src/App.tsx:670](../../src/App.tsx#L670) |
-| `/dashboard/support` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardRoute, DashboardSupport, FeatureSwitch | DashboardRoute | dashboardSupportEnabled | — | [src/App.tsx:671](../../src/App.tsx#L671) |
-| `/dashboard/service` | restaurant | DashboardRoute, DashboardService, FeatureSwitch | DashboardRoute | dashboardServiceEnabled | — | [src/App.tsx:672](../../src/App.tsx#L672) |
-| `/dashboard/equipe` | restaurant | DashboardRoute, DashboardWorkforce | DashboardRoute | — | — | [src/App.tsx:673](../../src/App.tsx#L673) |
-| `/dashboard/plan-salle` | restaurant | DashboardPlanSalle, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardPlanSalleEnabled | — | [src/App.tsx:674](../../src/App.tsx#L674) |
-| `/dashboard/plan-salle-v2` | restaurant | Navigate | — | — | /dashboard/plan-salle | [src/App.tsx:676](../../src/App.tsx#L676) |
-| `/dashboard/guide` | restaurant | DashboardRoute, GuideUtilisateur | DashboardRoute | — | — | [src/App.tsx:677](../../src/App.tsx#L677) |
-| `/dashboard/tok-connect` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardRoute, DashboardTokConnect, FeatureSwitch | DashboardRoute | dashboardTokConnectEnabled | — | [src/App.tsx:678](../../src/App.tsx#L678) |
-| `/courier` | courier | CourierHome, FeatureSwitch, ProtectedRoute | ProtectedRoute, courier | courierHomeEnabled | — | [src/App.tsx:679](../../src/App.tsx#L679) |
-| `/courier/jobs` | courier | CourierJobs, FeatureSwitch, ProtectedRoute | ProtectedRoute, courier | courierJobsEnabled | — | [src/App.tsx:680](../../src/App.tsx#L680) |
-| `/courier/notifications` | courier | CourierNotifications, ProtectedRoute | ProtectedRoute, courier | — | — | [src/App.tsx:681](../../src/App.tsx#L681) |
-| `/courier/earnings` | courier | CourierEarnings, FeatureSwitch, ProtectedRoute | ProtectedRoute, courier | courierEarningsEnabled | — | [src/App.tsx:682](../../src/App.tsx#L682) |
-| `/courier/profile` | courier | CourierProfile, FeatureSwitch, ProtectedRoute | ProtectedRoute, courier | courierProfileEnabled | — | [src/App.tsx:683](../../src/App.tsx#L683) |
-| `/admin` | admin | AdminDashboardRoute | — | — | — | [src/App.tsx:684](../../src/App.tsx#L684) |
-| `/admin/platform` | admin | AdminPlatformConfig, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminPlatformConfigEnabled | — | [src/App.tsx:685](../../src/App.tsx#L685) |
-| `/admin/restaurants` | admin | AdminProtectedRoute, AdminRestaurants, FeatureSwitch | AdminProtectedRoute | adminRestaurantsEnabled | — | [src/App.tsx:686](../../src/App.tsx#L686) |
-| `/admin/equipe` | admin | AdminProtectedRoute, AdminWorkforce | AdminProtectedRoute | — | — | [src/App.tsx:687](../../src/App.tsx#L687) |
-| `/admin/restaurants/google-business` | admin | AdminGoogleBusiness, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminRestaurantsEnabled | — | [src/App.tsx:688](../../src/App.tsx#L688) |
-| `/admin/utilisateurs` | admin | AdminProtectedRoute, AdminUtilisateurs, FeatureSwitch | AdminProtectedRoute | adminUtilisateursEnabled | — | [src/App.tsx:689](../../src/App.tsx#L689) |
-| `/admin/avis` | admin | AdminAvis, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminAvisEnabled | — | [src/App.tsx:690](../../src/App.tsx#L690) |
-| `/admin/catalog` | admin | AdminCatalog, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminCatalogEnabled | — | [src/App.tsx:691](../../src/App.tsx#L691) |
-| `/admin/loyalty` | admin | AdminLoyalty, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminLoyaltyEnabled | — | [src/App.tsx:692](../../src/App.tsx#L692) |
-| `/admin/drops` | admin | AdminProtectedRoute, DropsManagement, FeatureSwitch | AdminProtectedRoute | adminDropsEnabled | — | [src/App.tsx:693](../../src/App.tsx#L693) |
-| `/admin/notifications` | admin | AdminNotifications, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminNotificationsEnabled | — | [src/App.tsx:694](../../src/App.tsx#L694) |
-| `/admin/actualites` | admin | AdminActualites, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminActualitesEnabled | — | [src/App.tsx:695](../../src/App.tsx#L695) |
-| `/admin/crm` | admin | AdminCrm, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminCrmEnabled | — | [src/App.tsx:696](../../src/App.tsx#L696) |
-| `/admin/audit` | admin | AdminAuditLogs, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminAuditEnabled | — | [src/App.tsx:697](../../src/App.tsx#L697) |
-| `/admin/packs` | admin | AdminLaunchPacks, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminPacksEnabled | — | [src/App.tsx:698](../../src/App.tsx#L698) |
-| `/admin/compta` | admin | AdminCompta, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminComptaEnabled | — | [src/App.tsx:699](../../src/App.tsx#L699) |
-| `/admin/tok-printer` | admin | AdminPrintOrders, AdminProtectedRoute | AdminProtectedRoute | — | — | [src/App.tsx:700](../../src/App.tsx#L700) |
-| `/admin/compta/entrees` | admin | AdminComptaInflow, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminComptaEnabled | — | [src/App.tsx:701](../../src/App.tsx#L701) |
-| `/admin/compta/sorties` | admin | AdminComptaOutflow, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminComptaEnabled | — | [src/App.tsx:702](../../src/App.tsx#L702) |
-| `/admin/compta/ia` | admin | AdminComptaAi, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminComptaAiEnabled | — | [src/App.tsx:703](../../src/App.tsx#L703) |
-| `/admin/commandes-reservations` | admin | AdminOperationsCenter, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminOperationsCenterEnabled | — | [src/App.tsx:704](../../src/App.tsx#L704) |
-| `/admin/sinistres` | admin | AdminProtectedRoute, AdminSinistres, FeatureSwitch | AdminProtectedRoute | adminOperationsCenterEnabled | — | [src/App.tsx:705](../../src/App.tsx#L705) |
-| `/admin/support-resolution` | admin | AdminProtectedRoute, AdminSupportResolution, FeatureSwitch | AdminProtectedRoute | adminSupportResolutionEnabled | — | [src/App.tsx:706](../../src/App.tsx#L706) |
-| `/admin/guardian` | admin | AdminGuardian, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminGuardianEnabled | — | [src/App.tsx:707](../../src/App.tsx#L707) |
-| `/admin/security-center` | admin | AdminProtectedRoute, AdminSecurityCenter, FeatureSwitch | AdminProtectedRoute | adminAuditEnabled && adminGuardianEnabled | — | [src/App.tsx:708](../../src/App.tsx#L708) |
-| `/admin/ai-operations` | admin | AdminAiOperations, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminAiOperationsEnabled | — | [src/App.tsx:709](../../src/App.tsx#L709) |
-| `/admin/guide` | admin | AdminProtectedRoute, GuideUtilisateur | AdminProtectedRoute | — | — | [src/App.tsx:710](../../src/App.tsx#L710) |
-| `/admin/tok-connect` | admin | AdminProtectedRoute, AdminTokConnect, FeatureSwitch | AdminProtectedRoute | adminTokConnectEnabled | — | [src/App.tsx:711](../../src/App.tsx#L711) |
-| `/contact` | public | Contact | — | — | — | [src/App.tsx:712](../../src/App.tsx#L712) |
-| `/cgu` | public | CGU | — | — | — | [src/App.tsx:713](../../src/App.tsx#L713) |
-| `/politique-confidentialite` | public | PolitiqueConfidentialite | — | — | — | [src/App.tsx:714](../../src/App.tsx#L714) |
-| `/cookies` | public | Cookies | — | — | — | [src/App.tsx:715](../../src/App.tsx#L715) |
-| `/a-propos` | public | APropos | — | — | — | [src/App.tsx:716](../../src/App.tsx#L716) |
-| `/packs-restaurateur` | public | PacksRestaurateur | — | — | — | [src/App.tsx:717](../../src/App.tsx#L717) |
-| `/conditions-restaurateurs` | public | ConditionsRestaurateurs | — | — | — | [src/App.tsx:718](../../src/App.tsx#L718) |
-| `/restaurateurs/geneve` | public | RestaurateursGeneve | — | — | — | [src/App.tsx:719](../../src/App.tsx#L719) |
-| `/restaurateurs/:city` | public | RestaurateursGeneve | — | — | — | [src/App.tsx:720](../../src/App.tsx#L720) |
-| `/restaurateurs/google-business` | public | RestaurateursGoogleBusiness | — | — | — | [src/App.tsx:721](../../src/App.tsx#L721) |
-| `/restaurateurs/alternative-commission-couvert` | public | AlternativeCommissionCouvert | — | — | — | [src/App.tsx:722](../../src/App.tsx#L722) |
-| `/aide` | public | Aide | — | — | — | [src/App.tsx:723](../../src/App.tsx#L723) |
-| `/blog` | public | Blog | — | — | — | [src/App.tsx:724](../../src/App.tsx#L724) |
-| `/blog/:slug` | public | Blog | — | — | — | [src/App.tsx:725](../../src/App.tsx#L725) |
-| `/guide` | public | Navigate | — | — | /aide | [src/App.tsx:726](../../src/App.tsx#L726) |
-| `/guide/restaurateur` | public | Navigate | — | — | /aide | [src/App.tsx:727](../../src/App.tsx#L727) |
-| `/guide/plateforme` | public | Navigate | — | — | /aide | [src/App.tsx:728](../../src/App.tsx#L728) |
-| `*` | system | NotFound | — | — | — | [src/App.tsx:729](../../src/App.tsx#L729) |
-| `/marketing/login` | marketing | MarketingLogin | — | — | — | [src/App.tsx:773](../../src/App.tsx#L773) |
-| `/marketing` | marketing | MarketingProtectedRoute, MarketingWorkspace | MarketingProtectedRoute | — | — | [src/App.tsx:774](../../src/App.tsx#L774) |
-| `/marketing/*` | marketing | Navigate | — | — | /marketing | [src/App.tsx:782](../../src/App.tsx#L782) |
+| `/coming-soon` | public | ComingSoon | — | — | — | [src/App.tsx:588](../../src/App.tsx#L588) |
+| `/` | public | ClientSurfaceRoute, Index | ClientSurfaceRoute | — | — | [src/App.tsx:589](../../src/App.tsx#L589) |
+| `/auth` | public | Auth | — | — | — | [src/App.tsx:590](../../src/App.tsx#L590) |
+| `/auth/demo` | public | Auth | — | — | — | [src/App.tsx:591](../../src/App.tsx#L591) |
+| `/auth/callback` | public | Auth | — | — | — | [src/App.tsx:592](../../src/App.tsx#L592) |
+| `/espaces` | public | ProtectedRoute, WorkspaceChooser | ProtectedRoute | — | — | [src/App.tsx:593](../../src/App.tsx#L593) |
+| `/equipe/mon-espace` | public | MyWorkforce, ProtectedRoute | ProtectedRoute | — | — | [src/App.tsx:594](../../src/App.tsx#L594) |
+| `/equipe/gestion` | public | MyWorkforceManager, ProtectedRoute | ProtectedRoute | — | — | [src/App.tsx:595](../../src/App.tsx#L595) |
+| `/oauth/consent` | public | OAuthConsent | — | — | — | [src/App.tsx:596](../../src/App.tsx#L596) |
+| `/recherche` | public | ClientSurfaceRoute, Recherche | ClientSurfaceRoute | — | — | [src/App.tsx:597](../../src/App.tsx#L597) |
+| `/restaurants/:city` | public | ClientSurfaceRoute, LocalRestaurants | ClientSurfaceRoute | — | — | [src/App.tsx:598](../../src/App.tsx#L598) |
+| `/restaurants-pres/:venueSlug` | public | ClientSurfaceRoute, LocalRestaurants | ClientSurfaceRoute | — | — | [src/App.tsx:599](../../src/App.tsx#L599) |
+| `/restaurants/:city/r/:restaurantSlug` | public | ClientSurfaceRoute, LocalRestaurants | ClientSurfaceRoute | — | — | [src/App.tsx:600](../../src/App.tsx#L600) |
+| `/restaurants/:city/:category` | public | ClientSurfaceRoute, LocalRestaurants | ClientSurfaceRoute | — | — | [src/App.tsx:601](../../src/App.tsx#L601) |
+| `/r/:slug/reserver` | public | ClientSurfaceRoute, RestaurantBookingRedirect | ClientSurfaceRoute | — | — | [src/App.tsx:602](../../src/App.tsx#L602) |
+| `/r/:slug` | public | ClientSurfaceRoute, RestaurantBookingRedirect | ClientSurfaceRoute | — | — | [src/App.tsx:603](../../src/App.tsx#L603) |
+| `/restaurant/:id` | public | ClientSurfaceRoute, RestaurantDetail | ClientSurfaceRoute | — | — | [src/App.tsx:604](../../src/App.tsx#L604) |
+| `/anti-gaspi` | public | AntiGaspi, ClientSurfaceRoute, FeatureSwitch | ClientSurfaceRoute | antiWasteEnabled | — | [src/App.tsx:605](../../src/App.tsx#L605) |
+| `/panier` | public | ClientSurfaceRoute, Panier | ClientSurfaceRoute | — | — | [src/App.tsx:606](../../src/App.tsx#L606) |
+| `/commandes` | client-account | Commandes, ProtectedRoute | ProtectedRoute, client | — | — | [src/App.tsx:607](../../src/App.tsx#L607) |
+| `/commande/confirmation` | client-account | ClientSurfaceRoute, OrderConfirmation | ClientSurfaceRoute | — | — | [src/App.tsx:608](../../src/App.tsx#L608) |
+| `/commande/:id` | client-account | ProtectedRoute, SuiviCommande | ProtectedRoute, client | — | — | [src/App.tsx:609](../../src/App.tsx#L609) |
+| `/mon-espace` | client-account | ClientDashboardHome, ProtectedRoute | ProtectedRoute, client | — | — | [src/App.tsx:610](../../src/App.tsx#L610) |
+| `/compte` | client-account | Navigate | — | — | /mon-espace | [src/App.tsx:611](../../src/App.tsx#L611) |
+| `/espace-client` | client-account | Navigate | — | — | /mon-espace | [src/App.tsx:612](../../src/App.tsx#L612) |
+| `/reservations` | client-account | FeatureSwitch, ProtectedRoute, Reservations | ProtectedRoute, client | reservationEnabled | — | [src/App.tsx:613](../../src/App.tsx#L613) |
+| `/mes-avis` | client-account | ClientReviews, ProtectedRoute | ProtectedRoute, client | — | — | [src/App.tsx:614](../../src/App.tsx#L614) |
+| `/profil` | client-account | Profil, ProtectedRoute | ProtectedRoute, client | — | — | [src/App.tsx:615](../../src/App.tsx#L615) |
+| `/parametres/securite` | client-account | AccountSecurity, ProtectedRoute | ProtectedRoute | — | — | [src/App.tsx:616](../../src/App.tsx#L616) |
+| `/memoire-tok` | client-account | CustomerMemory, FeatureSwitch, ProtectedRoute | ProtectedRoute, client | customerMemoryEnabled | — | [src/App.tsx:617](../../src/App.tsx#L617) |
+| `/notifications` | client-account | Notifications, ProtectedRoute | ProtectedRoute, client | — | — | [src/App.tsx:618](../../src/App.tsx#L618) |
+| `/creneaux-garantis` | public | ClientSurfaceRoute, CreneauxGarantis, FeatureSwitch | ClientSurfaceRoute | hasFeature("creneaux-garantis") | — | [src/App.tsx:619](../../src/App.tsx#L619) |
+| `/flex-prix-bas` | public | ClientSurfaceRoute, FeatureSwitch, FlexPrixBas | ClientSurfaceRoute | hasFeature("flex-prix-bas") | — | [src/App.tsx:620](../../src/App.tsx#L620) |
+| `/match-groupes` | public | ClientSurfaceRoute, FeatureSwitch, MatchGroupes | ClientSurfaceRoute | hasFeature("match-groupes") | — | [src/App.tsx:621](../../src/App.tsx#L621) |
+| `/multi-stop` | public | ClientSurfaceRoute, FeatureSwitch, MultiStop | ClientSurfaceRoute | hasFeature("multi-stop") | — | [src/App.tsx:622](../../src/App.tsx#L622) |
+| `/multi-restaurant` | public | ClientSurfaceRoute, FeatureSwitch, MultiRestaurant | ClientSurfaceRoute | hasFeature("multi-restaurant") | — | [src/App.tsx:623](../../src/App.tsx#L623) |
+| `/chefs-table` | public | ChefsTable, ClientSurfaceRoute, FeatureSwitch | ClientSurfaceRoute | hasFeature("chefs-table") | — | [src/App.tsx:624](../../src/App.tsx#L624) |
+| `/zero-attente` | public | ClientSurfaceRoute, FeatureSwitch, ZeroAttente | ClientSurfaceRoute | hasFeature("zero-attente") | — | [src/App.tsx:625](../../src/App.tsx#L625) |
+| `/garantie-qualite` | public | ClientSurfaceRoute, FeatureSwitch, GarantieQualite | ClientSurfaceRoute | hasFeature("garantie-qualite") | — | [src/App.tsx:626](../../src/App.tsx#L626) |
+| `/budget-auto` | public | BudgetAuto, ClientSurfaceRoute, FeatureSwitch | ClientSurfaceRoute | hasFeature("budget-auto") | — | [src/App.tsx:627](../../src/App.tsx#L627) |
+| `/abonnement` | public | Abonnement, ClientSurfaceRoute, FeatureSwitch | ClientSurfaceRoute | abonnementEnabled | — | [src/App.tsx:628](../../src/App.tsx#L628) |
+| `/tok-one` | public | ClientSurfaceRoute, FeatureSwitch, TokOne | ClientSurfaceRoute | tokOneEnabled | — | [src/App.tsx:629](../../src/App.tsx#L629) |
+| `/tok-pulse` | public | ClientSurfaceRoute, FeatureSwitch, TokPulse | ClientSurfaceRoute | hasFeature("tok-pulse") | — | [src/App.tsx:630](../../src/App.tsx#L630) |
+| `/tok-connect` | public | FeatureSwitch, TokConnect | — | tokConnectEnabled | — | [src/App.tsx:631](../../src/App.tsx#L631) |
+| `/tok-connect/developer` | public | FeatureSwitch, ProtectedRoute, TokConnectDeveloper | ProtectedRoute | tokConnectEnabled | — | [src/App.tsx:632](../../src/App.tsx#L632) |
+| `/tok-connect/mcp-widget` | public | TokConnectMcpWidget | — | — | — | [src/App.tsx:633](../../src/App.tsx#L633) |
+| `/commercial` | commercial | CommercialProspection, FeatureSwitch, ProtectedRoute | ProtectedRoute, admin, commercial | commercialProspectionEnabled | — | [src/App.tsx:634](../../src/App.tsx#L634) |
+| `/commercial/prospection` | commercial | Navigate | — | — | /commercial | [src/App.tsx:635](../../src/App.tsx#L635) |
+| `/commercial/comptabilite` | commercial | CommercialComptabilite, FeatureSwitch, ProtectedRoute | ProtectedRoute, admin, commercial | commercialProspectionEnabled | — | [src/App.tsx:636](../../src/App.tsx#L636) |
+| `/commercial/notifications` | commercial | CommercialNotifications, FeatureSwitch, ProtectedRoute | ProtectedRoute, admin, commercial | commercialProspectionEnabled | — | [src/App.tsx:637](../../src/App.tsx#L637) |
+| `/commercial/demo-live` | commercial | CommercialDemoLive, FeatureSwitch, ProtectedRoute | ProtectedRoute, admin, commercial | commercialProspectionEnabled | — | [src/App.tsx:638](../../src/App.tsx#L638) |
+| `/miamz-solidaires` | public | MiamzSolidaires | — | — | — | [src/App.tsx:639](../../src/App.tsx#L639) |
+| `/points-cadeau` | client-account | FeatureSwitch, GiftPoints, ProtectedRoute | ProtectedRoute, client | giftPointsEnabled | — | [src/App.tsx:640](../../src/App.tsx#L640) |
+| `/ventes-flash` | public | ClientSurfaceRoute, FeatureSwitch, VentesFlash | ClientSurfaceRoute | flashSalesEnabled | — | [src/App.tsx:641](../../src/App.tsx#L641) |
+| `/actualites` | public | Actualites, FeatureSwitch | — | actualitesSocialesEnabled | — | [src/App.tsx:642](../../src/App.tsx#L642) |
+| `/actualites/:postId` | public | ActualitePost, FeatureSwitch | — | actualitesSocialesEnabled | — | [src/App.tsx:643](../../src/App.tsx#L643) |
+| `/dashboard` | restaurant | DashboardHome, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardOverviewEnabled | — | [src/App.tsx:644](../../src/App.tsx#L644) |
+| `/dashboard/restaurant` | restaurant | DashboardRestaurant, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardRestaurantEnabled | — | [src/App.tsx:645](../../src/App.tsx#L645) |
+| `/dashboard/advisor` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardAdvisor, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardAdvisorEnabled | — | [src/App.tsx:646](../../src/App.tsx#L646) |
+| `/dashboard/menu` | restaurant | DashboardMenu, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardMenuEnabled | — | [src/App.tsx:647](../../src/App.tsx#L647) |
+| `/dashboard/reservations` | restaurant | DashboardReservations, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardReservationsEnabled | — | [src/App.tsx:648](../../src/App.tsx#L648) |
+| `/dashboard/commandes` | restaurant | DashboardCommandes, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardCommandesEnabled | — | [src/App.tsx:649](../../src/App.tsx#L649) |
+| `/dashboard/cuisine` | restaurant | DashboardCuisine, DashboardRoute | DashboardRoute | — | — | [src/App.tsx:650](../../src/App.tsx#L650) |
+| `/dashboard/recommandations` | restaurant | Navigate | — | — | /dashboard/advisor | [src/App.tsx:651](../../src/App.tsx#L651) |
+| `/dashboard/performances` | restaurant | DashboardPerformances, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardPerformancesEnabled | — | [src/App.tsx:652](../../src/App.tsx#L652) |
+| `/dashboard/comparaison` | restaurant | DashboardComparaison, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardComparaisonEnabled | — | [src/App.tsx:653](../../src/App.tsx#L653) |
+| `/dashboard/avis` | restaurant | DashboardAvis, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardAvisEnabled | — | [src/App.tsx:654](../../src/App.tsx#L654) |
+| `/dashboard/compta` | restaurant | Navigate, div | — | — | dashboardFacturesEnabled ? "/dashboard/factures" : "/dashboard" | [src/App.tsx:655](../../src/App.tsx#L655) |
+| `/dashboard/factures` | restaurant | DashboardFactures, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardFacturesEnabled | — | [src/App.tsx:656](../../src/App.tsx#L656) |
+| `/dashboard/factures/entrees` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardFacturesInflow, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardFacturesEnabled | — | [src/App.tsx:657](../../src/App.tsx#L657) |
+| `/dashboard/factures/sorties` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardFacturesOutflow, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardFacturesEnabled | — | [src/App.tsx:658](../../src/App.tsx#L658) |
+| `/dashboard/factures/parametres` | restaurant | DashboardInvoiceSettings, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardFacturesParametresEnabled | — | [src/App.tsx:659](../../src/App.tsx#L659) |
+| `/dashboard/mon-compte-facturation` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardAccountBilling, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardBillingEnabled | — | [src/App.tsx:660](../../src/App.tsx#L660) |
+| `/dashboard/offres` | restaurant | DashboardOffres, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardOffresEnabled | — | [src/App.tsx:661](../../src/App.tsx#L661) |
+| `/dashboard/ventes-flash` | restaurant | DashboardRoute, DashboardVentesFlash, FeatureSwitch | DashboardRoute | dashboardVentesFlashEnabled | — | [src/App.tsx:662](../../src/App.tsx#L662) |
+| `/dashboard/formules` | restaurant | DashboardFormules, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardFormulesEnabled | — | [src/App.tsx:663](../../src/App.tsx#L663) |
+| `/dashboard/photos` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardPhotos, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardPhotosEnabled | — | [src/App.tsx:664](../../src/App.tsx#L664) |
+| `/dashboard/promotions` | restaurant | DashboardPromotions, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardPromotionsEnabled | — | [src/App.tsx:665](../../src/App.tsx#L665) |
+| `/dashboard/campagne-overview` | restaurant | Navigate | — | — | /dashboard/campagnes | [src/App.tsx:666](../../src/App.tsx#L666) |
+| `/dashboard/reseaux-sociaux` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardReseauxSociaux, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardReseauxSociauxEnabled | — | [src/App.tsx:667](../../src/App.tsx#L667) |
+| `/dashboard/actualites` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardActualites, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardActualitesEnabled | — | [src/App.tsx:668](../../src/App.tsx#L668) |
+| `/dashboard/campagnes` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardCampagnes, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardCampagnesEnabled | — | [src/App.tsx:669](../../src/App.tsx#L669) |
+| `/dashboard/campaign-studio` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardCampaignStudio, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardCampaignStudioEnabled | — | [src/App.tsx:670](../../src/App.tsx#L670) |
+| `/dashboard/crm` | restaurant | DashboardCrm, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardCrmEnabled | — | [src/App.tsx:671](../../src/App.tsx#L671) |
+| `/dashboard/notifications` | restaurant | DashboardNotifications, DashboardRoute | DashboardRoute | — | — | [src/App.tsx:672](../../src/App.tsx#L672) |
+| `/dashboard/support` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardRoute, DashboardSupport, FeatureSwitch | DashboardRoute | dashboardSupportEnabled | — | [src/App.tsx:673](../../src/App.tsx#L673) |
+| `/dashboard/service` | restaurant | DashboardRoute, DashboardService, FeatureSwitch | DashboardRoute | dashboardServiceEnabled | — | [src/App.tsx:674](../../src/App.tsx#L674) |
+| `/dashboard/equipe` | restaurant | DashboardRoute, DashboardWorkforce | DashboardRoute | — | — | [src/App.tsx:675](../../src/App.tsx#L675) |
+| `/dashboard/plan-salle` | restaurant | DashboardPlanSalle, DashboardRoute, FeatureSwitch | DashboardRoute | dashboardPlanSalleEnabled | — | [src/App.tsx:676](../../src/App.tsx#L676) |
+| `/dashboard/plan-salle-v2` | restaurant | Navigate | — | — | /dashboard/plan-salle | [src/App.tsx:678](../../src/App.tsx#L678) |
+| `/dashboard/guide` | restaurant | DashboardRoute, GuideUtilisateur | DashboardRoute | — | — | [src/App.tsx:679](../../src/App.tsx#L679) |
+| `/dashboard/tok-connect` | restaurant | CommercialDemoSafeEffectsBoundary, DashboardRoute, DashboardTokConnect, FeatureSwitch | DashboardRoute | dashboardTokConnectEnabled | — | [src/App.tsx:680](../../src/App.tsx#L680) |
+| `/courier` | courier | CourierHome, FeatureSwitch, ProtectedRoute | ProtectedRoute, courier | courierHomeEnabled | — | [src/App.tsx:681](../../src/App.tsx#L681) |
+| `/courier/jobs` | courier | CourierJobs, FeatureSwitch, ProtectedRoute | ProtectedRoute, courier | courierJobsEnabled | — | [src/App.tsx:682](../../src/App.tsx#L682) |
+| `/courier/notifications` | courier | CourierNotifications, ProtectedRoute | ProtectedRoute, courier | — | — | [src/App.tsx:683](../../src/App.tsx#L683) |
+| `/courier/earnings` | courier | CourierEarnings, FeatureSwitch, ProtectedRoute | ProtectedRoute, courier | courierEarningsEnabled | — | [src/App.tsx:684](../../src/App.tsx#L684) |
+| `/courier/profile` | courier | CourierProfile, FeatureSwitch, ProtectedRoute | ProtectedRoute, courier | courierProfileEnabled | — | [src/App.tsx:685](../../src/App.tsx#L685) |
+| `/admin` | admin | AdminDashboardRoute | — | — | — | [src/App.tsx:686](../../src/App.tsx#L686) |
+| `/admin/platform` | admin | AdminPlatformConfig, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminPlatformConfigEnabled | — | [src/App.tsx:687](../../src/App.tsx#L687) |
+| `/admin/restaurants` | admin | AdminProtectedRoute, AdminRestaurants, FeatureSwitch | AdminProtectedRoute | adminRestaurantsEnabled | — | [src/App.tsx:688](../../src/App.tsx#L688) |
+| `/admin/equipe` | admin | AdminProtectedRoute, AdminWorkforce | AdminProtectedRoute | — | — | [src/App.tsx:689](../../src/App.tsx#L689) |
+| `/admin/restaurants/google-business` | admin | AdminGoogleBusiness, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminRestaurantsEnabled | — | [src/App.tsx:690](../../src/App.tsx#L690) |
+| `/admin/utilisateurs` | admin | AdminProtectedRoute, AdminUtilisateurs, FeatureSwitch | AdminProtectedRoute | adminUtilisateursEnabled | — | [src/App.tsx:691](../../src/App.tsx#L691) |
+| `/admin/avis` | admin | AdminAvis, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminAvisEnabled | — | [src/App.tsx:692](../../src/App.tsx#L692) |
+| `/admin/catalog` | admin | AdminCatalog, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminCatalogEnabled | — | [src/App.tsx:693](../../src/App.tsx#L693) |
+| `/admin/loyalty` | admin | AdminLoyalty, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminLoyaltyEnabled | — | [src/App.tsx:694](../../src/App.tsx#L694) |
+| `/admin/drops` | admin | AdminProtectedRoute, DropsManagement, FeatureSwitch | AdminProtectedRoute | adminDropsEnabled | — | [src/App.tsx:695](../../src/App.tsx#L695) |
+| `/admin/notifications` | admin | AdminNotifications, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminNotificationsEnabled | — | [src/App.tsx:696](../../src/App.tsx#L696) |
+| `/admin/actualites` | admin | AdminActualites, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminActualitesEnabled | — | [src/App.tsx:697](../../src/App.tsx#L697) |
+| `/admin/crm` | admin | AdminCrm, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminCrmEnabled | — | [src/App.tsx:698](../../src/App.tsx#L698) |
+| `/admin/audit` | admin | AdminAuditLogs, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminAuditEnabled | — | [src/App.tsx:699](../../src/App.tsx#L699) |
+| `/admin/packs` | admin | AdminLaunchPacks, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminPacksEnabled | — | [src/App.tsx:700](../../src/App.tsx#L700) |
+| `/admin/compta` | admin | AdminCompta, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminComptaEnabled | — | [src/App.tsx:701](../../src/App.tsx#L701) |
+| `/admin/tok-printer` | admin | AdminPrintOrders, AdminProtectedRoute | AdminProtectedRoute | — | — | [src/App.tsx:702](../../src/App.tsx#L702) |
+| `/admin/compta/entrees` | admin | AdminComptaInflow, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminComptaEnabled | — | [src/App.tsx:703](../../src/App.tsx#L703) |
+| `/admin/compta/sorties` | admin | AdminComptaOutflow, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminComptaEnabled | — | [src/App.tsx:704](../../src/App.tsx#L704) |
+| `/admin/compta/ia` | admin | AdminComptaAi, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminComptaAiEnabled | — | [src/App.tsx:705](../../src/App.tsx#L705) |
+| `/admin/commandes-reservations` | admin | AdminOperationsCenter, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminOperationsCenterEnabled | — | [src/App.tsx:706](../../src/App.tsx#L706) |
+| `/admin/sinistres` | admin | AdminProtectedRoute, AdminSinistres, FeatureSwitch | AdminProtectedRoute | adminOperationsCenterEnabled | — | [src/App.tsx:707](../../src/App.tsx#L707) |
+| `/admin/support-resolution` | admin | AdminProtectedRoute, AdminSupportResolution, FeatureSwitch | AdminProtectedRoute | adminSupportResolutionEnabled | — | [src/App.tsx:708](../../src/App.tsx#L708) |
+| `/admin/guardian` | admin | AdminGuardian, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminGuardianEnabled | — | [src/App.tsx:709](../../src/App.tsx#L709) |
+| `/admin/security-center` | admin | AdminProtectedRoute, AdminSecurityCenter, FeatureSwitch | AdminProtectedRoute | adminAuditEnabled && adminGuardianEnabled | — | [src/App.tsx:710](../../src/App.tsx#L710) |
+| `/admin/ai-operations` | admin | AdminAiOperations, AdminProtectedRoute, FeatureSwitch | AdminProtectedRoute | adminAiOperationsEnabled | — | [src/App.tsx:711](../../src/App.tsx#L711) |
+| `/admin/guide` | admin | AdminProtectedRoute, GuideUtilisateur | AdminProtectedRoute | — | — | [src/App.tsx:712](../../src/App.tsx#L712) |
+| `/admin/tok-connect` | admin | AdminProtectedRoute, AdminTokConnect, FeatureSwitch | AdminProtectedRoute | adminTokConnectEnabled | — | [src/App.tsx:713](../../src/App.tsx#L713) |
+| `/contact` | public | Contact | — | — | — | [src/App.tsx:714](../../src/App.tsx#L714) |
+| `/cgu` | public | CGU | — | — | — | [src/App.tsx:715](../../src/App.tsx#L715) |
+| `/politique-confidentialite` | public | PolitiqueConfidentialite | — | — | — | [src/App.tsx:716](../../src/App.tsx#L716) |
+| `/cookies` | public | Cookies | — | — | — | [src/App.tsx:717](../../src/App.tsx#L717) |
+| `/a-propos` | public | APropos | — | — | — | [src/App.tsx:718](../../src/App.tsx#L718) |
+| `/packs-restaurateur` | public | PacksRestaurateur | — | — | — | [src/App.tsx:719](../../src/App.tsx#L719) |
+| `/conditions-restaurateurs` | public | ConditionsRestaurateurs | — | — | — | [src/App.tsx:720](../../src/App.tsx#L720) |
+| `/restaurateurs/geneve` | public | RestaurateursGeneve | — | — | — | [src/App.tsx:721](../../src/App.tsx#L721) |
+| `/restaurateurs/:city` | public | RestaurateursGeneve | — | — | — | [src/App.tsx:722](../../src/App.tsx#L722) |
+| `/restaurateurs/google-business` | public | RestaurateursGoogleBusiness | — | — | — | [src/App.tsx:723](../../src/App.tsx#L723) |
+| `/restaurateurs/alternative-commission-couvert` | public | AlternativeCommissionCouvert | — | — | — | [src/App.tsx:724](../../src/App.tsx#L724) |
+| `/aide` | public | Aide | — | — | — | [src/App.tsx:725](../../src/App.tsx#L725) |
+| `/blog` | public | Blog | — | — | — | [src/App.tsx:726](../../src/App.tsx#L726) |
+| `/blog/:slug` | public | Blog | — | — | — | [src/App.tsx:727](../../src/App.tsx#L727) |
+| `/guide` | public | Navigate | — | — | /aide | [src/App.tsx:728](../../src/App.tsx#L728) |
+| `/guide/restaurateur` | public | Navigate | — | — | /aide | [src/App.tsx:729](../../src/App.tsx#L729) |
+| `/guide/plateforme` | public | Navigate | — | — | /aide | [src/App.tsx:730](../../src/App.tsx#L730) |
+| `*` | system | NotFound | — | — | — | [src/App.tsx:731](../../src/App.tsx#L731) |
+| `/marketing/login` | marketing | MarketingLogin | — | — | — | [src/App.tsx:775](../../src/App.tsx#L775) |
+| `/marketing` | marketing | MarketingProtectedRoute, MarketingWorkspace | MarketingProtectedRoute | — | — | [src/App.tsx:776](../../src/App.tsx#L776) |
+| `/marketing/*` | marketing | Navigate | — | — | /marketing | [src/App.tsx:784](../../src/App.tsx#L784) |
 
 ## Routage Vercel, domaines et middleware
 
@@ -1666,54 +1667,54 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /actions/runs/$FAILED_WORKFLOW_ID/jobs | 1 | [src/test/incident-automation-readiness.test.ts:602](../../src/test/incident-automation-readiness.test.ts#L602) |
 | /actualites | 41 | [scripts/harden-seo-crawl.mjs:381](../../scripts/harden-seo-crawl.mjs#L381) |
 | /actualites/ | 2 | [scripts/prerender-seo.mjs:64](../../scripts/prerender-seo.mjs#L64) |
-| /actualites/:postId | 2 | [src/App.tsx:642](../../src/App.tsx#L642) |
+| /actualites/:postId | 2 | [src/App.tsx:643](../../src/App.tsx#L643) |
 | /actualites/post-1 | 4 | [src/test/seo-crawl-hardening.test.ts:114](../../src/test/seo-crawl-hardening.test.ts#L114) |
 | /actualites/post-thin | 2 | [src/test/seo-crawl-hardening.test.ts:119](../../src/test/seo-crawl-hardening.test.ts#L119) |
 | /actualites?post= | 1 | [src/test/actualites-search-seo.test.ts:35](../../src/test/actualites-search-seo.test.ts#L35) |
 | /admin | 91 | [scripts/application-index-core.mjs:167](../../scripts/application-index-core.mjs#L167) |
-| /admin/ | 4 | [src/App.tsx:333](../../src/App.tsx#L333) |
+| /admin/ | 4 | [src/App.tsx:334](../../src/App.tsx#L334) |
 | /admin/:path* | 1 | [src/test/vercel-rewrites.test.ts:90](../../src/test/vercel-rewrites.test.ts#L90) |
-| /admin/actualites | 6 | [src/App.tsx:695](../../src/App.tsx#L695) |
-| /admin/ai-operations | 7 | [src/App.tsx:709](../../src/App.tsx#L709) |
-| /admin/audit | 8 | [src/App.tsx:697](../../src/App.tsx#L697) |
+| /admin/actualites | 6 | [src/App.tsx:697](../../src/App.tsx#L697) |
+| /admin/ai-operations | 7 | [src/App.tsx:711](../../src/App.tsx#L711) |
+| /admin/audit | 8 | [src/App.tsx:699](../../src/App.tsx#L699) |
 | /admin/audit?event=1 | 2 | [src/test/notifications-sinistres-governance.test.ts:34](../../src/test/notifications-sinistres-governance.test.ts#L34) |
-| /admin/avis | 14 | [src/App.tsx:690](../../src/App.tsx#L690) |
-| /admin/catalog | 5 | [src/App.tsx:691](../../src/App.tsx#L691) |
-| /admin/commandes-reservations | 14 | [src/App.tsx:704](../../src/App.tsx#L704) |
+| /admin/avis | 14 | [src/App.tsx:692](../../src/App.tsx#L692) |
+| /admin/catalog | 5 | [src/App.tsx:693](../../src/App.tsx#L693) |
+| /admin/commandes-reservations | 14 | [src/App.tsx:706](../../src/App.tsx#L706) |
 | /admin/commandes-reservations?dispatch= | 1 | [src/test/dispatch-client-fallback.test.ts:47](../../src/test/dispatch-client-fallback.test.ts#L47) |
 | /admin/commandes-reservations?tab=orders | 2 | [src/lib/notificationRouting.ts:103](../../src/lib/notificationRouting.ts#L103) |
 | /admin/commandes-reservations?tab=orders&operation=order-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:27](../../src/test/notifications-sinistres-governance.test.ts#L27) |
 | /admin/commandes-reservations?tab=reservations | 1 | [src/lib/notificationRouting.ts:104](../../src/lib/notificationRouting.ts#L104) |
 | /admin/commandes-reservations?view=payments | 2 | [src/pages/admin/AdminAuditLogs.tsx:446](../../src/pages/admin/AdminAuditLogs.tsx#L446) |
-| /admin/compta | 17 | [src/App.tsx:699](../../src/App.tsx#L699) |
+| /admin/compta | 17 | [src/App.tsx:701](../../src/App.tsx#L701) |
 | /admin/compta/ | 1 | [src/components/navigation/BackNavigationButton.tsx:17](../../src/components/navigation/BackNavigationButton.tsx#L17) |
-| /admin/compta/entrees | 10 | [src/App.tsx:701](../../src/App.tsx#L701) |
-| /admin/compta/ia | 6 | [src/App.tsx:703](../../src/App.tsx#L703) |
-| /admin/compta/sorties | 10 | [src/App.tsx:702](../../src/App.tsx#L702) |
-| /admin/crm | 12 | [src/App.tsx:696](../../src/App.tsx#L696) |
+| /admin/compta/entrees | 10 | [src/App.tsx:703](../../src/App.tsx#L703) |
+| /admin/compta/ia | 6 | [src/App.tsx:705](../../src/App.tsx#L705) |
+| /admin/compta/sorties | 10 | [src/App.tsx:704](../../src/App.tsx#L704) |
+| /admin/crm | 12 | [src/App.tsx:698](../../src/App.tsx#L698) |
 | /admin/crm?external=1 | 1 | [src/test/auth-post-login-routing.test.ts:18](../../src/test/auth-post-login-routing.test.ts#L18) |
-| /admin/drops | 5 | [src/App.tsx:693](../../src/App.tsx#L693) |
-| /admin/equipe | 6 | [src/App.tsx:687](../../src/App.tsx#L687) |
-| /admin/guardian | 11 | [src/App.tsx:707](../../src/App.tsx#L707) |
-| /admin/guide | 7 | [src/App.tsx:710](../../src/App.tsx#L710) |
-| /admin/loyalty | 5 | [src/App.tsx:692](../../src/App.tsx#L692) |
-| /admin/notifications | 12 | [src/App.tsx:694](../../src/App.tsx#L694) |
+| /admin/drops | 5 | [src/App.tsx:695](../../src/App.tsx#L695) |
+| /admin/equipe | 6 | [src/App.tsx:689](../../src/App.tsx#L689) |
+| /admin/guardian | 11 | [src/App.tsx:709](../../src/App.tsx#L709) |
+| /admin/guide | 7 | [src/App.tsx:712](../../src/App.tsx#L712) |
+| /admin/loyalty | 5 | [src/App.tsx:694](../../src/App.tsx#L694) |
+| /admin/notifications | 12 | [src/App.tsx:696](../../src/App.tsx#L696) |
 | /admin/oauth/clients | 1 | [src/test/tok-connect-broker.test.ts:51](../../src/test/tok-connect-broker.test.ts#L51) |
-| /admin/packs | 5 | [src/App.tsx:698](../../src/App.tsx#L698) |
-| /admin/platform | 9 | [src/App.tsx:685](../../src/App.tsx#L685) |
-| /admin/restaurants | 14 | [src/App.tsx:686](../../src/App.tsx#L686) |
-| /admin/restaurants/google-business | 8 | [src/App.tsx:688](../../src/App.tsx#L688) |
-| /admin/security-center | 10 | [src/App.tsx:708](../../src/App.tsx#L708) |
+| /admin/packs | 5 | [src/App.tsx:700](../../src/App.tsx#L700) |
+| /admin/platform | 9 | [src/App.tsx:687](../../src/App.tsx#L687) |
+| /admin/restaurants | 14 | [src/App.tsx:688](../../src/App.tsx#L688) |
+| /admin/restaurants/google-business | 8 | [src/App.tsx:690](../../src/App.tsx#L690) |
+| /admin/security-center | 10 | [src/App.tsx:710](../../src/App.tsx#L710) |
 | /admin/security-center?view=audit | 1 | [src/pages/admin/AdminHome.tsx:957](../../src/pages/admin/AdminHome.tsx#L957) |
 | /admin/security-center?view=guardian | 2 | [src/components/admin/AdminMobileNavigation.tsx:117](../../src/components/admin/AdminMobileNavigation.tsx#L117) |
-| /admin/sinistres | 9 | [src/App.tsx:705](../../src/App.tsx#L705) |
+| /admin/sinistres | 9 | [src/App.tsx:707](../../src/App.tsx#L707) |
 | /admin/sinistres?incident= | 2 | [src/test/notifications-sinistres-governance.test.ts:202](../../src/test/notifications-sinistres-governance.test.ts#L202) |
 | /admin/sinistres?incident=incident-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:33](../../src/test/notifications-sinistres-governance.test.ts#L33) |
 | /admin/sinistres?ticket= | 1 | [src/test/support-notification-governance.test.ts:93](../../src/test/support-notification-governance.test.ts#L93) |
-| /admin/support-resolution | 7 | [src/App.tsx:706](../../src/App.tsx#L706) |
-| /admin/tok-connect | 12 | [src/App.tsx:711](../../src/App.tsx#L711) |
-| /admin/tok-printer | 6 | [src/App.tsx:700](../../src/App.tsx#L700) |
-| /admin/utilisateurs | 8 | [src/App.tsx:689](../../src/App.tsx#L689) |
+| /admin/support-resolution | 7 | [src/App.tsx:708](../../src/App.tsx#L708) |
+| /admin/tok-connect | 12 | [src/App.tsx:713](../../src/App.tsx#L713) |
+| /admin/tok-printer | 6 | [src/App.tsx:702](../../src/App.tsx#L702) |
+| /admin/utilisateurs | 8 | [src/App.tsx:691](../../src/App.tsx#L691) |
 | /admin/utilisateurs?tab=applications | 3 | [src/components/admin/AdminMobileNavigation.tsx:72](../../src/components/admin/AdminMobileNavigation.tsx#L72) |
 | /admin/utilisateurs?tab=commercials | 3 | [src/components/admin/AdminMobileNavigation.tsx:74](../../src/components/admin/AdminMobileNavigation.tsx#L74) |
 | /admin/utilisateurs?tab=couriers | 3 | [src/components/admin/AdminMobileNavigation.tsx:73](../../src/components/admin/AdminMobileNavigation.tsx#L73) |
@@ -1748,11 +1749,11 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /attachments? | 1 | [src/test/resend-inbound-forward.test.ts:25](../../src/test/resend-inbound-forward.test.ts#L25) |
 | /auth | 61 | [scripts/prerender-seo.mjs:1248](../../scripts/prerender-seo.mjs#L1248) |
 | /auth/ | 1 | [src/components/ComingSoonGate.tsx:13](../../src/components/ComingSoonGate.tsx#L13) |
-| /auth/callback | 20 | [src/App.tsx:591](../../src/App.tsx#L591) |
+| /auth/callback | 20 | [src/App.tsx:592](../../src/App.tsx#L592) |
 | /auth/callback? | 1 | [src/lib/deep-links.ts:33](../../src/lib/deep-links.ts#L33) |
 | /auth/callback?code=123 | 1 | [src/test/app-page-navigation.test.tsx:28](../../src/test/app-page-navigation.test.tsx#L28) |
 | /auth/callback?code=pkce-code | 1 | [src/test/native-oauth.test.ts:114](../../src/test/native-oauth.test.ts#L114) |
-| /auth/demo | 7 | [src/App.tsx:590](../../src/App.tsx#L590) |
+| /auth/demo | 7 | [src/App.tsx:591](../../src/App.tsx#L591) |
 | /auth/v1/ | 1 | [src/lib/commercialDemoEffects.ts:74](../../src/lib/commercialDemoEffects.ts#L74) |
 | /auth/v1/admin/oauth/clients | 1 | [supabase/functions/_shared/tok-connect-broker.ts:132](../../supabase/functions/_shared/tok-connect-broker.ts#L132) |
 | /auth/v1/admin/oauth/clients/ | 1 | [supabase/functions/_shared/tok-connect-broker.ts:139](../../supabase/functions/_shared/tok-connect-broker.ts#L139) |
@@ -1779,7 +1780,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /blog-images/ | 1 | [src/lib/seo/blog.mjs:63](../../src/lib/seo/blog.mjs#L63) |
 | /blog.css | 1 | [src/lib/seo/blog.mjs:9](../../src/lib/seo/blog.mjs#L9) |
 | /blog/ | 3 | [scripts/prerender-seo.mjs:56](../../scripts/prerender-seo.mjs#L56) |
-| /blog/:slug | 3 | [src/App.tsx:725](../../src/App.tsx#L725) |
+| /blog/:slug | 3 | [src/App.tsx:727](../../src/App.tsx#L727) |
 | /blog/ce-guide-nexiste-pas | 1 | [src/test/seo-native-blog.test.tsx:42](../../src/test/seo-native-blog.test.tsx#L42) |
 | /blog/reserver-table-geneve-tok | 3 | [src/test/seo-native-blog.test.tsx:18](../../src/test/seo-native-blog.test.tsx#L18) |
 | /budget-auto | 14 | [scripts/prerender-seo.mjs:1049](../../scripts/prerender-seo.mjs#L1049) |
@@ -1794,17 +1795,17 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:31](../../src/test/tok-logo-calendar.test.ts#L31) |
 | /codex | 1 | [src/test/telegram-codex-request.test.ts:24](../../src/test/telegram-codex-request.test.ts#L24) |
-| /coming-soon | 25 | [src/App.tsx:280](../../src/App.tsx#L280) |
+| /coming-soon | 25 | [src/App.tsx:281](../../src/App.tsx#L281) |
 | /coming-soon?welcome=1 | 3 | [src/test/coming-soon-signup-page.test.tsx:53](../../src/test/coming-soon-signup-page.test.tsx#L53) |
 | /coming-soon?welcome=1&email=1 | 2 | [src/test/coming-soon-signup-page.test.tsx:53](../../src/test/coming-soon-signup-page.test.tsx#L53) |
 | /commande | 3 | [scripts/prerender-seo.mjs:1240](../../scripts/prerender-seo.mjs#L1240) |
 | /commande/ | 3 | [src/components/navigation/BackNavigationButton.tsx:22](../../src/components/navigation/BackNavigationButton.tsx#L22) |
 | /commande/123 | 1 | [src/test/plinko-api.test.ts:73](../../src/test/plinko-api.test.ts#L73) |
 | /commande/123?tab=details | 1 | [src/test/navigation.test.ts:24](../../src/test/navigation.test.ts#L24) |
-| /commande/:id | 4 | [src/App.tsx:608](../../src/App.tsx#L608) |
+| /commande/:id | 4 | [src/App.tsx:609](../../src/App.tsx#L609) |
 | /commande/abc-123 | 1 | [src/test/feature-flags.test.ts:105](../../src/test/feature-flags.test.ts#L105) |
 | /commande/abc123 | 1 | [src/test/dashboard-visuals-assets.test.ts:70](../../src/test/dashboard-visuals-assets.test.ts#L70) |
-| /commande/confirmation | 18 | [src/App.tsx:607](../../src/App.tsx#L607) |
+| /commande/confirmation | 18 | [src/App.tsx:608](../../src/App.tsx#L608) |
 | /commande/confirmation?checkout_kind=order | 1 | [src/test/payment-attempt-state.test.ts:114](../../src/test/payment-attempt-state.test.ts#L114) |
 | /commande/confirmation?status=success&session_id=cs_test_visual_preview | 1 | [src/test/dashboard-design-preview-export.test.tsx:81](../../src/test/dashboard-design-preview-export.test.tsx#L81) |
 | /commande/id | 1 | [src/test/coming-soon-gate.test.tsx:42](../../src/test/coming-soon-gate.test.tsx#L42) |
@@ -1814,10 +1815,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commandes/facture | 1 | [src/test/customer-workspace-routes.test.ts:29](../../src/test/customer-workspace-routes.test.ts#L29) |
 | /comments | 1 | [src/test/marketing-instagram-graph.test.ts:84](../../src/test/marketing-instagram-graph.test.ts#L84) |
 | /commercial | 57 | [scripts/application-index-core.mjs:171](../../scripts/application-index-core.mjs#L171) |
-| /commercial/ | 4 | [src/App.tsx:337](../../src/App.tsx#L337) |
+| /commercial/ | 4 | [src/App.tsx:338](../../src/App.tsx#L338) |
 | /commercial/anything | 1 | [src/test/commercial-domain-isolation.test.ts:177](../../src/test/commercial-domain-isolation.test.ts#L177) |
-| /commercial/comptabilite | 12 | [src/App.tsx:449](../../src/App.tsx#L449) |
-| /commercial/demo-live | 32 | [src/App.tsx:563](../../src/App.tsx#L563) |
+| /commercial/comptabilite | 12 | [src/App.tsx:450](../../src/App.tsx#L450) |
+| /commercial/demo-live | 32 | [src/App.tsx:564](../../src/App.tsx#L564) |
 | /commercial/demo-live/ | 1 | [src/test/commercial-domain-isolation.test.ts:185](../../src/test/commercial-domain-isolation.test.ts#L185) |
 | /commercial/demo-live/evil | 1 | [src/test/commercial-domain-isolation.test.ts:124](../../src/test/commercial-domain-isolation.test.ts#L124) |
 | /commercial/demo-live/frame/ | 1 | [src/test/commercial-multi-space-demo.test.ts:121](../../src/test/commercial-multi-space-demo.test.ts#L121) |
@@ -1828,7 +1829,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /commercial/demo-live?surface=client | 1 | [src/test/demo-workspace-access.test.ts:127](../../src/test/demo-workspace-access.test.ts#L127) |
 | /commercial/demo-live?surface=courier | 2 | [src/test/demo-workspace-access.test.ts:60](../../src/test/demo-workspace-access.test.ts#L60) |
 | /commercial/demo-live?surface=restaurant | 2 | [src/test/demo-workspace-access.test.ts:62](../../src/test/demo-workspace-access.test.ts#L62) |
-| /commercial/notifications | 11 | [src/App.tsx:636](../../src/App.tsx#L636) |
+| /commercial/notifications | 11 | [src/App.tsx:637](../../src/App.tsx#L637) |
 | /commercial/prospection | 7 | [scripts/stoppin-venue-seo.test.mjs:146](../../scripts/stoppin-venue-seo.test.mjs#L146) |
 | /commercial/route-inconnue | 1 | [src/test/commercial-domain-isolation.test.ts:189](../../src/test/commercial-domain-isolation.test.ts#L189) |
 | /commercial?tab=followups | 2 | [src/test/notifications-sinistres-governance.test.ts:39](../../src/test/notifications-sinistres-governance.test.ts#L39) |
@@ -1839,65 +1840,66 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /contact | 24 | [scripts/prerender-seo.mjs:793](../../scripts/prerender-seo.mjs#L793) |
 | /cookies | 18 | [scripts/prerender-seo.mjs:1201](../../scripts/prerender-seo.mjs#L1201) |
 | /courier | 35 | [scripts/application-index-core.mjs:170](../../scripts/application-index-core.mjs#L170) |
-| /courier/ | 3 | [src/App.tsx:335](../../src/App.tsx#L335) |
-| /courier/earnings | 7 | [src/App.tsx:445](../../src/App.tsx#L445) |
+| /courier/ | 3 | [src/App.tsx:336](../../src/App.tsx#L336) |
+| /courier/earnings | 7 | [src/App.tsx:446](../../src/App.tsx#L446) |
 | /courier/jobs | 18 | [public/firebase-messaging-sw.js:42](../../public/firebase-messaging-sw.js#L42) |
 | /courier/jobs?job=job-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:31](../../src/test/notifications-sinistres-governance.test.ts#L31) |
-| /courier/notifications | 11 | [src/App.tsx:445](../../src/App.tsx#L445) |
-| /courier/profile | 9 | [src/App.tsx:445](../../src/App.tsx#L445) |
+| /courier/notifications | 11 | [src/App.tsx:446](../../src/App.tsx#L446) |
+| /courier/profile | 9 | [src/App.tsx:446](../../src/App.tsx#L446) |
 | /create-reservation | 1 | [src/test/tok-connect-oauth-delegation.test.ts:118](../../src/test/tok-connect-oauth-delegation.test.ts#L118) |
 | /creneaux-garantis | 14 | [scripts/prerender-seo.mjs:1033](../../scripts/prerender-seo.mjs#L1033) |
 | /crm | 1 | [src/test/dashboard-design-preview-export.test.tsx:71](../../src/test/dashboard-design-preview-export.test.tsx#L71) |
 | /dashboard | 97 | [scripts/application-index-core.mjs:169](../../scripts/application-index-core.mjs#L169) |
 | /dashboard-design-preview/ | 1 | [src/test/dashboard-design-preview-export.test.tsx:87](../../src/test/dashboard-design-preview-export.test.tsx#L87) |
-| /dashboard/ | 5 | [src/App.tsx:331](../../src/App.tsx#L331) |
+| /dashboard/ | 5 | [src/App.tsx:332](../../src/App.tsx#L332) |
 | /dashboard/abonnement | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:224](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L224) |
-| /dashboard/actualites | 11 | [src/App.tsx:666](../../src/App.tsx#L666) |
-| /dashboard/advisor | 9 | [src/App.tsx:645](../../src/App.tsx#L645) |
+| /dashboard/actualites | 11 | [src/App.tsx:668](../../src/App.tsx#L668) |
+| /dashboard/advisor | 9 | [src/App.tsx:646](../../src/App.tsx#L646) |
 | /dashboard/ai | 3 | [src/test/tok-ai-platform-plan.test.ts:229](../../src/test/tok-ai-platform-plan.test.ts#L229) |
-| /dashboard/avis | 9 | [src/App.tsx:652](../../src/App.tsx#L652) |
-| /dashboard/campagne-overview | 4 | [src/App.tsx:664](../../src/App.tsx#L664) |
+| /dashboard/avis | 9 | [src/App.tsx:654](../../src/App.tsx#L654) |
+| /dashboard/campagne-overview | 4 | [src/App.tsx:666](../../src/App.tsx#L666) |
 | /dashboard/campagnes | 22 | [scripts/stoppin-venue-seo.test.mjs:146](../../scripts/stoppin-venue-seo.test.mjs#L146) |
-| /dashboard/campaign-studio | 9 | [src/App.tsx:668](../../src/App.tsx#L668) |
-| /dashboard/commandes | 30 | [src/App.tsx:648](../../src/App.tsx#L648) |
-| /dashboard/comparaison | 7 | [src/App.tsx:651](../../src/App.tsx#L651) |
-| /dashboard/compta | 5 | [src/App.tsx:653](../../src/App.tsx#L653) |
+| /dashboard/campaign-studio | 9 | [src/App.tsx:670](../../src/App.tsx#L670) |
+| /dashboard/commandes | 30 | [src/App.tsx:649](../../src/App.tsx#L649) |
+| /dashboard/comparaison | 7 | [src/App.tsx:653](../../src/App.tsx#L653) |
+| /dashboard/compta | 5 | [src/App.tsx:655](../../src/App.tsx#L655) |
 | /dashboard/credits | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:215](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L215) |
-| /dashboard/crm | 8 | [src/App.tsx:669](../../src/App.tsx#L669) |
+| /dashboard/crm | 8 | [src/App.tsx:671](../../src/App.tsx#L671) |
 | /dashboard/crm-clients | 2 | [supabase/functions/tok-connect-full-app-mcp/index.ts:221](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L221) |
-| /dashboard/equipe | 7 | [src/App.tsx:673](../../src/App.tsx#L673) |
+| /dashboard/cuisine | 2 | [src/App.tsx:650](../../src/App.tsx#L650) |
+| /dashboard/equipe | 7 | [src/App.tsx:675](../../src/App.tsx#L675) |
 | /dashboard/facturation | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:223](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L223) |
-| /dashboard/factures | 20 | [src/App.tsx:653](../../src/App.tsx#L653) |
+| /dashboard/factures | 20 | [src/App.tsx:655](../../src/App.tsx#L655) |
 | /dashboard/factures/ | 1 | [src/components/navigation/BackNavigationButton.tsx:19](../../src/components/navigation/BackNavigationButton.tsx#L19) |
-| /dashboard/factures/entrees | 10 | [src/App.tsx:655](../../src/App.tsx#L655) |
-| /dashboard/factures/parametres | 7 | [src/App.tsx:657](../../src/App.tsx#L657) |
-| /dashboard/factures/sorties | 9 | [src/App.tsx:656](../../src/App.tsx#L656) |
-| /dashboard/formules | 8 | [src/App.tsx:661](../../src/App.tsx#L661) |
-| /dashboard/guide | 11 | [src/App.tsx:677](../../src/App.tsx#L677) |
+| /dashboard/factures/entrees | 10 | [src/App.tsx:657](../../src/App.tsx#L657) |
+| /dashboard/factures/parametres | 7 | [src/App.tsx:659](../../src/App.tsx#L659) |
+| /dashboard/factures/sorties | 9 | [src/App.tsx:658](../../src/App.tsx#L658) |
+| /dashboard/formules | 8 | [src/App.tsx:663](../../src/App.tsx#L663) |
+| /dashboard/guide | 11 | [src/App.tsx:679](../../src/App.tsx#L679) |
 | /dashboard/guide?tab=commandes | 2 | [src/test/workspace-toolbar.test.tsx:17](../../src/test/workspace-toolbar.test.tsx#L17) |
-| /dashboard/menu | 27 | [src/App.tsx:646](../../src/App.tsx#L646) |
+| /dashboard/menu | 28 | [src/App.tsx:647](../../src/App.tsx#L647) |
 | /dashboard/menu/ | 1 | [src/test/hero-subtitle-styles.test.tsx:33](../../src/test/hero-subtitle-styles.test.tsx#L33) |
-| /dashboard/mon-compte-facturation | 19 | [src/App.tsx:658](../../src/App.tsx#L658) |
+| /dashboard/mon-compte-facturation | 19 | [src/App.tsx:660](../../src/App.tsx#L660) |
 | /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1254](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1254) |
-| /dashboard/notifications | 18 | [src/App.tsx:643](../../src/App.tsx#L643) |
-| /dashboard/offres | 8 | [src/App.tsx:659](../../src/App.tsx#L659) |
+| /dashboard/notifications | 18 | [src/App.tsx:644](../../src/App.tsx#L644) |
+| /dashboard/offres | 8 | [src/App.tsx:661](../../src/App.tsx#L661) |
 | /dashboard/pack | 2 | [src/test/feature-flags.test.ts:134](../../src/test/feature-flags.test.ts#L134) |
-| /dashboard/performances | 10 | [src/App.tsx:650](../../src/App.tsx#L650) |
-| /dashboard/photos | 20 | [src/App.tsx:662](../../src/App.tsx#L662) |
+| /dashboard/performances | 10 | [src/App.tsx:652](../../src/App.tsx#L652) |
+| /dashboard/photos | 20 | [src/App.tsx:664](../../src/App.tsx#L664) |
 | /dashboard/plan-de-salle | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:211](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L211) |
-| /dashboard/plan-salle | 12 | [src/App.tsx:674](../../src/App.tsx#L674) |
-| /dashboard/plan-salle-v2 | 4 | [src/App.tsx:676](../../src/App.tsx#L676) |
-| /dashboard/promotions | 7 | [src/App.tsx:663](../../src/App.tsx#L663) |
-| /dashboard/recommandations | 4 | [src/App.tsx:649](../../src/App.tsx#L649) |
-| /dashboard/reseaux-sociaux | 7 | [src/App.tsx:665](../../src/App.tsx#L665) |
-| /dashboard/reservations | 29 | [src/App.tsx:647](../../src/App.tsx#L647) |
+| /dashboard/plan-salle | 13 | [src/App.tsx:676](../../src/App.tsx#L676) |
+| /dashboard/plan-salle-v2 | 4 | [src/App.tsx:678](../../src/App.tsx#L678) |
+| /dashboard/promotions | 7 | [src/App.tsx:665](../../src/App.tsx#L665) |
+| /dashboard/recommandations | 4 | [src/App.tsx:651](../../src/App.tsx#L651) |
+| /dashboard/reseaux-sociaux | 7 | [src/App.tsx:667](../../src/App.tsx#L667) |
+| /dashboard/reservations | 29 | [src/App.tsx:648](../../src/App.tsx#L648) |
 | /dashboard/reservations?reservation=res-1 | 1 | [src/test/notifications-sinistres-governance.test.ts:29](../../src/test/notifications-sinistres-governance.test.ts#L29) |
-| /dashboard/restaurant | 13 | [src/App.tsx:644](../../src/App.tsx#L644) |
-| /dashboard/service | 11 | [src/App.tsx:672](../../src/App.tsx#L672) |
+| /dashboard/restaurant | 13 | [src/App.tsx:645](../../src/App.tsx#L645) |
+| /dashboard/service | 11 | [src/App.tsx:674](../../src/App.tsx#L674) |
 | /dashboard/statistiques | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:222](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L222) |
-| /dashboard/support | 13 | [src/App.tsx:671](../../src/App.tsx#L671) |
-| /dashboard/tok-connect | 11 | [src/App.tsx:678](../../src/App.tsx#L678) |
-| /dashboard/ventes-flash | 12 | [src/App.tsx:660](../../src/App.tsx#L660) |
+| /dashboard/support | 13 | [src/App.tsx:673](../../src/App.tsx#L673) |
+| /dashboard/tok-connect | 11 | [src/App.tsx:680](../../src/App.tsx#L680) |
+| /dashboard/ventes-flash | 12 | [src/App.tsx:662](../../src/App.tsx#L662) |
 | /data/geneva-commercial-prospects.json | 2 | [src/data/genevaCommercialProspects.ts:39](../../src/data/genevaCommercialProspects.ts#L39) |
 | /data/reverse-geocode-client | 1 | [src/test/home-world-hero.test.ts:57](../../src/test/home-world-hero.test.ts#L57) |
 | /data/thefork-geneva-commercial-prospects.json | 1 | [src/data/theForkCommercialProspects.ts:7](../../src/data/theForkCommercialProspects.ts#L7) |
@@ -1912,12 +1914,12 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /enrich-directory-images | 2 | [src/test/directory-image-discovery-worker.test.ts:44](../../src/test/directory-image-discovery-worker.test.ts#L44) |
 | /equipe | 3 | [src/test/dashboard-design-preview-export.test.tsx:70](../../src/test/dashboard-design-preview-export.test.tsx#L70) |
 | /equipe/ | 1 | [src/pages/Auth.tsx:1132](../../src/pages/Auth.tsx#L1132) |
-| /equipe/gestion | 12 | [src/App.tsx:594](../../src/App.tsx#L594) |
+| /equipe/gestion | 12 | [src/App.tsx:595](../../src/App.tsx#L595) |
 | /equipe/gestion/private | 1 | [src/test/workforce-auth-continuation.test.ts:100](../../src/test/workforce-auth-continuation.test.ts#L100) |
 | /equipe/gestion?next=/admin | 1 | [src/test/auth-post-login-routing.test.ts:70](../../src/test/auth-post-login-routing.test.ts#L70) |
 | /equipe/gestion?restaurant= | 6 | [src/pages/workforce/MyWorkforce.tsx:180](../../src/pages/workforce/MyWorkforce.tsx#L180) |
 | /equipe/gestion?restaurant=invalid | 1 | [src/test/workforce-auth-continuation.test.ts:29](../../src/test/workforce-auth-continuation.test.ts#L29) |
-| /equipe/mon-espace | 14 | [src/App.tsx:593](../../src/App.tsx#L593) |
+| /equipe/mon-espace | 14 | [src/App.tsx:594](../../src/App.tsx#L594) |
 | /equipe/mon-espace/ | 1 | [src/test/workforce-auth-continuation.test.ts:28](../../src/test/workforce-auth-continuation.test.ts#L28) |
 | /equipe/mon-espace/private | 1 | [src/test/workforce-auth-continuation.test.ts:100](../../src/test/workforce-auth-continuation.test.ts#L100) |
 | /equipe/mon-espace/settings | 1 | [src/test/workforce-auth-continuation.test.ts:29](../../src/test/workforce-auth-continuation.test.ts#L29) |
@@ -1989,9 +1991,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /garantie-qualite | 14 | [scripts/prerender-seo.mjs:1041](../../scripts/prerender-seo.mjs#L1041) |
 | /generations | 1 | [src/test/marketing-brand-references.test.ts:92](../../src/test/marketing-brand-references.test.ts#L92) |
 | /google-actions-center-sync | 1 | [src/test/google-actions-center-outbox.test.ts:147](../../src/test/google-actions-center-outbox.test.ts#L147) |
-| /guide | 6 | [src/App.tsx:726](../../src/App.tsx#L726) |
-| /guide/plateforme | 2 | [src/App.tsx:728](../../src/App.tsx#L728) |
-| /guide/restaurateur | 3 | [src/App.tsx:727](../../src/App.tsx#L727) |
+| /guide | 6 | [src/App.tsx:728](../../src/App.tsx#L728) |
+| /guide/plateforme | 2 | [src/App.tsx:730](../../src/App.tsx#L730) |
+| /guide/restaurateur | 3 | [src/App.tsx:729](../../src/App.tsx#L729) |
 | /healthz | 2 | [src/test/application-search-index.test.ts:105](../../src/test/application-search-index.test.ts#L105) |
 | /help.png | 1 | [src/components/help/ChefHelpButton.tsx:40](../../src/components/help/ChefHelpButton.tsx#L40) |
 | /help@tok_bot | 1 | [src/test/telegram-codex-request.test.ts:23](../../src/test/telegram-codex-request.test.ts#L23) |
@@ -2295,14 +2297,14 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:30](../../src/hooks/useTokLogo.ts#L30) |
 | /marketing | 35 | [scripts/application-index-core.mjs:168](../../scripts/application-index-core.mjs#L168) |
 | /marketing-public | 1 | [src/test/marketing-domain-isolation.test.ts:25](../../src/test/marketing-domain-isolation.test.ts#L25) |
-| /marketing/ | 1 | [src/App.tsx:339](../../src/App.tsx#L339) |
-| /marketing/* | 2 | [src/App.tsx:782](../../src/App.tsx#L782) |
+| /marketing/ | 1 | [src/App.tsx:340](../../src/App.tsx#L340) |
+| /marketing/* | 2 | [src/App.tsx:784](../../src/App.tsx#L784) |
 | /marketing/../admin | 1 | [src/test/marketing-login-navigation.test.tsx:97](../../src/test/marketing-login-navigation.test.tsx#L97) |
 | /marketing/brand/tok-v3/culinary.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:12](../../src/test/marketing-brand-gallery.test.tsx#L12) |
 | /marketing/brand/tok-v3/instagram-profile.jpeg | 4 | [src/test/marketing-brand-gallery.test.tsx:11](../../src/test/marketing-brand-gallery.test.tsx#L11) |
 | /marketing/brand/tok-v3/studio-chef.jpeg | 2 | [src/test/marketing-brand-gallery.test.tsx:13](../../src/test/marketing-brand-gallery.test.tsx#L13) |
 | /marketing/campaigns | 1 | [src/test/marketing-domain-isolation.test.ts:24](../../src/test/marketing-domain-isolation.test.ts#L24) |
-| /marketing/login | 28 | [src/App.tsx:773](../../src/App.tsx#L773) |
+| /marketing/login | 28 | [src/App.tsx:775](../../src/App.tsx#L775) |
 | /marketing?view=calendar | 1 | [src/test/marketing-login-navigation.test.tsx:105](../../src/test/marketing-login-navigation.test.tsx#L105) |
 | /marketing?view=calendar#access_token=secret | 1 | [src/test/marketing-login-navigation.test.tsx:98](../../src/test/marketing-login-navigation.test.tsx#L98) |
 | /marketing?view=calendar&campaignId=../../admin&itemId=javascript:bad&from=2026-02-31&to=2026-99-10&page=9007199254740992 | 1 | [src/test/marketing-review-navigation.test.tsx:90](../../src/test/marketing-review-navigation.test.tsx#L90) |
@@ -2334,7 +2336,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /notifications?tab=orders | 2 | [src/test/navigation.test.ts:10](../../src/test/navigation.test.ts#L10) |
 | /oauth | 2 | [scripts/prerender-seo.mjs:1249](../../scripts/prerender-seo.mjs#L1249) |
 | /oauth/:endpoint(register\|authorize\|token) | 1 | [src/test/tok-connect-public-actions.test.ts:69](../../src/test/tok-connect-public-actions.test.ts#L69) |
-| /oauth/consent | 8 | [src/App.tsx:476](../../src/App.tsx#L476) |
+| /oauth/consent | 8 | [src/App.tsx:477](../../src/App.tsx#L477) |
 | /oauth/consent?authorization_id=authorization-123 | 3 | [src/test/auth-post-login-routing.test.ts:29](../../src/test/auth-post-login-routing.test.ts#L29) |
 | /oauth/unknown | 1 | [src/test/tok-connect-oauth-routing.test.ts:10](../../src/test/tok-connect-oauth-routing.test.ts#L10) |
 | /offres | 1 | [src/test/dashboard-design-preview-export.test.tsx:60](../../src/test/dashboard-design-preview-export.test.tsx#L60) |
@@ -2347,7 +2349,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /other/../equipe/mon-espace | 1 | [src/test/workforce-auth-continuation.test.ts:33](../../src/test/workforce-auth-continuation.test.ts#L33) |
 | /packs-restaurateur | 17 | [scripts/prerender-seo.mjs:574](../../scripts/prerender-seo.mjs#L574) |
 | /panier | 57 | [scripts/launch-10k-load-check.mjs:25](../../scripts/launch-10k-load-check.mjs#L25) |
-| /parametres/securite | 6 | [src/App.tsx:381](../../src/App.tsx#L381) |
+| /parametres/securite | 6 | [src/App.tsx:382](../../src/App.tsx#L382) |
 | /performances | 1 | [src/test/dashboard-design-preview-export.test.tsx:63](../../src/test/dashboard-design-preview-export.test.tsx#L63) |
 | /photos | 1 | [src/test/dashboard-design-preview-export.test.tsx:68](../../src/test/dashboard-design-preview-export.test.tsx#L68) |
 | /placeholder.svg | 2 | [public/seo-trust-runtime.js:11](../../public/seo-trust-runtime.js#L11) |
@@ -2374,8 +2376,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /public/ | 1 | [src/test/marketing-content-telegram.test.ts:96](../../src/test/marketing-content-telegram.test.ts#L96) |
 | /r | 2 | [scripts/prerender-seo.mjs:1251](../../scripts/prerender-seo.mjs#L1251) |
 | /r/ | 2 | [scripts/harden-seo-crawl.mjs:118](../../scripts/harden-seo-crawl.mjs#L118) |
-| /r/:slug | 3 | [src/App.tsx:602](../../src/App.tsx#L602) |
-| /r/:slug/reserver | 2 | [src/App.tsx:601](../../src/App.tsx#L601) |
+| /r/:slug | 3 | [src/App.tsx:603](../../src/App.tsx#L603) |
+| /r/:slug/reserver | 2 | [src/App.tsx:602](../../src/App.tsx#L602) |
 | /readyz | 3 | [src/test/application-search-index.test.ts:105](../../src/test/application-search-index.test.ts#L105) |
 | /recherche | 100 | [public/seo-trust-runtime.js:139](../../public/seo-trust-runtime.js#L139) |
 | /recherche#cuisines | 1 | [src/test/app-page-navigation.test.tsx:29](../../src/test/app-page-navigation.test.tsx#L29) |
@@ -2407,7 +2409,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurant/123 | 1 | [src/test/coming-soon-gate.test.tsx:50](../../src/test/coming-soon-gate.test.tsx#L50) |
 | /restaurant/123#menu | 1 | [src/test/app-page-navigation.test.tsx:19](../../src/test/app-page-navigation.test.tsx#L19) |
 | /restaurant/12345 | 1 | [src/test/metricool-page-tracker.test.tsx:50](../../src/test/metricool-page-tracker.test.tsx#L50) |
-| /restaurant/:id | 9 | [src/App.tsx:603](../../src/App.tsx#L603) |
+| /restaurant/:id | 9 | [src/App.tsx:604](../../src/App.tsx#L604) |
 | /restaurant/:id/reserver | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:201](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L201) |
 | /restaurant/abc | 1 | [src/test/metricool-page-tracker.test.tsx:84](../../src/test/metricool-page-tracker.test.tsx#L84) |
 | /restaurant/cc47c8c6-752f-406c-8c2f-ed04ebd0ca20 | 1 | [src/test/route-serving-regression.test.ts:11](../../src/test/route-serving-regression.test.ts#L11) |
@@ -2423,7 +2425,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants-pres/ | 1 | [src/pages/LocalRestaurants.tsx:559](../../src/pages/LocalRestaurants.tsx#L559) |
 | /restaurants-pres/%2Fsecret | 1 | [src/test/metricool-page-tracker.test.tsx:52](../../src/test/metricool-page-tracker.test.tsx#L52) |
 | /restaurants-pres/:path* | 2 | [middleware.js:5](../../middleware.js#L5) |
-| /restaurants-pres/:venueSlug | 3 | [src/App.tsx:598](../../src/App.tsx#L598) |
+| /restaurants-pres/:venueSlug | 3 | [src/App.tsx:599](../../src/App.tsx#L599) |
 | /restaurants-pres/OLD | 1 | [scripts/stoppin-venue-seo.test.mjs:146](../../scripts/stoppin-venue-seo.test.mjs#L146) |
 | /restaurants-pres/canonical | 3 | [scripts/stoppin-venue-seo.test.mjs:127](../../scripts/stoppin-venue-seo.test.mjs#L127) |
 | /restaurants-pres/grand-theatre-de-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:83](../../src/test/stoppin-thetok-routes.test.ts#L83) |
@@ -2438,9 +2440,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants-pres/victoria-hall-geneve | 1 | [src/test/stoppin-thetok-routes.test.ts:81](../../src/test/stoppin-thetok-routes.test.ts#L81) |
 | /restaurants/ | 4 | [scripts/harden-seo-trust-signals.mjs:189](../../scripts/harden-seo-trust-signals.mjs#L189) |
 | /restaurants/${citySlug}/r/${restaurantSlug} | 2 | [src/test/responsive-seo-regressions.test.ts:107](../../src/test/responsive-seo-regressions.test.ts#L107) |
-| /restaurants/:city | 5 | [src/App.tsx:597](../../src/App.tsx#L597) |
-| /restaurants/:city/:category | 5 | [src/App.tsx:600](../../src/App.tsx#L600) |
-| /restaurants/:city/r/:restaurantSlug | 3 | [src/App.tsx:599](../../src/App.tsx#L599) |
+| /restaurants/:city | 5 | [src/App.tsx:598](../../src/App.tsx#L598) |
+| /restaurants/:city/:category | 5 | [src/App.tsx:601](../../src/App.tsx#L601) |
+| /restaurants/:city/r/:restaurantSlug | 3 | [src/App.tsx:600](../../src/App.tsx#L600) |
 | /restaurants/carouge | 2 | [src/test/carouge-seo-consolidation.test.ts:41](../../src/test/carouge-seo-consolidation.test.ts#L41) |
 | /restaurants/carouge-ge | 2 | [src/test/carouge-seo-consolidation.test.ts:40](../../src/test/carouge-seo-consolidation.test.ts#L40) |
 | /restaurants/carouge-ge/:path* | 3 | [src/test/carouge-seo-consolidation.test.ts:45](../../src/test/carouge-seo-consolidation.test.ts#L45) |
@@ -2499,7 +2501,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /restaurants/vesenaz/r/sushi-zen-sa | 2 | [src/test/seo-directory-quality-hardening.test.ts:32](../../src/test/seo-directory-quality-hardening.test.ts#L32) |
 | /restaurateurs-geneve | 1 | [src/test/marketing-legacy-landing.test.ts:7](../../src/test/marketing-legacy-landing.test.ts#L7) |
 | /restaurateurs/ | 1 | [src/components/legal/LegalConsentBanner.tsx:33](../../src/components/legal/LegalConsentBanner.tsx#L33) |
-| /restaurateurs/:city | 3 | [src/App.tsx:720](../../src/App.tsx#L720) |
+| /restaurateurs/:city | 3 | [src/App.tsx:722](../../src/App.tsx#L722) |
 | /restaurateurs/alternative-commission-couvert | 20 | [scripts/prerender-seo.mjs:657](../../scripts/prerender-seo.mjs#L657) |
 | /restaurateurs/geneve | 30 | [scripts/prerender-seo.mjs:589](../../scripts/prerender-seo.mjs#L589) |
 | /restaurateurs/geneve?email=private@example.ch | 1 | [src/test/restaurant-demo-lead-funnel.test.ts:60](../../src/test/restaurant-demo-lead-funnel.test.ts#L60) |
@@ -2561,7 +2563,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /tok-connect-preview-widget.js | 1 | [src/lib/tok-connect-preview.ts:3](../../src/lib/tok-connect-preview.ts#L3) |
 | /tok-connect/developer | 13 | [scripts/prerender-seo.mjs:1252](../../scripts/prerender-seo.mjs#L1252) |
 | /tok-connect/developer/:path* | 2 | [src/test/vercel-rewrites.test.ts:117](../../src/test/vercel-rewrites.test.ts#L117) |
-| /tok-connect/mcp-widget | 6 | [src/App.tsx:632](../../src/App.tsx#L632) |
+| /tok-connect/mcp-widget | 6 | [src/App.tsx:633](../../src/App.tsx#L633) |
 | /tok-connect/mcp-widget?mode=sandbox | 1 | [src/test/tok-connect-preview-sandbox.test.tsx:15](../../src/test/tok-connect-preview-sandbox.test.tsx#L15) |
 | /tok-one | 32 | [scripts/prerender-seo.mjs:527](../../scripts/prerender-seo.mjs#L527) |
 | /tok-one?status=success | 1 | [src/test/security-url-helpers.test.ts:62](../../src/test/security-url-helpers.test.ts#L62) |
@@ -3013,6 +3015,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 | Dashboard Comparaison | /dashboard/comparaison | oui | default | [src/pages/dashboard/DashboardComparaison.tsx](../../src/pages/dashboard/DashboardComparaison.tsx) |
 | Dashboard Context | — | non | DashboardProvider | [src/pages/dashboard/DashboardContext.tsx](../../src/pages/dashboard/DashboardContext.tsx) |
 | Dashboard Crm | /dashboard/crm | oui | default | [src/pages/dashboard/DashboardCrm.tsx](../../src/pages/dashboard/DashboardCrm.tsx) |
+| Dashboard Cuisine | /dashboard/cuisine | oui | default | [src/pages/dashboard/DashboardCuisine.tsx](../../src/pages/dashboard/DashboardCuisine.tsx) |
 | Dashboard Empty State | — | non | default | [src/pages/dashboard/DashboardEmptyState.tsx](../../src/pages/dashboard/DashboardEmptyState.tsx) |
 | Dashboard Factures | /dashboard/factures | oui | default | [src/pages/dashboard/DashboardFactures.tsx](../../src/pages/dashboard/DashboardFactures.tsx) |
 | Dashboard Factures Inflow | /dashboard/factures/entrees | oui | default | [src/pages/dashboard/DashboardFacturesInflow.tsx](../../src/pages/dashboard/DashboardFacturesInflow.tsx) |
@@ -3048,7 +3051,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (921)</summary>
+<details><summary>function (924)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3567,6 +3570,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.is_special_paid_reservation_locked` (2 définition(s))
 - `public.is_truthy_text` (1 définition(s))
 - `public.jsonb_target_pages_has_actualites` (2 définition(s))
+- `public.kitchen_advance_ticket` (1 définition(s))
+- `public.kitchen_create_ticket` (1 définition(s))
+- `public.kitchen_list_tickets` (1 définition(s))
 - `public.launch_gate_enabled` (1 définition(s))
 - `public.launch_rpc_allowed` (4 définition(s))
 - `public.launch_table_allowed` (4 définition(s))
@@ -3974,7 +3980,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (749)</summary>
+<details><summary>index (753)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -4406,6 +4412,10 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `idx_wallet_transactions_wallet_id` (1 définition(s))
 - `image_analysis_jobs_status_created_idx` (1 définition(s))
 - `internal_unlimited_openai_grants_restaurant_idx` (1 définition(s))
+- `kitchen_ticket_events_ticket_idx` (1 définition(s))
+- `kitchen_ticket_items_ticket_idx` (1 définition(s))
+- `kitchen_tickets_queue_idx` (1 définition(s))
+- `kitchen_tickets_table_idx` (1 définition(s))
 - `loyalty_gift_received_once` (1 définition(s))
 - `loyalty_gift_sent_once` (1 définition(s))
 - `loyalty_order_primary_reward_once` (1 définition(s))
@@ -4728,7 +4738,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>policy (821)</summary>
+<details><summary>policy (824)</summary>
 
 - `ad_campaigns.Admins can manage ad campaigns` (1 définition(s))
 - `ad_campaigns.Anyone can read active campaigns` (1 définition(s))
@@ -5049,6 +5059,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.invoices.Require auth for invoices` (2 définition(s))
 - `public.invoices.invoices_admin_all` (1 définition(s))
 - `public.invoices.invoices_recipient_select` (1 définition(s))
+- `public.kitchen_ticket_events.kitchen_ticket_events_owner_read` (1 définition(s))
+- `public.kitchen_ticket_items.kitchen_ticket_items_owner_read` (1 définition(s))
+- `public.kitchen_tickets.kitchen_tickets_owner_read` (1 définition(s))
 - `public.launch_pack_service_fulfillments.fulfillments_admin_all` (1 définition(s))
 - `public.launch_pack_service_fulfillments.fulfillments_owner_read` (1 définition(s))
 - `public.launch_packs.launch_packs_admin_all` (1 définition(s))
@@ -5554,7 +5567,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (411)</summary>
+<details><summary>table (414)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5691,6 +5704,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.inventory_items` (1 définition(s))
 - `public.inventory_movements` (1 définition(s))
 - `public.invoices` (1 définition(s))
+- `public.kitchen_ticket_events` (1 définition(s))
+- `public.kitchen_ticket_items` (1 définition(s))
+- `public.kitchen_tickets` (1 définition(s))
 - `public.launch_gate_clock` (1 définition(s))
 - `public.launch_pack_service_fulfillments` (1 définition(s))
 - `public.launch_packs` (1 définition(s))
@@ -7162,6 +7178,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261031063000 Marketing Growth Autopilot | 267 | 5 | [supabase/migrations/20261031063000_marketing_growth_autopilot.sql:1](../../supabase/migrations/20261031063000_marketing_growth_autopilot.sql#L1) |
 | 20261031214500 Marketing Growth Noon Refresh | 228 | 1 | [supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql:1](../../supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql#L1) |
 | 20261101080028 Marketing Growth Engine | 257 | 17 | [supabase/migrations/20261101080028_marketing_growth_engine.sql:1](../../supabase/migrations/20261101080028_marketing_growth_engine.sql#L1) |
+| 20261103062023 Kitchen Table Service | 285 | 13 | [supabase/migrations/20261103062023_kitchen_table_service.sql:1](../../supabase/migrations/20261103062023_kitchen_table_service.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7396,7 +7413,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 46 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 280 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 884 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 888 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7406,18 +7423,18 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 238 |
+| application-library | 239 |
 | automation-script | 93 |
 | documentation | 6 |
 | edge-function-source | 264 |
 | frontend-component | 319 |
 | frontend-hook | 25 |
-| frontend-page | 134 |
+| frontend-page | 135 |
 | frontend-source | 37 |
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 826 |
+| test | 828 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7737,7 +7754,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (239)</summary>
+<details><summary>application-library (240)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/acquisitionAttribution.ts`
@@ -7857,6 +7874,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/internalPageNavigation.ts`
 - `src/lib/invoicePresentation.ts`
 - `src/lib/iosCommerceFetch.ts`
+- `src/lib/kitchenTickets.ts`
 - `src/lib/launchGate.ts`
 - `src/lib/launchPacks.ts`
 - `src/lib/legalDocuments.ts`
@@ -8130,7 +8148,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (593)</summary>
+<details><summary>database-migration (594)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8725,6 +8743,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261031063000_marketing_growth_autopilot.sql`
 - `supabase/migrations/20261031214500_marketing_growth_noon_refresh.sql`
 - `supabase/migrations/20261101080028_marketing_growth_engine.sql`
+- `supabase/migrations/20261103062023_kitchen_table_service.sql`
 
 </details>
 
@@ -9567,7 +9586,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-page (134)</summary>
+<details><summary>frontend-page (135)</summary>
 
 - `src/pages/APropos.tsx`
 - `src/pages/Abonnement.tsx`
@@ -9673,6 +9692,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/pages/dashboard/DashboardComparaison.tsx`
 - `src/pages/dashboard/DashboardContext.tsx`
 - `src/pages/dashboard/DashboardCrm.tsx`
+- `src/pages/dashboard/DashboardCuisine.tsx`
 - `src/pages/dashboard/DashboardEmptyState.tsx`
 - `src/pages/dashboard/DashboardFactures.tsx`
 - `src/pages/dashboard/DashboardFacturesInflow.tsx`
@@ -11009,7 +11029,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (826)</summary>
+<details><summary>test (828)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11216,6 +11236,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/dashboard-advisor-history.test.ts`
 - `src/test/dashboard-campaign-unification.test.ts`
 - `src/test/dashboard-commands-collapse.test.tsx`
+- `src/test/dashboard-cuisine.test.tsx`
 - `src/test/dashboard-design-preview-env.test.ts`
 - `src/test/dashboard-design-preview-export.test.tsx`
 - `src/test/dashboard-floor-plan-integration.test.tsx`
@@ -11348,6 +11369,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/ios-app-store-readiness.test.ts`
 - `src/test/ios-commerce-policy.test.ts`
 - `src/test/ios-storekit-subscription-management.test.ts`
+- `src/test/kitchen-tickets.test.ts`
 - `src/test/la-gazelle-dor-seed.test.ts`
 - `src/test/la-tok-dor-naming.test.ts`
 - `src/test/launch-anonymous-browsing.test.ts`
