@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8be115572db62f716b6059f817de4ce6da6e756f8addbf60de5e7fbccc3357c7`
+- Empreinte SHA-256 des sources indexées : `babb2013c6157001396ca5a05c4a1cbb2ba1da9145ec386a3bfaf1cc7be766f6`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,8 +45,8 @@
 | publicEntries | 956 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 122 |
-| records | 20672 |
-| repositoryFiles | 4108 |
+| records | 20673 |
+| repositoryFiles | 4109 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -9738,7 +9738,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (59)</summary>
+<details><summary>frontend-source (60)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -9794,6 +9794,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/sql/marketing_content_reviews_smoke.sql`
 - `src/test/sql/marketing_instagram_reviews_smoke.sql`
 - `src/test/sql/tok_connect_marketing_links_smoke.sql`
+- `src/test/sql/tok_kitchen_workforce_smoke.sql`
 - `src/test/sql/tok_workforce_concurrency_smoke.sql`
 - `src/test/sql/tok_workforce_integrity_smoke.sql`
 - `src/test/sql/tok_workforce_launch_smoke.sql`
