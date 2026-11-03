@@ -35,6 +35,10 @@ vi.mock("@/components/DashboardLayout", () => ({
 vi.mock("@/components/dashboard/DashboardPageHero", () => ({
   default: ({ title }: { title: string }) => <h1>{title}</h1>,
 }));
+vi.mock("@/components/dashboard/RestaurantOrderInsightsPanel", () => ({
+  default: ({ restaurantId }: { restaurantId: string }) =>
+    <section aria-label="Mémoire des commandes">Historique du restaurant {restaurantId}</section>,
+}));
 vi.mock("@/lib/kitchenTickets", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/kitchenTickets")>();
   return {
@@ -78,6 +82,15 @@ describe("écran cuisine restaurateur", () => {
     vi.mocked(listKitchenTickets).mockResolvedValue([]);
     vi.mocked(submitKitchenTicket).mockResolvedValue(TICKET);
     vi.mocked(advanceKitchenTicket).mockResolvedValue(undefined);
+  });
+
+  it("donne accès à la mémoire de commandes depuis le même écran restaurateur", async () => {
+    mountDashboard();
+    fireEvent.keyDown(screen.getByRole("tab", { name: /Historique & statistiques/ }), {
+      key: "Enter", code: "Enter",
+    });
+    expect(await screen.findByRole("region", { name: "Mémoire des commandes" }))
+      .toHaveTextContent(RESTAURANT);
   });
 
   it("choisit la table, augmente les quantités et transmet au backend", async () => {
