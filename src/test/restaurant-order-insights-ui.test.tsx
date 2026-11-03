@@ -38,7 +38,8 @@ const report = {
   top_products: [{
     item_key: DISH, name: "Pizza margherita", category: "Pizzas",
     channel: "salle" as const, order_count: 1, units_recorded: 2,
-    units_confirmed: 2, units_completed: 1, estimated_value_chf: 38,
+    units_confirmed: 2, room_units: 2, online_units: 0,
+    units_completed: 1, estimated_value_chf: 38,
   }],
   hours: Array.from({ length: 24 }, (_, hour) => ({ hour, orders: hour === 13 ? 2 : 0 })),
   weekdays: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, orders: index === 1 ? 2 : 0 })),

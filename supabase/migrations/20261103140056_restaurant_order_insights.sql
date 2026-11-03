@@ -167,8 +167,9 @@ begin
       and (p_branch_id is null or o.branch_id = p_branch_id)
   ),
   products as materialized (
-    select a.id as order_id, a.channel, i.menu_item_id::text as item_key,
-           left(i.name,200) as name,
+    select a.id as order_id, a.channel,
+           coalesce(i.menu_item_id::text, 'libelle:' || lower(i.name)) as item_key,
+           a.created_at, left(i.name,200) as name,
            coalesce(m.category,'Autres') as category,
            i.quantity::integer as quantity, (i.quantity * i.unit_price) as amount,
            a.eligible, a.finished
@@ -182,7 +183,7 @@ begin
     select a.id, a.channel,
            coalesce(i.menu_item_id::text, i.anti_waste_offer_id::text,
                     'libelle:' || coalesce(nullif(btrim(i.metadata->>'name'),''),'inconnu')),
-           left(coalesce(nullif(btrim(i.product_name_snapshot),''),
+           a.created_at, left(coalesce(nullif(btrim(i.product_name_snapshot),''),
                   nullif(btrim(m.name),''),
                   nullif(btrim(i.metadata->>'name'),''),
                   nullif(btrim(i.metadata->>'product_name'),''),
@@ -223,18 +224,24 @@ begin
         'item_key', p.item_key, 'name', p.name, 'category', p.category,
         'channel', p.channel, 'order_count', p.order_count,
         'units_recorded', p.units_recorded, 'units_confirmed', p.units_confirmed,
+        'room_units',p.room_units,'online_units',p.online_units,
         'units_completed', p.units_completed,
         'estimated_value_chf', p.value_chf
       ) order by p.units_confirmed desc, p.order_count desc, p.name), '[]'::jsonb)
       from (
-        select item_key, name, category, channel,
-               count(distinct order_id) filter (where eligible) as order_count,
+        select item_key,
+               (array_agg(name order by eligible desc, created_at desc, name))[1] as name,
+               (array_agg(category order by eligible desc, created_at desc, name))[1] as category,
+               case when count(distinct channel)>1 then 'mixte' else max(channel) end as channel,
+               count(distinct (channel,order_id)) filter (where eligible) as order_count,
                coalesce(sum(quantity),0) as units_recorded,
                coalesce(sum(quantity) filter (where eligible),0) as units_confirmed,
+               coalesce(sum(quantity) filter (where eligible and channel='salle'),0) as room_units,
+               coalesce(sum(quantity) filter (where eligible and channel='en_ligne'),0) as online_units,
                coalesce(sum(quantity) filter (where finished),0) as units_completed,
                coalesce(sum(amount) filter (where eligible),0) as value_chf
         from products
-        group by item_key,name,category,channel
+        group by item_key
         having coalesce(sum(quantity) filter (where eligible),0) > 0
         order by units_confirmed desc, order_count desc, name
         limit 30

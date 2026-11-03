@@ -8,6 +8,7 @@ export type OrderInsightChannel = "all" | "salle" | "en_ligne";
 const nonnegative = z.coerce.number().finite().nonnegative();
 const counter = nonnegative.int();
 const channelSchema = z.enum(["salle", "en_ligne"]);
+const productChannelSchema = z.enum(["salle", "en_ligne", "mixte"]);
 
 const orderInsightsSchema = z.object({
   from_day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -28,10 +29,12 @@ const orderInsightsSchema = z.object({
     item_key: z.string().nullable(),
     name: z.string().min(1).max(200),
     category: z.string(),
-    channel: channelSchema,
+    channel: productChannelSchema,
     order_count: counter,
     units_recorded: counter,
     units_confirmed: counter,
+    room_units: counter,
+    online_units: counter,
     units_completed: counter,
     estimated_value_chf: nonnegative,
   })).max(30),

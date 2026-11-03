@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b41a558650554a9a5dd3147daf1bc1b8bceb5b19419aa7e988af65ac0414b245`
+- Empreinte SHA-256 des sources indexées : `cf8697fc4e07cc5f9154fb2fd3d2a5488859427848090fde5ae8937ccf28f0f5`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -7194,7 +7194,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261101080028 Marketing Growth Engine | 257 | 17 | [supabase/migrations/20261101080028_marketing_growth_engine.sql:1](../../supabase/migrations/20261101080028_marketing_growth_engine.sql#L1) |
 | 20261103062023 Kitchen Table Service | 285 | 13 | [supabase/migrations/20261103062023_kitchen_table_service.sql:1](../../supabase/migrations/20261103062023_kitchen_table_service.sql#L1) |
 | 20261103114909 Kitchen Tok Workforce Access | 226 | 5 | [supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql:1](../../supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql#L1) |
-| 20261103140056 Restaurant Order Insights | 461 | 6 | [supabase/migrations/20261103140056_restaurant_order_insights.sql:1](../../supabase/migrations/20261103140056_restaurant_order_insights.sql#L1) |
+| 20261103140056 Restaurant Order Insights | 468 | 6 | [supabase/migrations/20261103140056_restaurant_order_insights.sql:1](../../supabase/migrations/20261103140056_restaurant_order_insights.sql#L1) |
 
 ## Automatisation, dépendances et CI
 

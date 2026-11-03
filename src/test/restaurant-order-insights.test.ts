@@ -32,7 +32,8 @@ const makeReport = () => ({
   top_products: [{
     item_key: ORDER, name: "Pizza margherita", category: "Pizzas",
     channel: "salle", order_count: 2, units_recorded: 5,
-    units_confirmed: 4, units_completed: 2, estimated_value_chf: 80,
+    units_confirmed: 4, room_units: 4, online_units: 0,
+    units_completed: 2, estimated_value_chf: 80,
   }],
   hours: Array.from({ length: 24 }, (_, hour) => ({ hour, orders: hour === 12 ? 3 : 0 })),
   weekdays: Array.from({ length: 7 }, (_, index) => ({ day: index + 1, orders: index === 1 ? 3 : 0 })),

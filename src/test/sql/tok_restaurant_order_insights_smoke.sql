@@ -151,8 +151,10 @@ SELECT pg_temp.insight_assert(
    FROM (SELECT public.restaurant_order_insights(:'restaurant') AS v) r),
  'Hour/weekday/day buckets have correct lengths and no duplicate days');
 SELECT pg_temp.insight_assert(
- (SELECT (v->'top_products'->0->>'units_confirmed')::integer=3
-   AND (v->'top_products'->0->>'channel')='en_ligne'
+ (SELECT (v->'top_products'->0->>'units_confirmed')::integer=5
+   AND (v->'top_products'->0->>'room_units')::integer=2
+   AND (v->'top_products'->0->>'online_units')::integer=3
+   AND (v->'top_products'->0->>'channel')='mixte'
    AND (v->'top_products'->0->>'name')='Pizza margherita'
    FROM (SELECT public.restaurant_order_insights(:'restaurant') AS v) r),
  'Product ranking uses captured historical name and confirmed quantities');

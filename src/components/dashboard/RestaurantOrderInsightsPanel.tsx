@@ -34,7 +34,8 @@ const statusLabels: Record<string, string> = {
   picked_up: "Récupérée", ready_for_pickup: "Prête au retrait",
 };
 
-const channelLabel = (channel: string) => channel === "salle" ? "En salle" : "En ligne";
+const channelLabel = (channel: string) => channel === "salle" ? "En salle"
+  : channel === "mixte" ? "Salle et en ligne" : "En ligne";
 
 function StatCard({ label, value, note, Icon }: {
   label: string; value: string; note?: string;
@@ -250,6 +251,7 @@ export default function RestaurantOrderInsightsPanel({ restaurantId }: { restaur
                           </div>
                           <p className="mt-1 text-xs text-muted-foreground">
                             {item.units_completed} servies/finalisées · {chf(item.estimated_value_chf)} indicatifs
+                            {item.channel === "mixte" ? " · Salle : " + item.room_units + " · En ligne : " + item.online_units : ""}
                             {item.units_recorded > item.units_confirmed
                               ? " · " + (item.units_recorded - item.units_confirmed) + " non confirmée(s)" : ""}
                           </p>
