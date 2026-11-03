@@ -1,8 +1,8 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "5e748df55e0e240cb9a6fb8aad0489a543aa27cb53ef299023d3fd3a339e9f4c",
-  "routeCount": 146,
+  "sourceDigest": "5f81348dc9aed56337f2c27d7820be8a85f1fe5484c9423e1f47295f795b2924",
+  "routeCount": 147,
   "toolCount": 126
 } as const;
 
@@ -74,6 +74,17 @@ export const TOK_USER_GUIDE_ROUTES = [
     "surface": "public",
     "components": [
       "MyWorkforce",
+      "ProtectedRoute"
+    ],
+    "requiredRoles": [],
+    "featureGate": null,
+    "redirectTo": null
+  },
+  {
+    "path": "/equipe/gestion-salle",
+    "surface": "public",
+    "components": [
+      "MyRoomManagement",
       "ProtectedRoute"
     ],
     "requiredRoles": [],

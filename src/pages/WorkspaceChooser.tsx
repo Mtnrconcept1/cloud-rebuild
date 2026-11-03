@@ -1,4 +1,5 @@
 import { useEffect, type ComponentType } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Bike,
   BriefcaseBusiness,
@@ -8,6 +9,7 @@ import {
   Shield,
   Sparkles,
   Store,
+  UtensilsCrossed,
   User,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { getAdminNavigationHref } from "@/lib/adminDomains";
 import { getWorkspaceChooserHref, isCanonicalAuthHost } from "@/lib/authDomains";
 import { useAuth, type UserRole } from "@/lib/auth-context";
+import { workforceDb } from "@/hooks/useTokWorkforce";
 import { getCommercialNavigationHref } from "@/lib/commercialDomains";
 import {
   DEMO_WORKSPACES,
@@ -92,6 +95,19 @@ export default function WorkspaceChooser() {
   const navigate = useNavigate();
   const { user, roles, switchRole } = useAuth();
   const effectiveRoles = getEffectiveRoles(roles);
+  const roomMemberships = useQuery({
+    queryKey: ["workforce-memberships", user?.id],
+    enabled: Boolean(user?.id),
+    retry: 0,
+    staleTime: 30_000,
+    queryFn: async (): Promise<Array<{
+      restaurant_id: string; employee_id: string; restaurant_name: string; linked: boolean;
+    }>> => {
+      const { data, error } = await workforceDb().rpc("tok_workforce_my_restaurants");
+      if (error) throw error;
+      return data || [];
+    },
+  });
   const canAccessDemo = effectiveRoles.includes("admin") || effectiveRoles.includes("commercial");
 
   useEffect(() => {
@@ -135,6 +151,20 @@ export default function WorkspaceChooser() {
     hostname:getTargetHostname("/equipe/mon-espace"),
     onSelect:()=>openTarget("/equipe/mon-espace"),
   });
+
+  const verifiedRoomMembership = roomMemberships.data?.find((member) => member.linked);
+  if (verifiedRoomMembership) {
+    const target = "/equipe/gestion-salle?restaurant=" + encodeURIComponent(verifiedRoomMembership.restaurant_id);
+    realCards.push({
+      key: "real:room-management",
+      label: "Gestion de salle",
+      description: "Prendre les commandes aux tables et les transmettre à la cuisine",
+      kind: "real",
+      icon: UtensilsCrossed,
+      hostname: getTargetHostname(target),
+      onSelect: () => openTarget(target),
+    });
+  }
 
   const demoCards: WorkspaceCard[] = canAccessDemo
     ? [

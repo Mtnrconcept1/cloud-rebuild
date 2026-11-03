@@ -7,6 +7,7 @@ import {
   buildKitchenLines,
   canAdvanceKitchenTicket,
   changeKitchenQuantity,
+  getKitchenSetup,
   kitchenWaitingMinutes,
   sortKitchenTickets,
   submitKitchenTicket,
@@ -95,6 +96,42 @@ describe("Prise de commande et ticket cuisine", () => {
     expect(sortKitchenTickets(input)).toEqual([older, newer]);
     expect(input).toEqual([newer, older]);
     expect(kitchenWaitingMinutes(older.created_at, Date.parse("2026-11-03T12:25:00Z"))).toBe(25);
+  });
+
+  it("récupère le catalogue de salle par RPC sécurisé, sans exposition publique", async () => {
+    const branch = "56b31120-54a5-4f46-8fe1-5bc940ec20d5";
+    rpc.mockResolvedValueOnce({
+      data: {
+        branches: [{ id: branch, name: "Centre" }],
+        tables: [{ id: TABLE, branch_id: branch, table_number: "1", capacity: 4 }],
+        menu: [{ id: DISH, name: "Pizza", category: "Pizzas", price: 18 }],
+      }, error: null,
+    });
+    const result = await getKitchenSetup(RESTAURANT);
+    expect(result.menu[0].name).toBe("Pizza");
+    expect(rpc).toHaveBeenCalledWith("kitchen_get_setup", { p_restaurant_id: RESTAURANT });
+
+    rpc.mockResolvedValueOnce({ data: { menu: [] }, error: null });
+    await expect(getKitchenSetup(RESTAURANT)).rejects.toThrow(/invalide/);
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "Accès refusé" } });
+    await expect(getKitchenSetup(RESTAURANT)).rejects.toThrow(/Accès refusé/);
+  });
+
+  it("vérifie l'isolation des serveurs TOK Équipe au niveau SQL", () => {
+    const sql = readFileSync(resolve(process.cwd(),
+      "supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql"), "utf8");
+    expect(sql).toContain("e.user_id = (select auth.uid())");
+    expect(sql).toContain("e.is_active is true");
+    expect(sql).toContain("e.role in ('employee', 'manager')");
+    expect(sql).toContain("s.enabled is true");
+    expect(sql).toContain("e.ended_on is null");
+    expect(sql).toContain("public.commercial_demo_current_user_is_restricted()");
+    expect(sql).toContain("submitted_by = (select auth.uid())");
+    expect(sql).toContain("on public.kitchen_tickets");
+    expect(sql).toContain("if not public.kitchen_can_submit(p_restaurant_id) then");
+    expect(sql).toContain("on conflict (restaurant_id, submitted_by, request_key) do nothing");
+    expect(sql).not.toContain("grant insert on public.kitchen_tickets");
+    expect(sql).not.toContain("public.restaurant_staff");
   });
 
   it("verrouille la migration : lecture isolée, mutations RPC, anti-doublon", () => {

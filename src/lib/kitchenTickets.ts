@@ -31,6 +31,27 @@ const kitchenTicketSchema = z.object({
 
 export type KitchenTicket = z.infer<typeof kitchenTicketSchema>;
 
+export const kitchenSetupSchema = z.object({
+  branches: z.array(z.object({
+    id: z.string().uuid(),
+    name: z.string().min(1),
+  })).max(30),
+  tables: z.array(z.object({
+    id: z.string().uuid(),
+    branch_id: z.string().uuid(),
+    table_number: z.string().min(1),
+    capacity: z.number().int().nonnegative(),
+  })).max(200),
+  menu: z.array(z.object({
+    id: z.string().uuid(),
+    name: z.string().min(1),
+    category: z.string().nullable(),
+    price: z.coerce.number().nonnegative(),
+  })).max(500),
+});
+
+export type KitchenSetup = z.infer<typeof kitchenSetupSchema>;
+
 const allowedTransitions: Record<KitchenTicketStatus, readonly KitchenTicketStatus[]> = {
   queued: ["preparing", "cancelled"],
   preparing: ["ready"],
@@ -87,7 +108,7 @@ export function kitchenWaitingMinutes(createdAt: string, now = Date.now()): numb
 
 // These RPCs are introduced by the kitchen migration; the generated Supabase
 // schema will include them on the next normal types regeneration.
-type KitchenRpcName = "kitchen_list_tickets" | "kitchen_create_ticket" | "kitchen_advance_ticket";
+type KitchenRpcName = "kitchen_list_tickets" | "kitchen_create_ticket" | "kitchen_advance_ticket" | "kitchen_get_setup";
 type KitchenRpcResult = { data: unknown; error: { message: string } | null };
 async function callKitchenRpc(name: KitchenRpcName, args: Record<string, unknown>): Promise<unknown> {
   const supabase = getSupabase();
@@ -97,6 +118,13 @@ async function callKitchenRpc(name: KitchenRpcName, args: Record<string, unknown
   const { data, error } = await rpc(name, args);
   if (error) throw new Error(error.message);
   return data;
+}
+
+export async function getKitchenSetup(restaurantId: string): Promise<KitchenSetup> {
+  const data = await callKitchenRpc("kitchen_get_setup", { p_restaurant_id: restaurantId });
+  const parsed = kitchenSetupSchema.safeParse(data);
+  if (!parsed.success) throw new Error("La configuration de salle renvoyée est invalide.");
+  return parsed.data;
 }
 
 export async function listKitchenTickets(restaurantId: string): Promise<KitchenTicket[]> {
