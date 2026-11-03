@@ -7,6 +7,11 @@ describe("navbar action stability", () => {
   const source = readFileSync(resolve(process.cwd(), "src/components/Navbar.tsx"), "utf8");
   const notificationBell = readFileSync(resolve(process.cwd(), "src/components/notifications/NotificationBell.tsx"), "utf8");
 
+  it("names mobile home tabs even when labels are visually hidden", () => {
+    expect(source).toContain('<NavLink to="/" end aria-label="Accueil"');
+    expect(source).toContain('<NavLink to="/recherche" aria-label="Explorer les restaurants"');
+  });
+
   it("prevents mouse focus from scrolling the sticky desktop action bar", () => {
     expect(source).toContain("preserveNavbarActionScrollPosition");
     expect(source).toContain("event.detail === 0");

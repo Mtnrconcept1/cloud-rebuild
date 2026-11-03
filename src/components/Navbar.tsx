@@ -320,6 +320,17 @@ export default function Navbar() {
             <img src={logoSrc} alt="Tok" width={98} height={64} decoding="async" className={`${isMobileHomeHeader ? "h-[50px]" : "h-11 min-[380px]:h-12"} w-auto object-contain md:h-[58px]`} />
           </Link>
 
+          {isMobileHomeHeader ? (
+            <nav className="tok-mobile-home-tabs" aria-label="Navigation principale sur mobile">
+              <NavLink to="/" end aria-label="Accueil" className="tok-mobile-home-tabs__link">
+                <House aria-hidden="true" /><span>Accueil</span>
+              </NavLink>
+              <NavLink to="/recherche" aria-label="Explorer les restaurants" className="tok-mobile-home-tabs__link">
+                <Search aria-hidden="true" /><span>Explorer</span>
+              </NavLink>
+            </nav>
+          ) : null}
+
           {showClientSurface ? (
             <NavigationMenu className="hidden xl:flex">
               <NavigationMenuList className="min-w-max flex-nowrap whitespace-nowrap">
@@ -414,7 +425,7 @@ export default function Navbar() {
             {!showHalloweenCanopy ? (
               <ThemeToggleButton
                 onMouseDown={preserveNavbarActionScrollPosition}
-                className={`${isMobileHomeHeader ? "text-foreground hover:bg-transparent hover:text-foreground" : ""} hidden min-[380px]:inline-flex`}
+                className={`${isMobileHomeHeader ? "hidden md:inline-flex" : "hidden min-[380px]:inline-flex"}`}
               />
             ) : null}
 
@@ -559,7 +570,7 @@ export default function Navbar() {
                 </SheetHeader>
 
                 {!showHalloweenCanopy ? (
-                  <div className="mt-4 flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/40 px-3.5 min-[380px]:hidden">
+                  <div className={`mt-4 flex min-h-12 items-center justify-between gap-3 rounded-2xl border border-border/70 bg-muted/40 px-3.5 ${isMobileHomeHeader ? "" : "min-[380px]:hidden"}`}>
                     <span className="text-sm font-medium">Thème d’affichage</span>
                     <ThemeToggleButton aria-label="Changer le thème d’affichage" />
                   </div>
