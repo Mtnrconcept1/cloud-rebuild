@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f6e4bc888beedfc84fedb3dc23ec643630c3a7e14fa3c5a36b7846746028481a`
+- Empreinte SHA-256 des sources indexées : `f897f64a14b33b5dfec9f98acd5f33e9d098e50cd68f2480ab097481832d36f7`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -1704,7 +1704,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /admin/notifications | 12 | [src/App.tsx:702](../../src/App.tsx#L702) |
 | /admin/oauth/clients | 1 | [src/test/tok-connect-broker.test.ts:51](../../src/test/tok-connect-broker.test.ts#L51) |
 | /admin/packs | 5 | [src/App.tsx:706](../../src/App.tsx#L706) |
-| /admin/parrainages | 2 | [src/App.tsx:694](../../src/App.tsx#L694) |
+| /admin/parrainages | 3 | [src/App.tsx:694](../../src/App.tsx#L694) |
 | /admin/platform | 9 | [src/App.tsx:692](../../src/App.tsx#L692) |
 | /admin/restaurants | 14 | [src/App.tsx:693](../../src/App.tsx#L693) |
 | /admin/restaurants/google-business | 8 | [src/App.tsx:696](../../src/App.tsx#L696) |
@@ -1888,7 +1888,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/notifications | 18 | [src/App.tsx:648](../../src/App.tsx#L648) |
 | /dashboard/offres | 8 | [src/App.tsx:666](../../src/App.tsx#L666) |
 | /dashboard/pack | 2 | [src/test/feature-flags.test.ts:134](../../src/test/feature-flags.test.ts#L134) |
-| /dashboard/parrainage | 2 | [src/App.tsx:650](../../src/App.tsx#L650) |
+| /dashboard/parrainage | 3 | [src/App.tsx:650](../../src/App.tsx#L650) |
 | /dashboard/performances | 10 | [src/App.tsx:657](../../src/App.tsx#L657) |
 | /dashboard/photos | 20 | [src/App.tsx:669](../../src/App.tsx#L669) |
 | /dashboard/plan-de-salle | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:211](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L211) |
