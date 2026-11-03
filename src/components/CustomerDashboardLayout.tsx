@@ -281,7 +281,12 @@ export default function CustomerDashboardLayout({ children }: { children: React.
         <main ref={pageRef} tabIndex={-1} aria-label={currentMobilePage?.label || "Espace client"} className="tok-workspace-content min-h-[500px] min-w-0 px-4 pb-8 pt-4 sm:px-6">
           <div className="tok-workspace-page-stack mx-auto min-w-0 max-w-7xl">
             {!isHome ? <BackNavigationButton fallback="/mon-espace" className="tok-workspace-back mb-4" /> : null}
-            <RouteHeroBanner src={routeHero} />
+            <RouteHeroBanner
+              src={routeHero}
+              eyebrow="Espace client TOK"
+              title={currentMobilePage?.label || "Mon espace"}
+              description="Retrouvez vos informations et vos avantages."
+            />
             {children}
             {!commercialDemoFrame ? (
               <div className="mt-8 border-t pt-4 md:hidden">

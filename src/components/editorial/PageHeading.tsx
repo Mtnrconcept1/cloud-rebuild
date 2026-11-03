@@ -9,41 +9,26 @@ type Props = {
   description?: ReactNode;
   eyebrow?: ReactNode;
   actions?: ReactNode;
-  artwork?: ReactNode;
   heroImage?: string | false;
+  /** Conservé pour les anciens appels, sans ajouter de mascotte dans le hero. */
   mascot?: "presenter" | "megaphone" | "cloche" | false;
   className?: string;
+  presentation?: boolean;
 };
-
-const mascotSources = {
-  presenter: "/images/tok-refonte/chef-presentateur.webp",
-  megaphone: "/images/tok-refonte/chef-megaphone.webp",
-  cloche: "/images/tok-refonte/chef-cloche.webp",
-} as const;
 
 export default function PageHeading({
   title,
   description,
   eyebrow,
   actions,
-  artwork,
   heroImage,
-  mascot = "presenter",
   className,
+  presentation = false,
 }: Props) {
   const routeHero = typeof window === "undefined"
     ? undefined
     : getEditorialHeroVisual(window.location.pathname, window.location.search);
   const resolvedHero = heroImage === false ? undefined : heroImage ?? routeHero;
-  const resolvedArtwork = artwork ?? (mascot ? (
-    <img
-      src={mascotSources[mascot]}
-      alt=""
-      className="tok-editorial-heading__mascot"
-      loading="eager"
-      decoding="async"
-    />
-  ) : null);
   const heroStyle = resolvedHero
     ? ({ "--tok-editorial-hero-image": `url("${resolvedHero}")` } as CSSProperties)
     : undefined;
@@ -53,10 +38,10 @@ export default function PageHeading({
 
   return (
     <header
+      role={presentation ? "presentation" : undefined}
       className={cn(
         "tok-editorial-heading",
         resolvedHero && "tok-editorial-heading--with-hero",
-        resolvedArtwork && "tok-editorial-heading--illustrated",
         className,
       )}
       data-editorial-hero={resolvedHero}
@@ -68,7 +53,6 @@ export default function PageHeading({
         <h1>{title}</h1>
         {description && <div className="tok-editorial-heading__description">{description}</div>}
       </div>
-      {resolvedArtwork && <div className="tok-editorial-heading__art" aria-hidden="true">{resolvedArtwork}</div>}
       {actions && <div className="tok-editorial-heading__actions">{actions}</div>}
     </header>
   );

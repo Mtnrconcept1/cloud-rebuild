@@ -50,14 +50,19 @@ describe("TOK five editorial dashboard subtitle styles", () => {
     expect(html).toContain('class="tok-editorial-heading__description"');
   });
 
-  it("preserves the same treatment on the mobile restaurant dashboard hero", () => {
+  it("uses the common text-bearing hero on the mobile restaurant home without a chef", () => {
     const mobileOverview = readFileSync(
       path.resolve(process.cwd(), "src/components/dashboard/RestaurantDashboardHomeView.tsx"),
       "utf8",
     );
-    expect(mobileOverview).toContain('data-subtitle-style={getHeroSubtitleStyle("/dashboard")}');
-    expect(mobileOverview).toMatch(/tok-editorial-heading__description mt-0\.5/);
-    expect(mobileOverview).not.toMatch(/mt-0\.5 truncate text-\[0\.98rem\]/);
+    expect(mobileOverview).toContain("<PageHeading");
+    expect(mobileOverview).toContain('id="mobile-restaurant-dashboard-title"');
+    expect(mobileOverview).not.toContain('src="/images/tok-refonte/chef-presentateur.webp"');
+
+    window.history.replaceState(null, "", "/dashboard");
+    const html = renderToStaticMarkup(<PageHeading title="Bonjour" description="Bienvenue sur TOK" />);
+    expect(html).toContain('data-subtitle-style="brosse-orange"');
+    expect(html).toContain("Bienvenue sur TOK");
   });
 
   it("does not restyle an unrelated page or a hero with no description", () => {

@@ -22,7 +22,7 @@ describe("TOK dashboard image collection", () => {
     expect(new Set(heroHashes).size).toBe(62);
   });
 
-  it("ships the three reusable transparent chef poses used by the editorial shell", () => {
+  it("preserves reusable chef assets without inserting them in the shared hero", () => {
     const assets = ["chef-presentateur.webp", "chef-megaphone.webp", "chef-cloche.webp"];
     for (const asset of assets) {
       const file = path.join(refonteAssetDir, asset);
@@ -31,7 +31,8 @@ describe("TOK dashboard image collection", () => {
     }
 
     const heading = readFileSync(path.resolve(process.cwd(), "src/components/editorial/PageHeading.tsx"), "utf8");
-    for (const asset of assets) expect(heading).toContain(`/images/tok-refonte/${asset}`);
+    for (const asset of assets) expect(heading).not.toContain(`/images/tok-refonte/${asset}`);
+    expect(heading).not.toContain("tok-editorial-heading__art");
   });
 
   it("renders client photographs in the shared hero instead of leaving them unused", () => {
