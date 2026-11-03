@@ -1,0 +1,601 @@
+/* TOK editorial homepage. The normal public homepage owns this layout.
+   The existing seasonal hero keeps its own isolated styles. */
+@font-face {
+  font-family: "TOK Editorial Anton";
+  src: url("/launch/anton.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TOK Editorial Barlow";
+  src: url("/launch/barlow.woff2") format("woff2");
+  font-weight: 400 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TOK Editorial Script";
+  src: url("/playball-font/Playball-q6o1.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+.tok-editorial-home__nav-brand { display: none; }
+
+.tok-editorial-home {
+  --tok-editorial-orange: #f75a24;
+  --tok-editorial-black: #131416;
+  --tok-editorial-cream: #fffdfa;
+  --tok-editorial-line: #e8e3de;
+  isolation: isolate;
+  background: #fff;
+  color: var(--tok-editorial-black);
+  font-family: "TOK Editorial Barlow", "Barlow", Arial, sans-serif;
+}
+
+:root .tok-editorial-home .tok-home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 0 14px;
+  color: var(--tok-editorial-black);
+  background: #fff;
+  border: none;
+}
+
+.tok-editorial-home__heading {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 28px 20px 12px;
+  background: #fff;
+  text-align: center;
+}
+
+.tok-editorial-home__city-stroke {
+  display: inline-block;
+  max-width: calc(100vw - 32px);
+  margin: 0 0 13px;
+  padding: 3px 27px 6px;
+  color: #fff;
+  background: var(--tok-editorial-orange);
+  clip-path: polygon(2% 19%, 15% 8%, 33% 0, 53% 9%, 73% 1%, 96% 12%, 100% 24%, 95% 69%, 100% 87%, 83% 94%, 49% 100%, 15% 91%, 0 100%, 5% 55%);
+  font-family: "TOK Editorial Script", cursive;
+  font-size: clamp(26px, 3.4vw, 38px);
+  font-weight: 400;
+  line-height: 1.04;
+  text-shadow: 0 1px 2px rgb(140 45 12 / 26%);
+  transform: rotate(-4deg);
+}
+
+.tok-editorial-home__title {
+  width: 100%;
+  margin: 0;
+  font-family: "TOK Editorial Anton", Impact, "Arial Narrow", sans-serif;
+  font-size: clamp(32px, 4.6vw, 70px);
+  font-weight: 400;
+  line-height: 1.03;
+  letter-spacing: -.012em;
+  text-transform: uppercase;
+}
+
+.tok-editorial-home__title span,
+.tok-editorial-home__title strong { display: block; font-weight: inherit; }
+.tok-editorial-home__title span { color: #0a0a0b; }
+.tok-editorial-home__title strong {
+  position: relative;
+  display: inline-block;
+  color: var(--tok-editorial-orange);
+  white-space: nowrap;
+}
+.tok-editorial-home__title strong::after {
+  content: "";
+  position: absolute;
+  right: 5%;
+  bottom: -4px;
+  left: 7%;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--tok-editorial-orange);
+  transform: rotate(-.7deg);
+}
+
+.tok-editorial-home__subtitle {
+  margin: 13px auto 0;
+  color: #262626;
+  font-size: clamp(15px, 1.65vw, 21px);
+  font-weight: 700;
+  line-height: 1.28;
+}
+.tok-editorial-home__subtitle strong {
+  color: var(--tok-editorial-orange);
+  font-weight: 800;
+}
+
+.tok-editorial-home__scene {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: clamp(340px, 32vw, 460px);
+  overflow: hidden;
+  background: #d3e9ee;
+}
+:root .tok-editorial-home .tok-home-hero__background,
+:root .tok-editorial-home .tok-home-hero__background img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+:root .tok-editorial-home .tok-home-hero__background img {
+  object-fit: cover;
+  object-position: center 48%;
+}
+.tok-editorial-home__scene::after {
+  content: "";
+  position: absolute;
+  inset: 60% 0 0;
+  pointer-events: none;
+  background: linear-gradient(transparent, rgb(255 255 255 / 25%));
+}
+
+.tok-editorial-home__search {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: 10px;
+  width: min(780px, calc(100% - 36px));
+  margin: -66px auto 0;
+  padding: 14px;
+  border: 1px solid #eae4df;
+  border-radius: 24px;
+  background: rgb(255 255 255 / 98%);
+  box-shadow: 0 14px 42px rgb(61 55 50 / 14%);
+}
+
+.tok-editorial-home__location,
+.tok-editorial-home__query {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  min-height: 58px;
+  padding: 4px 12px 4px 18px;
+  border: 1px solid #e1ddd9;
+  border-radius: 20px;
+  background: #fff;
+  color: #1d2024;
+}
+.tok-editorial-home__location > svg,
+.tok-editorial-home__query > svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: #777a81;
+}
+.tok-editorial-home__location > svg { color: var(--tok-editorial-orange); }
+
+.tok-editorial-home__search input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 43px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #17191b;
+  font-size: 17px;
+  font-family: inherit;
+}
+.tok-editorial-home__location input { font-weight: 800; }
+.tok-editorial-home__location input::placeholder {
+  color: #191b1f;
+  opacity: 1;
+  font-weight: 800;
+}
+.tok-editorial-home__query input::placeholder { color: #7c7e84; opacity: 1; }
+.tok-editorial-home__search input::-webkit-search-cancel-button { cursor: pointer; }
+
+.tok-editorial-home__location button,
+.tok-editorial-home__query button {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 0;
+  cursor: pointer;
+}
+.tok-editorial-home__location button {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: transparent;
+  color: #191b1f;
+}
+.tok-editorial-home__location button svg { width: 22px; height: 22px; }
+.tok-editorial-home__query button {
+  width: 47px;
+  height: 47px;
+  border-radius: 999px;
+  background: var(--tok-editorial-orange);
+  color: #fff;
+  box-shadow: 0 4px 12px rgb(247 90 36 / 22%);
+}
+.tok-editorial-home__query button svg { width: 24px; height: 24px; }
+
+.tok-editorial-home__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: min(780px, calc(100% - 36px));
+  margin: 12px auto 0;
+}
+.tok-editorial-home__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 9px 13px;
+  border-radius: 999px;
+  border: 1px solid #ece8e4;
+  background: #fff;
+  color: #161616;
+  box-shadow: 0 5px 18px rgb(54 44 34 / 11%);
+  font-size: clamp(16px, 1.5vw, 19px);
+  font-weight: 800;
+  line-height: 1.14;
+  text-decoration: none;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.tok-editorial-home__action:hover { transform: translateY(-2px); box-shadow: 0 9px 22px rgb(54 44 34 / 14%); }
+.tok-editorial-home__action svg { width: 22px; height: 22px; flex-shrink: 0; }
+.tok-editorial-home__action svg:last-child { width: 19px; height: 19px; }
+.tok-editorial-home__action--eat {
+  background: var(--tok-editorial-orange);
+  border-color: var(--tok-editorial-orange);
+  color: #fff;
+}
+
+.tok-editorial-home__benefits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(920px, calc(100% - 36px));
+  margin: 24px auto 0;
+  padding: 0;
+}
+.tok-editorial-home__benefits > * {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 60px;
+  padding: 4px 16px;
+  color: #17191d;
+  font-size: clamp(12px, 1.5vw, 17px);
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+}
+.tok-editorial-home__benefits > :not(:last-child) {
+  border-right: 1px solid #d7d4d1;
+}
+.tok-editorial-home__benefits svg {
+  width: 37px;
+  height: 37px;
+  flex-shrink: 0;
+  color: var(--tok-editorial-orange);
+  stroke-width: 1.9;
+}
+
+.tok-editorial-home__motto {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: min(920px, calc(100% - 36px));
+  margin: 27px auto 6px;
+  color: #34353a;
+  font-size: clamp(10px, 1.2vw, 14px);
+  font-weight: 600;
+  letter-spacing: .25em;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+}
+.tok-editorial-home__motto::before,
+.tok-editorial-home__motto::after {
+  content: "";
+  display: block;
+  height: 1px;
+  flex: 1 1 auto;
+  background: #bcbfc7;
+}
+
+.tok-editorial-home__newsletter {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 1px 13px;
+  align-items: center;
+  width: min(820px, calc(100% - 36px));
+  margin: 42px auto 32px;
+  padding: 15px 20px;
+  border: 1px solid #eee9e5;
+  border-radius: 22px;
+  background: #fff;
+  color: #2e3035;
+  box-shadow: 0 8px 28px rgb(48 35 21 / 6%);
+}
+.tok-editorial-home__newsletter > svg {
+  grid-row: 1 / 3;
+  grid-column: 1;
+  width: 28px;
+  height: 28px;
+  color: var(--tok-editorial-orange);
+}
+.tok-editorial-home__newsletter p {
+  grid-row: 1;
+  grid-column: 2;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.tok-editorial-home__newsletter strong { color: #1b1b1b; }
+.tok-editorial-home__newsletter button {
+  grid-row: 2;
+  grid-column: 2;
+  justify-self: start;
+  color: #6c6260;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.tok-editorial-home__newsletter a {
+  grid-row: 1 / 3;
+  grid-column: 3;
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--tok-editorial-orange);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.tok-editorial-home :is(input,button,a):focus-visible,
+body:has(.tok-editorial-home) .tok-home-header :is(button,a):focus-visible {
+  outline: 3px solid #f75a24;
+  outline-offset: 3px;
+}
+
+@media (max-width: 767px) {
+  :root body:has(.tok-editorial-home) {
+    background: #fff;
+  }
+  :root body:has(.tok-editorial-home) .tok-utility-bar { display: none !important; }
+  :root body:has(.tok-editorial-home) header.tok-home-header {
+    margin-bottom: 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid #f1efeb !important;
+    background: #fff !important;
+    color: #191b21 !important;
+    box-shadow: none !important;
+  }
+  :root body:has(.tok-editorial-home) .tok-home-header > div {
+    height: 73px !important;
+    min-height: 73px;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 0;
+    border: none;
+    background: #fff;
+    box-shadow: none;
+  }
+  :root body:has(.tok-editorial-home) .tok-home-header > div > a:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 6px;
+  }
+  :root body:has(.tok-editorial-home) .tok-home-header > div > a:first-child img {
+    width: auto;
+    height: 59px;
+    max-width: 72px;
+    flex-shrink: 0;
+    filter: none;
+  }
+  :root body:has(.tok-editorial-home) .tok-editorial-home__nav-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+    color: #15171a;
+    font-family: "TOK Editorial Barlow", Arial, sans-serif;
+    font-size: 10.5px;
+    line-height: 1.12;
+    white-space: nowrap;
+  }
+  :root body:has(.tok-editorial-home) .tok-editorial-home__nav-brand strong {
+    color: #16181b;
+    font-size: 18px;
+    line-height: 1.08;
+    font-weight: 800;
+  }
+  :root body:has(.tok-editorial-home) .tok-home-header .tok-mobile-home-tabs,
+  :root body:has(.tok-editorial-home) .tok-home-header button[aria-label="Panier"],
+  :root body:has(.tok-editorial-home) .tok-home-header a[aria-label="Panier"],
+  :root body:has(.tok-editorial-home) .tok-home-header button[aria-label^="Notifications"] {
+    display: none !important;
+  }
+  :root body:has(.tok-editorial-home) .tok-home-header :is(button[aria-label="Mode sombre"],button[aria-label="Mode clair"]) {
+    display: inline-flex !important;
+    width: 35px;
+    min-width: 35px;
+    min-height: 44px;
+    padding: 0 6px;
+    background: transparent;
+    color: #24282c;
+    filter: none;
+  }
+  :root body:has(.tok-editorial-home) .tok-home-header .golden-tok-route-menu {
+    display: inline-flex !important;
+    order: 2;
+    width: 35px;
+    min-width: 35px;
+    height: 44px;
+    padding: 0;
+    color: #1e2228 !important;
+    background: transparent;
+    filter: none;
+  }
+  :root body:has(.tok-editorial-home) .tok-home-header .golden-tok-route-menu svg { width: 24px; height: 24px; }
+  :root body:has(.tok-editorial-home) .tok-home-header .golden-tok-route-account {
+    order: 3;
+    min-height: 44px;
+    height: 44px;
+    min-width: 0;
+    padding: 0 13px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--tok-brand-orange, #f75a24);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+    text-transform: uppercase;
+    box-shadow: 0 5px 13px rgb(242 89 33 / 20%);
+  }
+  :root body:has(.tok-editorial-home) .tok-home-header .golden-tok-route-account svg { width: 17px; height: 17px; }
+  :root .tok-editorial-home .tok-home-hero {
+    display: flex !important;
+    min-height: 0;
+    padding: 0 0 14px;
+    background: #fff;
+  }
+  .tok-editorial-home__heading { padding: 12px 8px 6px; }
+  .tok-editorial-home__city-stroke {
+    margin-bottom: 9px;
+    padding: 2px 19px 4px;
+    font-size: clamp(22px, 6.8vw, 29px);
+  }
+  .tok-editorial-home__title {
+    font-size: clamp(25px, 7.2vw, 33px);
+    line-height: 1.05;
+    letter-spacing: -.012em;
+  }
+  .tok-editorial-home__title strong { font-size: .99em; white-space: nowrap; }
+  .tok-editorial-home__subtitle {
+    margin-top: 9px;
+    font-size: clamp(12px, 3.45vw, 15px);
+    line-height: 1.25;
+  }
+  .tok-editorial-home__scene {
+    height: clamp(245px, 38svh, 340px);
+    min-height: 245px;
+  }
+  :root .tok-editorial-home .tok-editorial-home__scene .tok-home-hero__background img {
+    object-fit: cover !important;
+    object-position: center 82% !important;
+  }
+  .tok-editorial-home__search {
+    width: calc(100% - 36px);
+    gap: 6px;
+    margin-top: -45px;
+    padding: 8px;
+    border-radius: 21px;
+    box-shadow: 0 7px 23px rgb(65 48 37 / 17%);
+  }
+  .tok-editorial-home__location,
+  .tok-editorial-home__query {
+    min-height: 43px;
+    padding: 2px 7px 2px 13px;
+    gap: 8px;
+    border-radius: 999px;
+  }
+  .tok-editorial-home__location > svg,
+  .tok-editorial-home__query > svg { width: 21px; height: 21px; }
+  .tok-editorial-home__search input {
+    min-height: 38px;
+    font-size: 15px;
+  }
+  .tok-editorial-home__query input { font-size: 14px; }
+  .tok-editorial-home__location button { width: 31px; height: 31px; }
+  .tok-editorial-home__query button { width: 39px; height: 39px; }
+  .tok-editorial-home__query button svg { width: 20px; height: 20px; }
+  .tok-editorial-home__actions {
+    width: calc(100% - 36px);
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .tok-editorial-home__action {
+    min-height: 48px;
+    gap: 5px;
+    padding: 8px 9px;
+    font-size: clamp(12px, 3.55vw, 16px);
+  }
+  .tok-editorial-home__action svg { width: 19px; height: 19px; }
+  .tok-editorial-home__action svg:last-child { width: 16px; height: 16px; }
+  .tok-editorial-home__benefits {
+    width: calc(100% - 24px);
+    margin-top: 19px;
+  }
+  .tok-editorial-home__benefits > * {
+    gap: 6px;
+    min-height: 55px;
+    padding: 0 6px;
+    font-size: clamp(11px, 3vw, 13px);
+    line-height: 1.1;
+  }
+  .tok-editorial-home__benefits svg { width: 27px; height: 27px; }
+  .tok-editorial-home__motto {
+    width: calc(100% - 26px);
+    gap: 9px;
+    margin: 21px auto 3px;
+    font-size: clamp(8px, 2.1vw, 10px);
+    letter-spacing: .19em;
+  }
+  .tok-editorial-home__newsletter {
+    width: calc(100% - 30px);
+    grid-template-columns: 23px minmax(0, 1fr) auto;
+    gap: 1px 8px;
+    margin: 36px auto 30px;
+    padding: 11px;
+    border-radius: 17px;
+  }
+  .tok-editorial-home__newsletter > svg { width: 22px; height: 22px; }
+  .tok-editorial-home__newsletter p { font-size: 11.5px; }
+  .tok-editorial-home__newsletter button { font-size: 11px; }
+  .tok-editorial-home__newsletter a {
+    min-height: 42px;
+    padding: 8px 11px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 359px) {
+  :root body:has(.tok-editorial-home) .tok-editorial-home__nav-brand { display: none; }
+  :root body:has(.tok-editorial-home) .tok-home-header > div > a:first-child img { height: 51px; }
+  :root body:has(.tok-editorial-home) .tok-home-header .golden-tok-route-account {
+    padding-inline: 9px;
+    font-size: 11px;
+  }
+  .tok-editorial-home__title { font-size: clamp(23px, 7.45vw, 26px); }
+  .tok-editorial-home__subtitle { font-size: 12px; }
+  .tok-editorial-home__scene { height: 260px; }
+  .tok-editorial-home__benefits > * { font-size: 9px; gap: 3px; padding: 0 2px; }
+  .tok-editorial-home__benefits svg { width: 24px; height: 24px; }
+  .tok-editorial-home__motto { font-size: 7.4px; letter-spacing: .15em; }
+}
+
+@media (max-width: 767px) and (orientation: landscape) and (max-height: 600px) {
+  .tok-editorial-home__scene { height: 235px; }
+  .tok-editorial-home__search { margin-top: -30px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tok-editorial-home__action { transition: none; }
+}

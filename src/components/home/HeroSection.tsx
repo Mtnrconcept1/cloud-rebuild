@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronRight, Crown, Heart, Leaf, Mail, MapPin, Navigation, Percent, Search, ShoppingBag, Tag, Users, UtensilsCrossed, Zap } from "lucide-react";
+import { ArrowRight, ChefHat, ChevronDown, ChevronRight, Coins, Crown, Heart, Leaf, Mail, MapPin, Navigation, Percent, Search, ShoppingBag, Tag, Users, UtensilsCrossed, Zap } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
@@ -8,6 +8,7 @@ import { cantonFromPlaceName, cantonHeroSrc, type SwissCantonCode } from "@/lib/
 import { resolveMobileCityImage, resolveWorldArt } from "@/lib/homeWorldHero";
 import { HALLOWEEN_FEATURE_FLAG } from "@/components/seasonal/HalloweenTheme";
 import "./HeroSection.css";
+import "./HomeEditorial.css";
 
 const EMPTY_FEATURES: ReadonlySet<string> = new Set();
 const DEFAULT_HERO_DESKTOP = "/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp";
@@ -35,6 +36,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
   const [searchQuery, setSearchQuery] = useState("");
   const [city, setCity] = useState(() => profileCity?.trim() || "");
   const cityEditedByVisitor = useRef(false);
+  const cityInputRef = useRef<HTMLInputElement>(null);
   const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
 
   useEffect(() => {
@@ -60,6 +62,11 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
     ? "/images/seasonal/halloween/hero-mobile-20261030.webp"
     : canton === "GE" || (!selectedCity && cantonFromPlaceName(gpsCity) === "GE") ? DEFAULT_HERO_MOBILE : shieldFreeMobileCityImage || worldArt?.mobile || (canton ? desktopImage : worldArt?.desktop && !cantonImage ? desktopImage : DEFAULT_HERO_MOBILE);
 
+  const editorialGeneva = !pending && (canton === "GE" || (!selectedCity && cantonFromPlaceName(gpsCity) === "GE") || (!selectedCity && !gpsCity && !canton));
+  const editorialDesktopImage = editorialGeneva ? "/images/home/tok-editorial-geneva-desktop.webp" : desktopImage;
+  const editorialMobileImage = editorialGeneva ? "/images/home/tok-editorial-geneva-mobile.webp" : mobileImage;
+  const editorialCity = (selectedCity || gpsCity || (canton && canton !== "GE" ? "Suisse" : "Genève")).split(",")[0].trim();
+
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const params = new URLSearchParams();
@@ -70,6 +77,7 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
 
   return (
     <>
+      {halloweenEnabled ? (
       <div className="tok-home-first-screen">
       <section
         className="tok-home-hero"
@@ -158,6 +166,122 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         </div>
       </aside>
       </div>
+      ) : (
+      <div className="tok-editorial-home">
+        <section
+          className="tok-home-hero tok-editorial-home__hero"
+          aria-labelledby="home-hero-title"
+          data-content-visible={contentVisible}
+          data-authenticated={Boolean(user)}
+          data-home-canton={pending ? "pending" : canton ?? "default"}
+        >
+          <div className="tok-editorial-home__heading">
+            <p className="tok-editorial-home__city-stroke">{editorialCity.toLocaleUpperCase("fr-CH")}</p>
+            <h1 id="home-hero-title" className="tok-editorial-home__title">
+              <span>RÉSERVEZ ET COMMANDEZ</span>
+              <strong>LES MEILLEURES OFFRES FOOD !</strong>
+            </h1>
+            <p className="tok-editorial-home__subtitle">
+              À {editorialCity}, cumulez des <strong>Miamz</strong> solidaires à chaque repas.
+            </p>
+          </div>
+
+          <div className="tok-editorial-home__scene" aria-hidden="true">
+            {editorialDesktopImage ? (
+              <picture key={editorialDesktopImage} className="tok-home-hero__background">
+                {editorialMobileImage && editorialMobileImage !== editorialDesktopImage ? (
+                  <source media="(max-width: 767px)" type="image/webp" srcSet={editorialMobileImage} />
+                ) : null}
+                <img
+                  src={editorialDesktopImage}
+                  alt=""
+                  width={1440}
+                  height={811}
+                  {...({ fetchpriority: "high" } as const)}
+                  loading="eager"
+                  decoding="async"
+                />
+              </picture>
+            ) : null}
+          </div>
+
+          <form className="tok-editorial-home__search" role="search" aria-label="Rechercher un restaurant" onSubmit={handleSearch}>
+            <div className="tok-editorial-home__location">
+              <MapPin aria-hidden="true" />
+              <label className="sr-only" htmlFor="home-city-search">Où ? (facultatif)</label>
+              <input
+                ref={cityInputRef}
+                id="home-city-search"
+                name="city"
+                type="text"
+                autoComplete="address-level2"
+                list="tok-editorial-home-city-list"
+                value={city}
+                onChange={(event) => {
+                  cityEditedByVisitor.current = true;
+                  setCity(event.target.value);
+                }}
+                placeholder={editorialCity || "Genève"}
+              />
+              <button type="button" aria-label="Changer de ville" onClick={() => cityInputRef.current?.focus()}>
+                <ChevronDown aria-hidden="true" />
+              </button>
+              <datalist id="tok-editorial-home-city-list">
+                <option value="Genève" />
+                <option value="Lausanne" />
+                <option value="Fribourg" />
+                <option value="Zurich" />
+                <option value="Lugano" />
+              </datalist>
+            </div>
+            <div className="tok-editorial-home__query">
+              <Search aria-hidden="true" />
+              <label className="sr-only" htmlFor="home-restaurant-search">Restaurant ou cuisine</label>
+              <input
+                id="home-restaurant-search"
+                name="q"
+                type="search"
+                enterKeyHint="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Cuisine, nom de restaurant…"
+              />
+              <button type="submit" aria-label="Rechercher">
+                <Search aria-hidden="true" />
+              </button>
+            </div>
+          </form>
+
+          <div className="tok-editorial-home__actions">
+            <Link to="/recherche" className="tok-editorial-home__action tok-editorial-home__action--eat">
+              <UtensilsCrossed aria-hidden="true" />
+              <span>Je veux manger</span>
+              <ChevronRight aria-hidden="true" />
+            </Link>
+            <Link to="/restaurateurs/geneve" className="tok-editorial-home__action tok-editorial-home__action--pro">
+              <ChefHat aria-hidden="true" />
+              <span>Restaurateur</span>
+              <ChevronRight aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div className="tok-editorial-home__benefits" aria-label="Les engagements TOK">
+            <div><Coins aria-hidden="true" /><span>Moins de frais<br />pour le resto</span></div>
+            <Link to="/miamz-solidaires" aria-label="Miamz solidaires — plus de repas financés">
+              <Heart aria-hidden="true" /><span>Plus de repas<br />financés</span>
+            </Link>
+            <div><Users aria-hidden="true" /><span>Une communauté<br />plus solidaire</span></div>
+          </div>
+          <p className="tok-editorial-home__motto"><span>MANGEZ MIEUX, FAITES PLUS DE BIEN !</span></p>
+        </section>
+        <aside className="tok-editorial-home__newsletter" data-testid="mobile-newsletter" aria-label="Newsletter TOK">
+          <Mail aria-hidden="true" />
+          <p>Abonnez-vous à notre newsletter et recevez <strong>500 Miamz.</strong></p>
+          <button type="button" onClick={() => setShowNewsletterConditions(true)} aria-haspopup="dialog">Conditions applicables.</button>
+          <Link to="/auth">Inscrivez-vous</Link>
+        </aside>
+      </div>
+      )}
       <Dialog open={showNewsletterConditions} onOpenChange={setShowNewsletterConditions}>
         <DialogContent className="max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)] max-w-lg rounded-2xl p-0">
           <DialogHeader className="border-b px-5 pb-4 pt-5 pr-12 text-left sm:px-6">

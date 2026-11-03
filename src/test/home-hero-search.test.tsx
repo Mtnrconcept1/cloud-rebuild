@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { fireEvent, render, screen, cleanup, within } from "@testing-library/react";
+import { fireEvent, render, screen, cleanup } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import HeroSection from "@/components/home/HeroSection";
@@ -38,18 +38,18 @@ describe("homepage semantic search", () => {
     expect(document.querySelectorAll(".tok-home-hero__background img")).toHaveLength(1);
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute(
       "src",
-      "/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp",
+      "/images/home/tok-editorial-geneva-desktop.webp",
     );
     expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
       "srcset",
-      "/images/home/tok-geneve-mobile-sans-parasol.webp",
+      "/images/home/tok-editorial-geneva-mobile.webp",
     );
   });
 
   it("uses the shield-free Geneva portrait for Geneva communes without changing their desktop selection", () => {
     render(<MemoryRouter><HeroSection profileCity="Puplinge" /></MemoryRouter>);
     expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
-      "srcset", "/images/home/tok-geneve-mobile-sans-parasol.webp",
+      "srcset", "/images/home/tok-editorial-geneva-mobile.webp",
     );
     expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "GE");
   });
@@ -57,24 +57,33 @@ describe("homepage semantic search", () => {
   it("prioritizes shield-free mobile art when Geneva is matched as a city", () => {
     render(<MemoryRouter><HeroSection profileCity="Genève" /></MemoryRouter>);
     expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
-      "srcset", "/images/home/tok-geneve-mobile-sans-parasol.webp",
+      "srcset", "/images/home/tok-editorial-geneva-mobile.webp",
     );
   });
 
   it("prioritizes the Geneva mobile portrait for a GPS-only city", () => {
     render(<MemoryRouter><HeroSection gpsCity="Genève" gpsCountry="Suisse" /></MemoryRouter>);
     expect(document.querySelector(".tok-home-hero__background source")).toHaveAttribute(
-      "srcset", "/images/home/tok-geneve-mobile-sans-parasol.webp",
+      "srcset", "/images/home/tok-editorial-geneva-mobile.webp",
     );
   });
 
-  it("provides a gated mobile discovery grid linking to real routes", () => {
+  it("recreates the editorial white homepage with clear customer and restaurateur actions", () => {
     setup(new Set(["ventes-flash", "anti-gaspi", "chefs-table"]));
-    const shortcuts = within(screen.getByRole("navigation", { name: "Découvrir les services TOK" }));
-    expect(shortcuts.getByRole("link", { name: "Ventes flash" })).toHaveAttribute("href", "/ventes-flash");
-    expect(shortcuts.getByRole("link", { name: "Anti-gaspi" })).toHaveAttribute("href", "/anti-gaspi");
-    expect(shortcuts.getByRole("link", { name: "La Tok d’Or" })).toHaveAttribute("href", "/chefs-table");
-    expect(shortcuts.getByRole("link", { name: "Offres & promos" })).toHaveAttribute("href", "/recherche");
+    expect(screen.getByRole("heading", { level: 1, name: /RÉSERVEZ ET COMMANDEZ/i })).toBeVisible();
+    expect(screen.getByText(/LES MEILLEURES OFFRES FOOD/i)).toBeVisible();
+    expect(screen.getByRole("link", { name: /Je veux manger/i })).toHaveAttribute("href", "/recherche");
+    expect(screen.getByRole("link", { name: /Restaurateur/i })).toHaveAttribute("href", "/restaurateurs/geneve");
+    expect(screen.getByRole("link", { name: /Miamz solidaires/i })).toHaveAttribute("href", "/miamz-solidaires");
+    expect(screen.getByText(/Moins de frais/i)).toBeVisible();
+    expect(screen.getByText(/Une communauté/i)).toBeVisible();
+  });
+
+  it("lets the visitor focus and change the suggested city", () => {
+    setup();
+    const city = screen.getByRole("combobox", { name: /Où/ });
+    fireEvent.click(screen.getByRole("button", { name: "Changer de ville" }));
+    expect(city).toHaveFocus();
   });
 
   it("preserves the independent Halloween desktop and mobile imagery", () => {
@@ -94,16 +103,16 @@ describe("homepage semantic search", () => {
   });
   it("lets the entered city override automatic device localization", () => {
     render(<MemoryRouter><HeroSection locationCanton="GE" /></MemoryRouter>);
-    fireEvent.change(screen.getByRole("textbox", { name: /Où/ }), { target: { value: "Lausanne" } });
+    fireEvent.change(screen.getByRole("combobox", { name: /Où/ }), { target: { value: "Lausanne" } });
     expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "VD");
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/desig%20app/tok-ch-vd.webp");
-    fireEvent.change(screen.getByRole("textbox", { name: /Où/ }), { target: { value: "Paris" } });
+    fireEvent.change(screen.getByRole("combobox", { name: /Où/ }), { target: { value: "Paris" } });
     expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "default");
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute("src", "/images/locations/Europe/France/paris/tok-paris-desktop.webp");
   });
   it("uses the known profile city without requesting geolocation", () => {
     render(<MemoryRouter><HeroSection profileCity="Lugano" /></MemoryRouter>);
-    expect(screen.getByRole("textbox", { name: /Où/ })).toHaveValue("Lugano");
+    expect(screen.getByRole("combobox", { name: /Où/ })).toHaveValue("Lugano");
     expect(document.querySelector(".tok-home-hero")).toHaveAttribute("data-home-canton", "TI");
   });
   it("fills the location from a profile loaded after the hero and submits it", () => {
@@ -119,26 +128,26 @@ describe("homepage semantic search", () => {
         <LocationProbe />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("textbox", { name: /Où/ })).toHaveValue("Neuchâtel");
+    expect(screen.getByRole("combobox", { name: /Où/ })).toHaveValue("Neuchâtel");
     fireEvent.submit(screen.getByRole("search"));
     const result = new URL(screen.getByTestId("location").textContent!, "https://www.thetok.ch");
     expect(result.searchParams.get("city")).toBe("Neuchâtel");
   });
   it("does not replace a location entered before the profile finishes loading", () => {
     const view = render(<MemoryRouter><HeroSection profileCityPending /></MemoryRouter>);
-    fireEvent.change(screen.getByRole("textbox", { name: /Où/ }), { target: { value: "Lausanne" } });
+    fireEvent.change(screen.getByRole("combobox", { name: /Où/ }), { target: { value: "Lausanne" } });
     view.rerender(<MemoryRouter><HeroSection profileCity="Lugano" /></MemoryRouter>);
-    expect(screen.getByRole("textbox", { name: /Où/ })).toHaveValue("Lausanne");
+    expect(screen.getByRole("combobox", { name: /Où/ })).toHaveValue("Lausanne");
   });
-  it("only exposes feature-flagged quick links when the corresponding feature is enabled", () => {
-    setup(new Set(["ventes-flash", "chefs-table"]));
-    expect(screen.getByRole("link", { name: "Offres", exact: true })).toHaveAttribute("href", "/ventes-flash");
-    expect(screen.getByRole("link", { name: /Grandes tables/ })).toHaveAttribute("href", "/chefs-table");
+  it("does not expose inactive offer shortcuts as part of the reference hero", () => {
+    setup();
+    expect(screen.queryByRole("link", { name: "Ventes flash" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Je veux manger/i })).toHaveAttribute("href", "/recherche");
   });
   it("shows one readable headline and a labeled field immediately, even before animation", () => {
     setup();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getByRole("heading", { level: 1, name: "Votre prochaine bonne adresse." })).not.toHaveClass("sr-only");
+    expect(screen.getByRole("heading", { level: 1, name: /RÉSERVEZ ET COMMANDEZ/i })).not.toHaveClass("sr-only");
     expect(screen.getByRole("searchbox", { name: "Restaurant ou cuisine" })).toBeVisible();
     expect(screen.getByRole("link", { name: /Restaurateur/ })).toHaveAttribute("href", "/restaurateurs/geneve");
     expect(screen.getByRole("link", { name: /Miamz solidaires/ })).toHaveAttribute("href", "/miamz-solidaires");
@@ -161,7 +170,7 @@ describe("homepage semantic search", () => {
   });
   it("submits the city explicitly entered by the visitor", () => {
     setup();
-    fireEvent.change(screen.getByRole("textbox", { name: /Où/ }), { target: { value: "  Lausanne  " } });
+    fireEvent.change(screen.getByRole("combobox", { name: /Où/ }), { target: { value: "  Lausanne  " } });
     fireEvent.submit(screen.getByRole("search"));
     const result = new URL(screen.getByTestId("location").textContent!, "https://www.thetok.ch");
     expect(result.searchParams.get("city")).toBe("Lausanne");
