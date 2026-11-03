@@ -127,6 +127,7 @@ const supabase = getSupabase();
 const ADVISOR_GALLERY_MEDIA_TYPES = ["photo", "photo_ai_tok"];
 const ADVISOR_PHOTOS_LIMIT = 80;
 const ADVISOR_MENU_ITEMS_LIMIT = 120;
+const ADVISOR_ATTACHMENT_WARNING = `Ne joignez pas de secrets, mots de passe, clés API, documents bancaires, médicaux ou d’identité. Maximum ${ADVISOR_MAX_ATTACHMENTS} fichiers et ${Math.round(ADVISOR_MAX_TOTAL_BYTES / 1024 / 1024)} Mo au total. Toute action reste soumise à confirmation.`;
 
 const SUGGESTED_PROMPTS = [
   {
@@ -1220,7 +1221,7 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
   }
 
   return (
-    <DashboardLayout constrainToViewport mainClassName="tok-restaurant-page tok-page-advisor">
+    <DashboardLayout constrainToViewport hideRouteHero mainClassName="tok-restaurant-page tok-page-advisor">
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="tok-editorial-header tok-advisor-header mb-4 flex shrink-0 flex-col items-stretch justify-between gap-3 border-b pb-4 sm:flex-row sm:items-center">
           <div className="flex min-w-0 items-center gap-3">
@@ -1239,7 +1240,7 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
             <img
               src="/images/tok-refonte/chef-presentateur.webp"
               alt=""
-              className="h-16 w-16 shrink-0 object-contain drop-shadow-[0_10px_16px_rgba(131,51,14,0.2)]"
+              className="hidden h-16 w-16 shrink-0 object-contain drop-shadow-[0_10px_16px_rgba(131,51,14,0.2)] sm:block"
               loading="eager"
               decoding="async"
             />
@@ -1247,11 +1248,13 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
           <div className="tok-advisor-actions flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0">
             <Button type="button" variant={editMode ? "default" : "outline"} size="sm"
               disabled={isCommercialDemo} onClick={() => setEditMode((value) => !value)}
+              aria-label={editMode ? "Édition activée" : "Modifier mon restaurant"}
               className="min-w-0 flex-[1_1_10rem] gap-1.5 sm:flex-none">
-              <PencilLine className="h-3.5 w-3.5" />
-              {editMode ? "Édition activée" : "Modifier mon restaurant"}
+              <PencilLine className="h-3.5 w-3.5 shrink-0" />
+              <span className="min-[480px]:hidden">{editMode ? "Édition" : "Modifier"}</span>
+              <span className="hidden min-[480px]:inline">{editMode ? "Édition activée" : "Modifier mon restaurant"}</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setHistoryOpen((open) => !open)} className="min-w-0 flex-[1_1_10rem] gap-1.5 sm:flex-none">
+            <Button variant="outline" size="sm" aria-expanded={historyOpen} onClick={() => setHistoryOpen((open) => !open)} className="min-w-0 flex-[1_1_10rem] gap-1.5 sm:flex-none">
               <History className="h-3.5 w-3.5" />
               Historique
               {historyEntries.length > 0 ? (
@@ -1270,7 +1273,7 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
         </div>
 
         {historyOpen ? (
-          <div className="mb-4 flex max-h-[40dvh] min-h-0 shrink-0 flex-col overflow-hidden rounded-2xl border bg-card p-3 shadow-sm">
+          <div className="tok-advisor-history mb-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border bg-card p-3 shadow-sm md:mb-4 md:max-h-[40dvh] md:flex-none">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold">Historique de l'assistant</p>
@@ -1311,26 +1314,26 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
           </div>
         ) : null}
 
-        <div className="tok-advisor-conversation min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
+        <div className={`tok-advisor-conversation min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pb-4 ${historyOpen ? "max-md:hidden" : ""}`}>
           {messages.length === 0 ? (
-            <div className="tok-advisor-welcome flex h-full flex-col items-center justify-center space-y-8 px-4">
+            <div className="tok-advisor-welcome flex min-h-full flex-col items-center justify-start gap-4 px-1 py-3 sm:h-full sm:justify-center sm:gap-8 sm:px-4">
               <div className="space-y-2 text-center">
                 <DashboardIllustrationMedia
                   illustration={DASHBOARD_ILLUSTRATIONS.restaurantAdvisor}
-                  className="mx-auto mb-4 h-32 w-32 bg-transparent sm:h-36 sm:w-36"
+                  className="mx-auto mb-2 h-14 w-14 bg-transparent sm:mb-4 sm:h-36 sm:w-36"
                 />
-                <h2 className="font-display text-2xl font-bold">Bonjour, {restaurant.name}</h2>
-                <p className="mx-auto max-w-md text-muted-foreground">
+                <h2 className="font-display text-xl font-bold sm:text-2xl">Bonjour, {restaurant.name}</h2>
+                <p className="mx-auto max-w-md text-sm text-muted-foreground sm:text-base">
                   Je suis votre assistant IA. J'analyse vos ventes, reservations, avis, campagnes et menu pour vous donner des conseils personnalises.
                 </p>
               </div>
-              <div className="grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid w-full max-w-3xl grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
                 {QUICK_TOOLS.map((tool) => (
                   <button
                     key={tool.label}
                     type="button"
                     onClick={() => openToolPreparation(tool)}
-                    className="group rounded-xl border bg-primary/5 p-4 text-left transition-all hover:border-primary/50 hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="group rounded-xl border bg-primary/5 p-3 text-left transition-all hover:border-primary/50 hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60 sm:p-4"
                     disabled={isLoading || Boolean(activeTool)}
                   >
                     <tool.icon className="mb-2 h-5 w-5 text-primary transition-transform group-hover:scale-110" />
@@ -1343,7 +1346,7 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
                     key={suggestion.label}
                     type="button"
                     onClick={() => handleSend(suggestion.prompt)}
-                    className="group rounded-xl border bg-card p-4 text-left transition-all hover:border-primary/40 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
+                    className="group rounded-xl border bg-card p-3 text-left transition-all hover:border-primary/40 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60 sm:p-4"
                     disabled={isLoading || Boolean(activeTool)}
                   >
                     <suggestion.icon className="mb-2 h-5 w-5 text-primary transition-transform group-hover:scale-110" />
@@ -1403,7 +1406,7 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
         </div>
 
         {pendingEdit && pendingEdit.restaurantId === restaurant.id && (
-          <Card className="mb-3 max-h-96 shrink-0 space-y-3 overflow-y-auto border-primary/50 bg-primary/5 p-3">
+          <Card className="mb-3 max-h-[36dvh] shrink-0 space-y-3 overflow-y-auto border-primary/50 bg-primary/5 p-3 md:max-h-96">
             <div>
               <p className="text-sm font-semibold">Modification à confirmer — {pendingEdit.subject_name}</p>
               <p className="mt-1 text-xs text-muted-foreground">{pendingEdit.summary}</p>
@@ -1472,7 +1475,7 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
             </div>
           </Card>
         )}
-        <div className="shrink-0 border-t pt-4">
+        <div className="tok-advisor-composer min-w-0 shrink-0 border-t pt-3 sm:pt-4">
           {attachments.length > 0 ? (
             <div className="mb-3 flex flex-wrap gap-2" aria-label="Pièces jointes sélectionnées">
               {attachments.map((attachment) => {
@@ -1535,7 +1538,7 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
               maxLength={4000}
               onKeyDown={handleKeyDown}
               placeholder={editMode ? "Demandez une modification du profil, du menu ou une photo de plat..." : "Posez une question ou joignez un document à analyser..."}
-              className="max-h-32 min-h-[48px] resize-none"
+              className="min-w-0 flex-1 max-h-32 min-h-[48px] resize-none"
               rows={1}
               disabled={isLoading || Boolean(pendingEdit)}
             />
@@ -1550,9 +1553,13 @@ Pièce${selectedAttachments.length > 1 ? "s" : ""} jointe${selectedAttachments.l
               <Send className="h-4 w-4" />
             </Button>
           </div>
-          <p className="mt-2 text-center text-[10px] text-muted-foreground">
-            Ne joignez pas de secrets, mots de passe, clés API, documents bancaires, médicaux ou d'identité. Maximum {ADVISOR_MAX_ATTACHMENTS} fichiers et {Math.round(ADVISOR_MAX_TOTAL_BYTES / 1024 / 1024)} Mo au total. Toute action reste soumise à confirmation.
+          <p className="mt-2 hidden text-center text-[10px] text-muted-foreground sm:block">
+            {ADVISOR_ATTACHMENT_WARNING}
           </p>
+          <details className="mt-1 text-center text-[11px] text-muted-foreground sm:hidden">
+            <summary className="cursor-pointer py-1">Pièces jointes : données sensibles interdites</summary>
+            <p className="px-2 pb-1 pt-2 text-left">{ADVISOR_ATTACHMENT_WARNING}</p>
+          </details>
         </div>
         <Dialog open={Boolean(preparationTool)} onOpenChange={(open) => { if (!open) closeToolPreparation(); }}>
           <DialogContent className="flex max-h-[calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-1rem)] min-h-0 max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:max-h-[86dvh]">

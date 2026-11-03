@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `cf8697fc4e07cc5f9154fb2fd3d2a5488859427848090fde5ae8937ccf28f0f5`
+- Empreinte SHA-256 des sources indexées : `cf3bfadc141509b348176f690a954b1da2122ec4ec0662765787680af5b324b0`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 45 |
 | migrations | 596 |
-| modules | 1988 |
+| modules | 1989 |
 | pages | 136 |
 | pathLiterals | 1007 |
 | publicAssets | 918 |
 | publicEntries | 956 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 122 |
-| records | 20702 |
-| repositoryFiles | 4115 |
+| records | 20704 |
+| repositoryFiles | 4116 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7450,7 +7450,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 831 |
+| test | 832 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -11053,7 +11053,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (831)</summary>
+<details><summary>test (832)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11258,6 +11258,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/daily-slot-machine-security.test.ts`
 - `src/test/daily-slot-rules.test.ts`
 - `src/test/dashboard-advisor-history.test.ts`
+- `src/test/dashboard-advisor-mobile-layout.test.ts`
 - `src/test/dashboard-campaign-unification.test.ts`
 - `src/test/dashboard-commands-collapse.test.tsx`
 - `src/test/dashboard-cuisine.test.tsx`
