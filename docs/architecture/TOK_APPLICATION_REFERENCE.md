@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `42abe937a193f3b72f6f2b95ae785ec0ad94dd48ec667a64de835167514da89d`
+- Empreinte SHA-256 des sources indexées : `cf8697fc4e07cc5f9154fb2fd3d2a5488859427848090fde5ae8937ccf28f0f5`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 11 |
 | cronJobs | 38 |
 | databaseContract | 231 |
-| databaseObjects | 3204 |
+| databaseObjects | 3210 |
 | documents | 246 |
 | edgeFunctions | 126 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4399 |
+| exportedSymbols | 4411 |
 | featureFlags | 100 |
 | frontendRoutes | 147 |
 | integrations | 11 |
 | marketingOperations | 45 |
-| migrations | 595 |
-| modules | 1984 |
+| migrations | 596 |
+| modules | 1988 |
 | pages | 136 |
 | pathLiterals | 1007 |
 | publicAssets | 918 |
 | publicEntries | 956 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 122 |
-| records | 20673 |
-| repositoryFiles | 4109 |
+| records | 20702 |
+| repositoryFiles | 4115 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -3055,7 +3055,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (926)</summary>
+<details><summary>function (929)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3777,6 +3777,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.restaurant_is_thefork_catalog_member` (3 définition(s))
 - `public.restaurant_mark_admin_correction_done` (2 définition(s))
 - `public.restaurant_mark_review_read` (1 définition(s))
+- `public.restaurant_order_history` (1 définition(s))
+- `public.restaurant_order_insights` (1 définition(s))
+- `public.restaurant_order_item_capture_label` (1 définition(s))
 - `public.restaurant_reply_review` (2 définition(s))
 - `public.restaurant_report_review` (1 définition(s))
 - `public.restaurant_save_floor_plan_assignments` (2 définition(s))
@@ -3986,7 +3989,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (754)</summary>
+<details><summary>index (756)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -4193,6 +4196,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `idx_group_member_orders_live_capture_by_restaurant` (1 définition(s))
 - `idx_inventory_items_branch_id` (1 définition(s))
 - `idx_invoices_order_id` (1 définition(s))
+- `idx_kitchen_tickets_restaurant_created_insights` (1 définition(s))
 - `idx_launch_pack_fulfillments_pack` (1 définition(s))
 - `idx_launch_packs_ai_quota_active` (1 définition(s))
 - `idx_loyalty_transactions_birthday_bonus_once_year` (1 définition(s))
@@ -4235,6 +4239,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `idx_orders_refund_queue` (1 définition(s))
 - `idx_orders_restaurant_acceptance_deadline` (1 définition(s))
 - `idx_orders_restaurant_capacity_slot` (1 définition(s))
+- `idx_orders_restaurant_created_insights` (1 définition(s))
 - `idx_orders_restaurant_id` (1 définition(s))
 - `idx_orders_restaurant_status_created_at` (2 définition(s))
 - `idx_orders_scheduled_delivery_dispatch` (1 définition(s))
@@ -5994,7 +5999,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (278)</summary>
+<details><summary>trigger (279)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -6149,6 +6154,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `restaurant_daily_dish_variants_touch` (1 définition(s))
 - `restaurant_daily_dishes_service_day_guard` (1 définition(s))
 - `restaurant_daily_dishes_touch` (1 définition(s))
+- `restaurant_order_item_capture_label` (1 définition(s))
 - `restaurants_00_protect_directory_listing_state` (1 définition(s))
 - `restaurants_01_protect_directory_public_name_quality` (2 définition(s))
 - `restaurants_enqueue_directory_cuisine_osm_research` (1 définition(s))
@@ -7188,6 +7194,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261101080028 Marketing Growth Engine | 257 | 17 | [supabase/migrations/20261101080028_marketing_growth_engine.sql:1](../../supabase/migrations/20261101080028_marketing_growth_engine.sql#L1) |
 | 20261103062023 Kitchen Table Service | 285 | 13 | [supabase/migrations/20261103062023_kitchen_table_service.sql:1](../../supabase/migrations/20261103062023_kitchen_table_service.sql#L1) |
 | 20261103114909 Kitchen Tok Workforce Access | 226 | 5 | [supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql:1](../../supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql#L1) |
+| 20261103140056 Restaurant Order Insights | 468 | 6 | [supabase/migrations/20261103140056_restaurant_order_insights.sql:1](../../supabase/migrations/20261103140056_restaurant_order_insights.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7422,7 +7429,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 46 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 280 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 889 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 893 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7432,18 +7439,18 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 239 |
+| application-library | 240 |
 | automation-script | 93 |
 | documentation | 6 |
 | edge-function-source | 264 |
-| frontend-component | 320 |
+| frontend-component | 321 |
 | frontend-hook | 25 |
 | frontend-page | 136 |
 | frontend-source | 37 |
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 829 |
+| test | 831 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7763,7 +7770,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (240)</summary>
+<details><summary>application-library (241)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/acquisitionAttribution.ts`
@@ -7950,6 +7957,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/restaurantCategories.ts`
 - `src/lib/restaurantMediaGovernance.ts`
 - `src/lib/restaurantOnboardingLifecycle.ts`
+- `src/lib/restaurantOrderInsights.ts`
 - `src/lib/restaurantPartnerContract.ts`
 - `src/lib/restaurantSlugs.ts`
 - `src/lib/restaurantSubscriptionToolAccess.ts`
@@ -8157,7 +8165,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (595)</summary>
+<details><summary>database-migration (596)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8754,6 +8762,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261101080028_marketing_growth_engine.sql`
 - `supabase/migrations/20261103062023_kitchen_table_service.sql`
 - `supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql`
+- `supabase/migrations/20261103140056_restaurant_order_insights.sql`
 
 </details>
 
@@ -9228,7 +9237,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (334)</summary>
+<details><summary>frontend-component (335)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -9353,6 +9362,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/dashboard/RestaurantMenuCardsBar.tsx`
 - `src/components/dashboard/RestaurantMenuCatalog.tsx`
 - `src/components/dashboard/RestaurantOrderBoard.tsx`
+- `src/components/dashboard/RestaurantOrderInsightsPanel.tsx`
 - `src/components/dashboard/RestaurantWorkspacePages.css`
 - `src/components/dashboard/RouteHeroBanner.tsx`
 - `src/components/dashboard/TokAiMarketingStudio.tsx`
@@ -9738,7 +9748,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (60)</summary>
+<details><summary>frontend-source (61)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -9795,6 +9805,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/sql/marketing_instagram_reviews_smoke.sql`
 - `src/test/sql/tok_connect_marketing_links_smoke.sql`
 - `src/test/sql/tok_kitchen_workforce_smoke.sql`
+- `src/test/sql/tok_restaurant_order_insights_smoke.sql`
 - `src/test/sql/tok_workforce_concurrency_smoke.sql`
 - `src/test/sql/tok_workforce_integrity_smoke.sql`
 - `src/test/sql/tok_workforce_launch_smoke.sql`
@@ -11042,7 +11053,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (829)</summary>
+<details><summary>test (831)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11647,6 +11658,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-onboarding-conversion.test.tsx`
 - `src/test/restaurant-onboarding-payments.test.ts`
 - `src/test/restaurant-order-board.test.tsx`
+- `src/test/restaurant-order-insights-ui.test.tsx`
+- `src/test/restaurant-order-insights.test.ts`
 - `src/test/restaurant-paid-tok-purchases-invoices.test.ts`
 - `src/test/restaurant-partner-contract-export.test.ts`
 - `src/test/restaurant-partner-contract-preview.test.tsx`

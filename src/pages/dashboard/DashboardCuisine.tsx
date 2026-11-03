@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Check, CheckCheck, ChefHat, Clock3, Expand, RefreshCw, UtensilsCrossed, X,
+  Check, CheckCheck, ChefHat, Clock3, Expand, History, RefreshCw, UtensilsCrossed, X,
 } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
 import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
 import KitchenOrderEntry from "@/components/dashboard/KitchenOrderEntry";
+import RestaurantOrderInsightsPanel from "@/components/dashboard/RestaurantOrderInsightsPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -98,7 +99,7 @@ export default function DashboardCuisine() {
   const { selectedId, restaurants, loading, isDemoMode } = useDashboardRestaurant();
   const queryClient = useQueryClient();
   const boardRef = useRef<HTMLDivElement>(null);
-  const [mode, setMode] = useState<"service" | "kitchen">("service");
+  const [mode, setMode] = useState<"service" | "kitchen" | "history">("service");
   const [now, setNow] = useState(Date.now);
 
   const restaurantName =
@@ -175,14 +176,17 @@ export default function DashboardCuisine() {
             Sélectionnez un établissement pour gérer son service.
           </CardContent></Card>
         ) : (
-          <Tabs value={mode} onValueChange={(value) => setMode(value as "service" | "kitchen")} className="space-y-5">
-            <TabsList className="grid h-auto w-full max-w-lg grid-cols-2 rounded-2xl p-1">
+          <Tabs value={mode} onValueChange={(value) => setMode(value as "service" | "kitchen" | "history")} className="space-y-5">
+            <TabsList className="grid h-auto w-full max-w-3xl grid-cols-3 rounded-2xl p-1">
               <TabsTrigger value="service" className="min-h-12 gap-2 text-sm">
                 <UtensilsCrossed className="h-4 w-4" /> Prise de commande
               </TabsTrigger>
               <TabsTrigger value="kitchen" className="min-h-12 gap-2 text-sm">
                 <ChefHat className="h-4 w-4" /> Écran cuisine
                 {tickets.length > 0 && <Badge className="ml-1">{tickets.length}</Badge>}
+              </TabsTrigger>
+              <TabsTrigger value="history" className="min-h-12 gap-1 text-xs sm:gap-2 sm:text-sm">
+                <History className="h-4 w-4" /> Historique & statistiques
               </TabsTrigger>
             </TabsList>
 
@@ -250,6 +254,9 @@ export default function DashboardCuisine() {
                   </div>
                 )}
               </div>
+            </TabsContent>
+            <TabsContent value="history" className="space-y-5">
+              {selectedId && <RestaurantOrderInsightsPanel key={selectedId} restaurantId={selectedId} />}
             </TabsContent>
           </Tabs>
         )}

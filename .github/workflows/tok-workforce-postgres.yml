@@ -4,16 +4,20 @@ on:
     paths:
       - 'supabase/migrations/*tok_workforce*.sql'
       - 'supabase/migrations/*kitchen*.sql'
+      - 'supabase/migrations/*restaurant_order_insights*.sql'
       - 'src/test/sql/tok_workforce*.sql'
       - 'src/test/sql/tok_kitchen_workforce_smoke.sql'
+      - 'src/test/sql/tok_restaurant_order_insights_smoke.sql'
       - '.github/workflows/tok-workforce-postgres.yml'
   push:
     branches: [feat/tok-workforce-clock-employee-portal-20261014]
     paths:
       - 'supabase/migrations/*tok_workforce*.sql'
       - 'supabase/migrations/*kitchen*.sql'
+      - 'supabase/migrations/*restaurant_order_insights*.sql'
       - 'src/test/sql/tok_workforce*.sql'
       - 'src/test/sql/tok_kitchen_workforce_smoke.sql'
+      - 'src/test/sql/tok_restaurant_order_insights_smoke.sql'
       - '.github/workflows/tok-workforce-postgres.yml'
 permissions:
   contents: read
@@ -51,3 +55,5 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/tok_workforce_concurrency_smoke.sql
       - name: Verify TOK Équipe kitchen submission, permissions and tenant isolation
         run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/tok_kitchen_workforce_smoke.sql
+      - name: Verify restaurant product rankings, history and SQL owner isolation
+        run: psql -X -v ON_ERROR_STOP=1 -f src/test/sql/tok_restaurant_order_insights_smoke.sql
