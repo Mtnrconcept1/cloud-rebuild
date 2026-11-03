@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f897f64a14b33b5dfec9f98acd5f33e9d098e50cd68f2480ab097481832d36f7`
+- Empreinte SHA-256 des sources indexées : `a4081a0ddc603bef3f6bd8b57a94ec6f5843a8f1b792b2cbe4a7c9fe436447f4`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -41,12 +41,12 @@
 | modules | 1993 |
 | pages | 138 |
 | pathLiterals | 1009 |
-| publicAssets | 918 |
-| publicEntries | 956 |
+| publicAssets | 919 |
+| publicEntries | 957 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 123 |
-| records | 20745 |
-| repositoryFiles | 4122 |
+| records | 20747 |
+| repositoryFiles | 4123 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1434,6 +1434,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/tok-refonte/heroes/commercial-prospection.webp | media | [public/images/tok-refonte/heroes/commercial-prospection.webp](../../public/images/tok-refonte/heroes/commercial-prospection.webp) |
 | /images/tok-refonte/heroes/courier-operations.webp | media | [public/images/tok-refonte/heroes/courier-operations.webp](../../public/images/tok-refonte/heroes/courier-operations.webp) |
 | /images/tok-refonte/panier-vide.webp | media | [public/images/tok-refonte/panier-vide.webp](../../public/images/tok-refonte/panier-vide.webp) |
+| /images/tok-restaurant-placeholder-dark.svg | media | [public/images/tok-restaurant-placeholder-dark.svg](../../public/images/tok-restaurant-placeholder-dark.svg) |
 | /images/tok-restaurant-placeholder.svg | media | [public/images/tok-restaurant-placeholder.svg](../../public/images/tok-restaurant-placeholder.svg) |
 | /images/tokone.webp | media | [public/images/tokone.webp](../../public/images/tokone.webp) |
 | /images/truffe nera pizza | other | [public/images/truffe nera pizza](../../public/images/truffe%20nera%20pizza) |
@@ -9892,7 +9893,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (956)</summary>
+<details><summary>public-asset (957)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -10670,6 +10671,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/tok-refonte/heroes/commercial-prospection.webp`
 - `public/images/tok-refonte/heroes/courier-operations.webp`
 - `public/images/tok-refonte/panier-vide.webp`
+- `public/images/tok-restaurant-placeholder-dark.svg`
 - `public/images/tok-restaurant-placeholder.svg`
 - `public/images/tokone.webp`
 - `public/images/truffe nera pizza`

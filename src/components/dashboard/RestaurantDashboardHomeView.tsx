@@ -268,12 +268,12 @@ function DashboardStatCard({
 }
 
 function MobileOverviewCard({ to, children }: { to: string | null; children: ReactNode }) {
-  const className = "min-h-[8.15rem] rounded-[1.05rem] border border-[#e8ddce] bg-white p-3 shadow-[0_5px_15px_rgba(54,40,23,0.05)] transition hover:border-orange-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:border-white/10 dark:bg-[#0b1729]";
+  const className = "min-h-[8.15rem] rounded-[1.05rem] border border-[#e8ddce] bg-white p-3 shadow-[0_5px_15px_rgba(54,40,23,0.05)] transition hover:border-orange-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:border-white/10 dark:bg-card";
   return to ? <Link to={to} className={className}>{children}</Link> : <article aria-disabled="true" className={cn(className, "opacity-65")}>{children}</article>;
 }
 
 function OverviewListRow({ to, children }: { to: string | null; children: ReactNode }) {
-  const className = "grid min-w-0 grid-cols-1 gap-2 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-[#5f7aad]/22 dark:bg-[#07142b]/72 dark:text-slate-100 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center";
+  const className = "grid min-w-0 grid-cols-1 gap-2 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-[#8b7f74]/22 dark:bg-card/72 dark:text-slate-100 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center";
   return to ? <Link to={to} className={className}>{children}</Link> : <div aria-disabled="true" className={cn(className, "opacity-65")}>{children}</div>;
 }
 function MobileRestaurantHeader({
@@ -290,7 +290,7 @@ function MobileRestaurantHeader({
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-[60] border-b border-stone-200/90 bg-white/95 pt-[env(safe-area-inset-top,0px)] shadow-[0_8px_24px_rgba(30,22,14,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#07101f]/95 md:hidden">
+    <header className="fixed inset-x-0 top-0 z-[60] border-b border-stone-200/90 bg-white/95 pt-[env(safe-area-inset-top,0px)] shadow-[0_8px_24px_rgba(30,22,14,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-background/95 md:hidden">
       <div className="relative mx-auto flex h-16 max-w-xl items-center justify-between px-3">
         <button
           type="button"
@@ -347,7 +347,7 @@ function MobileBottomNavigation({
   return (
     <nav
       aria-label="Navigation rapide du dashboard restaurateur"
-      className="fixed inset-x-0 bottom-0 z-[60] border-t border-stone-200/90 bg-white/95 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-10px_28px_rgba(30,22,14,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-[#07101f]/95 md:hidden"
+      className="fixed inset-x-0 bottom-0 z-[60] border-t border-stone-200/90 bg-white/95 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-10px_28px_rgba(30,22,14,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-background/95 md:hidden"
     >
       <div className="mx-auto grid h-[4.45rem] max-w-xl grid-cols-5 px-1">
         {MOBILE_BOTTOM_NAV_ITEMS.map((item) => {
@@ -570,7 +570,7 @@ function MobileDailyMenu({
             return (
               <article
                 key={item.id}
-                className="min-w-0 overflow-hidden rounded-[1.05rem] border border-[#e8ddce] bg-white shadow-[0_5px_16px_rgba(54,40,23,0.07)] dark:border-white/10 dark:bg-[#0b1729]"
+                className="min-w-0 overflow-hidden rounded-[1.05rem] border border-[#e8ddce] bg-white shadow-[0_5px_16px_rgba(54,40,23,0.07)] dark:border-white/10 dark:bg-card"
               >
                 <div className="relative h-[6.45rem] overflow-hidden bg-stone-100 dark:bg-slate-800">
                   {imageUrl ? (
@@ -613,7 +613,7 @@ function MobileDailyMenu({
       ) : (
         <Link
           to="/dashboard/menu"
-          className="flex min-h-[8.5rem] items-center gap-4 rounded-[1.05rem] border border-dashed border-[#d7b898] bg-white p-4 text-stone-900 shadow-sm transition hover:border-orange-400 hover:bg-orange-50/40 dark:border-orange-300/25 dark:bg-[#0b1729] dark:text-white dark:hover:bg-orange-500/10"
+          className="flex min-h-[8.5rem] items-center gap-4 rounded-[1.05rem] border border-dashed border-[#d7b898] bg-white p-4 text-stone-900 shadow-sm transition hover:border-orange-400 hover:bg-orange-50/40 dark:border-orange-300/25 dark:bg-card dark:text-white dark:hover:bg-orange-500/10"
         >
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
             <UtensilsCrossed className="h-6 w-6" />

@@ -208,7 +208,7 @@ function AdminNavItems({
                   "tok-workspace-nav-link flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 text-sm font-semibold transition-all",
                   isActive
                     ? "bg-primary/10 text-primary shadow-sm dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] shadow-sm"
-                    : "hover:bg-muted dark:text-slate-200 dark:hover:bg-[#102044]/72",
+                    : "hover:bg-muted dark:text-slate-200 dark:hover:bg-secondary/72",
                 )}
               >
                 <item.icon className="h-4 w-4" />

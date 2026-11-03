@@ -129,8 +129,8 @@ const ACTION_WINDOW_HTML = `<!doctype html>
           --tok-accent: hsl(156 58% 47%);
           --tok-background: hsl(24 14% 8%);
           --tok-surface: hsl(24 12% 12%);
-          --tok-text: hsl(210 30% 98%);
-          --tok-muted: hsl(214 20% 80%);
+          --tok-text: hsl(36 33% 95%);
+          --tok-muted: hsl(30 12% 71%);
           --tok-line: hsl(24 8% 28%);
           --tok-shadow: 0 20px 60px hsl(222 30% 2% / 0.55);
         }

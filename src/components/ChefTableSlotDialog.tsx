@@ -227,7 +227,7 @@ export default function ChefTableSlotDialog({
             </div>
 
             {hasAnySlot ? (
-              <div className="space-y-4 rounded-[28px] border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-orange-50/70 p-4 dark:border-amber-300/25 dark:bg-[linear-gradient(135deg,rgba(120,53,15,0.22),rgba(15,23,42,0.92))] dark:shadow-[0_0_28px_rgba(245,158,11,0.12)]">
+              <div className="space-y-4 rounded-[28px] border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-orange-50/70 p-4 dark:border-amber-300/25 dark:bg-[linear-gradient(135deg,rgba(120,53,15,0.22),rgba(30,26,23,0.92))] dark:shadow-[0_0_28px_rgba(245,158,11,0.12)]">
                 <div className="flex items-center gap-2 text-sm font-semibold text-amber-800 dark:text-amber-100">
                   <Clock3 className="h-4 w-4" />
                   Choisissez votre créneau

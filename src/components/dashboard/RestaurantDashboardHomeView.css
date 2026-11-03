@@ -4,7 +4,7 @@
   }
 
   .dark .tok-dashboard-shell:has([data-mobile-restaurant-overview]) {
-    background: #050b16;
+    background: hsl(var(--background));
   }
 
   .tok-dashboard-shell:has([data-mobile-restaurant-overview]) > div.fixed {

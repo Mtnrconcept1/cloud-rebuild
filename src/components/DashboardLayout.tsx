@@ -181,7 +181,7 @@ function RestaurantSelector({ collapsed = false }: { collapsed?: boolean }) {
         aria-expanded={open}
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex w-full items-center rounded-2xl border bg-sidebar-accent/50 text-sm font-semibold transition-colors dark:border-border dark:bg-card/78 dark:text-slate-100 shadow-sm dark:hover:bg-[#0c1b38]",
+          "flex w-full items-center rounded-2xl border bg-sidebar-accent/50 text-sm font-semibold transition-colors dark:border-border dark:bg-card/78 dark:text-slate-100 shadow-sm dark:hover:bg-secondary",
           collapsed ? "justify-center px-2 py-2" : "px-3 py-2"
         )}
       >
@@ -294,7 +294,7 @@ function NavItems({
                     ? MARKETING_STUDIO_NAV_CLASS
                     : isActive
                       ? "bg-primary/10 text-primary shadow-sm dark:bg-[#ff6a1a]/14 dark:text-[#ffd8c3] shadow-sm"
-                      : "hover:bg-muted dark:text-slate-200 dark:hover:bg-[#102044]/72"
+                      : "hover:bg-muted dark:text-slate-200 dark:hover:bg-secondary/72"
                 )}
               >
                 <item.icon className={cn("h-4 w-4", isMarketingStudio && "text-white")} />
@@ -465,7 +465,7 @@ export default function DashboardLayout({
         </nav>
 
         {!commercialDemoFrame ? (
-          <div className="tok-workspace-sidebar-footer mt-auto border-t px-3 py-3 dark:border-[#5f7aad]/28">
+          <div className="tok-workspace-sidebar-footer mt-auto border-t px-3 py-3 dark:border-[#8b7f74]/28">
             <ChefHelpButton surface="restaurant" menuCard collapsed={collapsed} />
             <SignOutButton
               iconOnly={collapsed}

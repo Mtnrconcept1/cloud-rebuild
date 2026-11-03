@@ -614,7 +614,7 @@ export default function DashboardCampagnes() {
           actions={(
           <div className="flex items-center gap-2">
             <Select value={periodDays} onValueChange={(value) => setPeriodDays(value as "7" | "30" | "90")}>
-              <SelectTrigger className="h-14 w-32 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
+              <SelectTrigger className="h-14 w-32 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
