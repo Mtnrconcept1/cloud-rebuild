@@ -79,3 +79,16 @@ service-account*.json
 
 # Supabase local branch state
 supabase/.branches/*
+
+# Skills de design (Impeccable, Taste) : état local, captures et moteur téléchargé
+**/skills/impeccable/scripts/bin/
+**/.impeccable/hook.cache.json
+**/.impeccable/hook.pending.json
+.impeccable/live/*
+!.impeccable/live/config.json
+.impeccable/history/
+.impeccable/config.local.json
+.impeccable/provider-smoke/
+.impeccable/critique/*
+!.impeccable/critique/ignore.md
+.taste-skill/
