@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `b2b27758386166bde9c8f6ec2325c62ce1f0af44f39b4485416078685f41fcf3`
+- Empreinte SHA-256 des sources indexées : `f0848b4385d6074c7051d8006e9500a834e977acf0aabae73f7f19812c91cf81`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -2331,7 +2331,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /menu.pdf | 1 | [src/test/app-page-navigation.test.tsx:26](../../src/test/app-page-navigation.test.tsx#L26) |
 | /mes-avis | 17 | [scripts/prerender-seo.mjs:1245](../../scripts/prerender-seo.mjs#L1245) |
 | /miamz | 1 | [supabase/functions/tok-connect-full-app-mcp/index.ts:206](../../supabase/functions/tok-connect-full-app-mcp/index.ts#L206) |
-| /miamz-solidaires | 19 | [scripts/prerender-seo.mjs:543](../../scripts/prerender-seo.mjs#L543) |
+| /miamz-solidaires | 17 | [scripts/prerender-seo.mjs:543](../../scripts/prerender-seo.mjs#L543) |
 | /mon-compte-facturation | 1 | [src/test/dashboard-design-preview-export.test.tsx:68](../../src/test/dashboard-design-preview-export.test.tsx#L68) |
 | /mon-espace | 47 | [scripts/prerender-seo.mjs:1242](../../scripts/prerender-seo.mjs#L1242) |
 | /mon-espace-public | 1 | [src/test/customer-workspace-routes.test.ts:29](../../src/test/customer-workspace-routes.test.ts#L29) |
@@ -2387,7 +2387,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/:slug | 3 | [src/App.tsx:609](../../src/App.tsx#L609) |
 | /r/:slug/reserver | 2 | [src/App.tsx:608](../../src/App.tsx#L608) |
 | /readyz | 3 | [src/test/application-search-index.test.ts:105](../../src/test/application-search-index.test.ts#L105) |
-| /recherche | 101 | [public/seo-trust-runtime.js:139](../../public/seo-trust-runtime.js#L139) |
+| /recherche | 100 | [public/seo-trust-runtime.js:139](../../public/seo-trust-runtime.js#L139) |
 | /recherche#cuisines | 1 | [src/test/app-page-navigation.test.tsx:29](../../src/test/app-page-navigation.test.tsx#L29) |
 | /recherche?city=Lausanne | 1 | [src/test/restaurant-search-preview.test.tsx:123](../../src/test/restaurant-search-preview.test.tsx#L123) |
 | /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:107](../../src/test/restaurant-search-preview.test.tsx#L107) |
