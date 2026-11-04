@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `844938b9b405e757c0a47bb3132ae55cf5cd0bc47b13d03f5890bb61695b0a16`
+- Empreinte SHA-256 des sources indexées : `71e33f5b2dada607b9479efa69f391aba01ff98b792704b77a7f528c9ca61dd9`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 191 |
 | edgeFunctions | 126 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4414 |
+| exportedSymbols | 4415 |
 | featureFlags | 100 |
 | frontendRoutes | 149 |
 | integrations | 11 |
 | marketingOperations | 45 |
 | migrations | 597 |
-| modules | 1993 |
+| modules | 1994 |
 | pages | 138 |
 | pathLiterals | 1009 |
 | publicAssets | 919 |
 | publicEntries | 957 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 123 |
-| records | 20385 |
-| repositoryFiles | 4068 |
+| records | 20389 |
+| repositoryFiles | 4070 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7466,7 +7466,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | automation-script | 93 |
 | documentation | 6 |
 | edge-function-source | 265 |
-| frontend-component | 321 |
+| frontend-component | 322 |
 | frontend-hook | 25 |
 | frontend-page | 138 |
 | frontend-source | 37 |
@@ -9208,7 +9208,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (335)</summary>
+<details><summary>frontend-component (336)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -9436,6 +9436,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/marketing/views/MarketingOutreachView.tsx`
 - `src/components/marketing/views/MarketingOverviewView.tsx`
 - `src/components/marketing/views/MarketingResultsView.tsx`
+- `src/components/motion/PointerTiltLayer.tsx`
 - `src/components/navigation/AppPageNavigation.tsx`
 - `src/components/navigation/BackNavigationButton.tsx`
 - `src/components/navigation/RoleSpaceMenuSection.tsx`
@@ -9721,7 +9722,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (61)</summary>
+<details><summary>frontend-source (62)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -9769,6 +9770,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/styles/golden-tok-chefs-table-v6.css`
 - `src/styles/golden-tok-chefs-table.css`
 - `src/styles/halloween-theme.css`
+- `src/styles/motion.css`
 - `src/styles/workforce-report-print.css`
 - `src/test/fixtures/floorPlanPreview.ts`
 - `src/test/fixtures/golden-tok-preview.tsx`
