@@ -462,20 +462,20 @@ function LiveDashboardFactures() {
         {selectedRestaurant && !isLoading && !error ? (
           <>
             <AccountingDigestCard
-              title="A lire en premier"
+              title="À lire en premier"
               description="Une lecture courte pour savoir quoi encaisser, quoi payer et quels avantages fidélité Tok couvre."
               items={[
                 {
                   tone: "primary",
                   icon: ArrowDownRight,
-                  label: "A recevoir de Tok",
+                  label: "À recevoir de Tok",
                   value: formatAmount(totalReceivable),
                   helper: `${formatAmount(summary.inflow.receivableFromTok)} déjà facturé, ${formatAmount(uninvoicedRestaurantShareTotal)} à facturer.`,
                 },
                 {
                   tone: "orange",
                   icon: ArrowUpRight,
-                  label: "A payer a Tok",
+                  label: "À payer à Tok",
                   value: formatAmount(totalPayable),
                   helper: `${formatAmount(summary.outflow.payableToTok)} facturé, ${formatAmount(payableAccruals.totalAmount)} en attente.`,
                 },

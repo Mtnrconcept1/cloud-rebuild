@@ -331,7 +331,7 @@ function LiveDashboardFacturesInflow() {
               <AccountingMetricCard
                 tone="primary"
                 icon={ArrowDownRight}
-                label="A recevoir de TOK"
+                label="À recevoir de TOK"
                 value={formatAmount(totalOpenReceivable)}
                 description={`${formatAmount(summary.inflow.receivableFromTok)} déjà facturé et ${formatAmount(uninvoicedRestaurantShareTotal)} encore a emettre.`}
               />
@@ -361,7 +361,7 @@ function LiveDashboardFacturesInflow() {
               <AccountingPanel
                 tone="primary"
                 icon={FileUp}
-                eyebrow="A faire maintenant"
+                eyebrow="À faire maintenant"
                 title="Facturer l'encours"
                 description="La priorité est simple: emettre ce qui est déjà du à votre restaurant avant de parcourir l'historique."
                 value={formatAmount(uninvoicedRestaurantShareTotal)}
@@ -397,7 +397,7 @@ function LiveDashboardFacturesInflow() {
               <AccountingPanel
                 tone="emerald"
                 icon={ArrowDownRight}
-                eyebrow="A faire maintenant"
+                eyebrow="À faire maintenant"
                 title="Suivre les factures déjà emises"
                 description="Une fois la facturé envoyée, l'étape suivante est le suivi du reglement cote TOK."
                 value={formatAmount(summary.inflow.receivableFromTok)}
@@ -501,13 +501,13 @@ function LiveDashboardFacturesInflow() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-primary">
                 <FileUp className="h-4 w-4" />
-                A encaisser et historique
+                À encaisser et historique
               </div>
 
               <div className="grid gap-4 2xl:grid-cols-2">
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">A encaisser</CardTitle>
+                    <CardTitle className="text-base">À encaisser</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <InvoiceTable
