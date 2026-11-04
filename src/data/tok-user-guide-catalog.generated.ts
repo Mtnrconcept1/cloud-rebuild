@@ -1,9 +1,9 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "e4dab3169e9eb7f3cddedf0e4ea1acfc7cecaa81c4e466d5432ff444613fe31f",
+  "sourceDigest": "8b1ab530112ab415a00b7fc35fe1906ca7db07d1fe189b8ba36765316d5ad03f",
   "routeCount": 149,
-  "toolCount": 126
+  "toolCount": 127
 } as const;
 
 export const TOK_USER_GUIDE_ROUTES = [
@@ -1972,6 +1972,13 @@ export const TOK_USER_GUIDE_TOOLS = [
       "stripe",
       "supabase"
     ]
+  },
+  {
+    "name": "ai-video-studio",
+    "endpoint": "/functions/v1/ai-video-studio",
+    "methods": [],
+    "actions": [],
+    "integrations": []
   },
   {
     "name": "aligro-catalog-sync",

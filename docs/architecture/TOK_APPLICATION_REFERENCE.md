@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `e4dab3169e9eb7f3cddedf0e4ea1acfc7cecaa81c4e466d5432ff444613fe31f`
+- Empreinte SHA-256 des sources indexées : `8b1ab530112ab415a00b7fc35fe1906ca7db07d1fe189b8ba36765316d5ad03f`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -30,7 +30,7 @@
 | databaseContract | 232 |
 | databaseObjects | 3235 |
 | documents | 191 |
-| edgeFunctions | 126 |
+| edgeFunctions | 127 |
 | edgeHttpRoutes | 20 |
 | exportedSymbols | 4419 |
 | featureFlags | 100 |
@@ -45,7 +45,7 @@
 | publicEntries | 958 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 124 |
-| records | 20426 |
+| records | 20428 |
 | repositoryFiles | 4081 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -508,6 +508,7 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | ai-restaurant-tools | [supabase/functions/ai-restaurant-tools/index.ts:1](../../supabase/functions/ai-restaurant-tools/index.ts#L1) | oui ([supabase/config.toml:53](../../supabase/config.toml#L53)) | false | ANY | — | openai |
 | ai-social-post-copy | [supabase/functions/ai-social-post-copy/index.ts:1](../../supabase/functions/ai-social-post-copy/index.ts#L1) | oui ([supabase/config.toml:50](../../supabase/config.toml#L50)) | false | POST | — | openai |
 | ai-support-resolution | [supabase/functions/ai-support-resolution/index.ts:1](../../supabase/functions/ai-support-resolution/index.ts#L1) | oui ([supabase/config.toml:65](../../supabase/config.toml#L65)) | false | POST | analyze, execute, list, reject | openai, resend, stripe, supabase |
+| ai-video-studio | absente | oui ([supabase/config.toml:394](../../supabase/config.toml#L394)) | false | — | — | — |
 | aligro-catalog-sync | [supabase/functions/aligro-catalog-sync/index.ts:1](../../supabase/functions/aligro-catalog-sync/index.ts#L1) | oui ([supabase/config.toml:188](../../supabase/config.toml#L188)) | false | POST | — | supabase |
 | analyze-restaurant-image | [supabase/functions/analyze-restaurant-image/index.ts:1](../../supabase/functions/analyze-restaurant-image/index.ts#L1) | oui ([supabase/config.toml:41](../../supabase/config.toml#L41)) | false | POST | — | openai, supabase |
 | apple-storekit-webhook | [supabase/functions/apple-storekit-webhook/index.ts:1](../../supabase/functions/apple-storekit-webhook/index.ts#L1) | oui ([supabase/config.toml:296](../../supabase/config.toml#L296)) | false | POST | — | — |
@@ -7369,6 +7370,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | @capacitor/splash-screen | runtime | ^8.0.1 |
 | @capacitor/status-bar | runtime | ^8.0.1 |
 | @eslint/js | development | ^9.32.0 |
+| @higgsfield/client | runtime | 0.2.6 |
 | @hookform/resolvers | runtime | ^3.10.0 |
 | @radix-ui/react-accordion | runtime | ^1.2.11 |
 | @radix-ui/react-alert-dialog | runtime | ^1.1.14 |

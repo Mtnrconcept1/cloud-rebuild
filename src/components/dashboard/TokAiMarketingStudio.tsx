@@ -1,6 +1,6 @@
 import { useJourneyFocus } from "@/hooks/useJourneyFocus";
 import WorkflowActions from "@/components/dashboard/WorkflowActions";
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +50,7 @@ import {
   CheckCircle2,
   FileImage,
   FileText,
+  Film,
   ImagePlus,
   Loader2,
   Megaphone,
@@ -60,6 +61,8 @@ import {
   Wand2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+
+const TokAiVideoStudio = lazy(() => import("./TokAiVideoStudio"));
 
 type MarketingToolId =
   | "flyer"
@@ -1179,6 +1182,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
   const demoStudioEnabled = !commercialDemoFrame
     || commercialDemoFrame.snapshot.active_features.includes("dashboard-photos");
   const [activeTool, setActiveTool] = useState<MarketingToolId>("flyer");
+  const [studioMode, setStudioMode] = useState<"images" | "video">("images");
   const [prompt, setPrompt] = useState("");
   const [format, setFormat] = useState(DEFAULT_MARKETING_FORMAT.label);
   const [orientation, setOrientation] = useState<MarketingOrientation>(DEFAULT_MARKETING_FORMAT.orientation);
@@ -1768,6 +1772,23 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
 
   const generatedMarketingImageUrl = marketingImageResult?.gallery_image_url || marketingImageResult?.generated_image_url || "";
 
+  if (studioMode === "video" && !isCommercialDemo && restaurantId) {
+    return (
+      <section className="tok-marketing-workflow max-w-full space-y-4 rounded-3xl border border-orange-200 bg-background p-3 shadow-sm sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-orange-50 p-4 dark:bg-orange-950/20">
+          <div>
+            <h2 className="text-xl font-bold">Marketing Studio · Vidéo</h2>
+            <p className="text-sm text-muted-foreground">Créez des publicités avec Higgsfield Seedance 2.5.</p>
+          </div>
+          <Button type="button" variant="outline" onClick={() => setStudioMode("images")}>Retour aux créations graphiques</Button>
+        </div>
+        <Suspense fallback={<div className="flex min-h-40 items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Chargement du studio vidéo…</div>}>
+          <TokAiVideoStudio restaurantId={restaurantId} />
+        </Suspense>
+      </section>
+    );
+  }
+
   if (!demoStudioEnabled) {
     return (
       <Card className="border-dashed">
@@ -1786,7 +1807,14 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
       <div className="grid min-w-0 gap-4 p-3 sm:gap-6 sm:p-5 lg:p-6">
         <div className="min-w-0 space-y-4 sm:space-y-6">
           <div className="min-w-0 rounded-2xl border bg-background p-4">
-            <h2 className="text-lg font-bold text-foreground">Un visuel en trois étapes</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-lg font-bold text-foreground">Un visuel en trois étapes</h2>
+              {!isCommercialDemo ? (
+                <Button type="button" className="min-h-11 gap-2 bg-orange-600 hover:bg-orange-700" onClick={() => setStudioMode("video")}>
+                  <Film className="h-4 w-4" /> Créer une publicité vidéo
+                </Button>
+              ) : null}
+            </div>
             <p className="mt-1 text-sm text-muted-foreground">Choisissez un support, retrouvez votre marque, puis décrivez votre idée. Vos choix restent conservés lorsque vous revenez à l’étape précédente.</p>
             {isCommercialDemo ? <Badge variant="outline" className="mt-3 whitespace-normal border-emerald-300 bg-emerald-50 text-emerald-800">OpenAI réel · crédits Démo illimités · coût suivi en interne</Badge> : null}
           </div>
