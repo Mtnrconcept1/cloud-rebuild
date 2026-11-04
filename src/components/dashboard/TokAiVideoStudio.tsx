@@ -17,6 +17,14 @@ const DEFAULT_OPTIONS: TokVideoOptionsInput = {
   aspectRatio: "9:16", generateAudio: true, referenceMediaId: null,
 };
 const ACTIVE_STATUSES = new Set(["reserved", "submitting", "queued", "in_progress", "archiving"]);
+const VIDEO_FAILURE_MESSAGES: Record<string, string> = {
+  video_provider_auth_failed: "Higgsfield refuse les identifiants API. Vérifiez la configuration serveur de la clé Higgsfield. Vos crédits TOK ont été restitués.",
+  video_provider_access_denied: "Higgsfield refuse l'accès au modèle (droits ou solde de crédits fournisseur). Vérifiez le compte API Higgsfield avant de réessayer. Vos crédits TOK ont été restitués.",
+  video_provider_invalid_input: "Higgsfield refuse la photo ou les paramètres de cette vidéo. Vérifiez la photo et essayez éventuellement sans référence. Vos crédits TOK ont été restitués.",
+  video_provider_endpoint_missing: "Le modèle vidéo demandé n'est pas accessible par cette clé Higgsfield. Vérifiez les droits du compte. Vos crédits TOK ont été restitués.",
+  video_provider_rate_limited: "Higgsfield limite temporairement les demandes. Réessayez ultérieurement. Vos crédits TOK ont été restitués.",
+  video_provider_rejected: "Higgsfield a refusé cette demande avant la génération. Le motif précis n'a pas été conservé par la version précédente. Les crédits TOK ont été restitués.",
+};
 const statusLabels: Record<string, string> = {
   reserved: "Enregistrement", submitting: "Envoi à Higgsfield",
   queued: "Dans la file", in_progress: "Génération en cours",
@@ -351,7 +359,7 @@ export default function TokAiVideoStudio({ restaurantId }: { restaurantId: strin
                     {selectedJob.status === "needs_review"
                       ? "La réponse du fournisseur est incertaine. TOK conserve la réservation pour éviter une double facturation. Contactez le support avant une nouvelle tentative."
                       : selectedJob.status === "failed"
-                        ? "La génération a échoué. Les crédits sont restitués après échec confirmé."
+                        ? VIDEO_FAILURE_MESSAGES[selectedJob.errorCode || ""] || "La génération a échoué. Les crédits TOK ont été restitués après confirmation du refus fournisseur."
                         : "La génération se poursuit côté serveur. Vous pouvez quitter cet onglet et revenir plus tard."}
                   </p>
                 )}

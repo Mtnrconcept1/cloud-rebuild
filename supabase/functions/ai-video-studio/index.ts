@@ -4,7 +4,7 @@ import { createRateLimiter } from "../_shared/rate-limit.ts";
 import { maybeUuid } from "../_shared/intelligence.ts";
 import {
   normalizeTokVideoOptions, quoteTokVideo, readProviderVideoResponse,
-  isSafeVideoDownloadUrl, type TokVideoOptions,
+  isSafeVideoDownloadUrl, classifyHiggsfieldSubmissionError, type TokVideoOptions,
 } from "../_shared/higgsfield-video.ts";
 import { createHiggsfieldClient } from "npm:@higgsfield/client@0.2.6/v2";
 
@@ -130,6 +130,16 @@ async function imageReferenceUrl(actor: Actor, restaurantId: string, mediaId: st
     .eq("id", mediaId).eq("restaurant_id", restaurantId).maybeSingle();
   if (error || !item) throw new HttpError(400, "video_reference_not_found");
   if (item.storage_bucket && item.storage_path) {
+    // Public restaurant images need a stable, provider-readable URL. Signed URLs
+    // can be rejected by third-party video inference endpoints despite working in browsers.
+    if (item.storage_bucket === "restaurant-images") {
+      const { data } = actor.adminClient.storage
+        .from(item.storage_bucket).getPublicUrl(item.storage_path);
+      if (!data?.publicUrl?.startsWith("https://")) {
+        throw new HttpError(400, "video_reference_unavailable");
+      }
+      return data.publicUrl;
+    }
     const { data, error: signError } = await actor.adminClient.storage
       .from(item.storage_bucket).createSignedUrl(item.storage_path, 1800);
     if (signError || !data?.signedUrl) throw new HttpError(400, "video_reference_unavailable");
@@ -210,13 +220,22 @@ async function start(actor: Actor, restaurantId: string, body: Record<string, un
         }
       }
     } catch (error) {
-      // A lost response may have incurred provider charges. Only confirmed 4xx rejections refund.
-      const statusCode = error && typeof error === "object" && "statusCode" in error
-        ? Number((error as { statusCode: unknown }).statusCode) : null;
-      const rejected = (statusCode != null && [400, 401, 403, 422].includes(statusCode)) ||
-        (error instanceof Error && error.name === "AuthenticationError");
-      current = await finishJob(actor, current, rejected ? "failed" : "needs_review",
-        rejected ? "video_provider_rejected" : "video_submission_unconfirmed");
+      // A provider 4xx means an explicitly rejected submission; a network timeout or 5xx
+      // is ambiguous and must not trigger a new paid job or a refund.
+      const diagnosis = classifyHiggsfieldSubmissionError(error);
+      current = await finishJob(actor, current,
+        diagnosis.confirmedRejected ? "failed" : "needs_review", diagnosis.code);
+      await writeAuditLog({
+        adminClient: actor.adminClient, functionName: NAME,
+        status: "failure", action: "provider_submission", actor,
+        targetEntityType: "restaurant_video_generations", targetEntityId: current.id,
+        metadata: {
+          restaurant_id: restaurantId,
+          provider_http_status: diagnosis.statusCode || null,
+          diagnostic_code: diagnosis.code,
+          credits_refunded: diagnosis.confirmedRejected,
+        },
+      });
     }
     await writeAuditLog({
       adminClient: actor.adminClient, functionName: NAME,
