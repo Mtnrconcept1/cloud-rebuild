@@ -330,9 +330,11 @@
 .tok-hospitality-workspace .tok-customer-confirmation-order .border-l-2 > div > span:last-child { flex-shrink: 0; }
 
 .tok-client-action-photo {
-  position: absolute; inset: 0 0 0 auto; width: 48%; height: 100%; object-fit: cover;
-  mask-image: linear-gradient(to right, transparent, black 70%); pointer-events: none;
+  /* The wide source images keep their scene on the right and a quiet area on the left. */
+  position: absolute; inset: 0 0 0 auto; width: auto; max-width: 100%; height: 100%; object-fit: cover; object-position: right center;
+  mask-image: linear-gradient(to right, transparent 22%, rgb(0 0 0 / 18%) 55%, black 82%); pointer-events: none;
 }
+.tok-client-quick-action > div { position: relative; z-index: 1; }
 .tok-client-quick-action > p { max-width: 70%; }
 
 .tok-profile-identity { display: grid; gap: 1rem; align-items: center; padding: 1rem; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 1rem; }
