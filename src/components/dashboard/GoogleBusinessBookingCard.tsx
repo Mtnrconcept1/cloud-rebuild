@@ -68,7 +68,7 @@ function getErrorMessage(error: unknown) {
 
 function MetricPill({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3 dark:border-[#5f7aad]/25 dark:bg-[#07142b]/70">
+    <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3 dark:border-[#8b7f74]/25 dark:bg-card/70">
       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
       <p className="mt-1 text-2xl font-black tracking-tight">{value}</p>
     </div>
@@ -206,7 +206,7 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
   }
 
   return (
-    <Card className="tok-dashboard-section overflow-hidden rounded-3xl border border-orange-200/70 bg-gradient-to-br from-white via-white to-orange-50/65 dark:border-[#ff8a3d]/30 dark:from-[#07142b] dark:via-[#07142b] dark:to-[#30130b]">
+    <Card className="tok-dashboard-section overflow-hidden rounded-3xl border border-orange-200/70 bg-gradient-to-br from-white via-white to-orange-50/65 dark:border-[#ff8a3d]/30 dark:from-card dark:via-card dark:to-[#30130b]">
       <CardHeader className="gap-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-3">
@@ -359,7 +359,7 @@ export default function GoogleBusinessBookingCard({ restaurantId }: GoogleBusine
           </div>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-xs text-muted-foreground dark:border-[#5f7aad]/25 dark:bg-[#07142b]/70">
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-xs text-muted-foreground dark:border-[#8b7f74]/25 dark:bg-card/70">
           <BarChart3 className="h-4 w-4 text-primary" />
           Dernière copie : {formatGoogleBookingDate(setup.copied_at)}.
           Confirmation : {formatGoogleBookingDate(setup.preferred_link_confirmed_at)}.

@@ -4,6 +4,13 @@ import tailwindcssAnimate from "tailwindcss-animate";
 // Le même orange TOK est utilisé par tous les sous-domaines et boutons orange.
 const TOK_BRAND_ORANGE = "#F15D22";
 
+// La palette slate lit des canaux RGB pilotés par `src/index.css` : valeurs
+// Tailwind d'origine en mode clair, gris chauds TOK sous `.dark`.
+const SLATE_SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+const slate = Object.fromEntries(
+  SLATE_SHADES.map((shade) => [shade, `rgb(var(--tok-slate-${shade}) / <alpha-value>)`]),
+);
+
 export default {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
@@ -30,6 +37,7 @@ export default {
         dashboard: ["Fraunces", "Playfair Display", "Georgia", "serif"],
       },
       colors: {
+        slate,
         // Les aplats et textes orange portent le même orange de marque.
         // Les nuances claires (50–300) restent réservées aux fonds discrets.
         orange: {
@@ -105,6 +113,8 @@ export default {
       },
       transitionTimingFunction: {
         tok: "cubic-bezier(.2,.7,.2,1)",
+        // Ease-out franche pour les retours d'interaction (pression, survol, entrées).
+        "tok-out": "cubic-bezier(.23,1,.32,1)",
       },
       keyframes: {
         "accordion-down": {

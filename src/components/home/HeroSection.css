@@ -1431,3 +1431,64 @@ body:has(.tok-home-first-screen) .tok-site-header .tok-desktop-guest-hide{displa
   .tok-mobile-home-tabs__link,
   .tok-home-hero__mobile-actions a { transition: none; }
 }
+
+/* Mode sombre, écran d'accueil : les surfaces du hero suivent les tokens
+ * sombres TOK au lieu des aplats crème/blancs et de la barre marine. */
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-first-screen:has(.tok-home-hero) {
+  background: hsl(var(--background));
+}
+
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__eyebrow {
+  border-color: rgb(255 240 225 / 12%);
+  background: rgb(29 25 23 / 88%);
+  color: #f8f1e9;
+}
+
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__form {
+  border-color: rgb(255 240 225 / 10%);
+  background: rgb(29 25 23 / 94%);
+  box-shadow: 0 18px 44px rgb(0 0 0 / 45%);
+}
+
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__field,
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__field--city {
+  border-color: #3a312b;
+  background: #14110f;
+  box-shadow: none;
+}
+
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__field label,
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__input-row input {
+  color: #f8f1e9;
+}
+
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__mobile-search-tab {
+  border-color: #3a312b;
+  background: #241e1a;
+  color: #f8f1e9;
+}
+
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__mobile-search-tab--active {
+  border-color: var(--tok-brand-orange, #f15d22);
+  background: var(--tok-brand-orange, #f15d22);
+  color: #fff;
+}
+
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__signature,
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter {
+  border-color: rgb(255 240 225 / 10%);
+  background: #1d1917;
+  color: #d9cdc1;
+}
+
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter strong,
+:root.dark:not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__signature strong {
+  color: #f8f1e9;
+}
+
+@media (max-width: 767px) {
+  :root.dark:not([data-seasonal-theme="halloween"]) body:has(.tok-home-first-screen) header.tok-home-header > div {
+    border-color: rgb(255 240 225 / 10%);
+    background: linear-gradient(120deg, rgb(29 25 23 / 94%), rgb(20 17 15 / 90%));
+  }
+}

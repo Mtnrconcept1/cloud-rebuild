@@ -14,12 +14,14 @@ import { CartProvider } from "@/lib/cart";
 import Navbar from "@/components/Navbar";
 import MobileLogoIntro from "@/components/MobileLogoIntro";
 import FooterSection from "@/components/home/FooterSection";
+import DirectoryRestaurantOwnershipNotice from "@/components/DirectoryRestaurantOwnershipNotice";
 import SupportChat from "@/components/SupportChat";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import { BackNavigationButton, FloatingRouteBackButton } from "@/components/navigation/BackNavigationButton";
 import { InternalLinkNavigation, PageSwipeTransition } from "@/components/navigation/AppPageNavigation";
+import PointerTiltLayer from "@/components/motion/PointerTiltLayer";
 import AdminMobileNavigation from "@/components/admin/AdminMobileNavigation";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
@@ -376,7 +378,7 @@ export function AdminRouteFrame({
   );
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background pb-24 pt-[calc(env(safe-area-inset-top,0px)+3.75rem)] md:pb-0 md:pl-20 md:pt-[calc(env(safe-area-inset-top,0px)+4.25rem)]">
+    <div className="min-h-screen overflow-x-hidden dark:overflow-x-clip bg-background pb-24 pt-[calc(env(safe-area-inset-top,0px)+3.75rem)] md:pb-0 md:pl-20 md:pt-[calc(env(safe-area-inset-top,0px)+4.25rem)]">
       {typeof document === "undefined" ? backButton : createPortal(backButton, document.body)}
       <div className="fixed right-[calc(env(safe-area-inset-right,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+0.75rem)] z-[1200] flex items-center gap-2">
         <ChefHelpButton surface="admin" compact className="hidden w-auto md:flex" />
@@ -387,7 +389,7 @@ export function AdminRouteFrame({
         >
           Paramètres
         </Link>
-        <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#5f7aad]/35 dark:bg-[#07142b]/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
+        <ThemeToggleButton className="h-11 w-11 rounded-full border border-border/70 bg-background/95 text-foreground shadow-[0_14px_34px_rgba(15,23,42,0.16)] backdrop-blur-md hover:bg-background dark:border-[#8b7f74]/35 dark:bg-card/95 dark:text-white dark:shadow-[0_20px_48px_rgba(0,0,0,0.5),0_0_30px_rgba(255,106,26,0.16)]" />
         <NotificationBell />
         <SignOutButton iconOnly />
       </div>
@@ -745,6 +747,8 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
         </Suspense> : null
       ) : null}
       {!commercialDemoFrame && pathname === "/" ? <DailyTokArcade /> : null}
+      {/* Encart de provenance des fiches d'annuaire : dans le flux de la page, avant le pied de page. */}
+      <DirectoryRestaurantOwnershipNotice />
       {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
       {showLaunchClientChrome ? <LegalConsentBanner /> : null}
       {showLaunchClientChrome ? <PageViewTracker /> : null}
@@ -838,6 +842,7 @@ const App = () => {
           <BrowserRouter basename={commercialDemoFrame?.basename}>
             <MarketingHostBoundary>
               <InternalLinkNavigation enabled={!commercialDemoFrame && !isNative()} />
+              <PointerTiltLayer />
               <RouteSeoFallback />
               <ApplicationBoundary commercialDemoFrame={commercialDemoFrame} />
             </MarketingHostBoundary>

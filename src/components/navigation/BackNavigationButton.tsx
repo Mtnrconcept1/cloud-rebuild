@@ -55,7 +55,7 @@ export function BackNavigationButton({
       aria-label="Retour à l'écran précédent"
       className={cn(
         "gap-2 rounded-full border border-border/70 bg-background/95 px-3 font-semibold text-foreground shadow-sm backdrop-blur-md hover:bg-background",
-        "dark:border-[#5f7aad]/35 dark:bg-[#07142b]/90 dark:text-white dark:shadow-[0_12px_34px_rgba(0,0,0,0.35)] dark:hover:bg-[#0c1b38]",
+        "dark:border-[#8b7f74]/35 dark:bg-card/90 dark:text-white dark:shadow-[0_12px_34px_rgba(0,0,0,0.35)] dark:hover:bg-secondary",
         className,
       )}
     >

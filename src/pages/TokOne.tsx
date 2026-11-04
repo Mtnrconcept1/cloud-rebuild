@@ -1003,7 +1003,7 @@ export default function TokOne() {
 
   return (
     <main className="tok-product-page min-h-screen bg-background text-foreground dark:bg-slate-950 dark:text-white">
-      <section className="relative isolate overflow-hidden border-b border-border bg-[linear-gradient(180deg,rgba(255,247,237,0.8),rgba(255,255,255,0.96)_48%,rgba(255,255,255,1))] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(15,23,42,1),rgba(2,6,23,1))]">
+      <section className="relative isolate overflow-hidden border-b border-border bg-[linear-gradient(180deg,rgba(255,247,237,0.8),rgba(255,255,255,0.96)_48%,rgba(255,255,255,1))] dark:border-white/10 dark:bg-[linear-gradient(180deg,rgba(30,26,23,1),rgba(20,17,15,1))]">
         <div className="mx-auto grid w-full max-w-7xl items-center gap-12 px-4 py-5 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-8">
           <motion.div
             initial={{ opacity: 0, y: 18 }}

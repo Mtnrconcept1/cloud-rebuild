@@ -170,7 +170,7 @@ export default function MarketingWorkspaceChrome({
   };
 
   return (
-    <div className="min-h-[100dvh] bg-slate-50 text-slate-950 dark:bg-[#06101e] dark:text-slate-50">
+    <div className="min-h-[100dvh] bg-slate-50 text-slate-950 dark:bg-background dark:text-slate-50">
       <a href="#marketing-main" className="sr-only z-[2000] rounded-md bg-orange-500 px-4 py-2 text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
         Aller au contenu marketing
       </a>

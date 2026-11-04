@@ -22,8 +22,10 @@ type ComparisonData = {
   avg_rating: number;
 };
 
+const isFiniteNumber = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
+
 function DeltaIndicator({ my, avg, suffix = "", reverse = false }: { my: number; avg: number; suffix?: string; reverse?: boolean }) {
-  if (avg === 0) return <span className="text-sm text-muted-foreground">-</span>;
+  if (!isFiniteNumber(my) || !isFiniteNumber(avg) || avg === 0) return <span className="text-sm text-muted-foreground">—</span>;
   const diff = ((my - avg) / avg) * 100;
   const isPositive = reverse ? diff < 0 : diff > 0;
   const isNeutral = Math.abs(diff) < 2;
@@ -52,6 +54,7 @@ function MetricCard({
   reverse?: boolean;
 }) {
   const fmt = (value: number) => {
+    if (!isFiniteNumber(value)) return "—";
     if (format === "currency") return `${value.toFixed(0)} CHF`;
     if (format === "rating") return `${value.toFixed(1)}/5`;
     return String(Math.round(value));
@@ -137,15 +140,15 @@ export default function DashboardComparaison() {
           visualLabel="Benchmark"
           illustration={DASHBOARD_ILLUSTRATIONS.restaurantComparison}
           stats={[
-            { label: "CA restaurant", value: comparison ? `${Number(comparison.my_revenue).toFixed(0)} CHF` : "-", icon: Euro },
-            { label: "Commandes", value: comparison ? Math.round(Number(comparison.my_orders)) : "-", icon: ShoppingCart },
-            { label: "Note", value: comparison ? `${Number(comparison.my_avg_rating).toFixed(1)}/5` : "-", icon: Star },
+            { label: "CA restaurant", value: comparison && isFiniteNumber(Number(comparison.my_revenue)) ? `${Number(comparison.my_revenue).toFixed(0)} CHF` : "—", icon: Euro },
+            { label: "Commandes", value: comparison && isFiniteNumber(Number(comparison.my_orders)) ? Math.round(Number(comparison.my_orders)) : "—", icon: ShoppingCart },
+            { label: "Note", value: comparison && isFiniteNumber(Number(comparison.my_avg_rating)) ? `${Number(comparison.my_avg_rating).toFixed(1)}/5` : "—", icon: Star },
           ]}
           actions={(
             <div className="flex flex-wrap gap-2">
               {restaurants.length > 1 ? (
                 <Select value={selectedId || ""} onValueChange={setSelectedId}>
-                  <SelectTrigger className="h-14 w-48 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
+                  <SelectTrigger className="h-14 w-48 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -158,7 +161,7 @@ export default function DashboardComparaison() {
                 </Select>
               ) : null}
               <Select value={period} onValueChange={setPeriod}>
-                <SelectTrigger className="h-14 w-36 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
+                <SelectTrigger className="h-14 w-36 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -208,7 +211,9 @@ export default function DashboardComparaison() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-muted-foreground">
-              {Number(comparison.my_revenue) > Number(comparison.avg_revenue) ? (
+              {!(Number(comparison.my_revenue) > 0) && !(Number(comparison.avg_revenue) > 0) ? (
+                <p>Pas encore assez de chiffre d'affaires sur cette période pour vous comparer au marché.</p>
+              ) : Number(comparison.my_revenue) > Number(comparison.avg_revenue) ? (
                 <p>Votre CA est supérieur à la moyenne du marché sur cette période.</p>
               ) : (
                 <p>Votre CA est en dessous de la moyenne. Pensez à activer des promotions ou ventes flash.</p>

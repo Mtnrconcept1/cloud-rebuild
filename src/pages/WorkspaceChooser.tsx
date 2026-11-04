@@ -200,7 +200,7 @@ export default function WorkspaceChooser() {
         type="button"
         onClick={card.onSelect}
         className={cn(
-          "group flex min-h-32 w-full items-center gap-4 rounded-3xl border p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500",
+          "tok-neon-surface group flex min-h-32 w-full items-center gap-4 rounded-3xl border p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500",
           card.kind === "demo"
             ? "border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 dark:border-orange-400/25 dark:from-orange-400/10 dark:to-amber-400/5"
             : "border-border/70 bg-background/95",
@@ -230,7 +230,7 @@ export default function WorkspaceChooser() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.16),transparent_38%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_52%,#eef6ff_100%)] px-4 py-[max(2rem,env(safe-area-inset-top))] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.16),transparent_38%),linear-gradient(135deg,#020617_0%,#0f172a_58%,#08111f_100%)]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.16),transparent_38%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_52%,#eef6ff_100%)] px-4 py-[max(2rem,env(safe-area-inset-top))] dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.16),transparent_38%),linear-gradient(135deg,#14110f_0%,#1e1a17_58%,#191513_100%)]">
       <div className="mx-auto max-w-5xl">
         <header className="mb-8 flex items-start justify-between gap-4">
           <div className="min-w-0">

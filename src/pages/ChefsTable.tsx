@@ -238,7 +238,7 @@ export function ChefTableDropCard({
 
       <div className="grid gap-4 p-5 lg:grid-cols-[minmax(0,1.3fr)_240px] lg:items-end">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-orange-50/60 p-4 dark:border-amber-300/25 dark:bg-[linear-gradient(135deg,rgba(120,53,15,0.24),rgba(15,23,42,0.92))] dark:shadow-[0_0_28px_rgba(245,158,11,0.12),inset_0_1px_0_rgba(255,255,255,0.07)]">
+          <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-orange-50/60 p-4 dark:border-amber-300/25 dark:bg-[linear-gradient(135deg,rgba(120,53,15,0.24),rgba(30,26,23,0.92))] dark:shadow-[0_0_28px_rgba(245,158,11,0.12),inset_0_1px_0_rgba(255,255,255,0.07)]">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="space-y-1">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground dark:text-amber-100/75">

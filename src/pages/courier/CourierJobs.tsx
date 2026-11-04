@@ -201,7 +201,7 @@ function LiveCourierJobs() {
                   const orderMeta = order?.metadata || {};
 
                   return (
-                    <div key={offer.id} className="rounded-2xl border p-4 shadow-sm">
+                    <div key={offer.id} className="tok-neon-surface rounded-2xl border p-4 shadow-sm">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1">
                           <p className="font-semibold">{restaurant?.name || "Restaurant"}</p>
@@ -305,7 +305,7 @@ function LiveCourierJobs() {
                   const requiresProof = job.status === "arriving_dropoff";
 
                   return (
-                    <div key={job.id} className="rounded-2xl border p-4 shadow-sm">
+                    <div key={job.id} className="tok-neon-surface rounded-2xl border p-4 shadow-sm">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="space-y-1">
                           <p className="font-semibold">{restaurant?.name || "Restaurant"}</p>

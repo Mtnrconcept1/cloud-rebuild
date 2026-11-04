@@ -1887,7 +1887,10 @@ function PresetFormulaCard({
   const Icon = preset.icon;
 
   return (
-    <Card className={cn("transition-all", isActive ? "border-primary/30 shadow-sm" : "opacity-75")}>
+    <Card
+      data-tok-neon-selected={isActive}
+      className={cn("transition-all", isActive ? "border-primary/30 shadow-sm" : "opacity-75")}
+    >
       <CardContent className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">

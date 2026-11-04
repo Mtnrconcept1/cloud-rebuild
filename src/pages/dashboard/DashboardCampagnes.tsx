@@ -145,7 +145,7 @@ const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondar
 };
 
 const PAYMENT_STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
-  unpaid: { label: "A regler", variant: "outline" },
+  unpaid: { label: "À régler", variant: "outline" },
   pending: { label: "Paiement manuel", variant: "secondary" },
   paid: { label: "Paye", variant: "default" },
   failed: { label: "Paiement refuse", variant: "destructive" },
@@ -614,7 +614,7 @@ export default function DashboardCampagnes() {
           actions={(
           <div className="flex items-center gap-2">
             <Select value={periodDays} onValueChange={(value) => setPeriodDays(value as "7" | "30" | "90")}>
-              <SelectTrigger className="h-14 w-32 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
+              <SelectTrigger className="h-14 w-32 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -766,10 +766,11 @@ export default function DashboardCampagnes() {
               const isSelected = selectedCampaignId === campaign.id;
 
               return (
-                <Card key={campaign.id} className={isSelected ? "border-primary/60 bg-primary/5" : undefined}>
+                <Card key={campaign.id} data-tok-neon-selected={isSelected} className={isSelected ? "border-primary/60 bg-primary/5" : undefined}>
                   <CardContent
                     className="py-4 space-y-3"
                     role="button"
+                    aria-pressed={isSelected}
                     tabIndex={0}
                     onClick={() => setSelectedCampaignId(campaign.id)}
                     onKeyDown={(event) => {
@@ -944,10 +945,11 @@ function CampaignHistoryList({
         const isSelected = selectedCampaignId === campaign.id;
 
         return (
-          <Card key={campaign.id} className={isSelected ? "border-primary/60 bg-primary/5" : undefined}>
+          <Card key={campaign.id} data-tok-neon-selected={isSelected} className={isSelected ? "border-primary/60 bg-primary/5" : undefined}>
             <CardContent
               className="space-y-3 py-4"
               role="button"
+              aria-pressed={isSelected}
               tabIndex={0}
               onClick={() => onSelect(campaign.id)}
               onKeyDown={(event) => {

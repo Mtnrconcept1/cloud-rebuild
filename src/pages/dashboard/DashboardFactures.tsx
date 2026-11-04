@@ -388,7 +388,7 @@ function LiveDashboardFactures() {
 
             <div className="grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(220px,260px)_repeat(4,minmax(130px,1fr))]">
               <Select value={exportPeriodPreset} onValueChange={(value) => setExportPeriodPreset(value as AccountingPeriodPreset)}>
-                <SelectTrigger className="h-12 w-full rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#5f7aad]/35 dark:bg-[#040c1c]/86 dark:text-white">
+                <SelectTrigger className="h-12 w-full rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white">
                   <SelectValue placeholder="Période comptable" />
                 </SelectTrigger>
                 <SelectContent>
@@ -462,20 +462,20 @@ function LiveDashboardFactures() {
         {selectedRestaurant && !isLoading && !error ? (
           <>
             <AccountingDigestCard
-              title="A lire en premier"
+              title="À lire en premier"
               description="Une lecture courte pour savoir quoi encaisser, quoi payer et quels avantages fidélité Tok couvre."
               items={[
                 {
                   tone: "primary",
                   icon: ArrowDownRight,
-                  label: "A recevoir de Tok",
+                  label: "À recevoir de Tok",
                   value: formatAmount(totalReceivable),
                   helper: `${formatAmount(summary.inflow.receivableFromTok)} déjà facturé, ${formatAmount(uninvoicedRestaurantShareTotal)} à facturer.`,
                 },
                 {
                   tone: "orange",
                   icon: ArrowUpRight,
-                  label: "A payer a Tok",
+                  label: "À payer à Tok",
                   value: formatAmount(totalPayable),
                   helper: `${formatAmount(summary.outflow.payableToTok)} facturé, ${formatAmount(payableAccruals.totalAmount)} en attente.`,
                 },

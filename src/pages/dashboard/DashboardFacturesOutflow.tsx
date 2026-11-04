@@ -271,7 +271,7 @@ function LiveDashboardFacturesOutflow() {
               <AccountingPanel
                 tone="orange"
                 icon={ArrowUpRight}
-                eyebrow="A faire maintenant"
+                eyebrow="À faire maintenant"
                 title="Regler les factures TOK déjà emises"
                 description="La première lecture doit vous dire ce qui est déjà payable, sans vous forcer à lire tous les détails de composition."
                 value={formatAmount(summary.outflow.payableToTok)}
@@ -283,7 +283,7 @@ function LiveDashboardFacturesOutflow() {
                     {
                       label: "Factures ouvertes",
                       value: String(payableInvoiceSections.actionable.length),
-                      helper: "Documents visibles dans la section A regler",
+                      helper: "Documents visibles dans la section À régler",
                     },
                     {
                       label: "Déjà paye a TOK",
@@ -296,7 +296,7 @@ function LiveDashboardFacturesOutflow() {
               <AccountingPanel
                 tone="amber"
                 icon={Wallet}
-                eyebrow="A faire maintenant"
+                eyebrow="À faire maintenant"
                 title="Anticiper la prochaine facturé"
                 description="Ce bloc montre le contenu potentiel de la prochaine facturé TOK avant emission."
                 value={formatAmount(payableAccruals.totalAmount)}
@@ -354,13 +354,13 @@ function LiveDashboardFacturesOutflow() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-orange-900">
                 <ArrowUpRight className="h-4 w-4" />
-                A regler et historique
+                À régler et historique
               </div>
 
               <div className="grid gap-4 2xl:grid-cols-2">
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">A regler</CardTitle>
+                    <CardTitle className="text-base">À régler</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <InvoiceTable

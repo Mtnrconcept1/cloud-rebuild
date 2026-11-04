@@ -6,3 +6,5 @@
 tools/prod-schema-utf8.json -text -working-tree-encoding
 *.md text eol=lf
 *.env text eol=lf
+# Lanceur Windows d'Impeccable : cmd.exe exige CRLF (goto/call :label cassent en LF).
+**/skills/impeccable/scripts/*.cmd text eol=crlf
