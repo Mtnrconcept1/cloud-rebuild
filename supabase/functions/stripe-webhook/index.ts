@@ -34,6 +34,13 @@ import {
   recordCheckoutFinance,
   recordRefundFinance,
 } from "../_shared/marketplace-finance.ts";
+import { getStripeConnectRuntime } from "../_shared/stripe-client.ts";
+import {
+  isStripeConnectV2AccountEvent,
+  isStripeConnectV2AccountPersonEvent,
+  readStripeConnectV2EventAccountId,
+  syncStripeConnectV2AccountEvent,
+} from "../_shared/stripe-connect-events.ts";
 import {
   abandonPaymentAttemptSession,
   assertCheckoutSessionIntegrity,
@@ -1366,6 +1373,17 @@ Deno.serve(async (req) => {
           signature,
           webhookSecret.secret,
         );
+        if (isStripeConnectV2AccountEvent(candidateEvent)
+          || isStripeConnectV2AccountPersonEvent(candidateEvent)) {
+          // Thin Events have no livemode field. Their verified live webhook
+          // signing secret authenticates the source and determines the mode.
+          if (webhookSecret.expectedMode !== "live") {
+            signatureError = new Error("STRIPE_CONNECT_V2_LIVE_SIGNATURE_REQUIRED");
+            continue;
+          }
+          verifiedEvent = { ...candidateEvent, livemode: true };
+          break;
+        }
         if (!stripeWebhookEventMatchesExpectedMode(candidateEvent.livemode, webhookSecret.expectedMode)) {
           signatureError = new Error("STRIPE_WEBHOOK_MODE_MISMATCH");
           continue;
@@ -1438,6 +1456,61 @@ Deno.serve(async (req) => {
     return new Response("Stripe webhook lease token missing", { status: 500 });
   }
   const eventLockToken = eventClaim.lockToken;
+
+  if (isStripeConnectV2AccountEvent(event) || isStripeConnectV2AccountPersonEvent(event)) {
+    try {
+      const accountId = isStripeConnectV2AccountEvent(event)
+        ? readStripeConnectV2EventAccountId(event)
+        : null;
+      // Account-person notifications don't identify a recipient account to
+      // reconcile. Stripe also sends account requirements/capability events,
+      // which refresh the authoritative state. Acknowledge these signed
+      // notifications instead of running them through the v1 snapshot handler.
+      let outcome: "updated" | "unmatched" | "account_person_ignored" = "account_person_ignored";
+      if (accountId) {
+        const connectRuntime = getStripeConnectRuntime();
+        if (connectRuntime.mode !== "live") {
+          throw new Error("STRIPE_CONNECT_V2_LIVE_RUNTIME_REQUIRED");
+        }
+        outcome = await syncStripeConnectV2AccountEvent({
+          stripe: connectRuntime.stripe,
+          adminClient: supabaseAdmin,
+          accountId,
+        });
+      }
+      await markStripeWebhookEventSucceeded({
+        adminClient: supabaseAdmin,
+        event,
+        lockToken: eventLockToken,
+      });
+      log.info("stripe_connect_v2_account_synchronized", {
+        eventId: event.id,
+        accountId,
+        outcome,
+      });
+      return new Response(JSON.stringify({ received: true, connect_status: outcome }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (error) {
+      log.error("stripe_connect_v2_account_sync_failed", {
+        eventId: event.id,
+        message: error instanceof Error ? error.message : "unknown",
+      });
+      try {
+        await markStripeWebhookEventFailed({
+          adminClient: supabaseAdmin,
+          event,
+          error,
+          log,
+          lockToken: eventLockToken,
+        });
+      } catch {
+        // Keep 500 so the event can be retried after the processing lease.
+      }
+      return new Response("Stripe Connect account synchronization failed", { status: 500 });
+    }
+  }
 
   try {
     const stripeObject = event.data.object as unknown as Record<string, any>;

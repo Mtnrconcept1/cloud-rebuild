@@ -11,6 +11,11 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import {
+  DeveloperTransferGuardError,
+  assertDeveloperConnectAccountReady,
+  assertDeveloperTransferRetrySafe,
+} from "../_shared/developer-transfer-guards.ts";
+import {
   getStripeRuntimeForCheckoutKindAndMode,
   type StripeRuntimeMode,
 } from "../_shared/stripe-client.ts";
@@ -31,7 +36,13 @@ type DeveloperTransferClaim = {
 };
 
 function normalizeStripeMode(value: unknown): StripeRuntimeMode {
-  return String(value || "live").trim().toLowerCase() === "test" ? "test" : "live";
+  const mode = value === undefined || value === null
+    ? "live"
+    : String(value).trim().toLowerCase();
+  if (mode !== "test" && mode !== "live") {
+    throw new HttpError(400, "INVALID_DEVELOPER_TRANSFER_STRIPE_MODE");
+  }
+  return mode;
 }
 
 function readClaim(value: unknown): DeveloperTransferClaim {
@@ -55,30 +66,6 @@ function requirePositiveInteger(value: unknown, code: string) {
     throw new HttpError(500, code);
   }
   return amount;
-}
-
-function assertDeveloperConnectAccountReady(account: Stripe.Account | Stripe.DeletedAccount) {
-  if ("deleted" in account && account.deleted) {
-    throw new HttpError(409, "Le compte Stripe Connect du developpeur a ete supprime.");
-  }
-
-  const activeAccount = account as Stripe.Account;
-  const requirementsDue = activeAccount.requirements?.currently_due?.filter(Boolean) || [];
-  const disabledReason = activeAccount.requirements?.disabled_reason || null;
-  const transfersCapability = activeAccount.capabilities?.transfers;
-
-  if (
-    !activeAccount.details_submitted
-    || !activeAccount.payouts_enabled
-    || requirementsDue.length > 0
-    || disabledReason
-    || (transfersCapability && transfersCapability !== "active")
-  ) {
-    throw new HttpError(
-      409,
-      "Le compte Stripe Connect du developpeur doit terminer sa verification et activer les virements.",
-    );
-  }
 }
 
 Deno.serve(async (req) => {
@@ -171,14 +158,31 @@ Deno.serve(async (req) => {
       throw new HttpError(500, "DEVELOPER_TRANSFER_CURRENCY_INVALID");
     }
 
+    if (claim.stripe_mode !== stripeMode) {
+      throw new HttpError(409, "DEVELOPER_TRANSFER_MODE_MISMATCH");
+    }
     activeClaim = { transferId, lockToken, stripeMode };
+
+    const { data: transferRecord, error: recordError } = await actor.adminClient
+      .from("developer_stripe_transfers")
+      .select("created_at, attempt_count, stripe_mode, destination_account_id, amount_cents, currency, idempotency_key, stripe_transfer_id")
+      .eq("transfer_id", transferId)
+      .maybeSingle();
+    if (recordError) throw new HttpError(500, "DEVELOPER_TRANSFER_RECORD_LOOKUP_FAILED");
+    assertDeveloperTransferRetrySafe(transferRecord, {
+      destinationAccountId,
+      stripeMode,
+      amountCents,
+      currency,
+      idempotencyKey,
+    });
 
     const { stripe } = getStripeRuntimeForCheckoutKindAndMode(
       "developer-statement-transfer",
       stripeMode,
     );
     const account = await stripe.accounts.retrieve(destinationAccountId);
-    assertDeveloperConnectAccountReady(account);
+    assertDeveloperConnectAccountReady(account, destinationAccountId);
 
     const transferParams: Stripe.TransferCreateParams = {
       amount: amountCents,
@@ -315,7 +319,7 @@ Deno.serve(async (req) => {
       errorMessage: message,
     });
 
-    if (error instanceof HttpError) {
+    if (error instanceof HttpError || error instanceof DeveloperTransferGuardError) {
       return jsonResponse({ error: error.message }, error.status, corsHeaders);
     }
 

@@ -3,6 +3,7 @@ import Stripe from "npm:stripe@22.3.2";
 import { getEnv, HttpError } from "./auth.ts";
 
 export const STRIPE_API_VERSION = "2026-06-24.dahlia";
+export const STRIPE_CONNECT_API_VERSION = "2026-09-30.endive";
 
 export type StripeRuntimeMode = "live" | "test";
 
@@ -165,6 +166,22 @@ export function getStripeRuntimeForCheckoutKind(checkoutKind: unknown) {
 }
 
 /**
+ * Connect Accounts v2 requires its own API version. Isolate this from the
+ * production checkout client to avoid changing payment behavior globally.
+ */
+export function getStripeConnectRuntime(): StripeRuntime {
+  const runtime = getStripeRuntimeForCheckoutKind("stripe-connect");
+  const secretKey = getEnv(runtime.secretKeyName);
+  if (!secretKey) throw new HttpError(503, "STRIPE_CONNECT_SECRET_NOT_CONFIGURED");
+  return {
+    ...runtime,
+    stripe: new Stripe(secretKey, {
+      apiVersion: STRIPE_CONNECT_API_VERSION as Stripe.LatestApiVersion,
+    }),
+  };
+}
+
+/**
  * Resolve the Stripe account for an already persisted payment attempt.
  *
  * Recovery endpoints must never silently fall back from Test to Live (or the
@@ -296,6 +313,7 @@ export function getStripeWebhookSigningSecrets() {
       "STRIPE_WEBHOOK_SECRET_LIVE",
       "STRIPE_WEBHOOK_SIGNING_SECRET",
       "STRIPE_WEBHOOK_SIGNING_SECRET_LIVE",
+      "STRIPE_CONNECT_WEBHOOK_SECRET",
       "STRIPE_TOK_ONE_WEBHOOK_SECRET",
       "STRIPE_TOK_ONE_WEBHOOK_SIGNING_SECRET",
     ], "live"),
