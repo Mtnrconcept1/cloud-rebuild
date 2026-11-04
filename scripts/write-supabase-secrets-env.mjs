@@ -77,6 +77,11 @@ for (const name of allowedNames) {
   if (value === null) {
     continue;
   }
+  // Never replace an existing Supabase provider secret with a malformed GitHub alias.
+  if (name === "HF_CREDENTIALS" && !/^[^:\s]+:[^:\s]+$/.test(value)) {
+    console.warn("Skipping invalid-format HF_CREDENTIALS; existing Supabase secret left unchanged.");
+    continue;
+  }
 
   entries.push([name, value]);
 }

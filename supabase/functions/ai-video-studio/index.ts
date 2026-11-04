@@ -24,7 +24,7 @@ const reply = (value: Record<string, unknown>, status: number, cors: Record<stri
   jsonResponse(value, status, cors);
 
 function providerCredentials() {
-  const value = Deno.env.get("HF_CREDENTIALS")?.trim() || "";
+  const value = Deno.env.get("HF_CREDENTIALS")?.trim() || Deno.env.get("HIGGSFIELD_API_KEY")?.trim() || "";
   if (!/^[^:\s]+:[^:\s]+$/.test(value)) throw new HttpError(503, "higgsfield_not_configured");
   return value;
 }
