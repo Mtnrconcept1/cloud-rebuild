@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `921267125bbe1834d4a718b5160b02909ce4e75cf0bf2c3f634ab5d9f5ac8ffe`
+- Empreinte SHA-256 des sources indexées : `a0c85301381448a8fc08091969aca304f2405704a581649cfff5e41aec47f4a8`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 45 |
 | migrations | 599 |
-| modules | 1998 |
+| modules | 1999 |
 | pages | 138 |
 | pathLiterals | 1010 |
-| publicAssets | 919 |
-| publicEntries | 957 |
+| publicAssets | 920 |
+| publicEntries | 958 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 124 |
-| records | 20421 |
-| repositoryFiles | 4078 |
+| records | 20426 |
+| repositoryFiles | 4081 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1172,6 +1172,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/home-mobile/villes/098-kumasi.webp | media | [public/images/home-mobile/villes/098-kumasi.webp](../../public/images/home-mobile/villes/098-kumasi.webp) |
 | /images/home-mobile/villes/099-damascus.webp | media | [public/images/home-mobile/villes/099-damascus.webp](../../public/images/home-mobile/villes/099-damascus.webp) |
 | /images/home-mobile/villes/100-jeddah.webp | media | [public/images/home-mobile/villes/100-jeddah.webp](../../public/images/home-mobile/villes/100-jeddah.webp) |
+| /images/home/tok-chef-white-mobile.webp | media | [public/images/home/tok-chef-white-mobile.webp](../../public/images/home/tok-chef-white-mobile.webp) |
 | /images/home/tok-geneve-desktop-reference.jpg | media | [public/images/home/tok-geneve-desktop-reference.jpg](../../public/images/home/tok-geneve-desktop-reference.jpg) |
 | /images/home/tok-geneve-desktop.webp | media | [public/images/home/tok-geneve-desktop.webp](../../public/images/home/tok-geneve-desktop.webp) |
 | /images/home/tok-geneve-mobile-fast.webp | media | [public/images/home/tok-geneve-mobile-fast.webp](../../public/images/home/tok-geneve-mobile-fast.webp) |
@@ -1727,7 +1728,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /africain | 1 | [src/test/local-restaurants-pagination.test.tsx:301](../../src/test/local-restaurants-pagination.test.tsx#L301) |
 | /aide | 16 | [scripts/prerender-seo.mjs:1105](../../scripts/prerender-seo.mjs#L1105) |
 | /aligro-catalog-sync | 1 | [src/test/supplier-catalog-sync.test.ts:82](../../src/test/supplier-catalog-sync.test.ts#L82) |
-| /anti-gaspi | 31 | [scripts/prerender-seo.mjs:318](../../scripts/prerender-seo.mjs#L318) |
+| /anti-gaspi | 32 | [scripts/prerender-seo.mjs:318](../../scripts/prerender-seo.mjs#L318) |
 | /api | 2 | [src/test/tok-connect-delivery-address.test.ts:14](../../src/test/tok-connect-delivery-address.test.ts#L14) |
 | /api-keys?reveal=true | 1 | [src/test/restaurant-image-backfill-auth.test.ts:15](../../src/test/restaurant-image-backfill-auth.test.ts#L15) |
 | /api/ | 1 | [src/lib/commercialDemoEffects.ts:80](../../src/lib/commercialDemoEffects.ts#L80) |
@@ -1772,7 +1773,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth?code=private | 1 | [src/test/metricool-page-tracker.test.tsx:83](../../src/test/metricool-page-tracker.test.tsx#L83) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /auth?confirmed=1 | 3 | [src/test/auth-signup-form.test.tsx:595](../../src/test/auth-signup-form.test.tsx#L595) |
-| /auth?newsletter=1 | 2 | [src/components/home/HeroSection.tsx:175](../../src/components/home/HeroSection.tsx#L175) |
+| /auth?newsletter=1 | 3 | [src/components/home/HeroSection.tsx:181](../../src/components/home/HeroSection.tsx#L181) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
 | /auth?redirect=/commercial | 1 | [src/test/admin-commercial-accounts.test.ts:192](../../src/test/admin-commercial-accounts.test.ts#L192) |
 | /auth?role=restaurateur | 3 | [src/pages/RestaurateursGeneve.tsx:352](../../src/pages/RestaurateursGeneve.tsx#L352) |
@@ -1797,7 +1798,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /chef.png | 1 | [src/components/plinko/PlinkoDialog.tsx:41](../../src/components/plinko/PlinkoDialog.tsx#L41) |
 | /chef2.png | 4 | [src/test/transactional-email-templates.test.ts:103](../../src/test/transactional-email-templates.test.ts#L103) |
 | /chef3.png | 3 | [src/components/dashboard/RestaurantDashboardHomeView.tsx:643](../../src/components/dashboard/RestaurantDashboardHomeView.tsx#L643) |
-| /chefs-table | 31 | [scripts/prerender-seo.mjs:1017](../../scripts/prerender-seo.mjs#L1017) |
+| /chefs-table | 32 | [scripts/prerender-seo.mjs:1017](../../scripts/prerender-seo.mjs#L1017) |
 | /chefs-table/ | 1 | [src/lib/tokLogo.ts:23](../../src/lib/tokLogo.ts#L23) |
 | /chefs-table/selection | 1 | [src/test/tok-logo-calendar.test.ts:31](../../src/test/tok-logo-calendar.test.ts#L31) |
 | /codex | 1 | [src/test/telegram-codex-request.test.ts:24](../../src/test/telegram-codex-request.test.ts#L24) |
@@ -1913,8 +1914,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /database/query | 1 | [src/test/production-preflight-hardening.test.ts:204](../../src/test/production-preflight-hardening.test.ts#L204) |
 | /demo-restaurant.jpg | 1 | [src/test/commercial-demo-client-data-isolation.test.ts:19](../../src/test/commercial-demo-client-data-isolation.test.ts#L19) |
 | /desig%20app/tok-ch- | 2 | [src/lib/homeCantonHero.ts:72](../../src/lib/homeCantonHero.ts#L72) |
-| /desig%20app/tok-ch-ju.webp | 1 | [src/test/home-hero-search.test.tsx:93](../../src/test/home-hero-search.test.tsx#L93) |
-| /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:99](../../src/test/home-hero-search.test.tsx#L99) |
+| /desig%20app/tok-ch-ju.webp | 1 | [src/test/home-hero-search.test.tsx:105](../../src/test/home-hero-search.test.tsx#L105) |
+| /desig%20app/tok-ch-vd.webp | 1 | [src/test/home-hero-search.test.tsx:111](../../src/test/home-hero-search.test.tsx#L111) |
 | /emails | 1 | [supabase/functions/_shared/resend-inbound-forward.ts:190](../../supabase/functions/_shared/resend-inbound-forward.ts#L190) |
 | /enrich-directory-cuisines | 1 | [src/test/directory-cuisine-enrichment.test.ts:40](../../src/test/directory-cuisine-enrichment.test.ts#L40) |
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
@@ -2090,9 +2091,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home-mobile/communes/ | 1 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
+| /images/home-mobile/communes/ | 1 | [src/components/home/HeroSection.tsx:82](../../src/components/home/HeroSection.tsx#L82) |
 | /images/home-mobile/communes/TOK-GE-puplinge.webp | 1 | [src/test/home-world-hero.test.ts:21](../../src/test/home-world-hero.test.ts#L21) |
-| /images/home/tok-geneve-mobile-sans-parasol.webp | 6 | [src/components/home/HeroSection.tsx:17](../../src/components/home/HeroSection.tsx#L17) |
+| /images/home/tok-geneve-mobile-sans-parasol.webp | 6 | [src/components/home/HeroSection.tsx:18](../../src/components/home/HeroSection.tsx#L18) |
 | /images/home/tok-leman-signature.webp | 1 | [src/test/home-core-web-vitals.test.ts:21](../../src/test/home-core-web-vitals.test.ts#L21) |
 | /images/home/tok-logo-ui.webp | 5 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
@@ -2152,7 +2153,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp | 1 | [src/lib/homeWorldHero.ts:8](../../src/lib/homeWorldHero.ts#L8) |
 | /images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:7](../../src/lib/homeWorldHero.ts#L7) |
 | /images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp | 1 | [src/lib/homeWorldHero.ts:145](../../src/lib/homeWorldHero.ts#L145) |
-| /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | 4 | [src/components/home/HeroSection.tsx:16](../../src/components/home/HeroSection.tsx#L16) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | 4 | [src/components/home/HeroSection.tsx:17](../../src/components/home/HeroSection.tsx#L17) |
 | /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | 1 | [src/lib/homeWorldHero.ts:13](../../src/lib/homeWorldHero.ts#L13) |
 | /images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp | 1 | [src/lib/homeWorldHero.ts:65](../../src/lib/homeWorldHero.ts#L65) |
 | /images/meringue-double.webp | 3 | [src/lib/securityUrls.ts:27](../../src/lib/securityUrls.ts#L27) |
@@ -2215,8 +2216,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/samosa.jpg | 3 | [src/lib/menu-item-images.ts:94](../../src/lib/menu-item-images.ts#L94) |
 | /images/seasonal/halloween/ | 1 | [src/components/home/SectionShowcaseHeader.tsx:51](../../src/components/home/SectionShowcaseHeader.tsx#L51) |
 | /images/seasonal/halloween/canopy.webp | 2 | [src/components/seasonal/HalloweenTheme.tsx:13](../../src/components/seasonal/HalloweenTheme.tsx#L13) |
-| /images/seasonal/halloween/hero-desktop.webp | 3 | [src/components/home/HeroSection.tsx:76](../../src/components/home/HeroSection.tsx#L76) |
-| /images/seasonal/halloween/hero-mobile-20261030.webp | 3 | [src/components/home/HeroSection.tsx:83](../../src/components/home/HeroSection.tsx#L83) |
+| /images/seasonal/halloween/hero-desktop.webp | 4 | [src/components/home/HeroSection.tsx:77](../../src/components/home/HeroSection.tsx#L77) |
+| /images/seasonal/halloween/hero-mobile-20261030.webp | 3 | [src/components/home/HeroSection.tsx:84](../../src/components/home/HeroSection.tsx#L84) |
 | /images/seasonal/halloween/section-banner.webp | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
 | /images/section-headers/calendar-3d.png | 2 | [src/lib/dashboardIllustrations.ts:57](../../src/lib/dashboardIllustrations.ts#L57) |
 | /images/section-headers/fire-3d.png | 1 | [src/lib/dashboardIllustrations.ts:59](../../src/lib/dashboardIllustrations.ts#L59) |
@@ -2388,7 +2389,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /r/:slug | 3 | [src/App.tsx:609](../../src/App.tsx#L609) |
 | /r/:slug/reserver | 2 | [src/App.tsx:608](../../src/App.tsx#L608) |
 | /readyz | 3 | [src/test/application-search-index.test.ts:105](../../src/test/application-search-index.test.ts#L105) |
-| /recherche | 100 | [public/seo-trust-runtime.js:139](../../public/seo-trust-runtime.js#L139) |
+| /recherche | 101 | [public/seo-trust-runtime.js:139](../../public/seo-trust-runtime.js#L139) |
 | /recherche#cuisines | 1 | [src/test/app-page-navigation.test.tsx:29](../../src/test/app-page-navigation.test.tsx#L29) |
 | /recherche?city=Lausanne | 1 | [src/test/restaurant-search-preview.test.tsx:123](../../src/test/restaurant-search-preview.test.tsx#L123) |
 | /recherche?city=Lausanne&sort=prix&order=asc | 1 | [src/test/restaurant-search-preview.test.tsx:107](../../src/test/restaurant-search-preview.test.tsx#L107) |
@@ -2624,7 +2625,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /v3/feeds/services | 2 | [src/test/google-actions-center-readiness.test.ts:98](../../src/test/google-actions-center-readiness.test.ts#L98) |
 | /v3/feeds/services/ | 3 | [scripts/google-actions-center-export-feeds.mjs:16](../../scripts/google-actions-center-export-feeds.mjs#L16) |
 | /v3/feeds/services/?limit=25 | 1 | [src/test/google-actions-center-feed-exporter.test.ts:114](../../src/test/google-actions-center-feed-exporter.test.ts#L114) |
-| /ventes-flash | 33 | [scripts/prerender-seo.mjs:319](../../scripts/prerender-seo.mjs#L319) |
+| /ventes-flash | 34 | [scripts/prerender-seo.mjs:319](../../scripts/prerender-seo.mjs#L319) |
 | /webhooks/tok | 4 | [src/lib/tokConnect.ts:169](../../src/lib/tokConnect.ts#L169) |
 | /workers/image-ai-worker | 1 | [scripts/dependabot-policy.test.mjs:40](../../scripts/dependabot-policy.test.mjs#L40) |
 | /zero-attente | 32 | [scripts/prerender-seo.mjs:658](../../scripts/prerender-seo.mjs#L658) |
@@ -7489,7 +7490,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 836 |
+| test | 837 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -9227,7 +9228,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-component (336)</summary>
+<details><summary>frontend-component (337)</summary>
 
 - `src/components/AddressAutocomplete.tsx`
 - `src/components/AiCreationNotifications.tsx`
@@ -9407,6 +9408,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/components/home/FooterSection.tsx`
 - `src/components/home/HeroSection.css`
 - `src/components/home/HeroSection.tsx`
+- `src/components/home/HeroSectionReferenceMobile.css`
 - `src/components/home/RestaurantSection.tsx`
 - `src/components/home/SearchAndCategories.tsx`
 - `src/components/home/SectionShowcaseHeader.tsx`
@@ -9860,7 +9862,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>public-asset (957)</summary>
+<details><summary>public-asset (958)</summary>
 
 - `public/.well-known/apple-app-site-association`
 - `public/.well-known/assetlinks.json`
@@ -10376,6 +10378,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `public/images/home-mobile/villes/098-kumasi.webp`
 - `public/images/home-mobile/villes/099-damascus.webp`
 - `public/images/home-mobile/villes/100-jeddah.webp`
+- `public/images/home/tok-chef-white-mobile.webp`
 - `public/images/home/tok-geneve-desktop-reference.jpg`
 - `public/images/home/tok-geneve-desktop.webp`
 - `public/images/home/tok-geneve-mobile-fast.webp`
@@ -10995,7 +10998,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (836)</summary>
+<details><summary>test (837)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11316,6 +11319,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/home-hero-search.test.tsx`
 - `src/test/home-mobile-newsletter.test.tsx`
 - `src/test/home-nearby-catalog-contract.test.ts`
+- `src/test/home-reference-white-mobile.test.tsx`
 - `src/test/home-restaurant-carousel.test.tsx`
 - `src/test/home-section-showcase-header.test.tsx`
 - `src/test/home-world-hero.test.ts`

@@ -11,6 +11,7 @@ import { cantonFromPlaceName, cantonHeroSrc, type SwissCantonCode } from "@/lib/
 import { resolveMobileCityImage, resolveWorldArt } from "@/lib/homeWorldHero";
 import { HALLOWEEN_FEATURE_FLAG } from "@/components/seasonal/HalloweenTheme";
 import "./HeroSection.css";
+import "./HeroSectionReferenceMobile.css";
 
 const EMPTY_FEATURES: ReadonlySet<string> = new Set();
 const DEFAULT_HERO_DESKTOP = "/images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp";
@@ -103,14 +104,19 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         data-seasonal-hero={halloweenEnabled ? "halloween" : undefined}
       >
         <div className="tok-home-hero__content">
-          <h1 id="home-hero-title" className="tok-home-hero__title" aria-label="Votre prochaine bonne adresse.">
-            Votre prochaine<br /><span>bonne adresse.</span>
-          </h1>
-          <p className="tok-home-hero__intro">
-            {halloweenEnabled
-              ? "Une table, un repas à emporter, une envie ensorcelante. Trouvez l’adresse qui vous fera frissonner."
-              : "Une table, un repas à emporter, une nouvelle envie. Trouvez le restaurant qui vous correspond."}
-          </p>
+          {!halloweenEnabled ? (
+            <div className="tok-home-hero__mobile-mascot" aria-hidden="true" />
+          ) : null}
+          <div className="tok-home-hero__editorial">
+            <h1 id="home-hero-title" className="tok-home-hero__title" aria-label="Votre prochaine bonne adresse.">
+              Votre prochaine<br /><span>bonne adresse.</span>
+            </h1>
+            <p className="tok-home-hero__intro">
+              {halloweenEnabled
+                ? "Une table, un repas à emporter, une envie ensorcelante. Trouvez l’adresse qui vous fera frissonner."
+                : "Une table, un repas à emporter, une nouvelle envie. Trouvez le restaurant qui vous correspond."}
+            </p>
+          </div>
           <form role="search" aria-label="Rechercher un restaurant" onSubmit={handleSearch} className="tok-home-hero__form">
             <div className="tok-home-hero__field">
               <label htmlFor="home-restaurant-search">Restaurant ou cuisine</label>
@@ -148,9 +154,9 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
             {activeFeatures.has("chefs-table") ? <Link to="/chefs-table"><Users aria-hidden="true" /> Grandes tables</Link> : null}
           </nav>
           <nav className="tok-home-hero__mobile-actions" aria-label="Découvrir les services TOK">
-            {activeFeatures.has("ventes-flash") ? <Link to="/ventes-flash"><Zap aria-hidden="true" /><span>Ventes flash</span></Link> : <Link to="/recherche"><Navigation aria-hidden="true" /><span>Autour de moi</span></Link>}
-            {activeFeatures.has("anti-gaspi") ? <Link to="/anti-gaspi"><Leaf aria-hidden="true" /><span>Anti-gaspi</span></Link> : <Link to="/recherche"><ShoppingBag aria-hidden="true" /><span>À emporter</span></Link>}
-            {activeFeatures.has("chefs-table") ? <Link to="/chefs-table"><Crown aria-hidden="true" /><span>La Tok d’Or</span></Link> : <Link to="/recherche"><Users aria-hidden="true" /><span>Grandes tables</span></Link>}
+            <Link to={activeFeatures.has("ventes-flash") ? "/ventes-flash" : "/recherche"}><Zap aria-hidden="true" /><span>Ventes flash</span></Link>
+            <Link to={activeFeatures.has("anti-gaspi") ? "/anti-gaspi" : "/recherche"}><Leaf aria-hidden="true" /><span>Anti-gaspi</span></Link>
+            <Link to={activeFeatures.has("chefs-table") ? "/chefs-table" : "/recherche"}><Crown aria-hidden="true" /><span>La Tok d’Or</span></Link>
             <Link to="/recherche"><Tag aria-hidden="true" /><span>Offres &amp; promos</span></Link>
           </nav>
         </div>
