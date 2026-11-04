@@ -549,7 +549,7 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="min-w-0 rounded-2xl border bg-white/90 p-3 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
+    <div className="tok-neon-surface min-w-0 rounded-2xl border bg-white/90 p-3 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
       <div className="flex min-w-0 items-center gap-2">
         <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
         <p className="min-w-0 truncate text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
@@ -592,7 +592,7 @@ function ContactLink({
 
 function CommercialMapLegend() {
   return (
-    <div className="grid gap-2 rounded-2xl border bg-white/90 p-3 text-xs font-bold shadow-sm dark:border-white/10 dark:bg-slate-950/80 sm:grid-cols-2 xl:grid-cols-5">
+    <div className="tok-neon-surface grid gap-2 rounded-2xl border bg-white/90 p-3 text-xs font-bold shadow-sm dark:border-white/10 dark:bg-slate-950/80 sm:grid-cols-2 xl:grid-cols-5">
       {STATUS_OPTIONS.map((item) => (
         <div key={item.value} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/5">
           <span className="h-3 w-3 rounded-full ring-2 ring-white" style={{ backgroundColor: item.marker }} />
@@ -767,7 +767,8 @@ function CommercialProspectionMap({
       <div
         ref={mapRef}
         aria-label="Carte de prospection commerciale"
-        className="relative isolate z-0 h-[58vh] min-h-[420px] w-full overflow-hidden rounded-[28px] border border-slate-200 shadow-[0_22px_70px_rgba(15,23,42,0.16)] dark:border-white/10 md:h-[calc(100vh-12rem)]"
+        data-tok-neon="static"
+        className="relative isolate z-0 h-[58vh] min-h-[420px] w-full overflow-hidden rounded-[28px] border border-slate-200 shadow-[0_22px_70px_rgba(15,23,42,0.16)] dark:border-white/10 md:h-[calc(100vh-12rem)] tok-neon-surface"
       />
     </div>
   );
@@ -1586,9 +1587,9 @@ export default function CommercialProspection() {
   return (
     <>
       <CommercialWorkspaceChrome activeLabel="Prospection" />
-      <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-3 pb-6 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#14110f_0%,#1e1a17_52%,#191513_100%)] dark:text-white sm:px-4 md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
+      <main className="min-h-screen overflow-x-hidden dark:overflow-x-clip bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-3 pb-6 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#14110f_0%,#1e1a17_52%,#191513_100%)] dark:text-white sm:px-4 md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
       <div className="mx-auto flex w-full max-w-[1800px] min-w-0 flex-col gap-5">
-        <section className="min-w-0 overflow-hidden rounded-[24px] border border-white/70 bg-white/88 p-4 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px] sm:p-5">
+        <section className="tok-neon-surface min-w-0 overflow-hidden rounded-[24px] border border-white/70 bg-white/88 p-4 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px] sm:p-5">
           <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="min-w-0 max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-orange-700 dark:border-orange-400/30 dark:bg-orange-500/10 dark:text-orange-200">
@@ -1616,7 +1617,7 @@ export default function CommercialProspection() {
         </section>
 
         <section className="grid min-w-0 gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
-          <aside className="min-w-0 space-y-4 overflow-hidden rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px]">
+          <aside className="tok-neon-surface min-w-0 space-y-4 overflow-hidden rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px]">
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-primary" />
               <h2 className="text-lg font-black">Filtres</h2>

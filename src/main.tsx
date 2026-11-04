@@ -7,6 +7,7 @@ import "./home-section-headers.css";
 import "./styles/motion.css";
 import "./styles/halloween-theme.css";
 import "./styles/commercial-prospection-markers.css";
+import "./styles/dark-neon.css";
 import { initCapacitorPlugins } from "@/lib/capacitor-init";
 import { installCommercialProspectionMarkerTheme } from "@/lib/commercialProspectionMarkerTheme";
 import { initMonitoring } from "@/lib/monitoring";

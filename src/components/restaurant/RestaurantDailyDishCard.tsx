@@ -69,7 +69,7 @@ export default function RestaurantDailyDishCard({
   const imageUrl = dish.image_url || fallbackImageUrl || null;
 
   return (
-    <section className="overflow-hidden rounded-2xl border-2 border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-background to-amber-500/10 shadow-sm">
+    <section data-tok-neon="emerald" className="tok-neon-surface overflow-hidden rounded-2xl border-2 border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-background to-amber-500/10 shadow-sm">
       <div className="grid md:grid-cols-[minmax(220px,0.8fr)_1.2fr]">
         {imageUrl ? (
           <img src={imageUrl} alt={dish.name} className="h-56 w-full object-cover md:h-full md:min-h-64" />

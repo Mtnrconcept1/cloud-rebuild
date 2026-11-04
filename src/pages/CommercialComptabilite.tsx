@@ -259,7 +259,7 @@ function MetricCard({
   }[tone];
 
   return (
-    <div className="rounded-[1.35rem] border bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
+    <div className="tok-neon-surface rounded-[1.35rem] border bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
       <div className="flex items-center gap-3">
         <span className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border", toneClass)}>
           <Icon className="h-5 w-5" />
@@ -360,9 +360,9 @@ export default function CommercialComptabilite() {
   return (
     <>
       <CommercialWorkspaceChrome activeLabel="Comptabilité" />
-      <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#14110f_0%,#1e1a17_52%,#191513_100%)] dark:text-white md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
+      <main className="min-h-screen overflow-x-hidden dark:overflow-x-clip bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-4 pb-8 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#14110f_0%,#1e1a17_52%,#191513_100%)] dark:text-white md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
         <div className="mx-auto max-w-7xl space-y-6">
-          <section className="rounded-[2rem] border border-orange-200/70 bg-white/90 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] dark:border-orange-400/20 dark:bg-slate-950/75">
+          <section className="tok-neon-surface rounded-[2rem] border border-orange-200/70 bg-white/90 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] dark:border-orange-400/20 dark:bg-slate-950/75">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <Badge className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-100">
@@ -463,7 +463,7 @@ export default function CommercialComptabilite() {
               </section>
 
               <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-                <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
+                <div className="tok-neon-surface rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-600">Profil</p>
@@ -506,7 +506,7 @@ export default function CommercialComptabilite() {
                   </div>
                 </div>
 
-                <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
+                <div className="tok-neon-surface rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
                   <p className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-600">Barèmes</p>
                   <div className="mt-4 space-y-3 text-sm">
                     <div className="rounded-2xl bg-slate-50 p-3 dark:bg-white/5">
@@ -526,7 +526,7 @@ export default function CommercialComptabilite() {
               </section>
 
               <section className="grid gap-4 xl:grid-cols-2">
-                <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
+                <div className="tok-neon-surface rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-orange-600" />
                     <h2 className="text-xl font-black">Commissions acquises de la période</h2>
@@ -563,7 +563,7 @@ export default function CommercialComptabilite() {
                   </div>
                 </div>
 
-                <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
+                <div className="tok-neon-surface rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
                   <div className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-orange-600" />
                     <h2 className="text-xl font-black">Réservations rattachées</h2>
@@ -583,7 +583,7 @@ export default function CommercialComptabilite() {
                 </div>
               </section>
 
-              <section className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70" aria-labelledby="signed-restaurants-title">
+              <section className="tok-neon-surface rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70" aria-labelledby="signed-restaurants-title">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex min-w-0 items-start gap-3">
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-700">
@@ -706,7 +706,7 @@ export default function CommercialComptabilite() {
               </section>
 
               <section className="grid gap-4">
-                <div className="rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
+                <div className="tok-neon-surface rounded-[1.6rem] border bg-white/90 p-5 shadow-sm dark:border-white/10 dark:bg-slate-950/70">
                   <h2 className="text-xl font-black">Bonus, primes et ajustements</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Historique en lecture seule · total ajustements: {formatChf(summary?.adjustments?.amount_chf)}
