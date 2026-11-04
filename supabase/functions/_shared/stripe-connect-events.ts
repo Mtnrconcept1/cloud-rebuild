@@ -11,6 +11,16 @@ export function isStripeConnectV2AccountEvent(value: unknown): boolean {
   return typeof type === "string" && /^v2\.core\.account(?:\.|\[)/.test(type);
 }
 
+/**
+ * Accounts v2 destinations may also deliver account_person notifications.
+ * They have no livemode or data.object fields, so they must never reach
+ * the classic snapshot-event handler.
+ */
+export function isStripeConnectV2AccountPersonEvent(value: unknown): boolean {
+  if (!value || typeof value !== "object" || !("type" in value)) return false;
+  return typeof value.type === "string" && /^v2\.core\.account_person\./.test(value.type);
+}
+
 export function readStripeConnectV2EventAccountId(value: unknown): string {
   if (!isStripeConnectV2AccountEvent(value)) {
     throw new Error("STRIPE_CONNECT_UNEXPECTED_EVENT_TYPE");

@@ -37,6 +37,7 @@ import {
 import { getStripeConnectRuntime } from "../_shared/stripe-client.ts";
 import {
   isStripeConnectV2AccountEvent,
+  isStripeConnectV2AccountPersonEvent,
   readStripeConnectV2EventAccountId,
   syncStripeConnectV2AccountEvent,
 } from "../_shared/stripe-connect-events.ts";
@@ -1372,7 +1373,8 @@ Deno.serve(async (req) => {
           signature,
           webhookSecret.secret,
         );
-        if (isStripeConnectV2AccountEvent(candidateEvent)) {
+        if (isStripeConnectV2AccountEvent(candidateEvent)
+          || isStripeConnectV2AccountPersonEvent(candidateEvent)) {
           // Thin Events have no livemode field. Their verified live webhook
           // signing secret authenticates the source and determines the mode.
           if (webhookSecret.expectedMode !== "live") {
@@ -1455,18 +1457,27 @@ Deno.serve(async (req) => {
   }
   const eventLockToken = eventClaim.lockToken;
 
-  if (isStripeConnectV2AccountEvent(event)) {
+  if (isStripeConnectV2AccountEvent(event) || isStripeConnectV2AccountPersonEvent(event)) {
     try {
-      const accountId = readStripeConnectV2EventAccountId(event);
-      const connectRuntime = getStripeConnectRuntime();
-      if (connectRuntime.mode !== "live") {
-        throw new Error("STRIPE_CONNECT_V2_LIVE_RUNTIME_REQUIRED");
+      const accountId = isStripeConnectV2AccountEvent(event)
+        ? readStripeConnectV2EventAccountId(event)
+        : null;
+      // Account-person notifications don't identify a recipient account to
+      // reconcile. Stripe also sends account requirements/capability events,
+      // which refresh the authoritative state. Acknowledge these signed
+      // notifications instead of running them through the v1 snapshot handler.
+      let outcome: "updated" | "unmatched" | "account_person_ignored" = "account_person_ignored";
+      if (accountId) {
+        const connectRuntime = getStripeConnectRuntime();
+        if (connectRuntime.mode !== "live") {
+          throw new Error("STRIPE_CONNECT_V2_LIVE_RUNTIME_REQUIRED");
+        }
+        outcome = await syncStripeConnectV2AccountEvent({
+          stripe: connectRuntime.stripe,
+          adminClient: supabaseAdmin,
+          accountId,
+        });
       }
-      const outcome = await syncStripeConnectV2AccountEvent({
-        stripe: connectRuntime.stripe,
-        adminClient: supabaseAdmin,
-        accountId,
-      });
       await markStripeWebhookEventSucceeded({
         adminClient: supabaseAdmin,
         event,

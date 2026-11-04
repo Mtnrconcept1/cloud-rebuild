@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import {
   isStripeConnectV2AccountEvent,
+  isStripeConnectV2AccountPersonEvent,
   readStripeConnectV2EventAccountId,
   syncStripeConnectV2AccountEvent,
 } from "../../supabase/functions/_shared/stripe-connect-events";
@@ -48,6 +49,10 @@ describe("Stripe Connect v2 thin webhook verification and reconciliation", () =>
     expect(readStripeConnectV2EventAccountId(event)).toBe("acct_123");
     expect(isStripeConnectV2AccountEvent({ type: "checkout.session.completed" })).toBe(false);
     expect(isStripeConnectV2AccountEvent({ type: "v2.core.account_person.updated" })).toBe(false);
+    expect(isStripeConnectV2AccountPersonEvent({ type: "v2.core.account_person.updated" })).toBe(true);
+    expect(isStripeConnectV2AccountPersonEvent({ type: "v2.core.account_person.created" })).toBe(true);
+    expect(isStripeConnectV2AccountPersonEvent({ type: "v2.core.account.created" })).toBe(false);
+    expect(isStripeConnectV2AccountPersonEvent({ type: "charge.succeeded" })).toBe(false);
     expect(() => readStripeConnectV2EventAccountId({
       ...event, related_object: { type: "v2.core.account_person", id: "person_1" },
     })).toThrow("STRIPE_CONNECT_INVALID_RELATED_ACCOUNT");
@@ -105,6 +110,9 @@ describe("Stripe Connect v2 thin webhook verification and reconciliation", () =>
     expect(webhook).toContain("stripe.webhooks.constructEventAsync(");
     expect(webhook).toContain('webhookSecret.expectedMode !== "live"');
     expect(webhook).toContain("isStripeConnectV2AccountEvent(candidateEvent)");
+    expect(webhook).toContain("isStripeConnectV2AccountPersonEvent(candidateEvent)");
+    expect(webhook).toContain("isStripeConnectV2AccountPersonEvent(event)");
+    expect(webhook).toContain('let outcome: "updated" | "unmatched" | "account_person_ignored"');
     expect(webhook).toContain("const eventLockToken = eventClaim.lockToken;");
     expect(webhook).toContain("syncStripeConnectV2AccountEvent({");
     expect(webhook).toContain("markStripeWebhookEventSucceeded({");
