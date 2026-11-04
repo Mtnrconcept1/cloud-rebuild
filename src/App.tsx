@@ -14,6 +14,7 @@ import { CartProvider } from "@/lib/cart";
 import Navbar from "@/components/Navbar";
 import MobileLogoIntro from "@/components/MobileLogoIntro";
 import FooterSection from "@/components/home/FooterSection";
+import DirectoryRestaurantOwnershipNotice from "@/components/DirectoryRestaurantOwnershipNotice";
 import SupportChat from "@/components/SupportChat";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardRoute from "@/components/DashboardRoute";
@@ -745,6 +746,8 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
         </Suspense> : null
       ) : null}
       {!commercialDemoFrame && pathname === "/" ? <DailyTokArcade /> : null}
+      {/* Encart de provenance des fiches d'annuaire : dans le flux de la page, avant le pied de page. */}
+      <DirectoryRestaurantOwnershipNotice />
       {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
       {showLaunchClientChrome ? <LegalConsentBanner /> : null}
       {showLaunchClientChrome ? <PageViewTracker /> : null}

@@ -80,9 +80,6 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         data-seasonal-hero={halloweenEnabled ? "halloween" : undefined}
       >
         <div className="tok-home-hero__content">
-          <div className="tok-home-hero__brand">
-            <p className="tok-home-hero__eyebrow"><span className="tok-home-hero__eyebrow-dot" aria-hidden="true" />{halloweenEnabled ? "Le goût des frissons" : "Le goût de se retrouver"}</p>
-          </div>
           <h1 id="home-hero-title" className="tok-home-hero__title" aria-label="Votre prochaine bonne adresse.">
             Votre prochaine<br /><span>bonne adresse.</span>
           </h1>

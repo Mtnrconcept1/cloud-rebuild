@@ -11,8 +11,10 @@ type SectionShowcaseHeaderProps = {
   title: string;
   subtitle: string;
   description?: string;
+  /** Conservé pour compatibilité : l'en-tête n'affiche plus de pastille d'icône. */
   icon: LucideIcon;
   imageSrc: string;
+  /** Conservé pour compatibilité, sans effet visuel. */
   iconColor?: string;
   theme?: SectionHeaderTheme;
   linkText?: string;
@@ -34,9 +36,7 @@ export default function SectionShowcaseHeader({
   title,
   subtitle,
   description,
-  icon: Icon,
   imageSrc,
-  iconColor,
   theme = "orange",
   linkText,
   mobileLinkText,
@@ -86,15 +86,18 @@ export default function SectionShowcaseHeader({
       className={cn("tok-section-header", className)}
     >
       <div className={cn("tok-section-header__content", contentClassName)}>
-        <div className="tok-section-header__eyebrow">
-          <span className="tok-section-header__symbol" aria-hidden="true">
-            <Icon className={cn("tok-section-header__glyph", iconColor)} aria-hidden="true" />
-          </span>
-          <span>{subtitle}</span>
-        </div>
-
+        {/* Le titre porte la section ; le sous-titre devient sa ligne d'accompagnement
+            (pas de surtitre en petites capitales au-dessus du titre). */}
         <h2 className={cn("tok-section-header__title font-display", titleClassName)}>{title}</h2>
-        {description ? <p className="tok-section-header__description">{description}</p> : null}
+        <p className="tok-section-header__description">
+          <span className="tok-section-header__lead">{subtitle}</span>
+          {description ? (
+            <>
+              <span className="tok-section-header__separator" aria-hidden="true"> · </span>
+              <span>{description}</span>
+            </>
+          ) : null}
+        </p>
 
         {(actions || (linkText && linkTo)) ? (
           <div data-section-action-row className="tok-section-header__actions">

@@ -360,8 +360,18 @@
   .premium-gradient {
     @apply bg-gradient-to-br from-primary via-primary/90 to-orange-600;
   }
+  /* Cartes : soulèvement discret réservé aux pointeurs qui survolent vraiment
+     (pas de survol collant au toucher), propriétés de transition explicites. */
   .premium-card {
-    @apply relative overflow-hidden transition-all duration-300 ease-tok hover:-translate-y-1;
+    @apply relative overflow-hidden;
+    transition-property: transform, box-shadow, border-color;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(.23, 1, .32, 1);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .premium-card:hover {
+      transform: translateY(-2px);
+    }
   }
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-orange-600;

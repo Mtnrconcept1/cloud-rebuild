@@ -113,6 +113,8 @@ export default {
       },
       transitionTimingFunction: {
         tok: "cubic-bezier(.2,.7,.2,1)",
+        // Ease-out franche pour les retours d'interaction (pression, survol, entrées).
+        "tok-out": "cubic-bezier(.23,1,.32,1)",
       },
       keyframes: {
         "accordion-down": {

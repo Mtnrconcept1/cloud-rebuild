@@ -4,6 +4,7 @@ import CampaignBanner from "@/components/CampaignBanner";
 import { getSupabase } from "@/integrations/supabase/client";
 import { Leaf, Gift, Heart, Info, RefreshCcw } from "lucide-react";
 import AntiWasteCard from "@/components/AntiWasteCard";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getBusinessDateKey } from "@/lib/businessTime";
@@ -52,9 +53,9 @@ export default function AntiGaspi() {
   );
 
   const specialActions = [
-    { id: "surprise", title: "Paniers Surprise", icon: Gift, color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-900/20", desc: "Contenu mystère à -70%" },
-    { id: "solidarity", title: "Dons Solidaires", icon: Heart, color: "text-rose-500", bg: "bg-rose-50 dark:bg-rose-900/20", desc: "Offrez un repas à un démuni" },
-    { id: "eco", title: "Engagement Éco", icon: Leaf, color: "text-green-500", bg: "bg-green-50 dark:bg-green-900/20", desc: "Réduisez le gaspillage alimentaire" },
+    { id: "surprise", title: "Paniers Surprise", icon: Gift, desc: "Contenu mystère à -70%" },
+    { id: "solidarity", title: "Dons Solidaires", icon: Heart, desc: "Offrez un repas à un démuni" },
+    { id: "eco", title: "Engagement Éco", icon: Leaf, desc: "Réduisez le gaspillage alimentaire" },
   ];
 
   return (
@@ -69,22 +70,25 @@ export default function AntiGaspi() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Trois engagements dans un seul panneau TOK : vert anti-gaspi unique, texte lisible. */}
+        <ul className="grid grid-cols-1 divide-y divide-border overflow-hidden rounded-[24px] border border-border bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           {specialActions.map((action) => (
-            <div key={action.id} className={`flex flex-col items-center text-center p-6 rounded-2xl border-2 border-transparent hover:border-border transition-all ${action.bg}`}>
-              <div className={`p-4 rounded-full bg-white shadow-sm mb-3 dark:bg-card dark:ring-1 dark:ring-border ${action.color}`}>
-                <action.icon className="h-6 w-6" />
+            <li key={action.id} className="flex items-start gap-4 p-5 md:p-6">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent/10 text-accent" aria-hidden="true">
+                <action.icon className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-base font-semibold text-foreground">{action.title}</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">{action.desc}</p>
               </div>
-              <h3 className="font-bold text-sm mb-1">{action.title}</h3>
-              <p className="text-[10px] text-muted-foreground">{action.desc}</p>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-xl font-bold">Offres disponibles</h2>
-            <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/30">{offers?.length || 0} opportunités</Badge>
+            <Badge variant="outline" className="border-accent/30 bg-accent/10 font-semibold text-accent">{offers?.length || 0} opportunités</Badge>
           </div>
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -126,9 +130,14 @@ export default function AntiGaspi() {
               })}
             </div>
           ) : (
-            <div className="text-center py-20 bg-secondary/20 rounded-3xl border-2 border-dashed">
-              <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-              <p className="text-muted-foreground font-medium">Tout a été sauvé ! Revenez plus tard.</p>
+            <div className="flex flex-col items-center gap-4 rounded-[24px] border border-border bg-card px-6 py-14 text-center">
+              <span className="grid h-14 w-14 place-items-center rounded-full bg-accent/10 text-accent" aria-hidden="true">
+                <Leaf className="h-6 w-6" />
+              </span>
+              <p className="max-w-sm text-base font-medium text-foreground">Tout a été sauvé ! Revenez plus tard.</p>
+              <Button asChild variant="outline">
+                <Link to="/recherche">Explorer les restaurants</Link>
+              </Button>
             </div>
           )}
         </div>

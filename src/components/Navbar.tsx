@@ -87,16 +87,16 @@ function preserveNavbarActionScrollPosition(event: MouseEvent<HTMLElement>) {
 }
 
 const FEATURES = [
-  { icon: Shield, label: "Créneaux garantis", desc: "Livraison ponctuelle ou remboursée", to: "/creneaux-garantis", feature: "creneaux-garantis", color: "text-blue-500", bg: "bg-blue-500/10", hoverBg: "group-hover:bg-blue-500/20" },
-  { icon: Gift, label: "Offres", desc: "Fenêtre flexible, prix réduit", to: "/flex-prix-bas", feature: "flex-prix-bas", color: "text-emerald-500", bg: "bg-emerald-500/10", hoverBg: "group-hover:bg-emerald-500/20" },
-  { icon: Users, label: "Match groupes", desc: "Commandez ensemble, payez moins", to: "/match-groupes", feature: "match-groupes", color: "text-violet-500", bg: "bg-violet-500/10", hoverBg: "group-hover:bg-violet-500/20" },
-  { icon: Route, label: "Multi-stop", desc: "Un trajet, plusieurs adresses", to: "/multi-stop", feature: "multi-stop", color: "text-orange-500", bg: "bg-orange-500/10", hoverBg: "group-hover:bg-orange-500/20" },
-  { icon: Layers, label: "Multi-restos", desc: "Plats de différents restos", to: "/multi-restaurant", feature: "multi-restaurant", color: "text-pink-500", bg: "bg-pink-500/10", hoverBg: "group-hover:bg-pink-500/20" },
-  { icon: ChefHat, label: "La Tok d’Or", desc: "Plats off-menu exclusifs", to: "/chefs-table", feature: "chefs-table", color: "text-amber-500", bg: "bg-amber-500/10", hoverBg: "group-hover:bg-amber-500/20" },
-  { icon: Timer, label: "Zéro attente", desc: "Précommande synchronisée", to: "/zero-attente", feature: "zero-attente", color: "text-indigo-500", bg: "bg-indigo-500/10", hoverBg: "group-hover:bg-indigo-500/20" },
-  { icon: ShieldCheck, label: "Garantie qualité", desc: "Chaud garanti ou remboursé", to: "/garantie-qualite", feature: "garantie-qualite", color: "text-teal-500", bg: "bg-teal-500/10", hoverBg: "group-hover:bg-teal-500/20" },
-  { icon: Calculator, label: "Budget auto", desc: "Menus optimisés par objectifs", to: "/budget-auto", feature: "budget-auto", color: "text-cyan-500", bg: "bg-cyan-500/10", hoverBg: "group-hover:bg-cyan-500/20" },
-  { icon: Repeat, label: "Abonnement", desc: "Repas récurrents planifiés", to: "/abonnement", feature: "abonnement", color: "text-purple-500", bg: "bg-purple-500/10", hoverBg: "group-hover:bg-purple-500/20" },
+  { icon: Shield, label: "Créneaux garantis", desc: "Livraison ponctuelle ou remboursée", to: "/creneaux-garantis", feature: "creneaux-garantis" },
+  { icon: Gift, label: "Offres", desc: "Fenêtre flexible, prix réduit", to: "/flex-prix-bas", feature: "flex-prix-bas" },
+  { icon: Users, label: "Match groupes", desc: "Commandez ensemble, payez moins", to: "/match-groupes", feature: "match-groupes" },
+  { icon: Route, label: "Multi-stop", desc: "Un trajet, plusieurs adresses", to: "/multi-stop", feature: "multi-stop" },
+  { icon: Layers, label: "Multi-restos", desc: "Plats de différents restos", to: "/multi-restaurant", feature: "multi-restaurant" },
+  { icon: ChefHat, label: "La Tok d’Or", desc: "Plats off-menu exclusifs", to: "/chefs-table", feature: "chefs-table" },
+  { icon: Timer, label: "Zéro attente", desc: "Précommande synchronisée", to: "/zero-attente", feature: "zero-attente" },
+  { icon: ShieldCheck, label: "Garantie qualité", desc: "Chaud garanti ou remboursé", to: "/garantie-qualite", feature: "garantie-qualite" },
+  { icon: Calculator, label: "Budget auto", desc: "Menus optimisés par objectifs", to: "/budget-auto", feature: "budget-auto" },
+  { icon: Repeat, label: "Abonnement", desc: "Repas récurrents planifiés", to: "/abonnement", feature: "abonnement" },
 ];
 
 export default function Navbar() {
@@ -350,15 +350,15 @@ export default function Navbar() {
               ) : null}
               {antiWasteEnabled ? (
                 <NavigationMenuItem>
-                  <Link to="/anti-gaspi" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-accent transition-colors hover:bg-accent/10 aria-[current=page]:bg-accent/10" aria-current={location.pathname === "/anti-gaspi" ? "page" : undefined}>
-                    <Leaf className="h-4 w-4" />
+                  <Link to="/anti-gaspi" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-foreground/80 transition-colors hover:bg-muted hover:text-foreground aria-[current=page]:bg-muted aria-[current=page]:text-foreground" aria-current={location.pathname === "/anti-gaspi" ? "page" : undefined}>
+                    <Leaf className="h-4 w-4 text-accent" />
                     Anti-gaspi
                     </Link>
                   </NavigationMenuItem>
                 ) : null}
                 {flashSalesEnabled ? (
                   <NavigationMenuItem>
-                    <Link to="/ventes-flash" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-semibold text-amber-600 transition-colors hover:text-orange-600 hover:bg-amber-500/10 dark:text-amber-300 dark:hover:text-orange-300 aria-[current=page]:bg-amber-500/10" aria-current={location.pathname === "/ventes-flash" ? "page" : undefined}>
+                    <Link to="/ventes-flash" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-foreground/80 transition-colors hover:bg-muted hover:text-foreground aria-[current=page]:bg-muted aria-[current=page]:text-foreground" aria-current={location.pathname === "/ventes-flash" ? "page" : undefined}>
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                   </Link>
@@ -366,8 +366,8 @@ export default function Navbar() {
               ) : null}
               {tokOneEnabled ? (
                 <NavigationMenuItem>
-                    <Link to="/tok-one" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-primary transition-colors hover:bg-primary/10 aria-[current=page]:bg-primary/10" aria-current={location.pathname === "/tok-one" ? "page" : undefined}>
-                      <Crown className="h-4 w-4" />
+                    <Link to="/tok-one" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-foreground/80 transition-colors hover:bg-muted hover:text-foreground aria-[current=page]:bg-muted aria-[current=page]:text-foreground" aria-current={location.pathname === "/tok-one" ? "page" : undefined}>
+                      <Crown className="h-4 w-4 text-primary" />
                       Tok One
                     </Link>
                   </NavigationMenuItem>
@@ -383,7 +383,7 @@ export default function Navbar() {
                         <div className="mb-2 flex items-center gap-2 px-2 pb-2 pt-1">
                           <Sparkles className="h-4 w-4 text-primary" />
                           <h3 className="font-display text-lg font-semibold tracking-[-0.02em]">Parcours à découvrir</h3>
-                          <Badge variant="secondary" className="border-none bg-primary/10 text-[10px] text-primary">
+                          <Badge variant="secondary" className="border-none bg-muted text-xs font-medium text-foreground/75">
                             {visibleFeatures.length} active{visibleFeatures.length > 1 ? "s" : ""}
                           </Badge>
                         </div>
@@ -394,8 +394,8 @@ export default function Navbar() {
                               to={feature.to}
                               className="group flex items-center gap-3 rounded-2xl p-3 transition-colors duration-200 hover:bg-muted/80"
                             >
-                              <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl ${feature.bg} ${feature.hoverBg} transition-colors duration-200`}>
-                                <feature.icon className={`h-5 w-5 ${feature.color}`} />
+                              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/75 transition-colors duration-200 group-hover:bg-primary/10 group-hover:text-primary">
+                                <feature.icon className="h-5 w-5" />
                               </div>
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold leading-tight transition-colors group-hover:text-foreground">{feature.label}</p>
@@ -587,12 +587,13 @@ export default function Navbar() {
                     </Link>
                   ) : null}
                   {showClientSurface && antiWasteEnabled ? (
-                    <Link to="/anti-gaspi" className="text-sm font-medium text-accent" onClick={() => setMenuOpen(false)}>
+                    <Link to="/anti-gaspi" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary" onClick={() => setMenuOpen(false)}>
+                      <Leaf className="h-4 w-4 text-accent" />
                       Anti-gaspi
                     </Link>
                   ) : null}
                   {showClientSurface && flashSalesEnabled ? (
-                    <Link to="/ventes-flash" className="flex items-center gap-2 text-sm font-semibold text-amber-600 hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300" onClick={() => setMenuOpen(false)}>
+                    <Link to="/ventes-flash" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary" onClick={() => setMenuOpen(false)}>
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                     </Link>
@@ -604,8 +605,8 @@ export default function Navbar() {
                     </Link>
                   ) : null}
                   {showClientSurface && tokOneEnabled ? (
-                    <Link to="/tok-one" className="flex items-center gap-1 text-sm font-medium text-primary" onClick={() => setMenuOpen(false)}>
-                      <Crown className="h-4 w-4" />
+                    <Link to="/tok-one" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary" onClick={() => setMenuOpen(false)}>
+                      <Crown className="h-4 w-4 text-primary" />
                       Tok One
                     </Link>
                   ) : null}
@@ -646,12 +647,12 @@ export default function Navbar() {
                             onClick={() => setMenuOpen(false)}
                             className="flex items-center gap-3 rounded-2xl p-2.5 transition-colors hover:bg-muted/70"
                           >
-                            <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${feature.bg}`}>
-                              <feature.icon className={`h-4 w-4 ${feature.color}`} />
+                            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-muted text-foreground/75">
+                              <feature.icon className="h-4 w-4" />
                             </div>
                             <div>
                               <p className="text-sm font-medium leading-tight">{feature.label}</p>
-                              <p className="text-[11px] leading-tight text-muted-foreground">{feature.desc}</p>
+                              <p className="text-xs leading-tight text-muted-foreground">{feature.desc}</p>
                             </div>
                           </Link>
                         ))}
