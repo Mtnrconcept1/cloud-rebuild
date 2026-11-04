@@ -132,7 +132,7 @@ export default function FlexPrixBas() {
           {(["window", "restaurant", "menu", "confirm"] as Step[]).map((s, i) => {
             const labels = ["Fenêtre", "Restaurant", "Menu", "Confirmer"];
             return (<div key={s} className="flex items-center gap-1 flex-1">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${s === step ? "bg-emerald-500 text-white" : stepIdx(s) < stepIdx(step) ? "bg-emerald-200 text-emerald-700" : "bg-secondary text-muted-foreground"}`}>{stepIdx(s) < stepIdx(step) ? <CheckCircle2 className="h-4 w-4" /> : i + 1}</div>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${s === step ? "bg-primary text-white" : stepIdx(s) < stepIdx(step) ? "bg-orange-100 dark:bg-primary/15 text-foreground" : "bg-secondary text-muted-foreground"}`}>{stepIdx(s) < stepIdx(step) ? <CheckCircle2 className="h-4 w-4" /> : i + 1}</div>
               <span className={`text-[11px] hidden sm:inline ${s === step ? "font-semibold" : "text-muted-foreground"}`}>{labels[i]}</span>
               {i < 3 && <div className="flex-1 h-0.5 bg-secondary rounded" />}
             </div>);
@@ -141,11 +141,11 @@ export default function FlexPrixBas() {
 
         {step === "window" && (
           <div className="space-y-4">
-            <div className="rounded-2xl bg-gradient-to-r from-emerald-500/5 to-green-500/5 border border-emerald-500/10 p-5 space-y-3">
+            <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5 space-y-3">
               <h2 className="font-semibold">Comment ça marche ?</h2>
               <div className="grid grid-cols-3 gap-3 text-sm">
                 {[{ icon: Timer, t: "Fenêtre flexible", d: "1h à 3h" }, { icon: Zap, t: "Algo optimisé", d: "Meilleur moment" }, { icon: Leaf, t: "Éco-responsable", d: "Moins de CO₂" }].map((x, i) => (
-                  <div key={i} className="rounded-xl border bg-card p-3 space-y-1"><x.icon className="h-5 w-5 text-emerald-500" /><p className="font-semibold text-xs">{x.t}</p><p className="text-[10px] text-muted-foreground">{x.d}</p></div>
+                  <div key={i} className="rounded-xl border bg-card p-3 space-y-1"><x.icon className="h-5 w-5 text-primary" /><p className="font-semibold text-xs">{x.t}</p><p className="text-[10px] text-muted-foreground">{x.d}</p></div>
                 ))}
               </div>
             </div>
@@ -179,9 +179,9 @@ export default function FlexPrixBas() {
               <h3 className="font-bold">1. Choisissez votre fenêtre de flexibilité</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {FLEX_WINDOWS.map((win) => (
-                  <button key={win.id} onClick={() => setSelectedWindow(win)} className={`text-left rounded-xl border-2 p-5 transition-all ${selectedWindow?.id === win.id ? "border-emerald-500 bg-emerald-500/5" : "border-border hover:border-emerald-500/30"}`}>
+                  <button key={win.id} onClick={() => setSelectedWindow(win)} className={`text-left rounded-xl border-2 p-5 transition-all ${selectedWindow?.id === win.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`}>
                     <div className="flex items-center justify-between mb-3">
-                      <Badge variant="outline" className={selectedWindow?.id === win.id ? "border-emerald-500 text-emerald-600" : ""}>{win.label}</Badge>
+                      <Badge variant="outline" className={selectedWindow?.id === win.id ? "border-primary text-primary" : ""}>{win.label}</Badge>
                       <span className="text-lg font-bold text-emerald-600">-{win.savings}%</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2"><Clock className="h-4 w-4" /><span>{win.start} – {win.end}</span></div>
@@ -189,7 +189,7 @@ export default function FlexPrixBas() {
                   </button>
                 ))}
               </div>
-              <Button onClick={() => setStep("restaurant")} disabled={!selectedWindow} className="w-full bg-emerald-500 hover:bg-emerald-600 gap-2">Choisir un restaurant <ChevronRight className="h-4 w-4" /></Button>
+              <Button onClick={() => setStep("restaurant")} disabled={!selectedWindow} className="w-full bg-primary hover:bg-primary/90 gap-2">Choisir un restaurant <ChevronRight className="h-4 w-4" /></Button>
             </div>
           </div>
         )}
@@ -197,10 +197,10 @@ export default function FlexPrixBas() {
         {step === "restaurant" && (
           <div className="space-y-4">
             <Button variant="ghost" size="sm" onClick={() => setStep("window")} className="gap-1"><ChevronLeft className="h-4 w-4" /> Fenêtre</Button>
-            <div className="rounded-lg bg-emerald-500/5 p-3 flex items-center gap-2 text-sm"><TrendingDown className="h-4 w-4 text-emerald-500" /><span>{selectedWindow?.label} · {selectedWindow?.start}–{selectedWindow?.end} · <strong className="text-emerald-600">-{selectedWindow?.savings}%</strong></span></div>
+            <div className="rounded-lg bg-primary/5 p-3 flex items-center gap-2 text-sm"><TrendingDown className="h-4 w-4 text-primary" /><span>{selectedWindow?.label} · {selectedWindow?.start}–{selectedWindow?.end} · <strong className="text-emerald-600">-{selectedWindow?.savings}%</strong></span></div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {restaurants?.map((r: any) => (
-                <button key={r.id} onClick={() => { setSelectedRestaurant(r); setQuantities({}); setStep("menu"); }} className="text-left rounded-xl border-2 overflow-hidden hover:border-emerald-500/30 border-border transition-all">
+                <button key={r.id} onClick={() => { setSelectedRestaurant(r); setQuantities({}); setStep("menu"); }} className="text-left rounded-xl border-2 overflow-hidden hover:border-primary/30 border-border transition-all">
                   <img src={r.image_url || "/images/kebab-box-spread.jpeg"} alt={r.name} className="w-full h-32 object-cover" />
                   <div className="p-3"><p className="font-bold text-sm">{r.name}</p><p className="text-xs text-muted-foreground">{r.cuisine_type} · {r.city}</p></div>
                 </button>
@@ -212,7 +212,7 @@ export default function FlexPrixBas() {
         {step === "menu" && (
           <div className="space-y-4">
             <Button variant="ghost" size="sm" onClick={() => setStep("restaurant")} className="gap-1"><ChevronLeft className="h-4 w-4" /> Restaurant</Button>
-            <div className="rounded-lg bg-emerald-500/5 p-3 text-sm flex items-center gap-2"><TrendingDown className="h-4 w-4 text-emerald-500" />{selectedWindow?.label} · -{selectedWindow?.savings}% · {selectedRestaurant?.name}</div>
+            <div className="rounded-lg bg-primary/5 p-3 text-sm flex items-center gap-2"><TrendingDown className="h-4 w-4 text-primary" />{selectedWindow?.label} · -{selectedWindow?.savings}% · {selectedRestaurant?.name}</div>
             {categories.map((cat) => (
               <div key={cat} className="space-y-2">
                 <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">{cat}</h3>
@@ -247,7 +247,7 @@ export default function FlexPrixBas() {
                 <div className="flex justify-between text-sm"><span>{count} article{count > 1 ? "s" : ""}</span><span className="text-muted-foreground line-through">{subtotal.toFixed(2)} CHF</span></div>
                 <div className="flex justify-between text-sm"><span className="text-emerald-600 font-medium">Réduction Flex -{selectedWindow?.savings}%</span><span className="text-emerald-600 font-bold">-{discount.toFixed(2)} CHF</span></div>
                 <div className="flex justify-between font-bold"><span>Total</span><span>{finalTotal.toFixed(2)} CHF</span></div>
-                <Button onClick={handleAddToCart} className="w-full bg-emerald-500 hover:bg-emerald-600 gap-2"><ShoppingCart className="h-4 w-4" /> Valider</Button>
+                <Button onClick={handleAddToCart} className="w-full bg-primary hover:bg-primary/90 gap-2"><ShoppingCart className="h-4 w-4" /> Valider</Button>
               </div>
             )}
           </div>
@@ -255,7 +255,7 @@ export default function FlexPrixBas() {
 
         {step === "confirm" && (
           <div className="space-y-6">
-            <div className="rounded-2xl bg-emerald-500/5 border border-emerald-500/20 p-6 text-center space-y-2"><Gift className="h-12 w-12 text-emerald-500 mx-auto" /><h2 className="font-display text-xl font-bold">Offres activées !</h2></div>
+            <div className="rounded-2xl bg-primary/5 border border-primary/20 p-6 text-center space-y-2"><Gift className="h-12 w-12 text-primary mx-auto" /><h2 className="font-display text-xl font-bold">Offres activées !</h2></div>
             <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Restaurant</span><span className="font-medium">{selectedRestaurant?.name}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Fenêtre</span><span className="font-medium">{selectedWindow?.start}–{selectedWindow?.end}</span></div>
@@ -263,7 +263,7 @@ export default function FlexPrixBas() {
               <div className="flex justify-between"><span className="text-muted-foreground">CO₂ économisé</span><span className="font-medium text-emerald-600">-{selectedWindow?.co2Saved}%</span></div>
               <div className="flex justify-between border-t pt-2"><span className="font-semibold">Total</span><span className="font-bold">{finalTotal.toFixed(2)} CHF</span></div>
             </div>
-            <Button onClick={handleCheckout} className="w-full bg-emerald-500 hover:bg-emerald-600 gap-2" size="lg">Procéder au paiement <ChevronRight className="h-4 w-4" /></Button>
+            <Button onClick={handleCheckout} className="w-full bg-primary hover:bg-primary/90 gap-2" size="lg">Procéder au paiement <ChevronRight className="h-4 w-4" /></Button>
           </div>
         )}
       </div>

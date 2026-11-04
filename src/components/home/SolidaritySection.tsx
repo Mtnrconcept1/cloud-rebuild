@@ -67,7 +67,7 @@ export default function SolidaritySection({ donatedPoints }: SolidaritySectionPr
             className="absolute inset-x-[8%] bottom-[3.5%] top-auto sm:inset-x-[11%] md:inset-x-[12.5%] md:bottom-[5.5%]"
           >
             <div className="rounded-[1.05rem] border border-white/80 bg-white/70 px-2.5 py-2 text-center shadow-[0_14px_45px_-32px_rgba(219,39,119,0.55)] backdrop-blur-md sm:px-3 md:px-4 md:py-3">
-              <div className="mb-1 inline-flex rounded-full border border-pink-200 bg-white/78 px-2.5 py-0.5 text-[11px] font-bold text-pink-700 shadow-sm sm:mb-1.5 md:mb-2 md:px-3 md:py-1 md:text-xs">
+              <div className="mb-1 inline-flex rounded-full border border-pink-200 bg-white/80 px-2.5 py-0.5 text-[11px] font-bold text-pink-700 shadow-sm sm:mb-1.5 md:mb-2 md:px-3 md:py-1 md:text-xs">
                 {displayedMeals} repas distribu&eacute;s
               </div>
 

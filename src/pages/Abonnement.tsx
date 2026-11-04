@@ -448,17 +448,17 @@ export default function Abonnement() {
                 }}
                 className={`w-full rounded-xl border-2 p-4 text-left transition-all ${
                   editingDay === day
-                    ? "border-purple-500 bg-purple-500/5"
+                    ? "border-primary bg-primary/5"
                     : daySlots.length > 0
-                      ? "border-border hover:border-purple-500/30"
-                      : "border-dashed border-border hover:border-purple-500/30"
+                      ? "border-border hover:border-primary/30"
+                      : "border-dashed border-border hover:border-primary/30"
                 }`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
                       {daySlots.length > 0 ? (
-                        <CheckCircle2 className="h-4 w-4 text-purple-500" />
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
                       ) : (
                         <CalendarDays className="h-4 w-4 text-muted-foreground" />
                       )}
@@ -528,7 +528,7 @@ export default function Abonnement() {
                           onClick={() => availability.isOpen && setSelectedRestaurantId(restaurant.id)}
                           className={`rounded-lg border p-2 text-left text-sm transition-all ${
                             availability.isOpen
-                              ? "hover:border-purple-500/30"
+                              ? "hover:border-primary/30"
                               : "cursor-not-allowed bg-muted/50 opacity-50 grayscale"
                           }`}
                         >
@@ -563,7 +563,7 @@ export default function Abonnement() {
                       <button
                         key={item.id}
                         onClick={() => selectMeal(day, item, selectedRestaurant)}
-                        className="rounded-lg border border-border p-3 text-left text-sm transition-all hover:border-purple-500/30"
+                        className="rounded-lg border border-border p-3 text-left text-sm transition-all hover:border-primary/30"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex min-w-0 items-center gap-2">
@@ -576,7 +576,7 @@ export default function Abonnement() {
                             </div>
                           </div>
                           <p className="shrink-0 text-xs font-bold">{Number(item.price).toFixed(2)} CHF</p>
-                          <Plus className="h-4 w-4 shrink-0 text-purple-500" />
+                          <Plus className="h-4 w-4 shrink-0 text-primary" />
                         </div>
                       </button>
                     ))}
@@ -598,13 +598,13 @@ export default function Abonnement() {
             </Badge>
           </div>
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="rounded-lg bg-purple-500/5 p-3">
-              <CalendarDays className="mx-auto mb-1 h-4 w-4 text-purple-500" />
+            <div className="rounded-lg bg-primary/5 p-3">
+              <CalendarDays className="mx-auto mb-1 h-4 w-4 text-primary" />
               <p className="text-lg font-bold">{summary.activeMealsCount}</p>
               <p className="text-[10px] text-muted-foreground">Repas/semaine</p>
             </div>
-            <div className="rounded-lg bg-purple-500/5 p-3">
-              <ShoppingCart className="mx-auto mb-1 h-4 w-4 text-purple-500" />
+            <div className="rounded-lg bg-primary/5 p-3">
+              <ShoppingCart className="mx-auto mb-1 h-4 w-4 text-primary" />
               <p className="text-lg font-bold">{summary.weeklyTotal.toFixed(0)} CHF</p>
               <p className="text-[10px] text-muted-foreground">Coût hebdo</p>
             </div>
@@ -620,7 +620,7 @@ export default function Abonnement() {
           <Button
             onClick={handleSubscribe}
             disabled={summary.activeMealsCount === 0 || summary.isPaused}
-            className="w-full gap-2 bg-purple-500 hover:bg-purple-600"
+            className="w-full gap-2 bg-primary hover:bg-primary/90"
             size="lg"
           >
             <Sparkles className="h-5 w-5" />
@@ -628,15 +628,15 @@ export default function Abonnement() {
           </Button>
         ) : (
           <div className="space-y-4">
-            <div className="space-y-2 rounded-2xl border border-purple-500/20 bg-purple-500/5 p-6 text-center">
-              <CheckCircle2 className="mx-auto h-10 w-10 text-purple-500" />
+            <div className="space-y-2 rounded-2xl border border-primary/20 bg-primary/5 p-6 text-center">
+              <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
               <p className="text-lg font-semibold">Abonnement actif</p>
               <p className="text-sm text-muted-foreground">
                 {summary.activeMealsCount} repas/semaine - {activeRestaurantNames.length} restaurant{activeRestaurantNames.length > 1 ? "s" : ""} - {billingSummary.subscriptionTotal.toFixed(2)} CHF jusqu’au {billingSummary.endDate}
               </p>
               <p className="text-xs text-muted-foreground">Plats de plusieurs restaurants synchronises dans un seul panier, modifiable à tout moment</p>
             </div>
-            <Button onClick={handleGoToCart} className="w-full gap-2 bg-purple-500 hover:bg-purple-600" size="lg">
+            <Button onClick={handleGoToCart} className="w-full gap-2 bg-primary hover:bg-primary/90" size="lg">
               Voir le panier <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

@@ -330,7 +330,7 @@ export default function RestaurateursGeneve() {
               <h1 className="max-w-4xl text-4xl font-black leading-tight md:text-5xl">
                 Réservations, commandes et fidélité : votre restaurant réuni dans TOK.
               </h1>
-              <p className="max-w-2xl text-base leading-7 text-white/82 md:text-lg">
+              <p className="max-w-2xl text-base leading-7 text-white/80 md:text-lg">
                 TOK est une plateforme en ligne : vos clients y découvrent votre restaurant, réservent ou commandent.
                 Votre équipe gère les demandes, les offres et la fidélité dans un seul espace.
                 Pour les réservations, vous payez un abonnement mensuel et 5 CHF par table réellement servie, quel que soit le nombre de personnes.
@@ -613,10 +613,10 @@ export default function RestaurateursGeneve() {
           <div className="space-y-5">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-300">Démo restaurateur</p>
             <h2 className="text-3xl font-black md:text-4xl">Préparez un lancement TOK cohérent à Genève.</h2>
-            <p className="max-w-2xl text-white/72">
+            <p className="max-w-2xl text-white/70">
               Ce formulaire envoie votre demande à l'équipe TOK. Décrivez votre restaurant et votre priorité pour préparer une démonstration adaptée.
             </p>
-            <div className="grid gap-3 text-sm text-white/82 sm:grid-cols-2">
+            <div className="grid gap-3 text-sm text-white/80 sm:grid-cols-2">
               {["Dashboard", "Réservations", "Commandes", "Actualités", "Miamz", "Photos IA"].map((module) => (
                 <div key={module} className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-orange-300" />

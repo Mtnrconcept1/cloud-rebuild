@@ -144,7 +144,7 @@ export default function GarantieQualite() {
       title="Garantie qualité"
       subtitle="Chaud garanti, intégrité vérifiée, compensation auto"
       icon={ShieldCheck}
-      colorClass="teal-500"
+      colorClass="primary"
       steps={[
         { id: "option", label: "Option" },
         { id: "restaurant", label: "Restaurant" },
@@ -158,18 +158,18 @@ export default function GarantieQualite() {
         {step === "option" && (
           <div className="space-y-6 animate-in fade-in-50">
             {/* Main option */}
-            <div className={`rounded-2xl border-2 p-6 transition-all ${optionEnabled ? "border-teal-500 bg-teal-500/5" : "border-border"}`}>
+            <div className={`rounded-2xl border-2 p-6 transition-all ${optionEnabled ? "border-primary bg-primary/5" : "border-border"}`}>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${optionEnabled ? "bg-teal-500/10" : "bg-secondary"}`}>
-                    <Thermometer className={`h-7 w-7 ${optionEnabled ? "text-teal-500" : "text-muted-foreground"}`} />
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${optionEnabled ? "bg-primary/10" : "bg-secondary"}`}>
+                    <Thermometer className={`h-7 w-7 ${optionEnabled ? "text-primary" : "text-muted-foreground"}`} />
                   </div>
                   <div>
                     <h2 className="font-bold text-lg">Option "Chaud garanti"</h2>
                     <p className="text-sm text-muted-foreground">Protection complète de votre commande</p>
                   </div>
                 </div>
-                <Badge className={optionEnabled ? "bg-teal-500 text-white" : "bg-secondary text-muted-foreground"}>
+                <Badge className={optionEnabled ? "bg-primary text-white" : "bg-secondary text-muted-foreground"}>
                   +{QUALITY_FEE.toFixed(2)} CHF
                 </Badge>
               </div>
@@ -182,7 +182,7 @@ export default function GarantieQualite() {
                   { icon: CreditCard, label: "Compensation", desc: "Remboursement auto" },
                 ].map((item) => (
                   <div key={item.label} className="rounded-lg bg-background border p-3 space-y-1">
-                    <item.icon className={`h-4 w-4 ${optionEnabled ? "text-teal-500" : "text-muted-foreground"}`} />
+                    <item.icon className={`h-4 w-4 ${optionEnabled ? "text-primary" : "text-muted-foreground"}`} />
                     <p className="text-xs font-semibold">{item.label}</p>
                     <p className="text-[10px] text-muted-foreground">{item.desc}</p>
                   </div>
@@ -191,7 +191,7 @@ export default function GarantieQualite() {
 
               <Button
                 onClick={() => setOptionEnabled(!optionEnabled)}
-                className={`w-full ${optionEnabled ? "bg-teal-500 hover:bg-teal-600" : ""}`}
+                className={`w-full ${optionEnabled ? "bg-primary hover:bg-primary/90" : ""}`}
                 variant={optionEnabled ? "default" : "outline"}
               >
                 {optionEnabled ? (
@@ -228,7 +228,7 @@ export default function GarantieQualite() {
             <WizardNextButton
               onClick={() => setStep("restaurant")}
               label="Choisir un restaurant"
-              colorClass="teal-500"
+              colorClass="primary"
             />
           </div>
         )}
@@ -236,16 +236,16 @@ export default function GarantieQualite() {
         {step === "restaurant" && (
           <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
             <WizardBackButton onClick={() => setStep("option")} label="Option" />
-            <div className="rounded-lg bg-teal-500/5 p-3 flex items-center gap-2 text-sm">
-              <ShieldCheck className="h-4 w-4 text-teal-500" />
-              <span>Garantie qualité : <strong className="text-teal-600">{optionEnabled ? "Activée" : "Désactivée"}</strong></span>
+            <div className="rounded-lg bg-primary/5 p-3 flex items-center gap-2 text-sm">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              <span>Garantie qualité : <strong className="text-primary">{optionEnabled ? "Activée" : "Désactivée"}</strong></span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {restaurants?.map((r: any) => (
                 <button
                   key={r.id}
                   onClick={() => { setSelectedRestaurant(r); setQuantities({}); setStep("menu"); }}
-                  className="text-left rounded-xl border-2 overflow-hidden hover:border-teal-500/30 border-border transition-all"
+                  className="text-left rounded-xl border-2 overflow-hidden hover:border-primary/30 border-border transition-all"
                 >
                   <img src={r.image_url || "/images/kebab-box-spread.jpeg"} alt={r.name} className="w-full h-32 object-cover" />
                   <div className="p-3">
@@ -261,9 +261,9 @@ export default function GarantieQualite() {
         {step === "menu" && (
           <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
             <WizardBackButton onClick={() => setStep("restaurant")} label="Restaurant" />
-            <div className="rounded-lg bg-teal-500/5 p-3 text-sm flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-teal-500" />
-              {selectedRestaurant?.name} {optionEnabled && <Badge className="bg-teal-500 text-white text-[10px] ml-auto">+{QUALITY_FEE.toFixed(2)} CHF garanti</Badge>}
+            <div className="rounded-lg bg-primary/5 p-3 text-sm flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              {selectedRestaurant?.name} {optionEnabled && <Badge className="bg-primary text-white text-[10px] ml-auto">+{QUALITY_FEE.toFixed(2)} CHF garanti</Badge>}
             </div>
             {categories.map((cat) => (
               <div key={cat} className="space-y-2">
@@ -297,7 +297,7 @@ export default function GarantieQualite() {
             <WizardCartSummary
               count={count}
               subtotal={subtotal}
-              colorClass="teal-500"
+              colorClass="primary"
               feeLabel="🛡️ Garantie Qualité"
               feeAmount={optionEnabled ? QUALITY_FEE : 0}
               total={totalWithOption}
@@ -308,8 +308,8 @@ export default function GarantieQualite() {
 
         {step === "confirm" && (
           <div className="space-y-6 animate-in slide-in-from-bottom-8">
-            <div className="rounded-2xl bg-teal-500/5 border border-teal-500/20 p-6 text-center space-y-2">
-              <CheckCircle2 className="h-12 w-12 text-teal-500 mx-auto" />
+            <div className="rounded-2xl bg-primary/5 border border-primary/20 p-6 text-center space-y-2">
+              <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
               <h2 className="font-display text-xl font-bold">Commande prête !</h2>
             </div>
             <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-sm">
@@ -323,7 +323,7 @@ export default function GarantieQualite() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Garantie qualité</span>
-                <span className={`font-medium ${optionEnabled ? "text-teal-600" : "text-muted-foreground"}`}>
+                <span className={`font-medium ${optionEnabled ? "text-primary" : "text-muted-foreground"}`}>
                   {optionEnabled ? `Activée (+${QUALITY_FEE.toFixed(2)} CHF)` : "Non"}
                 </span>
               </div>
@@ -337,10 +337,10 @@ export default function GarantieQualite() {
             {optionEnabled && (
               <div className="rounded-2xl border bg-card p-6 space-y-4">
                 <h3 className="font-semibold flex items-center gap-2">
-                  <QrCode className="h-5 w-5 text-teal-500" />
+                  <QrCode className="h-5 w-5 text-primary" />
                   Verification rattachee a la commande
                 </h3>
-                <div className="rounded-xl border border-teal-500/20 bg-teal-500/5 p-4 text-sm text-muted-foreground">
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-muted-foreground">
                   La garantie est ajoutee au panier puis recalculee par le checkout serveur. Les preuves operationnelles seront visibles lorsque le restaurant ou le livreur aura enregistre le controle qualite de la commande.
                 </div>
                 <div className="space-y-3">
@@ -368,7 +368,7 @@ export default function GarantieQualite() {
             <WizardNextButton
               onClick={handleCheckout}
               label="Procéder au paiement"
-              colorClass="teal-500"
+              colorClass="primary"
             />
           </div>
         )}

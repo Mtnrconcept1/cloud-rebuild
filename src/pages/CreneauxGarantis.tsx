@@ -225,9 +225,9 @@ export default function CreneauxGarantis() {
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                     s === step
-                      ? "bg-blue-500 text-white"
+                      ? "bg-primary text-white"
                       : stepIdx(s) < stepIdx(step)
-                        ? "bg-blue-200 text-blue-700"
+                        ? "bg-orange-100 dark:bg-primary/15 text-foreground"
                         : "bg-secondary text-muted-foreground"
                   }`}
                 >
@@ -251,7 +251,7 @@ export default function CreneauxGarantis() {
                 { icon: CreditCard, t: "Compensation auto", d: "Remboursé si hors fenêtre" },
               ].map((x, i) => (
                 <div key={i} className="rounded-xl border bg-card p-3 flex sm:flex-col items-center sm:items-start gap-3 sm:gap-0 sm:space-y-1">
-                  <x.icon className="h-5 w-5 text-blue-500 shrink-0" />
+                  <x.icon className="h-5 w-5 text-primary shrink-0" />
                   <div>
                     <p className="font-semibold text-xs">{x.t}</p>
                     <p className="text-[10px] text-muted-foreground">{x.d}</p>
@@ -263,7 +263,7 @@ export default function CreneauxGarantis() {
             <div className="rounded-xl border bg-card p-5 space-y-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5 font-semibold">
-                  <CalendarIcon className="h-4 w-4 text-blue-500" />
+                  <CalendarIcon className="h-4 w-4 text-primary" />
                   Date de livraison
                 </Label>
                 <Popover>
@@ -287,7 +287,7 @@ export default function CreneauxGarantis() {
 
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5 font-semibold">
-                  <Clock className="h-4 w-4 text-blue-500" />
+                  <Clock className="h-4 w-4 text-primary" />
                   Heure souhaitée
                 </Label>
                 <Input
@@ -307,14 +307,14 @@ export default function CreneauxGarantis() {
                   onClick={() => setSelectedLevel(level)}
                   className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
                     selectedLevel?.id === level.id
-                      ? "border-blue-500 bg-blue-500/5"
-                      : "border-border hover:border-blue-500/30"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/30"
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <Shield
                       className={`h-5 w-5 shrink-0 mt-0.5 ${
-                        selectedLevel?.id === level.id ? "text-blue-500" : "text-muted-foreground"
+                        selectedLevel?.id === level.id ? "text-primary" : "text-muted-foreground"
                       }`}
                     />
                     <div className="flex-1 min-w-0 space-y-1">
@@ -324,19 +324,19 @@ export default function CreneauxGarantis() {
                           ± {level.windowMinutes / 2} min
                         </Badge>
                         {level.popular && (
-                          <Badge className="bg-blue-500 text-white text-[10px]">Populaire</Badge>
+                          <Badge className="bg-primary text-white text-[10px]">Populaire</Badge>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground">{level.description}</p>
                       <div className="pt-1">
-                        <p className="text-sm font-semibold text-blue-600">{level.compensation}</p>
+                        <p className="text-sm font-semibold text-primary">{level.compensation}</p>
                         <p className="text-xs text-green-600 font-medium">Inclus</p>
                       </div>
                     </div>
                   </div>
                   {selectedLevel?.id === level.id && time && (
                     <div className="mt-3 pt-3 border-t text-sm flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-500" />
+                      <Clock className="h-4 w-4 text-primary" />
                       <span>
                         Fenêtre de livraison : <strong>{computeWindow(time, level.windowMinutes)}</strong>
                       </span>
@@ -347,7 +347,7 @@ export default function CreneauxGarantis() {
             </div>
 
             {canProceedFromWhen && (
-              <div className="rounded-xl border bg-blue-500/5 p-4 text-sm space-y-1">
+              <div className="rounded-xl border bg-primary/5 p-4 text-sm space-y-1">
                 <p>
                   <strong>Livraison le {format(date!, "EEEE d MMMM", { locale: fr })}</strong> entre{" "}
                   <strong>{windowLabel}</strong>
@@ -359,7 +359,7 @@ export default function CreneauxGarantis() {
             <Button
               onClick={() => setStep("restaurant")}
               disabled={!canProceedFromWhen}
-              className="w-full bg-blue-500 hover:bg-blue-600 gap-2"
+              className="w-full bg-primary hover:bg-primary/90 gap-2"
             >
               Choisir un restaurant
               <ChevronRight className="h-4 w-4" />
@@ -372,8 +372,8 @@ export default function CreneauxGarantis() {
             <Button variant="ghost" size="sm" onClick={() => setStep("when")} className="gap-1">
               <ChevronLeft className="h-4 w-4" /> Modifier le créneau
             </Button>
-            <div className="rounded-lg bg-blue-500/5 p-3 flex items-start gap-2 text-sm">
-              <Shield className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+            <div className="rounded-lg bg-primary/5 p-3 flex items-start gap-2 text-sm">
+              <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
               <span className="break-words">
                 {date ? format(date, "dd/MM/yyyy") : ""} · {windowLabel} ·{" "}
                 <strong>{selectedLevel?.compensation}</strong>
@@ -388,7 +388,7 @@ export default function CreneauxGarantis() {
                     setQuantities({});
                     setStep("menu");
                   }}
-                  className="text-left rounded-xl border-2 overflow-hidden hover:border-blue-500/30 border-border transition-all"
+                  className="text-left rounded-xl border-2 overflow-hidden hover:border-primary/30 border-border transition-all"
                 >
                   <img
                     src={r.image_url || "/images/kebab-box-spread.jpeg"}
@@ -412,8 +412,8 @@ export default function CreneauxGarantis() {
             <Button variant="ghost" size="sm" onClick={() => setStep("restaurant")} className="gap-1">
               <ChevronLeft className="h-4 w-4" /> Restaurant
             </Button>
-            <div className="rounded-lg bg-blue-500/5 p-3 text-sm flex items-start gap-2">
-              <Shield className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+            <div className="rounded-lg bg-primary/5 p-3 text-sm flex items-start gap-2">
+              <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
               <span className="break-words">{windowLabel} · {selectedRestaurant?.name}</span>
             </div>
             {categories.map((cat) => (
@@ -479,7 +479,7 @@ export default function CreneauxGarantis() {
                   <span>Créneau garanti</span>
                   <span>Inclus</span>
                 </div>
-                <Button onClick={handleAddToCart} className="w-full bg-blue-500 hover:bg-blue-600 gap-2">
+                <Button onClick={handleAddToCart} className="w-full bg-primary hover:bg-primary/90 gap-2">
                   <ShoppingCart className="h-4 w-4" /> Valider
                 </Button>
               </div>
@@ -489,8 +489,8 @@ export default function CreneauxGarantis() {
 
         {step === "confirm" && (
           <div className="space-y-6">
-            <div className="rounded-2xl bg-blue-500/5 border border-blue-500/20 p-6 text-center space-y-2">
-              <CheckCircle2 className="h-12 w-12 text-blue-500 mx-auto" />
+            <div className="rounded-2xl bg-primary/5 border border-primary/20 p-6 text-center space-y-2">
+              <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
               <h2 className="font-display text-xl font-bold">Commande prête !</h2>
             </div>
             <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-sm">
@@ -508,7 +508,7 @@ export default function CreneauxGarantis() {
               </div>
               <div className="flex justify-between gap-2">
                 <span className="text-muted-foreground shrink-0">Garantie</span>
-                <span className="font-medium text-blue-600 text-right">{selectedLevel?.compensation}</span>
+                <span className="font-medium text-primary text-right">{selectedLevel?.compensation}</span>
               </div>
               <div className="flex justify-between border-t pt-2">
                 <span className="font-semibold">Total</span>
@@ -517,7 +517,7 @@ export default function CreneauxGarantis() {
             </div>
             <Button
               onClick={handleCheckout}
-              className="w-full bg-blue-500 hover:bg-blue-600 gap-2"
+              className="w-full bg-primary hover:bg-primary/90 gap-2"
               size="lg"
             >
               Procéder au paiement

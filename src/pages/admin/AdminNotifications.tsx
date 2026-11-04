@@ -300,6 +300,7 @@ export default function AdminNotifications() {
       />
 
       <NotificationHistoryList
+        headingLevel="section"
         title="Historique admin"
         description="Alertes opérationnelles reçues par l'administration, avec accès direct aux commandes, réservations, incidents et audits concernés."
         fallbackTarget="/admin/notifications"
@@ -312,7 +313,7 @@ export default function AdminNotifications() {
             <p className="font-semibold">{new Date().toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Erreurs recentes</p>
+            <p className="text-xs text-muted-foreground">Erreurs récentes</p>
             <p className="font-semibold">{campaignStats.reduce((sum, stat) => sum + Number(stat.deliveries_failed || 0), 0)}</p>
           </div>
           <div>
@@ -580,7 +581,7 @@ function NotificationForm({ userId, onSaved }: { userId?: string; onSaved: () =>
         <Textarea value={body} onChange={(event) => setBody(event.target.value)} required className="min-h-32" />
       </div>
       <div className="space-y-2">
-        <Label>Categorie</Label>
+        <Label>Catégorie</Label>
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger>
             <SelectValue />

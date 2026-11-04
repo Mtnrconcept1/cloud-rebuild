@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8749fdb75897338d7c48b93809a47bbd8d87bc3a89bedb458909df5c7e009fba`
+- Empreinte SHA-256 des sources indexées : `b2b27758386166bde9c8f6ec2325c62ce1f0af44f39b4485416078685f41fcf3`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,8 +45,8 @@
 | publicEntries | 957 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 123 |
-| records | 20392 |
-| repositoryFiles | 4072 |
+| records | 20393 |
+| repositoryFiles | 4073 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -9722,7 +9722,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (63)</summary>
+<details><summary>frontend-source (64)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -9772,6 +9772,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/styles/golden-tok-chefs-table.css`
 - `src/styles/halloween-theme.css`
 - `src/styles/motion.css`
+- `src/styles/work-shells.css`
 - `src/styles/workforce-report-print.css`
 - `src/test/fixtures/floorPlanPreview.ts`
 - `src/test/fixtures/golden-tok-preview.tsx`

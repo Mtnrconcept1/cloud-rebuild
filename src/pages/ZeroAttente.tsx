@@ -841,7 +841,7 @@ export default function ZeroAttente() {
         title="Zéro attente"
         subtitle="Réservez, précommandez, payez et c'est servi"
         icon={Timer}
-        colorClass="indigo-500"
+        colorClass="primary"
         steps={([
           { id: "info", label: "Heure" },
           { id: "restaurant", label: "Restaurant" },
@@ -856,13 +856,13 @@ export default function ZeroAttente() {
           {/* How it works */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             {[
-              { icon: Armchair, title: "Réservez", desc: "Choisissez votre heure", color: "indigo" },
-              { icon: Utensils, title: "Précommandez", desc: "Sélectionnez vos plats", color: "indigo" },
-              { icon: CreditCard, title: "Payez", desc: "Paiement sécurisé à l'avance", color: "indigo" },
-              { icon: Zap, title: "0 attente", desc: "Arrivez, asseyez-vous, dégustez", color: "indigo" },
+              { icon: Armchair, title: "Réservez", desc: "Choisissez votre heure", color: "primary" },
+              { icon: Utensils, title: "Précommandez", desc: "Sélectionnez vos plats", color: "primary" },
+              { icon: CreditCard, title: "Payez", desc: "Paiement sécurisé à l'avance", color: "primary" },
+              { icon: Zap, title: "0 attente", desc: "Arrivez, asseyez-vous, dégustez", color: "primary" },
             ].map((item, i) => (
               <div key={i} className="rounded-xl border bg-card p-4 text-center space-y-2 relative">
-                <item.icon className="h-6 w-6 text-indigo-500 mx-auto" />
+                <item.icon className="h-6 w-6 text-primary mx-auto" />
                 <h3 className="font-semibold text-sm">{item.title}</h3>
                 <p className="text-xs text-muted-foreground">{item.desc}</p>
                 {i < 3 && <ArrowRight className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />}
@@ -873,7 +873,7 @@ export default function ZeroAttente() {
           {step === "info" && (
             <div className="rounded-xl border bg-card p-5 space-y-4 animate-in fade-in-50">
               <h2 className="font-semibold flex items-center gap-2">
-                <Clock className="h-5 w-5 text-indigo-500" />
+                <Clock className="h-5 w-5 text-primary" />
                 Date, heure et convives
               </h2>
               <div className="grid gap-3 sm:grid-cols-[160px_120px_100px] items-center">
@@ -891,7 +891,7 @@ export default function ZeroAttente() {
                   else setStep("restaurant");
                 }}
                 label={preSelectedRestaurantId && selectedRestaurant ? `Réserver chez ${selectedRestaurant.name}` : "Choisir un restaurant"}
-                colorClass="indigo-500"
+                colorClass="primary"
               />
             </div>
           )}
@@ -899,8 +899,8 @@ export default function ZeroAttente() {
           {step === "restaurant" && (
             <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
               <WizardBackButton onClick={() => setStep("info")} label="Heure" />
-              <div className="rounded-lg bg-indigo-500/5 p-3 flex items-center gap-2 text-sm">
-                <Timer className="h-4 w-4 text-indigo-500" />
+              <div className="rounded-lg bg-primary/5 p-3 flex items-center gap-2 text-sm">
+                <Timer className="h-4 w-4 text-primary" />
                 <span>Arrivée le <strong>{arrivalDate}</strong> à <strong>{arrivalTime}</strong> · <strong>{partySize}</strong> convive(s)</span>
               </div>
               <h2 className="font-display text-xl font-semibold">Restaurants compatibles Zéro Attente</h2>
@@ -909,7 +909,7 @@ export default function ZeroAttente() {
                   <button
                     key={r.id}
                     onClick={() => { setSelectedRestaurant(r); setQuantities({}); setStep("menu"); }}
-                    className="text-left rounded-xl border-2 overflow-hidden hover:border-indigo-500/30 border-border transition-all"
+                    className="text-left rounded-xl border-2 overflow-hidden hover:border-primary/30 border-border transition-all"
                   >
                     <img src={r.image_url || "/images/kebab-box-spread.jpeg"} alt={r.name} className="w-full h-32 object-cover" />
                     <div className="p-3">
@@ -929,8 +929,8 @@ export default function ZeroAttente() {
                 onClick={() => setStep(preSelectedRestaurantId && selectedRestaurant ? "info" : "restaurant")}
                 label={preSelectedRestaurantId && selectedRestaurant ? "Heure" : "Restaurant"}
               />
-              <div className="rounded-lg bg-indigo-500/5 p-3 text-sm flex items-center gap-2">
-                <Timer className="h-4 w-4 text-indigo-500" />
+              <div className="rounded-lg bg-primary/5 p-3 text-sm flex items-center gap-2">
+                <Timer className="h-4 w-4 text-primary" />
                 Arrivée {arrivalDate} {arrivalTime} · {partySize} convive(s) · {selectedRestaurant?.name}
               </div>
               {count > 0 && matchedFormula && (
@@ -946,11 +946,11 @@ export default function ZeroAttente() {
                 </div>
               )}
               {count > 0 && !matchedFormula && suggestion && (
-                <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3 flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <div className="rounded-xl border border-primary/30 bg-primary/10 p-3 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary shrink-0" />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Formule possible : {suggestion.name}</p>
-                    <p className="text-xs text-indigo-700 dark:text-indigo-300/80">
+                    <p className="text-sm font-semibold text-foreground">Formule possible : {suggestion.name}</p>
+                    <p className="text-xs text-foreground/80">
                       Ajoutez {formatMissingCoursesText(suggestion.missingCourses)} pour obtenir -{suggestion.discountPercent}%.
                     </p>
                   </div>
@@ -999,7 +999,7 @@ export default function ZeroAttente() {
                     </div>
                   )}
                   {tokOneDiscount > 0 && (
-                    <div className="flex justify-between text-sm text-violet-600 font-medium">
+                    <div className="flex justify-between text-sm text-primary font-medium">
                       <span className="flex items-center gap-1.5">
                         <Crown className="h-3.5 w-3.5" />
                         Réduction Tok One{tokOneDiscountPercent > 0 ? ` (${tokOneDiscountPercent.toFixed(0)}%)` : ""}
@@ -1017,7 +1017,7 @@ export default function ZeroAttente() {
                     <span>Total</span>
                     <span>{totalAfterDiscount.toFixed(2)} CHF</span>
                   </div>
-                  <Button onClick={() => setStep("payment")} className="w-full bg-indigo-500 hover:opacity-90 gap-2 mt-2">
+                  <Button onClick={() => setStep("payment")} className="w-full bg-primary hover:opacity-90 gap-2 mt-2">
                     <CreditCard className="h-4 w-4" />
                     {totalAfterDiscount === 0 ? "Passer à la confirmation · 0 CHF" : `Passer au paiement · ${totalAfterDiscount.toFixed(2)} CHF`}
                   </Button>
@@ -1030,8 +1030,8 @@ export default function ZeroAttente() {
             <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
               <WizardBackButton onClick={() => setStep("menu")} label="Menu" />
 
-              <div className="rounded-lg bg-indigo-500/5 p-3 text-sm flex items-center gap-2">
-                <Timer className="h-4 w-4 text-indigo-500" />
+              <div className="rounded-lg bg-primary/5 p-3 text-sm flex items-center gap-2">
+                <Timer className="h-4 w-4 text-primary" />
                 {selectedRestaurant?.name} · {arrivalDate} {arrivalTime} · {partySize} convive(s)
               </div>
 
@@ -1062,7 +1062,7 @@ export default function ZeroAttente() {
                   </div>
                 )}
                 {tokOneDiscount > 0 && (
-                  <div className="flex justify-between text-sm text-violet-600 font-medium">
+                  <div className="flex justify-between text-sm text-primary font-medium">
                     <span className="flex items-center gap-1.5">
                       <Crown className="h-3.5 w-3.5" />
                       Réduction Tok One{tokOneDiscountPercent > 0 ? ` (${tokOneDiscountPercent.toFixed(0)}%)` : ""}
@@ -1109,7 +1109,7 @@ export default function ZeroAttente() {
               <Button
                 onClick={handlePayAndReserve}
                 disabled={loading || allowedPaymentMethods.length === 0}
-                className="w-full bg-indigo-500 hover:opacity-90 gap-2 text-base py-6"
+                className="w-full bg-primary hover:opacity-90 gap-2 text-base py-6"
               >
                 {loading ? "Traitement en cours..." : totalAfterDiscount === 0 ? "Confirmer ma réservation · 0 CHF" : `Payer ${totalAfterDiscount.toFixed(2)} CHF et réserver`}
               </Button>
@@ -1118,8 +1118,8 @@ export default function ZeroAttente() {
 
           {step === "confirm" && (
             <div className="space-y-6 animate-in slide-in-from-bottom-8">
-              <div className="rounded-2xl bg-indigo-500/5 border border-indigo-500/20 p-6 text-center space-y-2">
-                <CheckCircle2 className="h-12 w-12 text-indigo-500 mx-auto" />
+              <div className="rounded-2xl bg-primary/5 border border-primary/20 p-6 text-center space-y-2">
+                <CheckCircle2 className="h-12 w-12 text-primary mx-auto" />
                 <h2 className="font-display text-xl font-bold">Réservation confirmée !</h2>
                 <p className="text-sm text-muted-foreground">Votre table et vos plats précommandés sont réservés. {displayPricing.total === 0 ? "Aucun paiement bancaire n'a été nécessaire." : "Le paiement a été effectué."}</p>
               </div>
@@ -1149,10 +1149,10 @@ export default function ZeroAttente() {
                 {displayPricing.tokOneDiscount > 0 && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground flex items-center gap-1.5">
-                      <Crown className="h-3.5 w-3.5 text-violet-600" />
+                      <Crown className="h-3.5 w-3.5 text-primary" />
                       Tok One{displayPricing.tokOneDiscountPercent > 0 ? ` (${displayPricing.tokOneDiscountPercent.toFixed(0)}%)` : ""}
                     </span>
-                    <span className="font-medium text-violet-600">-{displayPricing.tokOneDiscount.toFixed(2)} CHF</span>
+                    <span className="font-medium text-primary">-{displayPricing.tokOneDiscount.toFixed(2)} CHF</span>
                   </div>
                 )}
                 {displayPricing.pointsDiscount > 0 && (
@@ -1166,14 +1166,14 @@ export default function ZeroAttente() {
                   <span className="font-bold">{displayPricing.total.toFixed(2)} CHF</span>
                 </div>
               </div>
-              <div className="rounded-lg bg-indigo-500/5 p-3 flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400">
+              <div className="rounded-lg bg-primary/5 p-3 flex items-center gap-2 text-sm text-primary">
                 <ChefHat className="h-4 w-4" />
                 <span>Le chef sera synchronisé avec votre arrivée</span>
               </div>
               <WizardNextButton
                 onClick={handleGoToReservations}
                 label="Voir mes réservations"
-                colorClass="indigo-500"
+                colorClass="primary"
               />
             </div>
           )}

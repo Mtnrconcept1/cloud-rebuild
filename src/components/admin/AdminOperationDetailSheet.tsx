@@ -255,7 +255,7 @@ function ReservationDetailContent({ reservation }: { reservation: AdminReservati
     <>
       <SheetHeader className="border-b px-6 py-5 pr-14">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline">Reservation</Badge>
+          <Badge variant="outline">Réservation</Badge>
           {feature ? <Badge className={feature.className}>{feature.label}</Badge> : null}
           {reservation.progressiveOfferDiscountPercent > 0 ? (
             <Badge className="border-orange-200 bg-orange-100 text-orange-800">

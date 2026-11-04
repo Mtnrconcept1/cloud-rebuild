@@ -194,7 +194,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
   });
 
   return (
-    <div className="tok-workspace-shell min-h-screen bg-background pt-16">
+    <div className="tok-workspace-shell tok-courier-shell min-h-screen bg-background pt-16">
       <div
         className="fixed left-[calc(env(safe-area-inset-left,0px)+0.75rem)] top-[calc(env(safe-area-inset-top,0px)+4.75rem)] z-[70] md:hidden"
         data-testid="courier-mobile-back-button"

@@ -319,7 +319,7 @@ export default function AlternativeCommissionCouvert() {
           <div className="max-w-3xl space-y-4">
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-orange-300">Décision mesurée</p>
             <h2 className="text-3xl font-black md:text-4xl">Comparez vos coûts avant de changer d'outil.</h2>
-            <p className="text-white/72">
+            <p className="text-white/70">
               Commencez par un canal mesuré : fiche Google, page restaurant, actualités sponsorisées, ventes flash ou
               offres anti-gaspi. La décision se prend ensuite sur des conversions visibles.
             </p>

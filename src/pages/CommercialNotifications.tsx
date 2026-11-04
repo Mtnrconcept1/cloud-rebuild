@@ -5,7 +5,7 @@ export default function CommercialNotifications() {
   return (
     <>
       <CommercialWorkspaceChrome activeLabel="Notifications" />
-      <main className="min-h-screen bg-background px-4 pb-12 pt-[calc(env(safe-area-inset-top,0px)+5.75rem)] text-foreground sm:px-6">
+      <main className="tok-commercial-shell min-h-screen bg-background px-4 pb-12 pt-[calc(env(safe-area-inset-top,0px)+5.75rem)] text-foreground sm:px-6">
         <div className="mx-auto max-w-5xl">
           <NotificationHistoryList
             title="Notifications commerciales"

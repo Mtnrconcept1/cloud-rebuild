@@ -816,7 +816,7 @@ function CommercialProspectDetailsDialog({
               <DialogTitle className="mt-3 font-display text-3xl font-black leading-tight text-white">
                 {prospect.name}
               </DialogTitle>
-              <DialogDescription className="mt-2 text-sm text-white/72">
+              <DialogDescription className="mt-2 text-sm text-white/70">
                 {formatAddress(prospect) || "Adresse non renseignée"}
               </DialogDescription>
             </div>
@@ -1587,11 +1587,11 @@ export default function CommercialProspection() {
   return (
     <>
       <CommercialWorkspaceChrome activeLabel="Prospection" />
-      <main className="min-h-screen overflow-x-hidden dark:overflow-x-clip bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(135deg,#fff7ed_0%,#f8fafc_44%,#eef6ff_100%)] px-3 pb-6 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#14110f_0%,#1e1a17_52%,#191513_100%)] dark:text-white sm:px-4 md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
+      <main className="tok-commercial-shell min-h-screen overflow-x-hidden dark:overflow-x-clip bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.12),transparent_34%),linear-gradient(180deg,#fff7ed_0%,hsl(var(--background))_42%)] px-3 pb-6 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-slate-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,106,26,0.18),transparent_34%),linear-gradient(135deg,#14110f_0%,#1e1a17_52%,#191513_100%)] dark:text-white sm:px-4 md:px-6 md:pt-[calc(env(safe-area-inset-top,0px)+5rem)]">
       <div className="mx-auto flex w-full max-w-[1800px] min-w-0 flex-col gap-5">
-        <section className="tok-neon-surface min-w-0 overflow-hidden rounded-[24px] border border-white/70 bg-white/88 p-4 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px] sm:p-5">
-          <div className="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="min-w-0 max-w-3xl">
+        <section className="tok-neon-surface min-w-0 overflow-hidden rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/75 sm:rounded-[30px] sm:p-5">
+          <div className="flex min-w-0 flex-col gap-5">
+            <div className="min-w-0">
               <div className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-orange-700 dark:border-orange-400/30 dark:bg-orange-500/10 dark:text-orange-200">
                 <BriefcaseBusiness className="h-3.5 w-3.5" />
                 Espace commercial
@@ -1608,7 +1608,7 @@ export default function CommercialProspection() {
                 </span>
               </div>
             </div>
-            <div className="grid min-w-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-5 lg:flex-[0_1_700px]">
+            <div className="grid min-w-0 grid-cols-2 gap-2 sm:gap-3 md:grid-cols-5">
               {STATUS_OPTIONS.map((item) => (
                 <StatCard key={item.value} label={item.shortLabel} value={stats[item.value]} color={item.color} />
               ))}
@@ -1617,7 +1617,7 @@ export default function CommercialProspection() {
         </section>
 
         <section className="grid min-w-0 gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
-          <aside className="tok-neon-surface min-w-0 space-y-4 overflow-hidden rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/74 sm:rounded-[30px]">
+          <aside className="tok-neon-surface min-w-0 space-y-4 overflow-hidden rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-sm dark:border-white/10 dark:bg-slate-950/75 sm:rounded-[30px]">
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-primary" />
               <h2 className="text-lg font-black">Filtres</h2>

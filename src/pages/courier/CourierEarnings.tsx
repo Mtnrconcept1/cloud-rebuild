@@ -134,8 +134,8 @@ function LiveCourierEarnings() {
         <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
           <Card>
             <CardHeader>
-              <CardTitle>Repartition</CardTitle>
-              <CardDescription>Vue par type de remuneration.</CardDescription>
+              <CardTitle>Répartition</CardTitle>
+              <CardDescription>Vue par type de rémunération.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {Object.keys(stats.byType).length > 0 ? (
@@ -156,7 +156,7 @@ function LiveCourierEarnings() {
                 ))
               ) : (
                 <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-                  Les mouvements de gains apparaitront ici après vos premières livraisons.
+                  Les mouvements de gains apparaîtront ici après vos premières livraisons.
                 </div>
               )}
             </CardContent>
@@ -187,7 +187,7 @@ function LiveCourierEarnings() {
                 ))
               ) : (
                 <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-                  Aucun gain n'a encore été genere.
+                  Aucun gain n'a encore été généré.
                 </div>
               )}
             </CardContent>

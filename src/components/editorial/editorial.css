@@ -34,11 +34,14 @@
   background-repeat: no-repeat;
   opacity: .98;
 }
-.tok-editorial-heading__copy { position: relative; z-index: 3; max-width: min(57%, 39rem); min-width: 0; }
+/* La colonne de texte est un conteneur : le titre se dimensionne sur SA largeur
+   (et non sur celle de l'écran), ce qui évite les mots coupés en deux dans les
+   en-têtes étroits (colonnes, cartes, espaces commerciaux). */
+.tok-editorial-heading__copy { position: relative; z-index: 3; max-width: min(57%, 39rem); min-width: 0; container-type: inline-size; }
 .tok-editorial-heading h1 {
   margin: 0;
   font-family: Fraunces, Georgia, serif;
-  font-size: clamp(2.15rem, 4.5vw, 4.75rem);
+  font-size: min(var(--tok-editorial-title-size, clamp(2.15rem, 4.5vw, 4.75rem)), 13.5cqi);
   font-weight: 900;
   line-height: .92;
   letter-spacing: -.06em;
@@ -94,14 +97,14 @@
       var(--tok-editorial-hero-image);
   }
   .tok-editorial-heading__copy { max-width: 59%; }
-  .tok-editorial-heading h1 { font-size: clamp(1.9rem, 8vw, 2.65rem); }
+  .tok-editorial-heading h1 { --tok-editorial-title-size: clamp(1.9rem, 8vw, 2.65rem); }
   .tok-editorial-heading__description { font-size: clamp(.82rem, 3.1vw, .96rem); }
   .tok-editorial-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tok-editorial-stat { padding: .65rem; }
 }
 
 .tok-feed-grid .tok-editorial-heading { container-type: inline-size; padding-inline: .75rem; min-height: 9rem; }
-.tok-feed-grid .tok-editorial-heading h1 { font-size: clamp(1.75rem, 5.4cqw, 2.75rem); }
+.tok-feed-grid .tok-editorial-heading h1 { --tok-editorial-title-size: clamp(1.75rem, 5.4cqw, 2.75rem); }
 .tok-feed-grid .tok-editorial-heading__copy { max-width: 100%; }
 .tok-product-page {
   background-image:
@@ -119,8 +122,7 @@
 .tok-product-page .bg-primary,
 .tok-product-page button[class*="bg-orange"],
 .tok-product-page a[class*="bg-orange"] {
-  background-image: linear-gradient(120deg, #ff6b1a, #f2380f);
-  box-shadow: 0 .8rem 1.7rem -.9rem rgba(242, 56, 15, .58);
+  box-shadow: 0 .8rem 1.7rem -1rem rgba(197, 59, 12, .42);
 }
 .dark .tok-product-page {
   background-image: radial-gradient(circle at 9% 10%, rgba(242, 91, 32, .12), transparent 24rem);
@@ -257,8 +259,11 @@
     margin-left: .15rem;
     padding: .7em .85em .67em 1.15em;
   }
+  /* Sous 40rem le texte n'est plus « grand » : le blanc passe sur l'orange
+     profond du ruban (#b42f0a, 6,3:1) au lieu de 3,3:1. */
   .tok-editorial-heading[data-subtitle-style="ruban-de-menu"] .tok-editorial-heading__description {
     margin-right: .4rem;
     padding: .5em .75em .55em;
+    background: #b42f0a;
   }
 }

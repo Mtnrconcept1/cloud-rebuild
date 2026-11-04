@@ -75,7 +75,7 @@ export default function AdminOperationsCenter() {
     <Tabs value={activeView} onValueChange={(value) => setActiveView(value as OperationCenterTab)} className="space-y-6">
       <div className="container space-y-6 py-8">
         <DashboardPageHero
-          badge="Operations admin"
+          badge="Opérations admin"
           title="Operations Center"
           description="Cockpit temps réel pour prioriser commandes, réservations, paiements, remboursements, dispatch et incidents marketplace."
           icon={Activity}

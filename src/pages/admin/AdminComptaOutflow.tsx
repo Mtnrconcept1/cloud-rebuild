@@ -294,7 +294,7 @@ export default function AdminComptaOutflow() {
       <Card className="tok-dashboard-section rounded-3xl border border-dashed border-border/70 bg-muted/20">
         <CardContent className="grid gap-4 p-5 md:grid-cols-2 md:p-6">
           <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
-            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/85 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <SelectValue placeholder="Restaurant" />
             </SelectTrigger>
             <SelectContent>
@@ -308,7 +308,7 @@ export default function AdminComptaOutflow() {
           </Select>
 
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/85 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <SelectValue placeholder="Mois" />
             </SelectTrigger>
             <SelectContent>
@@ -370,7 +370,7 @@ export default function AdminComptaOutflow() {
               icon={FileUp}
               eyebrow="A faire maintenant"
               title="Reversements a regler"
-              description="Ce bloc condense ce qui doit être regle par TOK avant de descendre dans le tableau detaille."
+              description="Ce bloc condense ce qui doit être réglé par TOK avant de descendre dans le tableau détaillé."
               value={formatAmount(summary.outflow.payoutsOutstanding)}
               valueLabel="A regler"
             >

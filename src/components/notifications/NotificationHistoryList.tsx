@@ -21,6 +21,8 @@ type NotificationHistoryListProps = {
   routeRole?: "commercial";
   limit?: number;
   className?: string;
+  /** « section » : la liste est un bloc d'une page qui a déjà son en-tête. */
+  headingLevel?: "page" | "section";
 };
 
 function formatNotificationDate(value?: string) {
@@ -45,6 +47,7 @@ export default function NotificationHistoryList({
   routeRole,
   limit = 100,
   className,
+  headingLevel = "page",
 }: NotificationHistoryListProps) {
   const navigate = useNavigate();
   const [visibleLimit, setVisibleLimit] = useState(() => Math.min(limit, 20));
@@ -76,24 +79,44 @@ export default function NotificationHistoryList({
     );
   }
 
+  const unreadBadge = unreadCount > 0 && <Badge>{unreadCount} non lue{unreadCount > 1 ? "s" : ""}</Badge>;
+  const inAppNotice = !inAppEnabled && (
+    <p className="mt-2 text-xs">Le canal in-app est désactivé dans vos préférences. L’historique reste consultable.</p>
+  );
+  const markAllButton = (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="w-full shrink-0 gap-2 rounded-2xl sm:w-auto"
+      onClick={() => void markAllRead()}
+      disabled={unreadCount === 0}
+    >
+      <CheckCheck className="h-4 w-4" />
+      Tout marquer comme lu
+    </Button>
+  );
+
   return (
     <section className={cn("space-y-5", className)}>
-      <PageHeading title={title} mascot="megaphone" description={<>
-        <p>{description}</p>
-        {!inAppEnabled && <p className="mt-2 text-xs">Le canal in-app est désactivé dans vos préférences. L’historique reste consultable.</p>}
-      </>} eyebrow={unreadCount > 0 && <Badge>{unreadCount} non lue{unreadCount > 1 ? "s" : ""}</Badge>} actions={
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="w-full shrink-0 gap-2 rounded-2xl sm:w-auto"
-          onClick={() => void markAllRead()}
-          disabled={unreadCount === 0}
-        >
-          <CheckCheck className="h-4 w-4" />
-          Tout marquer comme lu
-        </Button>
-      } />
+      {headingLevel === "section" ? (
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-display text-2xl font-bold tracking-tight">{title}</h2>
+              {unreadBadge}
+            </div>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
+            {inAppNotice}
+          </div>
+          {markAllButton}
+        </header>
+      ) : (
+        <PageHeading title={title} mascot="megaphone" description={<>
+          <p>{description}</p>
+          {inAppNotice}
+        </>} eyebrow={unreadBadge} actions={markAllButton} />
+      )}
 
       {isLoading ? (
         <div className="space-y-3">

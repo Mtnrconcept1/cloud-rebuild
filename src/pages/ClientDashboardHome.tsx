@@ -126,7 +126,7 @@ const QUICK_ACTIONS: QuickAction[] = [
     image: "/images/dashboard-generated/client_zero_attente_hero.webp",
     icon: Zap,
     feature: "zero-attente",
-    accent: "bg-indigo-500/10 text-indigo-600",
+    accent: "bg-orange-500/10 text-orange-600",
   },
   {
     label: "Anti-gaspi",
@@ -144,7 +144,7 @@ const QUICK_ACTIONS: QuickAction[] = [
     image: "/images/dashboard-generated/client_ventes_flash_hero.webp",
     icon: Sparkles,
     feature: "ventes-flash",
-    accent: "bg-pink-500/10 text-pink-600",
+    accent: "bg-orange-500/10 text-orange-600",
   },
   {
     label: "La Tok d’Or",
@@ -162,7 +162,7 @@ const QUICK_ACTIONS: QuickAction[] = [
     image: "/images/dashboard-generated/client_actualites_hero.webp",
     icon: MessageSquareText,
     feature: "actualites-sociales",
-    accent: "bg-sky-500/10 text-sky-600",
+    accent: "bg-orange-500/10 text-orange-600",
   },
 ];
 
@@ -460,10 +460,10 @@ function LiveClientDashboardHome() {
                 <MetricCard icon={CalendarDays} label="Réservations à venir" value={upcomingReservations.length} to={clientTarget("/reservations")} accent="bg-orange-500/10 text-orange-600" />
               ) : null}
               {ordersEnabled ? (
-                <MetricCard icon={ShoppingBag} label="Achats en cours" value={activeOrders.length} to={clientTarget("/commandes")} accent="bg-indigo-500/10 text-indigo-600" />
+                <MetricCard icon={ShoppingBag} label="Achats en cours" value={activeOrders.length} to={clientTarget("/commandes")} accent="bg-orange-500/10 text-orange-600" />
               ) : null}
-              <MetricCard icon={Trophy} label="Miamz disponibles" value={points.toLocaleString("fr-CH")} to={clientTarget("/profil?tab=fidelite")} accent="bg-pink-500/10 text-pink-600" />
-              <MetricCard icon={Bell} label="Notifications non lues" value={unreadCount} to={clientTarget("/notifications")} accent="bg-sky-500/10 text-sky-600" />
+              <MetricCard icon={Trophy} label="Miamz disponibles" value={points.toLocaleString("fr-CH")} to={clientTarget("/profil?tab=fidelite")} accent="bg-orange-500/10 text-orange-600" />
+              <MetricCard icon={Bell} label="Notifications non lues" value={unreadCount} to={clientTarget("/notifications")} accent="bg-orange-500/10 text-orange-600" />
             </section>
 
             <div className="tok-customer-home-focus">

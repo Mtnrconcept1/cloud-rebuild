@@ -429,9 +429,9 @@ export default function AdminLoyalty() {
   return (
     <div className="container py-8 space-y-6">
       <DashboardPageHero
-        badge="Fidelite"
-        title="Fidelite et abonnement"
-        description="Configurez Tok One et les paliers de fidelite avec controle marge, audit et archivage."
+        badge="Fidélité"
+        title="Fidélité et abonnement"
+        description="Configurez Tok One et les paliers de fidélité avec contrôle de marge, audit et archivage."
         icon={Crown}
         tone="amber"
         visualLabel="Loyalty"

@@ -591,7 +591,7 @@ export default function MatchGroupes() {
 
         {confirmReturn.isPending ? (
           <div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin text-violet-500" />
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
             Vérification du prépaiement...
           </div>
         ) : null}
@@ -599,18 +599,18 @@ export default function MatchGroupes() {
         {step === "browse" && (
           <div className="space-y-6">
             <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-xl bg-violet-500/5 border border-violet-500/10 p-4 text-center">
-                <TrendingDown className="h-5 w-5 text-violet-500 mx-auto mb-1" />
+              <div className="rounded-xl bg-primary/5 border border-primary/10 p-4 text-center">
+                <TrendingDown className="h-5 w-5 text-primary mx-auto mb-1" />
                 <p className="text-xl font-bold">-50%</p>
                 <p className="text-xs text-muted-foreground">maximum</p>
               </div>
-              <div className="rounded-xl bg-violet-500/5 border border-violet-500/10 p-4 text-center">
-                <CreditCard className="h-5 w-5 text-violet-500 mx-auto mb-1" />
+              <div className="rounded-xl bg-primary/5 border border-primary/10 p-4 text-center">
+                <CreditCard className="h-5 w-5 text-primary mx-auto mb-1" />
                 <p className="text-xl font-bold">+5%</p>
                 <p className="text-xs text-muted-foreground">par prépaiement</p>
               </div>
-              <div className="rounded-xl bg-violet-500/5 border border-violet-500/10 p-4 text-center">
-                <Users className="h-5 w-5 text-violet-500 mx-auto mb-1" />
+              <div className="rounded-xl bg-primary/5 border border-primary/10 p-4 text-center">
+                <Users className="h-5 w-5 text-primary mx-auto mb-1" />
                 <p className="text-xl font-bold">10</p>
                 <p className="text-xs text-muted-foreground">clients max</p>
               </div>
@@ -659,7 +659,7 @@ export default function MatchGroupes() {
                             key={order.id}
                             type="button"
                             onClick={() => resumeOrder(order)}
-                            className="w-full rounded-xl border p-3 text-left transition hover:border-violet-500/40 hover:bg-violet-500/5"
+                            className="w-full rounded-xl border p-3 text-left transition hover:border-primary/40 hover:bg-primary/5"
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
@@ -672,7 +672,7 @@ export default function MatchGroupes() {
                             </div>
                             <div className="mt-3 flex items-center justify-between gap-2 text-xs text-muted-foreground">
                               <span>Fin dans {formatCountdown(group.lock_at || group.expires_at, nowMs)}</span>
-                              <span className="font-semibold text-violet-600">{isPrepaid(order) ? "Suivi" : "Prépayer"}</span>
+                              <span className="font-semibold text-primary">{isPrepaid(order) ? "Suivi" : "Prépayer"}</span>
                             </div>
                           </button>
                         );
@@ -693,7 +693,7 @@ export default function MatchGroupes() {
                     {groups.map((group) => {
                       const restaurant = group.restaurant || group.restaurants;
                       return (
-                        <div key={group.id} className="rounded-xl border-2 overflow-hidden border-border hover:border-violet-500/30 transition-all">
+                        <div key={group.id} className="rounded-xl border-2 overflow-hidden border-border hover:border-primary/30 transition-all">
                           <div className="flex gap-4 p-4">
                             <img
                               src={restaurant?.image_url || "/images/kebab-box-spread.jpeg"}
@@ -703,7 +703,7 @@ export default function MatchGroupes() {
                             <div className="flex-1 min-w-0 space-y-1.5">
                               <div className="flex items-center justify-between gap-2">
                                 <h3 className="font-bold truncate">{restaurant?.name}</h3>
-                                <Badge className="bg-violet-500 text-white text-xs">-{group.discount_percentage}% maintenant</Badge>
+                                <Badge className="bg-primary text-white text-xs">-{group.discount_percentage}% maintenant</Badge>
                               </div>
                               <p className="text-xs text-muted-foreground">{restaurant?.cuisine_type}</p>
                               <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
@@ -713,13 +713,13 @@ export default function MatchGroupes() {
                               <div className="flex items-center gap-2">
                                 <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
                                   <div
-                                    className="h-full bg-violet-500 rounded-full"
+                                    className="h-full bg-primary rounded-full"
                                     style={{ width: `${Math.min(100, (group.member_count / group.max_members) * 100)}%` }}
                                   />
                                 </div>
                                 <span className="text-xs font-medium">{group.member_count}/{group.max_members}</span>
                               </div>
-                              <p className="text-xs font-semibold text-violet-600">
+                              <p className="text-xs font-semibold text-primary">
                                 Fin dans {formatCountdown(group.lock_at || group.expires_at, nowMs)}
                               </p>
                             </div>
@@ -728,7 +728,7 @@ export default function MatchGroupes() {
                             <Button
                               onClick={() => openGroup(group)}
                               variant="outline"
-                              className="w-full border-violet-500 text-violet-600 hover:bg-violet-500/10 gap-2"
+                              className="w-full border-primary text-primary hover:bg-primary/10 gap-2"
                               size="sm"
                             >
                               <Truck className="h-4 w-4" />
@@ -746,13 +746,13 @@ export default function MatchGroupes() {
                   </div>
                 )}
 
-                <div className="rounded-2xl bg-violet-500/5 border border-violet-500/10 p-6 text-center space-y-3">
-                  <Users className="h-8 w-8 text-violet-500 mx-auto" />
+                <div className="rounded-2xl bg-primary/5 border border-primary/10 p-6 text-center space-y-3">
+                  <Users className="h-8 w-8 text-primary mx-auto" />
                   <h3 className="font-semibold text-lg">Aucun groupe ne vous convient ?</h3>
                   <p className="text-sm text-muted-foreground">
                     Créez un groupe : le compte à rebours de 30 minutes démarre automatiquement.
                   </p>
-                  <Button onClick={() => setCreateMode(true)} className="bg-violet-500 hover:bg-violet-600 gap-2">
+                  <Button onClick={() => setCreateMode(true)} className="bg-primary hover:bg-primary/90 gap-2">
                     Créer un groupe <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -787,7 +787,7 @@ export default function MatchGroupes() {
                     <button
                       key={restaurant.id}
                       onClick={() => createGroup.mutate(restaurant)}
-                      className="text-left rounded-xl border-2 overflow-hidden hover:border-violet-500/30 border-border transition-all disabled:opacity-50"
+                      className="text-left rounded-xl border-2 overflow-hidden hover:border-primary/30 border-border transition-all disabled:opacity-50"
                       disabled={createGroup.isPending}
                     >
                       <img
@@ -813,10 +813,10 @@ export default function MatchGroupes() {
               <ChevronLeft className="h-4 w-4" /> Retour
             </Button>
 
-            <div className="rounded-lg bg-violet-500/5 p-3 text-sm space-y-2">
+            <div className="rounded-lg bg-primary/5 p-3 text-sm space-y-2">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-violet-500" />
-                <span>{selectedRestaurant?.name} · <strong className="text-violet-600">-{savingsPercent}% si le groupe fermait maintenant</strong></span>
+                <Users className="h-4 w-4 text-primary" />
+                <span>{selectedRestaurant?.name} · <strong className="text-primary">-{savingsPercent}% si le groupe fermait maintenant</strong></span>
               </div>
               <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
                 <span>{memberCount}/{displayedGroup.max_members} clients prépayés</span>
@@ -840,7 +840,7 @@ export default function MatchGroupes() {
                           <p className="font-semibold text-sm">{item.name}</p>
                           {item.description && <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>}
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-violet-600">{original.toFixed(2)} CHF</span>
+                            <span className="text-sm font-bold text-primary">{original.toFixed(2)} CHF</span>
                             <span className="text-[11px] text-muted-foreground">préautorisé, réduction capturée à la fin</span>
                           </div>
                         </div>
@@ -885,7 +885,7 @@ export default function MatchGroupes() {
                   <span>Montant préautorisé maintenant</span>
                   <span>{subtotal.toFixed(2)} CHF</span>
                 </div>
-                <div className="flex justify-between text-sm text-violet-600 font-medium">
+                <div className="flex justify-between text-sm text-primary font-medium">
                   <span>Réduction actuelle estimée -{savingsPercent}%</span>
                   <span>-{estimatedDiscount.toFixed(2)} CHF</span>
                 </div>
@@ -899,7 +899,7 @@ export default function MatchGroupes() {
                 <Button
                   onClick={() => prepay.mutate()}
                   disabled={prepay.isPending || locked || prepaid}
-                  className="w-full bg-violet-500 hover:bg-violet-600 gap-2"
+                  className="w-full bg-primary hover:bg-primary/90 gap-2"
                 >
                   {prepay.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
                   {prepaid ? "Commande déjà prépayée" : "Prépayer ma commande"}
@@ -911,15 +911,15 @@ export default function MatchGroupes() {
 
         {step === "status" && displayedGroup && (
           <div className="space-y-6">
-            <div className="rounded-2xl bg-violet-500/5 border border-violet-500/20 p-6 text-center space-y-3">
-              <Users className="h-12 w-12 text-violet-500 mx-auto" />
+            <div className="rounded-2xl bg-primary/5 border border-primary/20 p-6 text-center space-y-3">
+              <Users className="h-12 w-12 text-primary mx-auto" />
               <h2 className="font-display text-xl font-bold">{prepaid ? "Commande prépayée" : "Prépaiement requis"}</h2>
               <p className="text-sm text-muted-foreground">
                 {prepaid
                   ? "Votre commande est envoyée au restaurateur. Le montant final sera capturé automatiquement à la fin du compte à rebours."
                   : "Vous devez prépayer votre commande pour rejoindre le groupe."}
               </p>
-              <div className="text-3xl font-black text-violet-600">
+              <div className="text-3xl font-black text-primary">
                 {locked ? `-${myOrder?.final_discount_percentage || displayedGroup.final_discount_percentage || savingsPercent}% final` : formatCountdown(lockAt, nowMs)}
               </div>
             </div>
@@ -935,11 +935,11 @@ export default function MatchGroupes() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Statut</span>
-                <span className="font-medium text-violet-600">{paymentLabel(myOrder)}</span>
+                <span className="font-medium text-primary">{paymentLabel(myOrder)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Réduction actuelle</span>
-                <span className="font-medium text-violet-600">-{savingsPercent}%</span>
+                <span className="font-medium text-primary">-{savingsPercent}%</span>
               </div>
               {myOrder && (
                 <>
@@ -947,7 +947,7 @@ export default function MatchGroupes() {
                     <span className="text-muted-foreground">Montant préautorisé</span>
                     <span>{Number(myOrder.subtotal).toFixed(2)} CHF</span>
                   </div>
-                  <div className="flex justify-between text-violet-600">
+                  <div className="flex justify-between text-primary">
                     <span>Réduction estimée</span>
                     <span>-{Number(myOrder.final_discount_amount || myOrder.subtotal * (savingsPercent / 100)).toFixed(2)} CHF</span>
                   </div>
@@ -959,7 +959,7 @@ export default function MatchGroupes() {
               )}
             </div>
 
-            <Button onClick={() => setStep("browse")} className="w-full bg-violet-500 hover:bg-violet-600 gap-2" size="lg">
+            <Button onClick={() => setStep("browse")} className="w-full bg-primary hover:bg-primary/90 gap-2" size="lg">
               Retour aux groupes <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

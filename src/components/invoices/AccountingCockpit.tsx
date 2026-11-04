@@ -171,7 +171,7 @@ export function AccountingDigestCard({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <CardTitle className="font-display text-2xl font-bold tracking-tight text-foreground dark:text-white sm:text-3xl">{title}</CardTitle>
-            {description ? <CardDescription className="max-w-3xl text-base leading-7 dark:text-slate-100/78">{description}</CardDescription> : null}
+            {description ? <CardDescription className="max-w-3xl text-base leading-7 dark:text-slate-100/80">{description}</CardDescription> : null}
           </div>
           {actions ? <div className="flex flex-wrap gap-2 sm:justify-end">{actions}</div> : null}
         </div>
@@ -198,7 +198,7 @@ export function AccountingDigestCard({
                     <div className="min-w-0 space-y-1.5">
                       <p className={cn("text-xs font-bold uppercase tracking-[0.22em]", toneClasses.label)}>{item.label}</p>
                       <p className={cn("break-words text-3xl font-bold tracking-tight text-balance sm:text-4xl", toneClasses.value)}>{item.value}</p>
-                      {item.helper ? <p className="text-sm leading-6 text-muted-foreground dark:text-slate-100/76">{item.helper}</p> : null}
+                      {item.helper ? <p className="text-sm leading-6 text-muted-foreground dark:text-slate-100/75">{item.helper}</p> : null}
                     </div>
                   </div>
                   <div className={cn("hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl sm:flex", toneClasses.icon)}>
@@ -254,7 +254,7 @@ export function AccountingPanel({
               ) : null}
               <CardTitle className="text-xl font-bold tracking-tight text-foreground dark:text-white">{title}</CardTitle>
             </div>
-            {description ? <CardDescription className="max-w-2xl text-sm leading-7 dark:text-slate-100/78">{description}</CardDescription> : null}
+            {description ? <CardDescription className="max-w-2xl text-sm leading-7 dark:text-slate-100/80">{description}</CardDescription> : null}
           </div>
           {value ? (
             <div className="space-y-1 text-left lg:text-right">

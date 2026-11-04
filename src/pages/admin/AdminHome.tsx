@@ -172,7 +172,7 @@ const ADMIN_TOOLS = [
   },
   {
     title: "Avis",
-    description: "Moderation et suivi des avis clients.",
+    description: "Modération et suivi des avis clients.",
     icon: MessageSquareText,
     href: "/admin/avis",
     feature: "admin-avis",
@@ -212,7 +212,7 @@ const ADMIN_TOOLS = [
   },
   {
     title: "Actualités sociales",
-    description: "Moderation du fil restaurateurs et des signalements.",
+    description: "Modération du fil restaurateurs et des signalements.",
     icon: Newspaper,
     href: "/admin/actualites",
     feature: "admin-actualites",
