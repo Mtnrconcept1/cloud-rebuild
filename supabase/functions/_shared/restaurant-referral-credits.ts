@@ -1,5 +1,5 @@
-import type Stripe from "npm:stripe@22.3.2";
 import type { authenticateRequest } from "./auth.ts";
+import { findExistingCredit } from "./restaurant-referral-balance.ts";
 import { getStripeRuntimeForCheckoutKindAndMode } from "./stripe-client.ts";
 
 type AdminClient = Awaited<ReturnType<typeof authenticateRequest>>["adminClient"];
@@ -34,38 +34,6 @@ function failureCode(error: unknown) {
     .split(":", 1)[0]
     .replace(/[^a-zA-Z0-9_-]/g, "_")
     .slice(0, 90);
-}
-
-// Stripe idempotency keys do not guarantee de-duplication after 24 hours.
-// Always reconcile ALL existing customer credits before trying an ambiguous
-// attempt again. Fail closed if history cannot be fully inspected.
-async function findExistingCredit(
-  stripe: Stripe,
-  customerId: string,
-  referralId: string,
-  amountCents: number,
-): Promise<Stripe.CustomerBalanceTransaction | null> {
-  let startingAfter: string | undefined;
-  for (let page = 0; page < 40; page += 1) {
-    const history = await stripe.customers.listBalanceTransactions(customerId, {
-      limit: 100,
-      ...(startingAfter ? { starting_after: startingAfter } : {}),
-    });
-    const found = history.data.find((transaction) =>
-      transaction.metadata?.tok_restaurant_referral_id === referralId
-    );
-    if (found) {
-      if (found.amount !== -amountCents || found.currency !== "chf") {
-        throw new Error("existing_referral_credit_mismatch");
-      }
-      return found;
-    }
-    if (!history.has_more) return null;
-    const last = history.data[history.data.length - 1];
-    if (!last) throw new Error("stripe_balance_history_incomplete");
-    startingAfter = last.id;
-  }
-  throw new Error("stripe_balance_history_limit");
 }
 
 export async function reconcileRestaurantReferralCredits(
@@ -125,7 +93,11 @@ export async function reconcileRestaurantReferralCredits(
 
       if (!stripe) throw new Error("restaurant_referral_stripe_unavailable");
       // On a retry, inspect Stripe first. A lost response is not a new credit.
-      let transaction = await findExistingCredit(stripe, customerId, row.id, amountCents);
+      let transaction = await findExistingCredit(
+        (options) => stripe.customers.listBalanceTransactions(customerId, options),
+        row.id,
+        amountCents,
+      );
       if (!transaction) {
         // Recheck reversals after claiming: a refund may arrive between claim
         // and the external Stripe call, especially on stale processing retries.

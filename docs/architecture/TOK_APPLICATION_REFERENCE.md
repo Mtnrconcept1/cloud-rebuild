@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `f0848b4385d6074c7051d8006e9500a834e977acf0aabae73f7f19812c91cf81`
+- Empreinte SHA-256 des sources indexées : `e70a4ad2d881c6762ea31ccefa6056d29102c711431524ebb51e43a3e4b6d88f`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 191 |
 | edgeFunctions | 126 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4415 |
+| exportedSymbols | 4419 |
 | featureFlags | 100 |
 | frontendRoutes | 149 |
 | integrations | 11 |
 | marketingOperations | 45 |
-| migrations | 597 |
-| modules | 1995 |
+| migrations | 598 |
+| modules | 1997 |
 | pages | 138 |
 | pathLiterals | 1009 |
 | publicAssets | 919 |
 | publicEntries | 957 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 123 |
-| records | 20393 |
-| repositoryFiles | 4073 |
+| records | 20403 |
+| repositoryFiles | 4076 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7218,6 +7218,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261103114909 Kitchen Tok Workforce Access | 226 | 5 | [supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql:1](../../supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql#L1) |
 | 20261103140056 Restaurant Order Insights | 468 | 6 | [supabase/migrations/20261103140056_restaurant_order_insights.sql:1](../../supabase/migrations/20261103140056_restaurant_order_insights.sql#L1) |
 | 20261103175914 Tok Restaurant Referrals | 381 | 14 | [supabase/migrations/20261103175914_tok_restaurant_referrals.sql:1](../../supabase/migrations/20261103175914_tok_restaurant_referrals.sql#L1) |
+| 20261104122917 Restrict Restaurant Referral Rpc Anonymous Access | 10 | 0 | [supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql:1](../../supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7451,8 +7452,8 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Photon | 7 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Resend | 46 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Stripe | 284 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 896 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Stripe | 286 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
+| Supabase | 897 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7465,7 +7466,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | application-library | 240 |
 | automation-script | 93 |
 | documentation | 6 |
-| edge-function-source | 265 |
+| edge-function-source | 266 |
 | frontend-component | 322 |
 | frontend-hook | 25 |
 | frontend-page | 138 |
@@ -7473,7 +7474,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 834 |
+| test | 835 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -8133,7 +8134,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (597)</summary>
+<details><summary>database-migration (598)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8732,6 +8733,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261103114909_kitchen_tok_workforce_access.sql`
 - `supabase/migrations/20261103140056_restaurant_order_insights.sql`
 - `supabase/migrations/20261103175914_tok_restaurant_referrals.sql`
+- `supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql`
 
 </details>
 
@@ -8938,7 +8940,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>edge-function-source (265)</summary>
+<details><summary>edge-function-source (266)</summary>
 
 - `supabase/functions/_shared/advisor-attachment-policy.ts`
 - `supabase/functions/_shared/advisor-attachments.ts`
@@ -9035,6 +9037,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/functions/_shared/restaurant-cover-evidence.ts`
 - `supabase/functions/_shared/restaurant-credits.ts`
 - `supabase/functions/_shared/restaurant-demo.ts`
+- `supabase/functions/_shared/restaurant-referral-balance.ts`
 - `supabase/functions/_shared/restaurant-referral-credits.ts`
 - `supabase/functions/_shared/restaurant-stripe-price-catalog.ts`
 - `supabase/functions/_shared/restaurant-subscription-billing.ts`
@@ -10976,7 +10979,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (834)</summary>
+<details><summary>test (835)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11591,6 +11594,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/restaurant-preactivation-ai-credits.test.ts`
 - `src/test/restaurant-promotions-governance.test.ts`
 - `src/test/restaurant-public-data-consistency.test.ts`
+- `src/test/restaurant-referral-balance.test.ts`
 - `src/test/restaurant-referral-program.test.ts`
 - `src/test/restaurant-reservation-commission-collection.test.ts`
 - `src/test/restaurant-reservation-sidebar.test.ts`

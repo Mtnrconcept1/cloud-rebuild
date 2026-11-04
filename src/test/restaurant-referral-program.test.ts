@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 const file = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 const sql = file("supabase/migrations/20261103175914_tok_restaurant_referrals.sql");
 const worker = file("supabase/functions/_shared/restaurant-referral-credits.ts");
+const balance = file("supabase/functions/_shared/restaurant-referral-balance.ts");
+const permissions = file("supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql");
 const reconciler = file("supabase/functions/stripe-subscription-reconcile/index.ts");
 const auth = file("src/pages/Auth.tsx");
 const recovery = file("src/lib/privilegedSignupRecovery.ts");
@@ -18,6 +20,13 @@ describe("restaurant parrainage: fraud and finance contracts", () => {
     expect(sql).toContain("ALTER TABLE public.restaurant_referral_codes ENABLE ROW LEVEL SECURITY");
     expect(sql).toContain("REVOKE ALL ON public.restaurant_referral_codes, public.restaurant_referrals FROM PUBLIC, anon, authenticated");
     expect(sql).toMatch(/r\.owner_id = \(SELECT auth\.uid\(\)\)/);
+  });
+
+  it("does not expose private dashboards or admin actions to anonymous users", () => {
+    expect(permissions).toContain("REVOKE EXECUTE ON FUNCTION public.get_restaurant_referral_dashboard(uuid) FROM PUBLIC, anon");
+    expect(permissions).toContain("REVOKE EXECUTE ON FUNCTION public.list_admin_restaurant_referrals(integer) FROM PUBLIC, anon");
+    expect(permissions).toContain("REVOKE EXECUTE ON FUNCTION public.reject_admin_restaurant_referral(uuid, text) FROM PUBLIC, anon");
+    expect(permissions).not.toContain("is_valid_restaurant_referral_code");
   });
 
   it("attributes once from signup, not from user-controlled dashboard state", () => {
@@ -46,13 +55,14 @@ describe("restaurant parrainage: fraud and finance contracts", () => {
   });
 
   it("reconciles an ambiguous Stripe operation before creating a new credit", () => {
-    const lookupAt = worker.indexOf("findExistingCredit(stripe, customerId, row.id, amountCents)");
+    const lookupAt = worker.indexOf("let transaction = await findExistingCredit(");
     const chargeAt = worker.indexOf("stripe.customers.createBalanceTransaction");
     expect(lookupAt).toBeGreaterThan(0);
     expect(chargeAt).toBeGreaterThan(lookupAt);
     expect(worker).toContain("tok_restaurant_referral_id");
     expect(worker).toContain("tok-restaurant-referral-");
-    expect(worker).toContain("stripe_balance_history_limit");
+    expect(worker).toContain('from "./restaurant-referral-balance.ts"');
+    expect(balance).toContain("stripe_balance_history_limit");
     expect(worker).toContain('reverse');
     expect(worker).toContain('reversalError');
     expect(worker).toContain('status", "processing"');
