@@ -270,8 +270,9 @@ export default function DirectoryRestaurantOwnershipNotice() {
 
   return (
     <>
+      <div className="container my-8">
       <aside
-        className="container my-6 rounded-2xl border bg-card p-4 text-sm"
+        className="rounded-[24px] border bg-card p-5 text-sm md:p-6"
         aria-label="Informations sur la fiche restaurant indexée"
       >
         <div className="flex items-start gap-3">
@@ -294,6 +295,7 @@ export default function DirectoryRestaurantOwnershipNotice() {
           </div>
         </div>
       </aside>
+      </div>
 
       {removalOpen ? (
         <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="directory-removal-title">

@@ -1,0 +1,75 @@
+/*
+ * TOK — couche de mouvement des surfaces publiques.
+ *
+ * Performances : uniquement transform et opacity, pilotés par des timelines de
+ * défilement CSS (animation-timeline) exécutées par le compositeur, sans aucun
+ * écouteur de scroll JavaScript. Un navigateur sans prise en charge, l'impression
+ * et « réduire les animations » affichent la page immobile et entière : aucun
+ * état initial caché n'existe en dehors de ce bloc.
+ *
+ * Les espaces de travail (tableau de bord, espace client) n'ont ni parallaxe ni
+ * révélation : on y travaille, on ne s'y promène pas.
+ */
+@media screen and (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    /* ── 1. Hero d'accueil : trois plans de profondeur ───────────────────────
+       La photo (et son chef) dérive plus lentement que la page, le texte
+       remonte un peu plus vite : l'écart entre les plans crée la profondeur.
+       Le cadre .tok-home-hero__art masque déjà son débordement. */
+    .tok-home-hero__background img {
+      animation: tok-depth-photo linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 100vh;
+    }
+    .tok-home-hero__content {
+      animation: tok-depth-copy linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 90vh;
+    }
+
+    /* ── 2. Révélations : chaque bloc monte en place en entrant ──────────────
+       Plage en longueur fixe : un bloc haut est entièrement net dès que ses
+       240 premiers pixels sont visibles, jamais à moitié transparent pendant
+       la lecture. Le contenu déjà visible au chargement est à son état final. */
+    [data-tok-reveal="block"],
+    [data-tok-reveal="grid"] > *,
+    [data-tok-reveal="stagger"] > * {
+      animation: tok-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 240px;
+    }
+    /* Rangées horizontales : décalage lié au scroll, 40 px par carte. */
+    [data-tok-reveal="stagger"] > :nth-child(2) { animation-range: entry 40px entry 280px; }
+    [data-tok-reveal="stagger"] > :nth-child(3) { animation-range: entry 80px entry 320px; }
+    [data-tok-reveal="stagger"] > :nth-child(4) { animation-range: entry 120px entry 360px; }
+    [data-tok-reveal="stagger"] > :nth-child(n + 5) { animation-range: entry 160px entry 400px; }
+
+    .tok-hospitality-workspace :is([data-tok-reveal="block"], [data-tok-reveal] > *) {
+      animation: none;
+    }
+  }
+}
+
+@keyframes tok-depth-photo {
+  to { transform: translate3d(0, 9vh, 0); }
+}
+@keyframes tok-depth-copy {
+  to { transform: translate3d(0, -5vh, 0); }
+}
+@keyframes tok-reveal {
+  from { opacity: 0; transform: translate3d(0, 28px, 0) scale(0.985); }
+}
+
+/* ── 3. Profondeur au pointeur (piloté par PointerTiltLayer) ─────────────────
+   Le script n'écrit qu'un transform sur la carte survolée, au plus une fois
+   par image ; la transition lisse et rend l'effet interruptible. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  [data-tok-tilt] {
+    transition-property: transform, box-shadow, border-color;
+    transition-duration: 160ms;
+    transition-timing-function: cubic-bezier(.23, 1, .32, 1);
+  }
+  [data-tok-tilt][data-tilting] {
+    box-shadow: var(--shadow-float);
+  }
+}

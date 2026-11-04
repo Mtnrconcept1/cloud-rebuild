@@ -14,12 +14,14 @@ import { CartProvider } from "@/lib/cart";
 import Navbar from "@/components/Navbar";
 import MobileLogoIntro from "@/components/MobileLogoIntro";
 import FooterSection from "@/components/home/FooterSection";
+import DirectoryRestaurantOwnershipNotice from "@/components/DirectoryRestaurantOwnershipNotice";
 import SupportChat from "@/components/SupportChat";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import { BackNavigationButton, FloatingRouteBackButton } from "@/components/navigation/BackNavigationButton";
 import { InternalLinkNavigation, PageSwipeTransition } from "@/components/navigation/AppPageNavigation";
+import PointerTiltLayer from "@/components/motion/PointerTiltLayer";
 import AdminMobileNavigation from "@/components/admin/AdminMobileNavigation";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
@@ -745,6 +747,8 @@ function AppShell({ commercialDemoFrame = null }: { commercialDemoFrame?: Commer
         </Suspense> : null
       ) : null}
       {!commercialDemoFrame && pathname === "/" ? <DailyTokArcade /> : null}
+      {/* Encart de provenance des fiches d'annuaire : dans le flux de la page, avant le pied de page. */}
+      <DirectoryRestaurantOwnershipNotice />
       {showPublicFooter ? <FooterSection deliveryEnabled={pathname === "/" && deliveryEnabled === true} /> : null}
       {showLaunchClientChrome ? <LegalConsentBanner /> : null}
       {showLaunchClientChrome ? <PageViewTracker /> : null}
@@ -838,6 +842,7 @@ const App = () => {
           <BrowserRouter basename={commercialDemoFrame?.basename}>
             <MarketingHostBoundary>
               <InternalLinkNavigation enabled={!commercialDemoFrame && !isNative()} />
+              <PointerTiltLayer />
               <RouteSeoFallback />
               <ApplicationBoundary commercialDemoFrame={commercialDemoFrame} />
             </MarketingHostBoundary>

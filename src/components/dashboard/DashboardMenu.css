@@ -35,7 +35,7 @@
 .tok-mobile-dashboard-menu.tok-dashboard-menu > button:last-child svg { width: 24px; height: 24px; stroke-width: 1.7; }
 .tok-menu-scroll { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior-y: contain; padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 20px); }
 .tok-dashboard-menu.tok-dashboard-menu :is(.tok-workspace-nav-section, .tok-menu-section) { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--menu-line); }
-.tok-dashboard-menu.tok-dashboard-menu :is(.tok-workspace-nav-heading, .tok-menu-section-title) { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 8px 8px 12px; color: var(--menu-muted); font-family: inherit; font-size: 12px; font-weight: 700; line-height: 1.4; letter-spacing: .12em; text-transform: uppercase; text-align: left; }
+.tok-dashboard-menu.tok-dashboard-menu :is(.tok-workspace-nav-heading, .tok-menu-section-title) { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 8px 8px 12px; color: var(--menu-muted); font-family: inherit; font-size: 13px; font-weight: 700; line-height: 1.4; letter-spacing: 0; text-transform: none; text-align: left; }
 .tok-dashboard-menu .tok-workspace-nav-heading > svg:first-child { display: none; }
 .tok-dashboard-menu .tok-workspace-nav-heading[aria-expanded="false"] { color: var(--menu-ink); font-size: 16px; letter-spacing: 0; text-transform: none; }
 .tok-dashboard-menu .tok-workspace-nav-heading[aria-expanded="false"] > svg:first-child { display: block; }

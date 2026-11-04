@@ -546,3 +546,70 @@
 @media (max-width: 767px) {
   .tok-hospitality-workspace .tok-dashboard-hero[data-compact="true"][data-has-stats="false"] .tok-hospitality-hero-console { display: none; }
 }
+
+/* ── Finition des écrans de travail (restaurateur et client) ──────────────
+   Mêmes photos et mêmes traitements de sous-titre approuvés ; seulement moins
+   d'espace avant les outils, des indicateurs lisibles et des libellés en
+   casse de phrase (plus de petites capitales espacées de 9 à 11 px). */
+.tok-hospitality-workspace .tok-workspace-content .tok-editorial-heading {
+  min-height: clamp(12.5rem, 16vw, 16.5rem);
+  padding-block: clamp(1.15rem, 2vw, 1.75rem);
+}
+.tok-hospitality-workspace .tok-workspace-content .tok-editorial-heading h1 {
+  font-size: clamp(2.1rem, 3.4vw, 3.5rem);
+}
+@media (max-width: 40rem) {
+  .tok-hospitality-workspace .tok-workspace-content .tok-editorial-heading { min-height: 13.5rem; }
+  /* Grille de deux indicateurs : un dernier indicateur isolé prend toute la ligne. */
+  .tok-hospitality-workspace .tok-editorial-stats > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .tok-hospitality-workspace .tok-workspace-content .tok-editorial-heading h1 { font-size: clamp(1.85rem, 7.4vw, 2.4rem); }
+}
+
+/* Indicateurs d'en-tête : libellé au-dessus de la valeur, chiffres tabulaires,
+   surface plate à filet fin (ni dégradé ni halo), icône discrète. */
+.tok-hospitality-workspace .tok-editorial-stats { gap: .75rem; margin-top: .75rem; }
+.tok-hospitality-workspace .tok-editorial-stat {
+  padding: .9rem 1rem;
+  border: 1px solid var(--workspace-line);
+  border-radius: 14px;
+  background: var(--workspace-paper);
+  box-shadow: none;
+}
+.tok-hospitality-workspace .tok-editorial-stat dt { color: var(--workspace-subtle); font-size: .8125rem; font-weight: 600; line-height: 1.3; }
+.tok-hospitality-workspace .tok-editorial-stat dd {
+  margin-top: .2rem;
+  color: var(--workspace-ink);
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+}
+.tok-hospitality-workspace .tok-editorial-stat svg { width: 1.125rem; height: 1.125rem; color: var(--workspace-subtle); }
+
+/* Libellés en casse de phrase, jamais sous 11,5 px. */
+.tok-hospitality-workspace :is(.tok-workspace-nav-heading, .tok-hospitality-console-heading span, .tok-hospitality-summary-stats p, .tok-customer-hero-sidecar__heading p, .tok-customer-hero-sidecar__context span, .tok-workspace-content th) {
+  letter-spacing: 0;
+  text-transform: none;
+}
+.tok-hospitality-workspace .tok-workspace-nav-heading { font-size: 12.5px; font-weight: 700; }
+.tok-hospitality-workspace :is(.tok-hospitality-console-heading span, .tok-hospitality-summary-stats p, .tok-customer-hero-sidecar__heading p, .tok-customer-hero-sidecar__context span) { font-size: 12px; }
+.tok-hospitality-workspace .tok-workspace-content th { font-size: 12px; font-weight: 650; }
+.tok-hospitality-workspace :is(.tok-workspace-content, .tok-workspace-sidebar) .uppercase[class*="tracking-"] { letter-spacing: 0; text-transform: none; }
+.tok-hospitality-workspace :is(.tok-workspace-content, .tok-workspace-sidebar) :is([class~="text-[9px]"], [class~="text-[10px]"]) { font-size: 11.5px; }
+
+/* Ruban de sous-titre : sous 40rem le texte n'est plus « grand », le blanc
+   passe sur l'orange profond du ruban (#b42f0a, 6,3:1) au lieu de 3,3:1. */
+@media (max-width: 40rem) {
+  .tok-hospitality-workspace .tok-editorial-heading[data-subtitle-style="ruban-de-menu"] .tok-editorial-heading__description { background: #b42f0a; }
+}
+
+/* Réglage des cookies : pastille icône dans les espaces de travail, pour ne pas
+   recouvrir les outils ; le nom accessible « Gérer mes cookies » est conservé. */
+body:has(.tok-hospitality-workspace) .tok-cookie-settings {
+  width: 2.5rem;
+  height: 2.5rem;
+  justify-content: center;
+  padding: 0;
+}
+body:has(.tok-hospitality-workspace) .tok-cookie-settings > span { display: none; }

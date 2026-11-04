@@ -99,7 +99,10 @@ describe("TOK homepage Core Web Vitals safeguards", () => {
     expect(carousel).toContain('aria-label="Promotion précédente"');
     expect(carousel).toContain('aria-label="Promotion suivante"');
     expect(carousel).toContain("bg-orange-700");
-    expect(card).toContain("bg-orange-700 text-white hover:bg-orange-800");
+    // Le lien « Voir le restaurant » des cartes standard est à l'encre TOK (contraste ≥ 4.5:1),
+    // l'aplat orange étant réservé aux cartes sponsorisées.
+    expect(card).toContain('"-ml-1 px-1 text-foreground underline-offset-4');
+    expect(card).not.toContain("bg-orange-700 text-white hover:bg-orange-800");
     expect(card).toContain("bg-emerald-700 text-white");
     expect(card).toContain("remise ${discountShortLabel}");
     expect(loyalty).toContain('aria-label="Progression vers le niveau suivant"');

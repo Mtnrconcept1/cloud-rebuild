@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import { recoverChunkLoadError } from "@/components/ErrorBoundary";
 import "./index.css";
 import "./home-section-headers.css";
+import "./styles/motion.css";
 import "./styles/halloween-theme.css";
 import "./styles/commercial-prospection-markers.css";
 import "./styles/dark-neon.css";
@@ -11,7 +12,6 @@ import { initCapacitorPlugins } from "@/lib/capacitor-init";
 import { installCommercialProspectionMarkerTheme } from "@/lib/commercialProspectionMarkerTheme";
 import { initMonitoring } from "@/lib/monitoring";
 import { isNative } from "@/lib/platform";
-import DirectoryRestaurantOwnershipNotice from "@/components/DirectoryRestaurantOwnershipNotice";
 import DirectoryClaimPersistenceBridge from "@/components/DirectoryClaimPersistenceBridge";
 
 // Vite emits this before React can necessarily catch a failed lazy module.
@@ -37,7 +37,6 @@ initMonitoring();
 createRoot(document.getElementById("root")!).render(
   <>
     <App />
-    <DirectoryRestaurantOwnershipNotice />
     <DirectoryClaimPersistenceBridge />
     <Analytics />
   </>

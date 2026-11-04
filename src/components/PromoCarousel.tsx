@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight, Sparkles, Target, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useActiveFeatures } from "@/lib/featureFlags";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 const PROMOS = [
@@ -55,18 +54,12 @@ export default function PromoCarousel() {
               <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <img src={promo.img} alt={promo.title} width={1100} height={880} loading="lazy" decoding="async" className="h-[300px] w-full object-cover md:h-[450px]" />
               <div className="absolute inset-0 z-20 flex flex-col justify-end space-y-4 p-8 text-white md:p-16">
-                <div className="flex items-center gap-2">
-                  <Badge className="border-none bg-white/20 text-white backdrop-blur-md">
-                    <promo.icon className="mr-1 h-3 w-3" />
-                    {promo.badge}
-                  </Badge>
-                </div>
                 <div className="max-w-2xl space-y-2">
                   <h2 className="font-display text-4xl font-bold tracking-tight md:text-6xl">{promo.title}</h2>
                   <p className="text-lg font-medium text-white/80 md:text-xl">{promo.desc}</p>
                 </div>
                 <div className="pt-4">
-                  <Button size="lg" className="rounded-full bg-orange-700 px-8 text-white shadow-lg shadow-primary/20 hover:bg-orange-800" asChild>
+                  <Button size="lg" className="rounded-full bg-orange-700 px-8 text-white hover:brightness-[0.93]" asChild>
                     <Link to={promo.link}>En savoir plus</Link>
                   </Button>
                 </div>

@@ -145,7 +145,7 @@ const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondar
 };
 
 const PAYMENT_STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
-  unpaid: { label: "A regler", variant: "outline" },
+  unpaid: { label: "À régler", variant: "outline" },
   pending: { label: "Paiement manuel", variant: "secondary" },
   paid: { label: "Paye", variant: "default" },
   failed: { label: "Paiement refuse", variant: "destructive" },
