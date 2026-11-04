@@ -13,7 +13,7 @@ describe("HeroSection mobile newsletter", () => {
     );
 
     const newsletter = screen.getByTestId("mobile-newsletter");
-    expect(within(newsletter).getByRole("link", { name: "Inscrivez-vous" })).toHaveAttribute("href", "/auth");
+    expect(within(newsletter).getByRole("link", { name: "Inscrivez-vous" })).toHaveAttribute("href", "/auth?newsletter=1");
 
     fireEvent.click(within(newsletter).getByRole("button", { name: "Conditions applicables." }));
 

@@ -19,7 +19,14 @@ describe("TOK reference-white mobile homepage", () => {
     expect(screen.getByRole("link", { name: "Ventes flash" })).toHaveAttribute("href", "/ventes-flash");
     expect(screen.getByRole("link", { name: "Anti-gaspi" })).toHaveAttribute("href", "/anti-gaspi");
     expect(screen.getByRole("link", { name: "La Tok d’Or" })).toHaveAttribute("href", "/chefs-table");
-    expect(screen.getByRole("link", { name: "Inscrivez-vous" })).toHaveAttribute("href", "/auth");
+    expect(screen.getByRole("link", { name: "Inscrivez-vous" })).toHaveAttribute("href", "/auth?newsletter=1");
+  });
+
+  it("keeps the four approved visual labels when optional modules are disabled", () => {
+    render(<MemoryRouter><HeroSection /></MemoryRouter>);
+    for (const name of ["Ventes flash", "Anti-gaspi", "La Tok d’Or", "Offres & promos"]) {
+      expect(screen.getByRole("link", { name })).toHaveAttribute("href", "/recherche");
+    }
   });
 
   it("does not overlay the standalone chef on the Halloween artwork", () => {

@@ -399,7 +399,8 @@
     font-size: 10px;
   }
 
-  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter a {
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter a,
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter .tok-home-hero__newsletter-cta {
     grid-column: 3;
     grid-row: 1 / 3;
     align-self: center;
@@ -434,7 +435,8 @@
     gap: 2px 5px;
     font-size: 10px;
   }
-  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter a {
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter a,
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter .tok-home-hero__newsletter-cta {
     padding-inline: 8px;
     font-size: 10px;
   }

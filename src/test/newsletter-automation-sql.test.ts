@@ -7,7 +7,7 @@ const migrationsDir = join(process.cwd(), "supabase", "migrations");
 function findNewsletterAutomationMigration() {
   return readdirSync(migrationsDir)
     .filter((file) => file.endsWith(".sql"))
-    .filter((file) => file.includes("newsletter") || file.includes("notification_campaign_automation"))
+    .filter((file) => file.includes("notification_campaign_automation"))
     .sort()
     .at(-1);
 }
