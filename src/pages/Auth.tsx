@@ -944,6 +944,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   )
     .trim()
     .toLowerCase();
+  const newsletterOffer = searchParams.get("newsletter") === "1";
   const confirmationCompleted = searchParams.get("confirmed") === "1";
   const confirmationOperationId = String(
     searchParams.get("signup_operation_id") || "",
@@ -963,7 +964,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
   const { state: launchState } = useLaunchGate();
   const initialRole = getInitialSignupRole(searchParams);
   const [isLogin, setIsLogin] = useState(
-    isDemoAuthMode || isCommercialAuthHost || initialRole === "client",
+    isDemoAuthMode || isCommercialAuthHost || (initialRole === "client" && !newsletterOffer),
   );
   const [roleMode, setRoleMode] = useState<SignupRole>(initialRole);
   const [signupForm, setSignupForm] =
@@ -994,6 +995,7 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
     selectedSubscriptionBillingPeriod,
     setSelectedSubscriptionBillingPeriod,
   ] = useState<SignupSubscriptionBillingPeriod>("monthly");
+  const [newsletterConsentDraft, setNewsletterConsentDraft] = useState(false);
   const [legalAcceptanceDraft, setLegalAcceptanceDraft] = useState(false);
   const [commissionConsentDraft, setCommissionConsentDraft] = useState(false);
   const legalAccepted =
@@ -2090,6 +2092,12 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                         : null,
                   }
                 : {}),
+              ...(submittedRole === "client" && newsletterConsentDraft ? {
+                newsletter_opt_in: true,
+                newsletter_source: newsletterOffer ? "home_offer" : "signup",
+                newsletter_consent_at: new Date().toISOString(),
+                newsletter_consent_version: "v1",
+              } : {}),
               ...toLegalAcceptanceMetadata(submittedLegalAcceptance),
             },
             emailRedirectTo: buildSignupConfirmationRedirect(
@@ -2405,6 +2413,12 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
             <div role="status" className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm">
               <p className="font-semibold">Invitation d'un restaurateur TOK</p>
               <p className="mt-1 text-muted-foreground">Votre code de parrainage {restaurantReferralCode} est conservé avec votre inscription. Votre parrain recevra un mois offert après validation et 30 jours d'abonnement payant.</p>
+            </div>
+          ) : null}
+          {newsletterOffer && !isLogin && roleMode === "client" && !clientConfirmationPending ? (
+            <div role="note" className="rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-950 dark:border-orange-900/50 dark:bg-orange-950/20 dark:text-orange-100">
+              <p className="font-semibold">Offre newsletter : 500 Miamz</p>
+              <p className="mt-1">Créez votre compte, choisissez explicitement la newsletter et confirmez votre adresse email pour recevoir votre bonus de bienvenue, une seule fois.</p>
             </div>
           ) : null}
           {clientConfirmationPending && !session && !isLogin ? (
@@ -3206,6 +3220,22 @@ export default function Auth({ demoMode = false }: { demoMode?: boolean }) {
                       de TOK.
                     </div>
                   </div>
+                  {roleMode === "client" ? (
+                    <div className="flex items-start gap-3 rounded-xl border bg-background p-3 text-sm sm:p-4">
+                      <Checkbox
+                        id="newsletter-opt-in"
+                        checked={newsletterConsentDraft}
+                        onCheckedChange={(checked) => setNewsletterConsentDraft(checked === true)}
+                        aria-label="Je souhaite recevoir la newsletter TOK par email"
+                        className="mt-0.5 shrink-0"
+                      />
+                      <label htmlFor="newsletter-opt-in" className="min-w-0 cursor-pointer leading-6 text-foreground">
+                        Je souhaite recevoir la newsletter TOK par email (offres et actualités).
+                        {newsletterOffer ? " En cochant cette case, les nouveaux comptes éligibles reçoivent 500 Miamz après confirmation de leur adresse email." : ""}
+                        {" "}Cette autorisation est facultative et peut être retirée à tout moment dans mon profil.
+                      </label>
+                    </div>
+                  ) : null}
                   {roleMode === "restaurateur" ? (
                     <div className="flex items-start gap-3 rounded-xl border border-primary/25 bg-primary/5 p-3 text-sm sm:p-4">
                       <Checkbox

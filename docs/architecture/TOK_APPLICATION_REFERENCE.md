@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `e70a4ad2d881c6762ea31ccefa6056d29102c711431524ebb51e43a3e4b6d88f`
+- Empreinte SHA-256 des sources indexées : `921267125bbe1834d4a718b5160b02909ce4e75cf0bf2c3f634ab5d9f5ac8ffe`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -27,8 +27,8 @@
 | --- | --- |
 | apiRoutes | 11 |
 | cronJobs | 38 |
-| databaseContract | 231 |
-| databaseObjects | 3224 |
+| databaseContract | 232 |
+| databaseObjects | 3235 |
 | documents | 191 |
 | edgeFunctions | 126 |
 | edgeHttpRoutes | 20 |
@@ -37,16 +37,16 @@
 | frontendRoutes | 149 |
 | integrations | 11 |
 | marketingOperations | 45 |
-| migrations | 598 |
-| modules | 1997 |
+| migrations | 599 |
+| modules | 1998 |
 | pages | 138 |
-| pathLiterals | 1009 |
+| pathLiterals | 1010 |
 | publicAssets | 919 |
 | publicEntries | 957 |
 | publicNavigableRoutes | 3 |
-| queryParameters | 123 |
-| records | 20403 |
-| repositoryFiles | 4076 |
+| queryParameters | 124 |
+| records | 20421 |
+| repositoryFiles | 4078 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1752,7 +1752,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /assets/app.js | 1 | [src/test/app-page-navigation.test.tsx:25](../../src/test/app-page-navigation.test.tsx#L25) |
 | /assets/missing.js | 1 | [src/test/route-serving-regression.test.ts:14](../../src/test/route-serving-regression.test.ts#L14) |
 | /attachments? | 1 | [src/test/resend-inbound-forward.test.ts:25](../../src/test/resend-inbound-forward.test.ts#L25) |
-| /auth | 61 | [scripts/prerender-seo.mjs:1248](../../scripts/prerender-seo.mjs#L1248) |
+| /auth | 59 | [scripts/prerender-seo.mjs:1248](../../scripts/prerender-seo.mjs#L1248) |
 | /auth/ | 1 | [src/components/ComingSoonGate.tsx:13](../../src/components/ComingSoonGate.tsx#L13) |
 | /auth/callback | 20 | [src/App.tsx:597](../../src/App.tsx#L597) |
 | /auth/callback? | 1 | [src/lib/deep-links.ts:33](../../src/lib/deep-links.ts#L33) |
@@ -1772,6 +1772,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /auth?code=private | 1 | [src/test/metricool-page-tracker.test.tsx:83](../../src/test/metricool-page-tracker.test.tsx#L83) |
 | /auth?code=secret | 1 | [src/test/monitoring-consent.test.ts:313](../../src/test/monitoring-consent.test.ts#L313) |
 | /auth?confirmed=1 | 3 | [src/test/auth-signup-form.test.tsx:595](../../src/test/auth-signup-form.test.tsx#L595) |
+| /auth?newsletter=1 | 2 | [src/components/home/HeroSection.tsx:175](../../src/components/home/HeroSection.tsx#L175) |
 | /auth?redirect=%2Fcommande%2Fconfirmation%3Fsession_id%3Dcs_test_123%26status%3Dsuccess | 1 | [src/test/stripe-return.test.ts:34](../../src/test/stripe-return.test.ts#L34) |
 | /auth?redirect=/commercial | 1 | [src/test/admin-commercial-accounts.test.ts:192](../../src/test/admin-commercial-accounts.test.ts#L192) |
 | /auth?role=restaurateur | 3 | [src/pages/RestaurateursGeneve.tsx:352](../../src/pages/RestaurateursGeneve.tsx#L352) |
@@ -1919,7 +1920,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /enrich-directory-cuisines-osm | 1 | [src/test/directory-cuisine-osm-backfill.test.ts:89](../../src/test/directory-cuisine-osm-backfill.test.ts#L89) |
 | /enrich-directory-images | 2 | [src/test/directory-image-discovery-worker.test.ts:44](../../src/test/directory-image-discovery-worker.test.ts#L44) |
 | /equipe | 3 | [src/test/dashboard-design-preview-export.test.tsx:70](../../src/test/dashboard-design-preview-export.test.tsx#L70) |
-| /equipe/ | 1 | [src/pages/Auth.tsx:1148](../../src/pages/Auth.tsx#L1148) |
+| /equipe/ | 1 | [src/pages/Auth.tsx:1150](../../src/pages/Auth.tsx#L1150) |
 | /equipe/gestion | 12 | [src/App.tsx:601](../../src/App.tsx#L601) |
 | /equipe/gestion-salle | 4 | [src/App.tsx:600](../../src/App.tsx#L600) |
 | /equipe/gestion-salle?restaurant= | 6 | [src/pages/WorkspaceChooser.tsx:157](../../src/pages/WorkspaceChooser.tsx#L157) |
@@ -2089,9 +2090,9 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/gfc-fried-chicken.jpeg | 3 | [src/lib/menu-item-images.ts:69](../../src/lib/menu-item-images.ts#L69) |
 | /images/gourmet-burgers.jpeg | 3 | [src/lib/menu-item-images.ts:25](../../src/lib/menu-item-images.ts#L25) |
 | /images/greek-gyros.jpeg | 2 | [src/lib/menu-item-images.ts:99](../../src/lib/menu-item-images.ts#L99) |
-| /images/home-mobile/communes/ | 1 | [src/components/home/HeroSection.tsx:58](../../src/components/home/HeroSection.tsx#L58) |
+| /images/home-mobile/communes/ | 1 | [src/components/home/HeroSection.tsx:81](../../src/components/home/HeroSection.tsx#L81) |
 | /images/home-mobile/communes/TOK-GE-puplinge.webp | 1 | [src/test/home-world-hero.test.ts:21](../../src/test/home-world-hero.test.ts#L21) |
-| /images/home/tok-geneve-mobile-sans-parasol.webp | 6 | [src/components/home/HeroSection.tsx:14](../../src/components/home/HeroSection.tsx#L14) |
+| /images/home/tok-geneve-mobile-sans-parasol.webp | 6 | [src/components/home/HeroSection.tsx:17](../../src/components/home/HeroSection.tsx#L17) |
 | /images/home/tok-leman-signature.webp | 1 | [src/test/home-core-web-vitals.test.ts:21](../../src/test/home-core-web-vitals.test.ts#L21) |
 | /images/home/tok-logo-ui.webp | 5 | [src/components/plinko/PlinkoDialog.tsx:40](../../src/components/plinko/PlinkoDialog.tsx#L40) |
 | /images/indian-curry-bowls.jpeg | 2 | [src/lib/menu-item-images.ts:61](../../src/lib/menu-item-images.ts#L61) |
@@ -2151,7 +2152,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/locations/Europe/Portugal/Lisbonne/tok-lisbonne-mobile.webp | 1 | [src/lib/homeWorldHero.ts:8](../../src/lib/homeWorldHero.ts#L8) |
 | /images/locations/Europe/Portugal/lisbonne/tok-lisbonne-desktop-v2.webp | 1 | [src/lib/homeWorldHero.ts:7](../../src/lib/homeWorldHero.ts#L7) |
 | /images/locations/Europe/Royaume-Uni/londres/tok-londres-desktop.webp | 1 | [src/lib/homeWorldHero.ts:145](../../src/lib/homeWorldHero.ts#L145) |
-| /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | 4 | [src/components/home/HeroSection.tsx:13](../../src/components/home/HeroSection.tsx#L13) |
+| /images/locations/Europe/Suisse/Geneve/tok-geneve-desktop.webp | 4 | [src/components/home/HeroSection.tsx:16](../../src/components/home/HeroSection.tsx#L16) |
 | /images/locations/Europe/Suisse/Geneve/tok-geneve-mobile.webp | 1 | [src/lib/homeWorldHero.ts:13](../../src/lib/homeWorldHero.ts#L13) |
 | /images/locations/Oceanie/Australie/sydney/tok-sydney-desktop.webp | 1 | [src/lib/homeWorldHero.ts:65](../../src/lib/homeWorldHero.ts#L65) |
 | /images/meringue-double.webp | 3 | [src/lib/securityUrls.ts:27](../../src/lib/securityUrls.ts#L27) |
@@ -2214,8 +2215,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /images/samosa.jpg | 3 | [src/lib/menu-item-images.ts:94](../../src/lib/menu-item-images.ts#L94) |
 | /images/seasonal/halloween/ | 1 | [src/components/home/SectionShowcaseHeader.tsx:51](../../src/components/home/SectionShowcaseHeader.tsx#L51) |
 | /images/seasonal/halloween/canopy.webp | 2 | [src/components/seasonal/HalloweenTheme.tsx:13](../../src/components/seasonal/HalloweenTheme.tsx#L13) |
-| /images/seasonal/halloween/hero-desktop.webp | 3 | [src/components/home/HeroSection.tsx:53](../../src/components/home/HeroSection.tsx#L53) |
-| /images/seasonal/halloween/hero-mobile-20261030.webp | 3 | [src/components/home/HeroSection.tsx:60](../../src/components/home/HeroSection.tsx#L60) |
+| /images/seasonal/halloween/hero-desktop.webp | 3 | [src/components/home/HeroSection.tsx:76](../../src/components/home/HeroSection.tsx#L76) |
+| /images/seasonal/halloween/hero-mobile-20261030.webp | 3 | [src/components/home/HeroSection.tsx:83](../../src/components/home/HeroSection.tsx#L83) |
 | /images/seasonal/halloween/section-banner.webp | 1 | [src/pages/Index.tsx:57](../../src/pages/Index.tsx#L57) |
 | /images/section-headers/calendar-3d.png | 2 | [src/lib/dashboardIllustrations.ts:57](../../src/lib/dashboardIllustrations.ts#L57) |
 | /images/section-headers/fire-3d.png | 1 | [src/lib/dashboardIllustrations.ts:59](../../src/lib/dashboardIllustrations.ts#L59) |
@@ -2663,7 +2664,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | delivery | /recherche | 2 | [src/pages/Recherche.tsx:324](../../src/pages/Recherche.tsx#L324) |
 | demo_checkout | — | 4 | [src/components/commercial/CommercialMultiSpaceDemo.tsx:86](../../src/components/commercial/CommercialMultiSpaceDemo.tsx#L86) |
 | demo_session_id | — | 4 | [src/components/commercial/CommercialDemoActorWorkspace.tsx:88](../../src/components/commercial/CommercialDemoActorWorkspace.tsx#L88) |
-| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2437](../../src/pages/Auth.tsx#L2437) |
+| domain | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:2451](../../src/pages/Auth.tsx#L2451) |
 | fields | — | 2 | [src/test/marketing-instagram-graph.test.ts:15](../../src/test/marketing-instagram-graph.test.ts#L15) |
 | fields[appScreenshotSets] | — | 1 | [scripts/app-store-connect-upload-screenshots.mjs:205](../../scripts/app-store-connect-upload-screenshots.mjs#L205) |
 | fields[appScreenshots] | — | 2 | [scripts/app-store-connect-upload-screenshots.mjs:237](../../scripts/app-store-connect-upload-screenshots.mjs#L237) |
@@ -2698,7 +2699,8 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | messagingSenderId | — | 1 | [src/lib/push.ts:83](../../src/lib/push.ts#L83) |
 | min_lat | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:120](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L120) |
 | min_lng | — | 1 | [scripts/prerender-stoppin-restaurants-bounded.mjs:122](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L122) |
-| mode | /auth, /auth/callback, /auth/demo, /recherche | 3 | [src/pages/Auth.tsx:974](../../src/pages/Auth.tsx#L974) |
+| mode | /auth, /auth/callback, /auth/demo, /recherche | 3 | [src/pages/Auth.tsx:975](../../src/pages/Auth.tsx#L975) |
+| newsletter | /auth, /auth/callback, /auth/demo | 1 | [src/pages/Auth.tsx:947](../../src/pages/Auth.tsx#L947) |
 | offer | /recherche | 3 | [src/pages/Recherche.tsx:317](../../src/pages/Recherche.tsx#L317) |
 | offset | — | 4 | [scripts/prerender-stoppin-restaurants-bounded.mjs:118](../../scripts/prerender-stoppin-restaurants-bounded.mjs#L118) |
 | on_conflict | — | 1 | [scripts/restaurant-image-truth-worker.mjs:548](../../scripts/restaurant-image-truth-worker.mjs#L548) |
@@ -3063,7 +3065,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (936)</summary>
+<details><summary>function (941)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3122,6 +3124,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `private_finance.tok_invoice_html_escape` (1 définition(s))
 - `private_finance.transition_fair_growth_module` (1 définition(s))
 - `private_finance.validate_restaurant_subscription_pricing_insert` (1 définition(s))
+- `public._activate_tok_newsletter` (1 définition(s))
 - `public._commercial_demo_ai_session_lifecycle_cleanup` (1 définition(s))
 - `public._commercial_demo_build_snapshot` (2 définition(s))
 - `public._commercial_demo_xml_escape` (1 définition(s))
@@ -3329,6 +3332,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.cancel_reservation_by_restaurant` (3 définition(s))
 - `public.capture_restaurant_signup_referral` (1 définition(s))
 - `public.capture_signup_application_draft` (1 définition(s))
+- `public.capture_tok_newsletter_signup` (1 définition(s))
 - `public.check_restaurant_ai_quota` (6 définition(s))
 - `public.claim_ai_image_operation` (1 définition(s))
 - `public.claim_developer_statement_transfer` (1 définition(s))
@@ -3424,6 +3428,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.compute_restaurant_reservation_fees` (3 définition(s))
 - `public.confirm_auto_arrived_reservation_commission` (1 définition(s))
 - `public.confirm_fair_growth_module_activation` (1 définition(s))
+- `public.confirm_tok_newsletter_signup` (1 définition(s))
 - `public.consume_chef_table_checkout_hold` (1 définition(s))
 - `public.consume_crm_mfa_recovery_challenge` (1 définition(s))
 - `public.count_restaurant_actualites_like_audience` (1 définition(s))
@@ -3905,6 +3910,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.social_post_counts_trigger` (1 définition(s))
 - `public.social_report_auto_block_author` (1 définition(s))
 - `public.submit_verified_review` (2 définition(s))
+- `public.subscribe_tok_newsletter` (1 définition(s))
 - `public.swiss_vat_from_tax_inclusive_cents` (1 définition(s))
 - `public.sync_actualites_media_image_index` (4 définition(s))
 - `public.sync_directory_name_job` (1 définition(s))
@@ -3913,6 +3919,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.sync_restaurant_media_image_index` (1 définition(s))
 - `public.sync_signup_application` (5 définition(s))
 - `public.sync_social_post_promotion_status` (1 définition(s))
+- `public.sync_tok_newsletter_preference` (1 définition(s))
 - `public.tg_guard_locked_order_status` (1 définition(s))
 - `public.tg_guard_locked_reservation_status` (1 définition(s))
 - `public.tg_orders_guard_acceptance_capacity` (1 définition(s))
@@ -4004,7 +4011,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (759)</summary>
+<details><summary>index (760)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -4444,6 +4451,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `kitchen_tickets_table_idx` (1 définition(s))
 - `loyalty_gift_received_once` (1 définition(s))
 - `loyalty_gift_sent_once` (1 définition(s))
+- `loyalty_newsletter_welcome_once_per_user` (1 définition(s))
 - `loyalty_order_primary_reward_once` (1 définition(s))
 - `loyalty_reservation_primary_reward_once` (1 définition(s))
 - `loyalty_reward_reinstatement_once` (1 définition(s))
@@ -4768,7 +4776,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>policy (825)</summary>
+<details><summary>policy (826)</summary>
 
 - `ad_campaigns.Admins can manage ad campaigns` (1 définition(s))
 - `ad_campaigns.Anyone can read active campaigns` (1 définition(s))
@@ -5122,6 +5130,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.messages.messages_admin` (2 définition(s))
 - `public.messages.messages_participant` (2 définition(s))
 - `public.ml_predictions.Require auth for ml_predictions` (2 définition(s))
+- `public.newsletter_subscriptions.newsletter_subscriptions_read_own` (1 définition(s))
 - `public.notification_campaigns.Admins can manage campaigns` (1 définition(s))
 - `public.notification_campaigns.notification_campaigns_admin_select` (1 définition(s))
 - `public.notification_deliveries.Users can view their notification deliveries` (1 définition(s))
@@ -5598,7 +5607,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (416)</summary>
+<details><summary>table (417)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5795,6 +5804,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.menu_items` (1 définition(s))
 - `public.messages` (2 définition(s))
 - `public.ml_predictions` (1 définition(s))
+- `public.newsletter_subscriptions` (1 définition(s))
 - `public.notification_campaigns` (1 définition(s))
 - `public.notification_deliveries` (1 définition(s))
 - `public.notification_preferences` (1 définition(s))
@@ -6019,7 +6029,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>trigger (281)</summary>
+<details><summary>trigger (284)</summary>
 
 - `after_anti_gaspi_subscription_alert` (3 définition(s))
 - `after_chefs_table_subscription_alert` (3 définition(s))
@@ -6126,6 +6136,9 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `notify_social_repost_insert` (1 définition(s))
 - `on_auth_user_created` (1 définition(s))
 - `on_auth_user_email_confirmed` (2 définition(s))
+- `on_auth_user_newsletter_confirmed` (1 définition(s))
+- `on_auth_user_newsletter_signup` (1 définition(s))
+- `on_tok_newsletter_preference_updated` (1 définition(s))
 - `orders_guard_acceptance_capacity` (1 définition(s))
 - `prepare_actualites_media_for_indexing_on_write` (2 définition(s))
 - `prepare_commercial_commission_lifecycle` (1 définition(s))
@@ -6469,96 +6482,97 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | table | user_subscriptions | [src/integrations/supabase/types.ts:6301](../../src/integrations/supabase/types.ts#L6301) |
 | table | user_wallets | [src/integrations/supabase/types.ts:6352](../../src/integrations/supabase/types.ts#L6352) |
 | table | wallet_transactions | [src/integrations/supabase/types.ts:6376](../../src/integrations/supabase/types.ts#L6376) |
-| rpc | admin_activate_all_feature_flags | [src/integrations/supabase/types.ts:6419](../../src/integrations/supabase/types.ts#L6419) |
-| rpc | activate_restaurant_menu_card | [src/integrations/supabase/types.ts:6420](../../src/integrations/supabase/types.ts#L6420) |
-| rpc | create_restaurant_menu_card | [src/integrations/supabase/types.ts:6433](../../src/integrations/supabase/types.ts#L6433) |
-| rpc | admin_dispatch_notification_campaign | [src/integrations/supabase/types.ts:6446](../../src/integrations/supabase/types.ts#L6446) |
-| rpc | dispatch_due_notification_campaigns | [src/integrations/supabase/types.ts:6460](../../src/integrations/supabase/types.ts#L6460) |
-| rpc | admin_get_cancellation_fraud_metrics | [src/integrations/supabase/types.ts:6475](../../src/integrations/supabase/types.ts#L6475) |
-| rpc | admin_get_reservation_billing_history | [src/integrations/supabase/types.ts:6488](../../src/integrations/supabase/types.ts#L6488) |
-| rpc | admin_list_users | [src/integrations/supabase/types.ts:6509](../../src/integrations/supabase/types.ts#L6509) |
-| rpc | admin_review_courier_profile | [src/integrations/supabase/types.ts:6519](../../src/integrations/supabase/types.ts#L6519) |
-| rpc | admin_review_signup_application | [src/integrations/supabase/types.ts:6530](../../src/integrations/supabase/types.ts#L6530) |
-| rpc | admin_seed_default_flags | [src/integrations/supabase/types.ts:6541](../../src/integrations/supabase/types.ts#L6541) |
-| rpc | admin_set_user_roles | [src/integrations/supabase/types.ts:6542](../../src/integrations/supabase/types.ts#L6542) |
-| rpc | admin_toggle_feature_flag | [src/integrations/supabase/types.ts:6549](../../src/integrations/supabase/types.ts#L6549) |
-| rpc | get_commercial_prospect_commission_summary | [src/integrations/supabase/types.ts:6553](../../src/integrations/supabase/types.ts#L6553) |
-| rpc | auth_can_manage_dispatch_job | [src/integrations/supabase/types.ts:6557](../../src/integrations/supabase/types.ts#L6557) |
-| rpc | auth_can_manage_order_delivery | [src/integrations/supabase/types.ts:6561](../../src/integrations/supabase/types.ts#L6561) |
-| rpc | auth_can_view_courier | [src/integrations/supabase/types.ts:6565](../../src/integrations/supabase/types.ts#L6565) |
-| rpc | auth_can_view_dispatch_job | [src/integrations/supabase/types.ts:6569](../../src/integrations/supabase/types.ts#L6569) |
-| rpc | auth_can_view_order_delivery | [src/integrations/supabase/types.ts:6573](../../src/integrations/supabase/types.ts#L6573) |
-| rpc | auth_is_admin | [src/integrations/supabase/types.ts:6577](../../src/integrations/supabase/types.ts#L6577) |
-| rpc | auth_owns_courier | [src/integrations/supabase/types.ts:6578](../../src/integrations/supabase/types.ts#L6578) |
-| rpc | auth_owns_restaurant | [src/integrations/supabase/types.ts:6579](../../src/integrations/supabase/types.ts#L6579) |
-| rpc | broadcast_topic_notification | [src/integrations/supabase/types.ts:6583](../../src/integrations/supabase/types.ts#L6583) |
-| rpc | cancel_reservation_by_customer | [src/integrations/supabase/types.ts:6594](../../src/integrations/supabase/types.ts#L6594) |
-| rpc | cancel_reservation_by_restaurant | [src/integrations/supabase/types.ts:6602](../../src/integrations/supabase/types.ts#L6602) |
-| rpc | claim_gift_points | [src/integrations/supabase/types.ts:6614](../../src/integrations/supabase/types.ts#L6614) |
-| rpc | cleanup_expired_groups | [src/integrations/supabase/types.ts:6615](../../src/integrations/supabase/types.ts#L6615) |
-| rpc | compute_order_discount_from_payload | [src/integrations/supabase/types.ts:6616](../../src/integrations/supabase/types.ts#L6616) |
-| rpc | compute_restaurant_reservation_fees | [src/integrations/supabase/types.ts:6625](../../src/integrations/supabase/types.ts#L6625) |
-| rpc | create_order_with_items | [src/integrations/supabase/types.ts:6636](../../src/integrations/supabase/types.ts#L6636) |
-| rpc | decrement_stock | [src/integrations/supabase/types.ts:6649](../../src/integrations/supabase/types.ts#L6649) |
-| rpc | delete_user_gdpr_cascade | [src/integrations/supabase/types.ts:6653](../../src/integrations/supabase/types.ts#L6653) |
-| rpc | donate_points_for_meal | [src/integrations/supabase/types.ts:6657](../../src/integrations/supabase/types.ts#L6657) |
-| rpc | enqueue_deliveries | [src/integrations/supabase/types.ts:6661](../../src/integrations/supabase/types.ts#L6661) |
-| rpc | enqueue_notification | [src/integrations/supabase/types.ts:6665](../../src/integrations/supabase/types.ts#L6665) |
-| rpc | ensure_guest_profile | [src/integrations/supabase/types.ts:6676](../../src/integrations/supabase/types.ts#L6676) |
-| rpc | estimate_campaign_audience | [src/integrations/supabase/types.ts:6684](../../src/integrations/supabase/types.ts#L6684) |
-| rpc | find_nearby_couriers | [src/integrations/supabase/types.ts:6688](../../src/integrations/supabase/types.ts#L6688) |
-| rpc | generate_monthly_invoices | [src/integrations/supabase/types.ts:6704](../../src/integrations/supabase/types.ts#L6704) |
-| rpc | generate_restaurant_payout_invoice | [src/integrations/supabase/types.ts:6705](../../src/integrations/supabase/types.ts#L6705) |
-| rpc | generate_tok_reservation_fee_invoice | [src/integrations/supabase/types.ts:6714](../../src/integrations/supabase/types.ts#L6714) |
-| rpc | generate_tok_reservation_fee_invoices_all | [src/integrations/supabase/types.ts:6718](../../src/integrations/supabase/types.ts#L6718) |
-| rpc | generate_tok_payable_invoice | [src/integrations/supabase/types.ts:6722](../../src/integrations/supabase/types.ts#L6722) |
-| rpc | generate_tok_payable_invoices_all | [src/integrations/supabase/types.ts:6726](../../src/integrations/supabase/types.ts#L6726) |
-| rpc | get_campaign_stats | [src/integrations/supabase/types.ts:6730](../../src/integrations/supabase/types.ts#L6730) |
-| rpc | get_customer_orders_dashboard | [src/integrations/supabase/types.ts:6746](../../src/integrations/supabase/types.ts#L6746) |
-| rpc | get_gift_stats | [src/integrations/supabase/types.ts:6767](../../src/integrations/supabase/types.ts#L6767) |
-| rpc | get_order_customers | [src/integrations/supabase/types.ts:6768](../../src/integrations/supabase/types.ts#L6768) |
-| rpc | get_reservation_customers | [src/integrations/supabase/types.ts:6776](../../src/integrations/supabase/types.ts#L6776) |
-| rpc | get_reservation_fee_invoice_lines | [src/integrations/supabase/types.ts:6784](../../src/integrations/supabase/types.ts#L6784) |
-| rpc | get_payable_invoice_lines | [src/integrations/supabase/types.ts:6797](../../src/integrations/supabase/types.ts#L6797) |
-| rpc | get_restaurant_comparison | [src/integrations/supabase/types.ts:6817](../../src/integrations/supabase/types.ts#L6817) |
-| rpc | get_restaurant_orders_dashboard | [src/integrations/supabase/types.ts:6821](../../src/integrations/supabase/types.ts#L6821) |
-| rpc | get_restaurant_payment_history | [src/integrations/supabase/types.ts:6842](../../src/integrations/supabase/types.ts#L6842) |
-| rpc | get_restaurant_performance | [src/integrations/supabase/types.ts:6860](../../src/integrations/supabase/types.ts#L6860) |
-| rpc | get_restaurant_recommendations | [src/integrations/supabase/types.ts:6864](../../src/integrations/supabase/types.ts#L6864) |
-| rpc | get_total_donated_meals | [src/integrations/supabase/types.ts:6868](../../src/integrations/supabase/types.ts#L6868) |
-| rpc | get_total_donated_points | [src/integrations/supabase/types.ts:6869](../../src/integrations/supabase/types.ts#L6869) |
-| rpc | has_role | [src/integrations/supabase/types.ts:6870](../../src/integrations/supabase/types.ts#L6870) |
-| rpc | increment_ad_campaign_metric | [src/integrations/supabase/types.ts:6877](../../src/integrations/supabase/types.ts#L6877) |
-| rpc | is_feature_flag_active | [src/integrations/supabase/types.ts:6881](../../src/integrations/supabase/types.ts#L6881) |
-| rpc | mark_noshow_reservations | [src/integrations/supabase/types.ts:6885](../../src/integrations/supabase/types.ts#L6885) |
-| rpc | normalize_search_text | [src/integrations/supabase/types.ts:6886](../../src/integrations/supabase/types.ts#L6886) |
-| rpc | queue_notification_deliveries | [src/integrations/supabase/types.ts:6887](../../src/integrations/supabase/types.ts#L6887) |
-| rpc | rate_limit_consume | [src/integrations/supabase/types.ts:6896](../../src/integrations/supabase/types.ts#L6896) |
-| rpc | restaurant_save_floor_plan_assignments | [src/integrations/supabase/types.ts:6905](../../src/integrations/supabase/types.ts#L6905) |
-| rpc | restaurant_save_floor_plan_furniture | [src/integrations/supabase/types.ts:6909](../../src/integrations/supabase/types.ts#L6909) |
-| rpc | restaurant_save_floor_plan_layouts | [src/integrations/supabase/types.ts:6918](../../src/integrations/supabase/types.ts#L6918) |
-| rpc | restaurant_save_floor_plan_layouts_v2 | [src/integrations/supabase/types.ts:6927](../../src/integrations/supabase/types.ts#L6927) |
-| rpc | restaurant_save_floor_plan_template | [src/integrations/supabase/types.ts:6938](../../src/integrations/supabase/types.ts#L6938) |
-| rpc | restaurant_save_floor_plan_variant_v2 | [src/integrations/supabase/types.ts:6947](../../src/integrations/supabase/types.ts#L6947) |
-| rpc | restaurant_save_floor_plan_workspace | [src/integrations/supabase/types.ts:6957](../../src/integrations/supabase/types.ts#L6957) |
-| rpc | restaurant_save_floor_plan_workspace_v2 | [src/integrations/supabase/types.ts:6968](../../src/integrations/supabase/types.ts#L6968) |
-| rpc | recompute_restaurant_review_stats | [src/integrations/supabase/types.ts:6981](../../src/integrations/supabase/types.ts#L6981) |
-| rpc | record_ad_campaign_event | [src/integrations/supabase/types.ts:6985](../../src/integrations/supabase/types.ts#L6985) |
-| rpc | redeem_loyalty_points | [src/integrations/supabase/types.ts:6999](../../src/integrations/supabase/types.ts#L6999) |
-| rpc | refresh_restaurant_daily_kpis_for_date | [src/integrations/supabase/types.ts:7007](../../src/integrations/supabase/types.ts#L7007) |
-| rpc | refresh_restaurant_daily_kpis_recent_days | [src/integrations/supabase/types.ts:7011](../../src/integrations/supabase/types.ts#L7011) |
-| rpc | search_restaurants_catalog | [src/integrations/supabase/types.ts:7015](../../src/integrations/supabase/types.ts#L7015) |
-| rpc | search_restaurants_nearby | [src/integrations/supabase/types.ts:7051](../../src/integrations/supabase/types.ts#L7051) |
-| rpc | send_gift_points | [src/integrations/supabase/types.ts:7082](../../src/integrations/supabase/types.ts#L7082) |
-| rpc | mark_signup_application_draft_finalized | [src/integrations/supabase/types.ts:7090](../../src/integrations/supabase/types.ts#L7090) |
-| rpc | sync_signup_application | [src/integrations/supabase/types.ts:7094](../../src/integrations/supabase/types.ts#L7094) |
-| rpc | update_restaurant_reservation_status_safe | [src/integrations/supabase/types.ts:7120](../../src/integrations/supabase/types.ts#L7120) |
-| rpc | validate_and_create_reservation | [src/integrations/supabase/types.ts:7128](../../src/integrations/supabase/types.ts#L7128) |
-| rpc | validate_and_create_reservation_safe | [src/integrations/supabase/types.ts:7140](../../src/integrations/supabase/types.ts#L7140) |
-| rpc | validate_service_settings_json | [src/integrations/supabase/types.ts:7156](../../src/integrations/supabase/types.ts#L7156) |
-| enum | app_role | [src/integrations/supabase/types.ts:7162](../../src/integrations/supabase/types.ts#L7162) |
-| enum | commercial_visit_status | [src/integrations/supabase/types.ts:7163](../../src/integrations/supabase/types.ts#L7163) |
-| enum | loyalty_tier | [src/integrations/supabase/types.ts:7164](../../src/integrations/supabase/types.ts#L7164) |
+| rpc | subscribe_tok_newsletter | [src/integrations/supabase/types.ts:6419](../../src/integrations/supabase/types.ts#L6419) |
+| rpc | admin_activate_all_feature_flags | [src/integrations/supabase/types.ts:6420](../../src/integrations/supabase/types.ts#L6420) |
+| rpc | activate_restaurant_menu_card | [src/integrations/supabase/types.ts:6421](../../src/integrations/supabase/types.ts#L6421) |
+| rpc | create_restaurant_menu_card | [src/integrations/supabase/types.ts:6434](../../src/integrations/supabase/types.ts#L6434) |
+| rpc | admin_dispatch_notification_campaign | [src/integrations/supabase/types.ts:6447](../../src/integrations/supabase/types.ts#L6447) |
+| rpc | dispatch_due_notification_campaigns | [src/integrations/supabase/types.ts:6461](../../src/integrations/supabase/types.ts#L6461) |
+| rpc | admin_get_cancellation_fraud_metrics | [src/integrations/supabase/types.ts:6476](../../src/integrations/supabase/types.ts#L6476) |
+| rpc | admin_get_reservation_billing_history | [src/integrations/supabase/types.ts:6489](../../src/integrations/supabase/types.ts#L6489) |
+| rpc | admin_list_users | [src/integrations/supabase/types.ts:6510](../../src/integrations/supabase/types.ts#L6510) |
+| rpc | admin_review_courier_profile | [src/integrations/supabase/types.ts:6520](../../src/integrations/supabase/types.ts#L6520) |
+| rpc | admin_review_signup_application | [src/integrations/supabase/types.ts:6531](../../src/integrations/supabase/types.ts#L6531) |
+| rpc | admin_seed_default_flags | [src/integrations/supabase/types.ts:6542](../../src/integrations/supabase/types.ts#L6542) |
+| rpc | admin_set_user_roles | [src/integrations/supabase/types.ts:6543](../../src/integrations/supabase/types.ts#L6543) |
+| rpc | admin_toggle_feature_flag | [src/integrations/supabase/types.ts:6550](../../src/integrations/supabase/types.ts#L6550) |
+| rpc | get_commercial_prospect_commission_summary | [src/integrations/supabase/types.ts:6554](../../src/integrations/supabase/types.ts#L6554) |
+| rpc | auth_can_manage_dispatch_job | [src/integrations/supabase/types.ts:6558](../../src/integrations/supabase/types.ts#L6558) |
+| rpc | auth_can_manage_order_delivery | [src/integrations/supabase/types.ts:6562](../../src/integrations/supabase/types.ts#L6562) |
+| rpc | auth_can_view_courier | [src/integrations/supabase/types.ts:6566](../../src/integrations/supabase/types.ts#L6566) |
+| rpc | auth_can_view_dispatch_job | [src/integrations/supabase/types.ts:6570](../../src/integrations/supabase/types.ts#L6570) |
+| rpc | auth_can_view_order_delivery | [src/integrations/supabase/types.ts:6574](../../src/integrations/supabase/types.ts#L6574) |
+| rpc | auth_is_admin | [src/integrations/supabase/types.ts:6578](../../src/integrations/supabase/types.ts#L6578) |
+| rpc | auth_owns_courier | [src/integrations/supabase/types.ts:6579](../../src/integrations/supabase/types.ts#L6579) |
+| rpc | auth_owns_restaurant | [src/integrations/supabase/types.ts:6580](../../src/integrations/supabase/types.ts#L6580) |
+| rpc | broadcast_topic_notification | [src/integrations/supabase/types.ts:6584](../../src/integrations/supabase/types.ts#L6584) |
+| rpc | cancel_reservation_by_customer | [src/integrations/supabase/types.ts:6595](../../src/integrations/supabase/types.ts#L6595) |
+| rpc | cancel_reservation_by_restaurant | [src/integrations/supabase/types.ts:6603](../../src/integrations/supabase/types.ts#L6603) |
+| rpc | claim_gift_points | [src/integrations/supabase/types.ts:6615](../../src/integrations/supabase/types.ts#L6615) |
+| rpc | cleanup_expired_groups | [src/integrations/supabase/types.ts:6616](../../src/integrations/supabase/types.ts#L6616) |
+| rpc | compute_order_discount_from_payload | [src/integrations/supabase/types.ts:6617](../../src/integrations/supabase/types.ts#L6617) |
+| rpc | compute_restaurant_reservation_fees | [src/integrations/supabase/types.ts:6626](../../src/integrations/supabase/types.ts#L6626) |
+| rpc | create_order_with_items | [src/integrations/supabase/types.ts:6637](../../src/integrations/supabase/types.ts#L6637) |
+| rpc | decrement_stock | [src/integrations/supabase/types.ts:6650](../../src/integrations/supabase/types.ts#L6650) |
+| rpc | delete_user_gdpr_cascade | [src/integrations/supabase/types.ts:6654](../../src/integrations/supabase/types.ts#L6654) |
+| rpc | donate_points_for_meal | [src/integrations/supabase/types.ts:6658](../../src/integrations/supabase/types.ts#L6658) |
+| rpc | enqueue_deliveries | [src/integrations/supabase/types.ts:6662](../../src/integrations/supabase/types.ts#L6662) |
+| rpc | enqueue_notification | [src/integrations/supabase/types.ts:6666](../../src/integrations/supabase/types.ts#L6666) |
+| rpc | ensure_guest_profile | [src/integrations/supabase/types.ts:6677](../../src/integrations/supabase/types.ts#L6677) |
+| rpc | estimate_campaign_audience | [src/integrations/supabase/types.ts:6685](../../src/integrations/supabase/types.ts#L6685) |
+| rpc | find_nearby_couriers | [src/integrations/supabase/types.ts:6689](../../src/integrations/supabase/types.ts#L6689) |
+| rpc | generate_monthly_invoices | [src/integrations/supabase/types.ts:6705](../../src/integrations/supabase/types.ts#L6705) |
+| rpc | generate_restaurant_payout_invoice | [src/integrations/supabase/types.ts:6706](../../src/integrations/supabase/types.ts#L6706) |
+| rpc | generate_tok_reservation_fee_invoice | [src/integrations/supabase/types.ts:6715](../../src/integrations/supabase/types.ts#L6715) |
+| rpc | generate_tok_reservation_fee_invoices_all | [src/integrations/supabase/types.ts:6719](../../src/integrations/supabase/types.ts#L6719) |
+| rpc | generate_tok_payable_invoice | [src/integrations/supabase/types.ts:6723](../../src/integrations/supabase/types.ts#L6723) |
+| rpc | generate_tok_payable_invoices_all | [src/integrations/supabase/types.ts:6727](../../src/integrations/supabase/types.ts#L6727) |
+| rpc | get_campaign_stats | [src/integrations/supabase/types.ts:6731](../../src/integrations/supabase/types.ts#L6731) |
+| rpc | get_customer_orders_dashboard | [src/integrations/supabase/types.ts:6747](../../src/integrations/supabase/types.ts#L6747) |
+| rpc | get_gift_stats | [src/integrations/supabase/types.ts:6768](../../src/integrations/supabase/types.ts#L6768) |
+| rpc | get_order_customers | [src/integrations/supabase/types.ts:6769](../../src/integrations/supabase/types.ts#L6769) |
+| rpc | get_reservation_customers | [src/integrations/supabase/types.ts:6777](../../src/integrations/supabase/types.ts#L6777) |
+| rpc | get_reservation_fee_invoice_lines | [src/integrations/supabase/types.ts:6785](../../src/integrations/supabase/types.ts#L6785) |
+| rpc | get_payable_invoice_lines | [src/integrations/supabase/types.ts:6798](../../src/integrations/supabase/types.ts#L6798) |
+| rpc | get_restaurant_comparison | [src/integrations/supabase/types.ts:6818](../../src/integrations/supabase/types.ts#L6818) |
+| rpc | get_restaurant_orders_dashboard | [src/integrations/supabase/types.ts:6822](../../src/integrations/supabase/types.ts#L6822) |
+| rpc | get_restaurant_payment_history | [src/integrations/supabase/types.ts:6843](../../src/integrations/supabase/types.ts#L6843) |
+| rpc | get_restaurant_performance | [src/integrations/supabase/types.ts:6861](../../src/integrations/supabase/types.ts#L6861) |
+| rpc | get_restaurant_recommendations | [src/integrations/supabase/types.ts:6865](../../src/integrations/supabase/types.ts#L6865) |
+| rpc | get_total_donated_meals | [src/integrations/supabase/types.ts:6869](../../src/integrations/supabase/types.ts#L6869) |
+| rpc | get_total_donated_points | [src/integrations/supabase/types.ts:6870](../../src/integrations/supabase/types.ts#L6870) |
+| rpc | has_role | [src/integrations/supabase/types.ts:6871](../../src/integrations/supabase/types.ts#L6871) |
+| rpc | increment_ad_campaign_metric | [src/integrations/supabase/types.ts:6878](../../src/integrations/supabase/types.ts#L6878) |
+| rpc | is_feature_flag_active | [src/integrations/supabase/types.ts:6882](../../src/integrations/supabase/types.ts#L6882) |
+| rpc | mark_noshow_reservations | [src/integrations/supabase/types.ts:6886](../../src/integrations/supabase/types.ts#L6886) |
+| rpc | normalize_search_text | [src/integrations/supabase/types.ts:6887](../../src/integrations/supabase/types.ts#L6887) |
+| rpc | queue_notification_deliveries | [src/integrations/supabase/types.ts:6888](../../src/integrations/supabase/types.ts#L6888) |
+| rpc | rate_limit_consume | [src/integrations/supabase/types.ts:6897](../../src/integrations/supabase/types.ts#L6897) |
+| rpc | restaurant_save_floor_plan_assignments | [src/integrations/supabase/types.ts:6906](../../src/integrations/supabase/types.ts#L6906) |
+| rpc | restaurant_save_floor_plan_furniture | [src/integrations/supabase/types.ts:6910](../../src/integrations/supabase/types.ts#L6910) |
+| rpc | restaurant_save_floor_plan_layouts | [src/integrations/supabase/types.ts:6919](../../src/integrations/supabase/types.ts#L6919) |
+| rpc | restaurant_save_floor_plan_layouts_v2 | [src/integrations/supabase/types.ts:6928](../../src/integrations/supabase/types.ts#L6928) |
+| rpc | restaurant_save_floor_plan_template | [src/integrations/supabase/types.ts:6939](../../src/integrations/supabase/types.ts#L6939) |
+| rpc | restaurant_save_floor_plan_variant_v2 | [src/integrations/supabase/types.ts:6948](../../src/integrations/supabase/types.ts#L6948) |
+| rpc | restaurant_save_floor_plan_workspace | [src/integrations/supabase/types.ts:6958](../../src/integrations/supabase/types.ts#L6958) |
+| rpc | restaurant_save_floor_plan_workspace_v2 | [src/integrations/supabase/types.ts:6969](../../src/integrations/supabase/types.ts#L6969) |
+| rpc | recompute_restaurant_review_stats | [src/integrations/supabase/types.ts:6982](../../src/integrations/supabase/types.ts#L6982) |
+| rpc | record_ad_campaign_event | [src/integrations/supabase/types.ts:6986](../../src/integrations/supabase/types.ts#L6986) |
+| rpc | redeem_loyalty_points | [src/integrations/supabase/types.ts:7000](../../src/integrations/supabase/types.ts#L7000) |
+| rpc | refresh_restaurant_daily_kpis_for_date | [src/integrations/supabase/types.ts:7008](../../src/integrations/supabase/types.ts#L7008) |
+| rpc | refresh_restaurant_daily_kpis_recent_days | [src/integrations/supabase/types.ts:7012](../../src/integrations/supabase/types.ts#L7012) |
+| rpc | search_restaurants_catalog | [src/integrations/supabase/types.ts:7016](../../src/integrations/supabase/types.ts#L7016) |
+| rpc | search_restaurants_nearby | [src/integrations/supabase/types.ts:7052](../../src/integrations/supabase/types.ts#L7052) |
+| rpc | send_gift_points | [src/integrations/supabase/types.ts:7083](../../src/integrations/supabase/types.ts#L7083) |
+| rpc | mark_signup_application_draft_finalized | [src/integrations/supabase/types.ts:7091](../../src/integrations/supabase/types.ts#L7091) |
+| rpc | sync_signup_application | [src/integrations/supabase/types.ts:7095](../../src/integrations/supabase/types.ts#L7095) |
+| rpc | update_restaurant_reservation_status_safe | [src/integrations/supabase/types.ts:7121](../../src/integrations/supabase/types.ts#L7121) |
+| rpc | validate_and_create_reservation | [src/integrations/supabase/types.ts:7129](../../src/integrations/supabase/types.ts#L7129) |
+| rpc | validate_and_create_reservation_safe | [src/integrations/supabase/types.ts:7141](../../src/integrations/supabase/types.ts#L7141) |
+| rpc | validate_service_settings_json | [src/integrations/supabase/types.ts:7157](../../src/integrations/supabase/types.ts#L7157) |
+| enum | app_role | [src/integrations/supabase/types.ts:7163](../../src/integrations/supabase/types.ts#L7163) |
+| enum | commercial_visit_status | [src/integrations/supabase/types.ts:7164](../../src/integrations/supabase/types.ts#L7164) |
+| enum | loyalty_tier | [src/integrations/supabase/types.ts:7165](../../src/integrations/supabase/types.ts#L7165) |
 
 ### Tâches pg_cron détectées
 
@@ -7219,6 +7233,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261103140056 Restaurant Order Insights | 468 | 6 | [supabase/migrations/20261103140056_restaurant_order_insights.sql:1](../../supabase/migrations/20261103140056_restaurant_order_insights.sql#L1) |
 | 20261103175914 Tok Restaurant Referrals | 381 | 14 | [supabase/migrations/20261103175914_tok_restaurant_referrals.sql:1](../../supabase/migrations/20261103175914_tok_restaurant_referrals.sql#L1) |
 | 20261104122917 Restrict Restaurant Referral Rpc Anonymous Access | 10 | 0 | [supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql:1](../../supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql#L1) |
+| 20261104123920 Newsletter Signup Consent Reward | 231 | 11 | [supabase/migrations/20261104123920_newsletter_signup_consent_reward.sql:1](../../supabase/migrations/20261104123920_newsletter_signup_consent_reward.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7453,7 +7468,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 46 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 286 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 897 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 899 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7474,7 +7489,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 835 |
+| test | 836 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -8134,7 +8149,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (598)</summary>
+<details><summary>database-migration (599)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8734,6 +8749,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261103140056_restaurant_order_insights.sql`
 - `supabase/migrations/20261103175914_tok_restaurant_referrals.sql`
 - `supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql`
+- `supabase/migrations/20261104123920_newsletter_signup_consent_reward.sql`
 
 </details>
 
@@ -10979,7 +10995,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (835)</summary>
+<details><summary>test (836)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11468,6 +11484,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/navigation.test.ts`
 - `src/test/nearby-restaurants.test.ts`
 - `src/test/newsletter-automation-sql.test.ts`
+- `src/test/newsletter-signup.test.ts`
 - `src/test/newsletter-templates.test.ts`
 - `src/test/notification-campaign-idempotency.test.ts`
 - `src/test/notification-support-realtime-publication.test.ts`

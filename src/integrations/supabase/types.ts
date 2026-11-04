@@ -6416,6 +6416,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      subscribe_tok_newsletter: { Args: never; Returns: boolean }
       admin_activate_all_feature_flags: { Args: never; Returns: number }
       activate_restaurant_menu_card: {
         Args: { p_card_id: string }
