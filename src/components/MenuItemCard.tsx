@@ -62,7 +62,7 @@ export default function MenuItemCard({
   const optimizedImageUrl = getOptimizedImageUrl(finalImageUrl, "thumbnail");
 
   return (
-    <div className={`group flex gap-4 rounded-xl border bg-card p-4 transition-shadow ${disabled ? "opacity-60" : "hover:shadow-sm"}`}>
+    <div className={`tok-neon-surface group flex gap-4 rounded-xl border bg-card p-4 transition-shadow ${disabled ? "opacity-60" : "hover:shadow-sm"}`}>
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg border bg-secondary/20">
         <img
           src={optimizedImageUrl}

@@ -568,7 +568,10 @@ function PlanCard({
   const annualPriceChf = fairGrowthPlan.monthlyPriceChf * FAIR_GROWTH_ANNUAL_MONTHS_CHARGED;
 
   return (
-    <Card className={cn("flex h-full flex-col", isCurrent && "border-primary/60 bg-primary/5")}>
+    <Card
+      data-tok-neon-selected={isCurrent}
+      className={cn("flex h-full flex-col", isCurrent && "border-primary/60 bg-primary/5")}
+    >
       <CardHeader className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>

@@ -772,7 +772,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
   if (loading) {
     return (
       <>
-        <section className="rounded-2xl border bg-card p-5">
+        <section data-tok-neon="violet" className="tok-neon-surface rounded-2xl border bg-card p-5">
           <div className="flex items-center gap-3 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Vérification du Plat du jour IA…</div>
         </section>
         {manualDailyDishDialog}
@@ -783,7 +783,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
   if (!accessEnabled) {
     return (
       <>
-        <section className="space-y-4 overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 via-card to-emerald-50 p-5 dark:border-violet-900 dark:from-violet-950/30 dark:to-emerald-950/20">
+        <section data-tok-neon="violet" className="tok-neon-surface space-y-4 overflow-hidden dark:overflow-clip rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 via-card to-emerald-50 p-5 dark:border-violet-900 dark:from-violet-950/30 dark:to-emerald-950/20">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white"><LockKeyhole className="h-5 w-5" /></div>
@@ -794,7 +794,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
             </div>
             <Button variant="outline" disabled>Dès TOK Premium</Button>
           </div>
-          <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-background/85 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-emerald-500/30">
+          <div data-tok-neon="emerald" className="tok-neon-surface flex flex-col gap-3 rounded-xl border border-emerald-200 bg-background/85 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-emerald-500/30">
             <div className="flex gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white"><ChefHat className="h-5 w-5" /></div>
               <div>
@@ -812,7 +812,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
 
   return (
     <>
-      <section className="space-y-5 overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50/80 via-card to-emerald-50/70 p-5 dark:border-violet-900 dark:from-violet-950/20 dark:to-emerald-950/20">
+      <section data-tok-neon="violet" className="tok-neon-surface space-y-5 overflow-hidden dark:overflow-clip rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50/80 via-card to-emerald-50/70 p-5 dark:border-violet-900 dark:from-violet-950/20 dark:to-emerald-950/20">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-emerald-500 text-white"><Bot className="h-5 w-5" /></div>
@@ -831,7 +831,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-background/85 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-emerald-500/30">
+        <div data-tok-neon="emerald" className="tok-neon-surface flex flex-col gap-3 rounded-xl border border-emerald-200 bg-background/85 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-emerald-500/30">
           <div className="flex gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white"><ChefHat className="h-5 w-5" /></div>
             <div>
@@ -872,7 +872,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
                 const dish = variant.payload;
                 const isSelected = selectedId === variant.id;
                 return (
-                  <article key={variant.id} className={`space-y-4 rounded-2xl border-2 bg-card p-4 transition ${isSelected ? "border-violet-500 shadow-md" : "border-transparent shadow-sm"}`}>
+                  <article key={variant.id} data-tok-neon="violet" data-tok-neon-selected={isSelected} className={`tok-neon-surface space-y-4 rounded-2xl border-2 bg-card p-4 transition ${isSelected ? "border-violet-500 shadow-md" : "border-transparent shadow-sm"}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div><Badge variant="outline">Variante {variant.variant_number || index + 1}</Badge><h3 className="mt-2 text-lg font-bold leading-tight">{dish.name}</h3></div>
                       <p className="shrink-0 text-lg font-black text-primary">{money(dish.suggested_price_chf)}</p>
@@ -887,7 +887,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
                         <Button variant="outline" className="flex-1 gap-2" disabled={refiningId === variant.id || !(instructions[variant.id] || "").trim()} onClick={() => void refineVariant(variant)}>
                           {refiningId === variant.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Ajuster
                         </Button>
-                        <Button className="flex-1 gap-2" variant={isSelected ? "default" : "secondary"} onClick={() => void selectVariant(variant)}>
+                        <Button className="flex-1 gap-2" aria-pressed={isSelected} variant={isSelected ? "default" : "secondary"} onClick={() => void selectVariant(variant)}>
                           {isSelected ? <Check className="h-4 w-4" /> : <ChefHat className="h-4 w-4" />} {isSelected ? "Sélectionné" : "Choisir"}
                         </Button>
                       </div>
@@ -900,7 +900,7 @@ export default function DailyDishAiPanel({ restaurantId, planSlug, menuItems }: 
         )}
 
         {selectedVariant && (
-          <div className="rounded-2xl border-2 border-emerald-200 bg-background/90 p-4 dark:border-emerald-900">
+          <div data-tok-neon="emerald" className="tok-neon-surface rounded-2xl border-2 border-emerald-200 bg-background/90 p-4 dark:border-emerald-900">
             <div className="flex items-start gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-white"><Send className="h-4 w-4" /></div><div><h3 className="font-bold">Publier « {selectedVariant.payload.name} »</h3><p className="text-sm text-muted-foreground">Le visuel PhotoPro est généré après votre validation, puis lié de façon sécurisée à la publication.</p></div></div>
             <div className="mt-4 grid gap-4 lg:grid-cols-[180px_1fr]">
               <div className="space-y-2"><Label htmlFor="daily-dish-price">Prix public (CHF)</Label><Input id="daily-dish-price" type="number" min="1" max="10000" step="0.05" value={price} onChange={(event) => setPrice(event.target.value)} /></div>

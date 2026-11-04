@@ -77,7 +77,7 @@ export default function RestaurantMenuCardsBar({
   };
 
   return (
-    <section className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5" aria-label="Cartes du restaurant">
+    <section className="tok-neon-surface rounded-2xl border bg-card p-4 shadow-sm sm:p-5" aria-label="Cartes du restaurant">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-base font-semibold">

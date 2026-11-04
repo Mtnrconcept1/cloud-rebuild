@@ -688,7 +688,7 @@ export default function AdminHome() {
               key={category.id}
               type="button"
               onClick={() => openCategory(category.id)}
-              className="group flex min-h-[4.65rem] items-center gap-3 rounded-2xl border border-border/70 bg-card px-4 py-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md"
+              className="tok-neon-surface group flex min-h-[4.65rem] items-center gap-3 rounded-2xl border border-border/70 bg-card px-4 py-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md"
             >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <category.icon className="h-5 w-5" />
@@ -778,7 +778,7 @@ export default function AdminHome() {
         <button
           type="button"
           onClick={() => document.getElementById("admin-city-capacity")?.scrollIntoView({ behavior: "smooth" })}
-          className="flex min-h-[4.25rem] items-center gap-3 rounded-2xl border border-border/70 bg-card px-4 text-left shadow-sm transition hover:border-primary/40"
+          className="tok-neon-surface flex min-h-[4.25rem] items-center gap-3 rounded-2xl border border-border/70 bg-card px-4 text-left shadow-sm transition hover:border-primary/40"
         >
           <MapPin className="h-5 w-5 text-primary" />
           <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">Capacité par ville</span><span className="block truncate text-[11px] text-muted-foreground">Zones, charge et recommandations</span></span>
@@ -814,7 +814,7 @@ export default function AdminHome() {
                     key={tool.href}
                     type="button"
                     onClick={() => navigate(tool.href)}
-                    className="group flex w-full items-center gap-3 rounded-2xl border bg-card p-3.5 text-left shadow-sm transition hover:border-primary/35 hover:bg-primary/[0.03]"
+                    className="tok-neon-surface group flex w-full items-center gap-3 rounded-2xl border bg-card p-3.5 text-left shadow-sm transition hover:border-primary/35 hover:bg-primary/[0.03]"
                   >
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
                       <tool.icon className={`h-5 w-5 ${tool.color}`} />

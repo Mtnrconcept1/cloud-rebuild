@@ -200,7 +200,7 @@ export default function WorkspaceChooser() {
         type="button"
         onClick={card.onSelect}
         className={cn(
-          "group flex min-h-32 w-full items-center gap-4 rounded-3xl border p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500",
+          "tok-neon-surface group flex min-h-32 w-full items-center gap-4 rounded-3xl border p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500",
           card.kind === "demo"
             ? "border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 dark:border-orange-400/25 dark:from-orange-400/10 dark:to-amber-400/5"
             : "border-border/70 bg-background/95",

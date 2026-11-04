@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a4081a0ddc603bef3f6bd8b57a94ec6f5843a8f1b792b2cbe4a7c9fe436447f4`
+- Empreinte SHA-256 des sources indexées : `e5620ad7013065b79fdab38e381993a0856469091b5e13dcc0b87f83e8dd750e`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 45 |
 | migrations | 597 |
-| modules | 1993 |
+| modules | 1994 |
 | pages | 138 |
 | pathLiterals | 1009 |
 | publicAssets | 919 |
 | publicEntries | 957 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 123 |
-| records | 20747 |
-| repositoryFiles | 4123 |
+| records | 20750 |
+| repositoryFiles | 4125 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1885,7 +1885,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /dashboard/menu | 28 | [src/App.tsx:652](../../src/App.tsx#L652) |
 | /dashboard/menu/ | 1 | [src/test/hero-subtitle-styles.test.tsx:33](../../src/test/hero-subtitle-styles.test.tsx#L33) |
 | /dashboard/mon-compte-facturation | 19 | [src/App.tsx:665](../../src/App.tsx#L665) |
-| /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1254](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1254) |
+| /dashboard/mon-compte-facturation?checkout_kind=restaurant-credit-pack | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:1257](../../src/pages/dashboard/DashboardAccountBilling.tsx#L1257) |
 | /dashboard/notifications | 18 | [src/App.tsx:648](../../src/App.tsx#L648) |
 | /dashboard/offres | 8 | [src/App.tsx:666](../../src/App.tsx#L666) |
 | /dashboard/pack | 2 | [src/test/feature-flags.test.ts:134](../../src/test/feature-flags.test.ts#L134) |
@@ -2643,7 +2643,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | campaign_checkout | /dashboard/actualites, /dashboard/campagnes | 4 | [src/pages/dashboard/DashboardActualites.tsx:285](../../src/pages/dashboard/DashboardActualites.tsx#L285) |
 | campaign_id | /dashboard/actualites, /dashboard/campagnes | 3 | [src/pages/dashboard/DashboardActualites.tsx:305](../../src/pages/dashboard/DashboardActualites.tsx#L305) |
 | channel | — | 1 | [src/marketing/useMarketingUrlState.ts:108](../../src/marketing/useMarketingUrlState.ts#L108) |
-| checkout_kind | /dashboard/mon-compte-facturation | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:882](../../src/pages/dashboard/DashboardAccountBilling.tsx#L882) |
+| checkout_kind | /dashboard/mon-compte-facturation | 1 | [src/pages/dashboard/DashboardAccountBilling.tsx:885](../../src/pages/dashboard/DashboardAccountBilling.tsx#L885) |
 | city | /recherche, /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 9 | [src/pages/Recherche.tsx:313](../../src/pages/Recherche.tsx#L313) |
 | claimAddress | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:83](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L83) |
 | claimCity | — | 2 | [src/components/DirectoryRestaurantOwnershipNotice.tsx:82](../../src/components/DirectoryRestaurantOwnershipNotice.tsx#L82) |
@@ -7473,7 +7473,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 833 |
+| test | 834 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -9777,7 +9777,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (61)</summary>
+<details><summary>frontend-source (62)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -9817,6 +9817,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/marketing/useMarketingUrlState.ts`
 - `src/marketing/zurichTime.ts`
 - `src/styles/commercial-prospection-markers.css`
+- `src/styles/dark-neon.css`
 - `src/styles/golden-tok-chefs-table-hero.css`
 - `src/styles/golden-tok-chefs-table-v2.css`
 - `src/styles/golden-tok-chefs-table-v3.css`
@@ -11083,7 +11084,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (833)</summary>
+<details><summary>test (834)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11287,6 +11288,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/daily-slot-machine-frame.test.ts`
 - `src/test/daily-slot-machine-security.test.ts`
 - `src/test/daily-slot-rules.test.ts`
+- `src/test/dark-neon-surfaces.test.tsx`
 - `src/test/dashboard-advisor-history.test.ts`
 - `src/test/dashboard-advisor-mobile-layout.test.ts`
 - `src/test/dashboard-campaign-unification.test.ts`

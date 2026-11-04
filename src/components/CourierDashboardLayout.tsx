@@ -220,7 +220,7 @@ export default function CourierDashboardLayout({ children }: { children: React.R
           </div>
         </aside>
 
-        <main className="tok-workspace-content min-h-[500px] flex-1 overflow-x-hidden rounded-2xl border bg-card p-4 sm:p-6 md:p-8">
+        <main className="tok-workspace-content min-h-[500px] flex-1 overflow-x-hidden dark:overflow-x-clip rounded-2xl border bg-card p-4 sm:p-6 md:p-8">
           <BackNavigationButton fallback={backFallback} className="mb-4 hidden md:inline-flex" />
           {children}
         </main>
