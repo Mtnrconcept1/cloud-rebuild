@@ -21,6 +21,26 @@ describe("Marketing Studio reference eligibility", () => {
     expect(isCurrentMarketingReferenceStorage({ storage_bucket: bucket, storage_path: path }, restaurantId, configuredBucket)).toBe(expected);
   });
 
+  const userId = "30000000-0000-4000-8000-000000000001";
+  const stylePath = `${restaurantId}/marketing/style-references/${userId}/40000000-0000-4000-8000-000000000001.webp`;
+
+  it.each([
+    ["marketing_brand_visual", "restaurant-images", stylePath, true],
+    ["marketing_menu", "restaurant-images", stylePath, false],
+    ["marketing_logo", "restaurant-images", stylePath, false],
+    ["marketing_brand_visual", "unrelated-bucket", stylePath, false],
+    ["marketing_brand_visual", "restaurant-images", stylePath.replace(restaurantId, otherId), false],
+    ["marketing_brand_visual", "restaurant-images", `${restaurantId}/marketing/style-references/invalid-user/test.webp`, false],
+    ["marketing_brand_visual", "restaurant-images", `${restaurantId}/marketing/style-references/${userId}/subfolder/test.webp`, false],
+    ["marketing_brand_visual", "restaurant-images", `${restaurantId}/marketing/style-references/${userId}/test.svg`, false],
+  ])("only accepts owned uploaded style images: %s / %s / %s", (mediaType, bucket, path, expected) => {
+    expect(isCurrentMarketingReferenceStorage({
+      media_type: mediaType,
+      storage_bucket: bucket,
+      storage_path: path,
+    }, restaurantId)).toBe(expected);
+  });
+
   it("serializes the storage alternatives through the real PostgREST client without widening restaurant scope", async () => {
     const fetcher = vi.fn<typeof fetch>(async () => Response.json([]));
     const client = createClient("https://tok.invalid", "test-public-key", {
@@ -34,7 +54,7 @@ describe("Marketing Studio reference eligibility", () => {
     expect(fetcher).toHaveBeenCalledOnce();
     const url = new URL(String(fetcher.mock.calls[0][0]));
     expect(url.searchParams.get("restaurant_id")).toBe(`eq.${restaurantId}`);
-    expect(url.searchParams.get("or")).toBe(`(and(storage_bucket.eq."restaurant-images",storage_path.like."${restaurantId}/marketing-assets/*"),and(storage_bucket.eq."restaurant-images",storage_path.like."*/marketing-assets/${restaurantId}/*"))`);
+    expect(url.searchParams.get("or")).toBe(`(and(storage_bucket.eq."restaurant-images",storage_path.like."${restaurantId}/marketing-assets/*"),and(storage_bucket.eq."restaurant-images",storage_path.like."*/marketing-assets/${restaurantId}/*"),and(media_type.eq."marketing_brand_visual",storage_bucket.eq."restaurant-images",storage_path.like."${restaurantId}/marketing/style-references/*"))`);
     expect(url.searchParams.get("offset")).toBe("1");
     expect(url.searchParams.get("limit")).toBe("1");
   });

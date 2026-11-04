@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a0c85301381448a8fc08091969aca304f2405704a581649cfff5e41aec47f4a8`
+- Empreinte SHA-256 des sources indexées : `e4dab3169e9eb7f3cddedf0e4ea1acfc7cecaa81c4e466d5432ff444613fe31f`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -2707,7 +2707,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | on_conflict | — | 1 | [scripts/restaurant-image-truth-worker.mjs:548](../../scripts/restaurant-image-truth-worker.mjs#L548) |
 | open | /restaurant/:id | 2 | [src/pages/RestaurantDetail.tsx:148](../../src/pages/RestaurantDetail.tsx#L148) |
 | operation | /admin/commandes-reservations | 2 | [src/pages/admin/AdminOperationsCenter.tsx:65](../../src/pages/admin/AdminOperationsCenter.tsx#L65) |
-| or | — | 1 | [src/test/marketing-studio-references.test.ts:37](../../src/test/marketing-studio-references.test.ts#L37) |
+| or | — | 1 | [src/test/marketing-studio-references.test.ts:57](../../src/test/marketing-studio-references.test.ts#L57) |
 | order | /courier/jobs, /dashboard/commandes, /recherche | 3 | [src/pages/Recherche.tsx:330](../../src/pages/Recherche.tsx#L330) |
 | page | — | 1 | [src/marketing/useMarketingUrlState.ts:118](../../src/marketing/useMarketingUrlState.ts#L118) |
 | parrain | /auth, /auth/callback, /auth/demo | 3 | [src/pages/Auth.tsx:932](../../src/pages/Auth.tsx#L932) |
@@ -2733,7 +2733,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | reserve | /restaurant/:id | 1 | [src/pages/RestaurantDetail.tsx:149](../../src/pages/RestaurantDetail.tsx#L149) |
 | resize | — | 1 | [src/lib/optimizedImages.ts:40](../../src/lib/optimizedImages.ts#L40) |
 | restaurant | /equipe/gestion, /equipe/gestion-salle, /equipe/mon-espace, /zero-attente | 4 | [src/pages/ZeroAttente.tsx:136](../../src/pages/ZeroAttente.tsx#L136) |
-| restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 2 | [src/test/marketing-studio-references.test.ts:36](../../src/test/marketing-studio-references.test.ts#L36) |
+| restaurant_id | /v1/autopilot/plan, /v1/campaigns/preview, /v1/credits/balance, /v1/reservations, /v1/reservations/:id/cancel, /v1/reservations/:id/cancel/preview, /v1/reservations/preview, /v1/restaurants, /v1/restaurants/:id, /v1/restaurants/:id/availability, /v1/restaurants/:id/menu | 2 | [src/test/marketing-studio-references.test.ts:56](../../src/test/marketing-studio-references.test.ts#L56) |
 | returnTo | — | 1 | [src/test/marketing-bff-client.test.ts:176](../../src/test/marketing-bff-client.test.ts#L176) |
 | scope | /actualites | 4 | [src/pages/Actualites.tsx:218](../../src/pages/Actualites.tsx#L218) |
 | session_id | /chefs-table, /dashboard/actualites, /dashboard/campagnes, /dashboard/mon-compte-facturation, /tok-one, /zero-attente | 8 | [src/pages/ChefsTable.tsx:698](../../src/pages/ChefsTable.tsx#L698) |

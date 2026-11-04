@@ -51,9 +51,18 @@ function harness(options: {
   creditBalance?: number;
   printVariant?: Json;
   originalPrintAsset?: Json;
+  styleReference?: boolean;
 } = {}) {
   let handler: Handler | undefined;
-  const activeReferences = references(options.referenceCount ?? 1);
+  const activeReferences = references(options.referenceCount ?? 1).map((reference) => {
+    if (!options.styleReference || reference.media_type !== "marketing_brand_visual") return reference;
+    const storagePath = `${RESTAURANT_ID}/marketing/style-references/30000000-0000-4000-8000-000000000001/40000000-0000-4000-8000-000000000001.webp`;
+    return {
+      ...reference,
+      storage_path: storagePath,
+      media_url: `${STORAGE_URL}/restaurant-images/${storagePath}`,
+    };
+  });
   const assets: Json[] = [];
   const usage: Json[] = [];
   const uploads: Array<{ bucket: string; path: string; bytes: Uint8Array }> = [];
@@ -307,6 +316,20 @@ afterEach(() => {
 });
 
 describe("native marketing image generation", () => {
+  it("accepts a current style-picker upload alongside the existing marketing resources", async () => {
+    const h = harness({ referenceCount: 4, styleReference: true });
+    const response = await h.call();
+    const body = await response.json();
+
+    expect(response.status, JSON.stringify(body)).toBe(200);
+    expect(body).toMatchObject({ assetId: ASSET_ID, status: "stored" });
+    expect(h.provider).toHaveBeenCalledTimes(1);
+    expect((h.provider.mock.calls[0][1].body as FormData).getAll("image[]")).toHaveLength(4);
+    expect(h.fetchReference.mock.calls.map(([url]) => url)).toContain(h.activeReferences[3].media_url);
+    expect((h.assets[0].metadata as Json).reference_media_ids).toContain(h.activeReferences[3].id);
+    expect(h.state()).toBe("completed");
+  });
+
   it.each([1, 4])("edits once with all %i restaurant references, persists the image and records one debit", async (referenceCount) => {
     const h = harness({ referenceCount });
     const response = await h.call({ referenceImageUrls: ["https://untrusted.invalid/ignored.png"] });
