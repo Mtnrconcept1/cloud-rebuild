@@ -77,6 +77,18 @@ describe("homepage semantic search", () => {
     expect(shortcuts.getByRole("link", { name: "Offres & promos" })).toHaveAttribute("href", "/recherche");
   });
 
+  it("keeps the white editorial chef isolated to the standard mobile homepage", () => {
+    const css = readFileSync(resolve(process.cwd(), "src/components/home/HeroSectionReferenceMobile.css"), "utf8");
+    expect(css).toContain(':root:not(.dark):not([data-seasonal-theme="halloween"])');
+    expect(css).toContain('background-image: url("/images/home/tok-chef-white-mobile.webp")');
+
+    setup();
+    expect(document.querySelector(".tok-home-hero__mobile-mascot")).toBeInTheDocument();
+    cleanup();
+    setup(new Set(["seasonal-halloween-2026"]));
+    expect(document.querySelector(".tok-home-hero__mobile-mascot")).not.toBeInTheDocument();
+  });
+
   it("preserves the independent Halloween desktop and mobile imagery", () => {
     setup(new Set(["seasonal-halloween-2026"]));
     expect(document.querySelector(".tok-home-hero__background img")).toHaveAttribute(
