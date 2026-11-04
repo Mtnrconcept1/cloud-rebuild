@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `31654564daeeda89f30528665cb059a6d2351198105e6a83916b1667ef1af9cf`
+- Empreinte SHA-256 des sources indexées : `170174a67cab13098c70978a6b70c2837038af69611ba44589127e8f4f368759`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,7 +45,7 @@
 | publicEntries | 958 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 124 |
-| records | 20450 |
+| records | 20451 |
 | repositoryFiles | 4086 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
@@ -7591,7 +7591,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Runbook release production securisee | 8 | [docs/runbooks/production-release-readiness.md:1](../../docs/runbooks/production-release-readiness.md#L1) |
 | Runbook Stripe et reconciliation financiere | 8 | [docs/runbooks/stripe-financial-ops.md:1](../../docs/runbooks/stripe-financial-ops.md#L1) |
 | Versement développeur sans Stripe Connect : PostFinance | 4 | [docs/runbooks/tok-developer-bank-payouts.md:1](../../docs/runbooks/tok-developer-bank-payouts.md#L1) |
-| TOK — mise en service contrôlée de Stripe Connect Accounts v2 | 5 | [docs/runbooks/tok-stripe-connect-accounts-v2-20261104.md:1](../../docs/runbooks/tok-stripe-connect-accounts-v2-20261104.md#L1) |
+| TOK — mise en service contrôlée de Stripe Connect Accounts v2 | 6 | [docs/runbooks/tok-stripe-connect-accounts-v2-20261104.md:1](../../docs/runbooks/tok-stripe-connect-accounts-v2-20261104.md#L1) |
 | TOK — Stripe Connect refuse la création de comptes (profil plateforme incomplet) | 5 | [docs/runbooks/tok-stripe-connect-platform-profile-20261017.md:1](../../docs/runbooks/tok-stripe-connect-platform-profile-20261017.md#L1) |
 | Protection SEO et anti-scraping de TOK | 10 | [docs/security/SEO_BOT_PROTECTION_RUNBOOK.md:1](../../docs/security/SEO_BOT_PROTECTION_RUNBOOK.md#L1) |
 | TOK Sentinel — Runbook d'incident et déploiement (v1) | 9 | [docs/security/TOK_SENTINEL_RUNBOOK.md:1](../../docs/security/TOK_SENTINEL_RUNBOOK.md#L1) |

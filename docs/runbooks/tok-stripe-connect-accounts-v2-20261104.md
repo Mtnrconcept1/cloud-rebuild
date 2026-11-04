@@ -27,3 +27,14 @@ Les restaurateurs doivent eux-mêmes fournir leurs coordonnées et terminer les 
 ## Retour arrière
 
 Révoquer la modification par `git revert` de la PR puis redéployer via le workflow officiel. Maintenir le routage financier désactivé pendant le diagnostic ; ne supprimer aucun compte Stripe ni aucun paiement. Ne jamais réutiliser un ancien secret de webhook pour une nouvelle destination.
+
+## Recette isolée — reversement des commissions développeur
+
+- Ne jamais renseigner un ID de compte **Stripe Test** dans le paramétrage financier de production `wwcrtyoueexyxkkikaos`. Le routage live et les transferts développeur doivent rester désactivés jusqu'à validation.
+- La plateforme Stripe Test TOK `acct_1SHGJ2GTQigE34su` possède le compte destinataire `acct_1UYBEFGTQiBfFwQ3` (Raphaël Barman), avec capacité `stripe_transfers=active` et zéro exigence KYC à la dernière lecture. Ce compte de test inclut aussi la configuration `merchant` : ne pas le présenter comme `recipient-only`.
+- L'autre environnement Stripe Test « New business » `acct_1SHGJAGwpXEChTPF`, accessible à la CLI locale, est **différent** : ne pas interchanger ses clés, comptes, paiements ou transferts avec ceux de TOK.
+- Dernière vérification : solde Stripe Test TOK disponible de 0 CHF, aucun transfert. Aucun test de transfert Stripe Test réel ne peut être déclaré réussi sans solde de test et sans une base Supabase de test convenablement migrée.
+- Parcours de recette : créer et payer une commande fictive via Stripe Test TOK avec calcul serveur et destination restaurant fictive ; vérifier l'écriture comptable `developer_payable`, produire un relevé `draft` et vérifier les centimes ; passer le relevé `validated` via l'action admin ; activer le destinataire uniquement **dans une base de test isolée** ; invoquer `settle-developer-statement` en mode `test` ; contrôler les montants, la devise, l'identifiant `tr_`, le maintien du relevé en `validated`, le doublon du webhook et le refus des comptes restreints.
+- Vérifier les remboursements complets et partiels, la réconciliation des transferts et les tentatives concurrentes. Un résultat Stripe indéterminé ne doit pas être rejoué après 23 heures avec la même clé d'idempotence : une réconciliation manuelle est obligatoire.
+- La simulation des RPC de transfert sur une branche Supabase existante, à l'intérieur de `BEGIN ... ROLLBACK`, valide le contrat SQL d'idempotence mais **ne constitue pas** un transfert effectif. Après rollback, vérifier l'absence d'enregistrements résiduels et le routage désactivé.
+- La mise en production reste soumise aux vérifications juridiques Stripe Connect, au compte développeur **live** vérifié, à la destination webhook v2 sécurisée et à la recette de bout en bout. Ne déclencher aucun paiement réel pendant les tests.
