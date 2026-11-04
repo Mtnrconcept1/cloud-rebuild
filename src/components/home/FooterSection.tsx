@@ -39,7 +39,7 @@ export default function FooterSection({ deliveryEnabled = true }: FooterSectionP
       {/* Footer */}
       <footer className="tok-site-footer border-t border-transparent bg-[#1a1411] text-[#efe4d8]">
         <div className="container py-14 md:py-20">
-          <p className="mb-12 max-w-3xl font-display text-[clamp(2rem,4.6vw,3.75rem)] font-medium leading-[1.02] tracking-[-0.04em] text-[#fbf4ec] md:mb-16">
+          <p data-tok-reveal="block" className="mb-12 max-w-3xl font-display text-[clamp(2rem,4.6vw,3.75rem)] font-medium leading-[1.02] tracking-[-0.04em] text-[#fbf4ec] md:mb-16">
             Le goût de se retrouver, <em className="tok-title-accent">près de chez vous.</em>
           </p>
           <div className="mb-12 grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4">

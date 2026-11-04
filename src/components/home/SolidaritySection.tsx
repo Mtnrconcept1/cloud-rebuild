@@ -30,7 +30,7 @@ export default function SolidaritySection({ donatedPoints }: SolidaritySectionPr
   return (
     <section className="py-10 md:py-16">
       <div className="container">
-        <div className="grid items-center gap-8 overflow-hidden rounded-[32px] border border-pink-500/10 bg-[radial-gradient(circle_at_0%_0%,rgba(244,114,182,0.16),transparent_55%),linear-gradient(180deg,#fff7fa,#fffaf7)] p-5 shadow-soft dark:border-pink-300/10 dark:bg-[radial-gradient(circle_at_0%_0%,rgba(244,114,182,0.14),transparent_55%),linear-gradient(180deg,#1f1719,#181413)] sm:p-8 md:p-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)] lg:gap-12">
+        <div data-tok-reveal="block" className="grid items-center gap-8 overflow-hidden rounded-[32px] border border-pink-500/10 bg-[radial-gradient(circle_at_0%_0%,rgba(244,114,182,0.16),transparent_55%),linear-gradient(180deg,#fff7fa,#fffaf7)] p-5 shadow-soft dark:border-pink-300/10 dark:bg-[radial-gradient(circle_at_0%_0%,rgba(244,114,182,0.14),transparent_55%),linear-gradient(180deg,#1f1719,#181413)] sm:p-8 md:p-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)] lg:gap-12">
         <div className="space-y-4 text-center lg:text-left">
           <h2 className="font-display text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.02] tracking-[-0.035em] dark:text-white">Impact solidaire TOK</h2>
           <p className="mx-auto max-w-md text-base leading-7 text-foreground/75 dark:text-slate-300 lg:mx-0">

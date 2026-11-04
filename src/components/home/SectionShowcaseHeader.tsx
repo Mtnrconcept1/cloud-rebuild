@@ -80,6 +80,7 @@ export default function SectionShowcaseHeader({
   return (
     <div
       data-section-showcase-header
+      data-tok-reveal="block"
       data-theme={theme}
       data-image-kind={photographic ? "photo" : "illustration"}
       data-image-aspect={seasonalPhotographic ? "3-1" : undefined}

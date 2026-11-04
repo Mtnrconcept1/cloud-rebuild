@@ -21,6 +21,7 @@ import DashboardRoute from "@/components/DashboardRoute";
 import ScrollToTop from "@/components/ScrollToTop";
 import { BackNavigationButton, FloatingRouteBackButton } from "@/components/navigation/BackNavigationButton";
 import { InternalLinkNavigation, PageSwipeTransition } from "@/components/navigation/AppPageNavigation";
+import PointerTiltLayer from "@/components/motion/PointerTiltLayer";
 import AdminMobileNavigation from "@/components/admin/AdminMobileNavigation";
 import ChefHelpButton from "@/components/help/ChefHelpButton";
 import NotificationBell from "@/components/notifications/NotificationBell";
@@ -841,6 +842,7 @@ const App = () => {
           <BrowserRouter basename={commercialDemoFrame?.basename}>
             <MarketingHostBoundary>
               <InternalLinkNavigation enabled={!commercialDemoFrame && !isNative()} />
+              <PointerTiltLayer />
               <RouteSeoFallback />
               <ApplicationBoundary commercialDemoFrame={commercialDemoFrame} />
             </MarketingHostBoundary>

@@ -62,7 +62,7 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
     <section className="py-14 md:py-24" aria-labelledby="tok-why-heading">
       <div className="container">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
-          <div className="space-y-4 self-start lg:sticky lg:top-28">
+          <div className="space-y-4 self-start lg:sticky lg:top-28" data-tok-reveal="block">
             <h2 id="tok-why-heading" className="font-display text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[1.02] tracking-[-0.035em] dark:text-white">Trois raisons de choisir <em className="tok-title-accent">TOK</em></h2>
             <p className="max-w-md text-base leading-7 text-foreground/75 dark:text-slate-300">
               Une lecture simple : moins d&apos;attente, plus d&apos;offres locales, plus d&apos;impact solidaire.
@@ -71,7 +71,7 @@ export default function FeaturesSection({ activeFeatures }: FeaturesSectionProps
 
           <div className="space-y-10">
             {visiblePrimaryPillars.length > 0 ? (
-              <ul className="divide-y divide-border/80 border-y border-border/80 dark:divide-white/10 dark:border-white/10">
+              <ul data-tok-reveal="grid" className="divide-y divide-border/80 border-y border-border/80 dark:divide-white/10 dark:border-white/10">
                 {visiblePrimaryPillars.map((feature) => (
                   <li key={feature.to}>
                     <Link

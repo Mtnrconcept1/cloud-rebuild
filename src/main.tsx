@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import { recoverChunkLoadError } from "@/components/ErrorBoundary";
 import "./index.css";
 import "./home-section-headers.css";
+import "./styles/motion.css";
 import "./styles/halloween-theme.css";
 import "./styles/commercial-prospection-markers.css";
 import { initCapacitorPlugins } from "@/lib/capacitor-init";

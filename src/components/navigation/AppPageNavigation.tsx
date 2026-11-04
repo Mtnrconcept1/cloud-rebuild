@@ -6,10 +6,33 @@ import ScrollToTop from "@/components/ScrollToTop";
 
 import { getInternalPageTarget, getPageSwipeDirection } from "@/lib/internalPageNavigation";
 
+// Ease-out franche (cubic-bezier(.23, 1, .32, 1)), la même que les boutons.
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+
+/**
+ * Changement de page en profondeur : la page sortante recule à peine et
+ * s'efface vite (110 ms), la nouvelle avance depuis un léger retrait (240 ms),
+ * soit 350 ms au lieu de 440 ms. Transformations indépendantes (x, y, scale) :
+ * au repos Framer remet `transform: none`, ce qui préserve les éléments
+ * `position: fixed` des pages. L'opacité ne descend jamais assez bas pour
+ * faire clignoter le fond.
+ */
 const swipeVariants = {
-  enter: (direction: number) => ({ opacity: 0.88, x: direction * 36 }),
-  visible: { opacity: 1, x: 0 },
-  exit: (direction: number) => ({ opacity: 0.9, x: direction * -28 }),
+  enter: (direction: number) => ({ opacity: 0.82, x: direction * 18, y: 10, scale: 0.988 }),
+  visible: {
+    opacity: 1,
+    x: 0,
+    y: 0,
+    scale: 1,
+    transition: { type: "tween" as const, duration: 0.24, ease: EASE_OUT },
+  },
+  exit: (direction: number) => ({
+    opacity: 0.86,
+    x: direction * -12,
+    y: 0,
+    scale: 0.994,
+    transition: { type: "tween" as const, duration: 0.11, ease: EASE_OUT },
+  }),
 };
 
 /**
@@ -77,7 +100,7 @@ export function PageSwipeTransition({
         initial={reducedMotion ? false : "enter"}
         animate="visible"
         exit={reducedMotion ? undefined : "exit"}
-        transition={{ type: "tween", duration: reducedMotion ? 0 : 0.22, ease: "easeOut" }}
+        transition={reducedMotion ? { duration: 0 } : undefined}
       >
         <ScrollToTop locationOverride={routeLocation} />
         {children}

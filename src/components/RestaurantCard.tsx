@@ -385,6 +385,7 @@ export default function RestaurantCard({
       <div onClick={handleCardClick} className="group block h-full cursor-pointer">
         <div
           ref={sponsoredImpressionRef}
+          data-tok-tilt
           className="h-full transition-transform duration-200 ease-tok-out motion-safe:[@media(hover:hover)]:hover:-translate-y-0.5 active:scale-[0.99]"
         >
           <SponsoredRestaurantTemplateCard
@@ -418,6 +419,7 @@ export default function RestaurantCard({
     <div onClick={handleCardClick} className="group block h-full cursor-pointer">
       <div
         ref={isSponsored ? sponsoredImpressionRef : undefined}
+        data-tok-tilt
         className={cn(
           "premium-card flex h-full flex-col overflow-hidden rounded-[24px] border transition-[transform,box-shadow,border-color] duration-200 ease-tok-out active:scale-[0.99]",
           isSponsored

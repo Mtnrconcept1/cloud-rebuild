@@ -73,7 +73,7 @@ export default function RestaurantSection({
           opts={RAIL_OPTIONS}
           className="min-w-0"
         >
-          <CarouselContent className="ml-0 gap-3 sm:gap-4">
+          <CarouselContent className="ml-0 gap-3 sm:gap-4" data-tok-reveal="stagger">
             {restaurants.length === 0 ? (
               [0, 1, 2].map((item) => (
                 <CarouselItem
