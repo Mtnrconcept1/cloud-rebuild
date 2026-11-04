@@ -7,13 +7,28 @@ export const MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY = [
 ] as const;
 export const MARKETING_REFERENCE_MEDIA_TYPES = [...MARKETING_REFERENCE_MEDIA_TYPE_PRIORITY];
 
-type ReferenceStorage = { storage_bucket: string | null; storage_path: string | null };
+type ReferenceStorage = {
+  storage_bucket: string | null;
+  storage_path: string | null;
+  media_type?: string | null;
+};
 
 function referencePaths(restaurantId: string) {
   return {
     canonical: `${restaurantId}/marketing-assets/`,
     legacy: `/marketing-assets/${restaurantId}/`,
+    styleReferences: `${restaurantId}/marketing/style-references/`,
   };
+}
+
+function isOwnedStyleReference(row: ReferenceStorage, stylePrefix: string) {
+  if (row.storage_bucket !== "restaurant-images" || row.media_type !== "marketing_brand_visual"
+    || !row.storage_path?.startsWith(stylePrefix)) return false;
+
+  // AiStyleReferencePicker uploads one image under the authenticated user's UUID.
+  // Do not accept arbitrary paths under marketing/ or another restaurant's files.
+  const relativePath = row.storage_path.slice(stylePrefix.length);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/[a-z0-9-]+\.(?:png|jpe?g|webp)$/i.test(relativePath);
 }
 
 export function isCurrentMarketingReferenceStorage(
@@ -24,7 +39,8 @@ export function isCurrentMarketingReferenceStorage(
   const paths = referencePaths(restaurantId);
   return Boolean(
     (row.storage_bucket === referenceBucket && row.storage_path?.startsWith(paths.canonical)) ||
-    (row.storage_bucket === "restaurant-images" && row.storage_path?.includes(paths.legacy)),
+    (row.storage_bucket === "restaurant-images" && row.storage_path?.includes(paths.legacy)) ||
+    isOwnedStyleReference(row, paths.styleReferences),
   );
 }
 
@@ -36,5 +52,6 @@ export function marketingReferenceStorageFilter(restaurantId: string, referenceB
   return [
     `and(storage_bucket.eq.${quote(referenceBucket)},storage_path.like.${quote(`${paths.canonical}*`)})`,
     `and(storage_bucket.eq.${quote("restaurant-images")},storage_path.like.${quote(`*${paths.legacy}*`)})`,
+    `and(media_type.eq.${quote("marketing_brand_visual")},storage_bucket.eq.${quote("restaurant-images")},storage_path.like.${quote(`${paths.styleReferences}*`)})`,
   ].join(",");
 }
