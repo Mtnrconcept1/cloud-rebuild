@@ -4,6 +4,9 @@ import { ArrowRight, ChevronRight, Crown, Leaf, Mail, MapPin, Navigation, Percen
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
+import { getSupabase } from "@/integrations/supabase/client";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 import { cantonFromPlaceName, cantonHeroSrc, type SwissCantonCode } from "@/lib/homeCantonHero";
 import { resolveMobileCityImage, resolveWorldArt } from "@/lib/homeWorldHero";
 import { HALLOWEEN_FEATURE_FLAG } from "@/components/seasonal/HalloweenTheme";
@@ -36,6 +39,26 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
   const [city, setCity] = useState(() => profileCity?.trim() || "");
   const cityEditedByVisitor = useRef(false);
   const [showNewsletterConditions, setShowNewsletterConditions] = useState(false);
+  const [showNewsletterSignup, setShowNewsletterSignup] = useState(false);
+  const [newsletterConsent, setNewsletterConsent] = useState(false);
+  const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
+  const { toast } = useToast();
+
+  const subscribeExistingUser = async () => {
+    if (!user || !newsletterConsent || newsletterSubmitting) return;
+    setNewsletterSubmitting(true);
+    try {
+      const { error } = await getSupabase().rpc("subscribe_tok_newsletter");
+      if (error) throw error;
+      toast({ title: "Newsletter activée", description: "Votre inscription à la newsletter TOK est enregistrée. Vous pouvez vous désinscrire dans votre profil." });
+      setShowNewsletterSignup(false);
+      setNewsletterConsent(false);
+    } catch (error) {
+      toast({ title: "Inscription impossible", description: error instanceof Error ? error.message : "Réessayez plus tard.", variant: "destructive" });
+    } finally {
+      setNewsletterSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     const savedCity = profileCity?.trim();
@@ -144,9 +167,13 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
         <Link className="tok-home-hero__pro-link" to="/restaurateurs/geneve">Restaurateur ? Découvrez TOK <ChevronRight aria-hidden="true" size={16} /></Link>
         <div data-testid="mobile-newsletter" className="tok-home-hero__newsletter">
           <Mail aria-hidden="true" className="tok-home-hero__mail-icon" />
-          <p>Abonnez-vous à notre newsletter et recevez <strong>500 Miamz.</strong></p>
+          <p>{user ? "Recevez les offres et actualités de TOK par email." : <>Abonnez-vous à notre newsletter et recevez <strong>500 Miamz.</strong></>}</p>
           <button type="button" onClick={() => setShowNewsletterConditions(true)} aria-haspopup="dialog">Conditions applicables.</button>
-          <Link to="/auth">Inscrivez-vous</Link>
+          {user ? (
+            <button type="button" className="tok-home-hero__newsletter-cta" onClick={() => setShowNewsletterSignup(true)}>M'abonner</button>
+          ) : (
+            <Link to="/auth?newsletter=1">Inscrivez-vous</Link>
+          )}
         </div>
       </aside>
       </div>
@@ -168,6 +195,39 @@ export default function HeroSection({ contentVisible = true, activeFeatures = EM
               En continuant l'inscription, vous acceptez aussi les Conditions générales d'utilisation et la Politique de confidentialité TOK.
             </p>
           </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={showNewsletterSignup} onOpenChange={(open) => {
+        if (newsletterSubmitting) return;
+        setShowNewsletterSignup(open);
+        if (!open) setNewsletterConsent(false);
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Recevoir la newsletter TOK</DialogTitle>
+            <DialogDescription>
+              Recevez les offres et nouveautés TOK par email. Le bonus de 500 Miamz est réservé aux nouveaux comptes éligibles créés depuis l'offre de bienvenue.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-start gap-3 rounded-lg border p-3 text-sm">
+            <Checkbox
+              id="newsletter-existing-consent"
+              checked={newsletterConsent}
+              onCheckedChange={(checked) => setNewsletterConsent(checked === true)}
+              aria-label="Je souhaite recevoir les emails marketing TOK"
+            />
+            <label htmlFor="newsletter-existing-consent" className="cursor-pointer leading-5">
+              J'accepte de recevoir les emails de la newsletter TOK. Je pourrai me désinscrire à tout moment dans les préférences de mon profil.
+            </label>
+          </div>
+          <button
+            type="button"
+            className="min-h-11 rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground disabled:opacity-50"
+            disabled={!newsletterConsent || newsletterSubmitting}
+            onClick={() => void subscribeExistingUser()}
+          >
+            {newsletterSubmitting ? "Inscription en cours..." : "Confirmer mon abonnement"}
+          </button>
         </DialogContent>
       </Dialog>
     </>
