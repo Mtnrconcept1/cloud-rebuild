@@ -36,12 +36,13 @@ describe("security hardening in edge functions", () => {
 
   it("audits and de-duplicates Stripe Connect onboarding", () => {
     const source = read("supabase/functions/stripe-connect-onboard/index.ts");
+    const helper = read("supabase/functions/_shared/stripe-connect-account.ts");
 
     expect(source).toContain("authenticateRequest");
     expect(source).toContain("requireRestaurantAccess");
     expect(source).toContain("writeAuditLog");
-    expect(source).toContain("idempotencyKey");
-    expect(source).toContain("stripe-connect-account:${restaurant.id}");
+    expect(helper).toContain("idempotencyKey");
+    expect(helper).toContain("stripe-connect-v2-recipient:${input.restaurantId}");
     expect(source).toContain("persistError");
     expect(source).toContain(".select(\"id, stripe_account_id\")");
     expect(source).not.toContain("SUPABASE_ANON_KEY");

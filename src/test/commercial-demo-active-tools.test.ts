@@ -246,6 +246,6 @@ describe("commercial demo active tools and reservations", () => {
     expect(serverGuard).toContain("if (restaurant.is_demo)");
     expect(serverGuard).toContain("DEMO_SIDE_EFFECT_BLOCKED");
     expect(serverGuard.indexOf("if (restaurant.is_demo)"))
-      .toBeLessThan(serverGuard.indexOf('getStripeRuntimeForCheckoutKind("stripe-connect")'));
+      .toBeLessThan(serverGuard.indexOf("getStripeConnectRuntime()"));
   });
 });

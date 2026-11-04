@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 539 error codes mapped from supabase/functions/**.
+// 541 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -1046,13 +1046,13 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "demo_checkout_requires_test_endpoint": [
     {
       "file": "supabase/functions/_shared/stripe-client.ts",
-      "line": 142
+      "line": 143
     }
   ],
   "demo_stripe_not_configured": [
     {
       "file": "supabase/functions/_shared/stripe-client.ts",
-      "line": 223
+      "line": 240
     }
   ],
   "developer_transfer_claim_invalid": [
@@ -1918,7 +1918,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "invalid_test_stripe_key": [
     {
       "file": "supabase/functions/_shared/stripe-client.ts",
-      "line": 228
+      "line": 245
     }
   ],
   "invalid_workflow_url": [
@@ -3319,10 +3319,22 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 414
     }
   ],
+  "stripe_connect_account_concurrent_link_conflict": [
+    {
+      "file": "supabase/functions/stripe-connect-onboard/index.ts",
+      "line": 93
+    }
+  ],
+  "stripe_connect_secret_not_configured": [
+    {
+      "file": "supabase/functions/_shared/stripe-client.ts",
+      "line": 175
+    }
+  ],
   "stripe_webhook_secret_mode_conflict": [
     {
       "file": "supabase/functions/_shared/stripe-client.ts",
-      "line": 79
+      "line": 80
     }
   ],
   "subscription_check_unavailable": [
