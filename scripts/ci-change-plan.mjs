@@ -54,6 +54,11 @@ const FRONTEND_ROOT_FILES = new Set([
   "vercel.json",
 ]);
 
+// Outillage des agents IA (skills, sous-agents, hooks, MCP, verrou des skills) :
+// versionné dans le dépôt mais jamais livré dans l'application.
+const AGENT_TOOLING_ROOT_FILES = new Set([".mcp.json", "skills-lock.json"]);
+const AGENT_TOOLING_DIRECTORIES = [".claude/", ".agents/", ".codex/"];
+
 const PAYMENT_PATTERN = /(stripe|payment|checkout|billing|payout|refund|subscription|order[-_.]?pricing|zero[-_.]?attente|chefs?[-_.]?table|tok[-_.]?one)/i;
 const ACCOUNTING_PATTERN = /(accounting|compta|invoice|commission|finance|financial|ledger|payable)/i;
 const AUTH_PATTERN = /(auth|login|signup|session|jwt|rls|policy|permission|security|role)/i;
@@ -73,6 +78,14 @@ export function isDocumentationFile(file) {
     normalized === "LICENSE" ||
     normalized.startsWith("docs/") ||
     /\.(md|mdx|txt)$/i.test(normalized)
+  );
+}
+
+export function isAgentToolingFile(file) {
+  const normalized = normalizeFile(file);
+  return (
+    AGENT_TOOLING_ROOT_FILES.has(normalized) ||
+    AGENT_TOOLING_DIRECTORIES.some((directory) => normalized.startsWith(directory))
   );
 }
 
@@ -150,6 +163,7 @@ function isRootTestRelevant(file) {
 function isRecognizedFile(file) {
   return (
     isDocumentationFile(file) ||
+    isAgentToolingFile(file) ||
     FULL_SUITE_FILES.has(file) ||
     FRONTEND_ROOT_FILES.has(file) ||
     file.startsWith("src/") ||
@@ -228,9 +242,13 @@ export function buildChangePlan(rawFiles, options = {}) {
     || file.startsWith("supabase/demo-migrations/")
   ));
   const functionImpact = getFunctionImpact(files, forceDeploy);
-  const paymentCritical = files.some((file) => PAYMENT_PATTERN.test(file));
-  const accountingCritical = files.some((file) => ACCOUNTING_PATTERN.test(file));
-  const authCritical = files.some((file) => AUTH_PATTERN.test(file));
+  // Les noms des fichiers d'outillage agent citent des sujets (Stripe, RLS,
+  // session navigateur) sans toucher au code livré : ils ne déclenchent pas les
+  // packs critiques métier.
+  const domainFiles = files.filter((file) => !isAgentToolingFile(file));
+  const paymentCritical = domainFiles.some((file) => PAYMENT_PATTERN.test(file));
+  const accountingCritical = domainFiles.some((file) => ACCOUNTING_PATTERN.test(file));
+  const authCritical = domainFiles.some((file) => AUTH_PATTERN.test(file));
   const supabaseCritical = files.some((file) => file.startsWith("supabase/"));
   const syncSupabaseSecrets =
     forceDeploy || files.includes("scripts/write-supabase-secrets-env.mjs");

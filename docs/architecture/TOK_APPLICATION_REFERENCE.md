@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a4081a0ddc603bef3f6bd8b57a94ec6f5843a8f1b792b2cbe4a7c9fe436447f4`
+- Empreinte SHA-256 des sources indexées : `e7dbe0965a100607aabbab5d0a44880afcd9d9978023c9b1b48480e5211a62bb`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,7 +32,7 @@
 | documents | 247 |
 | edgeFunctions | 126 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4414 |
+| exportedSymbols | 4415 |
 | featureFlags | 100 |
 | frontendRoutes | 149 |
 | integrations | 11 |
@@ -45,7 +45,7 @@
 | publicEntries | 957 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 123 |
-| records | 20747 |
+| records | 20748 |
 | repositoryFiles | 4123 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |

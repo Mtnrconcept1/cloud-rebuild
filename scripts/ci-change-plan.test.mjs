@@ -10,6 +10,7 @@ import {
 
 import {
   buildChangePlan,
+  isAgentToolingFile,
   isDocumentationFile,
   normalizeFile,
   selectDirectContractTests,
@@ -266,6 +267,88 @@ test("un chemin inconnu force validation complète et frontend", () => {
   assert.equal(plan.fullSuite, true);
   assert.equal(plan.deployFrontend, true);
   assert.deepEqual(plan.unknownFiles, ["new-runtime/entry.ts"]);
+});
+
+test("l'outillage agent seul est reconnu sans suite complète ni déploiement", () => {
+  const plan = buildChangePlan([
+    ".claude/skills/impeccable/SKILL.md",
+    ".claude/skills/impeccable/scripts/live-browser-session.js",
+    ".claude/agents/impeccable-documenter.md",
+    ".agents/skills/impeccable/scripts/live-browser-session.js",
+    ".agents/skills/stripe-best-practices/references/payments.md",
+    ".agents/skills/supabase-postgres-best-practices/references/security-rls-basics.md",
+    ".codex/hooks.json",
+    ".mcp.json",
+    "skills-lock.json",
+  ]);
+
+  assert.deepEqual(plan.unknownFiles, []);
+  assert.equal(plan.fullSuite, false);
+  assert.equal(plan.testMode, "none");
+  assert.equal(plan.runLint, false);
+  assert.equal(plan.runTypecheck, false);
+  assert.equal(plan.runBuild, false);
+  assert.equal(plan.installRequired, false);
+  assert.equal(plan.paymentCritical, false);
+  assert.equal(plan.accountingCritical, false);
+  assert.equal(plan.authCritical, false);
+  assert.equal(plan.supabaseCritical, false);
+  assert.equal(plan.deployFrontend, false);
+  assert.equal(plan.deployDatabase, false);
+  assert.equal(plan.deployFunctions, false);
+  assert.equal(plan.syncSupabaseSecrets, false);
+  assert.equal(plan.hasDeployableChanges, false);
+});
+
+test("un nom de skill contenant « session » ne déclenche pas le pack Auth", () => {
+  const plan = buildChangePlan([
+    ".claude/skills/impeccable/scripts/live-browser-session.js",
+  ]);
+
+  assert.equal(plan.authCritical, false);
+  assert.deepEqual(plan.unknownFiles, []);
+});
+
+test("un diff mixte garde les packs critiques et le déploiement du code applicatif", () => {
+  const plan = buildChangePlan([
+    ".claude/skills/impeccable/scripts/live-browser-session.js",
+    ".agents/skills/stripe-best-practices/references/billing.md",
+    "src/lib/authRedirect.ts",
+  ]);
+
+  assert.deepEqual(plan.unknownFiles, []);
+  assert.equal(plan.testMode, "affected");
+  assert.equal(plan.authCritical, true);
+  assert.equal(plan.paymentCritical, false);
+  assert.equal(plan.deployFrontend, true);
+  assert.equal(plan.hasDeployableChanges, true);
+});
+
+test("un fichier TypeScript d'outillage agent reste linté sans build ni déploiement", () => {
+  const plan = buildChangePlan([".claude/skills/example/scripts/helper.ts"]);
+
+  assert.deepEqual(plan.unknownFiles, []);
+  assert.equal(plan.runLint, true);
+  assert.equal(plan.runTypecheck, false);
+  assert.equal(plan.runBuild, false);
+  assert.equal(plan.installRequired, true);
+  assert.equal(plan.hasDeployableChanges, false);
+});
+
+test("seuls les emplacements exacts de l'outillage agent sont reconnus", () => {
+  assert.equal(isAgentToolingFile(".\\.claude\\skills\\impeccable\\SKILL.md"), true);
+  assert.equal(isAgentToolingFile(".mcp.json"), true);
+  assert.equal(isAgentToolingFile("skills-lock.json"), true);
+  assert.equal(isAgentToolingFile("claude/skills/impeccable/SKILL.js"), false);
+  assert.equal(isAgentToolingFile(".claude-backup/session.js"), false);
+  assert.equal(isAgentToolingFile("nested/.mcp.json"), false);
+  assert.equal(isAgentToolingFile("src/skills-lock.json"), false);
+
+  const plan = buildChangePlan([".claude-backup/session.js", "nested/.mcp.json"]);
+
+  assert.equal(plan.fullSuite, true);
+  assert.equal(plan.deployFrontend, true);
+  assert.deepEqual(plan.unknownFiles, [".claude-backup/session.js", "nested/.mcp.json"]);
 });
 
 test("retrouve les tests qui lisent directement un fichier modifié", () => {
