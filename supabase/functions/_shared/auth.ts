@@ -525,7 +525,7 @@ export async function assertLaunchRequestAllowed(actor: RequestActor, req: Reque
   if (actor.roles.includes("restaurateur") && [
     "create-checkout", "payment-attempt-status", "cancel-payment-attempt",
     "manage-restaurant-subscription", "ai-image-enhance", "analyze-restaurant-image",
-    "menu-image-import", "restaurant-media-governance",
+    "menu-image-import", "restaurant-media-governance", "ai-video-studio",
   ].includes(endpoint)) return;
   // These roles require approval; their existing scope/ownership checks remain mandatory.
   if (actor.roles.includes("courier") || actor.roles.includes("commercial")) return;

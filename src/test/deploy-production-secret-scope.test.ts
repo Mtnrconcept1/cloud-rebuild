@@ -138,6 +138,8 @@ describe("production deployment secret scope", () => {
       "FIREBASE_TOKEN_URI",
       "FIRECRAWL_API_KEY",
       "GITHUB_INCIDENT_TOKEN",
+      "HF_ALLOWED_MEDIA_HOSTS",
+      "HF_CREDENTIALS",
       "MARKETING_UNSUBSCRIBE_LEGACY_SECRET",
       "MARKETING_UNSUBSCRIBE_SECRET",
       "META_APP_SECRET",

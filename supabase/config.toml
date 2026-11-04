@@ -389,3 +389,7 @@ verify_jwt = false
 # Server/cron-only editorial worker authenticates its own service secret.
 [functions.marketing-growth-worker]
 verify_jwt = false
+
+# Restaurant video studio validates the JWT, restaurant ownership and quotas inside the handler.
+[functions.ai-video-studio]
+verify_jwt = false

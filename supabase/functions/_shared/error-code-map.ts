@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 539 error codes mapped from supabase/functions/**.
+// 558 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -89,6 +89,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/ai-image-enhance/index.ts",
       "line": 1099
+    },
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 180
     }
   ],
   "ai_empty_response": [
@@ -1389,6 +1393,12 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/tok-connect-portal/index.ts",
       "line": 935
+    }
+  ],
+  "higgsfield_not_configured": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 28
     }
   ],
   "idempotency_conflict": [
@@ -3031,6 +3041,10 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
       "line": 129
     },
     {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 252
+    },
+    {
       "file": "supabase/functions/contact-support/index.ts",
       "line": 137
     },
@@ -4207,6 +4221,122 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     {
       "file": "supabase/functions/analyze-restaurant-image/index.ts",
       "line": 320
+    }
+  ],
+  "video_action_invalid": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 285
+    }
+  ],
+  "video_completion_persistence_failed": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 60
+    }
+  ],
+  "video_download_failed": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 45
+    }
+  ],
+  "video_file_too_large": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 48
+    },
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 51
+    }
+  ],
+  "video_history_failed": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 272
+    }
+  ],
+  "video_idempotency_required": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 168
+    }
+  ],
+  "video_invalid_body": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 249
+    }
+  ],
+  "video_job_id_invalid": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 277
+    }
+  ],
+  "video_job_lookup_failed": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 94
+    }
+  ],
+  "video_job_not_found": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 95
+    }
+  ],
+  "video_provider_id_invalid": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 34
+    }
+  ],
+  "video_provider_url_not_allowed": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 42
+    }
+  ],
+  "video_reference_not_found": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 131
+    }
+  ],
+  "video_reference_unavailable": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 135
+    },
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 139
+    }
+  ],
+  "video_reservation_failed": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 183
+    }
+  ],
+  "video_status_persistence_failed": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 70
+    }
+  ],
+  "video_storage_failed": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 55
+    }
+  ],
+  "video_submission_claim_failed": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 188
     }
   ],
   "visual_tool_invalid": [

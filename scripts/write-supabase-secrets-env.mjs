@@ -27,6 +27,8 @@ const allowedNames = [
   "INTERNAL_CRON_SECRET",
   "CRON_SECRET",
   "OPENAI_API_KEY",
+  "HF_CREDENTIALS",
+  "HF_ALLOWED_MEDIA_HOSTS",
   "OPENAI_MODEL",
   "OPENAI_IMAGE_TIMEOUT_MS",
   "TOK_IMAGE_FAST_INTERACTIVE",
@@ -73,6 +75,11 @@ const entries = [];
 for (const name of allowedNames) {
   const value = cleanValue(process.env[name]);
   if (value === null) {
+    continue;
+  }
+  // Never replace an existing Supabase provider secret with a malformed GitHub alias.
+  if (name === "HF_CREDENTIALS" && !/^[^:\s]+:[^:\s]+$/.test(value)) {
+    console.warn("Skipping invalid-format HF_CREDENTIALS; existing Supabase secret left unchanged.");
     continue;
   }
 

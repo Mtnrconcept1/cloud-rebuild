@@ -1,9 +1,9 @@
 // Fichier généré par pnpm docs:application-index. Ne pas modifier manuellement.
 export const TOK_USER_GUIDE_META = {
   "repository": "Mtnrconcept1/cloud-rebuild",
-  "sourceDigest": "e4dab3169e9eb7f3cddedf0e4ea1acfc7cecaa81c4e466d5432ff444613fe31f",
+  "sourceDigest": "dd1a950930821826500d93c5403e1a4b99313fa063840df75f8c8182a66860f8",
   "routeCount": 149,
-  "toolCount": 126
+  "toolCount": 127
 } as const;
 
 export const TOK_USER_GUIDE_ROUTES = [
@@ -1970,6 +1970,23 @@ export const TOK_USER_GUIDE_TOOLS = [
       "openai",
       "resend",
       "stripe",
+      "supabase"
+    ]
+  },
+  {
+    "name": "ai-video-studio",
+    "endpoint": "/functions/v1/ai-video-studio",
+    "methods": [
+      "POST"
+    ],
+    "actions": [
+      "list",
+      "quote",
+      "start",
+      "status",
+      "string"
+    ],
+    "integrations": [
       "supabase"
     ]
   },
