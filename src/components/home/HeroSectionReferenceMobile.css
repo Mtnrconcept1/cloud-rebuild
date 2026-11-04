@@ -1,0 +1,464 @@
+/* Homepage mobile: isolated white editorial treatment based on the selected TOK mockup.
+   The desktop, location-aware imagery and Halloween artwork remain unchanged. */
+.tok-home-hero__mobile-mascot { display: none; }
+
+@media (max-width: 767px) {
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) body:has(.tok-home-first-screen) {
+    background: #fff;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) body:has(.tok-home-first-screen) header.tok-home-header {
+    margin-bottom: 0;
+    background: #fff;
+    border: 0;
+    color: #111;
+    box-shadow: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) body:has(.tok-home-first-screen) header.tok-home-header > div {
+    height: 76px;
+    min-height: 76px;
+    padding: 8px clamp(5px, 2vw, 12px);
+    gap: 3px;
+    background: #fff;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-header .tok-mobile-home-tabs__link,
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-header .golden-tok-route-menu,
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-header .golden-tok-route-menu svg {
+    color: #111;
+    filter: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-header .tok-mobile-home-tabs__link[aria-current="page"]::after {
+    background: var(--tok-brand-orange, #f15d22);
+    box-shadow: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-header .golden-tok-route-account {
+    background: var(--tok-brand-orange, #f15d22);
+    color: #fff;
+    border: 0;
+    box-shadow: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-header :is(a, button):focus-visible {
+    outline: 3px solid var(--tok-brand-orange, #f15d22);
+    outline-offset: 3px;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-first-screen:has(.tok-home-hero) {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    padding: 0;
+    overflow: visible;
+    background: #fff;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-first-screen .tok-home-hero {
+    display: block;
+    min-height: 0;
+    height: auto;
+    padding: 12px 14px 0;
+    overflow: visible;
+    color: #121212;
+    background: #fff;
+    --tok-home-paper: #fff;
+    --tok-home-ink: #121212;
+    --tok-home-orange: var(--tok-brand-orange, #f15d22);
+    --tok-home-field: #fff;
+    --tok-home-line: #dedbd8;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-first-screen .tok-home-hero .tok-home-hero__art {
+    display: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-first-screen .tok-home-hero .tok-home-hero__content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    width: min(100%, 480px);
+    max-width: 480px;
+    height: auto;
+    min-height: 0;
+    margin: 0 auto;
+    padding: 0;
+    text-align: left;
+    background: transparent;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__mobile-mascot {
+    display: block;
+    position: absolute;
+    z-index: 0;
+    top: -7px;
+    right: -14px;
+    width: 44%;
+    height: clamp(236px, 65vw, 298px);
+    overflow: hidden;
+    background-image: url("/images/home/tok-chef-white-mobile.webp");
+    background-size: 100% auto;
+    background-position: top right;
+    background-repeat: no-repeat;
+    pointer-events: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__editorial {
+    position: relative;
+    z-index: 1;
+    min-height: clamp(232px, 64vw, 282px);
+    padding-top: clamp(22px, 7vw, 35px);
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__title {
+    position: relative;
+    width: 100%;
+    margin: 0;
+    color: #090909;
+    font-family: "Fraunces", "Playfair Display", Georgia, serif;
+    font-size: clamp(32px, 9.1vw, 45px);
+    font-weight: 750;
+    line-height: 1.12;
+    letter-spacing: -.055em;
+    text-shadow: none;
+    text-wrap: nowrap;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__title span {
+    position: relative;
+    isolation: isolate;
+    display: inline-block;
+    margin: 5px 0 0 -2px;
+    padding: 0 .12em .12em;
+    color: #fff;
+    font-family: "Kaushan Script", "Playball", cursive;
+    font-weight: 400;
+    font-size: .99em;
+    line-height: 1.12;
+    letter-spacing: -.01em;
+    white-space: nowrap;
+    text-shadow: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__title span::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 9% -3% 0;
+    background: var(--tok-brand-orange, #f15d22);
+    clip-path: polygon(0 12%, 9% 4%, 24% 0, 40% 5%, 55% 1%, 72% 6%, 91% 0, 100% 6%, 96% 53%, 100% 91%, 86% 97%, 69% 93%, 53% 100%, 30% 95%, 10% 100%, 0 92%, 3% 62%);
+    transform: rotate(-1.2deg);
+    box-shadow: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__intro {
+    position: relative;
+    max-width: 65%;
+    margin: 18px 0 0;
+    color: #171717;
+    font-size: clamp(12.5px, 3.45vw, 16px);
+    font-weight: 450;
+    line-height: 1.48;
+    text-shadow: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__intro::after {
+    content: "";
+    display: block;
+    width: 82px;
+    height: 3px;
+    margin: 11px 0 0 3px;
+    border-radius: 50%;
+    background: var(--tok-brand-orange, #f15d22);
+    transform: rotate(-5deg);
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__form {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    width: 100%;
+    max-width: 480px;
+    min-height: 0;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid #eee9e5;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 10px 28px rgb(28 18 14 / 13%);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__form:focus-within {
+    border-color: #ded5cd;
+    box-shadow: 0 10px 28px rgb(28 18 14 / 13%);
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__field,
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__field--city {
+    display: flex;
+    flex-direction: column;
+    order: initial;
+    width: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__field label {
+    display: block;
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0 0 4px 9px;
+    padding: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    color: #161616;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .065em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__field label span {
+    color: #585858;
+    font-size: 11px;
+    font-style: italic;
+    font-weight: 450;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    height: auto;
+    padding: 0 12px;
+    border: 1px solid #dcd7d4;
+    border-radius: 16px;
+    background: #fff;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__input-row:focus-within {
+    border-color: var(--tok-brand-orange, #f15d22);
+    box-shadow: 0 0 0 2px rgb(241 93 34 / 13%);
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__input-row svg {
+    flex: 0 0 19px;
+    width: 19px;
+    height: 19px;
+    color: var(--tok-brand-orange, #f15d22);
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__input-row input {
+    min-height: 40px;
+    height: 40px;
+    padding: 0;
+    color: #171717;
+    font-size: 15px;
+    font-weight: 450;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__input-row input::placeholder {
+    color: #777;
+    opacity: 1;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__cta {
+    display: flex;
+    order: initial;
+    justify-content: center;
+    width: 100%;
+    min-height: 46px;
+    margin: 3px 0 0;
+    border-radius: 999px;
+    background: var(--tok-brand-orange, #f15d22);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    box-shadow: 0 6px 13px rgb(241 93 34 / 18%);
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__mobile-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+    margin: 13px 0 0;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__mobile-actions a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    min-height: 65px;
+    padding: 8px 3px;
+    border: 1px solid #e8e5e2;
+    border-radius: 18px;
+    background: #fff;
+    color: #161616;
+    font-size: clamp(9px, 2.55vw, 12px);
+    font-weight: 760;
+    line-height: 1.2;
+    text-align: center;
+    box-shadow: 0 5px 13px rgb(28 18 14 / 10%);
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__mobile-actions a svg {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+    color: var(--tok-brand-orange, #f15d22);
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-first-screen:has(.tok-home-hero) .tok-home-hero__secondary {
+    position: relative;
+    display: block;
+    inset: auto;
+    width: min(100% - 28px, 480px);
+    max-width: 480px;
+    margin: 13px auto 18px;
+    padding: 0;
+    transform: none;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 2px 9px;
+    align-items: center;
+    min-height: 78px;
+    margin: 0;
+    padding: 11px;
+    border: 1px solid #e9e5e0;
+    border-radius: 19px;
+    background: #fff;
+    color: #171717;
+    font-size: 11.5px;
+    line-height: 1.3;
+    box-shadow: 0 6px 15px rgb(28 18 14 / 9%);
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__mail-icon {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: 22px;
+    height: 22px;
+    color: var(--tok-brand-orange, #f15d22);
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter p {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    color: #171717;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter strong {
+    color: #090909;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter button {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    align-self: start;
+    min-height: 17px;
+    padding: 0;
+    color: #686868;
+    font-size: 10px;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter a {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    align-self: center;
+    min-height: 44px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: var(--tok-brand-orange, #f15d22);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 800;
+  }
+
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary :is(button, a):focus-visible,
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero :is(input, button, a):focus-visible {
+    outline: 3px solid var(--tok-brand-orange, #f15d22);
+    outline-offset: 3px;
+  }
+}
+
+@media (max-width: 359px) {
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__editorial {
+    min-height: 248px;
+  }
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__title {
+    font-size: 29px;
+  }
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero .tok-home-hero__intro {
+    max-width: 62%;
+    font-size: 11.5px;
+  }
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter {
+    gap: 2px 5px;
+    font-size: 10px;
+  }
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__secondary .tok-home-hero__newsletter a {
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 767px) and (orientation: landscape) and (max-height: 600px) {
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-first-screen:has(.tok-home-hero) {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-first-screen .tok-home-hero .tok-home-hero__content {
+    display: flex;
+    grid-template-columns: none;
+    height: auto;
+  }
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-hero__editorial {
+    min-height: 250px;
+  }
+  :root:not(.dark):not([data-seasonal-theme="halloween"]) .tok-home-first-screen:has(.tok-home-hero) .tok-home-hero__secondary {
+    position: relative;
+    inset: auto;
+    display: block;
+    width: min(100% - 28px, 480px);
+    margin: 13px auto 18px;
+  }
+}

@@ -14,6 +14,7 @@ const optimizedHomeAssets = [
   "public/images/home/tok-geneve-desktop-reference.jpg",
   "public/images/home/tok-geneve-desktop.webp",
   "public/images/home/tok-geneve-mobile.webp",
+  "public/images/home/tok-chef-white-mobile.webp",
 ];
 
 const obsoleteHomePngAssets = [
