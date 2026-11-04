@@ -9,14 +9,11 @@ import {
 } from "../_shared/auth.ts";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
-import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import { getStripeConnectRuntime } from "../_shared/stripe-client.ts";
+import { readRestaurantConnectAccount } from "../_shared/stripe-connect-account.ts";
 
 function text(value: unknown) {
   return String(value || "").trim();
-}
-
-function stringArray(value: unknown) {
-  return Array.isArray(value) ? value.map((entry) => text(entry)).filter(Boolean) : [];
 }
 
 Deno.serve(async (req) => {
@@ -66,27 +63,30 @@ Deno.serve(async (req) => {
       }, 200, corsHeaders);
     }
 
-    const { stripe } = getStripeRuntimeForCheckoutKind("stripe-connect");
-    const account = await stripe.accounts.retrieve(accountId);
-    const currentlyDue = stringArray(account.requirements?.currently_due);
-    const ready = Boolean(
-      account.details_submitted
-      && account.charges_enabled
-      && account.payouts_enabled
-      && currentlyDue.length === 0,
-    );
+    const { stripe } = getStripeConnectRuntime();
+    const account = await readRestaurantConnectAccount(stripe, accountId);
+    const currentlyDue = account.requirementsDue;
+    const ready = account.ready;
 
     const now = new Date().toISOString();
+    const { data: existingCompletion, error: completionError } = ready
+      ? await actor.adminClient.from("restaurants")
+        .select("stripe_connect_onboarding_completed_at")
+        .eq("id", restaurantId)
+        .single()
+      : { data: null, error: null };
+    if (completionError) throw new HttpError(500, completionError.message);
+
     const { error: updateError } = await actor.adminClient
       .from("restaurants")
       .update({
-        stripe_connect_details_submitted: Boolean(account.details_submitted),
-        stripe_connect_charges_enabled: Boolean(account.charges_enabled),
-        stripe_connect_payouts_enabled: Boolean(account.payouts_enabled),
+        stripe_connect_details_submitted: account.detailsSubmitted,
+        stripe_connect_charges_enabled: account.chargesEnabled,
+        stripe_connect_payouts_enabled: account.payoutsEnabled,
         stripe_connect_requirements_due: currentlyDue,
-        stripe_connect_disabled_reason: text(account.requirements?.disabled_reason) || null,
+        stripe_connect_disabled_reason: account.disabledReason,
         stripe_connect_onboarding_completed_at: ready
-          ? text(restaurant.stripe_connect_onboarding_completed_at) || now
+          ? text(existingCompletion?.stripe_connect_onboarding_completed_at) || now
           : null,
         stripe_connect_last_synced_at: now,
       })
@@ -106,9 +106,9 @@ Deno.serve(async (req) => {
       metadata: {
         stripe_account_id: accountId,
         ready,
-        details_submitted: Boolean(account.details_submitted),
-        charges_enabled: Boolean(account.charges_enabled),
-        payouts_enabled: Boolean(account.payouts_enabled),
+        details_submitted: account.detailsSubmitted,
+        charges_enabled: account.chargesEnabled,
+        payouts_enabled: account.payoutsEnabled,
         requirements_due: currentlyDue,
       },
     });
@@ -116,11 +116,11 @@ Deno.serve(async (req) => {
     return jsonResponse({
       account_id: accountId,
       ready,
-      details_submitted: Boolean(account.details_submitted),
-      charges_enabled: Boolean(account.charges_enabled),
-      payouts_enabled: Boolean(account.payouts_enabled),
+      details_submitted: account.detailsSubmitted,
+      charges_enabled: account.chargesEnabled,
+      payouts_enabled: account.payoutsEnabled,
       requirements_due: currentlyDue,
-      disabled_reason: text(account.requirements?.disabled_reason) || null,
+      disabled_reason: account.disabledReason,
     }, 200, corsHeaders);
   } catch (error) {
     log.error("request_failed", { message: error instanceof Error ? error.message : "unknown" });

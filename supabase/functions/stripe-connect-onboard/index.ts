@@ -11,7 +11,12 @@ import {
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { makeLogger } from "../_shared/logging.ts";
 import { normalizeCheckoutReturnUrl } from "../_shared/return-url.ts";
-import { getStripeRuntimeForCheckoutKind } from "../_shared/stripe-client.ts";
+import { getStripeConnectRuntime } from "../_shared/stripe-client.ts";
+import {
+  createRestaurantConnectAccount,
+  createRestaurantConnectOnboardingLink,
+  readRestaurantConnectAccount,
+} from "../_shared/stripe-connect-account.ts";
 import {
   STRIPE_CONNECT_PLATFORM_PROFILE_REQUIRED,
   isStripeConnectPlatformProfileRequired,
@@ -23,10 +28,6 @@ function text(value: unknown) {
 
 function getEnv(name: string) {
   return text(Deno.env.get(name));
-}
-
-function stringArray(value: unknown) {
-  return Array.isArray(value) ? value.map((entry) => text(entry)).filter(Boolean) : [];
 }
 
 Deno.serve(async (req) => {
@@ -58,75 +59,66 @@ Deno.serve(async (req) => {
       );
     }
     await assertSentinelAllowed(actor, "payments", restaurantId);
-    const { stripe } = getStripeRuntimeForCheckoutKind("stripe-connect");
+    const { stripe } = getStripeConnectRuntime();
 
     accountId = text(restaurant.stripe_account_id);
 
     if (!accountId) {
       const userLookup = actor.userClient ? await actor.userClient.auth.getUser() : null;
       const ownerEmail = text(userLookup?.data.user?.email);
-      const restaurantPhone = text(restaurant.phone);
-
-      const account = await stripe.accounts.create({
-        type: "express",
-        country: "CH",
-        email: ownerEmail || undefined,
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
-        business_profile: {
-          name: text(restaurant.name),
-          mcc: "5812",
-          product_description: "Restaurant partenaire de la plateforme TOK",
-          support_phone: restaurantPhone || undefined,
-          url: text(restaurant.website_url) || undefined,
-        },
-        metadata: {
-          restaurant_id: restaurant.id,
-          owner_id: actor.userId || "",
-          platform: "TOK",
-          payout_share_percent: "90",
-          platform_fee_percent: "10",
-        },
-      }, {
-        idempotencyKey: `stripe-connect-account:${restaurant.id}`,
+      accountId = await createRestaurantConnectAccount(stripe, {
+        restaurantId: restaurant.id,
+        restaurantName: text(restaurant.name),
+        ownerEmail,
+        ownerId: actor.userId || "",
       });
-
-      accountId = account.id;
 
       const { data: persistedRestaurant, error: persistError } = await adminClient
         .from("restaurants")
         .update({ stripe_account_id: accountId })
         .eq("id", restaurantId)
+        .is("stripe_account_id", null)
         .select("id, stripe_account_id")
-        .single();
+        .maybeSingle();
 
       if (persistError) throw new HttpError(500, persistError.message);
-      if (persistedRestaurant?.stripe_account_id !== accountId) {
+      if (!persistedRestaurant) {
+        const { data: winner, error: winnerError } = await adminClient
+          .from("restaurants")
+          .select("stripe_account_id")
+          .eq("id", restaurantId)
+          .single();
+        if (winnerError) throw new HttpError(500, winnerError.message);
+        if (winner?.stripe_account_id !== accountId) {
+          throw new HttpError(409, "STRIPE_CONNECT_ACCOUNT_CONCURRENT_LINK_CONFLICT");
+        }
+      } else if (persistedRestaurant.stripe_account_id !== accountId) {
         throw new HttpError(500, "stripe_account_id non persiste");
       }
     }
 
-    const account = await stripe.accounts.retrieve(accountId);
-    const currentlyDue = stringArray(account.requirements?.currently_due);
-    const ready = Boolean(
-      account.details_submitted
-      && account.charges_enabled
-      && account.payouts_enabled
-      && currentlyDue.length === 0,
-    );
+    const account = await readRestaurantConnectAccount(stripe, accountId);
+    const currentlyDue = account.requirementsDue;
+    const ready = account.ready;
+
+    const { data: existingCompletion, error: completionError } = ready
+      ? await adminClient.from("restaurants")
+        .select("stripe_connect_onboarding_completed_at")
+        .eq("id", restaurantId)
+        .single()
+      : { data: null, error: null };
+    if (completionError) throw new HttpError(500, completionError.message);
 
     const { error: syncError } = await adminClient
       .from("restaurants")
       .update({
-        stripe_connect_details_submitted: Boolean(account.details_submitted),
-        stripe_connect_charges_enabled: Boolean(account.charges_enabled),
-        stripe_connect_payouts_enabled: Boolean(account.payouts_enabled),
+        stripe_connect_details_submitted: account.detailsSubmitted,
+        stripe_connect_charges_enabled: account.chargesEnabled,
+        stripe_connect_payouts_enabled: account.payoutsEnabled,
         stripe_connect_requirements_due: currentlyDue,
-        stripe_connect_disabled_reason: text(account.requirements?.disabled_reason) || null,
+        stripe_connect_disabled_reason: account.disabledReason,
         stripe_connect_onboarding_completed_at: ready
-          ? text(restaurant.stripe_connect_onboarding_completed_at) || new Date().toISOString()
+          ? text(existingCompletion?.stripe_connect_onboarding_completed_at) || new Date().toISOString()
           : null,
         stripe_connect_last_synced_at: new Date().toISOString(),
       })
@@ -149,16 +141,9 @@ Deno.serve(async (req) => {
       }, 200, corsHeaders);
     }
 
-    const accountLink = await stripe.accountLinks.create({
-      account: accountId,
-      refresh_url: safeReturnUrl,
-      return_url: safeReturnUrl,
-      type: "account_onboarding",
-      collection_options: {
-        fields: "eventually_due",
-        future_requirements: "include",
-      },
-    });
+    const accountLinkUrl = await createRestaurantConnectOnboardingLink(
+      stripe, account, safeReturnUrl,
+    );
 
     await writeAuditLog({
       adminClient,
@@ -172,19 +157,18 @@ Deno.serve(async (req) => {
       metadata: {
         stripe_account_id: accountId,
         reused_existing_account: Boolean(restaurant.stripe_account_id),
-        collection_fields: "eventually_due",
-        future_requirements: "include",
+        account_api: account.api,
         requirements_due: currentlyDue,
       },
     });
 
     return jsonResponse({
-      url: accountLink.url,
+      url: accountLinkUrl,
       account_id: accountId,
       ready: false,
-      details_submitted: Boolean(account.details_submitted),
-      charges_enabled: Boolean(account.charges_enabled),
-      payouts_enabled: Boolean(account.payouts_enabled),
+      details_submitted: account.detailsSubmitted,
+      charges_enabled: account.chargesEnabled,
+      payouts_enabled: account.payoutsEnabled,
       requirements_due: currentlyDue,
     }, 200, corsHeaders);
   } catch (error) {
