@@ -65,13 +65,21 @@ function readUtf8(root, relativePath, digestSources) {
   return content;
 }
 
+// Skills d'agents (Claude Code, Codex) : outillage tiers versionné, pas l'application TOK.
+// Leurs Markdown et scripts n'entrent ni dans l'inventaire ni dans la référence générée.
+const AGENT_TOOLING_PREFIXES = [".claude/skills/", ".agents/skills/"];
+
 export function listRepositoryFiles(root = REPOSITORY_ROOT) {
   const output = execFileSync(
     "git",
     ["ls-files", "--cached", "-z"],
     { cwd: root, encoding: "utf8" },
   );
-  const files = output.split("\0").map(normalizePath).filter(Boolean);
+  const files = output
+    .split("\0")
+    .map(normalizePath)
+    .filter(Boolean)
+    .filter((file) => !AGENT_TOOLING_PREFIXES.some((prefix) => file.startsWith(prefix)));
   for (const generatedPath of [...GENERATED_PATHS, ...INDEX_IMPLEMENTATION_PATHS]) {
     if (existsSync(path.join(root, generatedPath))) files.push(generatedPath);
   }
