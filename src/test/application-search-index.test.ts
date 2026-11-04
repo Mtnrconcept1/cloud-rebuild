@@ -89,7 +89,8 @@ describe("application search index", () => {
     expect(
       index.catalogs.cronJobs.find((job: { name: string }) => job.name === "tok-marketing-content-review"),
     ).toMatchObject({ schedules: ["*/2 * * * *"] });
-    expect(index.catalogs.storageBuckets).toHaveLength(9);
+    expect(index.catalogs.storageBuckets.length).toBeGreaterThanOrEqual(9);
+    expect(index.catalogs.storageBuckets.some((bucket: { name: string }) => bucket.name === "restaurant-ai-videos")).toBe(true);
     expect(index.catalogs.databaseContract.length).toBeGreaterThanOrEqual(228);
     expect(index.catalogs.pages.length).toBeGreaterThan(100);
     expect(index.catalogs.databaseObjects.length).toBeGreaterThan(100);

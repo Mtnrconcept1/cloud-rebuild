@@ -182,7 +182,7 @@ async function start(actor: Actor, restaurantId: string, body: Record<string, un
       throw new HttpError(409, message.split(":")[0]);
     throw new HttpError(502, "video_reservation_failed");
   }
-  let job = data as VideoJob;
+  const job = data as VideoJob;
   const { data: claimed, error: claimError } = await actor.adminClient
     .rpc("claim_restaurant_video_submission", { p_job_id: job.id });
   if (claimError) throw new HttpError(502, "video_submission_claim_failed");

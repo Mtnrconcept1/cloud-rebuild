@@ -67,6 +67,7 @@ const FUNCTION_PURPOSE: Record<string, string> = {
   "google-actions-center-sync": "l’envoi des mises à jour de disponibilité et de réservation à Google",
   "menu-image-import": "l’extraction d’une carte de restaurant depuis des photos",
   "ai-image-enhance": "la génération ou la retouche d’images par IA",
+  "ai-video-studio": "la création et le suivi des vidéos publicitaires Higgsfield",
   "ai-client-support": "l’assistance IA côté client",
   "ai-client-chat": "la conversation IA côté client",
   "ai-restaurant-agent": "l’assistant IA du restaurateur",
