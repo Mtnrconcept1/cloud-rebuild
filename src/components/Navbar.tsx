@@ -358,7 +358,7 @@ export default function Navbar() {
                 ) : null}
                 {flashSalesEnabled ? (
                   <NavigationMenuItem>
-                    <Link to="/ventes-flash" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-foreground/80 transition-colors hover:bg-muted hover:text-foreground aria-[current=page]:bg-muted aria-[current=page]:text-foreground" aria-current={location.pathname === "/ventes-flash" ? "page" : undefined}>
+                    <Link to="/ventes-flash" className="flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[0.9rem] font-semibold text-amber-600 transition-colors hover:text-orange-600 hover:bg-amber-500/10 dark:text-amber-300 dark:hover:text-orange-300 aria-[current=page]:bg-amber-500/10" aria-current={location.pathname === "/ventes-flash" ? "page" : undefined}>
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                   </Link>
@@ -593,7 +593,7 @@ export default function Navbar() {
                     </Link>
                   ) : null}
                   {showClientSurface && flashSalesEnabled ? (
-                    <Link to="/ventes-flash" className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary" onClick={() => setMenuOpen(false)}>
+                    <Link to="/ventes-flash" className="flex items-center gap-2 text-sm font-semibold text-amber-600 hover:text-orange-600 dark:text-amber-300 dark:hover:text-orange-300" onClick={() => setMenuOpen(false)}>
                       <Zap className="h-4 w-4 fill-amber-400/35 text-amber-500 dark:text-amber-300" />
                       Ventes flash
                     </Link>
