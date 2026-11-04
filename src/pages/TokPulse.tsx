@@ -95,7 +95,7 @@ export default function TokPulse() {
               <h1 className="max-w-3xl text-4xl font-black tracking-[-0.045em] sm:text-6xl lg:text-7xl">
                 TOK vit maintenant sur ton écran d’accueil.
               </h1>
-              <p className="max-w-2xl text-base leading-7 text-orange-50/78 sm:text-lg">
+              <p className="max-w-2xl text-base leading-7 text-orange-50/80 sm:text-lg">
                 Le vrai widget TOK Pulse est une extension WidgetKit de l’<strong className="text-white">app iOS native TOK</strong>.
                 Il affiche les signaux utiles de TOK et ouvre directement la bonne expérience.
               </p>
@@ -113,7 +113,7 @@ export default function TokPulse() {
               </Button>
             </div>
 
-            <div className="grid gap-2 text-sm text-orange-50/78 sm:grid-cols-2">
+            <div className="grid gap-2 text-sm text-orange-50/80 sm:grid-cols-2">
               {["Petit, moyen et grand format", "Actualisation automatique", "Universal Links vers TOK", "Aucune donnée privée dans le widget"].map((label) => (
                 <div key={label} className="flex items-center gap-2">
                   <span className="grid h-5 w-5 place-items-center rounded-full bg-emerald-500/15 text-emerald-300"><Check className="h-3 w-3" /></span>
@@ -148,7 +148,7 @@ export default function TokPulse() {
                         <span className="text-xs font-bold uppercase tracking-[0.17em] text-orange-200/75">{label}</span>
                       </div>
                       <p className="break-words text-xl font-black leading-tight">{item.title}</p>
-                      <p className="mt-1 text-sm text-orange-50/62">{item.subtitle}</p>
+                      <p className="mt-1 text-sm text-orange-50/60">{item.subtitle}</p>
                       <p className="mt-4 text-xs font-bold text-orange-300">Ouvrir dans TOK →</p>
                     </Link>
                   ))}
@@ -162,7 +162,7 @@ export default function TokPulse() {
       <section className="mx-auto grid max-w-6xl gap-4 px-4 pb-16 sm:px-6 lg:grid-cols-2 lg:px-8">
         <div className="rounded-3xl border border-orange-300/20 bg-white/[0.055] p-6 sm:p-7">
           <div className="mb-4 flex items-center gap-3"><LayoutGrid className="h-6 w-6 text-orange-300" /><h2 className="text-2xl font-black">Ajouter le vrai widget iPhone</h2></div>
-          <ol className="space-y-3 text-orange-50/76">
+          <ol className="space-y-3 text-orange-50/75">
             <li><strong className="text-white">1.</strong> Installe ou mets à jour l’app iOS TOK.</li>
             <li><strong className="text-white">2.</strong> Fais un appui long sur l’écran d’accueil puis touche « Modifier » / « Ajouter un widget ».</li>
             <li><strong className="text-white">3.</strong> Recherche « TOK Pulse », choisis le format puis ajoute-le.</li>
@@ -171,7 +171,7 @@ export default function TokPulse() {
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-6 sm:p-7">
           <div className="mb-4 flex items-center gap-3"><Smartphone className="h-6 w-6 text-orange-300" /><h2 className="text-2xl font-black">Et la PWA Safari ?</h2></div>
-          <p className="leading-7 text-orange-50/72">
+          <p className="leading-7 text-orange-50/70">
             Une <strong className="text-white">PWA installée depuis Safari ne peut pas installer une extension WidgetKit</strong>.
             Elle garde l’icône TOK, les notifications web autorisées et les raccourcis web, mais le widget natif appartient à l’app iOS TOK.
           </p>

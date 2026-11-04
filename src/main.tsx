@@ -5,6 +5,7 @@ import { recoverChunkLoadError } from "@/components/ErrorBoundary";
 import "./index.css";
 import "./home-section-headers.css";
 import "./styles/motion.css";
+import "./styles/work-shells.css";
 import "./styles/halloween-theme.css";
 import "./styles/commercial-prospection-markers.css";
 import "./styles/dark-neon.css";

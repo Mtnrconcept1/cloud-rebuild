@@ -227,7 +227,7 @@ function LiveDashboardFacturesOutflow() {
 
         {!selectedRestaurant && !isLoading ? (
           <Card className="tok-dashboard-section rounded-3xl border border-border/70">
-            <CardContent className="py-10 text-center text-muted-foreground dark:text-slate-100/78">
+            <CardContent className="py-10 text-center text-muted-foreground dark:text-slate-100/80">
               Sélectionnez un restaurant dans la barre latérale pour afficher ses sorties d&apos;argent.
             </CardContent>
           </Card>

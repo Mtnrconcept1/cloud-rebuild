@@ -388,7 +388,7 @@ function LiveDashboardFactures() {
 
             <div className="grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(220px,260px)_repeat(4,minmax(130px,1fr))]">
               <Select value={exportPeriodPreset} onValueChange={(value) => setExportPeriodPreset(value as AccountingPeriodPreset)}>
-                <SelectTrigger className="h-12 w-full rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white">
+                <SelectTrigger className="h-12 w-full rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/85 dark:text-white">
                   <SelectValue placeholder="Période comptable" />
                 </SelectTrigger>
                 <SelectContent>
@@ -449,7 +449,7 @@ function LiveDashboardFactures() {
 
         {!selectedRestaurant && !isLoading ? (
           <Card className="tok-dashboard-section rounded-3xl border border-border/70">
-            <CardContent className="py-10 text-center text-muted-foreground dark:text-slate-100/78">
+            <CardContent className="py-10 text-center text-muted-foreground dark:text-slate-100/80">
               <ReceiptText className="mx-auto mb-3 h-10 w-10 text-[#ff6a1a] opacity-80" />
               <p>Sélectionnez un restaurant dans la barre latérale pour afficher sa comptabilité.</p>
             </CardContent>

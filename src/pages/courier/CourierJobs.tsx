@@ -390,7 +390,7 @@ function LiveCourierJobs() {
                 })
               ) : (
                 <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-                  Les missions acceptées apparaitront ici avec le prochain statut a valider.
+                  Les missions acceptées apparaîtront ici avec le prochain statut à valider.
                 </div>
               )}
             </CardContent>
@@ -400,7 +400,7 @@ function LiveCourierJobs() {
         <Card>
           <CardHeader>
             <CardTitle>Historique récent</CardTitle>
-            <CardDescription>Vos dernieres missions terminées ou annulées.</CardDescription>
+            <CardDescription>Vos dernières missions terminées ou annulées.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {recentJobs.length > 0 ? (

@@ -172,7 +172,7 @@ export default function MultiRestaurant() {
       title="Multi-restaurants"
       subtitle="Entrée + plat + dessert de restaurants différents, livrés ensemble"
       icon={Layers}
-      colorClass="pink-500"
+      colorClass="primary"
       steps={[
         { id: "courses", label: "Choix des plats" },
         { id: "confirm", label: "Confirmation" }
@@ -182,22 +182,22 @@ export default function MultiRestaurant() {
     >
       <div className="space-y-8">
         {/* How it works */}
-        <div className="rounded-xl bg-pink-500/5 border border-pink-500/10 p-5">
+        <div className="rounded-xl bg-primary/5 border border-primary/10 p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-5 w-5 text-pink-500" />
+            <Sparkles className="h-5 w-5 text-primary" />
             <h3 className="font-semibold text-sm">Composez votre repas idéal</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2 bg-background/50 p-2 rounded-lg border border-pink-500/10">
-              <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-pink-500 text-white border-none">1</Badge>
+            <div className="flex items-center gap-2 bg-background/50 p-2 rounded-lg border border-primary/10">
+              <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary text-white border-none">1</Badge>
               <span>Plusieurs plats possibles par étape</span>
             </div>
-            <div className="flex items-center gap-2 bg-background/50 p-2 rounded-lg border border-pink-500/10">
-              <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-pink-500 text-white border-none">2</Badge>
+            <div className="flex items-center gap-2 bg-background/50 p-2 rounded-lg border border-primary/10">
+              <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary text-white border-none">2</Badge>
               <span>Périmètre de 500m après le 1er choix</span>
             </div>
-            <div className="flex items-center gap-2 bg-background/50 p-2 rounded-lg border border-pink-500/10">
-              <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-pink-500 text-white border-none">3</Badge>
+            <div className="flex items-center gap-2 bg-background/50 p-2 rounded-lg border border-primary/10">
+              <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary text-white border-none">3</Badge>
               <span>Livraison unique synchronisée</span>
             </div>
           </div>
@@ -207,10 +207,10 @@ export default function MultiRestaurant() {
           <>
             {/* Radius Warning */}
             {originRestaurant && (
-              <div className="flex items-center gap-2 text-xs font-medium text-pink-600 bg-pink-500/5 p-3 rounded-lg border border-pink-500/20 animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center gap-2 text-xs font-medium text-primary bg-primary/5 p-3 rounded-lg border border-primary/20 animate-in fade-in slide-in-from-top-2">
                 <MapPin className="h-4 w-4 shrink-0" />
                 <span>Restreint aux restaurants à moins de 500m de <strong>{originRestaurant.name}</strong></span>
-                <Button variant="ghost" size="sm" className="ml-auto h-6 text-[10px] hover:bg-pink-500/10" onClick={() => setSelections([])}>Réinitialiser</Button>
+                <Button variant="ghost" size="sm" className="ml-auto h-6 text-[10px] hover:bg-primary/10" onClick={() => setSelections([])}>Réinitialiser</Button>
               </div>
             )}
 
@@ -223,8 +223,8 @@ export default function MultiRestaurant() {
                     key={course}
                     onClick={() => { setActiveCourse(i); setSelectedRestaurantId(null); }}
                     className={`flex-1 rounded-xl border-2 p-3 text-center transition-all ${i === activeCourse
-                      ? "border-pink-500 bg-pink-500/5"
-                      : "border-border hover:border-pink-500/30"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/30"
                       }`}
                   >
                     <p className="font-semibold text-sm">{course}</p>
@@ -244,7 +244,7 @@ export default function MultiRestaurant() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="font-display text-xl font-semibold">
-                    Choisir un restaurant pour : <span className="text-pink-600">{currentCourse}</span>
+                    Choisir un restaurant pour : <span className="text-primary">{currentCourse}</span>
                   </h2>
                   <Badge variant="secondary" className="text-[10px]">{filteredRestaurants.length} dispos</Badge>
                 </div>
@@ -253,7 +253,7 @@ export default function MultiRestaurant() {
                     <button
                       key={r.id}
                       onClick={() => setSelectedRestaurantId(r.id)}
-                      className="text-left rounded-xl border-2 overflow-hidden hover:border-pink-500/30 border-border transition-all flex flex-col h-full bg-card"
+                      className="text-left rounded-xl border-2 overflow-hidden hover:border-primary/30 border-border transition-all flex flex-col h-full bg-card"
                     >
                       <div className="relative">
                         <img
@@ -285,11 +285,11 @@ export default function MultiRestaurant() {
             ) : (
               <div className="space-y-4 animate-in fade-in-50 slide-in-from-right-4">
                 <WizardBackButton onClick={() => setSelectedRestaurantId(null)} label="Restaurants" />
-                <div className="rounded-xl bg-pink-500/5 p-4 flex items-center justify-between border border-pink-500/10">
+                <div className="rounded-xl bg-primary/5 p-4 flex items-center justify-between border border-primary/10">
                   <div className="flex items-center gap-3">
-                    <div className="bg-pink-500 text-white p-2 rounded-lg"><Layers className="h-4 w-4" /></div>
+                    <div className="bg-primary text-white p-2 rounded-lg"><Layers className="h-4 w-4" /></div>
                     <div>
-                      <p className="text-xs font-bold text-pink-600 uppercase tracking-widest">{currentCourse}</p>
+                      <p className="text-xs font-bold text-primary uppercase tracking-widest">{currentCourse}</p>
                       <p className="font-bold text-sm">{selectedRestaurant?.name}</p>
                     </div>
                   </div>
@@ -299,17 +299,17 @@ export default function MultiRestaurant() {
                     <button
                       key={item.id}
                       onClick={() => selectItem(item, selectedRestaurant)}
-                      className="w-full text-left flex items-center gap-3 p-3 border-2 rounded-xl transition-all border-border hover:border-pink-500/30 bg-card group"
+                      className="w-full text-left flex items-center gap-3 p-3 border-2 rounded-xl transition-all border-border hover:border-primary/30 bg-card group"
                     >
                       {item.image_url && <img src={item.image_url} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0" />}
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm group-hover:text-pink-600 transition-colors">{item.name}</p>
+                        <p className="font-semibold text-sm group-hover:text-primary transition-colors">{item.name}</p>
                         {item.description && <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>}
                         <p className="text-[10px] text-muted-foreground bg-muted w-fit px-1.5 rounded mt-1">{item.category}</p>
                       </div>
                       <div className="text-right flex items-center gap-3">
                         <span className="font-bold text-sm text-primary">{Number(item.price).toFixed(2)} CHF</span>
-                        <div className="h-8 w-8 rounded-full bg-pink-500/10 text-pink-600 flex items-center justify-center group-hover:bg-pink-500 group-hover:text-white transition-all shadow-sm">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
                           <Plus className="h-4 w-4" />
                         </div>
                       </div>
@@ -323,7 +323,7 @@ export default function MultiRestaurant() {
                 </div>
                 <div className="pt-6 border-t mt-4">
                   <Button
-                    className="w-full bg-pink-500 hover:bg-pink-600"
+                    className="w-full bg-primary hover:bg-primary/90"
                     onClick={() => setSelectedRestaurantId(null)}
                   >
                     Valider mes choix pour ce restaurant
@@ -334,13 +334,13 @@ export default function MultiRestaurant() {
 
             {/* Current selections summary */}
             {selections.length > 0 && (
-              <div className="rounded-2xl border-2 border-pink-500/20 bg-card p-5 space-y-4 sticky bottom-4 shadow-2xl animate-in slide-in-from-bottom-4">
+              <div className="rounded-2xl border-2 border-primary/20 bg-card p-5 space-y-4 sticky bottom-4 shadow-2xl animate-in slide-in-from-bottom-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-sm flex items-center gap-2">
-                    <ShoppingCart className="h-4 w-4 text-pink-500" />
+                    <ShoppingCart className="h-4 w-4 text-primary" />
                     Votre sélection ({selections.length})
                   </h3>
-                  <Badge variant="outline" className="text-[10px] border-pink-500/30 text-pink-600">
+                  <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
                     {uniqueRestaurants} resto{uniqueRestaurants > 1 ? "s" : ""}
                   </Badge>
                 </div>
@@ -348,7 +348,7 @@ export default function MultiRestaurant() {
                   {selections.map((sel) => (
                     <div key={sel.id} className="flex items-center justify-between text-xs bg-muted/30 p-2 rounded-lg">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Badge variant="secondary" className="text-[8px] h-4 px-1 shrink-0 bg-pink-500/10 text-pink-700 border-none font-bold uppercase">{sel.course}</Badge>
+                        <Badge variant="secondary" className="text-[8px] h-4 px-1 shrink-0 bg-primary/10 text-foreground border-none font-bold uppercase">{sel.course}</Badge>
                         <span className="truncate font-medium">{sel.itemName}</span>
                         <span className="text-[10px] text-muted-foreground italic truncate">at {sel.restaurantName}</span>
                       </div>
@@ -364,13 +364,13 @@ export default function MultiRestaurant() {
                 <div className="pt-2 border-t border-dashed space-y-3">
                   <div className="flex justify-between items-center px-1">
                     <span className="text-sm font-bold">Total</span>
-                    <span className="text-lg font-black text-pink-600">{total.toFixed(2)} CHF</span>
+                    <span className="text-lg font-black text-primary">{total.toFixed(2)} CHF</span>
                   </div>
                   {selections.length >= 2 ? (
                     <WizardNextButton
                       onClick={() => setStep("confirm")}
                       label="Voir le récapitulatif"
-                      colorClass="pink-500"
+                      colorClass="primary"
                     />
                   ) : (
                     <div className="bg-muted p-2 rounded text-center">
@@ -386,8 +386,8 @@ export default function MultiRestaurant() {
         {step === "confirm" && (
           <div className="space-y-6 animate-in slide-in-from-bottom-8">
             <WizardBackButton onClick={() => setStep("courses")} label="Modifier ma sélection" />
-            <div className="rounded-2xl bg-pink-500/5 border border-pink-500/20 p-8 text-center space-y-3">
-              <div className="bg-pink-500 text-white w-16 h-16 rounded-3xl flex items-center justify-center mx-auto shadow-lg shadow-pink-500/20">
+            <div className="rounded-2xl bg-primary/5 border border-primary/20 p-8 text-center space-y-3">
+              <div className="bg-primary text-white w-16 h-16 rounded-3xl flex items-center justify-center mx-auto shadow-lg shadow-primary/20">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
               <h2 className="font-display text-2xl font-bold">Menu Multi-Resto complet !</h2>
@@ -402,7 +402,7 @@ export default function MultiRestaurant() {
                 {selections.map((sel) => (
                   <div key={sel.id} className="flex justify-between items-start gap-4">
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-pink-600 uppercase tracking-tighter">{sel.course}</span>
+                      <span className="text-xs font-bold text-primary uppercase tracking-tighter">{sel.course}</span>
                       <span className="text-sm font-medium">{sel.itemName}</span>
                       <span className="text-[10px] text-muted-foreground italic">{sel.restaurantName}</span>
                     </div>
@@ -411,12 +411,12 @@ export default function MultiRestaurant() {
                 ))}
                 <div className="flex justify-between border-t border-dashed pt-3 mt-2">
                   <span className="font-bold truncate">Total (plats)</span>
-                  <span className="font-black text-lg text-pink-600">{total.toFixed(2)} CHF</span>
+                  <span className="font-black text-lg text-primary">{total.toFixed(2)} CHF</span>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl bg-pink-500/5 p-4 flex items-start gap-3 text-xs text-pink-700 border border-pink-500/10 italic">
+            <div className="rounded-xl bg-primary/5 p-4 flex items-start gap-3 text-xs text-foreground border border-primary/10 italic">
               <Clock className="h-4 w-4 shrink-0 mt-0.5" />
               <p>Tok gère la logistique : Bien que venant de plusieurs adresses, tous vos plats arriveront dans un seul sac à la même heure.</p>
             </div>
@@ -424,7 +424,7 @@ export default function MultiRestaurant() {
             <WizardNextButton
               onClick={handleCheckout}
               label="Procéder au panier"
-              colorClass="pink-500"
+              colorClass="primary"
             />
           </div>
         )}

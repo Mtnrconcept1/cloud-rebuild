@@ -145,11 +145,11 @@ function CourierHomePresentation({
               <div className="space-y-1">
                 <p className="font-semibold">Profil en attente de validation</p>
                 <p className="text-sm text-muted-foreground">
-                  Completez votre profil et vos documents pour accelerer l'approbation avant la mise en ligne.
+                  Complétez votre profil et vos documents pour accélérer l'approbation avant la mise en ligne.
                 </p>
               </div>
               <Button asChild variant="outline">
-                <Link to="/courier/profile">Completer mon profil</Link>
+                <Link to="/courier/profile">Compléter mon profil</Link>
               </Button>
             </CardContent>
           </Card>

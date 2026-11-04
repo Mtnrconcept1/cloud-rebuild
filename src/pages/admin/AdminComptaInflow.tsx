@@ -314,7 +314,7 @@ export default function AdminComptaInflow() {
       <Card className="tok-dashboard-section rounded-3xl border border-dashed border-border/70 bg-muted/20">
         <CardContent className="grid gap-4 p-5 md:grid-cols-2 md:p-6">
           <Select value={selectedRestaurant} onValueChange={setSelectedRestaurant}>
-            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/85 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <SelectValue placeholder="Restaurant" />
             </SelectTrigger>
             <SelectContent>
@@ -328,7 +328,7 @@ export default function AdminComptaInflow() {
           </Select>
 
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <SelectTrigger className="h-14 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/85 dark:text-white dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <SelectValue placeholder="Mois" />
             </SelectTrigger>
             <SelectContent>
@@ -373,7 +373,7 @@ export default function AdminComptaInflow() {
               icon={Wallet}
               label="Déjà encaisse"
               value={formatAmount(summary.inflow.payableCollected)}
-              description="Historique regle sur les factures payables déjà emises."
+              description="Historique réglé des factures payables déjà émises."
             />
           </div>
 

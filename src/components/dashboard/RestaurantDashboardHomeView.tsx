@@ -273,7 +273,7 @@ function MobileOverviewCard({ to, children }: { to: string | null; children: Rea
 }
 
 function OverviewListRow({ to, children }: { to: string | null; children: ReactNode }) {
-  const className = "grid min-w-0 grid-cols-1 gap-2 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-[#8b7f74]/22 dark:bg-card/72 dark:text-slate-100 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center";
+  const className = "grid min-w-0 grid-cols-1 gap-2 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm transition hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-[#8b7f74]/22 dark:bg-card/70 dark:text-slate-100 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center";
   return to ? <Link to={to} className={className}>{children}</Link> : <div aria-disabled="true" className={cn(className, "opacity-65")}>{children}</div>;
 }
 function MobileRestaurantHeader({

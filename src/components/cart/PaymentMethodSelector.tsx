@@ -65,7 +65,7 @@ export default function PaymentMethodSelector({
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
           <div className="space-y-1">
             <p className="text-sm font-semibold text-white">Confirmation immédiate après paiement</p>
-            <p className="text-xs leading-5 text-white/72">
+            <p className="text-xs leading-5 text-white/70">
               Vos créneaux La Tok d’Or et votre nombre de convives sont déjà pris en compte dans cette étape.
             </p>
           </div>
@@ -114,7 +114,7 @@ export default function PaymentMethodSelector({
         className={cn(
           "text-[10px]",
           isChefTable
-            ? "text-left text-white/72"
+            ? "text-left text-white/70"
             : "text-center italic text-muted-foreground",
         )}
       >

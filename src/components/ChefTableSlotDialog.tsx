@@ -294,7 +294,7 @@ export default function ChefTableSlotDialog({
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
                 <div>
                   <p className="text-sm font-semibold text-white">Paiement sécurisé ensuite</p>
-                  <p className="mt-1 text-xs leading-5 text-white/68">
+                  <p className="mt-1 text-xs leading-5 text-white/70">
                     Cette étape prepare votre réservation. Le paiement confirme ensuite votre La Tok d’Or.
                   </p>
                 </div>

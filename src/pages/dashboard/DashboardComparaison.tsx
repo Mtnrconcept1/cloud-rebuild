@@ -148,7 +148,7 @@ export default function DashboardComparaison() {
             <div className="flex flex-wrap gap-2">
               {restaurants.length > 1 ? (
                 <Select value={selectedId || ""} onValueChange={setSelectedId}>
-                  <SelectTrigger className="h-14 w-48 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white">
+                  <SelectTrigger className="h-14 w-48 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/85 dark:text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -161,7 +161,7 @@ export default function DashboardComparaison() {
                 </Select>
               ) : null}
               <Select value={period} onValueChange={setPeriod}>
-                <SelectTrigger className="h-14 w-36 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/86 dark:text-white">
+                <SelectTrigger className="h-14 w-36 rounded-2xl border-border/70 bg-background/90 font-semibold dark:border-[#8b7f74]/35 dark:bg-background/85 dark:text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

@@ -339,3 +339,11 @@
 
 .tok-profile-identity { display: grid; gap: 1rem; align-items: center; padding: 1rem; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 1rem; }
 @media (min-width: 860px) { .tok-profile-identity { grid-template-columns: minmax(12rem, .8fr) minmax(0, 1.2fr); } }
+
+/* Hero éditorial de l'historique des notifications : même titre plafonné sur
+   la largeur de sa colonne que les autres en-têtes (editorial.css), pour ne
+   jamais couper « notifications » en deux sur mobile. */
+.tok-hospitality-workspace .tok-customer-notifications .tok-editorial-heading h1 {
+  font-size: min(var(--tok-editorial-title-size, clamp(2.15rem, 4.5vw, 4.75rem)), 13.5cqi);
+  line-height: .92;
+}

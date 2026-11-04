@@ -1046,15 +1046,15 @@ function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionCh
         <div className="tok-customer-membership-card rounded-2xl border p-6 space-y-5">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
-                <Crown className="h-6 w-6 text-violet-600" />
+              <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-primary/15 flex items-center justify-center">
+                <Crown className="h-6 w-6 text-primary" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-lg text-violet-900">Tok One</h3>
+                  <h3 className="font-bold text-lg text-foreground">Tok One</h3>
                   <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">Actif</Badge>
                 </div>
-                <p className="text-sm text-violet-600">
+                <p className="text-sm text-primary">
                   {subscription.user_subscription_plans?.name || "Premium"}
                 </p>
               </div>
@@ -1111,7 +1111,7 @@ function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionCh
             <div className="rounded-xl bg-white/60 border p-4 space-y-1">
               <p className="text-xs text-muted-foreground font-medium">Début de la période</p>
               <p className="font-semibold text-sm">
-                <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
+                <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-primary" />
                 {new Date(subscription.current_period_start).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
               </p>
             </div>
@@ -1120,7 +1120,7 @@ function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionCh
                 {subscription.cancel_at_period_end ? "Expire le" : "Prochain renouvellement"}
               </p>
               <p className="font-semibold text-sm">
-                <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-violet-500" />
+                <CalendarCheck className="h-3.5 w-3.5 inline mr-1.5 text-primary" />
                 {new Date(subscription.current_period_end).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
               </p>
             </div>
@@ -1130,7 +1130,7 @@ function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionCh
             <p className="text-xs text-muted-foreground font-medium mb-3">Avantages actifs</p>
             <div className="flex flex-wrap gap-2">
               {enabledBenefitLabels.map((label) => (
-                <Badge key={label} variant="secondary" className="bg-violet-100 text-violet-700">
+                <Badge key={label} variant="secondary" className="bg-orange-100 dark:bg-primary/15 text-foreground">
                   {label}
                 </Badge>
               ))}
@@ -1147,19 +1147,19 @@ function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionCh
         </div>
       ) : (
         <div className="tok-customer-membership-card tok-customer-membership-card--empty rounded-2xl border p-8 text-center space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto">
-            <Crown className="h-8 w-8 text-violet-400" />
+          <div className="w-16 h-16 rounded-2xl bg-orange-100 dark:bg-primary/15 flex items-center justify-center mx-auto">
+            <Crown className="h-8 w-8 text-primary" />
           </div>
           <h3 className="font-bold text-xl">Aucun abonnement actif</h3>
           <p className="text-muted-foreground max-w-md mx-auto">
             Rejoignez Tok One pour bénéficier de la livraison gratuite, de réductions exclusives et d'un accès VIP.
           </p>
           {plans && plans.length > 0 && (
-            <p className="text-sm text-violet-600 font-medium">
+            <p className="text-sm text-primary font-medium">
               À partir de {Number(plans[0].price_monthly).toFixed(2)} CHF/mois
             </p>
           )}
-          <Button className="bg-violet-600 hover:bg-violet-700 text-white" asChild>
+          <Button className="bg-primary hover:bg-primary/90 text-white" asChild>
             <Link to="/tok-one">
               <Crown className="mr-2 h-4 w-4" />
               Decouvrir Tok One
@@ -1172,7 +1172,7 @@ function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionCh
       {(totalOrders > 0 || totalPaid > 0) && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="rounded-xl border bg-card p-4 text-center space-y-1">
-            <p className="text-2xl font-bold text-violet-600">{totalOrders}</p>
+            <p className="text-2xl font-bold text-primary">{totalOrders}</p>
             <p className="text-xs text-muted-foreground">Commandes Tok One</p>
           </div>
           <div className="rounded-xl border bg-card p-4 text-center space-y-1">
@@ -1193,7 +1193,7 @@ function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionCh
       {/* Usage history: orders with Tok One benefits */}
       <div className="space-y-3">
         <h3 className="font-bold text-lg flex items-center gap-2">
-          <Truck className="h-5 w-5 text-violet-500" />
+          <Truck className="h-5 w-5 text-primary" />
           Historique des avantages utilisés
         </h3>
         {ordersLoading ? (
@@ -1207,8 +1207,8 @@ function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionCh
               return (
                 <div key={order.id} className="flex items-center justify-between p-3 rounded-xl border bg-card">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center shrink-0">
-                      <Crown className="h-4 w-4 text-violet-500" />
+                    <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-primary/15 flex items-center justify-center shrink-0">
+                      <Crown className="h-4 w-4 text-primary" />
                     </div>
                     <div className="min-w-0">
                       <p className="font-medium text-sm truncate">{restaurantName}</p>
@@ -1243,7 +1243,7 @@ function TokOneTab({ userId, subscription, isActive, plans, onDemoSubscriptionCh
       {payments && payments.length > 0 && (
         <div className="space-y-3">
           <h3 className="font-bold text-lg flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-violet-500" />
+            <CreditCard className="h-5 w-5 text-primary" />
             Historique des paiements
           </h3>
           <div className="space-y-2">

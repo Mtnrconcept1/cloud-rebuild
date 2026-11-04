@@ -1,0 +1,81 @@
+/*
+ * TOK — finition des espaces de travail admin, commercial et livreur.
+ *
+ * Même traitement que les tableaux de bord restaurateur et client
+ * (WorkspaceDesign.css) : photos et sous-titres approuvés conservés, mais
+ * moins de hauteur avant les outils, des indicateurs plats et lisibles et des
+ * libellés en casse de phrase. Uniquement des jetons du thème (clair et
+ * sombre), aucune nouvelle couleur.
+ */
+:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) .tok-editorial-heading {
+  min-height: clamp(12.5rem, 16vw, 16.5rem);
+  padding-block: clamp(1.15rem, 2vw, 1.75rem);
+}
+:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) .tok-editorial-heading h1 {
+  --tok-editorial-title-size: clamp(2.1rem, 3.4vw, 3.5rem);
+}
+@media (max-width: 40rem) {
+  :is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) .tok-editorial-heading { min-height: 13.5rem; }
+  :is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) .tok-editorial-heading h1 {
+    --tok-editorial-title-size: clamp(1.85rem, 7.4vw, 2.4rem);
+  }
+  /* Grille de deux indicateurs : un dernier indicateur isolé prend toute la ligne. */
+  :is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) .tok-editorial-stats > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+
+/* Indicateurs d'en-tête : surface plate à filet fin, chiffres tabulaires. */
+:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) .tok-editorial-stats { gap: .75rem; margin-top: .75rem; }
+:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) .tok-editorial-stat {
+  padding: .9rem 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 14px;
+  background: hsl(var(--card));
+  box-shadow: none;
+}
+:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) .tok-editorial-stat dt {
+  color: hsl(var(--muted-foreground));
+  font-size: .8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) .tok-editorial-stat dd {
+  margin-top: .2rem;
+  color: hsl(var(--foreground));
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+}
+:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) .tok-editorial-stat svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Libellés en casse de phrase (plus de petites capitales espacées) et jamais
+   sous 11,5 px dans le contenu de travail. */
+:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) .uppercase[class*="tracking-"] {
+  letter-spacing: 0;
+  text-transform: none;
+}
+:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) :is([class~="text-[9px]"], [class~="text-[10px]"]) { font-size: 11.5px; }
+:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell) th { letter-spacing: 0; text-transform: none; }
+
+/* Réglage des cookies : pastille icône, pour ne pas recouvrir les outils ; le
+   nom accessible « Gérer mes cookies » est conservé. */
+body:has(:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell)) .tok-cookie-settings {
+  width: 2.5rem;
+  height: 2.5rem;
+  justify-content: center;
+  padding: 0;
+}
+body:has(:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell)) .tok-cookie-settings > span { display: none; }
+
+/* Titres de carte réduits à une étiquette (CardTitle en text-xs ou text-sm) :
+   la serif éditoriale n'est pas dessinée pour 12 à 14 px, ils reprennent la
+   sans-serif des libellés. */
+:is(.tok-admin-shell, .tok-commercial-shell, .tok-courier-shell, .tok-hospitality-workspace) h3.font-display:is(.text-xs, .text-sm) {
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0;
+}

@@ -842,8 +842,8 @@ export default function AdminOrdersReservations() {
   return (
     <div className="container space-y-6 py-8">
       <DashboardPageHero
-        badge="Operations admin"
-        title="Commandes et Reservations"
+        badge="Opérations admin"
+        title="Commandes et réservations"
         description="Historique admin des opérations clients, avec recherche par client, restaurant, référence et détails complets par opération."
         icon={ShoppingCart}
         tone="violet"
@@ -1185,7 +1185,7 @@ export default function AdminOrdersReservations() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Date</TableHead>
-                      <TableHead>Reservation</TableHead>
+                      <TableHead>Réservation</TableHead>
                       <TableHead>Client</TableHead>
                       <TableHead>Restaurant</TableHead>
                       <TableHead>Détails</TableHead>
@@ -1458,10 +1458,10 @@ export default function AdminOrdersReservations() {
               <div className="space-y-2 text-sm">
                 <p><strong>Type:</strong> {selectedRefund.target_type === "order" ? "Commande" : "Reservation"}</p>
                 <p><strong>Feature:</strong> {selectedRefund.feature || "-"}</p>
-                <p><strong>Annule par:</strong> {selectedRefund.cancelled_by || "-"}</p>
+                <p><strong>Annulé par :</strong> {selectedRefund.cancelled_by || "-"}</p>
                 <p><strong>Statut refund:</strong> {selectedRefund.refund_status || "pending"}</p>
                 {getRefundMiamzPriorityLabel(selectedRefund) ? (
-                  <p><strong>Priorite:</strong> {getRefundMiamzPriorityLabel(selectedRefund)}</p>
+                  <p><strong>Priorité :</strong> {getRefundMiamzPriorityLabel(selectedRefund)}</p>
                 ) : null}
                 {selectedRefund.refund_reason ? (
                   <p><strong>Motif:</strong> {selectedRefund.refund_reason}</p>

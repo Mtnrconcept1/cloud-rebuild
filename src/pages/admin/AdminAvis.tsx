@@ -273,8 +273,8 @@ export default function AdminAvis() {
   return (
     <div className="container py-8 space-y-6">
       <DashboardPageHero
-        badge="Moderation"
-        title="Moderation des avis"
+        badge="Modération"
+        title="Modération des avis"
         description="Contrôlez la visibilité des avis, les signalements et les réponses admin sans perdre le contexte restaurant."
         icon={MessageSquareText}
         tone="sky"

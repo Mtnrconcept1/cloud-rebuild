@@ -304,7 +304,7 @@ export default function CommercialMultiSpaceDemo() {
 
   return (
     <div className="min-w-0 space-y-3">
-      <section className="overflow-hidden rounded-2xl border border-white/70 bg-white/90 p-3 shadow-[0_16px_50px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/78 sm:p-4">
+      <section className="overflow-hidden rounded-2xl border border-white/70 bg-white/90 p-3 shadow-[0_16px_50px_rgba(15,23,42,0.1)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/80 sm:p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 max-w-4xl">
             <div className="flex flex-wrap items-center gap-2">

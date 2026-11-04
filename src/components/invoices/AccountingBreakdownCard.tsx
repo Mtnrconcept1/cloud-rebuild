@@ -63,7 +63,7 @@ export function AccountingBreakdownCard({
             <CardTitle className="font-display text-xl font-bold tracking-tight text-foreground dark:text-white sm:text-2xl">
               {title}
             </CardTitle>
-            <CardDescription className="max-w-2xl text-sm leading-6 dark:text-slate-100/78">
+            <CardDescription className="max-w-2xl text-sm leading-6 dark:text-slate-100/80">
               {description}
             </CardDescription>
           </div>
