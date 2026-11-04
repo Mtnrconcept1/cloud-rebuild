@@ -944,14 +944,14 @@ function LiveDashboardReservations() {
                         : hasFormula
                           ? "Formule promo"
                           : "À la carte";
-                  const typeClass = metadata.reservation_purpose === "drinks" ? "border-sky-300 bg-sky-50/70" : isZeroAttente
-                    ? "border-indigo-300 bg-indigo-50/70"
+                  const typeClass = metadata.reservation_purpose === "drinks" ? "border-sky-300 bg-sky-50/70 dark:bg-sky-950/30" : isZeroAttente
+                    ? "border-indigo-300 bg-indigo-50/70 dark:bg-indigo-950/30"
                     : isChefTable
-                      ? "border-amber-300 bg-amber-50/70"
+                      ? "border-amber-300 bg-amber-50/70 dark:bg-amber-950/30"
                       : progressiveDiscountPercent
-                        ? "border-orange-300 bg-orange-50/70"
+                        ? "border-orange-300 bg-orange-50/70 dark:bg-orange-950/30"
                         : hasFormula
-                          ? "border-emerald-300 bg-emerald-50/70"
+                          ? "border-emerald-300 bg-emerald-50/70 dark:bg-emerald-950/30"
                           : "border-border bg-card";
                   const statusLockMessage = getReservationStatusLockMessage(reservation);
                   const opsSnapshot = getReservationOpsSnapshot(reservation);
@@ -960,25 +960,25 @@ function LiveDashboardReservations() {
                   const isConfirmedAck = reservation.status === "confirmed";
 
                   return (
-                    <article key={reservation.id} className={`flex h-full min-w-0 flex-col justify-between overflow-hidden rounded-2xl border p-4 shadow-sm ${typeClass}`}>
+                    <article key={reservation.id} className={`tok-neon-surface flex h-full min-w-0 flex-col justify-between overflow-hidden rounded-2xl border p-4 shadow-sm ${typeClass}`}>
                       <div className="min-w-0 space-y-3">
                         <div className="min-w-0 space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="min-w-0 break-words text-base font-semibold">{reservation.customer?.full_name || "Client inconnu"}</span>
                             <OrderStatusBadge status={reservation.status} />
-                            <Badge variant="outline" className="bg-white/70">{typeLabel}</Badge>
+                            <Badge variant="outline" className="bg-white/70 dark:bg-background/70">{typeLabel}</Badge>
                             <Badge variant="secondary">{reservation.party_size} pers.</Badge>
                           </div>
                           <div className="grid grid-cols-1 gap-2 text-xs min-[520px]:grid-cols-3">
-                            <div className="rounded-lg border bg-white/70 p-2">
+                            <div className="rounded-lg border bg-white/70 p-2 dark:bg-background/70">
                               <p className="text-muted-foreground">Date</p>
                               <p className="font-semibold">{new Date(reservation.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}</p>
                             </div>
-                            <div className="rounded-lg border bg-white/70 p-2">
+                            <div className="rounded-lg border bg-white/70 p-2 dark:bg-background/70">
                               <p className="text-muted-foreground">Heure</p>
                               <p className="font-semibold">{getSafeTime(reservation.time)}</p>
                             </div>
-                            <div className="rounded-lg border bg-white/70 p-2">
+                            <div className="rounded-lg border bg-white/70 p-2 dark:bg-background/70">
                               <p className="text-muted-foreground">Service</p>
                               <p className="font-semibold">{getServicePeriodLabel(servicePeriod)}</p>
                             </div>
@@ -1127,9 +1127,9 @@ function LiveDashboardReservations() {
                                 const isZeroAttente = reservation.feature === "zero-attente";
                                 const isChefTable = reservation.feature === "chefs_table";
                                 const articleClass = isZeroAttente
-                                  ? `rounded-2xl border-2 border-l-4 border-indigo-300 bg-indigo-50/40 shadow-sm ${compactBase}`
+                                  ? `rounded-2xl border-2 border-l-4 border-indigo-300 bg-indigo-50/40 shadow-sm dark:bg-indigo-950/30 ${compactBase}`
                                   : isChefTable
-                                    ? `rounded-2xl border-2 border-l-4 border-amber-300 bg-amber-50/40 shadow-sm ${compactBase}`
+                                    ? `rounded-2xl border-2 border-l-4 border-amber-300 bg-amber-50/40 shadow-sm dark:bg-amber-950/30 ${compactBase}`
                                     : `rounded-2xl border border-l-4 bg-card shadow-sm ${compactBase}`;
 
                                 return (
@@ -1137,7 +1137,7 @@ function LiveDashboardReservations() {
                                   id={`reservation-${reservation.id}`}
                                   key={reservation.id}
                                   tabIndex={-1}
-                                  className={`${articleClass}${reservation.id === reservationTarget ? " ring-2 ring-primary ring-offset-2" : ""}`}
+                                  className={`tok-neon-surface ${articleClass}${reservation.id === reservationTarget ? " ring-2 ring-primary ring-offset-2" : ""}`}
                                 >
                                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                       <div className="space-y-2">

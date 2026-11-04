@@ -766,10 +766,11 @@ export default function DashboardCampagnes() {
               const isSelected = selectedCampaignId === campaign.id;
 
               return (
-                <Card key={campaign.id} className={isSelected ? "border-primary/60 bg-primary/5" : undefined}>
+                <Card key={campaign.id} data-tok-neon-selected={isSelected} className={isSelected ? "border-primary/60 bg-primary/5" : undefined}>
                   <CardContent
                     className="py-4 space-y-3"
                     role="button"
+                    aria-pressed={isSelected}
                     tabIndex={0}
                     onClick={() => setSelectedCampaignId(campaign.id)}
                     onKeyDown={(event) => {
@@ -944,10 +945,11 @@ function CampaignHistoryList({
         const isSelected = selectedCampaignId === campaign.id;
 
         return (
-          <Card key={campaign.id} className={isSelected ? "border-primary/60 bg-primary/5" : undefined}>
+          <Card key={campaign.id} data-tok-neon-selected={isSelected} className={isSelected ? "border-primary/60 bg-primary/5" : undefined}>
             <CardContent
               className="space-y-3 py-4"
               role="button"
+              aria-pressed={isSelected}
               tabIndex={0}
               onClick={() => onSelect(campaign.id)}
               onKeyDown={(event) => {

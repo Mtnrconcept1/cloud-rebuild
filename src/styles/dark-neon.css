@@ -1,0 +1,203 @@
+/*
+ * TOK dark surfaces: backlit edges and scroll-linked reflected light.
+ * Keep the glow static: only the decorative layer's transform/opacity animate.
+ * No scroll listeners, JS state, filters, extra DOM nodes or permanent layers.
+ */
+:root.dark :is(
+  .tok-card,
+  .tok-neon-surface,
+  .premium-card,
+  .neon-card,
+  .neon-panel,
+  .glass-morphism,
+  .glass-morphism-dark,
+  .tok-dashboard-section,
+  .tok-dashboard-panel,
+  .tok-dashboard-kpi,
+  .tok-editorial-stat,
+  .tok-editorial-heading,
+  .tok-menu-categories,
+  .tok-menu-dishes,
+  .tok-operation-filters,
+  .tok-operation-viewbar,
+  .tok-order-card,
+  .tok-order-board-column,
+  .tok-reservation-calendar,
+  .tok-profile-wide,
+  .tok-advisor-conversation,
+  .tok-customer-note-card,
+  .tok-customer-miamz-card,
+  .tok-customer-calendar-card,
+  .tok-customer-profile-form-card,
+  .tok-customer-profile-shortcut,
+  .tok-customer-history-panel,
+  .tok-customer-activity-card,
+  .tok-customer-metric,
+  .tok-customer-reservation-card,
+  .tok-customer-order-card,
+  .tok-customer-order-detail,
+  .tok-customer-review-card,
+  .tok-customer-favorite-card,
+  .tok-customer-membership-card,
+  .tok-customer-gift-card,
+  .tok-profile-identity,
+  .tok-hospitality-hero-copy,
+  .tok-hospitality-hero-console,
+  .tok-customer-page-hero,
+  .tok-customer-hero-sidecar,
+  :where(article, section, aside, div)[class~="border"][class*="bg-card"][class*="rounded-"]
+):not(:where(
+  [data-tok-neon="off"],
+  [role="dialog"],
+  [role="alertdialog"],
+  [role="listbox"],
+  [role="menu"],
+  [class*="rounded-full"],
+  [data-radix-popper-content-wrapper]
+)) {
+  /* Reset explicit neon variants per surface; keep the existing tok-tone
+   * accents where a workspace intentionally shares a semantic color. */
+  --tok-neon-rgb: var(--tok-accent-rgb, 241 93 34);
+  --tok-neon-color: rgb(var(--tok-neon-rgb));
+  --tok-neon-edge: color-mix(in srgb, var(--tok-neon-color) 80%, #fff3e0);
+  --tok-neon-selection-shadow: 0 0 #0000;
+
+  /* Page CSS is lazy-loaded. These two shared overrides must survive it.
+   * Preserve Tailwind's keyboard-focus rings when replacing a page shadow. */
+  border-color: color-mix(in srgb, var(--tok-neon-edge) 88%, transparent) !important;
+  box-shadow:
+    var(--tw-ring-offset-shadow, 0 0 #0000),
+    var(--tw-ring-shadow, 0 0 #0000),
+    var(--tok-neon-selection-shadow),
+    0 0 0 0.5px color-mix(in srgb, var(--tok-neon-color) 60%, transparent),
+    0 0 15px -4px color-mix(in srgb, var(--tok-neon-color) 38%, transparent),
+    0 6px 24px -12px color-mix(in srgb, var(--tok-neon-color) 24%, transparent),
+    inset 0 0 20px -10px color-mix(in srgb, var(--tok-neon-color) 24%, transparent) !important;
+
+  &[class*="border-violet-"],
+  &[data-tok-neon="violet"] { --tok-neon-rgb: 150 110 235; }
+  &[class*="border-emerald-"],
+  &[data-tok-neon="emerald"] { --tok-neon-rgb: 46 184 140; }
+  &[class*="border-amber-"],
+  &[data-tok-neon="amber"] { --tok-neon-rgb: 232 160 48; }
+  &[class*="border-sky-"],
+  &[data-tok-neon="sky"] { --tok-neon-rgb: 56 160 230; }
+  &[class*="border-indigo-"],
+  &[data-tok-neon="indigo"] { --tok-neon-color: theme("colors.indigo.400"); }
+  &[class*="border-destructive"],
+  &[class*="border-red-"] { --tok-neon-color: hsl(var(--destructive)); }
+  &.neon-card-sponsored { --tok-neon-rgb: 241 175 90; }
+
+  /* A selected card stays distinguishable from the surrounding glowing cards.
+   * Keep this inset so the separate keyboard-focus ring remains visible. */
+  &[data-tok-neon-selected="true"] {
+    --tok-neon-selection-shadow: inset 0 0 0 2px var(--tok-neon-color);
+  }
+
+  /* Hero photos/masks and explicit ::after utilities keep their own layers.
+   * Fixed overlays and edge-to-edge social posts retain their composition. */
+  &:not(:where(
+    [class*="-hero"],
+    .tok-editorial-heading,
+    [class*="after:"],
+    [class~="rounded-none"],
+    [class~="fixed"],
+    [class~="absolute"],
+    [class*=":fixed"],
+    [class*=":absolute"],
+    [data-tok-neon="static"]
+  )) {
+    /* Zero specificity: existing sticky/fixed/absolute positions always win. */
+    :where(&) { position: relative; }
+    isolation: isolate;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      z-index: -1;
+      border-radius: inherit;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 12% 8%, color-mix(in srgb, var(--tok-neon-color) 22%, transparent), transparent 62%),
+        linear-gradient(125deg, transparent 24%, color-mix(in srgb, var(--tok-neon-color) 9%, transparent) 46%, rgb(255 247 237 / 0.06) 50%, transparent 73%);
+      box-shadow: none;
+      opacity: 0.62;
+      transform: scale(0.98, 0.9);
+    }
+
+    @supports ((animation-timeline: view()) and (animation-range: 0% 100%)) {
+      @media (prefers-reduced-motion: no-preference) {
+        /* Track the CARD, not its ::after: overflow-hidden cards must use the
+         * surrounding scrollport, including nested dashboard scroll areas. */
+        view-timeline-name: --tok-neon-surface;
+        view-timeline-axis: block;
+
+        &::after {
+          animation: tok-neon-reflection auto linear both;
+          animation-timeline: --tok-neon-surface;
+          animation-range: entry 0% exit 100%;
+        }
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &::after { animation: none !important; }
+    }
+
+    @media print, (forced-colors: active) {
+      &::after { content: none; animation: none !important; }
+    }
+  }
+
+  @media (width < 640px) {
+    /* The feed is deliberately edge-to-edge on phones. Remove the outer glow
+     * while preserving keyboard focus and highlighted/sponsored post rings. */
+    &[class~="max-sm:shadow-none"] {
+      box-shadow:
+        var(--tw-ring-offset-shadow, 0 0 #0000),
+        var(--tw-ring-shadow, 0 0 #0000),
+        var(--tok-neon-selection-shadow) !important;
+    }
+  }
+
+  @media print, (forced-colors: active) {
+    border-color: currentColor !important;
+    box-shadow: none !important;
+  }
+}
+
+/* These wrappers only clip their decoration; their scrollable content lives
+ * in a separate descendant. `hidden` creates an inactive scrollport that
+ * traps nested view timelines. `clip` preserves the crop without that trap,
+ * including when the wrapper's own neon is static/off. Real scroll areas keep
+ * their overflow and each nested card tracks its nearest actual scrollport. */
+@supports (overflow: clip) {
+  :root.dark :is(
+    .tok-dashboard-section,
+    .tok-dashboard-panel,
+    .tok-order-board-column,
+    .tok-hospitality-summary-stats,
+    .tok-card.overflow-hidden,
+    .tok-neon-surface.overflow-hidden,
+    :where(article, section, aside, div).overflow-hidden[class~="border"][class*="bg-card"][class*="rounded-"],
+    :where(.tok-page-orders, .tok-page-reservations) [role="region"][data-state="open"].overflow-hidden
+  ):not(:where(
+    [class~="overflow-auto"],
+    [class~="overflow-scroll"],
+    [class*="overflow-y-"],
+    [class*="overflow-x-"],
+    [class*=":overflow-auto"],
+    [class*=":overflow-scroll"],
+    [data-radix-scroll-area-viewport],
+    [data-tok-neon-scroll="preserve"]
+  )) {
+    overflow: clip;
+  }
+}
+
+@keyframes tok-neon-reflection {
+  from { transform: translateY(-4%) scale(0.98, 0.9); opacity: 0.30; }
+  50% { transform: translateY(0) scale(0.98, 0.9); opacity: 0.85; }
+  to { transform: translateY(4%) scale(0.98, 0.9); opacity: 0.38; }
+}

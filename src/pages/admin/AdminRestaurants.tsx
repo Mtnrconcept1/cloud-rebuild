@@ -1389,6 +1389,7 @@ export default function AdminRestaurants() {
           {filteredRestaurants.map((restaurant) => (
             <Card
               key={restaurant.id}
+              data-tok-neon-selected={restaurant.id === selectedRestaurantId}
               className={
                 restaurant.id === selectedRestaurantId
                   ? "border-primary"
