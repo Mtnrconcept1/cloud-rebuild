@@ -92,7 +92,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 180
+      "line": 190
     }
   ],
   "ai_empty_response": [
@@ -3042,7 +3042,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 252
+      "line": 271
     },
     {
       "file": "supabase/functions/contact-support/index.ts",
@@ -4226,7 +4226,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "video_action_invalid": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 285
+      "line": 304
     }
   ],
   "video_completion_persistence_failed": [
@@ -4254,25 +4254,25 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "video_history_failed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 272
+      "line": 291
     }
   ],
   "video_idempotency_required": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 168
+      "line": 178
     }
   ],
   "video_invalid_body": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 249
+      "line": 268
     }
   ],
   "video_job_id_invalid": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 277
+      "line": 296
     }
   ],
   "video_job_lookup_failed": [
@@ -4308,17 +4308,21 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "video_reference_unavailable": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 135
+      "line": 139
     },
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 139
+      "line": 145
+    },
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 149
     }
   ],
   "video_reservation_failed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 183
+      "line": 193
     }
   ],
   "video_status_persistence_failed": [
@@ -4336,7 +4340,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "video_submission_claim_failed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 188
+      "line": 198
     }
   ],
   "visual_tool_invalid": [
