@@ -18,6 +18,7 @@ export type RestaurantReelCreatorProps = {
 };
 const selectClass = "h-11 w-full rounded-lg border border-input bg-background px-3 text-sm";
 const examples = ["Zoom léger, fondus doux, photos entières, logo en haut", "Images fixes, coupes franches, fond noir, logo en bas", "Zoom arrière, fond blanc, photos entières, sans texte"];
+const aiExamples = ["Approche lente vers le plat photographié, lumière douce et transition fluide vers la salle. Préserver les détails et les couleurs.", "Plans fixes et coupes franches entre les références, cadrage sobre, aucun nouvel élément.", "Mouvement de caméra léger, lumière naturelle et ambiance accueillante dans le restaurant photographié."];
 
 export default function RestaurantReelCreator({ restaurantId, mode = "marketing", onUseVideo }: RestaurantReelCreatorProps) {
   const storageKey = "tok:restaurant-reel:v1:" + restaurantId;
@@ -27,7 +28,12 @@ export default function RestaurantReelCreator({ restaurantId, mode = "marketing"
     return saved || { version: 1, photoIds: [], logoId: null, withoutLogo: false, prompt: "", appliedPrompt: "", settings: { ...DEFAULT_REEL_SETTINGS } };
   });
   const initialIds = useRef([...draft.photoIds, ...(draft.logoId ? [draft.logoId] : [])]);
-  const [studioMode, setStudioMode] = useState<"faithful" | "ai">("faithful");
+  const studioModeKey = "tok:video-studio:creation-mode:" + restaurantId + ":" + mode;
+  const [studioMode, setStudioMode] = useState<"faithful" | "ai">(() => {
+    try { const saved = localStorage.getItem(studioModeKey); if (saved === "faithful" || saved === "ai") return saved; }
+    catch { /* Keep a usable default when browser storage is blocked. */ }
+    return mode === "marketing" ? "ai" : "faithful";
+  });
   const [media, setMedia] = useState<TokVideoImageReference[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -92,8 +98,11 @@ export default function RestaurantReelCreator({ restaurantId, mode = "marketing"
     catch { setSaveWarning(true); }
   }, [draft, storageKey]);
   useEffect(() => {
+    try { localStorage.setItem(studioModeKey, studioMode); } catch { /* The draft save warning covers unavailable storage. */ }
+  }, [studioMode, studioModeKey]);
+  useEffect(() => {
     setAssets(null); setPreviewError(null);
-    if ((!photoSources.length && !logoSource) || missingPhoto || missingLogo) return;
+    if (studioMode !== "faithful" || (!photoSources.length && !logoSource) || missingPhoto || missingLogo) return;
     const controller = new AbortController();
     let loaded: ReelAssets | null = null;
     void loadReelAssets(photoSources, logoSource, controller.signal).then((value) => {
@@ -101,7 +110,7 @@ export default function RestaurantReelCreator({ restaurantId, mode = "marketing"
       loaded = value; setAssets(value);
     }).catch((reason) => { if (!controller.signal.aborted) setPreviewError(reason instanceof Error ? reason.message : "Aperçu indisponible."); });
     return () => { controller.abort(); loaded?.close(); };
-  }, [photoSources, logoSource, missingPhoto, missingLogo]);
+  }, [photoSources, logoSource, missingPhoto, missingLogo, studioMode]);
   useEffect(() => {
     const context = canvasRef.current?.getContext("2d");
     if (context && assets) drawReelFrame(context, assets, draft.settings, previewTime);
@@ -181,13 +190,13 @@ export default function RestaurantReelCreator({ restaurantId, mode = "marketing"
 
   return <section className="space-y-5" aria-label="Studio vidéo du restaurant">
     <div className="flex flex-wrap items-start justify-between gap-3"><div>
-      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-orange-600"><Film className="h-5 w-5" />REELS DU RESTAURANT</div>
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-orange-600"><Film className="h-5 w-5" />{mode === "reel" ? "REELS DU RESTAURANT" : "STUDIO VIDÉO MARKETING"}</div>
       <h2 className="font-serif text-3xl font-bold tracking-tight">Vos images. Votre identité.</h2>
-      <p className="mt-2 max-w-xl text-sm text-muted-foreground">Un reel vertical de 10 secondes avec les médias que vous choisissez. Prévisualisez-le avant de le partager.</p>
-    </div><span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-800">10 secondes · 9:16 · HD</span></div>
+      <p className="mt-2 max-w-xl text-sm text-muted-foreground">{mode === "reel" ? "Un reel vertical de 10 secondes avec les médias que vous choisissez. Prévisualisez-le avant de le partager." : "Créez votre publicité avec vos photos et votre logo. Choisissez le style, le son et le format, puis vérifiez votre vidéo avant de la partager."}</p>
+    </div><span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-800">{mode === "reel" || studioMode === "faithful" ? "10 secondes · 9:16 · HD" : "4 à 30 secondes · jusqu’à 1080p"}</span></div>
     <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted/50 p-1.5" role="group" aria-label="Mode de création vidéo">
-      <Button variant={studioMode === "faithful" ? "default" : "ghost"} aria-pressed={studioMode === "faithful"} onClick={() => setStudioMode("faithful")} disabled={locked} className="min-h-12 gap-2"><ShieldCheck className="h-4 w-4" />Reel fidèle</Button>
-      <Button variant={studioMode === "ai" ? "default" : "ghost"} aria-pressed={studioMode === "ai"} onClick={() => { setStudioMode("ai"); setPlaying(false); }} disabled={locked} className="min-h-12 gap-2"><Sparkles className="h-4 w-4" />Animation IA</Button>
+      <Button variant={studioMode === "faithful" ? "default" : "ghost"} aria-pressed={studioMode === "faithful"} onClick={() => setStudioMode("faithful")} disabled={locked} className="h-auto min-h-12 gap-2 whitespace-normal px-3 py-3"><ShieldCheck className="h-4 w-4 shrink-0" />Reel fidèle</Button>
+      <Button variant={studioMode === "ai" ? "default" : "ghost"} aria-pressed={studioMode === "ai"} onClick={() => { setStudioMode("ai"); setPlaying(false); }} disabled={locked} className="h-auto min-h-12 gap-2 whitespace-normal px-3 py-3"><Sparkles className="h-4 w-4 shrink-0" />Animation IA</Button>
     </div>
     <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.85fr)]">
       <div className="min-w-0 space-y-5">
@@ -200,14 +209,14 @@ export default function RestaurantReelCreator({ restaurantId, mode = "marketing"
             <input ref={logoInput} type="file" accept={VIDEO_IMAGE_ACCEPT} onChange={(event) => void upload(event.target.files?.[0], "logo")} disabled={locked} aria-label="Importer le logo JPEG, PNG ou WebP" className="sr-only" />
             <Button variant="outline" onClick={() => logoInput.current?.click()} disabled={locked} className="col-span-2 min-h-11 min-w-0 w-full sm:col-span-1 sm:w-auto"><Upload className="mr-2 h-4 w-4" />Importer mon logo</Button>
           </div>
-          {!logo ? <label className="flex min-h-10 items-center gap-3 text-sm"><input type="checkbox" className="h-4 w-4 accent-orange-600" checked={draft.withoutLogo} disabled={locked} onChange={(event) => patch({ withoutLogo: event.target.checked, logoId: null })} />Créer ce reel sans logo</label> : null}
+          {!logo ? <label className="flex min-h-10 items-center gap-3 text-sm"><input type="checkbox" className="h-4 w-4 accent-orange-600" checked={draft.withoutLogo} disabled={locked} onChange={(event) => patch({ withoutLogo: event.target.checked, logoId: null })} />{studioMode === "faithful" ? "Créer ce reel sans logo" : "Créer cette vidéo sans logo"}</label> : null}
         </CardContent></Card>
         <Card><CardHeader className="pb-3"><CardTitle className="text-lg">2. Vos photos, dans l'ordre choisi</CardTitle><CardDescription>Choisissez jusqu'à six photos. Aucun visuel n'est ajouté automatiquement.</CardDescription></CardHeader><CardContent className="space-y-4">
           {draft.photoIds.length > 0 ? <ol className="space-y-2" aria-label="Ordre des photos du reel">{draft.photoIds.map((id, index) => {
             const photo = media.find((item) => item.id === id);
             return <li key={id} className="flex items-center gap-2 rounded-xl border bg-muted/20 p-2"><span className="w-5 text-center text-sm font-semibold">{index + 1}</span>
               {photo ? <img src={photo.media_url} alt="" className="h-12 w-12 rounded-lg object-contain" /> : <span className="text-xs text-red-700">Photo indisponible</span>}
-              <span className="min-w-0 flex-1 truncate text-xs">{photo?.alt_text || "Photo sélectionnée"}</span><span className="hidden text-xs text-muted-foreground sm:block">{(10 / draft.photoIds.length).toFixed(1)} s</span>
+              <span className="min-w-0 flex-1 truncate text-xs">{photo?.alt_text || "Photo sélectionnée"}</span>{studioMode === "faithful" ? <span className="hidden text-xs text-muted-foreground sm:block">{(10 / draft.photoIds.length).toFixed(1)} s</span> : null}
               <Button size="icon" variant="ghost" className="h-10 w-10" aria-label={`Avancer la photo ${index + 1}`} disabled={locked || index === 0} onClick={() => movePhoto(index, -1)}><ArrowUp className="h-4 w-4" /></Button>
               <Button size="icon" variant="ghost" className="h-10 w-10" aria-label={`Reculer la photo ${index + 1}`} disabled={locked || index === draft.photoIds.length - 1} onClick={() => movePhoto(index, 1)}><ArrowDown className="h-4 w-4" /></Button>
               <Button size="icon" variant="ghost" className="h-10 w-10" aria-label={`Retirer la photo ${index + 1}`} disabled={locked} onClick={() => togglePhoto(id)}><X className="h-4 w-4" /></Button>
@@ -221,7 +230,7 @@ export default function RestaurantReelCreator({ restaurantId, mode = "marketing"
               {selected >= 0 ? <span className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">{selected + 1}</span> : null}
             </button>;
           })}</div>
-          {loading ? <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Chargement de la galerie…</p> : !gallery.length ? <p className="text-sm text-muted-foreground">Importez vos photos pour commencer. Vous pouvez aussi créer un reel avec votre logo seul.</p> : null}
+          {loading ? <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Chargement de la galerie…</p> : !gallery.length ? <p className="text-sm text-muted-foreground">Importez vos photos pour commencer. Le mode Reel fidèle permet aussi d’utiliser votre logo seul.</p> : null}
           {hasMore ? <Button variant="ghost" disabled={loading || locked} onClick={() => void loadGallery(page + 1)}>Voir plus de photos</Button> : null}
           <div role="group" aria-label="Importer une image de référence" onDragOver={(event) => { event.preventDefault(); setDropActive(true); }} onDragLeave={() => setDropActive(false)}
             onDrop={(event) => { event.preventDefault(); setDropActive(false); void upload(event.dataTransfer.files[0], "photo"); }} className={"rounded-xl border-2 border-dashed p-4 text-center " + (dropActive ? "border-orange-500 bg-orange-50" : "border-orange-200")}>
@@ -232,8 +241,8 @@ export default function RestaurantReelCreator({ restaurantId, mode = "marketing"
         </CardContent></Card>
         <Card><CardHeader className="pb-3"><CardTitle className="text-lg">3. Votre direction artistique</CardTitle></CardHeader><CardContent className="space-y-4">
           <div className="space-y-2"><Label htmlFor="tok-video-prompt">Consignes artistiques</Label><Textarea id="tok-video-prompt" value={draft.prompt} disabled={locked} maxLength={1000} onChange={(event) => patch({ prompt: event.target.value })}
-            placeholder="Ex. : Zoom léger, fondus doux, photos entières, logo en haut. Conserver les couleurs originales." className="min-h-28" /></div>
-          <div className="flex flex-wrap gap-2">{examples.map((example, index) => <Button key={example} variant="outline" size="sm" disabled={locked} onClick={() => patch({ prompt: example })}>{["Doux", "Minimal", "Lumineux"][index]}</Button>)}</div>
+            placeholder={studioMode === "faithful" ? "Ex. : Zoom léger, fondus doux, photos entières, logo en haut. Conserver les couleurs originales." : "Ex. : Un plan lent sur notre plat, puis une transition vers la salle photographiée. Préserver les détails du restaurant."} className="min-h-28" /></div>
+          <div className="flex flex-wrap gap-2">{(studioMode === "faithful" ? examples : aiExamples).map((example, index) => <Button key={example} variant="outline" size="sm" disabled={locked} onClick={() => patch({ prompt: example })}>{["Doux", "Minimal", "Lumineux"][index]}</Button>)}</div>
           {studioMode === "faithful" ? <>
             <p className="text-xs text-muted-foreground">Raccourcis compris : zoom avant/arrière, image fixe, panoramique gauche/droite, fondu/coupe, fond blanc/noir, logo en haut/bas. Les réglages ci-dessous définissent le rendu exact.</p>
             <Button variant="outline" className="h-auto min-h-11 min-w-0 w-full whitespace-normal py-3" disabled={locked || !draft.prompt.trim()} onClick={applyDirection}>Appliquer les consignes au montage</Button>
@@ -252,7 +261,7 @@ export default function RestaurantReelCreator({ restaurantId, mode = "marketing"
         </CardContent></Card>
       </div>
       <div className="min-w-0 space-y-4 xl:sticky xl:top-5">
-        <Card><CardHeader className="pb-3"><CardTitle className="text-lg">Aperçu du montage fidèle</CardTitle><CardDescription>{photos.length} photo{photos.length > 1 ? "s" : ""}{logo ? " · logo original" : ""} · aucun son ajouté</CardDescription></CardHeader><CardContent className="space-y-3">
+        {studioMode === "faithful" ? <Card><CardHeader className="pb-3"><CardTitle className="text-lg">Aperçu du montage fidèle</CardTitle><CardDescription>{photos.length} photo{photos.length > 1 ? "s" : ""}{logo ? " · logo original" : ""} · aucun son ajouté</CardDescription></CardHeader><CardContent className="space-y-3">
           <div className="mx-auto max-w-[300px] overflow-hidden rounded-2xl border bg-muted" style={{ aspectRatio: "9 / 16" }}>
             {assets ? <canvas ref={canvasRef} width={720} height={1280} className="h-full w-full" aria-label="Aperçu du reel avec les médias sélectionnés" />
               : <div className="flex h-full flex-col items-center justify-center gap-3 p-5 text-center text-sm text-muted-foreground"><Film className="h-8 w-8" />{previewError || "Choisissez vos photos et votre logo pour voir l'aperçu."}</div>}
@@ -260,7 +269,14 @@ export default function RestaurantReelCreator({ restaurantId, mode = "marketing"
           <div className="flex items-center gap-3"><Button size="icon" variant="outline" disabled={!assets || rendering} onClick={() => setPlaying((value) => !value)} aria-label={playing ? "Mettre l'aperçu en pause" : "Lire l'aperçu"}>{playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}</Button>
             <input type="range" aria-label="Position dans le reel" min={0} max={9.99} step={0.01} value={previewTime} onChange={(event) => { setPlaying(false); setPreviewTime(Number(event.target.value)); }} disabled={!assets} className="min-w-0 flex-1 accent-orange-600" /><span className="text-xs tabular-nums">{previewTime.toFixed(1)} / 10 s</span></div>
           <p className="flex items-start gap-2 text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4 shrink-0 text-orange-600" />Photos originales et logo conservés. Aucun plat, décor ou personnage généré.</p>
-        </CardContent></Card>
+        </CardContent></Card> : <Card><CardHeader className="pb-3"><CardTitle className="text-lg">Vos références</CardTitle><CardDescription>Les images qui guideront votre animation.</CardDescription></CardHeader><CardContent className="space-y-4">
+          {photos.length ? <div className="grid grid-cols-2 gap-2">{photos.map((photo, index) => <figure key={photo.id} className="min-w-0 overflow-hidden rounded-xl border bg-muted/20">
+            <img src={photo.media_url} alt={photo.alt_text || "Référence " + (index + 1)} className="aspect-square w-full object-contain" loading="lazy" />
+            <figcaption className="truncate px-2 py-1.5 text-xs">{index + 1}. {photo.alt_text || "Photo sélectionnée"}</figcaption>
+          </figure>)}</div> : <p className="rounded-xl border border-dashed p-5 text-center text-sm text-muted-foreground">Choisissez vos photos dans la galerie. Aucun visuel ne sera ajouté automatiquement.</p>}
+          {logo ? <div className="flex items-center gap-3 rounded-xl border p-3"><img src={logo.media_url} alt="Logo de référence" className="h-12 w-12 rounded-lg bg-white object-contain p-1" /><span className="text-sm">Identité du restaurant</span></div> : null}
+          <p className="text-xs leading-relaxed text-muted-foreground">Ce sont vos images sources. L’animation finale apparaîtra dans votre historique après génération.</p>
+        </CardContent></Card>}
         {studioMode === "faithful" ? <div className="space-y-3 rounded-2xl border border-orange-200 bg-orange-50/50 p-4 dark:bg-orange-950/10">
           <p className="font-semibold">Reel fidèle · sans crédits IA</p><p className="text-sm text-muted-foreground">Export MP4 de 10 secondes. Le brouillon est sauvegardé sur cet appareil ; si vous fermez la page pendant l'export, vous pourrez le relancer.</p>
           {!logo && !draft.withoutLogo ? <p className="text-sm">Choisissez votre logo ou cochez « Créer ce reel sans logo ».</p> : null}
@@ -278,6 +294,11 @@ export default function RestaurantReelCreator({ restaurantId, mode = "marketing"
     </div>
     {error ? <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}<Button variant="ghost" size="sm" onClick={() => void loadGallery(page)} disabled={loading || locked}>Recharger la galerie</Button></div> : null}
     {saveWarning ? <p role="status" className="text-sm text-amber-700">Le navigateur ne permet pas de sauvegarder ce brouillon. Gardez cette page ouverte jusqu'au téléchargement.</p> : null}
-    {studioMode === "ai" ? <Card><CardHeader><CardTitle className="text-lg">Animation IA de vos références</CardTitle><CardDescription>Le mode IA est une interprétation. Vérifiez le résultat avant de le publier.</CardDescription></CardHeader><CardContent><Suspense fallback={<p role="status">Chargement du moteur vidéo…</p>}><TokVideoAiPanel restaurantId={restaurantId} photoIds={draft.photoIds} logoId={draft.logoId} prompt={draft.prompt} disabled={!ready || locked} onUseVideo={mode === "reel" ? onUseVideo : undefined} /></Suspense></CardContent></Card> : null}
+    {studioMode === "ai" ? <section className="space-y-4" aria-label="Création de votre animation"><div><h3 className="font-serif text-2xl font-semibold">Votre publicité, dans les détails</h3><p className="mt-1 text-sm text-muted-foreground">Réglez votre création, vérifiez son devis, puis lancez la génération.</p></div>
+      <Suspense fallback={<p role="status">Chargement du moteur vidéo…</p>}><TokVideoAiPanel restaurantId={restaurantId} mode={mode} photoIds={draft.photoIds} logoId={draft.logoId} prompt={draft.prompt}
+        selectedPhotos={photos.map((photo) => ({ id: photo.id, label: photo.alt_text || "Photo sélectionnée", url: photo.media_url }))}
+        disabled={!ready || locked} disabledReason={!ready && !loading ? (missingPhoto || missingLogo ? "Un média du brouillon n'est plus disponible. Retirez-le ou importez-le à nouveau." : !logo && !draft.withoutLogo ? "Choisissez votre logo ou cochez « Créer cette vidéo sans logo »." : undefined) : undefined}
+        onUseVideo={mode === "reel" ? onUseVideo : undefined} /></Suspense>
+    </section> : null}
   </section>;
 }

@@ -35,11 +35,12 @@ const images = {
   "logo.png": png(300, 200, (x, y) => x < 15 || y < 15 || x > 285 || y > 185 ? [0, 0, 0, 0]
     : (x > 130 && x < 170) || (y > 80 && y < 120) ? [25, 40, 60, 255] : [255, 202, 0, 255]),
 };
-const mockedTransports = new Set(["@/lib/ai/tokVideoBrandMedia", "@/lib/ai/tokVideoImageUpload"]);
+const mockedTransports = new Set(["@/lib/ai/tokVideoBrandMedia", "@/lib/ai/tokVideoImageUpload", "@/integrations/supabase/client"]);
 const fixtureTransport = resolve("src/test/fixtures/restaurant-reel-transports.ts");
 await mkdir(output, { recursive: true });
 const server = await createServer({
   configFile: false, root: process.cwd(), resolve: { alias: { "@": resolve("src") } },
+  optimizeDeps: { entries: ["scripts/fixtures/restaurant-reel-preview.html"] },
   plugins: [{
     name: "isolated-reel-transports", enforce: "pre",
     resolveId(source) {
@@ -79,7 +80,7 @@ try {
     await page.waitForSelector('button[aria-label="Sélectionner Photo A"]');
     await page.click('button[aria-label="Sélectionner Photo A"]');
     await page.click('button[aria-label="Sélectionner Photo B"]');
-    await page.select("#reel-logo", "logo");
+    await page.select("#reel-logo", "30000000-0000-4000-8000-000000000003");
     await page.type("#tok-video-prompt", "Images fixes, coupes franches, fond blanc, logo en bas");
     await page.evaluate(() => [...document.querySelectorAll("button")].find((button) => button.textContent === "Appliquer les consignes au montage")?.click());
     await page.type("#reel-caption", "Notre restaurant vous accueille pour découvrir la cuisine de notre équipe et partager un moment autour de notre table.");
@@ -149,6 +150,129 @@ try {
       }
     }
     assert.deepEqual(errors, [], "browser errors"); console.log(JSON.stringify({ width, ...metrics, errors }));
+    if (width <= 390) {
+      await page.goto("http://127.0.0.1:4197/scripts/fixtures/restaurant-reel-preview.html?dialog=1", { waitUntil: "networkidle0" });
+      await page.waitForSelector('button[aria-label="Sélectionner Photo A"]');
+      await page.click('button[aria-label="Sélectionner Photo A"]');
+      await page.select("#reel-logo", "30000000-0000-4000-8000-000000000003");
+      await page.type("#tok-video-prompt", "Animer doucement les photos sélectionnées sans ajouter de sujet");
+      await page.evaluate(() => [...document.querySelectorAll("button")].find((button) => button.textContent.includes("Animation IA"))?.click());
+      await page.waitForFunction(() => [...document.querySelectorAll("label")].some((label) => label.textContent.includes("J'autorise une interprétation")));
+      await page.evaluate(() => [...document.querySelectorAll("label")].find((label) => label.textContent.includes("J'autorise une interprétation"))?.querySelector("input")?.click());
+      await page.evaluate(() => [...document.querySelectorAll("button")].find((button) => button.textContent.includes("Obtenir le devis de l'animation"))?.click());
+      await page.waitForFunction(() => [...document.querySelectorAll("button")].some((button) => button.textContent.includes("Confirmer et générer")));
+      const dialogMetrics = await page.evaluate(() => {
+        const dialog = document.querySelector('[role="dialog"]');
+        const clippedActions = [...dialog.querySelectorAll("button")].filter((button) => button.textContent.includes("Confirmer et générer")).filter((button) => {
+          const bounds = button.getBoundingClientRect();
+          const parent = button.parentElement.getBoundingClientRect();
+          if (bounds.left < parent.left - 1 || bounds.right > parent.right + 1) return true;
+          const walker = document.createTreeWalker(button, NodeFilter.SHOW_TEXT);
+          while (walker.nextNode()) {
+            if (!walker.currentNode.textContent.trim()) continue;
+            const range = document.createRange(); range.selectNodeContents(walker.currentNode);
+            if ([...range.getClientRects()].some((rect) => rect.left < bounds.left - 1 || rect.right > bounds.right + 1
+              || rect.top < bounds.top - 1 || rect.bottom > bounds.bottom + 1)) return true;
+          }
+          return false;
+        }).map((button) => button.textContent.trim());
+        return { overflow: dialog.scrollWidth - dialog.clientWidth, clippedActions };
+      });
+      assert.ok(dialogMetrics.overflow <= 2, "Actualites dialog must not overflow horizontally");
+      assert.deepEqual(dialogMetrics.clippedActions, [], "AI confirmation must fit inside the mobile dialog");
+      await page.screenshot({ path: resolve(output, `studio-dialog-ai-${width}.png`), fullPage: true });
+      assert.deepEqual(errors, [], "dialog browser errors");
+      console.log(JSON.stringify({ width, dialog: dialogMetrics }));
+    }
     await page.close();
+  }
+  // The Marketing route uses the real normalization/quote functions in its
+  // isolated transport. The accepted receipt below is synthetic, never paid.
+  for (const width of [320, 768, 1440]) {
+    const context = await browser.createBrowserContext();
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.setViewport({ width, height: 950, deviceScaleFactor: 1 });
+    await page.setRequestInterception(true);
+    page.on("request", (request) => {
+      if (/^(http:\/\/127\.0\.0\.1:4197\/|data:|blob:)/.test(request.url())) void request.continue();
+      else { errors.push("Unexpected remote request"); void request.abort(); }
+    });
+    const byLabelId = async (name) => page.evaluate((name) => [...document.querySelectorAll("label")]
+      .find((label) => label.textContent.trim() === name)?.htmlFor, name);
+    const selectLabel = async (name, value) => {
+      const id = await byLabelId(name);
+      assert.ok(id, "Missing control: " + name);
+      await page.select('[id="' + id + '"]', value);
+    };
+    const typeLabel = async (name, value) => {
+      const id = await byLabelId(name);
+      assert.ok(id, "Missing control: " + name);
+      await page.type('[id="' + id + '"]', value);
+    };
+    const clickText = async (text) => page.evaluate((text) => [...document.querySelectorAll("button")]
+      .find((button) => button.textContent.includes(text))?.click(), text);
+    await page.goto("http://127.0.0.1:4197/scripts/fixtures/restaurant-reel-preview.html?mode=marketing&fixtureStart=1", { waitUntil: "networkidle0" });
+    await page.waitForFunction(() => [...document.querySelectorAll("label")].some((label) => label.textContent === "Style de publicité"));
+    await page.click('button[aria-label="Sélectionner Photo A"]');
+    await page.click('button[aria-label="Sélectionner Photo B"]');
+    await page.select("#reel-logo", "30000000-0000-4000-8000-000000000003");
+    await page.type("#tok-video-prompt", "Mouvements doux et transitions nettes entre les photos sélectionnées.");
+    await selectLabel("Style de publicité", "tv_spot");
+    await selectLabel("Durée", "15");
+    await selectLabel("Résolution", "1080p");
+    await selectLabel("Format d’image", "16:9");
+    await selectLabel("Type de fichier", "mov");
+    await selectLabel("Débit vidéo", "high");
+    await selectLabel("Photo du produit principal", "30000000-0000-4000-8000-000000000001");
+    await selectLabel("Référence de fin", "30000000-0000-4000-8000-000000000002");
+    await typeLabel("Accroche visuelle", "Révéler le détail puis le produit photographié.");
+    await typeLabel("Appel à l’action à afficher (facultatif)", "Réservez votre table");
+    await page.evaluate(() => [...document.querySelectorAll("label")]
+      .find((label) => label.textContent.includes("J'autorise une interprétation"))?.querySelector("input")?.click());
+    await clickText("Obtenir le devis de l'animation");
+    await page.waitForFunction(() => [...document.querySelectorAll("button")].some((button) => button.textContent.includes("Confirmer et générer")));
+    const firstQuote = await page.evaluate(() => window.__videoFixtureRequests.find((request) => request.action === "quote"));
+    assert.equal(firstQuote.duration, 15);
+    assert.equal(firstQuote.outputFormat, "mov");
+    assert.equal(firstQuote.marketing.creativeFormat, "tv_spot");
+    assert.equal(firstQuote.marketing.callToAction, "Réservez votre table");
+    await selectLabel("Durée", "12");
+    assert.equal(await page.evaluate(() => [...document.querySelectorAll("button")].some((button) => button.textContent.includes("Confirmer et générer"))), false,
+      "Any setting change must invalidate the approved quote");
+    await page.reload({ waitUntil: "networkidle0" });
+    await page.waitForFunction(() => [...document.querySelectorAll("label")].some((label) => label.textContent === "Style de publicité"));
+    const restored = await page.evaluate(() => {
+      const input = (name) => document.getElementById([...document.querySelectorAll("label")].find((label) => label.textContent.trim() === name)?.htmlFor);
+      return { duration: input("Durée")?.value, resolution: input("Résolution")?.value,
+        cta: input("Appel à l’action à afficher (facultatif)")?.value, output: input("Type de fichier")?.value };
+    });
+    assert.deepEqual(restored, { duration: "12", resolution: "1080p", cta: "Réservez votre table", output: "mov" });
+    assert.equal(await page.evaluate(() => [...document.querySelectorAll("button")].some((button) => button.textContent.includes("Confirmer et générer"))), false,
+      "A price approval must never survive reload");
+    const metrics = await page.evaluate(() => ({ overflow: document.documentElement.scrollWidth - innerWidth,
+      unlabeled: [...document.querySelectorAll('select,input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),textarea')]
+        .filter((element) => !element.labels?.length && !element.getAttribute("aria-label")).map((element) => element.tagName) }));
+    assert.ok(metrics.overflow <= 2, "Marketing studio must fit at " + width + " px");
+    assert.deepEqual(metrics.unlabeled, [], "Every marketing input must have a label");
+    await page.screenshot({ path: resolve(output, `marketing-${width}.png`), fullPage: true });
+    await clickText("Obtenir le devis de l'animation");
+    await page.waitForFunction(() => [...document.querySelectorAll("button")].some((button) => button.textContent.includes("Confirmer et générer")));
+    await page.evaluate(() => [...document.querySelectorAll("label")]
+      .find((label) => label.textContent.includes("Je confirme le débit"))?.querySelector("input")?.click());
+    await clickText("Confirmer et générer");
+    await page.waitForFunction(() => window.__videoFixtureRequests.some((request) => request.action === "start"));
+    const submitted = await page.evaluate(() => window.__videoFixtureRequests.filter((request) => request.action === "start"));
+    assert.equal(submitted.length, 1);
+    assert.equal(submitted[0].duration, 12);
+    assert.equal(submitted[0].resolution, "1080p");
+    assert.equal(submitted[0].aspectRatio, "16:9");
+    assert.equal(submitted[0].outputFormat, "mov");
+    assert.equal(submitted[0].bitrateMode, "high");
+    assert.equal(submitted[0].marketing.endImageMediaId, "30000000-0000-4000-8000-000000000002");
+    assert.deepEqual(errors, [], "Marketing browser errors");
+    console.log(JSON.stringify({ width, marketing: metrics, output: restored, syntheticStarts: submitted.length, errors }));
+    await context.close();
   }
 } finally { await browser?.close(); await server.close(); }

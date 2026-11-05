@@ -111,8 +111,60 @@ try {
   await execute(migration);
   await execute(read('src/test/sql/tok_video_gift_refunds_smoke.sql'));
   for (const check of await rows('SELECT label FROM public.fixture_video_checks ORDER BY label')) console.log(`PASS ${check.label}`);
+  // Record scheduler configuration in the disposable fixture; no HTTP is sent.
+  await execute(`
+    CREATE SCHEMA cron;
+    CREATE TABLE cron.job(jobname text PRIMARY KEY,schedule text,command text);
+    CREATE FUNCTION cron.schedule(text,text,text) RETURNS bigint LANGUAGE plpgsql AS $$
+    BEGIN INSERT INTO cron.job VALUES ($1,$2,$3) ON CONFLICT(jobname)
+      DO UPDATE SET schedule=EXCLUDED.schedule,command=EXCLUDED.command; RETURN 1; END $$;
+  `);
+  const reconciliation = read('supabase/migrations/20261105213000_tok_video_background_reconciliation.sql');
+  await execute(reconciliation);
+  await execute(reconciliation);
+  await execute(read('src/test/sql/tok_video_reconciliation_smoke.sql'));
+  console.log('PASS background reconciliation: bounded claims, lease, fairness, terminal exclusion, grants and scheduler replay');
+  await execute('CREATE TABLE public.fixture_video_before_marketing AS SELECT * FROM public.restaurant_video_generations;');
+  const marketingMigration = read('supabase/migrations/20261105223000_tok_video_marketing_settings.sql');
+  await execute(marketingMigration);
+  await execute(marketingMigration);
+  const [history] = await rows(`SELECT NOT EXISTS (
+    SELECT * FROM public.restaurant_video_generations EXCEPT SELECT * FROM public.fixture_video_before_marketing
+  ) AND NOT EXISTS (
+    SELECT * FROM public.fixture_video_before_marketing EXCEPT SELECT * FROM public.restaurant_video_generations
+  ) AS unchanged`);
+  assert.equal(history.unchanged, true, 'Marketing migration replay must not alter or reprice historical jobs');
+  // Load the real production TypeScript contract using the supported Node 22
+  // type stripper. The matrix is checked again independently by the SQL RPC.
+  const matrix = JSON.parse(execFileSync(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', `
+    import { normalizeTokVideoOptions, quoteTokVideo, tokVideoRequestOptions } from './supabase/functions/_shared/higgsfield-video.ts';
+    import { DEFAULT_TOK_VIDEO_MARKETING_SETTINGS, TOK_VIDEO_DURATIONS, TOK_VIDEO_RESOLUTIONS, TOK_VIDEO_ASPECT_RATIOS }
+      from './supabase/functions/_shared/higgsfield-marketing-settings.ts';
+    const matrix=[];
+    for(const duration of TOK_VIDEO_DURATIONS) for(const resolution of TOK_VIDEO_RESOLUTIONS) for(const aspectRatio of TOK_VIDEO_ASPECT_RATIOS) {
+      const options=normalizeTokVideoOptions({prompt:'Only animate the selected restaurant references.',duration,resolution,aspectRatio,
+        generateAudio:false,referenceMediaIds:['98500000-0000-4000-8000-000000000020','98500000-0000-4000-8000-000000000021'],
+        logoMediaId:'98500000-0000-4000-8000-000000000022',allowInterpretation:true,
+        outputFormat:duration%2?'mov':'mp4',bitrateMode:duration%2?'high':'standard',marketing:DEFAULT_TOK_VIDEO_MARKETING_SETTINGS});
+      matrix.push({options:tokVideoRequestOptions(options),credits:quoteTokVideo(options).credits});
+    }
+    process.stdout.write(JSON.stringify(matrix));
+  `], { cwd: new URL('../../', import.meta.url), encoding: 'utf8', timeout: 30_000, maxBuffer: 4 * 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'] }));
+  assert.equal(matrix.length, 486);
+  await execute(`CREATE TABLE public.fixture_video_marketing_matrix(options jsonb,credits integer);
+    INSERT INTO public.fixture_video_marketing_matrix SELECT options,credits
+    FROM jsonb_to_recordset('${JSON.stringify(matrix).replaceAll("'", "''")}'::jsonb) AS settings(options jsonb,credits integer);`);
+  await execute(read('src/test/sql/tok_video_marketing_settings_smoke.sql'));
+  console.log('PASS marketing v2: 486 TypeScript/SQL quotes, exact settings, MP4/MOV, credits/refunds, idempotence, ownership, validation, legacy compatibility and grants');
   console.log('PASS native video gift ledger integration; no provider call or production mutation');
   console.log('LIMIT independent PostgreSQL-session races are not exercised by this sequential fixture');
+} catch (error) {
+  // PGlite's default stack includes the full minified engine and SQL batch.
+  // Keep failures actionable without dumping megabytes of fixture source.
+  console.error('FAIL video credit/marketing fixture:', error instanceof Error ? error.message : String(error));
+  if (error && typeof error === 'object' && 'where' in error) console.error(String(error.where));
+  process.exitCode = 1;
 } finally {
   if (db) await db.close();
 }

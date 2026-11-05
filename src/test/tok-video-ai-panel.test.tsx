@@ -25,9 +25,79 @@ beforeEach(() => {
   mocks.validate.mockImplementation(async (file: File) => file);
   vi.stubGlobal("fetch", mocks.fetch);
 });
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+
+async function approveVideo() {
+  fireEvent.click(screen.getByRole("checkbox", { name: /J'autorise une interprétation/ }));
+  await approveNextVideo();
+}
+async function approveNextVideo() {
+  const quoteButton = screen.getByRole("button", { name: "Obtenir le devis de l'animation" });
+  await waitFor(() => expect(quoteButton).toBeEnabled());
+  fireEvent.click(quoteButton);
+  const startButton = await screen.findByRole("button", { name: "Confirmer et générer" });
+  fireEvent.click(screen.getByRole("checkbox", { name: "Je confirme le débit de 417 crédits." }));
+  fireEvent.click(startButton);
+}
 
 describe("paid reference animation", () => {
+  it("submits once when browser storage is unavailable", async () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new DOMException("Storage blocked", "SecurityError"); });
+    render(<TokVideoAiPanel {...props} />);
+    await approveVideo();
+    await screen.findByRole("link", { name: "Ouvrir la vidéo" });
+    expect(mocks.request.mock.calls.filter(([, input]) => input.action === "start")).toHaveLength(1);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+  it("keeps a successful receipt and uses a fresh key even if local cleanup is refused", async () => {
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => { throw new DOMException("Storage blocked", "SecurityError"); });
+    render(<TokVideoAiPanel {...props} />);
+    await approveVideo();
+    await screen.findByRole("link", { name: "Ouvrir la vidéo" });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    await approveNextVideo();
+    await waitFor(() => expect(mocks.request.mock.calls.filter(([, input]) => input.action === "start")).toHaveLength(2));
+    const starts = mocks.request.mock.calls.filter(([, input]) => input.action === "start");
+    expect(starts[1][1].idempotencyKey).not.toBe(starts[0][1].idempotencyKey);
+  });
+  it("retains the same key for an unresolved lost start response, including without storage", async () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new DOMException("Quota full", "QuotaExceededError"); });
+    mocks.request.mockImplementation(async (_id, request) => {
+      if (request.action === "list") return { jobs: [] };
+      if (request.action === "quote") return { quote };
+      throw new Error("Response lost");
+    });
+    render(<TokVideoAiPanel {...props} />);
+    await approveVideo();
+    await screen.findByRole("alert");
+    await approveNextVideo();
+    await waitFor(() => expect(mocks.request.mock.calls.filter(([, input]) => input.action === "start")).toHaveLength(2));
+    const starts = mocks.request.mock.calls.filter(([, input]) => input.action === "start");
+    expect(starts[1][1].idempotencyKey).toBe(starts[0][1].idempotencyKey);
+  });
+  it("reconciles a stored pending key with the history receipt after a reload", async () => {
+    const pendingKey = "tok:video-studio:pending:" + props.restaurantId;
+    localStorage.setItem(pendingKey, JSON.stringify({ key: "lost-response-key", signature: "previous input" }));
+    mocks.request.mockImplementation(async (_id, request) => request.action === "list"
+      ? { jobs: [{ ...job, idempotencyKey: "lost-response-key" }] } : { quote });
+    render(<TokVideoAiPanel {...props} />);
+    await screen.findByRole("link", { name: "Ouvrir la vidéo" });
+    expect(localStorage.getItem(pendingKey)).toBeNull();
+    expect(mocks.request.mock.calls.every(([, input]) => input.action === "list")).toBe(true);
+  });
+  it("does not let a late receipt erase a newer pending request after unmount", async () => {
+    let finish!: (value: unknown) => void;
+    mocks.request.mockImplementation(async (_id, request) => {
+      if (request.action === "start") return new Promise((resolve) => { finish = resolve; });
+      return request.action === "quote" ? { quote } : { jobs: [] };
+    });
+    const view = render(<TokVideoAiPanel {...props} />);
+    await approveVideo(); view.unmount();
+    const pendingKey = "tok:video-studio:pending:" + props.restaurantId;
+    localStorage.setItem(pendingKey, JSON.stringify({ key: "newer-request-key", signature: "new input" }));
+    await act(async () => { finish({ job }); });
+    expect(JSON.parse(localStorage.getItem(pendingKey) || "null").key).toBe("newer-request-key");
+  });
   it("requires interpretation and debit confirmation, sending the approved amount and model", async () => {
     render(<TokVideoAiPanel {...props} />);
     expect(screen.getByRole("button", { name: "Obtenir le devis de l'animation" })).toBeDisabled();

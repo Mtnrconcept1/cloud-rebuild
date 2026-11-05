@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import TokAiVideoStudio from "@/components/dashboard/TokAiVideoStudio";
 
 const mocks = vi.hoisted(() => ({ request: vi.fn(), uploadImage: vi.fn(), loadMedia: vi.fn(), loadAssets: vi.fn(), draw: vi.fn(), render: vi.fn() }));
-vi.mock("@/lib/ai/tokVideoClient", () => ({ requestTokVideo: mocks.request }));
+vi.mock("@/lib/ai/tokVideoClient", async (original) => ({ ...await original<typeof import("@/lib/ai/tokVideoClient")>(), requestTokVideo: mocks.request }));
 vi.mock("@/lib/ai/tokVideoBrandMedia", () => ({ loadTokVideoBrandMedia: mocks.loadMedia }));
 vi.mock("@/lib/ai/tokVideoImageUpload", () => ({ VIDEO_IMAGE_ACCEPT: "image/jpeg,image/png,image/webp", uploadTokVideoImage: mocks.uploadImage }));
 vi.mock("@/lib/media/restaurantReelRenderer", () => ({ loadReelAssets: mocks.loadAssets, drawReelFrame: mocks.draw, renderRestaurantReel: mocks.render }));
@@ -13,6 +13,7 @@ const logo = { id: "logo-1", media_url: "https://assets.example/logo.png", alt_t
 beforeEach(() => {
   vi.clearAllMocks(); localStorage.clear();
   mocks.loadMedia.mockResolvedValue({ media: [photo, logo], hasMore: false });
+  mocks.request.mockResolvedValue({ jobs: [] });
   mocks.loadAssets.mockImplementation(async () => ({ photos: [{}], logo: {}, close: vi.fn() }));
   mocks.render.mockResolvedValue(new File(["fixture-mp4"], "reel.mp4", { type: "video/mp4" }));
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({} as CanvasRenderingContext2D);
@@ -34,7 +35,7 @@ async function finishReel() {
 
 describe("restaurant reel studio", () => {
   it("starts with no selected sources and no paid generation; imports remain explicit", async () => {
-    render(<TokAiVideoStudio restaurantId={restaurantId} />);
+    render(<TokAiVideoStudio restaurantId={restaurantId} mode="reel" />);
     await screen.findByRole("button", { name: "Sélectionner Plat choisi" });
     expect(screen.queryByRole("list", { name: "Ordre des photos du reel" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Créer mon reel de 10 secondes" })).toBeDisabled();
@@ -43,7 +44,7 @@ describe("restaurant reel studio", () => {
   });
   it("selects an explicitly imported image and lets the user remove it", async () => {
     mocks.uploadImage.mockResolvedValue({ ...photo, id: "uploaded", alt_text: "Import choisi" });
-    render(<TokAiVideoStudio restaurantId={restaurantId} />);
+    render(<TokAiVideoStudio restaurantId={restaurantId} mode="reel" />);
     fireEvent.change(screen.getByLabelText("Choisir une image JPEG, PNG ou WebP"), { target: { files: [new File(["image"], "visuel.webp", { type: "image/webp" })] } });
     const order = await screen.findByRole("list", { name: "Ordre des photos du reel" });
     expect(within(order).getByText("Import choisi")).toBeVisible();
@@ -53,24 +54,24 @@ describe("restaurant reel studio", () => {
   });
   it("keeps selected photos when an import fails", async () => {
     mocks.uploadImage.mockRejectedValue(new Error("Import de l'image impossible"));
-    render(<TokAiVideoStudio restaurantId={restaurantId} />); await selectReferences();
+    render(<TokAiVideoStudio restaurantId={restaurantId} mode="reel" />); await selectReferences();
     fireEvent.change(screen.getByLabelText("Choisir une image JPEG, PNG ou WebP"), { target: { files: [new File(["image"], "photo.png", { type: "image/png" })] } });
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Import de l'image impossible"));
     expect(within(screen.getByRole("list", { name: "Ordre des photos du reel" })).getByText("Plat choisi")).toBeVisible();
   });
   it("restores acknowledged prompt and manual settings after reopening", async () => {
-    const first = render(<TokAiVideoStudio restaurantId={restaurantId} />); await selectReferences();
+    const first = render(<TokAiVideoStudio restaurantId={restaurantId} mode="reel" />); await selectReferences();
     fireEvent.change(screen.getByLabelText("Consignes artistiques"), { target: { value: "zoom avant" } });
     fireEvent.click(screen.getByRole("button", { name: "Appliquer les consignes au montage" }));
     fireEvent.change(screen.getByLabelText("Mouvement"), { target: { value: "zoom-out" } });
-    first.unmount(); render(<TokAiVideoStudio restaurantId={restaurantId} />);
+    first.unmount(); render(<TokAiVideoStudio restaurantId={restaurantId} mode="reel" />);
     await waitFor(() => expect(screen.getByRole("button", { name: "Créer mon reel de 10 secondes" })).toBeEnabled());
     expect(screen.getByLabelText("Mouvement")).toHaveValue("zoom-out");
   });
   it("isolates selected sources when switching restaurant", async () => {
-    const view = render(<TokAiVideoStudio restaurantId={restaurantId} />); await selectReferences();
+    const view = render(<TokAiVideoStudio restaurantId={restaurantId} mode="reel" />); await selectReferences();
     mocks.loadMedia.mockResolvedValue({ media: [], hasMore: false });
-    view.rerender(<TokAiVideoStudio restaurantId="restaurant-b" />);
+    view.rerender(<TokAiVideoStudio restaurantId="restaurant-b" mode="reel" />);
     await waitFor(() => expect(mocks.loadMedia).toHaveBeenCalledWith("restaurant-b", 0, []));
     expect(screen.queryByRole("list", { name: "Ordre des photos du reel" })).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Reel final de 10 secondes")).not.toBeInTheDocument();
@@ -95,5 +96,28 @@ describe("restaurant reel studio", () => {
     fireEvent.click(button); fireEvent.click(button); expect(attach).toHaveBeenCalledTimes(1);
     await act(async () => { complete(); });
     expect(screen.getByRole("button", { name: "Ajouter au brouillon d'actualité" })).toBeEnabled();
+  });
+  it("opens marketing with the AI controls and distinguishes source photos from a generated preview", async () => {
+    render(<TokAiVideoStudio restaurantId={restaurantId} />);
+    expect(await screen.findByRole("combobox", { name: "Style de publicité" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Animation IA" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("Vos références")).toBeVisible();
+    expect(screen.queryByText("Aperçu du montage fidèle")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Créer mon reel de 10 secondes" })).not.toBeInTheDocument();
+    expect(mocks.loadAssets).not.toHaveBeenCalled();
+    expect(mocks.request.mock.calls.every(([, request]) => request.action === "list")).toBe(true);
+  });
+  it("restores the chosen creation mode separately for Marketing and Actualité", async () => {
+    const first = render(<TokAiVideoStudio restaurantId={restaurantId} />);
+    await screen.findByRole("combobox", { name: "Style de publicité" });
+    fireEvent.click(screen.getByRole("button", { name: "Reel fidèle" }));
+    first.unmount();
+    const second = render(<TokAiVideoStudio restaurantId={restaurantId} />);
+    await screen.findByRole("button", { name: "Sélectionner Plat choisi" });
+    expect(screen.getByRole("button", { name: "Reel fidèle" })).toHaveAttribute("aria-pressed", "true");
+    second.unmount();
+    render(<TokAiVideoStudio restaurantId={restaurantId} mode="reel" />);
+    await screen.findByRole("button", { name: "Sélectionner Plat choisi" });
+    expect(screen.getByRole("button", { name: "Reel fidèle" })).toHaveAttribute("aria-pressed", "true");
   });
 });

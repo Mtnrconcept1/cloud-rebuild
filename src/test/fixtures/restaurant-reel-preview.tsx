@@ -4,6 +4,7 @@ import TokAiVideoStudio from "@/components/dashboard/TokAiVideoStudio";
 import { validatePreparedRestaurantReel } from "@/lib/media/validateRestaurantReel";
 import { drawReelFrame } from "@/lib/media/restaurantReelRenderer";
 import { DEFAULT_REEL_SETTINGS } from "@/lib/media/restaurantReelPlan";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import "@/index.css";
 
 declare global {
@@ -26,8 +27,16 @@ window.__verifyDissolve = async () => {
 
 export default function Fixture() {
   const [attached, setAttached] = useState(false);
+  const mode = new URLSearchParams(location.search).get("mode") === "marketing" ? "marketing" : "reel";
+  const studio = <TokAiVideoStudio restaurantId="fixture-restaurant" mode={mode} onUseVideo={(file) => { window.__reelExport = file; setAttached(true); }} />;
   return <main className="mx-auto max-w-6xl p-3 sm:p-6">
-    <TokAiVideoStudio restaurantId="fixture-restaurant" mode="reel" onUseVideo={(file) => { window.__reelExport = file; setAttached(true); }} />
+    {new URLSearchParams(location.search).get("dialog") === "1" ? <Dialog open>
+      <DialogContent className="max-h-[92dvh] w-[calc(100%_-_1rem)] overflow-y-auto rounded-2xl sm:max-w-6xl">
+        <DialogHeader><DialogTitle>Créer un reel pour votre actualité</DialogTitle>
+          <DialogDescription>Choisissez vos médias, vérifiez la vidéo, puis ajoutez-la au brouillon.</DialogDescription></DialogHeader>
+        {studio}
+      </DialogContent>
+    </Dialog> : studio}
     {attached ? <p role="status">Reel ajouté au brouillon de test</p> : null}
   </main>;
 }
