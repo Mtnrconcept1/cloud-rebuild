@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `e747ca6c38e8ccbea3a69a5248b1fcdd89f143755489f789fd1bdf3dcc7ed712`
+- Empreinte SHA-256 des sources indexées : `cf11c484d79997e10b367cbffca9356ee0b54ba3545cbe28bbd70f57c6d4ba94`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,7 +37,7 @@
 | frontendRoutes | 149 |
 | integrations | 11 |
 | marketingOperations | 45 |
-| migrations | 600 |
+| migrations | 601 |
 | modules | 2007 |
 | pages | 138 |
 | pathLiterals | 1012 |
@@ -45,9 +45,9 @@
 | publicEntries | 958 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 124 |
-| records | 20485 |
-| repositoryFiles | 4090 |
-| routingAuthorities | 35 |
+| records | 20483 |
+| repositoryFiles | 4091 |
+| routingAuthorities | 31 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 10 |
@@ -394,16 +394,16 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | android-app-link | `www.tok.ch` | — | 1 | [android/app/src/main/AndroidManifest.xml:46](../../android/app/src/main/AndroidManifest.xml#L46) |
 | android-scheme | `https://*` | — | 7 | [android/app/src/main/AndroidManifest.xml:45](../../android/app/src/main/AndroidManifest.xml#L45) |
 | android-scheme | `tok://*` | — | 1 | [android/app/src/main/AndroidManifest.xml:38](../../android/app/src/main/AndroidManifest.xml#L38) |
-| application-host | `admin.thetok.ch` | — | 5 | [src/lib/adminDomains.ts:5](../../src/lib/adminDomains.ts#L5) |
-| application-host | `app.thetok.ch` | — | 4 | [src/lib/commercialDomains.ts:31](../../src/lib/commercialDomains.ts#L31) |
+| application-host | `admin.thetok.ch` | — | 4 | [src/lib/adminDomains.ts:5](../../src/lib/adminDomains.ts#L5) |
+| application-host | `app.thetok.ch` | — | 3 | [src/lib/commercialDomains.ts:31](../../src/lib/commercialDomains.ts#L31) |
 | application-host | `auth.thetok.ch` | — | 1 | [src/lib/commercialDomains.ts:33](../../src/lib/commercialDomains.ts#L33) |
 | application-host | `commercial.thetok.ch` | — | 1 | [src/lib/demoWorkspaces.ts:59](../../src/lib/demoWorkspaces.ts#L59) |
 | application-host | `demo-client.thetok.ch` | — | 1 | [src/lib/demoWorkspaces.ts:17](../../src/lib/demoWorkspaces.ts#L17) |
 | application-host | `demo-livreur.thetok.ch` | — | 1 | [src/lib/demoWorkspaces.ts:31](../../src/lib/demoWorkspaces.ts#L31) |
 | application-host | `demo-restaurateur.thetok.ch` | — | 1 | [src/lib/demoWorkspaces.ts:24](../../src/lib/demoWorkspaces.ts#L24) |
 | application-host | `marketing.thetok.ch` | — | 1 | [src/lib/marketingDomains.ts:6](../../src/lib/marketingDomains.ts#L6) |
-| application-host | `thetok.ch` | — | 4 | [src/lib/commercialDomains.ts:29](../../src/lib/commercialDomains.ts#L29) |
-| application-host | `www.thetok.ch` | — | 8 | [src/lib/adminDomains.ts:3](../../src/lib/adminDomains.ts#L3) |
+| application-host | `thetok.ch` | — | 3 | [src/lib/commercialDomains.ts:29](../../src/lib/commercialDomains.ts#L29) |
+| application-host | `www.thetok.ch` | — | 7 | [src/lib/adminDomains.ts:3](../../src/lib/adminDomains.ts#L3) |
 | capacitor-scheme | `tok://*` | — | 1 | [capacitor.config.ts:28](../../capacitor.config.ts#L28) |
 | commercial-frame | `/commercial/demo-live/frame/:surface/:sessionId/*` | — | 1 | [src/lib/commercialDemoFrame.ts:1](../../src/lib/commercialDemoFrame.ts#L1) |
 | deep-link | `tok://auth/callback` | — | 1 | [src/lib/authDomains.ts:5](../../src/lib/authDomains.ts#L5) |
@@ -412,10 +412,6 @@ Middleware : matcher `/restaurants-pres/:path*` dans [middleware.js](../../middl
 | deep-link | `tok://campaign-preview/{restaurant_id}` | — | 1 | [src/lib/tokConnect.ts:259](../../src/lib/tokConnect.ts#L259) |
 | deep-link | `tok://restaurants` | — | 1 | [src/lib/tokConnect.ts:244](../../src/lib/tokConnect.ts#L244) |
 | deep-link | `tok://restaurants/{restaurant_id}` | — | 1 | [src/lib/tokConnect.ts:249](../../src/lib/tokConnect.ts#L249) |
-| ios-universal-link | `admin.thetok.ch` | — | 1 | [ios/App/App/App.entitlements:10](../../ios/App/App/App.entitlements#L10) |
-| ios-universal-link | `app.thetok.ch` | — | 1 | [ios/App/App/App.entitlements:9](../../ios/App/App/App.entitlements#L9) |
-| ios-universal-link | `thetok.ch` | — | 1 | [ios/App/App/App.entitlements:7](../../ios/App/App/App.entitlements#L7) |
-| ios-universal-link | `www.thetok.ch` | — | 1 | [ios/App/App/App.entitlements:8](../../ios/App/App/App.entitlements#L8) |
 | pwa-shortcut | `/actualites` | Actualités | 1 | [public/manifest.json:89](../../public/manifest.json#L89) |
 | pwa-shortcut | `/mon-espace?source=pwa-shortcut` | Mon espace | 1 | [public/manifest.json:50](../../public/manifest.json#L50) |
 | pwa-shortcut | `/recherche?mode=reservation` | Réserver | 1 | [public/manifest.json:63](../../public/manifest.json#L63) |
@@ -7247,6 +7243,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261104122917 Restrict Restaurant Referral Rpc Anonymous Access | 10 | 0 | [supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql:1](../../supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql#L1) |
 | 20261104123920 Newsletter Signup Consent Reward | 231 | 11 | [supabase/migrations/20261104123920_newsletter_signup_consent_reward.sql:1](../../supabase/migrations/20261104123920_newsletter_signup_consent_reward.sql#L1) |
 | 20261104220801 Tok Higgsfield Video Studio | 199 | 7 | [supabase/migrations/20261104220801_tok_higgsfield_video_studio.sql:1](../../supabase/migrations/20261104220801_tok_higgsfield_video_studio.sql#L1) |
+| 20261105035500 Tok Video Quota Ignore Failed | 18 | 0 | [supabase/migrations/20261105035500_tok_video_quota_ignore_failed.sql:1](../../supabase/migrations/20261105035500_tok_video_quota_ignore_failed.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -8165,7 +8162,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (600)</summary>
+<details><summary>database-migration (601)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8767,6 +8764,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql`
 - `supabase/migrations/20261104123920_newsletter_signup_consent_reward.sql`
 - `supabase/migrations/20261104220801_tok_higgsfield_video_studio.sql`
+- `supabase/migrations/20261105035500_tok_video_quota_ignore_failed.sql`
 
 </details>
 
