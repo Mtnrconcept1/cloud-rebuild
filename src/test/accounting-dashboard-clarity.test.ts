@@ -25,6 +25,10 @@ describe("accounting dashboard clarity and responsiveness", () => {
     expect(admin).toContain("Dépenses réelles et engagements");
     expect(admin).toContain("Commissions marketplace");
     expect(admin).toContain("Part développeur réservée");
+    expect(admin).toContain("Frais Stripe réels");
+    expect(admin).toContain("TVA collectée à reverser");
+    expect(adminShared).toContain('"financial_ledger"');
+    expect(adminShared).toContain('["stripe_processing_fee_expense", "tax_payable"]');
     expect(admin).toContain("Charges marketing enregistrées");
     expect(admin).toContain("Reste pilotable après politiques");
     expect(admin).toContain("- developerReservedShare");
@@ -35,6 +39,17 @@ describe("accounting dashboard clarity and responsiveness", () => {
     expect(restaurant).toContain("Vos recettes par activité");
     expect(restaurant).toContain("Vos coûts Tok en préparation");
     expect(restaurant).toContain("Frais fixes de réservation");
+  });
+
+  it("reconciles paid subscriptions by collection date, not original invoice item date", () => {
+    const adminShared = readProjectFile("src/pages/admin/adminComptaShared.ts");
+
+    expect(adminShared).toContain('queryKey: ["admin-compta-paid-direct-tok-invoices-v1"');
+    expect(adminShared).toContain('.gte("paid_at"');
+    expect(adminShared).toContain('.in("invoice_id", batch)');
+    expect(adminShared).toContain("getPaidDirectTokInvoiceIds");
+    expect(adminShared).toContain("paidDirectTokLineItemsQuery.data || []");
+    expect(adminShared).toContain("paidDirectTokInvoicesQuery.error");
   });
 
   it("renders every invoice history as one responsive card list without horizontal scrolling", () => {

@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   DEVELOPER_RESERVED_SHARE_RATE,
   calculateDeveloperReservedShare,
+  getPaidDirectTokInvoiceIds,
+  summarizeStripeFinanceLedger,
   sumDirectTokPurchaseRevenue,
   buildTokRevenueSummary,
   buildRestaurantAccountingSummary,
@@ -72,6 +74,46 @@ describe("buildTokRevenueSummary", () => {
       { invoice_id: "invoice-paid", item_kind: "order_commission", amount_ttc: 12 },
       { invoice_id: "invoice-open", item_kind: "credit_pack", amount_ttc: 200 },
     ], paidInvoiceIds)).toBe(679);
+  });
+});
+
+describe("getPaidDirectTokInvoiceIds", () => {
+  it("counts paid Starter subscriptions even when their lines predate collection", () => {
+    const invoices = [
+      { id: "starter-october", invoice_type: "subscription", status: "paid" },
+      { id: "legacy-payable", invoice_type: "payable", status: "PAID" },
+      { id: "reserved-starter", invoice_type: "subscription", status: "reserved" },
+      { id: "unpaid-upgrade", invoice_type: "subscription", status: "pending" },
+      { id: "paid-reservation-fee", invoice_type: "reservation_fees", status: "paid" },
+    ];
+    const ids = getPaidDirectTokInvoiceIds(invoices);
+
+    expect(ids).toEqual(["starter-october", "legacy-payable"]);
+    expect(sumDirectTokPurchaseRevenue([
+      { invoice_id: "starter-october", item_kind: "restaurant_subscription", amount_ttc: 69 },
+      { invoice_id: "legacy-payable", item_kind: "restaurant_subscription", amount_ttc: 199 },
+      { invoice_id: "reserved-starter", item_kind: "restaurant_subscription", amount_ttc: 69 },
+      { invoice_id: "paid-reservation-fee", item_kind: "reservation_fee", amount_ttc: 5 },
+    ], new Set(ids))).toBe(268);
+  });
+});
+
+describe("summarizeStripeFinanceLedger", () => {
+  it("exposes processing costs but keeps VAT separate from the expense category", () => {
+    expect(summarizeStripeFinanceLedger([
+      { account_code: "stripe_processing_fee_expense", direction: "debit", amount_cents: 230 },
+      { account_code: "tax_payable", direction: "credit", amount_cents: 517 },
+      { account_code: "developer_payable", direction: "credit", amount_cents: 690 },
+    ])).toEqual({ processingFees: 2.3, vatPayable: 5.17 });
+  });
+
+  it("nets fee reversals and VAT reductions without treating them as new receipts", () => {
+    expect(summarizeStripeFinanceLedger([
+      { account_code: "stripe_processing_fee_expense", direction: "debit", amount_cents: 230 },
+      { account_code: "stripe_processing_fee_expense", direction: "credit", amount_cents: 30 },
+      { account_code: "tax_payable", direction: "credit", amount_cents: 517 },
+      { account_code: "tax_payable", direction: "debit", amount_cents: 100 },
+    ])).toEqual({ processingFees: 2, vatPayable: 4.17 });
   });
 });
 

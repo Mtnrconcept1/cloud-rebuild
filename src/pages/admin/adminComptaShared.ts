@@ -18,6 +18,8 @@ import {
   buildTokAccountingSummary,
   buildTokRevenueSummary,
   calculateTokCommission,
+  getPaidDirectTokInvoiceIds,
+  summarizeStripeFinanceLedger,
   sumDirectTokPurchaseRevenue,
 } from "@/lib/comptaFlow";
 import {
@@ -1289,6 +1291,89 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     },
   });
 
+  // A subscription may be paid months after its item was first reserved.
+  // Query by the paid invoice IDs, not by each line item's occurred_at.
+  const stripeFinanceLedgerQuery = useQuery({
+    queryKey: ["admin-compta-stripe-finance-ledger-v1", selectedRestaurant, selectedMonth],
+    queryFn: async () => fetchPagedRows<{
+      account_code: string;
+      direction: "debit" | "credit";
+      amount_cents: number;
+    }>(() => {
+      let query = supabase
+        .from("financial_ledger")
+        .select("account_code, direction, amount_cents")
+        .in("account_code", ["stripe_processing_fee_expense", "tax_payable"])
+        .eq("currency", "CHF")
+        .eq("livemode", true)
+        .gte("effective_at", `${monthBounds.monthStart}T00:00:00.000Z`)
+        .lte("effective_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+        .order("entry_id", { ascending: true });
+
+      if (selectedRestaurant !== "all") {
+        query = query.eq("restaurant_id", selectedRestaurant);
+      }
+
+      return query;
+    }),
+  });
+  const stripeFinance = useMemo(
+    () => summarizeStripeFinanceLedger(stripeFinanceLedgerQuery.data || []),
+    [stripeFinanceLedgerQuery.data],
+  );
+
+  const paidDirectTokInvoicesQuery = useQuery({
+    queryKey: ["admin-compta-paid-direct-tok-invoices-v1", selectedRestaurant, selectedMonth],
+    queryFn: async () => fetchPagedRows<Pick<AdminInvoiceRow, "id" | "invoice_type" | "status">>(() => {
+      let query = supabase
+        .from("restaurant_invoices")
+        .select("id, invoice_type, status")
+        .in("invoice_type", ["payable", "subscription"])
+        .eq("status", "paid")
+        .gte("paid_at", `${monthBounds.monthStart}T00:00:00.000Z`)
+        .lte("paid_at", `${monthBounds.monthEnd}T23:59:59.999Z`)
+        .order("id", { ascending: true });
+
+      if (selectedRestaurant !== "all") {
+        query = query.eq("restaurant_id", selectedRestaurant);
+      }
+
+      return query;
+    }),
+  });
+  const paidDirectTokInvoiceIds = useMemo(
+    () => getPaidDirectTokInvoiceIds(paidDirectTokInvoicesQuery.data || []),
+    [paidDirectTokInvoicesQuery.data],
+  );
+  const paidDirectTokLineItemsQuery = useQuery({
+    queryKey: ["admin-compta-paid-direct-tok-line-items-v1", selectedRestaurant, selectedMonth, paidDirectTokInvoiceIds],
+    enabled: paidDirectTokInvoicesQuery.isSuccess,
+    queryFn: async () => {
+      if (paidDirectTokInvoiceIds.length === 0) return [] as AdminPayableLineItemRow[];
+
+      const items: AdminPayableLineItemRow[] = [];
+      // Bound the URL length and paginate results for high-volume months.
+      for (let offset = 0; offset < paidDirectTokInvoiceIds.length; offset += 100) {
+        const batch = paidDirectTokInvoiceIds.slice(offset, offset + 100);
+        const rows = await fetchPagedRows<AdminPayableLineItemRow>(() => {
+          let query = supabase
+            .from("restaurant_invoice_line_items")
+            .select("id, restaurant_id, invoice_id, item_kind, source_id, source_table, amount_ttc")
+            .in("invoice_id", batch)
+            .order("id", { ascending: true });
+
+          if (selectedRestaurant !== "all") {
+            query = query.eq("restaurant_id", selectedRestaurant);
+          }
+
+          return query;
+        });
+        items.push(...rows);
+      }
+      return items;
+    },
+  });
+
   const campaignsQuery = useQuery({
     queryKey: ["admin-compta-paid-campaigns", selectedRestaurant, selectedMonth],
     queryFn: async () => {
@@ -1506,15 +1591,13 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       };
     }, { amount: 0, count: 0 });
   }, [selectedRestaurant, tokOnePaymentsQuery.data]);
-  const directTokPurchaseRevenueAmount = useMemo(() => {
-    const paidInvoiceIds = new Set(
-      payableInvoiceSections.history
-        .filter((invoice) => invoice.invoice_type === "payable")
-        .map((invoice) => invoice.id),
-    );
-
-    return sumDirectTokPurchaseRevenue(payableLineItemsQuery.data || [], paidInvoiceIds);
-  }, [payableInvoiceSections.history, payableLineItemsQuery.data]);
+  const directTokPurchaseRevenueAmount = useMemo(
+    () => sumDirectTokPurchaseRevenue(
+      paidDirectTokLineItemsQuery.data || [],
+      new Set(paidDirectTokInvoiceIds),
+    ),
+    [paidDirectTokInvoiceIds, paidDirectTokLineItemsQuery.data],
+  );
   const totalRevenueSummary = useMemo(
     () => buildTokRevenueSummary({
       commissionAmount: summary.inflow.totalCommissions,
@@ -1588,6 +1671,8 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
     tokOneSubscriptionAmount: tokOneRevenue.amount,
     tokOneSubscriptionCount: tokOneRevenue.count,
     directTokPurchaseRevenueAmount,
+    stripeProcessingFeesAmount: stripeFinance.processingFees,
+    taxPayableAmount: stripeFinance.vatPayable,
     totalRevenue: totalRevenueSummary.totalRevenue,
     developerReservedShare: totalRevenueSummary.developerReservedShare,
     refundsIssuedTotal,
@@ -1613,6 +1698,9 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || payoutInvoicesQuery.isLoading
       || payableInvoicesQuery.isLoading
       || payableLineItemsQuery.isLoading
+      || stripeFinanceLedgerQuery.isLoading
+      || paidDirectTokInvoicesQuery.isLoading
+      || paidDirectTokLineItemsQuery.isLoading
       || refundedOrdersQuery.isLoading
       || refundedReservationsQuery.isLoading,
     error: periodControlQuery.error
@@ -1628,6 +1716,9 @@ export function useAdminComptaData(selectedRestaurant: string, selectedMonth: st
       || payoutInvoicesQuery.error
       || payableInvoicesQuery.error
       || payableLineItemsQuery.error
+      || stripeFinanceLedgerQuery.error
+      || paidDirectTokInvoicesQuery.error
+      || paidDirectTokLineItemsQuery.error
       || refundedOrdersQuery.error
       || refundedReservationsQuery.error,
   };
