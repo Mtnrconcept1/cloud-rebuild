@@ -59,6 +59,16 @@ describe("Meta health BFF boundary", () => {
     expect(quotaIndex).toBeLessThan(edgeIndex);
   });
 
+  it("forwards a Resend read-only health check under the same MFA and CSRF boundaries", async () => {
+    const fetchMock = upstream(); vi.stubGlobal("fetch", fetchMock);
+    const res = recorder();
+    await marketingOrchestratorHandler(request({ action: "check_resend" }), res.response);
+    expect(res.response.statusCode).toBe(200);
+    const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith(edgePath));
+    expect(JSON.parse(String(call![1]!.body))).toEqual({ action: "check_resend" });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("api.resend.com/emails"))).toBe(false);
+  });
+
   it("rejects a missing CSRF proof before any downstream call", async () => {
     const fetchMock = upstream(); vi.stubGlobal("fetch", fetchMock);
     const req = request(); delete req.headers["x-tok-marketing-csrf"];
