@@ -94,6 +94,36 @@ Avant déploiement :
 - tester un lien courant, un lien expiré et un lien signé avec l'ancienne clé de rotation ;
 - retirer l'ancienne clé après la fenêtre de validité maximale.
 
+## Séparation des emails de réservation et de prospection (14 octobre 2026)
+
+Les notifications transactionnelles continuent à utiliser `RESEND_API_KEY` et `EMAIL_FROM`
+dans `send-email`. Les campagnes passent uniquement par `marketing-orchestrator`,
+qui requiert désormais **deux paramètres indépendants** dans les secrets Supabase :
+
+- `MARKETING_RESEND_API_KEY` : clé Resend réservée au trafic marketing,
+  différente de `RESEND_API_KEY`.
+- `MARKETING_EMAIL_FROM` : expéditeur vérifié sur un sous-domaine de
+  `thetok.ch`, par exemple `TOK <prospection@marketing.thetok.ch>`,
+  différent de l'expéditeur transactionnel. Ne pas utiliser `@thetok.ch`.
+
+L'absence ou la confusion de ces paramètres bloque toute livraison email marketing
+(`blocked_configuration`, motif `marketing_sender_not_isolated`).
+Ne pas placer la clé marketing dans les variables d'environnement publiques du frontend.
+L'isolation des clés et adresses ne constitue pas, à elle seule, une garantie de
+réputation indépendante si les deux clés utilisent le même compte fournisseur.
+
+**Préconditions d'activation** : vérifier chez Resend le domaine d'envoi et ses
+DNS SPF/DKIM/DMARC, l'accès aux webhooks de rebond et de plainte, la preuve de base
+légale pour chaque contact, l'état de désinscription/suppression et la pause globale.
+Ne jamais importer automatiquement toutes les adresses publiques de restaurants
+dans une audience expédiable. Utiliser des tests avec destinataires autorisés
+avant tout volume réel ; ne pas déclencher de campagne durant le déploiement.
+
+**Retour arrière** : garder la pause marketing active ; retirer ou invalider
+`MARKETING_RESEND_API_KEY` afin d'interrompre l'envoi marketing sans perturber
+les réservations. Une ancienne version du code réintroduirait le partage des
+variables ; ne pas la redéployer sans conserver ce garde-fou.
+
 ## Déploiement
 
 1. Vérifier que la migration est la seule nouvelle migration et qu'aucun historique n'a été édité.
