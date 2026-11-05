@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `e747ca6c38e8ccbea3a69a5248b1fcdd89f143755489f789fd1bdf3dcc7ed712`
+- Empreinte SHA-256 des sources indexées : `10e8facb10f8d63928e3a993a2b2da0455ebc816202d3e302f86cbd97c5e44da`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -37,7 +37,7 @@
 | frontendRoutes | 149 |
 | integrations | 11 |
 | marketingOperations | 45 |
-| migrations | 600 |
+| migrations | 601 |
 | modules | 2007 |
 | pages | 138 |
 | pathLiterals | 1012 |
@@ -45,8 +45,8 @@
 | publicEntries | 958 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 124 |
-| records | 20485 |
-| repositoryFiles | 4090 |
+| records | 20487 |
+| repositoryFiles | 4091 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7247,6 +7247,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261104122917 Restrict Restaurant Referral Rpc Anonymous Access | 10 | 0 | [supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql:1](../../supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql#L1) |
 | 20261104123920 Newsletter Signup Consent Reward | 231 | 11 | [supabase/migrations/20261104123920_newsletter_signup_consent_reward.sql:1](../../supabase/migrations/20261104123920_newsletter_signup_consent_reward.sql#L1) |
 | 20261104220801 Tok Higgsfield Video Studio | 199 | 7 | [supabase/migrations/20261104220801_tok_higgsfield_video_studio.sql:1](../../supabase/migrations/20261104220801_tok_higgsfield_video_studio.sql#L1) |
+| 20261105035500 Tok Video Quota Ignore Failed | 18 | 0 | [supabase/migrations/20261105035500_tok_video_quota_ignore_failed.sql:1](../../supabase/migrations/20261105035500_tok_video_quota_ignore_failed.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -8165,7 +8166,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (600)</summary>
+<details><summary>database-migration (601)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8767,6 +8768,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261104122917_restrict_restaurant_referral_rpc_anonymous_access.sql`
 - `supabase/migrations/20261104123920_newsletter_signup_consent_reward.sql`
 - `supabase/migrations/20261104220801_tok_higgsfield_video_studio.sql`
+- `supabase/migrations/20261105035500_tok_video_quota_ignore_failed.sql`
 
 </details>
 
