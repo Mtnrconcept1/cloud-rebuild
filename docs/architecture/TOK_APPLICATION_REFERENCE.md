@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8d9949e409142b59cf9be79ddffb337e45b90f87670ffd074aa94fcaef8f8238`
+- Empreinte SHA-256 des sources indexées : `ac51450d33c395fef17a203ed79fad0ed8fe4fb145d81dfce3278d99d33ad893`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -28,25 +28,25 @@
 | apiRoutes | 11 |
 | cronJobs | 38 |
 | databaseContract | 232 |
-| databaseObjects | 3243 |
+| databaseObjects | 3247 |
 | documents | 191 |
 | edgeFunctions | 127 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4476 |
+| exportedSymbols | 4479 |
 | featureFlags | 100 |
 | frontendRoutes | 149 |
 | integrations | 11 |
 | marketingOperations | 45 |
-| migrations | 602 |
-| modules | 2019 |
+| migrations | 603 |
+| modules | 2021 |
 | pages | 138 |
 | pathLiterals | 1016 |
 | publicAssets | 920 |
 | publicEntries | 958 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 124 |
-| records | 20558 |
-| repositoryFiles | 4105 |
+| records | 20572 |
+| repositoryFiles | 4109 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -1666,10 +1666,10 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /__campaign-layout-test.tsx | 1 | [scripts/check-campaign-layout.mjs:12](../../scripts/check-campaign-layout.mjs#L12) |
 | /__commercial-map | 2 | [scripts/check-commercial-map.mjs:42](../../scripts/check-commercial-map.mjs#L42) |
 | /__commercial-map-test.tsx | 1 | [scripts/check-commercial-map.mjs:10](../../scripts/check-commercial-map.mjs#L10) |
-| /__reel_fixture__/ | 1 | [scripts/test-restaurant-reel.mjs:59](../../scripts/test-restaurant-reel.mjs#L59) |
-| /__reel_fixture__/logo.png | 1 | [scripts/test-restaurant-reel.mjs:15](../../scripts/test-restaurant-reel.mjs#L15) |
-| /__reel_fixture__/photo-a.png | 1 | [scripts/test-restaurant-reel.mjs:13](../../scripts/test-restaurant-reel.mjs#L13) |
-| /__reel_fixture__/photo-b.png | 1 | [scripts/test-restaurant-reel.mjs:14](../../scripts/test-restaurant-reel.mjs#L14) |
+| /__reel_fixture__/ | 1 | [scripts/test-restaurant-reel.mjs:51](../../scripts/test-restaurant-reel.mjs#L51) |
+| /__reel_fixture__/logo.png | 1 | [src/test/fixtures/restaurant-reel-transports.ts:7](../../src/test/fixtures/restaurant-reel-transports.ts#L7) |
+| /__reel_fixture__/photo-a.png | 1 | [src/test/fixtures/restaurant-reel-transports.ts:5](../../src/test/fixtures/restaurant-reel-transports.ts#L5) |
+| /__reel_fixture__/photo-b.png | 1 | [src/test/fixtures/restaurant-reel-transports.ts:6](../../src/test/fixtures/restaurant-reel-transports.ts#L6) |
 | /__tests__/ | 1 | [scripts/frontend-10k-readiness.mjs:164](../../scripts/frontend-10k-readiness.mjs#L164) |
 | /a | 1 | [src/test/seo-restaurant-context-hardening.test.ts:40](../../src/test/seo-restaurant-context-hardening.test.ts#L40) |
 | /a-propos | 14 | [scripts/prerender-seo.mjs:1089](../../scripts/prerender-seo.mjs#L1089) |
@@ -3073,7 +3073,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 ### Objets SQL détectés
 
-<details><summary>function (945)</summary>
+<details><summary>function (946)</summary>
 
 - `pg_temp.tok_demo_public_rls_fingerprint` (1 définition(s))
 - `private.prevent_ops_incident_github_run_rebind` (1 définition(s))
@@ -3121,6 +3121,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `private_finance.record_refund_status` (1 définition(s))
 - `private_finance.reject_demo_restaurant_paid_module` (1 définition(s))
 - `private_finance.reject_immutable_fair_growth_mutation` (1 définition(s))
+- `private_finance.release_restaurant_video_gifts` (1 définition(s))
 - `private_finance.resolve_commercial_signup_referral` (1 définition(s))
 - `private_finance.run_monthly_reservation_fee_invoice_generation` (1 définition(s))
 - `private_finance.set_financial_ledger_livemode` (1 définition(s))
@@ -3493,7 +3494,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `public.finalize_zero_attente_no_cost_hold` (1 définition(s))
 - `public.find_nearby_couriers` (2 définition(s))
 - `public.finish_print_fulfillment_submission` (1 définition(s))
-- `public.finish_restaurant_video_generation` (1 définition(s))
+- `public.finish_restaurant_video_generation` (2 définition(s))
 - `public.floor_plan_autoassign_reservation` (2 définition(s))
 - `public.floor_plan_reservation_duration_minutes` (1 définition(s))
 - `public.floor_plan_table_is_free` (1 définition(s))
@@ -4023,7 +4024,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>index (762)</summary>
+<details><summary>index (764)</summary>
 
 - `IF` (2 définition(s))
 - `ad_campaign_attribution_touches_active_idx` (1 définition(s))
@@ -4059,6 +4060,8 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `ai_usage_logs_function_created_idx` (2 définition(s))
 - `ai_usage_logs_restaurant_created_idx` (2 définition(s))
 - `ai_usage_logs_restaurant_feature_created_idx` (2 définition(s))
+- `ai_video_credit_releases_grant_idx` (1 définition(s))
+- `ai_video_credit_releases_job_idx` (1 définition(s))
 - `anti_waste_offers_archive_restaurant_idx` (1 définition(s))
 - `audit_log_entity_id_created_at_idx` (1 définition(s))
 - `audit_log_new_target_user_id_created_at_idx` (1 définition(s))
@@ -5622,7 +5625,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 
 </details>
 
-<details><summary>table (418)</summary>
+<details><summary>table (419)</summary>
 
 - `AS` (2 définition(s))
 - `does` (1 définition(s))
@@ -5631,6 +5634,7 @@ Ces contrats décrivent les familles statiquement détectables. Le nombre exact 
 - `private_finance.admin_ai_credit_spends` (1 définition(s))
 - `private_finance.ai_image_credit_releases` (1 définition(s))
 - `private_finance.ai_image_operations` (1 définition(s))
+- `private_finance.ai_video_credit_releases` (1 définition(s))
 - `private_finance.commercial_signup_referrals` (1 définition(s))
 - `private_finance.fair_growth_rollout_cutovers` (1 définition(s))
 - `private_finance.internal_unlimited_openai_grants` (1 définition(s))
@@ -7254,6 +7258,7 @@ Ce contrat décrit ce que le frontend peut typer localement. Il ne remplace pas 
 | 20261104220801 Tok Higgsfield Video Studio | 199 | 7 | [supabase/migrations/20261104220801_tok_higgsfield_video_studio.sql:1](../../supabase/migrations/20261104220801_tok_higgsfield_video_studio.sql#L1) |
 | 20261105035500 Tok Video Quota Ignore Failed | 18 | 0 | [supabase/migrations/20261105035500_tok_video_quota_ignore_failed.sql:1](../../supabase/migrations/20261105035500_tok_video_quota_ignore_failed.sql#L1) |
 | 20261105153000 Tok Brand Video References | 72 | 1 | [supabase/migrations/20261105153000_tok_brand_video_references.sql:1](../../supabase/migrations/20261105153000_tok_brand_video_references.sql#L1) |
+| 20261105203000 Tok Video Gift Refunds | 197 | 5 | [supabase/migrations/20261105203000_tok_video_gift_refunds.sql:1](../../supabase/migrations/20261105203000_tok_video_gift_refunds.sql#L1) |
 
 ## Automatisation, dépendances et CI
 
@@ -7490,7 +7495,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 46 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 286 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 906 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 907 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7501,13 +7506,13 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | Famille de module | Total |
 | --- | --- |
 | application-library | 247 |
-| automation-script | 94 |
+| automation-script | 95 |
 | documentation | 6 |
 | edge-function-source | 268 |
 | frontend-component | 325 |
 | frontend-hook | 25 |
 | frontend-page | 138 |
-| frontend-source | 38 |
+| frontend-source | 39 |
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
@@ -8029,7 +8034,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>automation-script (108)</summary>
+<details><summary>automation-script (109)</summary>
 
 - `scripts/app-store-availability-submit-v5.mjs`
 - `scripts/app-store-connect-finalize-v1.mjs`
@@ -8103,6 +8108,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `scripts/security/run-webhook-deno-runtime.mjs`
 - `scripts/security/test-ai-image-credit-postgres.mjs`
 - `scripts/security/test-tok-sentinel-postgres.mjs`
+- `scripts/security/test-video-gift-refunds.mjs`
 - `scripts/security/test-webhook-deno-runtime.ts`
 - `scripts/security/test-webhook-dispatch-postgres.mjs`
 - `scripts/security/tok-connect-oauth-isolation.sql`
@@ -8180,7 +8186,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>database-migration (602)</summary>
+<details><summary>database-migration (603)</summary>
 
 - `supabase/migrations/20260308174912_24a4f7b8-7291-401b-aa81-669264a5bbd2.sql`
 - `supabase/migrations/20260308174933_9ab8b795-eeb6-45b1-90bc-dcc424e0750c.sql`
@@ -8784,6 +8790,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `supabase/migrations/20261104220801_tok_higgsfield_video_studio.sql`
 - `supabase/migrations/20261105035500_tok_video_quota_ignore_failed.sql`
 - `supabase/migrations/20261105153000_tok_brand_video_references.sql`
+- `supabase/migrations/20261105203000_tok_video_gift_refunds.sql`
 
 </details>
 
@@ -9781,7 +9788,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>frontend-source (65)</summary>
+<details><summary>frontend-source (67)</summary>
 
 - `src/App.css`
 - `src/App.tsx`
@@ -9836,6 +9843,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/fixtures/floorPlanPreview.ts`
 - `src/test/fixtures/golden-tok-preview.tsx`
 - `src/test/fixtures/restaurant-reel-preview.tsx`
+- `src/test/fixtures/restaurant-reel-transports.ts`
 - `src/test/fixtures/workforce-synthetic-signature.png`
 - `src/test/setup.ts`
 - `src/test/sql/marketing_content_reviews_smoke.sql`
@@ -9843,6 +9851,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/sql/tok_connect_marketing_links_smoke.sql`
 - `src/test/sql/tok_kitchen_workforce_smoke.sql`
 - `src/test/sql/tok_restaurant_order_insights_smoke.sql`
+- `src/test/sql/tok_video_gift_refunds_smoke.sql`
 - `src/test/sql/tok_workforce_concurrency_smoke.sql`
 - `src/test/sql/tok_workforce_integrity_smoke.sql`
 - `src/test/sql/tok_workforce_launch_smoke.sql`

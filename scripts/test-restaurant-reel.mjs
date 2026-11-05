@@ -9,11 +9,6 @@ import react from "@vitejs/plugin-react-swc";
 import puppeteer from "puppeteer";
 
 const output = resolve(process.env.REEL_TEST_OUTPUT || "artifacts/restaurant-reel");
-const media = [
-  { id: "photo-a", media_url: "/__reel_fixture__/photo-a.png", alt_text: "Photo A", media_type: "photo" },
-  { id: "photo-b", media_url: "/__reel_fixture__/photo-b.png", alt_text: "Photo B", media_type: "photo" },
-  { id: "logo", media_url: "/__reel_fixture__/logo.png", alt_text: "Logo original", media_type: "marketing_logo" },
-];
 // Exact color fixtures allow inspection of source preservation independently of a generative model.
 function png(width, height, pixel) {
   const crc = (buffer) => {
@@ -40,20 +35,17 @@ const images = {
   "logo.png": png(300, 200, (x, y) => x < 15 || y < 15 || x > 285 || y > 185 ? [0, 0, 0, 0]
     : (x > 130 && x < 170) || (y > 80 && y < 120) ? [25, 40, 60, 255] : [255, 202, 0, 255]),
 };
-const mocks = {
-  "@/lib/ai/tokVideoBrandMedia": `export async function loadTokVideoBrandMedia() { return { media: ${JSON.stringify(media)}, hasMore: false }; }`,
-  "@/lib/ai/tokVideoImageUpload": 'export const VIDEO_IMAGE_ACCEPT="image/jpeg,image/png,image/webp"; export async function uploadTokVideoImage(){ throw new Error("No remote upload in this fixture"); }',
-};
+const mockedTransports = new Set(["@/lib/ai/tokVideoBrandMedia", "@/lib/ai/tokVideoImageUpload"]);
+const fixtureTransport = resolve("src/test/fixtures/restaurant-reel-transports.ts");
 await mkdir(output, { recursive: true });
 const server = await createServer({
   configFile: false, root: process.cwd(), resolve: { alias: { "@": resolve("src") } },
   plugins: [{
     name: "isolated-reel-transports", enforce: "pre",
     resolveId(source) {
-      const key = source in mocks ? source : Object.keys(mocks).find((name) => resolve("src", name.slice(2)) === source);
-      if (key) return "\0" + key;
+      if (mockedTransports.has(source)
+        || [...mockedTransports].some((name) => resolve("src", name.slice(2)) === source)) return fixtureTransport;
     },
-    load(id) { if (id.startsWith("\0") && id.slice(1) in mocks) return mocks[id.slice(1)]; },
     configureServer(vite) {
       vite.middlewares.use((req, res, next) => {
         if (!req.url?.startsWith("/__reel_fixture__/")) return next();
