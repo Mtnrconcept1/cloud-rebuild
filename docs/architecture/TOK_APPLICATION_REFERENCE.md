@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `5a68bdb2ef3fd4dc6b124c77899ddef26240b17c1c10421c8f78e4f0ccbeebaf`
+- Empreinte SHA-256 des sources indexées : `e03dc1217a5ce5da0d41ed714386e8b4445708329812b17067291eadc2492416`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -32,21 +32,21 @@
 | documents | 191 |
 | edgeFunctions | 127 |
 | edgeHttpRoutes | 20 |
-| exportedSymbols | 4433 |
+| exportedSymbols | 4440 |
 | featureFlags | 100 |
 | frontendRoutes | 149 |
 | integrations | 11 |
 | marketingOperations | 45 |
 | migrations | 600 |
-| modules | 2004 |
+| modules | 2007 |
 | pages | 138 |
-| pathLiterals | 1011 |
+| pathLiterals | 1012 |
 | publicAssets | 920 |
 | publicEntries | 958 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 124 |
-| records | 20471 |
-| repositoryFiles | 4087 |
+| records | 20485 |
+| repositoryFiles | 4090 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -2307,6 +2307,7 @@ Les ressources publiques correspondent exactement aux fichiers du dossier `publi
 | /logout?scope=local | 1 | [server/marketingBff.ts:825](../../server/marketingBff.ts#L825) |
 | /manifest.json | 1 | [src/hooks/useTokLogo.ts:30](../../src/hooks/useTokLogo.ts#L30) |
 | /marketing | 35 | [scripts/application-index-core.mjs:176](../../scripts/application-index-core.mjs#L176) |
+| /marketing-assets/ | 1 | [src/test/tok-video-image-upload.test.ts:95](../../src/test/tok-video-image-upload.test.ts#L95) |
 | /marketing-public | 1 | [src/test/marketing-domain-isolation.test.ts:25](../../src/test/marketing-domain-isolation.test.ts#L25) |
 | /marketing/ | 1 | [src/App.tsx:345](../../src/App.tsx#L345) |
 | /marketing/* | 2 | [src/App.tsx:794](../../src/App.tsx#L794) |
@@ -7481,7 +7482,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | Resend | 46 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Sentry | 10 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Stripe | 286 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
-| Supabase | 904 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
+| Supabase | 907 | [scripts/app-store-review-account.mjs:1](../../scripts/app-store-review-account.mjs#L1) |
 | Twint | 28 | [scripts/application-index-core.mjs:1](../../scripts/application-index-core.mjs#L1) |
 | Vercel | 80 | [middleware.js:1](../../middleware.js#L1) |
 
@@ -7491,7 +7492,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 
 | Famille de module | Total |
 | --- | --- |
-| application-library | 241 |
+| application-library | 242 |
 | automation-script | 93 |
 | documentation | 6 |
 | edge-function-source | 268 |
@@ -7502,7 +7503,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 838 |
+| test | 840 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -7767,7 +7768,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>application-library (242)</summary>
+<details><summary>application-library (243)</summary>
 
 - `src/lib/accountingExports.ts`
 - `src/lib/acquisitionAttribution.ts`
@@ -7790,6 +7791,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/lib/ai/tokAiClient.ts`
 - `src/lib/ai/tokAiClientMarketingOutputShell.ts`
 - `src/lib/ai/tokVideoClient.ts`
+- `src/lib/ai/tokVideoImageUpload.ts`
 - `src/lib/analytics.ts`
 - `src/lib/auth-context.ts`
 - `src/lib/auth.tsx`
@@ -11015,7 +11017,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (838)</summary>
+<details><summary>test (840)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11815,6 +11817,8 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/tok-sentinel-guard.test.ts`
 - `src/test/tok-sentinel-rules.test.ts`
 - `src/test/tok-stripe-price-catalog.test.ts`
+- `src/test/tok-video-image-upload-ui.test.tsx`
+- `src/test/tok-video-image-upload.test.ts`
 - `src/test/tokWorkforce.test.ts`
 - `src/test/tokWorkforceAbsencesUi.test.tsx`
 - `src/test/tokWorkforceAssistant.test.ts`
