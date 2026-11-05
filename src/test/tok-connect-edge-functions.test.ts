@@ -153,6 +153,13 @@ describe("TOK Connect Edge Functions", () => {
     expect(source).toContain("query_application_tool");
     expect(source).toContain("open_application_sandbox");
     expect(source).toContain("buildApplicationToolQueryResult");
+    // ChatGPT must provide an actionable handoff instead of presenting a sandbox
+    // preview as if it had generated a real marketing asset.
+    expect(source).toContain("next_real_action");
+    expect(source).toContain("open_authenticated_dashboard");
+    expect(source).toContain("requires_restaurant_access: true");
+    expect(source).toContain("generation_executed: false");
+    expect(source).toContain("/dashboard/photos");
     expect(source).toContain("buildApplicationSandboxResult");
     expect(source).toContain("mutation_allowed");
     expect(source).toContain("requires_human_confirmation");
