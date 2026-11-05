@@ -50,4 +50,32 @@ describe("export des guides PDF TOK", () => {
     expect(pdf).toContain("/Subtype /Link");
     expect(pdf).toContain("Op?rations".replace("?", String.fromCharCode(233)));
   });
+  it("préserve les accents et les apostrophes typographiques dans le PDF", () => {
+    const bytes = buildGuidePdf({
+      title: "Guide d’utilisation TOK",
+      subtitle: "Réservations et actualités",
+      sections: [{
+        title: "Paiements et réservations",
+        lines: ["L’utilisateur consulte l’écran « Paiements » et vérifie les réservations."],
+      }],
+    });
+    const content = new TextDecoder("windows-1252").decode(bytes);
+    expect(content).toContain("L’utilisateur");
+    expect(content).toContain("l’écran « Paiements »");
+    expect(content).toContain("réservations");
+    expect(content).not.toContain("L?utilisateur");
+  });
+
+  it("conserve tous les liens du sommaire quand il occupe plusieurs pages", () => {
+    const sections = Array.from({ length: 60 }, (_, index) => ({
+      title: "Chapitre " + (index + 1),
+      lines: ["Parcours de démonstration."],
+    }));
+    const bytes = buildGuidePdf({ title: "Guide administrateur TOK", subtitle: "Index", sections });
+    const content = new TextDecoder("windows-1252").decode(bytes);
+    expect(content.split("/Subtype /Link").length - 1).toBe(60);
+    expect(content.split("/Type /Page /Parent").length - 1).toBe(64);
+    expect(content).toContain("Sommaire cliquable \\(suite\\)");
+  });
+
 });
