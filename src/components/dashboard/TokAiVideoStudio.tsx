@@ -1,22 +1,30 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Film, Loader2, RefreshCcw, Sparkles, Download, CheckCircle2, AlertTriangle } from "lucide-react";
+import { type ChangeEvent, type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Film, Loader2, RefreshCcw, Sparkles, Download, CheckCircle2, AlertTriangle, ImagePlus, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getSupabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { uploadTokVideoImage, VIDEO_IMAGE_ACCEPT, type TokVideoImageReference } from "@/lib/ai/tokVideoImageUpload";
 import {
   requestTokVideo, type TokVideoJob, type TokVideoOptionsInput, type TokVideoQuote,
 } from "@/lib/ai/tokVideoClient";
 
-type MediaReference = { id: string; media_url: string; alt_text: string | null };
 type PendingRequest = { signature: string; key: string };
 const DEFAULT_OPTIONS: TokVideoOptionsInput = {
   prompt: "", duration: 5, resolution: "720p",
   aspectRatio: "9:16", generateAudio: true, referenceMediaId: null,
 };
 const ACTIVE_STATUSES = new Set(["reserved", "submitting", "queued", "in_progress", "archiving"]);
+const VIDEO_FAILURE_MESSAGES: Record<string, string> = {
+  video_provider_auth_failed: "Higgsfield refuse les identifiants API. Vérifiez la configuration serveur de la clé Higgsfield. Vos crédits TOK ont été restitués.",
+  video_provider_access_denied: "Higgsfield refuse l'accès au modèle (droits ou solde de crédits fournisseur). Vérifiez le compte API Higgsfield avant de réessayer. Vos crédits TOK ont été restitués.",
+  video_provider_invalid_input: "Higgsfield refuse la photo ou les paramètres de cette vidéo. Vérifiez la photo et essayez éventuellement sans référence. Vos crédits TOK ont été restitués.",
+  video_provider_endpoint_missing: "Le modèle vidéo demandé n'est pas accessible par cette clé Higgsfield. Vérifiez les droits du compte. Vos crédits TOK ont été restitués.",
+  video_provider_rate_limited: "Higgsfield limite temporairement les demandes. Réessayez ultérieurement. Vos crédits TOK ont été restitués.",
+  video_provider_rejected: "Higgsfield a refusé cette demande avant la génération. Le motif précis n'a pas été conservé par la version précédente. Les crédits TOK ont été restitués.",
+};
 const statusLabels: Record<string, string> = {
   reserved: "Enregistrement", submitting: "Envoi à Higgsfield",
   queued: "Dans la file", in_progress: "Génération en cours",
@@ -35,12 +43,17 @@ export default function TokAiVideoStudio({ restaurantId }: { restaurantId: strin
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [history, setHistory] = useState<TokVideoJob[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const [references, setReferences] = useState<MediaReference[]>([]);
+  const [references, setReferences] = useState<TokVideoImageReference[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [dropActive, setDropActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadLockRef = useRef(false);
   const stillMounted = useRef(true);
   const activeRestaurantRef = useRef(restaurantId);
   const requestInProgress = useRef(false);
   const signature = useMemo(() => JSON.stringify(options), [options]);
   const selectedJob = history.find((item) => item.id === selectedJobId) || history[0] || null;
+  const selectedImage = references.find((item) => item.id === options.referenceMediaId) || null;
   const activeJobId = selectedJob && ACTIVE_STATUSES.has(selectedJob.status) ? selectedJob.id : null;
   const currentQuote = signature === quotedSignature ? quote : null;
   const localKey = "tok:video-studio:pending:" + restaurantId;
@@ -63,6 +76,9 @@ export default function TokAiVideoStudio({ restaurantId }: { restaurantId: strin
     setQuote(null);
     setQuotedSignature(null);
     setConfirmCost(false);
+    setDropActive(false);
+    setUploadingImage(false);
+    setReferences([]);
     let cancelled = false;
     void refreshJobs().catch(() => {});
     const supabase = getSupabase();
@@ -122,8 +138,47 @@ export default function TokAiVideoStudio({ restaurantId }: { restaurantId: strin
     setErrorMessage(null);
   };
 
+  const handleImageUpload = async (file: File | undefined) => {
+    if (!file || uploadLockRef.current || busy) return;
+    uploadLockRef.current = true;
+    const targetRestaurantId = restaurantId;
+    setUploadingImage(true);
+    setDropActive(false);
+    setErrorMessage(null);
+    try {
+      const uploaded = await uploadTokVideoImage(targetRestaurantId, file);
+      if (!stillMounted.current || activeRestaurantRef.current !== targetRestaurantId) return;
+      setReferences((current) => [uploaded, ...current.filter((item) => item.id !== uploaded.id)].slice(0, 24));
+      update({ referenceMediaId: uploaded.id });
+      toast({
+        title: "Image importée",
+        description: "Votre image a été enregistrée et sélectionnée pour cette vidéo.",
+      });
+    } catch (error) {
+      if (!stillMounted.current || activeRestaurantRef.current !== targetRestaurantId) return;
+      setErrorMessage(error instanceof Error ? error.message : "Impossible d'importer l'image.");
+    } finally {
+      uploadLockRef.current = false;
+      if (stillMounted.current && activeRestaurantRef.current === targetRestaurantId) {
+        setUploadingImage(false);
+      }
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleFileInput = (event: ChangeEvent<HTMLInputElement>) => {
+    void handleImageUpload(event.target.files?.[0]);
+  };
+
+  const handleImageDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDropActive(false);
+    if (uploadingImage || busy) return;
+    void handleImageUpload(event.dataTransfer.files?.[0]);
+  };
+
   const requestQuote = async () => {
-    if (!restaurantId) return;
+    if (!restaurantId || uploadingImage) return;
     setBusy(true);
     setErrorMessage(null);
     try {
@@ -139,7 +194,7 @@ export default function TokAiVideoStudio({ restaurantId }: { restaurantId: strin
   };
 
   const startVideo = async () => {
-    if (!currentQuote || !confirmCost || busy || !restaurantId) return;
+    if (!currentQuote || !confirmCost || busy || uploadingImage || !restaurantId) return;
     setBusy(true);
     setErrorMessage(null);
     let existing: PendingRequest | null = null;
@@ -242,22 +297,95 @@ export default function TokAiVideoStudio({ restaurantId }: { restaurantId: strin
             <Label htmlFor="tok-video-image">Photo de référence (facultative)</Label>
             <select id="tok-video-image" value={options.referenceMediaId || ""}
               onChange={(event) => update({ referenceMediaId: event.target.value || null })}
+              disabled={uploadingImage}
               className="flex h-11 w-full rounded-md border border-input bg-background px-3 text-sm">
               <option value="">Sans photo · texte vers vidéo</option>
               {references.map((item, index) => (
                 <option key={item.id} value={item.id}>{item.alt_text || "Photo restaurant " + (index + 1)}</option>
               ))}
             </select>
+            <div
+              role="group"
+              aria-label="Importer une image de référence"
+              onDragEnter={(event) => { event.preventDefault(); setDropActive(true); }}
+              onDragOver={(event) => { event.preventDefault(); setDropActive(true); }}
+              onDragLeave={(event) => { event.preventDefault(); setDropActive(false); }}
+              onDrop={handleImageDrop}
+              className={`relative rounded-2xl border-2 border-dashed p-4 text-center transition-colors sm:p-6 ${
+                dropActive ? "border-orange-600 bg-orange-100 dark:bg-orange-950/40"
+                  : "border-orange-200 bg-orange-50/50 dark:border-orange-900/60 dark:bg-orange-950/10"
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                id="tok-video-upload"
+                type="file"
+                accept={VIDEO_IMAGE_ACCEPT}
+                onChange={handleFileInput}
+                disabled={uploadingImage || busy}
+                className="sr-only"
+                aria-label="Choisir une image JPEG, PNG ou WebP"
+              />
+              <ImagePlus className="mx-auto mb-2 h-7 w-7 text-orange-600" aria-hidden="true" />
+              <p className="text-sm font-semibold text-foreground">Importer une nouvelle image</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Glissez une image ici ou choisissez un fichier depuis votre appareil.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-3 min-h-11 gap-2 border-orange-300 text-orange-700"
+                disabled={uploadingImage || busy}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploadingImage
+                  ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  : <Upload className="h-4 w-4" aria-hidden="true" />}
+                {uploadingImage ? "Import en cours…" : "Choisir une image"}
+              </Button>
+              <p className="mt-2 text-xs text-muted-foreground">
+                JPEG, PNG ou WebP · 10 Mo maximum · optimisée automatiquement.
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                L'image sera enregistrée dans la médiathèque publique du restaurant.
+              </p>
+            </div>
+            {selectedImage ? (
+              <div className="flex min-w-0 items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-950/20">
+                <img
+                  src={selectedImage.media_url}
+                  alt="Image de référence sélectionnée"
+                  className="h-20 w-20 shrink-0 rounded-lg border border-border object-cover"
+                  loading="lazy"
+                />
+                <div className="min-w-0 flex-1 text-left">
+                  <p className="text-sm font-semibold text-foreground">Image sélectionnée</p>
+                  <p className="truncate text-xs text-muted-foreground">{selectedImage.alt_text || "Visuel du restaurant"}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Utilisée pour animer votre vidéo.</p>
+                </div>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  disabled={uploadingImage}
+                  onClick={() => update({ referenceMediaId: null })}
+                  aria-label="Retirer l'image de référence"
+                  className="shrink-0"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </div>
+            ) : null}
             {options.referenceMediaId ? (
               <p className="text-xs text-muted-foreground">L’image fixe le cadrage initial ; le format sera déduit de cette photo.</p>
             ) : (
-              <p className="text-xs text-muted-foreground">Sélectionner une photo aide à garder des détails visuels réels.</p>
+              <p className="text-xs text-muted-foreground">Vous pouvez aussi générer une vidéo uniquement à partir de votre texte.</p>
             )}
           </div>
           <div className="rounded-2xl border border-orange-200 bg-white p-4 dark:bg-background">
             {!currentQuote ? (
               <Button type="button" className="min-h-11 gap-2 bg-orange-600 hover:bg-orange-700"
-                disabled={busy || options.prompt.trim().length < 12}
+                disabled={busy || uploadingImage || options.prompt.trim().length < 12}
                 onClick={requestQuote}>
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 Obtenir un devis avant génération
@@ -281,7 +409,7 @@ export default function TokAiVideoStudio({ restaurantId }: { restaurantId: strin
                 </label>
                 <div className="flex flex-wrap gap-2">
                   <Button type="button" className="min-h-11 bg-orange-600 hover:bg-orange-700"
-                    disabled={!confirmCost || busy} onClick={startVideo}>
+                    disabled={!confirmCost || busy || uploadingImage} onClick={startVideo}>
                     {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Film className="mr-2 h-4 w-4" />}
                     Confirmer et générer
                   </Button>
@@ -351,7 +479,7 @@ export default function TokAiVideoStudio({ restaurantId }: { restaurantId: strin
                     {selectedJob.status === "needs_review"
                       ? "La réponse du fournisseur est incertaine. TOK conserve la réservation pour éviter une double facturation. Contactez le support avant une nouvelle tentative."
                       : selectedJob.status === "failed"
-                        ? "La génération a échoué. Les crédits sont restitués après échec confirmé."
+                        ? VIDEO_FAILURE_MESSAGES[selectedJob.errorCode || ""] || "La génération a échoué. Les crédits TOK ont été restitués après confirmation du refus fournisseur."
                         : "La génération se poursuit côté serveur. Vous pouvez quitter cet onglet et revenir plus tard."}
                   </p>
                 )}

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   isSafeVideoDownloadUrl,
+  classifyHiggsfieldSubmissionError,
   normalizeTokVideoOptions,
   quoteTokVideo,
   readProviderVideoResponse,
@@ -47,6 +48,23 @@ describe("Higgsfield video price and validation", () => {
     expect(readProviderVideoResponse({ status: "ok" }).status).toBe("unknown");
   });
 
+  it("distinguishes confirmed provider refusals from ambiguous timeouts", () => {
+    expect(classifyHiggsfieldSubmissionError({ statusCode: 401 })).toMatchObject({
+      confirmedRejected: true, code: "video_provider_auth_failed", statusCode: 401,
+    });
+    expect(classifyHiggsfieldSubmissionError({ statusCode: 403 })).toMatchObject({
+      confirmedRejected: true, code: "video_provider_access_denied",
+    });
+    expect(classifyHiggsfieldSubmissionError({ statusCode: 422 })).toMatchObject({
+      confirmedRejected: true, code: "video_provider_invalid_input",
+    });
+    expect(classifyHiggsfieldSubmissionError({ name: "AuthenticationError" })).toMatchObject({
+      confirmedRejected: true, statusCode: 401,
+    });
+    expect(classifyHiggsfieldSubmissionError({ statusCode: 502 }).confirmedRejected).toBe(false);
+    expect(classifyHiggsfieldSubmissionError(new Error("timeout")).confirmedRejected).toBe(false);
+  });
+
   it("rejects SSRF and attacker-controlled URLs during archival", () => {
     expect(isSafeVideoDownloadUrl("https://cdn.higgsfield.ai/clip.mp4")).toBe(true);
     expect(isSafeVideoDownloadUrl("https://cdn.cloudfront.net/clip.mp4")).toBe(true);
@@ -83,6 +101,8 @@ describe("Higgsfield tenant and idempotency contracts", () => {
     expect(sql).toContain("public.auth_owns_restaurant(restaurant_id)");
     expect(sql).toContain("'restaurant-ai-videos', false");
     expect(edge).toContain("requireRestaurantAccess(actor, restaurantId)");
+    expect(edge).toContain('item.storage_bucket === "restaurant-images"');
+    expect(edge).toContain("getPublicUrl(item.storage_path)");
     expect(edge).toContain('.eq("restaurant_id", restaurantId)');
     expect(edge).toContain('Deno.env.get("HF_CREDENTIALS")');
     expect(edge).not.toContain("VITE_HF_CREDENTIALS");
@@ -90,8 +110,8 @@ describe("Higgsfield tenant and idempotency contracts", () => {
   });
 
   it("does not refund ambiguous failures or resubmit jobs after network interruption", () => {
-    expect(edge).toContain("video_submission_unconfirmed");
-    expect(edge).toContain('rejected ? "failed" : "needs_review"');
+    expect(classifyHiggsfieldSubmissionError(new Error("timeout")).code).toBe("video_submission_unconfirmed");
+    expect(edge).toContain('diagnosis.confirmedRejected ? "failed" : "needs_review"');
     expect(edge).toContain("A timeout does not prove failure");
     expect(edge).toContain("if (!response.ok) return job");
     expect(sql).toContain("stale_video_provider_response");

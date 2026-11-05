@@ -88,3 +88,28 @@ export function isSafeVideoDownloadUrl(raw: string, additionalHosts: string[] = 
     return false;
   }
 }
+
+/**
+ * Classifies the documented HTTP rejection, never a provider's raw response body.
+ * A network timeout/5xx may have submitted a paid job: it is NOT refundable yet.
+ */
+export function classifyHiggsfieldSubmissionError(error: unknown) {
+  const record = error && typeof error === "object" ? error as Record<string, unknown> : {};
+  const reported = typeof record.statusCode === "number" ? record.statusCode : 0;
+  const statusCode = reported >= 100 && reported <= 599
+    ? reported : record.name === "AuthenticationError" ? 401 : 0;
+  switch (statusCode) {
+    case 400: case 422:
+      return { confirmedRejected: true, code: "video_provider_invalid_input", statusCode };
+    case 401:
+      return { confirmedRejected: true, code: "video_provider_auth_failed", statusCode };
+    case 403:
+      return { confirmedRejected: true, code: "video_provider_access_denied", statusCode };
+    case 404:
+      return { confirmedRejected: true, code: "video_provider_endpoint_missing", statusCode };
+    case 429:
+      return { confirmedRejected: true, code: "video_provider_rate_limited", statusCode };
+    default:
+      return { confirmedRejected: false, code: "video_submission_unconfirmed", statusCode };
+  }
+}
