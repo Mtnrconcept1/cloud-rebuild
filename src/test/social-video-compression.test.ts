@@ -7,9 +7,17 @@ import {
   getSocialVideoTargetDimensions,
   getSupportedSocialVideoMimeType,
   isVerticalSocialVideoDimensions,
+  registerPreparedSocialVideo, optimizeSocialMediaUpload,
 } from "@/lib/media/socialMediaCompression";
 
 describe("social video compression helpers", () => {
+  it("preserves the exact validated reel file rather than recording its timeline again", async () => {
+    const file = new File(["encoded-fixture"], "reel.mp4", { type: "video/mp4" });
+    expect(await optimizeSocialMediaUpload(registerPreparedSocialVideo(file))).toBe(file);
+    expect(() => registerPreparedSocialVideo(new File([], "empty.mp4", { type: "video/mp4" }))).toThrow();
+    expect(() => registerPreparedSocialVideo(new File(["image"], "photo.png", { type: "image/png" }))).toThrow();
+    expect(() => registerPreparedSocialVideo(new File([new Uint8Array(25 * 1024 * 1024 + 1)], "large.mp4", { type: "video/mp4" }))).toThrow();
+  });
   it("scales landscape and portrait videos to the social feed target frame", () => {
     expect(getSocialVideoTargetDimensions(3840, 2160)).toEqual({ width: 1280, height: 720 });
     expect(getSocialVideoTargetDimensions(1080, 1920)).toEqual({ width: 720, height: 1280 });

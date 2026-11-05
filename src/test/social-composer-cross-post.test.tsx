@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import SocialComposer from "@/components/social/SocialComposer";
@@ -20,6 +20,15 @@ const commercialDemoAi = vi.hoisted(() => ({
   frame: null as Record<string, unknown> | null,
   ask: vi.fn(),
 }));
+
+const reels = vi.hoisted(() => ({
+  props: null as null | { restaurantId: string; mode: string; onUseVideo: (file: File) => void },
+  file: null as File | null,
+}));
+vi.mock("@/components/dashboard/TokAiVideoStudio", () => ({ default: (props: NonNullable<typeof reels.props>) => {
+  reels.props = props;
+  return <button onClick={() => props.onUseVideo(reels.file!)}>Joindre le reel de test</button>;
+} }));
 
 vi.mock("@/components/commercial/CommercialDemoFrameProvider", () => ({
   useCommercialDemoFrame: () => commercialDemoAi.frame,
@@ -69,6 +78,8 @@ describe("SocialComposer external social publishing", () => {
     socialHooks.from.mockReset();
     commercialDemoAi.frame = null;
     commercialDemoAi.ask.mockReset();
+    reels.props = null;
+    reels.file = new File(["synthetic-video-fixture"], "reel-10s.mp4", { type: "video/mp4" });
     socialHooks.from.mockImplementation((table: string) => {
       if (table === "restaurants") {
         const chain = {
@@ -122,6 +133,38 @@ describe("SocialComposer external social publishing", () => {
       configurable: true,
       value: vi.fn(),
     });
+  });
+
+  it("adds a reel to the existing draft and only publishes the same File after the explicit publish action", async () => {
+    render(<SocialComposer restaurantId="restaurant-1" restaurantName="Cafe Test" />);
+    fireEvent.change(screen.getByPlaceholderText(/Quoi de neuf/i), { target: { value: "Notre équipe vous accueille." } });
+    fireEvent.click(screen.getByRole("button", { name: "Créer un reel de 10 s" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Joindre le reel de test" }));
+    expect(reels.props).toMatchObject({ restaurantId: "restaurant-1", mode: "reel" });
+    expect(screen.getByLabelText("Vidéo du brouillon")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Quoi de neuf/i)).toHaveValue("Notre équipe vous accueille.");
+    for (const action of [socialHooks.createPost, socialHooks.createPremiumBanner, socialHooks.recordExternalShare, socialHooks.invoke, socialHooks.invokeSupabaseFunction]) expect(action).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: /^Publier$/ }));
+    await waitFor(() => expect(socialHooks.createPost).toHaveBeenCalledTimes(1));
+    const args = socialHooks.createPost.mock.calls[0][0] as unknown as { restaurantId: string; body: string; files: File[] };
+    expect(args).toMatchObject({ restaurantId: "restaurant-1", body: "Notre équipe vous accueille." });
+    expect(args.files).toHaveLength(1); expect(args.files[0]).toBe(reels.file);
+  });
+
+  it("deduplicates the same reel and enforces the media cap against current draft state", async () => {
+    render(<SocialComposer restaurantId="restaurant-1" restaurantName="Cafe Test" />);
+    fireEvent.change(screen.getByPlaceholderText(/Quoi de neuf/i), { target: { value: "Notre restaurant en images." } });
+    fireEvent.click(screen.getByRole("button", { name: "Créer un reel de 10 s" }));
+    await screen.findByRole("button", { name: "Joindre le reel de test" });
+    const attach = reels.props!.onUseVideo;
+    const files = Array.from({ length: 10 }, (_, i) => new File(["fixture"], `reel-${i}.mp4`, { type: "video/mp4" }));
+    act(() => { files.forEach(attach); attach(files[0]); });
+    expect(() => attach(reels.file!)).toThrow("Maximum 10 médias");
+    expect(screen.getAllByLabelText("Vidéo du brouillon")).toHaveLength(10);
+    expect(screen.getByRole("button", { name: "Créer un reel de 10 s" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: /^Publier$/ }));
+    await waitFor(() => expect(socialHooks.createPost).toHaveBeenCalledTimes(1));
+    expect((socialHooks.createPost.mock.calls[0][0] as unknown as { files: File[] }).files).toEqual(files);
   });
 
   it("replaces canned templates with an AI copy assistant that applies one generated variant", async () => {

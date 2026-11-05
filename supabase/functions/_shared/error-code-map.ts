@@ -1,6 +1,6 @@
 // GENERATED FILE — do not edit by hand.
 // Run `pnpm run generate:error-code-map` after adding or moving an HttpError.
-// 558 error codes mapped from supabase/functions/**.
+// 560 error codes mapped from supabase/functions/**.
 
 export type ErrorCodeSite = { file: string; line: number };
 
@@ -92,7 +92,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 190
+      "line": 195
     }
   ],
   "ai_empty_response": [
@@ -1398,7 +1398,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "higgsfield_not_configured": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 28
+      "line": 30
     }
   ],
   "idempotency_conflict": [
@@ -3042,7 +3042,7 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
     },
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 271
+      "line": 277
     },
     {
       "file": "supabase/functions/contact-support/index.ts",
@@ -4226,121 +4226,137 @@ export const ERROR_CODE_SITES: Record<string, ErrorCodeSite[]> = {
   "video_action_invalid": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 304
+      "line": 310
     }
   ],
   "video_completion_persistence_failed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 60
+      "line": 62
     }
   ],
   "video_download_failed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 45
+      "line": 47
     }
   ],
   "video_file_too_large": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 48
+      "line": 50
     },
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 51
+      "line": 53
     }
   ],
   "video_history_failed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 291
+      "line": 297
     }
   ],
   "video_idempotency_required": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 178
+      "line": 173
     }
   ],
   "video_invalid_body": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 268
+      "line": 274
     }
   ],
   "video_job_id_invalid": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 296
+      "line": 302
     }
   ],
   "video_job_lookup_failed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 94
+      "line": 100
     }
   ],
   "video_job_not_found": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 95
+      "line": 101
     }
   ],
   "video_provider_id_invalid": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 34
+      "line": 36
     }
   ],
   "video_provider_url_not_allowed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 42
+      "line": 44
+    }
+  ],
+  "video_quote_changed": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 178
     }
   ],
   "video_reference_not_found": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 131
+      "line": 137
+    }
+  ],
+  "video_reference_required": [
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 163
     }
   ],
   "video_reference_unavailable": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 139
+      "line": 138
     },
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 145
+      "line": 146
     },
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 149
+      "line": 152
+    },
+    {
+      "file": "supabase/functions/ai-video-studio/index.ts",
+      "line": 156
     }
   ],
   "video_reservation_failed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 193
+      "line": 198
     }
   ],
   "video_status_persistence_failed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 70
+      "line": 72
     }
   ],
   "video_storage_failed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 55
+      "line": 57
     }
   ],
   "video_submission_claim_failed": [
     {
       "file": "supabase/functions/ai-video-studio/index.ts",
-      "line": 198
+      "line": 203
     }
   ],
   "visual_tool_invalid": [

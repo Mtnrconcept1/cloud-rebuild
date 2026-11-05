@@ -338,6 +338,7 @@ export default function DashboardActualites() {
         {selectedRestaurant ? (
           <div className="min-w-0 space-y-6">
             <SocialComposer
+              key={selectedRestaurant.id}
               restaurantId={selectedRestaurant.id}
               restaurantName={selectedRestaurant.name}
               socialLinks={selectedRestaurant.socialLinks || null}

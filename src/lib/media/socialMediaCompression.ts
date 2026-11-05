@@ -1,4 +1,19 @@
 import { optimizeImageUpload } from "@/lib/optimizedImages";
+import { assertSafeFileUpload, MAX_SOCIAL_MEDIA_UPLOAD_BYTES, SOCIAL_MEDIA_MIME_EXTENSIONS } from "@/lib/uploadSecurity";
+
+const preparedVideos = new WeakSet<File>();
+
+/** Preserve the exact timeline of a renderer-produced file; final upload guards still apply. */
+export function registerPreparedSocialVideo(file: File): File {
+  if (!file.type.startsWith("video/")) throw new Error("Un fichier vidéo est requis.");
+  assertSafeFileUpload(file, {
+    allowedMimeTypes: SOCIAL_MEDIA_MIME_EXTENSIONS,
+    maxBytes: MAX_SOCIAL_MEDIA_UPLOAD_BYTES,
+    label: "Reel",
+  });
+  preparedVideos.add(file);
+  return file;
+}
 
 export const SOCIAL_VIDEO_TARGET_MAX_DIMENSION = 1280;
 export const SOCIAL_VIDEO_TARGET_FPS = 24;
@@ -169,6 +184,7 @@ async function compressVideoUpload(file: File): Promise<File> {
 }
 
 export async function optimizeSocialMediaUpload(file: File): Promise<File> {
+  if (preparedVideos.has(file)) return file;
   if (file.type.startsWith("image/")) return optimizeImageUpload(file);
   if (file.type.startsWith("video/")) return compressVideoUpload(file);
   return file;

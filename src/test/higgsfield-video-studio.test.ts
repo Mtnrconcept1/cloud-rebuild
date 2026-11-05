@@ -7,6 +7,8 @@ import {
   normalizeTokVideoOptions,
   quoteTokVideo,
   readProviderVideoResponse,
+  assertConfirmedTokVideoQuote, buildTokVideoProviderInput, isOwnedVideoImageReference,
+  TOK_VIDEO_MODEL_REFERENCE,
 } from "../../supabase/functions/_shared/higgsfield-video";
 
 const base = {
@@ -15,8 +17,12 @@ const base = {
   resolution: "720p",
   aspectRatio: "9:16",
   generateAudio: true,
-  referenceMediaId: null,
+  referenceMediaId: "1d90fa0e-9226-48b6-a75b-981a7ca8b60f",
 };
+const secondPhoto = "1d90fa0e-9226-48b6-a75b-981a7ca8b610";
+const logoId = "1d90fa0e-9226-48b6-a75b-981a7ca8b611";
+const brand = { ...base, duration: 10, generateAudio: false,
+  referenceMediaIds: [base.referenceMediaId, secondPhoto], logoMediaId: logoId, allowInterpretation: true };
 
 describe("Higgsfield video price and validation", () => {
   it("only accepts supported formats and realistic prompts", () => {
@@ -32,12 +38,49 @@ describe("Higgsfield video price and validation", () => {
   it("rounds once after currency conversion and caps debit by a confirmed quote", () => {
     const options = normalizeTokVideoOptions(base);
     const price = quoteTokVideo(options);
-    expect(price.credits).toBe(Math.ceil(5 * 0.3236 * 0.81 / 0.009));
+    expect(price.credits).toBe(Math.ceil(5 * 0.393 * 0.81 / 0.009));
     expect(price.maxChargedChf).toBe(Number((price.credits * 0.009).toFixed(2)));
     expect(quoteTokVideo({ ...options, duration: 10 }).credits).toBeGreaterThan(price.credits);
     expect(quoteTokVideo({ ...options, resolution: "480p" }).credits).toBeLessThan(price.credits);
-    expect(quoteTokVideo({ ...options, referenceMediaId: "1d90fa0e-9226-48b6-a75b-981a7ca8b60f" }).credits)
-      .toBeGreaterThan(price.credits);
+    const multi = quoteTokVideo(normalizeTokVideoOptions(brand));
+    expect(multi).toMatchObject({ credits: 417, model: TOK_VIDEO_MODEL_REFERENCE });
+    expect(() => assertConfirmedTokVideoQuote({ confirmedCredits: 416, confirmedModel: multi.model }, multi)).toThrow("video_quote_changed");
+    expect(() => assertConfirmedTokVideoQuote({ confirmedCredits: 417, confirmedModel: "other" }, multi)).toThrow("video_quote_changed");
+    expect(() => assertConfirmedTokVideoQuote({ confirmedCredits: 417, confirmedModel: multi.model }, multi)).not.toThrow();
+  });
+
+  it("requires explicitly selected, distinct sources without a text-only fallback", () => {
+    expect(() => normalizeTokVideoOptions({ ...base, referenceMediaId: null })).toThrow("video_reference_required");
+    expect(() => normalizeTokVideoOptions({ ...brand, referenceMediaIds: [] })).toThrow("video_references_invalid");
+    expect(() => normalizeTokVideoOptions({ ...brand, referenceMediaIds: [secondPhoto, secondPhoto] })).toThrow("video_references_invalid");
+    expect(() => normalizeTokVideoOptions({ ...brand, referenceMediaIds: Array.from({ length: 7 }, (_, i) => `1d90fa0e-9226-48b6-a75b-981a7ca8b60${i}`) })).toThrow("video_references_invalid");
+    expect(() => normalizeTokVideoOptions({ ...brand, logoMediaId: secondPhoto })).toThrow("video_logo_invalid");
+    expect(() => normalizeTokVideoOptions({ ...brand, allowInterpretation: false })).toThrow("video_interpretation_consent_required");
+    expect(() => normalizeTokVideoOptions({ ...brand, duration: 5 })).toThrow("video_reel_format_required");
+    expect(normalizeTokVideoOptions({ ...brand, generateAudio: undefined }).generateAudio).toBe(false);
+  });
+
+  it("passes only ordered photographs and the separate identity reference to the provider", () => {
+    const urls = ["https://storage.example/plat.jpg", "https://storage.example/salle.jpg"];
+    const input = buildTokVideoProviderInput(normalizeTokVideoOptions(brand), urls, "https://storage.example/logo.png");
+    expect(input).toMatchObject({ image_urls: [...urls, "https://storage.example/logo.png"], duration: 10,
+      aspect_ratio: "9:16", resolution: "720p", output_format: "mp4", generate_audio: false });
+    expect(input.prompt).toContain("Do not add, replace or invent food");
+    expect(input.prompt).toContain("Do not generate text, subtitles, logos or speech");
+    expect(input).not.toHaveProperty("image_url");
+    expect(() => buildTokVideoProviderInput(normalizeTokVideoOptions(brand), urls.slice(0, 1))).toThrow("video_reference_unavailable");
+    expect(() => buildTokVideoProviderInput(normalizeTokVideoOptions(brand), urls)).toThrow("video_reference_unavailable");
+    expect(() => buildTokVideoProviderInput(normalizeTokVideoOptions({ ...brand, logoMediaId: null }), urls, "https://storage.example/unselected-logo.png")).toThrow("video_reference_unavailable");
+  });
+
+  it("rejects another tenant, private buckets, traversal and non-image media", () => {
+    const media = { restaurant_id: "restaurant-a", storage_bucket: "restaurant-images", storage_path: "restaurant-a/photo.jpg", media_type: "photo" };
+    expect(isOwnedVideoImageReference(media, "restaurant-a")).toBe(true);
+    for (const invalid of [
+      { ...media, restaurant_id: "restaurant-b" }, { ...media, storage_bucket: "private-documents" },
+      { ...media, storage_path: "restaurant-b/photo.jpg" }, { ...media, storage_path: "restaurant-a/../b.jpg" },
+      { ...media, media_type: "video" }, { ...media, storage_path: "restaurant-a/image.svg" },
+    ]) expect(isOwnedVideoImageReference(invalid, "restaurant-a")).toBe(false);
   });
 
   it("recognizes terminal provider responses without inferring success from HTTP 200", () => {
@@ -45,6 +88,7 @@ describe("Higgsfield video price and validation", () => {
       .toMatchObject({ status: "completed", requestId: "req-1" });
     expect(readProviderVideoResponse({ status: "failed" }).status).toBe("failed");
     expect(readProviderVideoResponse({ status: "nsfw" }).status).toBe("nsfw");
+    expect(readProviderVideoResponse({ status: "canceled" }).status).toBe("canceled");
     expect(readProviderVideoResponse({ status: "ok" }).status).toBe("unknown");
   });
 

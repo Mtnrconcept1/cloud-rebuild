@@ -27,6 +27,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useInfiniteSocialFeed,
   useSearchActualitesPosts,
+  useRestaurantActualitesAccess,
   useToggleRestaurantFollow,
 } from "@/hooks/useSocialFeed";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
@@ -272,6 +273,7 @@ export default function Actualites() {
     [canManage, ownerRestaurants.restaurants],
   );
   const composerRestaurant = restaurants.find((restaurant) => restaurant.id === composerRestaurantId) || restaurants[0] || null;
+  const composerAccess = useRestaurantActualitesAccess(composerRestaurant?.id || null);
   const toggleFollow = useToggleRestaurantFollow();
   const suggestedRestaurants = useMemo(() => {
     const seen = new Set<string>();
@@ -548,10 +550,13 @@ export default function Actualites() {
               ) : restaurants.length > 0 ? (
                 <>
                   <SocialComposer
+                    key={composerRestaurant?.id || "no-restaurant"}
                     restaurantId={composerRestaurant?.id || null}
                     restaurantName={composerRestaurant?.name || null}
                     socialLinks={composerRestaurant?.socialLinks || null}
                     sponsorDialogRequest={sponsorDialogRequest}
+                    actualitesAccess={composerAccess.data || null}
+                    actualitesAccessLoading={composerAccess.isLoading}
                     compact
                   />
                 </>

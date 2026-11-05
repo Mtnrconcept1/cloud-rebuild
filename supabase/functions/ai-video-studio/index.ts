@@ -5,6 +5,7 @@ import { maybeUuid } from "../_shared/intelligence.ts";
 import {
   normalizeTokVideoOptions, quoteTokVideo, readProviderVideoResponse,
   isSafeVideoDownloadUrl, classifyHiggsfieldSubmissionError, type TokVideoOptions,
+  assertConfirmedTokVideoQuote, buildTokVideoProviderInput, isOwnedVideoImageReference, tokVideoRequestOptions,
 } from "../_shared/higgsfield-video.ts";
 import { createHiggsfieldClient } from "npm:@higgsfield/client@0.2.6/v2";
 
@@ -18,6 +19,7 @@ type VideoJob = {
   credit_units: number; generate_audio: boolean; reference_media_id: string | null;
   provider_request_id: string | null; provider_model: string; storage_path: string | null;
   created_at: string; updated_at: string; error_code: string | null;
+  request_options?: { referenceMediaIds?: string[]; logoMediaId?: string | null };
 };
 
 const reply = (value: Record<string, unknown>, status: number, cors: Record<string, string>) =>
@@ -83,7 +85,11 @@ async function publicJob(actor: Actor, job: VideoJob): Promise<Record<string, un
     resolution: job.resolution, aspectRatio: job.aspect_ratio,
     generateAudio: job.generate_audio, credits: job.credit_units,
     model: job.provider_model, referenceMediaId: job.reference_media_id,
-    errorCode: job.error_code, createdAt: job.created_at,
+    referenceMediaIds: job.request_options?.referenceMediaIds || (job.reference_media_id ? [job.reference_media_id] : []),
+    logoMediaId: job.request_options?.logoMediaId || null,
+    errorCode: job.error_code,
+    canRefreshStatus: Boolean(job.provider_request_id) && !["completed", "failed"].includes(job.status),
+    createdAt: job.created_at,
     updatedAt: job.updated_at, videoUrl: url,
   };
 }
@@ -111,7 +117,7 @@ async function pollProvider(actor: Actor, job: VideoJob) {
   if (!response.ok) return job;
   const provider = readProviderVideoResponse(await response.json().catch(() => null));
   if (provider.requestId && provider.requestId !== job.provider_request_id) return job;
-  if (provider.status === "failed" || provider.status === "nsfw")
+  if (provider.status === "failed" || provider.status === "nsfw" || provider.status === "canceled")
     return finishJob(actor, job, "failed", "video_provider_failed");
   if (provider.status === "completed") {
     if (!provider.url) return finishJob(actor, job, "archiving");
@@ -126,9 +132,10 @@ async function pollProvider(actor: Actor, job: VideoJob) {
 async function imageReferenceUrl(actor: Actor, restaurantId: string, mediaId: string | null) {
   if (!mediaId) return null;
   const { data: item, error } = await actor.adminClient.from("restaurant_media")
-    .select("id, restaurant_id, media_url, storage_bucket, storage_path")
+    .select("id, restaurant_id, media_url, storage_bucket, storage_path, media_type")
     .eq("id", mediaId).eq("restaurant_id", restaurantId).maybeSingle();
   if (error || !item) throw new HttpError(400, "video_reference_not_found");
+  if (!isOwnedVideoImageReference(item, restaurantId)) throw new HttpError(400, "video_reference_unavailable");
   if (item.storage_bucket && item.storage_path) {
     // Public restaurant images need a stable, provider-readable URL. Signed URLs
     // can be rejected by third-party video inference endpoints despite working in browsers.
@@ -150,27 +157,15 @@ async function imageReferenceUrl(actor: Actor, restaurantId: string, mediaId: st
   return url;
 }
 
-function providerInput(options: TokVideoOptions,
-  brand: { name: string; city?: string | null; cuisine_type?: string | null },
-  referenceUrl: string | null) {
-  const brief = [
-    "Publicite video pour le restaurant " + brand.name + ".",
-    brand.city ? "Ville: " + brand.city + "." : "",
-    brand.cuisine_type ? "Cuisine: " + brand.cuisine_type + "." : "",
-    "Une seule scene publicitaire de qualite cinematographique, coherente avec l'identite du restaurant.",
-    "Ne pas inventer de logo, de tarifs ou d'informations commerciales.",
-    options.prompt,
-  ].filter(Boolean).join("\n");
-  const base = {
-    prompt: brief, duration: options.duration, resolution: options.resolution,
-    generate_audio: options.generateAudio, output_format: "mp4",
-  };
-  if (referenceUrl) return { ...base, image_url: referenceUrl };
-  return { ...base, aspect_ratio: options.aspectRatio };
+async function resolveReferences(actor: Actor, restaurantId: string, options: TokVideoOptions) {
+  const ids = options.referenceMediaIds || (options.referenceMediaId ? [options.referenceMediaId] : []);
+  const photos = await Promise.all(ids.map((id) => imageReferenceUrl(actor, restaurantId, id)));
+  if (photos.some((url) => !url) || !photos.length) throw new HttpError(400, "video_reference_required");
+  const logo = options.logoMediaId ? await imageReferenceUrl(actor, restaurantId, options.logoMediaId) : null;
+  return { photos: photos as string[], logo };
 }
 
-async function start(actor: Actor, restaurantId: string, body: Record<string, unknown>,
-  brand: { name: string; city?: string | null; cuisine_type?: string | null }) {
+async function start(actor: Actor, restaurantId: string, body: Record<string, unknown>) {
   let options: TokVideoOptions;
   try { options = normalizeTokVideoOptions(body); }
   catch (error) { throw new HttpError(400, error instanceof Error ? error.message : "video_parameters_invalid"); }
@@ -178,13 +173,23 @@ async function start(actor: Actor, restaurantId: string, body: Record<string, un
   if (!key) throw new HttpError(400, "video_idempotency_required");
   const credentials = providerCredentials(); // Fail before reserving any TOK credits.
   const quote = quoteTokVideo(options);
-  const referenceUrl = await imageReferenceUrl(actor, restaurantId, options.referenceMediaId);
-  const { data, error } = await actor.adminClient.rpc("reserve_restaurant_video_generation", {
+  if (options.referenceMediaIds) {
+    try { assertConfirmedTokVideoQuote(body, quote); }
+    catch { throw new HttpError(409, "video_quote_changed"); }
+  }
+  const references = await resolveReferences(actor, restaurantId, options);
+  const providerPayload = buildTokVideoProviderInput(options, references.photos, references.logo);
+  const reservation = options.referenceMediaIds ? actor.adminClient.rpc("reserve_restaurant_brand_video_generation", {
+    p_restaurant_id: restaurantId, p_user_id: actor.userId, p_idempotency_key: key,
+    p_prompt: options.prompt, p_generate_audio: options.generateAudio, p_credit_units: quote.credits,
+    p_request_options: tokVideoRequestOptions(options),
+  }) : actor.adminClient.rpc("reserve_restaurant_video_generation", {
     p_restaurant_id: restaurantId, p_user_id: actor.userId, p_idempotency_key: key,
     p_prompt: options.prompt, p_duration: options.duration, p_resolution: options.resolution,
     p_aspect_ratio: options.aspectRatio, p_generate_audio: options.generateAudio,
     p_reference_media_id: options.referenceMediaId, p_credit_units: quote.credits,
   });
+  const { data, error } = await reservation;
   if (error || !data) {
     const message = String(error?.message || "");
     if (/credits exhausted|credit/i.test(message)) throw new HttpError(402, "ai_credits_exhausted");
@@ -205,13 +210,14 @@ async function start(actor: Actor, restaurantId: string, body: Record<string, un
     try {
       const client = createHiggsfieldClient({
         credentials, maxRetries: 0, timeout: 28_000,
+        headers: { "Idempotency-Key": job.id },
       });
       const response = await client.subscribe(quote.model, {
-        input: providerInput(options, brand, referenceUrl), withPolling: false,
+        input: providerPayload, withPolling: false,
       });
       const provider = readProviderVideoResponse(response);
       const id = checkedRequestId(provider.requestId);
-      if (provider.status === "failed" || provider.status === "nsfw") {
+      if (provider.status === "failed" || provider.status === "nsfw" || provider.status === "canceled") {
         current = await finishJob(actor, current, "failed", "video_provider_failed", id);
       } else {
         current = await finishJob(actor, current, "queued", null, id);
@@ -269,7 +275,7 @@ Deno.serve(async (req) => {
     const input = body as Record<string, unknown>;
     const restaurantId = maybeUuid(input.restaurantId);
     if (!restaurantId) throw new HttpError(400, "restaurant_required");
-    const restaurant = await requireRestaurantAccess(actor, restaurantId);
+    await requireRestaurantAccess(actor, restaurantId);
     const action = typeof input.action === "string" ? input.action : "";
     const limiter = createRateLimiter(actor.adminClient, NAME);
     const scope = action === "status" ? "poll" : "interactive";
@@ -281,10 +287,10 @@ Deno.serve(async (req) => {
       let options: TokVideoOptions;
       try { options = normalizeTokVideoOptions(input); }
       catch (error) { throw new HttpError(400, error instanceof Error ? error.message : "video_parameters_invalid"); }
-      if (options.referenceMediaId) await imageReferenceUrl(actor, restaurantId, options.referenceMediaId);
+      await resolveReferences(actor, restaurantId, options);
       return reply({ quote: quoteTokVideo(options) }, 200, cors);
     }
-    if (action === "start") return reply(await start(actor, restaurantId, input, restaurant), 200, cors);
+    if (action === "start") return reply(await start(actor, restaurantId, input), 200, cors);
     if (action === "list") {
       const { data, error } = await actor.adminClient.from("restaurant_video_generations")
         .select("*").eq("restaurant_id", restaurantId).order("created_at", { ascending: false }).limit(20);

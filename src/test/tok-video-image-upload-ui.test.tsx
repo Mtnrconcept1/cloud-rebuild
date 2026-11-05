@@ -1,82 +1,99 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import TokAiVideoStudio from "@/components/dashboard/TokAiVideoStudio";
 
-const mocks = vi.hoisted(() => ({
-  request: vi.fn(),
-  uploadImage: vi.fn(),
-  toast: vi.fn(),
-}));
+const mocks = vi.hoisted(() => ({ request: vi.fn(), uploadImage: vi.fn(), loadMedia: vi.fn(), loadAssets: vi.fn(), draw: vi.fn(), render: vi.fn() }));
 vi.mock("@/lib/ai/tokVideoClient", () => ({ requestTokVideo: mocks.request }));
-vi.mock("@/lib/ai/tokVideoImageUpload", () => ({
-  VIDEO_IMAGE_ACCEPT: "image/jpeg,image/png,image/webp",
-  uploadTokVideoImage: mocks.uploadImage,
-}));
-vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast: mocks.toast }) }));
-vi.mock("@/integrations/supabase/client", () => ({
-  getSupabase: () => ({
-    from: () => {
-      const query: Record<string, unknown> = {};
-      query.select = () => query;
-      query.eq = () => query;
-      query.order = () => query;
-      query.limit = () => Promise.resolve({ data: [], error: null });
-      return query;
-    },
-  }),
-}));
-
+vi.mock("@/lib/ai/tokVideoBrandMedia", () => ({ loadTokVideoBrandMedia: mocks.loadMedia }));
+vi.mock("@/lib/ai/tokVideoImageUpload", () => ({ VIDEO_IMAGE_ACCEPT: "image/jpeg,image/png,image/webp", uploadTokVideoImage: mocks.uploadImage }));
+vi.mock("@/lib/media/restaurantReelRenderer", () => ({ loadReelAssets: mocks.loadAssets, drawReelFrame: mocks.draw, renderRestaurantReel: mocks.render }));
 const restaurantId = "fe046974-2945-4cf5-89cb-9c52ff354b93";
-
+const photo = { id: "photo-1", media_url: "https://assets.example/plat.jpg", alt_text: "Plat choisi", media_type: "photo" };
+const logo = { id: "logo-1", media_url: "https://assets.example/logo.png", alt_text: "Logo du restaurant", media_type: "marketing_logo" };
 beforeEach(() => {
-  mocks.request.mockReset();
-  mocks.uploadImage.mockReset();
-  mocks.toast.mockClear();
-  mocks.request.mockResolvedValue({ jobs: [] });
+  vi.clearAllMocks(); localStorage.clear();
+  mocks.loadMedia.mockResolvedValue({ media: [photo, logo], hasMore: false });
+  mocks.loadAssets.mockImplementation(async () => ({ photos: [{}], logo: {}, close: vi.fn() }));
+  mocks.render.mockResolvedValue(new File(["fixture-mp4"], "reel.mp4", { type: "video/mp4" }));
+  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({} as CanvasRenderingContext2D);
+  Object.defineProperty(URL, "createObjectURL", { configurable: true, value: vi.fn(() => "blob:reel") });
+  Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: vi.fn() });
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+async function selectReferences() {
+  fireEvent.click(await screen.findByRole("button", { name: "Sélectionner Plat choisi" }));
+  fireEvent.change(screen.getByLabelText("Logo du restaurant"), { target: { value: logo.id } });
+  await waitFor(() => expect(screen.getByRole("button", { name: "Créer mon reel de 10 secondes" })).toBeEnabled());
+}
+async function finishReel() {
+  await selectReferences();
+  fireEvent.click(screen.getByRole("button", { name: "Créer mon reel de 10 secondes" }));
+  await screen.findByText("Votre reel est prêt");
+  fireEvent.click(screen.getByRole("checkbox", { name: /J'ai vérifié mon reel/ }));
+}
 
-describe("Bloc d'import vidéo Higgsfield", () => {
-  it("affiche un bloc adapté mobile avec types, taille et sélection de fichier", () => {
+describe("restaurant reel studio", () => {
+  it("starts with no selected sources and no paid generation; imports remain explicit", async () => {
     render(<TokAiVideoStudio restaurantId={restaurantId} />);
-    expect(screen.getByRole("group", { name: "Importer une image de référence" })).toBeVisible();
-    const input = screen.getByLabelText("Choisir une image JPEG, PNG ou WebP");
-    expect(input).toHaveAttribute("type", "file");
-    expect(input).toHaveAttribute("accept", "image/jpeg,image/png,image/webp");
-    expect(screen.getByText(/10 Mo maximum/)).toBeVisible();
-    expect(screen.getByRole("button", { name: "Choisir une image" })).toBeEnabled();
+    await screen.findByRole("button", { name: "Sélectionner Plat choisi" });
+    expect(screen.queryByRole("list", { name: "Ordre des photos du reel" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Créer mon reel de 10 secondes" })).toBeDisabled();
+    expect(screen.getByLabelText("Choisir une image JPEG, PNG ou WebP")).toHaveAttribute("accept", "image/jpeg,image/png,image/webp");
+    expect(mocks.loadAssets).not.toHaveBeenCalled(); expect(mocks.request).not.toHaveBeenCalled();
   });
-
-  it("sélectionne automatiquement l'image importée et permet de la retirer sans génération IA", async () => {
-    mocks.uploadImage.mockResolvedValue({
-      id: "nouvelle-image",
-      media_url: "https://assets.example/visuel.webp",
-      alt_text: "visuel.webp",
-    });
+  it("selects an explicitly imported image and lets the user remove it", async () => {
+    mocks.uploadImage.mockResolvedValue({ ...photo, id: "uploaded", alt_text: "Import choisi" });
     render(<TokAiVideoStudio restaurantId={restaurantId} />);
-    const input = screen.getByLabelText("Choisir une image JPEG, PNG ou WebP");
-    fireEvent.change(input, {
-      target: { files: [new File(["image"], "visuel.webp", { type: "image/webp" })] },
-    });
-    await waitFor(() => expect(mocks.uploadImage).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(screen.getByText("Image sélectionnée")).toBeVisible());
-    expect(screen.getByRole("combobox", { name: "Photo de référence (facultative)" })).toHaveValue("nouvelle-image");
-    expect(screen.getByRole("img", { name: "Image de référence sélectionnée" })).toHaveAttribute(
-      "src", "https://assets.example/visuel.webp",
-    );
-    expect(mocks.request).not.toHaveBeenCalledWith(restaurantId, expect.objectContaining({ action: "start" }));
-    fireEvent.click(screen.getByRole("button", { name: "Retirer l'image de référence" }));
-    expect(screen.getByRole("combobox", { name: "Photo de référence (facultative)" })).toHaveValue("");
+    fireEvent.change(screen.getByLabelText("Choisir une image JPEG, PNG ou WebP"), { target: { files: [new File(["image"], "visuel.webp", { type: "image/webp" })] } });
+    const order = await screen.findByRole("list", { name: "Ordre des photos du reel" });
+    expect(within(order).getByText("Import choisi")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Retirer la photo 1" }));
+    expect(screen.queryByRole("list", { name: "Ordre des photos du reel" })).not.toBeInTheDocument();
+    expect(mocks.request).not.toHaveBeenCalled();
   });
-
-  it("affiche l'erreur d'upload et préserve la sélection initiale", async () => {
+  it("keeps selected photos when an import fails", async () => {
     mocks.uploadImage.mockRejectedValue(new Error("Import de l'image impossible"));
-    render(<TokAiVideoStudio restaurantId={restaurantId} />);
-    fireEvent.change(screen.getByLabelText("Choisir une image JPEG, PNG ou WebP"), {
-      target: { files: [new File(["image"], "photo.png", { type: "image/png" })] },
-    });
+    render(<TokAiVideoStudio restaurantId={restaurantId} />); await selectReferences();
+    fireEvent.change(screen.getByLabelText("Choisir une image JPEG, PNG ou WebP"), { target: { files: [new File(["image"], "photo.png", { type: "image/png" })] } });
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Import de l'image impossible"));
-    expect(screen.getByRole("combobox", { name: "Photo de référence (facultative)" })).toHaveValue("");
-    expect(mocks.request).not.toHaveBeenCalledWith(restaurantId, expect.objectContaining({ action: "start" }));
+    expect(within(screen.getByRole("list", { name: "Ordre des photos du reel" })).getByText("Plat choisi")).toBeVisible();
+  });
+  it("restores acknowledged prompt and manual settings after reopening", async () => {
+    const first = render(<TokAiVideoStudio restaurantId={restaurantId} />); await selectReferences();
+    fireEvent.change(screen.getByLabelText("Consignes artistiques"), { target: { value: "zoom avant" } });
+    fireEvent.click(screen.getByRole("button", { name: "Appliquer les consignes au montage" }));
+    fireEvent.change(screen.getByLabelText("Mouvement"), { target: { value: "zoom-out" } });
+    first.unmount(); render(<TokAiVideoStudio restaurantId={restaurantId} />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Créer mon reel de 10 secondes" })).toBeEnabled());
+    expect(screen.getByLabelText("Mouvement")).toHaveValue("zoom-out");
+  });
+  it("isolates selected sources when switching restaurant", async () => {
+    const view = render(<TokAiVideoStudio restaurantId={restaurantId} />); await selectReferences();
+    mocks.loadMedia.mockResolvedValue({ media: [], hasMore: false });
+    view.rerender(<TokAiVideoStudio restaurantId="restaurant-b" />);
+    await waitFor(() => expect(mocks.loadMedia).toHaveBeenCalledWith("restaurant-b", 0, []));
+    expect(screen.queryByRole("list", { name: "Ordre des photos du reel" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Reel final de 10 secondes")).not.toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem("tok:restaurant-reel:v1:" + restaurantId)!).photoIds).toEqual([photo.id]);
+  });
+  it.each(["sync", "async"])("handles %s attach rejection without losing the verified reel", async (kind) => {
+    const attach = vi.fn(() => { if (kind === "sync") throw new Error("Ajout refusé"); return Promise.reject(new Error("Ajout refusé")); });
+    render(<TokAiVideoStudio restaurantId={restaurantId} mode="reel" onUseVideo={attach} />); await finishReel();
+    fireEvent.click(screen.getByRole("button", { name: "Ajouter au brouillon d'actualité" }));
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Ajout refusé"));
+    expect(screen.getByRole("button", { name: "Ajouter au brouillon d'actualité" })).toBeEnabled();
+    expect(screen.getByLabelText("Reel final de 10 secondes")).toBeInTheDocument();
+  });
+  it("requires review and locks attachment until the async callback completes", async () => {
+    let complete!: () => void;
+    const attach = vi.fn(() => new Promise<void>((resolve) => { complete = resolve; }));
+    render(<TokAiVideoStudio restaurantId={restaurantId} mode="reel" onUseVideo={attach} />); await selectReferences();
+    fireEvent.click(screen.getByRole("button", { name: "Créer mon reel de 10 secondes" })); await screen.findByText("Votre reel est prêt");
+    expect(screen.getByRole("button", { name: "Ajouter au brouillon d'actualité" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("checkbox", { name: /J'ai vérifié mon reel/ }));
+    const button = screen.getByRole("button", { name: "Ajouter au brouillon d'actualité" });
+    fireEvent.click(button); fireEvent.click(button); expect(attach).toHaveBeenCalledTimes(1);
+    await act(async () => { complete(); });
+    expect(screen.getByRole("button", { name: "Ajouter au brouillon d'actualité" })).toBeEnabled();
   });
 });
