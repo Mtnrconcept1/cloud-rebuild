@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { CalendarClock, Crown, Facebook, ImagePlus, Instagram, Loader2, Megaphone, Music2, Plus, Send, Share2, Sparkles, Video, X } from "lucide-react";
 
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
@@ -71,6 +71,7 @@ import { SOCIAL_MEDIA_ACCEPT, assertSafeSocialMediaSourceFileUpload } from "@/li
 import { cn } from "@/lib/utils";
 
 const SPONSOR_TARGET_OPTIONS_LIMIT = 120;
+const TokAiVideoStudio = lazy(() => import("@/components/dashboard/TokAiVideoStudio"));
 
 type SponsorTargetRestaurantRow = {
   id?: string | null;
@@ -287,7 +288,14 @@ export default function SocialComposer({
   actualitesAccessLoading?: boolean;
 }) {
   const [body, setBody] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFilesState] = useState<File[]>([]);
+  const filesRef = useRef<File[]>([]);
+  const setFiles = (update: File[] | ((current: File[]) => File[])) => {
+    const next = typeof update === "function" ? update(filesRef.current) : update;
+    filesRef.current = next;
+    setFilesState(next);
+  };
+  const [reelDialogOpen, setReelDialogOpen] = useState(false);
   const [postType, setPostType] = useState<SocialPostType>("annonce");
   const [ctaType, setCtaType] = useState<SocialPostCtaType>("none");
   const [campaignGoal, setCampaignGoal] = useState<SocialMarketingGoal>("awareness");
@@ -885,12 +893,16 @@ export default function SocialComposer({
             </Button>
           </div>
 
+          {!commercialDemoFrame ? <Button type="button" variant="outline" className="min-h-11 gap-2 border-orange-200 text-orange-700"
+            disabled={!restaurantId || files.length >= 10 || createPost.isPending || actualitesAccessLoading || actualitesAccessDenied || actualitesWeeklyQuotaReached}
+            onClick={() => setReelDialogOpen(true)}><Video className="h-4 w-4" />Créer un reel de 10 s</Button> : null}
+
           {previews.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {previews.map((preview, index) => (
                 <div key={`${preview.file.name}-${index}`} className="group relative overflow-hidden rounded-2xl border bg-muted shadow-sm">
                   {preview.file.type.startsWith("video/") ? (
-                    <video src={preview.url} className="aspect-video w-full object-cover" muted />
+                    <video src={preview.url} className="max-h-72 min-h-32 w-full bg-black object-contain" controls playsInline preload="metadata" aria-label="Vidéo du brouillon" />
                   ) : (
                     <img src={preview.url} alt={preview.file.name} className="aspect-video w-full object-cover" />
                   )}
@@ -1086,6 +1098,25 @@ export default function SocialComposer({
 
         </div>
       </div>
+      <Dialog open={reelDialogOpen} onOpenChange={setReelDialogOpen}>
+        <DialogContent className="max-h-[92dvh] w-[calc(100%_-_1rem)] overflow-y-auto rounded-2xl sm:max-w-6xl">
+          <DialogHeader><DialogTitle>Créer un reel pour votre actualité</DialogTitle>
+            <DialogDescription>Choisissez vos médias, vérifiez la vidéo, puis ajoutez-la au brouillon. La publication reste une action séparée.</DialogDescription></DialogHeader>
+          {reelDialogOpen && restaurantId && !commercialDemoFrame ? <Suspense fallback={<p role="status">Chargement du studio vidéo…</p>}>
+            <TokAiVideoStudio key={restaurantId} restaurantId={restaurantId} mode="reel" onUseVideo={(file) => {
+              assertSafeSocialMediaSourceFileUpload(file);
+              if (filesRef.current.includes(file)) { setReelDialogOpen(false); return; }
+              setFiles((current) => {
+                if (current.length >= 10) throw new Error("Maximum 10 médias par publication. Retirez un média avant d'ajouter le reel.");
+                return [...current, file];
+              });
+              setFileError(null);
+              setReelDialogOpen(false);
+              toast({ title: "Reel ajouté au brouillon", description: "Vérifiez votre légende puis cliquez sur Publier ou Programmer." });
+            }} />
+          </Suspense> : null}
+        </DialogContent>
+      </Dialog>
       <Dialog open={sponsorDialogOpen} onOpenChange={setSponsorDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl sm:max-w-2xl">
           <DialogHeader>

@@ -53,6 +53,7 @@ vi.mock("@/components/social/SocialPostCard", () => ({
 }));
 
 vi.mock("@/hooks/useSocialFeed", () => ({
+  useRestaurantActualitesAccess: () => ({ data: { hasAccess: true }, isLoading: false }),
   useInfiniteSocialFeed: () => ({
     data: { pages: [{ posts: [] }] },
     error: null,

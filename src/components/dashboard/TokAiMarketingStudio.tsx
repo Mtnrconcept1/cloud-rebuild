@@ -1778,7 +1778,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-orange-50 p-4 dark:bg-orange-950/20">
           <div>
             <h2 className="text-xl font-bold">Marketing Studio · Vidéo</h2>
-            <p className="text-sm text-muted-foreground">Créez des publicités avec Higgsfield Seedance 2.5.</p>
+            <p className="text-sm text-muted-foreground">Créez des reels de 10 secondes avec vos photos, votre logo et votre direction artistique.</p>
           </div>
           <Button type="button" variant="outline" onClick={() => setStudioMode("images")}>Retour aux créations graphiques</Button>
         </div>

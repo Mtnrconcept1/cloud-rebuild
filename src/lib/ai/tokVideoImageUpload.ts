@@ -6,6 +6,7 @@ export type TokVideoImageReference = {
   id: string;
   media_url: string;
   alt_text: string | null;
+  media_type?: string;
 };
 
 export const VIDEO_IMAGE_ACCEPT = "image/jpeg,image/png,image/webp";
@@ -43,13 +44,15 @@ export function getTokVideoImagePath(
 export async function uploadTokVideoImage(
   restaurantId: string,
   file: File,
+  kind: "photo" | "logo" = "photo",
 ): Promise<TokVideoImageReference> {
   validateTokVideoImage(file);
   const supabase = getSupabase();
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData.user) throw new Error("Reconnectez-vous avant d'importer une image.");
 
-  const optimized = await optimizeImageUpload(file);
+  // Keep the uploaded logo file intact; never redraw or recolor the identity.
+  const optimized = kind === "logo" ? file : await optimizeImageUpload(file);
   validateTokVideoImage(optimized);
   const storageBucket = "restaurant-images";
   const path = getTokVideoImagePath(
@@ -70,14 +73,14 @@ export async function uploadTokVideoImage(
       restaurant_id: restaurantId,
       media_url: publicUrl,
       alt_text: file.name,
-      media_type: "marketing_brand_visual",
+      media_type: kind === "logo" ? "marketing_logo" : "marketing_brand_visual",
       storage_bucket: storageBucket,
       storage_path: path,
       uploaded_by: userData.user.id,
       position: 0,
       is_cover: false,
     })
-    .select("id, media_url, alt_text")
+    .select("id, media_url, alt_text, media_type")
     .single();
 
   if (dbError || !media) {
@@ -89,5 +92,6 @@ export async function uploadTokVideoImage(
     id: media.id,
     media_url: media.media_url,
     alt_text: media.alt_text,
+    media_type: media.media_type,
   };
 }

@@ -66,6 +66,7 @@ const posts = [
 ];
 
 vi.mock("@/hooks/useSocialFeed", () => ({
+  useRestaurantActualitesAccess: () => ({ data: null, isLoading: false }),
   useInfiniteSocialFeed: () => ({
     data: { pages: [{ posts }] },
     error: null,

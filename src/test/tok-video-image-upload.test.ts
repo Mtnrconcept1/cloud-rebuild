@@ -80,6 +80,14 @@ describe("Upload d'image Higgsfield", () => {
     expect(api.remove).toHaveBeenCalledWith([api.upload.mock.calls[0]?.[0]]);
   });
 
+  it("preserves the original logo bytes, format and transparency without image optimization", async () => {
+    const api = createMockSupabase(); const original = imageFile("logo.png");
+    await uploadTokVideoImage(restaurantId, original, "logo");
+    expect(optimizeImageUpload).not.toHaveBeenCalled();
+    expect(api.upload.mock.calls[0][1]).toBe(original);
+    expect(api.insert).toHaveBeenCalledWith(expect.objectContaining({ media_type: "marketing_logo", storage_bucket: "restaurant-images" }));
+  });
+
   it("n'insère rien en DB après un rejet Storage et exige une session", async () => {
     const api = createMockSupabase({ uploadError: { message: "storage denied" } });
     await expect(uploadTokVideoImage(restaurantId, imageFile())).rejects.toThrow("storage denied");
