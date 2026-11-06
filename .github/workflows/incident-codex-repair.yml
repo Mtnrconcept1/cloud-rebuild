@@ -667,7 +667,7 @@ jobs:
           persist-credentials: false
 
       - name: Download repair artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.prepare.outputs.artifact_name }}
           path: .incident-artifact
@@ -745,7 +745,7 @@ jobs:
           persist-credentials: false
 
       - name: Download tested repair artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.prepare.outputs.artifact_name }}
           path: .incident-artifact
@@ -901,7 +901,7 @@ jobs:
       - name: Download cycle journal
         if: ${{ needs.prepare.outputs.journal_artifact_name != '' }}
         continue-on-error: true
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.prepare.outputs.journal_artifact_name }}
           path: .repair-journal
