@@ -12,6 +12,7 @@ import { DIGITAL_MARKETING_OUTPUT_TARGETS } from "@/lib/marketing/outputGeometry
 const root = process.cwd();
 const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 
+// Service shell separation contract.
 describe("Marketing Studio exact output targets", () => {
   it("overrides only Marketing Studio image requests with the active final target", () => {
     const story = DIGITAL_MARKETING_OUTPUT_TARGETS.find((item) => item.id === "social-story");
@@ -53,6 +54,14 @@ describe("Marketing Studio exact output targets", () => {
     expect(controls).not.toContain("getPrintCatalog(String(restaurantId))");
     expect(controls).toContain("downloadMarketingOutput");
     expect(shell).toContain("<MarketingOutputControls");
+    expect(shell).toContain('label: "Vidéo"');
+    expect(shell).toContain('label: "Impression"');
+    expect(shell).toContain('label: "Mes impressions"');
+    expect(shell).toContain('forcedDestination="digital"');
+    expect(shell).toContain('forcedDestination="print"');
+    expect(shell).toContain("showVideoEntry={false}");
+    expect(controls).toContain("forcedDestination");
+    expect(core).toContain("showVideoEntry");
     expect(core).not.toContain("getPrintCatalog");
     expect(core).not.toContain("CloudprinterProvider");
     expect(vite).toContain('"@/lib/ai/tokAiClient"');

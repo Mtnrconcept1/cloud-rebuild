@@ -138,6 +138,7 @@ type MarketingBusinessContext = {
 type Props = {
   onSelectedCreationChange?: (creation: TokImageGenerationResult | null) => void;
   restaurantId?: string | null;
+  showVideoEntry?: boolean;
 };
 
 type MarketingImageResult = TokImageGenerationResult;
@@ -1164,7 +1165,7 @@ function buildCommercialDemoBusinessContext(snapshot: CommercialDemoSnapshot): M
   };
 }
 
-export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationChange }: Props) {
+export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationChange, showVideoEntry = true }: Props) {
   const { toast } = useToast();
   // A visual stored while the tab was away is re-attached instead of being lost.
   useAiCreationRecovery(restaurantId);
@@ -1772,7 +1773,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
 
   const generatedMarketingImageUrl = marketingImageResult?.gallery_image_url || marketingImageResult?.generated_image_url || "";
 
-  if (studioMode === "video" && !isCommercialDemo && restaurantId) {
+  if (showVideoEntry && studioMode === "video" && !isCommercialDemo && restaurantId) {
     return (
       <section className="tok-marketing-workflow max-w-full space-y-4 rounded-3xl border border-orange-200 bg-background p-3 shadow-sm sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-orange-50 p-4 dark:bg-orange-950/20">
@@ -1809,7 +1810,7 @@ export default function TokAiMarketingStudio({ restaurantId, onSelectedCreationC
           <div className="min-w-0 rounded-2xl border bg-background p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-lg font-bold text-foreground">Un visuel en trois étapes</h2>
-              {!isCommercialDemo ? (
+              {!isCommercialDemo && showVideoEntry ? (
                 <Button type="button" className="min-h-11 gap-2 bg-orange-600 hover:bg-orange-700" onClick={() => setStudioMode("video")}>
                   <Film className="h-4 w-4" /> Créer une publicité vidéo
                 </Button>
