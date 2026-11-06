@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `a60e9f2de2211fdbe83317e4a439515d2ef6966a052823e260711b6334a18201`
+- Empreinte SHA-256 des sources indexées : `7a406a020c8c7462859a3dad5aba80f7f3ae39bd20e1f60e5f45078c0b21c2fd`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -38,15 +38,15 @@
 | integrations | 11 |
 | marketingOperations | 45 |
 | migrations | 605 |
-| modules | 2033 |
+| modules | 2034 |
 | pages | 138 |
 | pathLiterals | 1023 |
 | publicAssets | 920 |
 | publicEntries | 958 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 125 |
-| records | 20653 |
-| repositoryFiles | 4127 |
+| records | 20655 |
+| repositoryFiles | 4128 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
@@ -7529,7 +7529,7 @@ Chaque module de code et chaque symbole exporté sont indexés individuellement 
 | public-asset | 7 |
 | repository-file | 10 |
 | server-source | 2 |
-| test | 849 |
+| test | 850 |
 | vercel-api | 11 |
 | worker | 5 |
 
@@ -11072,7 +11072,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>test (849)</summary>
+<details><summary>test (850)</summary>
 
 - `docs/design/tok-launch/tests/countdown.test.ts`
 - `scripts/blog-seo.test.mjs`
@@ -11613,6 +11613,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `src/test/print-pdf-dimensions.test.ts`
 - `src/test/print-source-format.test.ts`
 - `src/test/production-alert-remediation.test.ts`
+- `src/test/production-deploy-concurrency.test.ts`
 - `src/test/production-deployment-credential-wiring.test.ts`
 - `src/test/production-deployment-provenance.test.ts`
 - `src/test/production-preflight-hardening.test.ts`
