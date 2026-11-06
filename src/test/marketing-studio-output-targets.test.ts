@@ -12,7 +12,8 @@ import { DIGITAL_MARKETING_OUTPUT_TARGETS } from "@/lib/marketing/outputGeometry
 const root = process.cwd();
 const read = (path: string) => readFileSync(resolve(root, path), "utf8");
 
-// Service shell separation contract.\ndescribe("Marketing Studio exact output targets", () => {
+// Service shell separation contract.
+describe("Marketing Studio exact output targets", () => {
   it("overrides only Marketing Studio image requests with the active final target", () => {
     const story = DIGITAL_MARKETING_OUTPUT_TARGETS.find((item) => item.id === "social-story");
     if (!story) throw new Error("story target missing");
