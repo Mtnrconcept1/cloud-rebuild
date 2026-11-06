@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -18,9 +18,8 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 import DashboardLayout from "@/components/DashboardLayout";
-import DashboardPageHero from "@/components/dashboard/DashboardPageHero";
-import { DASHBOARD_ILLUSTRATIONS } from "@/lib/dashboardIllustrations";
-import SocialComposer from "@/components/social/SocialComposer";
+import { ActualitesFeed } from "@/pages/Actualites";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import SocialPostBoostDialog from "@/components/social/SocialPostBoostDialog";
 import SocialPostCard from "@/components/social/SocialPostCard";
 import { Button } from "@/components/ui/button";
@@ -31,10 +30,9 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
-import { useRestaurantActualitesAccess, useRestaurantSocialPosts, useSocialInsights } from "@/hooks/useSocialFeed";
+import { useRestaurantSocialPosts, useSocialInsights } from "@/hooks/useSocialFeed";
 import { SOCIAL_MARKETING_GOALS } from "@/lib/socialFeed";
 import type { SocialFeedPost } from "@/lib/socialFeed";
 import { useDashboardRestaurant } from "@/pages/dashboard/useDashboardRestaurant";
@@ -232,14 +230,17 @@ function DashboardActualitesStatsPanel({
 }
 
 export default function DashboardActualites() {
-  const { selectedId, restaurants, loading, error } = useDashboardRestaurant();
+  const { selectedId, setSelectedId, restaurants, loading, error } = useDashboardRestaurant();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [statsOpen, setStatsOpen] = useState(() => searchParams.get("stats") === "1");
+  const [postsOpen, setPostsOpen] = useState(false);
+  const statsTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const postsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const selectedRestaurant = restaurants.find((restaurant) => restaurant.id === selectedId) || null;
   const postsQuery = useRestaurantSocialPosts(selectedId);
   const insightsQuery = useSocialInsights(selectedId);
-  const actualitesAccessQuery = useRestaurantActualitesAccess(selectedId);
   const posts = postsQuery.data || [];
   const insights = insightsQuery.data as any;
   const publishedCount = posts.filter((post) => post.status === "published").length;
@@ -310,117 +311,48 @@ export default function DashboardActualites() {
   }, [refreshCampaignLinkedData, searchParams, setSearchParams, toast]);
 
   return (
-    <DashboardLayout mainClassName="tok-restaurant-page tok-page-news">
-      <div className="min-w-0 space-y-6">
-        <DashboardPageHero
-          badge="Fil social"
-          title="Actualités"
-          description="Pilotez vos actualités comme un canal marketing: objectifs, audiences, CTA, planning, conversions sponsorisées et performance."
-          icon={Newspaper}
-          tone="sky"
-          visualLabel="Actualités"
-          illustration={DASHBOARD_ILLUSTRATIONS.restaurantNews}
-          stats={[
-            { label: "Publiés", value: insights?.publishedCount ?? publishedCount, icon: Newspaper },
-            { label: "Interactions", value: insights?.interactions ?? interactions, icon: ThumbsUp },
-            { label: "Conversions", value: sponsoredConversions, icon: ShoppingCart },
-          ]}
-        />
-
-        {loading ? <p className="text-muted-foreground">Chargement des restaurants...</p> : null}
-        {error ? <p className="text-destructive">Erreur restaurants : {error}</p> : null}
-        {!loading && restaurants.length === 0 ? (
-          <Card className="rounded-lg">
-            <CardContent className="p-8 text-center text-muted-foreground">Aucun restaurant disponible.</CardContent>
-          </Card>
-        ) : null}
-
-        {selectedRestaurant ? (
-          <div className="min-w-0 space-y-6">
-            <SocialComposer
-              key={selectedRestaurant.id}
-              restaurantId={selectedRestaurant.id}
-              restaurantName={selectedRestaurant.name}
-              socialLinks={selectedRestaurant.socialLinks || null}
-              actualitesAccess={actualitesAccessQuery.data || null}
-              actualitesAccessLoading={actualitesAccessQuery.isLoading}
-            />
-
-            <div className="min-w-0 space-y-4">
-              <section className="min-w-0 space-y-4">
-              <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <h2 className="font-display text-xl font-semibold">Posts</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Impressions et vues visibles uniquement dans votre dashboard.
-                  </p>
-                </div>
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button className="w-full gap-2 rounded-full bg-primary px-5 shadow-lg shadow-primary/20 sm:w-auto">
-                      <BarChart3 className="h-4 w-4" />
-                      Statistique
-                      <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[11px]">
-                        {formatCompactMetric(impressions)} vues
-                      </span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="flex w-[92vw] max-w-none flex-col overflow-hidden p-0 sm:max-w-xl">
-                    <SheetHeader className="border-b px-5 pb-4 pt-[calc(env(safe-area-inset-top,0px)+1rem)] text-left">
-                      <SheetTitle className="font-display text-2xl">Statistique Actualités</SheetTitle>
-                      <SheetDescription>
-                        Plan marketing, conversions, engagement et recommandations du restaurant.
-                      </SheetDescription>
-                    </SheetHeader>
-                    <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 sm:px-5">
-                      <DashboardActualitesStatsPanel
-                        topGoal={topGoal}
-                        scheduledCount={scheduledCount}
-                        engagementRate={engagementRate}
-                        sponsoredConversions={sponsoredConversions}
-                        ctaClicks={ctaClicks}
-                        orderConversions={orderConversions}
-                        reservationConversions={reservationConversions}
-                        zeroAttenteConversions={zeroAttenteConversions}
-                        impressions={impressions}
-                        commentsCount={commentsCount}
-                        repostsCount={repostsCount}
-                        reactionsCount={reactionsCount}
-                        saves={saves}
-                        conversionFocus={conversionFocus}
-                        recommendations={recommendations}
-                      />
-                    </div>
-                  </SheetContent>
-                </Sheet>
-              </div>
-              {postsQuery.isLoading ? (
-                <Card className="rounded-lg"><CardContent className="p-8 text-center text-muted-foreground">Chargement...</CardContent></Card>
-              ) : posts.length > 0 ? (
-                <div className="min-w-0 space-y-4">
-                  {posts.map((post) => (
-                    <div key={post.id} className="min-w-0 space-y-2">
-                      <DashboardPostMetrics post={post} />
-                      <div className="flex justify-end">
-                        <SocialPostBoostDialog
-                          post={post}
-                          restaurantId={selectedRestaurant.id}
-                          disabled={post.status !== "published"}
-                          onCreated={refreshCampaignLinkedData}
-                        />
-                      </div>
-                      <SocialPostCard post={post} compact />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <Card className="rounded-lg"><CardContent className="p-8 text-center text-muted-foreground">Aucun post publié.</CardContent></Card>
-              )}
-              </section>
-            </div>
+    <DashboardLayout chrome="social" hideRouteHero contentWidth="full">
+      {loading ? <p role="status" className="p-4 text-sm">Chargement des restaurants…</p> : null}
+      {error ? <p role="alert" className="p-4 text-sm text-destructive">Erreur restaurants : {error}</p> : null}
+      <ActualitesFeed
+        dashboard
+        managedRestaurant={selectedRestaurant}
+        restaurantSelector={selectedRestaurant ? (
+          <label className="tok-social-identity">
+            <Avatar className="tok-social-account"><AvatarImage src={posts[0]?.restaurant.imageUrl || undefined} alt="" /><AvatarFallback>{selectedRestaurant.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+            <span className="sr-only">Restaurant actif</span>
+            <select className="min-h-11 min-w-0 flex-1 bg-transparent text-sm font-bold" value={selectedId || ""} onChange={(event) => setSelectedId(event.target.value)}>{restaurants.map((restaurant) => <option key={restaurant.id} value={restaurant.id}>{restaurant.name}</option>)}</select>
+          </label>
+        ) : undefined}
+        statistics={<button type="button" className="tok-social-stats-link" onClick={(event) => { statsTriggerRef.current = event.currentTarget; setStatsOpen(true); }}><BarChart3 size={17} />Voir mes statistiques</button>}
+        management={selectedRestaurant ? <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={(event) => { postsTriggerRef.current = event.currentTarget; setPostsOpen(true); }}><Newspaper className="mr-2 h-4 w-4" />Mes publications</Button> : null}
+      />
+      <Sheet open={statsOpen} onOpenChange={setStatsOpen}>
+        <SheetContent side="right" className="flex w-[92vw] max-w-none flex-col overflow-hidden p-0 sm:max-w-xl" onCloseAutoFocus={(event) => {
+          if (statsTriggerRef.current?.isConnected) { event.preventDefault(); statsTriggerRef.current.focus(); }
+        }}>
+          <SheetHeader className="border-b px-5 pb-4 pt-[calc(env(safe-area-inset-top,0px)+1rem)] text-left"><SheetTitle className="font-display text-2xl">Statistique Actualités</SheetTitle><SheetDescription>Plan marketing, conversions, engagement et recommandations du restaurant.</SheetDescription></SheetHeader>
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 sm:px-5">
+            <div className="grid grid-cols-3 gap-2"><DashboardInsightTile icon={Newspaper} label="Publiés" value={publishedCount} /><DashboardInsightTile icon={ThumbsUp} label="Interactions" value={interactions} /><DashboardInsightTile icon={ShoppingCart} label="Conversions" value={sponsoredConversions} /></div>
+            <DashboardActualitesStatsPanel topGoal={topGoal} scheduledCount={scheduledCount} engagementRate={engagementRate} sponsoredConversions={sponsoredConversions} ctaClicks={ctaClicks} orderConversions={orderConversions} reservationConversions={reservationConversions} zeroAttenteConversions={zeroAttenteConversions} impressions={impressions} commentsCount={commentsCount} repostsCount={repostsCount} reactionsCount={reactionsCount} saves={saves} conversionFocus={conversionFocus} recommendations={recommendations} />
           </div>
-        ) : null}
-      </div>
+        </SheetContent>
+      </Sheet>
+      <Sheet open={postsOpen} onOpenChange={setPostsOpen}>
+        <SheetContent side="right" className="flex w-[96vw] max-w-none flex-col overflow-hidden p-0 sm:max-w-2xl" onCloseAutoFocus={(event) => {
+          if (postsTriggerRef.current?.isConnected) { event.preventDefault(); postsTriggerRef.current.focus(); }
+        }}>
+          <SheetHeader className="border-b px-5 pb-4 pt-[calc(env(safe-area-inset-top,0px)+1rem)] text-left"><SheetTitle>Mes publications</SheetTitle><SheetDescription>Retrouvez vos publications, vos programmations et leurs performances.</SheetDescription></SheetHeader>
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)]">
+            {postsQuery.isLoading ? <p role="status">Chargement des publications…</p> : postsQuery.error ? <div role="alert"><p>Impossible de charger vos publications.</p><Button className="mt-2" variant="outline" onClick={() => postsQuery.refetch()}>Réessayer</Button></div> : posts.length > 0 ? posts.map((post) => (
+              <section key={post.id} className="space-y-2">
+                <SocialPostCard post={post} compact editorial />
+                <details className="rounded-xl border p-3 text-sm"><summary className="cursor-pointer font-medium">Performances et mise en avant</summary><div className="mt-3 space-y-3"><DashboardPostMetrics post={post} />{selectedRestaurant ? <SocialPostBoostDialog post={post} restaurantId={selectedRestaurant.id} disabled={post.status !== "published"} onCreated={refreshCampaignLinkedData} /> : null}</div></details>
+              </section>
+            )) : <p className="py-8 text-center text-muted-foreground">Aucun post publié.</p>}
+          </div>
+        </SheetContent>
+      </Sheet>
     </DashboardLayout>
   );
 }

@@ -460,8 +460,48 @@ describe("SocialPostCard actions", () => {
 
     await clickAndSettle(screen.getByRole("button", { name: "Afficher les commentaires" }));
     const reactionButton = await waitFor(() => screen.getByRole("button", { name: /1/ }));
-    await clickAndSettle(reactionButton);
+    await pointerDownAndSettle(reactionButton);
 
     expect(screen.getAllByRole("menuitem").length).toBeGreaterThanOrEqual(3);
   });
+  it("supports reaction selection and dismissal from the keyboard", async () => {
+    render(<MemoryRouter><SocialPostCard post={post as any} editorial /></MemoryRouter>);
+    const trigger = screen.getByRole("button", { name: /Réagir à la publication/ });
+    fireEvent.keyDown(trigger, { key: "ArrowDown" });
+    await settleUi();
+    const like = screen.getByRole("menuitem", { name: "J'aime" });
+    expect(like).toHaveFocus();
+    fireEvent.keyDown(like, { key: "ArrowRight" });
+    const love = screen.getByRole("menuitem", { name: "J'adore" });
+    expect(love).toHaveFocus();
+    fireEvent.keyDown(love, { key: "Enter" });
+    await settleUi();
+    expect(socialHooks.mutate).toHaveBeenCalledWith({ post, reaction: "love" });
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+    fireEvent.keyDown(trigger, { key: "ArrowDown" });
+    await settleUi();
+    fireEvent.keyDown(screen.getByRole("menuitem", { name: "J'aime" }), { key: "Escape" });
+    await settleUi();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("preserves social actions and opens reservations from the editorial card", async () => {
+    const reservationPost = { ...post, ctaType: "reserve" };
+    render(<MemoryRouter><SocialPostCard post={reservationPost as any} editorial /></MemoryRouter>);
+    expect(screen.getByRole("link", { name: /Réserver une table/ })).toHaveAttribute("href", "/restaurant/restaurant-1?reserve=true");
+    fireEvent.click(screen.getByRole("button", { name: "Sauver" }));
+    expect(socialHooks.mutate).toHaveBeenCalledWith(reservationPost);
+    await pointerDownAndSettle(screen.getByRole("button", { name: /Réagir à la publication/ }));
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Afficher les commentaires" })).toBeInTheDocument();
+  });
+
+  it("preserves a restaurant's choice to publish without a call to action", () => {
+    render(<MemoryRouter><SocialPostCard post={post as any} editorial /></MemoryRouter>);
+    expect(screen.queryByRole("link", { name: /Réserver une table/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Voir Quirinale" })).toHaveAttribute("href", "/restaurant/restaurant-1");
+  });
+
 });

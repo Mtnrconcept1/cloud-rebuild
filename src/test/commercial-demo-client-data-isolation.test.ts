@@ -154,8 +154,8 @@ describe("commercial demo client data isolation", () => {
     const actualitePost = readFileSync("src/pages/ActualitePost.tsx", "utf8");
 
     expect(socialFeed).toContain("getCommercialDemoCachedPosts(queryClient, commercialDemoFrame.snapshot)");
-    expect(socialFeed).toContain("if (isCommercialDemoClient)");
-    expect(socialFeed).toContain("useSocialRealtime(!isCommercialDemoClient)");
+    expect(socialFeed).toContain("if (isCommercialDemoViewer)");
+    expect(socialFeed).toContain("useSocialRealtime(!isCommercialDemoViewer)");
     expect(actualites).toContain("const isCommercialDemoClient = commercialDemoFrame?.surface === \"client\"");
     expect(actualitePost).toContain('robots: isCommercialDemoClient');
   });

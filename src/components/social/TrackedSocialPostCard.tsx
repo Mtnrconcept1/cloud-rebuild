@@ -14,6 +14,7 @@ type TrackedSocialPostCardProps = {
   post: SocialFeedPost;
   compact?: boolean;
   highlighted?: boolean;
+  editorial?: boolean;
   source?: string;
 };
 
@@ -31,10 +32,11 @@ export default function TrackedSocialPostCard({
   post,
   compact = false,
   highlighted = false,
+  editorial = false,
   source = "actualites",
 }: TrackedSocialPostCardProps) {
   const commercialDemoFrame = useCommercialDemoFrame();
-  const productionTrackingEnabled = commercialDemoFrame?.surface !== "client";
+  const productionTrackingEnabled = commercialDemoFrame == null;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const impressionRecordedRef = useRef(false);
   const impressionRetryCountRef = useRef(0);
@@ -175,9 +177,8 @@ export default function TrackedSocialPostCard({
     lastClickAtRef.current = now;
 
     const link = getLinkMetadata(event.target);
-    rememberActualitesPostSignal(post);
-
     if (!productionTrackingEnabled) return;
+    rememberActualitesPostSignal(post);
     void recordSponsoredSocialFeedEvent({
       postId: post.id,
       eventType: "click",
@@ -200,7 +201,7 @@ export default function TrackedSocialPostCard({
 
   return (
     <div ref={containerRef} onClickCapture={handleClickCapture}>
-      <SocialPostCard post={post} compact={compact} highlighted={highlighted} />
+      <SocialPostCard post={post} compact={compact} highlighted={highlighted} editorial={editorial} />
     </div>
   );
 }

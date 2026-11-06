@@ -332,6 +332,7 @@ function FeatureSwitch({ enabled, fallback = "/", children }: { enabled: boolean
 
 function shouldShowPublicNavbar(pathname: string) {
   return !isCustomerWorkspacePath(pathname) && !(
+    /^\/actualites\/?$/.test(pathname) ||
     pathname === "/espaces" ||
     pathname === "/dashboard" ||
     pathname.startsWith("/dashboard/") ||

@@ -322,6 +322,7 @@ type DashboardLayoutProps = {
   mainClassName?: string;
   constrainToViewport?: boolean;
   hideRouteHero?: boolean;
+  chrome?: "dashboard" | "social";
 };
 
 export default function DashboardLayout({
@@ -330,6 +331,7 @@ export default function DashboardLayout({
   mainClassName,
   constrainToViewport = false,
   hideRouteHero = false,
+  chrome = "dashboard",
 }: DashboardLayoutProps) {
   const { pathname, hash } = useLocation();
   const routeHero = getRestaurantDashboardVisual(pathname)?.hero;
@@ -422,7 +424,7 @@ export default function DashboardLayout({
   });
 
   return (
-    <div className={cn("tok-workspace-shell tok-hospitality-workspace tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row", pathname === "/dashboard/plan-salle" && "tok-floorplan-shell")} style={getTokHeroStyle(routeHero)}>
+    <div className={cn("tok-workspace-shell tok-hospitality-workspace tok-dashboard-shell flex min-h-screen min-h-[100dvh] min-w-0 flex-col text-foreground md:flex-row", pathname === "/dashboard/plan-salle" && "tok-floorplan-shell", chrome === "social" && "tok-social-dashboard-chrome")} style={getTokHeroStyle(routeHero)}>
       {/* SIDEBAR */}
       <aside
         ref={sidebarRef}
@@ -593,7 +595,7 @@ export default function DashboardLayout({
             fallback={backFallback}
             className={cn("tok-workspace-back mb-4", constrainToViewport && "shrink-0")}
           />
-          {!hideRouteHero && (
+          {!hideRouteHero && chrome !== "social" && (
             <RouteHeroBanner
               src={routeHero}
               eyebrow="Espace restaurateur TOK"

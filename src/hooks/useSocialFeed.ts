@@ -1168,19 +1168,19 @@ export function useSocialRealtime(enabled = true) {
 
 export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit = 20) {
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
-  useSocialRealtime(!isCommercialDemoClient);
+  const isCommercialDemoViewer = commercialDemoFrame != null;
+  useSocialRealtime(!isCommercialDemoViewer);
   const { user } = useAuth();
   const userId = user?.id || null;
   const queryClient = useQueryClient();
-  const viewerKey = isCommercialDemoClient
+  const viewerKey = isCommercialDemoViewer
     ? `commercial-demo:${commercialDemoFrame.config.sessionId}`
     : userId;
 
   return useInfiniteQuery({
     queryKey: ["social-feed", scope, limit, viewerKey],
     queryFn: async ({ pageParam }) => {
-      if (isCommercialDemoClient) {
+      if (isCommercialDemoViewer) {
         const posts = filterCommercialDemoPostsByScope(
           getCommercialDemoCachedPosts(queryClient, commercialDemoFrame.snapshot),
           scope,
@@ -1246,20 +1246,20 @@ export function useInfiniteSocialFeed(scope: SocialFeedScope = "for_you", limit 
     },
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    staleTime: isCommercialDemoClient ? Infinity : undefined,
-    refetchOnWindowFocus: !isCommercialDemoClient,
+    staleTime: isCommercialDemoViewer ? Infinity : undefined,
+    refetchOnWindowFocus: !isCommercialDemoViewer,
   });
 }
 
 export function useSearchActualitesPosts(query: string, limit = 20) {
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
   const { user } = useAuth();
   const viewerId = user?.id || null;
   const queryClient = useQueryClient();
   const normalizedQuery = query.replace(/\s+/g, " ").trim();
   const safeLimit = Math.max(1, Math.min(50, Math.trunc(limit || 20)));
-  const viewerKey = isCommercialDemoClient
+  const viewerKey = isCommercialDemoViewer
     ? `commercial-demo:${commercialDemoFrame.config.sessionId}`
     : viewerId;
 
@@ -1267,7 +1267,7 @@ export function useSearchActualitesPosts(query: string, limit = 20) {
     queryKey: ["actualites-search", normalizedQuery, safeLimit, viewerKey],
     queryFn: async ({ pageParam }): Promise<ActualitesSearchPage> => {
       const offset = Math.max(0, Number(pageParam || 0));
-      if (isCommercialDemoClient) {
+      if (isCommercialDemoViewer) {
         const matches = searchCommercialDemoPosts(
           getCommercialDemoCachedPosts(queryClient, commercialDemoFrame.snapshot),
           normalizedQuery,
@@ -1298,26 +1298,26 @@ export function useSearchActualitesPosts(query: string, limit = 20) {
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextOffset,
     enabled: normalizedQuery.length >= 2,
-    staleTime: isCommercialDemoClient ? Infinity : undefined,
-    refetchOnWindowFocus: !isCommercialDemoClient,
+    staleTime: isCommercialDemoViewer ? Infinity : undefined,
+    refetchOnWindowFocus: !isCommercialDemoViewer,
   });
 }
 
 export function useSocialPostById(postId?: string | null) {
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
-  useSocialRealtime(Boolean(postId) && !isCommercialDemoClient);
+  const isCommercialDemoViewer = commercialDemoFrame != null;
+  useSocialRealtime(Boolean(postId) && !isCommercialDemoViewer);
   const { user } = useAuth();
   const viewerId = user?.id || null;
   const queryClient = useQueryClient();
-  const viewerKey = isCommercialDemoClient
+  const viewerKey = isCommercialDemoViewer
     ? `commercial-demo:${commercialDemoFrame.config.sessionId}`
     : viewerId;
 
   return useQuery({
     queryKey: ["social-post-by-id", postId, viewerKey],
     queryFn: async () => {
-      if (isCommercialDemoClient) {
+      if (isCommercialDemoViewer) {
         return getCommercialDemoCachedPosts(queryClient, commercialDemoFrame.snapshot)
           .find((post) => post.id === postId) || null;
       }
@@ -1325,8 +1325,8 @@ export function useSocialPostById(postId?: string | null) {
       return posts[0] || null;
     },
     enabled: Boolean(postId),
-    staleTime: isCommercialDemoClient ? Infinity : undefined,
-    refetchOnWindowFocus: !isCommercialDemoClient,
+    staleTime: isCommercialDemoViewer ? Infinity : undefined,
+    refetchOnWindowFocus: !isCommercialDemoViewer,
   });
 }
 
@@ -1833,11 +1833,11 @@ export function useToggleSocialLike() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async (post: SocialFeedPost) => {
-      if (isCommercialDemoClient) return;
+      if (isCommercialDemoViewer) return;
       if (!user?.id) throw new Error("Connexion requise.");
 
       await replaceReaction(
@@ -1848,7 +1848,7 @@ export function useToggleSocialLike() {
       );
     },
     onMutate: async (post) => {
-      if (!isCommercialDemoClient) return;
+      if (!isCommercialDemoViewer) return;
       patchSocialPost(queryClient, post.id, (currentPost) => {
         const reaction = currentPost.myReaction ? null : "like";
         const reactionCounts = updateReactionCounts(currentPost.reactionCounts, currentPost.myReaction, reaction);
@@ -1862,7 +1862,7 @@ export function useToggleSocialLike() {
       });
     },
     onSuccess: () => {
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
@@ -1872,11 +1872,11 @@ export function useSetSocialPostReaction() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async ({ post, reaction }: SetPostReactionInput) => {
-      if (isCommercialDemoClient) return;
+      if (isCommercialDemoViewer) return;
       if (!user?.id) throw new Error("Connexion requise.");
       const { error } = await (supabase.rpc as any)("set_social_reaction", {
         p_target_type: "post",
@@ -1908,11 +1908,11 @@ export function useSetSocialPostReaction() {
       });
     },
     onSuccess: () => {
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
     onError: (error) => {
       toast.error(getUserFacingErrorMessage(error));
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
   });
 }
@@ -1921,11 +1921,11 @@ export function useDeleteSocialPost() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async (post: SocialFeedPost) => {
-      if (isCommercialDemoClient) return;
+      if (isCommercialDemoViewer) return;
       if (!user?.id) throw new Error("Connexion requise.");
       const { error } = await (supabase.from("social_posts" as any) as any)
         .update({
@@ -1940,7 +1940,7 @@ export function useDeleteSocialPost() {
     onSuccess: (_, post) => {
       toast.success("Post supprime.");
       removeSocialPost(queryClient, post.id);
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
@@ -1950,11 +1950,11 @@ export function useToggleRestaurantFollow() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async (post: SocialFeedPost) => {
-      if (isCommercialDemoClient) return;
+      if (isCommercialDemoViewer) return;
       if (!user?.id) throw new Error("Connexion requise.");
 
       if (post.followedByMe) {
@@ -1982,7 +1982,7 @@ export function useToggleRestaurantFollow() {
       });
     },
     onMutate: async (post) => {
-      if (!isCommercialDemoClient || !commercialDemoFrame) return;
+      if (!isCommercialDemoViewer || !commercialDemoFrame) return;
       for (const demoPost of buildCommercialDemoSocialPosts(commercialDemoFrame.snapshot)) {
         patchSocialPost(queryClient, demoPost.id, (currentPost) => ({
           ...currentPost,
@@ -1991,7 +1991,7 @@ export function useToggleRestaurantFollow() {
       }
     },
     onSuccess: () => {
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
@@ -2001,11 +2001,11 @@ export function useToggleSocialRepost() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async (post: SocialFeedPost) => {
-      if (isCommercialDemoClient) return;
+      if (isCommercialDemoViewer) return;
       if (!user?.id) throw new Error("Connexion requise.");
 
       if (post.repostedByMe) {
@@ -2026,7 +2026,7 @@ export function useToggleSocialRepost() {
       await recordSocialEventBestEffort({ postId: post.id, eventType: "repost", metadata: {} });
     },
     onMutate: async (post) => {
-      if (!isCommercialDemoClient) return;
+      if (!isCommercialDemoViewer) return;
       patchSocialPost(queryClient, post.id, (currentPost) => ({
         ...currentPost,
         repostedByMe: !currentPost.repostedByMe,
@@ -2034,7 +2034,7 @@ export function useToggleSocialRepost() {
       }));
     },
     onSuccess: () => {
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
@@ -2044,11 +2044,11 @@ export function useToggleSocialSave() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async (post: SocialFeedPost) => {
-      if (isCommercialDemoClient) return !post.savedByMe;
+      if (isCommercialDemoViewer) return !post.savedByMe;
       if (!user?.id) throw new Error("Connexion requise.");
 
       const { data, error } = await (supabase.rpc as any)("toggle_social_save", {
@@ -2088,11 +2088,11 @@ export function useToggleSocialSave() {
       }));
     },
     onSuccess: () => {
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
     onError: (error) => {
       toast.error(getUserFacingErrorMessage(error));
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
   });
 }
@@ -2101,11 +2101,11 @@ export function useRecordExternalShare() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async ({ postId, channel = "link" }: { postId: string; channel?: string }) => {
-      if (isCommercialDemoClient) return;
+      if (isCommercialDemoViewer) return;
       if (!user?.id) throw new Error("Connexion requise.");
       const { error } = await (supabase.from("social_post_external_shares" as any) as any).insert({
         post_id: postId,
@@ -2117,11 +2117,11 @@ export function useRecordExternalShare() {
       await recordSocialEventBestEffort({ postId, eventType: "share", metadata: { channel } });
     },
     onMutate: async ({ postId }) => {
-      if (!isCommercialDemoClient) return;
+      if (!isCommercialDemoViewer) return;
       patchSocialPost(queryClient, postId, (post) => ({ ...post, sharesCount: post.sharesCount + 1 }));
     },
     onSuccess: () => {
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
@@ -2129,7 +2129,7 @@ export function useRecordExternalShare() {
 
 export function useRecordSocialFeedEvent() {
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async ({
@@ -2141,7 +2141,7 @@ export function useRecordSocialFeedEvent() {
       eventType: "impression" | "click" | "cta_click";
       metadata?: Record<string, unknown>;
     }) => {
-      if (isCommercialDemoClient) return null;
+      if (isCommercialDemoViewer) return null;
       const result = await recordSocialEventBestEffort({
         postId,
         eventType,
@@ -2164,11 +2164,11 @@ export function useSocialFeedFeedback() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async ({ post, feedbackType, reason }: SocialFeedFeedbackInput) => {
-      if (isCommercialDemoClient) return feedbackType;
+      if (isCommercialDemoViewer) return feedbackType;
       if (!user?.id) throw new Error("Connexion requise.");
 
       const payload = {
@@ -2206,7 +2206,7 @@ export function useSocialFeedFeedback() {
     },
     onMutate: async ({ post, feedbackType }) => {
       if (feedbackType === "hide_post" || feedbackType === "hide_restaurant" || feedbackType === "not_interested") {
-        if (!isCommercialDemoClient) rememberSocialFeedHiddenFeedback(user?.id, post, feedbackType);
+        if (!isCommercialDemoViewer) rememberSocialFeedHiddenFeedback(user?.id, post, feedbackType);
         removeSocialPost(queryClient, post.id);
       }
     },
@@ -2215,7 +2215,7 @@ export function useSocialFeedFeedback() {
         removeSocialPost(queryClient, input.post.id);
       }
       toast.success(feedbackType === "show_more" ? "Preference prise en compte." : "Le fil s'adapté à votre retour.");
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
@@ -2223,17 +2223,17 @@ export function useSocialFeedFeedback() {
 
 export function useSocialComments(postId?: string | null) {
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
-  useSocialRealtime(!!postId && !isCommercialDemoClient);
+  const isCommercialDemoViewer = commercialDemoFrame != null;
+  useSocialRealtime(!!postId && !isCommercialDemoViewer);
   const { user } = useAuth();
-  const viewerKey = isCommercialDemoClient
+  const viewerKey = isCommercialDemoViewer
     ? `commercial-demo:${commercialDemoFrame.config.sessionId}`
     : user?.id;
 
   return useQuery({
     queryKey: ["social-comments", postId, viewerKey],
     queryFn: async () => {
-      if (isCommercialDemoClient) return [] as SocialFeedComment[];
+      if (isCommercialDemoViewer) return [] as SocialFeedComment[];
       const { data, error } = await (supabase.from("social_post_comments" as any) as any)
         .select("*")
         .eq("post_id", postId)
@@ -2308,22 +2308,22 @@ export function useSocialComments(postId?: string | null) {
       });
     },
     enabled: !!postId,
-    staleTime: isCommercialDemoClient ? Infinity : undefined,
-    refetchOnWindowFocus: !isCommercialDemoClient,
+    staleTime: isCommercialDemoViewer ? Infinity : undefined,
+    refetchOnWindowFocus: !isCommercialDemoViewer,
   });
 }
 
 export function useSocialPostThread(postId?: string | null) {
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
-  useSocialRealtime(!!postId && !isCommercialDemoClient);
+  const isCommercialDemoViewer = commercialDemoFrame != null;
+  useSocialRealtime(!!postId && !isCommercialDemoViewer);
 
   return useQuery({
-    queryKey: isCommercialDemoClient
+    queryKey: isCommercialDemoViewer
       ? ["social-post-thread", postId, commercialDemoFrame.config.sessionId]
       : ["social-post-thread", postId],
     queryFn: async () => {
-      if (isCommercialDemoClient) {
+      if (isCommercialDemoViewer) {
         return {
           post: buildCommercialDemoSocialPosts(commercialDemoFrame.snapshot).find((post) => post.id === postId) || null,
           comments: [],
@@ -2337,8 +2337,8 @@ export function useSocialPostThread(postId?: string | null) {
       return row || { post: null, comments: [] };
     },
     enabled: !!postId,
-    staleTime: isCommercialDemoClient ? Infinity : undefined,
-    refetchOnWindowFocus: !isCommercialDemoClient,
+    staleTime: isCommercialDemoViewer ? Infinity : undefined,
+    refetchOnWindowFocus: !isCommercialDemoViewer,
   });
 }
 
@@ -2346,13 +2346,13 @@ export function useAddSocialComment(postId: string, parentCommentId?: string | n
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async (body: string) => {
       const cleanBody = body.trim();
       if (!cleanBody) throw new Error("Le commentaire est vide.");
-      if (isCommercialDemoClient) {
+      if (isCommercialDemoViewer) {
         return {
           id: `commercial-demo-comment-${Date.now()}`,
           postId,
@@ -2387,7 +2387,7 @@ export function useAddSocialComment(postId: string, parentCommentId?: string | n
       return null;
     },
     onSuccess: (comment) => {
-      if (isCommercialDemoClient && comment) {
+      if (isCommercialDemoViewer && comment) {
         patchSocialComments(queryClient, postId, (comments) => [...comments, comment]);
         patchSocialPost(queryClient, postId, (post) => ({ ...post, commentsCount: post.commentsCount + 1 }));
         return;
@@ -2402,11 +2402,11 @@ export function useSetSocialCommentReaction() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async ({ comment, reaction }: SetCommentReactionInput) => {
-      if (isCommercialDemoClient) return;
+      if (isCommercialDemoViewer) return;
       if (!user?.id) throw new Error("Connexion requise.");
       const { error } = await (supabase.rpc as any)("set_social_reaction", {
         p_target_type: "comment",
@@ -2425,7 +2425,7 @@ export function useSetSocialCommentReaction() {
       }
     },
     onMutate: async ({ comment, reaction }) => {
-      if (!isCommercialDemoClient) return;
+      if (!isCommercialDemoViewer) return;
       patchSocialComments(queryClient, comment.postId, (comments) => comments.map((current) => {
         if (current.id !== comment.id) return current;
         const reactionCounts = updateReactionCounts(current.reactionCounts, current.myReaction, reaction);
@@ -2438,7 +2438,7 @@ export function useSetSocialCommentReaction() {
       }));
     },
     onSuccess: () => {
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });
@@ -2448,11 +2448,11 @@ export function useDeleteSocialComment() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async (comment: SocialFeedComment) => {
-      if (isCommercialDemoClient) return;
+      if (isCommercialDemoViewer) return;
       if (!user?.id) throw new Error("Connexion requise.");
       const { error } = await (supabase.from("social_post_comments" as any) as any)
         .update({
@@ -2466,7 +2466,7 @@ export function useDeleteSocialComment() {
     },
     onSuccess: (_, comment) => {
       toast.success("Commentaire supprime.");
-      if (isCommercialDemoClient) {
+      if (isCommercialDemoViewer) {
         patchSocialComments(queryClient, comment.postId, (comments) => comments.filter((current) => current.id !== comment.id));
         patchSocialPost(queryClient, comment.postId, (post) => ({
           ...post,
@@ -2484,7 +2484,7 @@ export function useReportSocialItem() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
-  const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemoViewer = commercialDemoFrame != null;
 
   return useMutation({
     mutationFn: async ({
@@ -2496,7 +2496,7 @@ export function useReportSocialItem() {
       targetId: string;
       reason: string;
     }): Promise<{ alreadyReported: boolean }> => {
-      if (isCommercialDemoClient) return { alreadyReported: false };
+      if (isCommercialDemoViewer) return { alreadyReported: false };
       if (!user?.id) throw new Error("Connexion requise.");
       const { error } = await (supabase.from("social_reports" as any) as any).insert({
         target_type: targetType,
@@ -2512,7 +2512,7 @@ export function useReportSocialItem() {
     },
     onSuccess: (result) => {
       toast.success(result.alreadyReported ? "Signalement déjà transmis." : "Signalement transmis.");
-      if (!isCommercialDemoClient) invalidateSocialQueries(queryClient);
+      if (!isCommercialDemoViewer) invalidateSocialQueries(queryClient);
     },
     onError: (error) => toast.error(getUserFacingErrorMessage(error)),
   });

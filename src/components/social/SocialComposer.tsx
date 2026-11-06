@@ -1,8 +1,9 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentType, type MouseEvent } from "react";
 import { CalendarClock, Crown, Facebook, ImagePlus, Instagram, Loader2, Megaphone, Music2, Plus, Send, Share2, Sparkles, Video, X } from "lucide-react";
 
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -70,8 +71,9 @@ import {
 import { SOCIAL_MEDIA_ACCEPT, assertSafeSocialMediaSourceFileUpload } from "@/lib/uploadSecurity";
 import { cn } from "@/lib/utils";
 
-const SPONSOR_TARGET_OPTIONS_LIMIT = 120;
 const TokAiVideoStudio = lazy(() => import("@/components/dashboard/TokAiVideoStudio"));
+
+const SPONSOR_TARGET_OPTIONS_LIMIT = 120;
 
 type SponsorTargetRestaurantRow = {
   id?: string | null;
@@ -276,6 +278,9 @@ export default function SocialComposer({
   socialLinks,
   sponsorDialogRequest = 0,
   compact = false,
+  editorial = false,
+  restaurantImage,
+  openRequest = 0,
   actualitesAccess = null,
   actualitesAccessLoading = false,
 }: {
@@ -284,9 +289,22 @@ export default function SocialComposer({
   socialLinks?: RestaurantSocialLinks | null;
   sponsorDialogRequest?: number;
   compact?: boolean;
+  editorial?: boolean;
+  restaurantImage?: string | null;
+  openRequest?: number;
   actualitesAccess?: RestaurantActualitesAccess | null;
   actualitesAccessLoading?: boolean;
 }) {
+  const [editorOpen, setEditorOpen] = useState(false);
+  const editorTriggerRef = useRef<HTMLElement | null>(null);
+  const editorPromptRef = useRef<HTMLButtonElement | null>(null);
+  const reelTriggerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (openRequest > 0) {
+      editorTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      setEditorOpen(true);
+    }
+  }, [openRequest]);
   const [body, setBody] = useState("");
   const [files, setFilesState] = useState<File[]>([]);
   const filesRef = useRef<File[]>([]);
@@ -296,6 +314,7 @@ export default function SocialComposer({
     setFilesState(next);
   };
   const [reelDialogOpen, setReelDialogOpen] = useState(false);
+  const reopenEditorAfterReel = useRef(false);
   const [postType, setPostType] = useState<SocialPostType>("annonce");
   const [ctaType, setCtaType] = useState<SocialPostCtaType>("none");
   const [campaignGoal, setCampaignGoal] = useState<SocialMarketingGoal>("awareness");
@@ -373,6 +392,37 @@ export default function SocialComposer({
     && !actualitesAccess.unlimitedPosts
     && actualitesAccess.remainingWeeklyPosts === 0,
   );
+  const reelUnavailable = !restaurantId || Boolean(commercialDemoFrame) || files.length >= 10
+    || createPost.isPending || actualitesAccessLoading || actualitesAccessDenied || actualitesWeeklyQuotaReached;
+  const openReel = () => {
+    if (reelUnavailable) return;
+    reelTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    if (editorial && !editorOpen) editorTriggerRef.current = reelTriggerRef.current;
+    reopenEditorAfterReel.current = editorial && editorOpen;
+    if (editorial) setEditorOpen(false);
+    setReelDialogOpen(true);
+  };
+  const changeReelOpen = (open: boolean) => {
+    setReelDialogOpen(open);
+    if (!open) {
+      if (reopenEditorAfterReel.current) setEditorOpen(true);
+      reopenEditorAfterReel.current = false;
+    }
+  };
+  const addReelToDraft = (file: File) => {
+    assertSafeSocialMediaSourceFileUpload(file);
+    if (!filesRef.current.includes(file)) {
+      setFiles((current) => {
+        if (current.length >= 10) throw new Error("Maximum 10 médias par publication. Retirez un média avant d'ajouter le reel.");
+        return [...current, file];
+      });
+    }
+    setFileError(null);
+    reopenEditorAfterReel.current = false;
+    setReelDialogOpen(false);
+    if (editorial) setEditorOpen(true);
+    toast({ title: "Reel ajouté au brouillon", description: "Vérifiez votre légende puis cliquez sur Publier ou Programmer." });
+  };
   const actualitesAccessMessage = actualitesAccessLoading
     ? "Vérification du quota Actualités..."
     : actualitesAccessDenied
@@ -831,7 +881,37 @@ export default function SocialComposer({
     void submit([]);
   };
 
-  return (
+  const chooseMedia = (event: MouseEvent<HTMLButtonElement>) => {
+    if (editorial && !editorOpen) editorTriggerRef.current = event.currentTarget;
+    inputRef.current?.click();
+  };
+
+  const mediaInput = (
+            <input
+              ref={inputRef}
+              type="file"
+              aria-label="Ajouter une photo ou vidéo"
+              accept={SOCIAL_MEDIA_ACCEPT}
+              multiple
+              className="hidden"
+              onChange={(event) => {
+                const selected = Array.from(event.target.files || []);
+                if (selected.length === 0) return;
+                try {
+                  selected.forEach(assertSafeSocialMediaSourceFileUpload);
+                  setFileError(null);
+                  setFiles(selected);
+                  if (editorial) setEditorOpen(true);
+                } catch (error) {
+                  setFileError((error as Error).message);
+                  if (editorial) setEditorOpen(true);
+                  event.currentTarget.value = "";
+                }
+              }}
+            />
+  );
+
+  const editor = (
     <section className={cn(
       "w-full max-w-full overflow-hidden rounded-[1.75rem] border border-orange-200/80 bg-white shadow-xl shadow-orange-100/60",
       compact ? "p-3 max-sm:rounded-[1.35rem]" : "p-4",
@@ -858,25 +938,7 @@ export default function SocialComposer({
                 compact ? "min-h-[70px] px-4 pb-11 pt-3 text-sm" : "min-h-[92px] px-5 pb-12 pt-4",
               )}
             />
-            <input
-              ref={inputRef}
-              type="file"
-              accept={SOCIAL_MEDIA_ACCEPT}
-              multiple
-              className="hidden"
-              onChange={(event) => {
-                const selected = Array.from(event.target.files || []);
-                try {
-                  selected.forEach(assertSafeSocialMediaSourceFileUpload);
-                  setFileError(null);
-                  setFiles(selected);
-                } catch (error) {
-                  setFileError((error as Error).message);
-                  setFiles([]);
-                  event.currentTarget.value = "";
-                }
-              }}
-            />
+
             <Button
               type="button"
               variant="outline"
@@ -885,7 +947,7 @@ export default function SocialComposer({
                 "absolute bottom-2 left-3 h-9 w-9 rounded-xl border-orange-100 bg-white/95 text-slate-700 shadow-sm backdrop-blur hover:border-orange-200 hover:bg-orange-50",
                 compact ? "h-8 w-8" : "h-9 w-9",
               )}
-              onClick={() => inputRef.current?.click()}
+              onClick={chooseMedia}
               aria-label="Ajouter un média"
               title={mediaLabel}
             >
@@ -894,8 +956,15 @@ export default function SocialComposer({
           </div>
 
           {!commercialDemoFrame ? <Button type="button" variant="outline" className="min-h-11 gap-2 border-orange-200 text-orange-700"
-            disabled={!restaurantId || files.length >= 10 || createPost.isPending || actualitesAccessLoading || actualitesAccessDenied || actualitesWeeklyQuotaReached}
-            onClick={() => setReelDialogOpen(true)}><Video className="h-4 w-4" />Créer un reel de 10 s</Button> : null}
+            disabled={reelUnavailable}
+            onClick={openReel}><Video className="h-4 w-4" />Créer un reel de 10 s</Button> : null}
+
+          {fileError ? (
+            <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+              <p>{fileError}</p>
+              <button type="button" className="mt-1 min-h-11 font-semibold underline underline-offset-4" onClick={() => setFileError(null)}>Continuer sans ce fichier</button>
+            </div>
+          ) : null}
 
           {previews.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -1098,25 +1167,6 @@ export default function SocialComposer({
 
         </div>
       </div>
-      <Dialog open={reelDialogOpen} onOpenChange={setReelDialogOpen}>
-        <DialogContent className="max-h-[92dvh] w-[calc(100%_-_1rem)] overflow-y-auto rounded-2xl sm:max-w-6xl">
-          <DialogHeader><DialogTitle>Créer un reel pour votre actualité</DialogTitle>
-            <DialogDescription>Choisissez vos médias, vérifiez la vidéo, puis ajoutez-la au brouillon. La publication reste une action séparée.</DialogDescription></DialogHeader>
-          {reelDialogOpen && restaurantId && !commercialDemoFrame ? <Suspense fallback={<p role="status">Chargement du studio vidéo…</p>}>
-            <TokAiVideoStudio key={restaurantId} restaurantId={restaurantId} mode="reel" onUseVideo={(file) => {
-              assertSafeSocialMediaSourceFileUpload(file);
-              if (filesRef.current.includes(file)) { setReelDialogOpen(false); return; }
-              setFiles((current) => {
-                if (current.length >= 10) throw new Error("Maximum 10 médias par publication. Retirez un média avant d'ajouter le reel.");
-                return [...current, file];
-              });
-              setFileError(null);
-              setReelDialogOpen(false);
-              toast({ title: "Reel ajouté au brouillon", description: "Vérifiez votre légende puis cliquez sur Publier ou Programmer." });
-            }} />
-          </Suspense> : null}
-        </DialogContent>
-      </Dialog>
       <Dialog open={sponsorDialogOpen} onOpenChange={setSponsorDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl sm:max-w-2xl">
           <DialogHeader>
@@ -1617,6 +1667,49 @@ export default function SocialComposer({
           </div>
         </DialogContent>
       </Dialog>
+    </section>
+  );
+
+  const reelDialog = (
+    <Dialog open={reelDialogOpen} onOpenChange={changeReelOpen}>
+      <DialogContent className={cn("max-h-[92dvh] w-[calc(100%_-_1rem)] overflow-y-auto rounded-2xl sm:max-w-6xl", editorial && "tok-social-video-dialog")} onCloseAutoFocus={(event) => {
+        event.preventDefault();
+        if (!editorOpen) (reelTriggerRef.current?.isConnected ? reelTriggerRef.current : editorPromptRef.current)?.focus();
+      }}>
+        <DialogHeader>
+          <DialogTitle>Créer un Reel de 10 secondes</DialogTitle>
+          <DialogDescription>Choisissez vos médias, vérifiez la vidéo, puis ajoutez-la au brouillon. La publication reste une action séparée.</DialogDescription>
+        </DialogHeader>
+        {reelDialogOpen && restaurantId && !commercialDemoFrame ? <Suspense fallback={<p role="status">Chargement du studio vidéo…</p>}>
+          <TokAiVideoStudio key={restaurantId} restaurantId={restaurantId} mode="reel" onUseVideo={addReelToDraft} />
+        </Suspense> : null}
+      </DialogContent>
+    </Dialog>
+  );
+
+  if (!editorial) return <>{mediaInput}{editor}{reelDialog}</>;
+
+  return (
+    <section className="tok-social-composer" aria-label="Créer une actualité">
+      {mediaInput}
+      <div className="tok-social-composer-launcher">
+        <Avatar className="tok-social-account"><AvatarImage src={restaurantImage || undefined} alt="" /><AvatarFallback>{(restaurantName || "TOK").slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
+        <button ref={editorPromptRef} type="button" className="tok-social-composer-prompt" onClick={(event) => { editorTriggerRef.current = event.currentTarget; setEditorOpen(true); }}>Quoi de neuf en cuisine ?</button>
+        <div className="tok-social-composer-actions">
+          <button type="button" onClick={chooseMedia}><ImagePlus size={17} aria-hidden="true" />Photo</button>
+          <button type="button" onClick={openReel} disabled={reelUnavailable} title={commercialDemoFrame ? "La génération vidéo est disponible hors démonstration." : undefined}><Video size={17} aria-hidden="true" />Reel 10 s</button>
+        </div>
+      </div>
+      <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+        <DialogContent className="tok-social-composer-dialog" onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          if (!reelDialogOpen) (editorTriggerRef.current?.isConnected ? editorTriggerRef.current : editorPromptRef.current)?.focus();
+        }}>
+          <DialogHeader><DialogTitle>Créer une publication</DialogTitle><DialogDescription>{restaurantName ? `Partagez les nouveautés de ${restaurantName}.` : "Partagez les nouveautés de votre restaurant."}</DialogDescription></DialogHeader>
+          {editor}
+        </DialogContent>
+      </Dialog>
+      {reelDialog}
     </section>
   );
 }
