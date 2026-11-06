@@ -15,7 +15,7 @@
 
 - Dépôt : `Mtnrconcept1/cloud-rebuild`
 - Version du schéma : `2`
-- Empreinte SHA-256 des sources indexées : `8349961d085c3b04cc3a64722997f8cb001d8917126bdfebe0ba2b30973cbee8`
+- Empreinte SHA-256 des sources indexées : `dad0e940bf2a02c16727569416f2f2c5e460ca155b0976a6ea68e19e96c730ba`
 - Périmètre : État versionné local du dépôt; inventaire statique sans lecture des valeurs de secrets ni interrogation de la production.
 - Les noms de variables d’environnement sont indexés, jamais leurs valeurs.
 - Les comportements dépendant des données, fournisseurs et secrets de production exigent une vérification d’exécution séparée.
@@ -45,14 +45,14 @@
 | publicEntries | 958 |
 | publicNavigableRoutes | 3 |
 | queryParameters | 125 |
-| records | 20653 |
-| repositoryFiles | 4127 |
+| records | 20655 |
+| repositoryFiles | 4128 |
 | routingAuthorities | 35 |
 | runtimeOnlyEdgeFunctions | 4 |
 | seoBuildRoutes | 39 |
 | storageBuckets | 10 |
 | workerRoutes | 2 |
-| workflows | 33 |
+| workflows | 34 |
 
 ## État distant observé
 
@@ -7380,6 +7380,7 @@ Gestionnaire : `pnpm@10.28.1`; moteurs : `{"node":">=22.12.0","pnpm":">=10.28.1"
 | TOK Codex Incident Repair | prepare, publish, report, validate | [.github/workflows/incident-codex-repair.yml](../../.github/workflows/incident-codex-repair.yml) |
 | TOK Incident Monitor | report-workflow-failure, scan-runtime | [.github/workflows/incident-monitor.yml](../../.github/workflows/incident-monitor.yml) |
 | iOS Native Validation | native-build | [.github/workflows/ios-native-validation.yml](../../.github/workflows/ios-native-validation.yml) |
+| PR 1103 canonical index refresh | refresh | [.github/workflows/pr-1103-index-refresh.yml](../../.github/workflows/pr-1103-index-refresh.yml) |
 | Prepare TOK App Icon | generate | [.github/workflows/prepare-logotok-app-icon.yml](../../.github/workflows/prepare-logotok-app-icon.yml) |
 | Print protocol PostgreSQL replay | replay | [.github/workflows/print-protocol-postgres.yml](../../.github/workflows/print-protocol-postgres.yml) |
 | Restaurant Image Truth Backfill | backfill | [.github/workflows/restaurant-image-truth-backfill.yml](../../.github/workflows/restaurant-image-truth-backfill.yml) |
@@ -8162,7 +8163,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 
 </details>
 
-<details><summary>ci-workflow (33)</summary>
+<details><summary>ci-workflow (34)</summary>
 
 - `.github/workflows/_validation.yml`
 - `.github/workflows/actualites-billing-postgres.yml`
@@ -8190,6 +8191,7 @@ Cet inventaire assure qu’aucun composant du dépôt n’est invisible dans l�
 - `.github/workflows/incident-codex-repair.yml`
 - `.github/workflows/incident-monitor.yml`
 - `.github/workflows/ios-native-validation.yml`
+- `.github/workflows/pr-1103-index-refresh.yml`
 - `.github/workflows/prepare-logotok-app-icon.yml`
 - `.github/workflows/print-protocol-postgres.yml`
 - `.github/workflows/restaurant-image-truth-backfill.yml`
