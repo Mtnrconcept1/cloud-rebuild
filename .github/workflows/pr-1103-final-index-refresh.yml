@@ -1,0 +1,38 @@
+name: PR 1103 final canonical index refresh
+
+on:
+  push:
+    branches:
+      - agent/marketing-studio-service-tabs-20261106
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/marketing-studio-service-tabs-20261106
+          fetch-depth: 1
+          persist-credentials: true
+      - run: corepack enable && corepack prepare pnpm@10.28.1 --activate
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Remove one-shot helper before computing canonical digest
+        run: git rm -- .github/workflows/pr-1103-final-index-refresh.yml
+      - name: Regenerate canonical application reference on final tree
+        run: pnpm run docs:application-index
+      - name: Commit generated references and helper deletion
+        run: |
+          set -euo pipefail
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(index): sync final application reference"
+          git push origin HEAD:agent/marketing-studio-service-tabs-20261106
