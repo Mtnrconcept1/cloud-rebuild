@@ -93,6 +93,14 @@ import {
 import SocialMediaCarousel from "./SocialMediaCarousel";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
 
+const SOCIAL_POST_STATUS_LABELS: Record<SocialFeedPost["status"], string> = {
+  draft: "Brouillon",
+  scheduled: "Programmé",
+  published: "Publié",
+  hidden: "Masqué",
+  deleted: "Supprimé",
+};
+
 function getInitials(name: string) {
   return (
     name
@@ -1587,7 +1595,7 @@ export default function SocialPostCard({
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge variant="secondary" className="gap-1 rounded-full">
               <Store className="h-3 w-3" />
-              {post.status}
+              {SOCIAL_POST_STATUS_LABELS[post.status]}
             </Badge>
           </div>
         ) : null}

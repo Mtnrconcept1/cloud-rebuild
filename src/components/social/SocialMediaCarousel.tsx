@@ -1,5 +1,5 @@
 import { type MouseEvent, type ReactNode, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, ImageIcon, MessageCircle, ThumbsUp, Video, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImageIcon, ImageOff, MessageCircle, ThumbsUp, Video, X } from "lucide-react";
 
 import {
   Dialog,
@@ -153,6 +153,10 @@ export default function SocialMediaCarousel({
   const [portraitImageIds, setPortraitImageIds] = useState<Set<string>>(
     () => new Set(),
   );
+  const [failedImageUrls, setFailedImageUrls] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [imageAspectRatios, setImageAspectRatios] = useState<Record<string, number>>({});
   const [playingVideoIds, setPlayingVideoIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -217,7 +221,17 @@ export default function SocialMediaCarousel({
   const isPortraitMedia = (item: SocialFeedMedia) =>
     (item.mediaType === "video" && verticalVideoIds.has(item.id)) ||
     (item.mediaType === "image" && portraitImageIds.has(item.id));
+  const isImageUnavailable = (item: SocialFeedMedia) =>
+    item.mediaType === "image" && failedImageUrls.has(item.mediaUrl);
+  const markImageUnavailable = (item: SocialFeedMedia) => {
+    setFailedImageUrls((current) => new Set(current).add(item.mediaUrl));
+  };
+  const getImageFrameStyle = (item: SocialFeedMedia) =>
+    item.mediaType === "image" && (!imageAspectRatios[item.mediaUrl] || isImageUnavailable(item))
+      ? { aspectRatio: imageAspectRatios[item.mediaUrl] ?? "4 / 3" }
+      : undefined;
   const openLightbox = (item: SocialFeedMedia, trigger?: HTMLElement | null) => {
+    if (isImageUnavailable(item)) return;
     const index = media.findIndex((mediaItem) => mediaItem.id === item.id);
     lightboxTriggerRef.current = trigger || null;
     setLightboxIndex(index >= 0 ? index : 0);
@@ -240,7 +254,7 @@ export default function SocialMediaCarousel({
         item.mediaType === "video" &&
         verticalVideoIds.has(item.id) &&
         "max-sm:aspect-[5/6]",
-      isPortraitMedia(item) && "bg-black",
+      isPortraitMedia(item) && !isImageUnavailable(item) && "bg-black",
     );
   const updateVideoPlayback = (itemId: string, playing: boolean) => {
     setPlayingVideoIds((current) => {
@@ -274,6 +288,20 @@ export default function SocialMediaCarousel({
     );
   };
 
+  const renderUnavailableImage = (item: SocialFeedMedia, inLightbox = false) => (
+    <div
+      role="img"
+      aria-label={`Image indisponible : ${item.altText || "média du restaurant"}`}
+      className={cn(
+        "flex flex-col items-center justify-center gap-2 p-6 text-center text-sm",
+        inLightbox ? "h-full w-full text-white/70" : "absolute inset-0 text-muted-foreground",
+      )}
+    >
+      <ImageOff className="h-8 w-8" aria-hidden="true" />
+      <span>Image indisponible</span>
+    </div>
+  );
+
   const renderMedia = (item: SocialFeedMedia) => {
     if (item.mediaType === "video") {
       return (
@@ -303,6 +331,8 @@ export default function SocialMediaCarousel({
         />
       );
     }
+
+    if (isImageUnavailable(item)) return renderUnavailableImage(item);
 
     return (
       <button
@@ -336,6 +366,10 @@ export default function SocialMediaCarousel({
         loading="lazy"
         onLoad={(event) => {
           const image = event.currentTarget;
+          if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+            const aspectRatio = image.naturalWidth / image.naturalHeight;
+            setImageAspectRatios((current) => ({ ...current, [item.mediaUrl]: aspectRatio }));
+          }
           if (image.naturalHeight <= image.naturalWidth) return;
           setPortraitImageIds((current) => {
             if (current.has(item.id)) return current;
@@ -344,6 +378,7 @@ export default function SocialMediaCarousel({
             return next;
           });
         }}
+        onError={() => markImageUnavailable(item)}
         decoding="async"
         />
       </button>
@@ -365,6 +400,8 @@ export default function SocialMediaCarousel({
       );
     }
 
+    if (isImageUnavailable(item)) return renderUnavailableImage(item, true);
+
     return (
       <img
         src={getOptimizedImageUrl(item.mediaUrl, "hero")}
@@ -372,6 +409,7 @@ export default function SocialMediaCarousel({
         sizes="100vw"
         alt={item.altText || "Média du restaurant"}
         className="h-full w-full object-contain"
+        onError={() => markImageUnavailable(item)}
         decoding="async"
       />
     );
@@ -462,8 +500,9 @@ export default function SocialMediaCarousel({
           className={cn(
             getContainerClassName(item),
             getFrameClassName(item),
-            "cursor-zoom-in",
+            !isImageUnavailable(item) && "cursor-zoom-in",
           )}
+          style={getImageFrameStyle(item)}
         >
           {renderMedia(item)}
           <div className="absolute left-3 top-3 rounded-full bg-black/55 px-2 py-1 text-xs font-medium text-white backdrop-blur">
@@ -486,7 +525,10 @@ export default function SocialMediaCarousel({
       <CarouselContent className="-ml-2">
         {media.map((item, index) => (
           <CarouselItem key={item.id} className="pl-2">
-            <div className={cn(getFrameClassName(item), "cursor-zoom-in")}>
+            <div
+              className={cn(getFrameClassName(item), !isImageUnavailable(item) && "cursor-zoom-in")}
+              style={getImageFrameStyle(item)}
+            >
               {renderMedia(item)}
               <div className="absolute left-3 top-3 rounded-full bg-black/55 px-2 py-1 text-xs font-medium text-white backdrop-blur">
                 {item.mediaType === "video" ? (
