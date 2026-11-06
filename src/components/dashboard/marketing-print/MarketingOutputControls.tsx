@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 type Props = {
   restaurantId?: string | null;
   printEnabled: boolean;
+  forcedDestination?: MarketingOutputDestination;
 };
 
 function targetDescription(target: MarketingOutputTarget) {
@@ -44,7 +45,7 @@ function targetDescription(target: MarketingOutputTarget) {
   return `${target.print.widthMm}×${target.print.heightMm} mm à plat${folded} · fond perdu ${target.print.bleedMm} mm · marge sûre ${target.print.safeMarginMm} mm · ${target.targetDpi} DPI natifs estimés (300 recommandés) · ${target.widthPx}×${target.heightPx} px`;
 }
 
-export default function MarketingOutputControls({ restaurantId, printEnabled }: Props) {
+export default function MarketingOutputControls({ restaurantId, printEnabled, forcedDestination }: Props) {
   const outputSession = useSyncExternalStore(
     subscribeMarketingOutputSession,
     getMarketingOutputSessionSnapshot,
@@ -66,7 +67,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
     () => buildPrintMarketingOutputTargets(catalogQuery.data?.products || []),
     [catalogQuery.data?.products],
   );
-  const destination = outputSession.destination;
+  const destination = forcedDestination || outputSession.destination;
   const availableTargets = destination === "print" ? printTargets : DIGITAL_MARKETING_OUTPUT_TARGETS;
   const selectedTarget = availableTargets.find((target) => target.id === outputSession.target?.id) || null;
   const selectedId = selectedTarget?.id || "";
@@ -187,8 +188,9 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
         {!latestMarketingCreation ? <p className="text-xs text-muted-foreground">Le téléchargement sera disponible après la génération d’un visuel.</p> : null}
         {printBlocked ? <p role="alert" className="text-sm font-semibold text-destructive">Ce format est trop grand pour une impression de qualité. Choisissez un autre format avant de générer.</p> : null}
         <details className="rounded-2xl border bg-background/80 p-3">
-          <summary className="cursor-pointer py-2 text-sm font-semibold">Modifier la destination ou le format</summary>
-        <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+          <summary className="cursor-pointer py-2 text-sm font-semibold">{forcedDestination ? "Modifier le format" : "Modifier la destination ou le format"}</summary>
+        <div className={cn("mt-3 grid gap-3", !forcedDestination && "lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]")}>
+          {!forcedDestination ? (
           <div className="grid grid-cols-2 gap-2 rounded-2xl border bg-background/80 p-1.5" aria-label="Destination du visuel">
             <button
               type="button"
@@ -215,6 +217,7 @@ export default function MarketingOutputControls({ restaurantId, printEnabled }: 
               <Printer className="h-4 w-4" />Impression Cloudprinter
             </button>
           </div>
+          ) : null}
 
           <label className="block rounded-2xl border bg-background/80 p-3 text-sm font-semibold">
             Format final exact
