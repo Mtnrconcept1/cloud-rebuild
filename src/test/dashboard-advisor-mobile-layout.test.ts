@@ -12,10 +12,10 @@ describe("Assistant TOK : espace de conversation sur mobile", () => {
   it("ne rend pas le hero de secours au-dessus de l'entête natif de l'assistant", () => {
     expect(layout).toContain("hideRouteHero?: boolean");
     expect(layout).toContain("hideRouteHero = false");
-    expect(layout).toContain("{!hideRouteHero && (");
-    expect(layout).toContain("<RouteHeroBanner");
+    expect(layout).toMatch(/\{!hideRouteHero\s*&&\s*chrome !== "social"\s*&&\s*\(\s*<RouteHeroBanner/);
+    expect(layout).toContain('chrome = "dashboard"');
     expect(advisor).toContain("<DashboardLayout constrainToViewport hideRouteHero");
-    // The default layout still renders the fallback for other dashboard pages.
+    // The default dashboard chrome keeps the fallback; the social chrome has its own heading.
     expect(layout).not.toContain("pathname !== \"/dashboard/advisor\"");
   });
 

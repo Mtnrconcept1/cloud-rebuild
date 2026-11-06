@@ -135,8 +135,9 @@ describe("SocialComposer external social publishing", () => {
     });
   });
 
-  it("adds a reel to the existing draft and only publishes the same File after the explicit publish action", async () => {
-    render(<SocialComposer restaurantId="restaurant-1" restaurantName="Cafe Test" />);
+  it.each([false, true])("adds a reel to the existing draft and only publishes after the explicit action (editorial=%s)", async (editorial) => {
+    render(<SocialComposer restaurantId="restaurant-1" restaurantName="Cafe Test" editorial={editorial} />);
+    if (editorial) fireEvent.click(screen.getByRole("button", { name: "Quoi de neuf en cuisine ?" }));
     fireEvent.change(screen.getByPlaceholderText(/Quoi de neuf/i), { target: { value: "Notre équipe vous accueille." } });
     fireEvent.click(screen.getByRole("button", { name: "Créer un reel de 10 s" }));
     fireEvent.click(await screen.findByRole("button", { name: "Joindre le reel de test" }));
@@ -151,8 +152,9 @@ describe("SocialComposer external social publishing", () => {
     expect(args.files).toHaveLength(1); expect(args.files[0]).toBe(reels.file);
   });
 
-  it("deduplicates the same reel and enforces the media cap against current draft state", async () => {
-    render(<SocialComposer restaurantId="restaurant-1" restaurantName="Cafe Test" />);
+  it.each([false, true])("deduplicates the same reel and enforces the media cap (editorial=%s)", async (editorial) => {
+    render(<SocialComposer restaurantId="restaurant-1" restaurantName="Cafe Test" editorial={editorial} />);
+    if (editorial) fireEvent.click(screen.getByRole("button", { name: "Quoi de neuf en cuisine ?" }));
     fireEvent.change(screen.getByPlaceholderText(/Quoi de neuf/i), { target: { value: "Notre restaurant en images." } });
     fireEvent.click(screen.getByRole("button", { name: "Créer un reel de 10 s" }));
     await screen.findByRole("button", { name: "Joindre le reel de test" });
@@ -529,4 +531,90 @@ describe("SocialComposer external social publishing", () => {
 
     expect(socialHooks.invokeSupabaseFunction).not.toHaveBeenCalledWith("create-checkout", expect.anything());
   });
+  it("opens the compact composer and retains the draft when it is closed and reopened", () => {
+    render(<SocialComposer restaurantId="restaurant-1" restaurantName="La table" editorial />);
+    expect(screen.queryByPlaceholderText(/Quoi de neuf/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Quoi de neuf en cuisine ?" }));
+    fireEvent.change(screen.getByPlaceholderText(/Quoi de neuf/i), { target: { value: "Notre menu de ce soir" } });
+    fireEvent.click(screen.getByRole("button", { name: /Close|Fermer/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Quoi de neuf en cuisine ?" }));
+    expect(screen.getByPlaceholderText(/Quoi de neuf/i)).toHaveValue("Notre menu de ce soir");
+    expect(socialHooks.createPost).not.toHaveBeenCalled();
+  });
+
+  it("opens the video studio with ten seconds without creating a post", async () => {
+    render(<SocialComposer restaurantId="restaurant-1" editorial />);
+    fireEvent.click(screen.getByRole("button", { name: "Reel 10 s" }));
+    const attach = await screen.findByRole("button", { name: "Joindre le reel de test" });
+    expect(reels.props).toMatchObject({ restaurantId: "restaurant-1", mode: "reel" });
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+    fireEvent.click(attach);
+    expect(screen.getByRole("dialog", { name: "Créer une publication" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Vidéo du brouillon")).toBeInTheDocument();
+    expect(socialHooks.createPost).not.toHaveBeenCalled();
+  });
+
+  it("returns to the existing editorial draft when the reel studio is cancelled", async () => {
+    render(<SocialComposer restaurantId="restaurant-1" editorial />);
+    fireEvent.click(screen.getByRole("button", { name: "Quoi de neuf en cuisine ?" }));
+    fireEvent.change(screen.getByPlaceholderText(/Quoi de neuf/i), { target: { value: "Notre légende à conserver" } });
+    fireEvent.click(screen.getByRole("button", { name: "Créer un reel de 10 s" }));
+    await screen.findByRole("button", { name: "Joindre le reel de test" });
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: /Close|Fermer/i }));
+    expect(screen.getByRole("dialog", { name: "Créer une publication" })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Quoi de neuf/i)).toHaveValue("Notre légende à conserver");
+    expect(socialHooks.createPost).not.toHaveBeenCalled();
+  });
+
+  it("keeps the compact reel launcher disabled while publishing access is loading", () => {
+    render(<SocialComposer restaurantId="restaurant-1" editorial actualitesAccessLoading />);
+    expect(screen.getByRole("button", { name: "Reel 10 s" })).toBeDisabled();
+  });
+
+  it("restores keyboard focus to the editorial launcher when the editor closes", async () => {
+    render(<SocialComposer restaurantId="restaurant-1" editorial />);
+    const launcher = screen.getByRole("button", { name: "Quoi de neuf en cuisine ?" });
+    launcher.focus();
+    fireEvent.click(launcher);
+    fireEvent.click(screen.getByRole("button", { name: /Close|Fermer/i }));
+    await waitFor(() => expect(launcher).toHaveFocus());
+  });
+
+  it("restores keyboard focus when the standalone reel studio is cancelled", async () => {
+    render(<SocialComposer restaurantId="restaurant-1" editorial />);
+    const launcher = screen.getByRole("button", { name: "Reel 10 s" });
+    launcher.focus();
+    fireEvent.click(launcher);
+    await screen.findByRole("button", { name: "Joindre le reel de test" });
+    fireEvent.click(screen.getByRole("button", { name: /Close|Fermer/i }));
+    await waitFor(() => expect(launcher).toHaveFocus());
+  });
+
+  it("explains a rejected photo and lets the restaurant keep its existing draft", async () => {
+    render(<SocialComposer restaurantId="restaurant-1" editorial />);
+    const input = screen.getByLabelText("Ajouter une photo ou vidéo");
+    const photo = new File(["fixture"], "plat.jpg", { type: "image/jpeg" });
+    fireEvent.change(input, { target: { files: [photo] } });
+    fireEvent.change(screen.getByPlaceholderText(/Quoi de neuf/i), { target: { value: "Notre menu à conserver" } });
+    fireEvent.click(screen.getByRole("button", { name: /Close|Fermer/i }));
+    const rejected = new File(["<svg/>"], "refuse.svg", { type: "image/svg+xml" });
+    fireEvent.change(input, { target: { files: [rejected] } });
+    expect(screen.getByRole("dialog", { name: "Créer une publication" })).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(/format|type|autoris|accept/i);
+    expect(screen.getByPlaceholderText(/Quoi de neuf/i)).toHaveValue("Notre menu à conserver");
+    expect(screen.getByAltText("plat.jpg")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Continuer sans ce fichier" }));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Publier" }));
+    await waitFor(() => expect(socialHooks.createPost).toHaveBeenCalledWith(expect.objectContaining({ body: "Notre menu à conserver", files: [photo] })));
+  });
+
+  it("keeps real video generation unavailable in restaurant demonstrations", () => {
+    commercialDemoAi.frame = { surface: "restaurant", config: { sessionId: "demo" } };
+    render(<SocialComposer restaurantId="restaurant-1" editorial />);
+    expect(screen.getByRole("button", { name: "Reel 10 s" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Joindre le reel de test" })).not.toBeInTheDocument();
+  });
+
 });

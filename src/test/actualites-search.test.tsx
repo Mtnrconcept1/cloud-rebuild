@@ -67,8 +67,8 @@ const posts = [
 
 vi.mock("@/hooks/useSocialFeed", () => ({
   useRestaurantActualitesAccess: () => ({ data: null, isLoading: false }),
-  useInfiniteSocialFeed: () => ({
-    data: { pages: [{ posts }] },
+  useInfiniteSocialFeed: (scope: string) => ({
+    data: { pages: [{ posts: scope === "followed" ? [] : posts }] },
     error: null,
     fetchNextPage: vi.fn(),
     hasNextPage: false,
@@ -145,6 +145,9 @@ function makePost({
   };
 }
 
+vi.mock("@/components/notifications/NotificationBell", () => ({ NotificationBell: () => null }));
+vi.mock("@/hooks/useTokLogo", () => ({ useTokLogoSrc: () => "/images/home/tok-logo-ui.webp" }));
+
 function renderActualites() {
   return render(
     <MemoryRouter initialEntries={["/actualites"]}>
@@ -164,7 +167,7 @@ describe("Actualites search", () => {
     renderActualites();
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getByRole("heading", { level: 1, name: "Le rendez-vous des gourmands." })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 1, name: "Le goût du partage." })).toBeVisible();
 
     const search = screen.getByRole("searchbox", {
       name: /rechercher dans les actualit[eé]s/i,
@@ -183,6 +186,33 @@ describe("Actualites search", () => {
 
     fireEvent.change(search, { target: { value: "tables libres" } });
     expect(visiblePostNames()).toEqual(["Quirinale"]);
+  });
+
+  it("shows the selected city after switching to an empty feed and can clear it", () => {
+    renderActualites();
+    const city = screen.getByRole("combobox", { name: "Ville des publications" });
+    fireEvent.change(city, { target: { value: "Lausanne" } });
+    expect(visiblePostNames()).toEqual(["Bistro Gare"]);
+    fireEvent.click(screen.getByRole("button", { name: "Abonnements" }));
+    expect(city).toHaveValue("Lausanne");
+    expect(screen.getByRole("option", { name: "Lausanne" })).toBeInTheDocument();
+    expect(screen.getByText("Ville : Lausanne")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Effacer les filtres" }));
+    expect(city).toHaveValue("");
+    expect(screen.queryByText("Ville : Lausanne")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Pour vous" }));
+    expect(visiblePostNames()).toHaveLength(3);
+  });
+
+  it("focuses mobile search on opening and returns focus after Escape without losing the query", () => {
+    renderActualites();
+    fireEvent.click(screen.getByRole("button", { name: "Ouvrir la recherche" }));
+    const search = screen.getByRole("searchbox", { name: /rechercher dans les actualit[eé]s/i });
+    expect(search).toHaveFocus();
+    fireEvent.change(search, { target: { value: "ramen" } });
+    fireEvent.keyDown(search, { key: "Escape" });
+    expect(screen.getByRole("button", { name: "Ouvrir la recherche" })).toHaveFocus();
+    expect(search).toHaveValue("ramen");
   });
 
   it("starts a search when a trend hashtag is clicked", () => {

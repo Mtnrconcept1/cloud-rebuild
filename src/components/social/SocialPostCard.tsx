@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Copy,
   EyeOff,
+  Heart,
   MessageCircle,
   MoreVertical,
   Repeat2,
@@ -91,6 +92,14 @@ import {
 } from "@/lib/socialFeed";
 import SocialMediaCarousel from "./SocialMediaCarousel";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
+
+const SOCIAL_POST_STATUS_LABELS: Record<SocialFeedPost["status"], string> = {
+  draft: "Brouillon",
+  scheduled: "Programmé",
+  published: "Publié",
+  hidden: "Masqué",
+  deleted: "Supprimé",
+};
 
 function getInitials(name: string) {
   return (
@@ -329,6 +338,7 @@ function ReactionPicker({
   total,
   disabled,
   compact = false,
+  editorial = false,
   onSelect,
 }: {
   currentReaction: SocialReactionType | null;
@@ -336,6 +346,7 @@ function ReactionPicker({
   total: number;
   disabled?: boolean;
   compact?: boolean;
+  editorial?: boolean;
   onSelect: (reaction: SocialReactionType | null) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -347,16 +358,9 @@ function ReactionPicker({
         "relative inline-flex max-sm:w-full",
         compact && "max-sm:w-auto",
       )}
-      onBlur={(event) => {
-        const nextTarget = event.relatedTarget;
-        if (
-          !(nextTarget instanceof Node) ||
-          !event.currentTarget.contains(nextTarget)
-        ) {
-          setOpen(false);
-        }
-      }}
     >
+      <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+      <DropdownMenuTrigger asChild>
       <Button
         type="button"
         variant={currentReaction ? "secondary" : "outline"}
@@ -368,45 +372,49 @@ function ReactionPicker({
             "h-8 px-2 text-xs max-sm:h-8 max-sm:w-auto max-sm:px-2 max-sm:text-xs",
         )}
         disabled={disabled}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
+        aria-label={editorial ? `Réagir à la publication (${total})` : undefined}
       >
         <span className="text-base leading-none">
-          {currentReaction ? activeReaction.emoji : SOCIAL_REACTIONS[0].emoji}
+          {editorial && !currentReaction ? <Heart className="h-5 w-5 text-primary" /> : currentReaction ? activeReaction.emoji : SOCIAL_REACTIONS[0].emoji}
         </span>
         <span>{total}</span>
         <ReactionSummary counts={counts} />
       </Button>
 
-      {open ? (
-        <div
-          role="menu"
-          className="absolute bottom-full left-0 z-50 mb-2 flex items-center gap-1 rounded-full border bg-popover p-1.5 text-popover-foreground shadow-lg"
-        >
-          {SOCIAL_REACTIONS.map((reaction) => (
-            <button
-              key={reaction.type}
-              type="button"
-              role="menuitem"
-              className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-full text-xl transition hover:-translate-y-1 hover:bg-muted",
-                currentReaction === reaction.type &&
-                  "bg-muted ring-2 ring-primary/35",
-              )}
-              title={reaction.label}
-              onClick={() => {
-                onSelect(
-                  currentReaction === reaction.type ? null : reaction.type,
-                );
-                setOpen(false);
-              }}
-            >
-              {reaction.emoji}
-            </button>
-          ))}
-        </div>
-      ) : null}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="top"
+        align="start"
+        sideOffset={8}
+        collisionPadding={12}
+        aria-label="Choisir une réaction"
+        className="flex min-w-0 flex-wrap gap-1 rounded-2xl p-1.5"
+        onKeyDown={(event) => {
+          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+          event.preventDefault();
+          const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+          const index = items.indexOf(document.activeElement as HTMLElement);
+          const step = event.key === "ArrowRight" ? 1 : -1;
+          items[(index + step + items.length) % items.length]?.focus();
+        }}
+      >
+        {SOCIAL_REACTIONS.map((reaction) => (
+          <DropdownMenuItem
+            key={reaction.type}
+            aria-label={reaction.label}
+            textValue={reaction.label}
+            className={cn(
+              "h-11 w-11 shrink-0 cursor-pointer justify-center rounded-full p-0 text-xl",
+              currentReaction === reaction.type && "bg-muted ring-2 ring-primary/35",
+            )}
+            title={reaction.label}
+            onSelect={() => onSelect(currentReaction === reaction.type ? null : reaction.type)}
+          >
+            <span aria-hidden="true">{reaction.emoji}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
@@ -994,7 +1002,7 @@ function getCta(post: SocialFeedPost) {
       return {
         label: "Réserver",
         icon: CalendarCheck,
-        to: `${restaurantPath}?reserve=1`,
+        to: `${restaurantPath}?reserve=true`,
       };
     case "order":
       return {
@@ -1023,10 +1031,12 @@ export default function SocialPostCard({
   post,
   compact = false,
   highlighted = false,
+  editorial = false,
 }: {
   post: SocialFeedPost;
   compact?: boolean;
   highlighted?: boolean;
+  editorial?: boolean;
 }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [bodyExpanded, setBodyExpanded] = useState(false);
@@ -1137,17 +1147,25 @@ export default function SocialPostCard({
     setReportDialogOpen(false);
   };
 
+  const ctaButton = cta ? (
+    <Button asChild className={editorial ? "tok-editorial-post__cta gap-2" : "mt-4 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700 max-sm:relative max-sm:left-1/2 max-sm:mt-2.5 max-sm:h-10 max-sm:w-screen max-sm:-translate-x-1/2 max-sm:justify-center max-sm:rounded-none max-sm:px-4 max-sm:text-sm max-sm:font-extrabold max-sm:shadow-md max-sm:shadow-orange-500/20"}
+      onClick={() => recordEvent.mutate({ postId: post.id, eventType: "cta_click", metadata: { ctaType: post.ctaType, restaurantId: post.restaurantId, premiumBannerId: post.premiumBannerId || undefined, premiumBanner: Boolean(post.premiumBannerId) } })}>
+      <Link to={cta.to} data-social-sponsored-cta="true">{CtaIcon ? <CtaIcon className="h-4 w-4" /> : null}{editorial && post.ctaType === "reserve" ? "Réserver une table" : cta.label}</Link>
+    </Button>
+  ) : null;
+
   return (
     <article aria-labelledby={`social-post-title-${post.activityId}`}>
       <Card
         className={cn(
           "overflow-hidden rounded-[1.65rem] border bg-white shadow-lg shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-orange-100/70 max-sm:-mx-2 max-sm:overflow-visible max-sm:rounded-none max-sm:border-0 max-sm:shadow-none max-sm:hover:translate-y-0",
           highlighted && "border-primary/60 ring-2 ring-primary/20",
+          editorial && "tok-editorial-post",
           isPremiumBanner &&
             "border-orange-300 bg-gradient-to-b from-orange-50/70 via-white to-white ring-2 ring-orange-100/80",
         )}
       >
-      <CardContent className={cn("p-5 max-sm:px-0", compact && "p-4")}>
+      <CardContent className={cn("p-5 max-sm:px-0", compact && "p-4", editorial && "tok-editorial-post__content")}>
         {isPremiumBanner ? (
           <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-orange-200 bg-orange-500 px-3 py-2 text-xs font-extrabold uppercase tracking-[0.14em] text-white shadow-lg shadow-orange-500/20 max-sm:mx-3 max-sm:rounded-xl">
             <span className="inline-flex min-w-0 items-center gap-2">
@@ -1167,7 +1185,7 @@ export default function SocialPostCard({
           </div>
         ) : null}
 
-        <div className="flex items-start justify-between gap-3 max-sm:relative max-sm:block max-sm:pt-9">
+        <div className={cn("flex items-start justify-between gap-3 max-sm:relative max-sm:block max-sm:pt-9", editorial && "tok-editorial-post__header")}>
           <div className="flex w-full min-w-0 flex-1 items-center gap-3 max-sm:gap-2.5">
             <Link to={`/restaurant/${post.restaurantId}`} aria-label={`Voir ${post.restaurant.name}`}>
               <Avatar className="h-14 w-14 rounded-2xl border-2 border-orange-100 shadow-sm max-sm:h-11 max-sm:w-11 max-sm:rounded-xl">
@@ -1217,14 +1235,14 @@ export default function SocialPostCard({
                     {formatPostDate(post.publishedAt || post.createdAt)}
                   </time>
                 </Link>
-                {post.followedByMe ? (
+                {post.followedByMe && !editorial ? (
                   <span className="ml-1 inline-flex items-center gap-1 text-emerald-600 max-sm:hidden">
                     <span className="h-2 w-2 rounded-full bg-emerald-500" />
                     En ligne
                   </span>
                 ) : null}
               </p>
-              {post.followedByMe ? (
+              {post.followedByMe && !editorial ? (
                 <p className="mt-0.5 hidden items-center gap-1.5 text-xs font-semibold text-emerald-600 max-sm:flex">
                   <span className="h-2 w-2 rounded-full bg-emerald-500" />
                   En ligne
@@ -1232,6 +1250,22 @@ export default function SocialPostCard({
               ) : null}
             </div>
           </div>
+          {editorial ? (
+          <div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild><Button type="button" variant="ghost" size="icon" className="h-9 w-9 rounded-full" aria-label="Options du post"><MoreVertical className="h-5 w-5" /></Button></DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem disabled={toggleFollow.isPending} onSelect={() => toggleFollow.mutate(post)}><UserPlus className="mr-2 h-4 w-4" />{post.followedByMe ? "Ne plus suivre" : "Suivre le restaurant"}</DropdownMenuItem>
+                <DropdownMenuItem disabled={toggleRepost.isPending} onSelect={() => toggleRepost.mutate(post)}><Repeat2 className="mr-2 h-4 w-4" />{post.repostedByMe ? "Annuler le repost" : "Republier"}</DropdownMenuItem>
+                <DropdownMenuItem disabled={feedback.isPending} onSelect={() => feedback.mutate({ post, feedbackType: "show_more", reason: "Preference client" })}><Sparkles className="mr-2 h-4 w-4" />Plus comme ça</DropdownMenuItem>
+                <DropdownMenuItem disabled={feedback.isPending} onSelect={() => feedback.mutate({ post, feedbackType: "not_interested", reason: "Moins comme ca" })}><ThumbsDown className="mr-2 h-4 w-4" />Moins comme ça</DropdownMenuItem>
+                <DropdownMenuItem disabled={feedback.isPending} onSelect={() => feedback.mutate({ post, feedbackType: "hide_post", reason: "Post masque par le client" })}><EyeOff className="mr-2 h-4 w-4" />Masquer</DropdownMenuItem>
+                <DropdownMenuItem onSelect={openReportDialog}><TriangleAlert className="mr-2 h-4 w-4" />Signaler le post</DropdownMenuItem>
+                {canDeletePost ? <DropdownMenuItem className="text-destructive" disabled={deletePost.isPending} onSelect={confirmDeletePost}><Trash2 className="mr-2 h-4 w-4" />Supprimer le post</DropdownMenuItem> : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          ) : (
           <div className="flex shrink-0 items-center justify-end gap-2 max-sm:absolute max-sm:right-0 max-sm:top-0">
             <Button
               variant={post.followedByMe ? "secondary" : "outline"}
@@ -1271,16 +1305,18 @@ export default function SocialPostCard({
               </Button>
             ) : null}
           </div>
+          )}
         </div>
 
         <div
           className={cn(
             "mt-4 grid gap-4 max-sm:mt-2 max-sm:gap-2",
+            editorial && "tok-editorial-post__body",
             hasMedia &&
               "lg:grid-cols-[minmax(0,0.78fr)_minmax(22rem,1.35fr)] lg:items-center lg:gap-5",
           )}
         >
-          <div className={cn("min-w-0", hasMedia && "order-1 lg:order-1")}>
+          <div className={cn("min-w-0", hasMedia && "order-1 lg:order-1", editorial && "tok-editorial-post__copy")}>
             <div className="flex flex-wrap gap-2 max-sm:max-h-6 max-sm:gap-1.5 max-sm:overflow-hidden">
               {post.postType ? (
                 <Badge
@@ -1349,38 +1385,17 @@ export default function SocialPostCard({
               </p>
             </div>
 
-            {cta ? (
-              <Button
-                asChild
-                className="mt-4 gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700 max-sm:relative max-sm:left-1/2 max-sm:mt-2.5 max-sm:h-10 max-sm:w-screen max-sm:-translate-x-1/2 max-sm:justify-center max-sm:rounded-none max-sm:px-4 max-sm:text-sm max-sm:font-extrabold max-sm:shadow-md max-sm:shadow-orange-500/20"
-                onClick={() =>
-                  recordEvent.mutate({
-                    postId: post.id,
-                    eventType: "cta_click",
-                    metadata: {
-                      ctaType: post.ctaType,
-                      restaurantId: post.restaurantId,
-                      premiumBannerId: post.premiumBannerId || undefined,
-                      premiumBanner: Boolean(post.premiumBannerId),
-                    },
-                  })
-                }
-              >
-                <Link to={cta.to} data-social-sponsored-cta="true">
-                  {CtaIcon ? (
-                    <CtaIcon className="h-4 w-4 max-sm:h-3.5 max-sm:w-3.5" />
-                  ) : null}
-                  {cta.label}
-                </Link>
-              </Button>
-            ) : null}
+            {!editorial ? ctaButton : null}
+            {editorial && post.offerCode ? <p className="mt-2 text-xs font-semibold">Code : {post.offerCode}</p> : null}
           </div>
 
           {hasMedia ? (
             <SocialMediaCarousel
               media={post.media}
-              variant="side"
-              className="order-2 max-sm:mt-2 lg:order-2"
+              variant={editorial ? "default" : "side"}
+              mobileBleed={editorial ? false : "viewport"}
+              constrainedPreview={editorial}
+              className={cn("order-2 max-sm:mt-2 lg:order-2", editorial && "tok-editorial-post__media")}
               lightboxEngagement={{
                 likesCount: post.likesCount,
                 commentsCount: post.commentsCount,
@@ -1406,13 +1421,20 @@ export default function SocialPostCard({
                   }}
                 />
               )}
-              mobileOverlay={
-                <MobileMediaActionRail onOptions={openReportDialog} />
-              }
+              mobileOverlay={editorial ? undefined : <MobileMediaActionRail onOptions={openReportDialog} />}
             />
           ) : null}
         </div>
 
+        {editorial ? (
+        <div className="tok-editorial-post__actions">
+          <ReactionPicker currentReaction={post.myReaction} counts={post.reactionCounts} total={post.likesCount} disabled={setPostReaction.isPending} onSelect={(reaction) => setPostReaction.mutate({ post, reaction })} compact editorial />
+          <Button variant="ghost" size="sm" onClick={() => setCommentsOpen((open) => !open)} aria-label={commentsOpen ? "Masquer les commentaires" : "Afficher les commentaires"}><MessageCircle className="mr-1.5 h-5 w-5" />{post.commentsCount}</Button>
+          <Button variant="ghost" size="sm" onClick={sharePost} disabled={recordShare.isPending} aria-label="Partager ce post"><Share2 className="h-[18px] w-[18px]" /><span className="ml-1.5 hidden sm:inline">Partager</span></Button>
+          <Button variant="ghost" size="sm" onClick={() => toggleSave.mutate(post)} disabled={toggleSave.isPending} aria-label={post.savedByMe ? "Retirer des sauvegardes" : "Sauver"}><Bookmark className={cn("h-[18px] w-[18px]", post.savedByMe && "fill-current text-primary")} /><span className="ml-1.5 hidden sm:inline">{post.savedByMe ? "Enregistré" : "Enregistrer"}</span></Button>
+          {ctaButton}
+        </div>
+        ) : (
         <div
           className={cn(
             "mt-5 grid min-w-0 grid-cols-[repeat(6,minmax(0,1fr))] gap-1 rounded-none border-0 bg-transparent p-0 shadow-none sm:flex sm:flex-wrap sm:items-center sm:gap-1.5 sm:rounded-2xl sm:border sm:bg-white/85 sm:p-2 sm:shadow-sm",
@@ -1558,7 +1580,9 @@ export default function SocialPostCard({
           </Button>
         </div>
 
-        {hasMedia && !compact ? (
+        )}
+
+        {hasMedia && !compact && !editorial ? (
           <MobileCommentsPanel
             post={post}
             sortMode={commentSortMode}
@@ -1571,7 +1595,7 @@ export default function SocialPostCard({
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge variant="secondary" className="gap-1 rounded-full">
               <Store className="h-3 w-3" />
-              {post.status}
+              {SOCIAL_POST_STATUS_LABELS[post.status]}
             </Badge>
           </div>
         ) : null}

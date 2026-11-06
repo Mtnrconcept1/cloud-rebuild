@@ -32,50 +32,18 @@ describe("Actualites responsive guards", () => {
     expect(alertDialog).toContain(
       "w-[calc(100vw-env(safe-area-inset-left,0px)-env(safe-area-inset-right,0px)-1rem)]",
     );
-    expect(page).toContain("overflow-x-clip");
-    expect(page).toContain("tok-feed-grid container min-w-0");
-    expect(page).toContain('aria-label="Votre espace actualités"');
-    const editorialStyles = read("src/components/editorial/editorial.css");
-    expect(editorialStyles).toContain("grid-template-columns: minmax(10rem, .72fr) minmax(0, 2.05fr) minmax(14rem, 1fr)");
-    expect(page).toContain("min-w-0 max-w-full space-y-2");
-    expect(page).not.toContain("max-sm:w-[calc(100%+37px)]");
-    expect(page).not.toContain("max-sm:-ml-[9px]");
-    expect(page).toContain(
-      "min-w-0 space-y-4 xl:sticky xl:top-28 xl:self-start",
-    );
-    expect(page).toContain("grid-cols-1 gap-2 sm:grid-cols-2");
-    expect(page).not.toContain('src="/chef2.png"');
-    expect(page).not.toContain('src="/chef3.png"');
-    expect(editorialStyles).toContain("--tok-editorial-hero-image");
-    expect(editorialStyles).not.toContain("/images/tok-refonte/geneve-aquarelle.webp");
-    expect(page).toContain('src="/images/tok-refonte/chef-invitation.webp"');
-    expect(page).toContain('data-testid="actualites-hero"');
-    expect(page).toContain('data-testid="actualites-stories"');
-    expect(page).toContain("Le rendez-vous des gourmands.");
-    expect(page).toContain("overflow-x-auto");
-    expect(page).toContain("storyPosts");
-    expect(page).toContain("ActualitesBoostBanner");
-    expect(page).toContain("Mettre mon restaurant en avant");
-    expect(page).toContain("<TrendingUp");
-    expect(page).toContain("<BellRing");
-    expect(page).toContain("<Rocket");
-    expect(page).toContain("sm:w-[59%]");
-    expect(page).toContain("max-sm:bg-gradient-to-t");
-    expect(page).toContain("onSponsorClick={() => setSponsorDialogRequest");
+    const layout = read("src/components/social/SocialEditorialLayout.tsx");
+    const styles = read("src/styles/social-editorial.css");
+    expect(page).toContain("<SocialEditorialLayout");
+    expect(layout).toContain('data-testid="actualites-search"');
+    expect(layout).toContain('data-testid="actualites-stories"');
+    expect(layout).toContain("Le goût du partage");
+    expect(layout).toContain('aria-label="Navigation mobile du réseau social"');
+    expect(styles).toContain("minmax(0, 1fr)");
+    expect(styles).toContain("overflow-x: auto");
+    expect(styles).toContain("env(safe-area-inset-bottom,0px)");
     expect(page).toContain('id="actualites-composer"');
-    expect(page).not.toContain(
-      "pointer-events-none absolute -right-8 bottom-0 z-0",
-    );
-    expect(page).not.toContain("h-[7.25rem] w-auto object-contain opacity-15");
-    expect(page).toContain(
-      "relative z-10 flex min-w-0 flex-col gap-2",
-    );
-    expect(page).toContain('data-testid="actualites-search"');
-    expect(page).toContain("grid h-auto w-full grid-cols-2");
-    expect(page).toContain("sm:grid-cols-5");
-    expect(page).toContain("whitespace-normal");
-    expect(page).toContain("compact");
-    expect(page).not.toContain("Publier pour");
+    expect(page).toContain("sponsorDialogRequest={sponsorDialogRequest}");
     expect(page).not.toContain("min-h-screen overflow-hidden");
 
     expect(card).toContain("flex items-start justify-between gap-3");
@@ -183,10 +151,9 @@ describe("Actualites responsive guards", () => {
     const dashboard = read("src/pages/dashboard/DashboardActualites.tsx");
     const composer = read("src/components/social/SocialComposer.tsx");
 
-    expect(dashboard).toContain(
-      "flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
-    );
-    expect(dashboard).toContain("SheetTrigger asChild");
+    expect(dashboard).toContain("<ActualitesFeed");
+    expect(dashboard).toContain('chrome="social"');
+    expect(dashboard).toContain("onOpenChange={setStatsOpen}");
     expect(dashboard).toContain("Statistique");
     expect(dashboard).toContain("DashboardActualitesStatsPanel");
     expect(dashboard).toContain('SheetContent side="right"');

@@ -23,16 +23,16 @@ describe("commercial demo Actualites isolation", () => {
     expect(hooks).toContain("export function buildCommercialDemoSocialPosts");
     expect(hooks).toContain("snapshot.demo_restaurant");
     expect(hooks).toContain("snapshot.catalog_items.filter");
-    expect(hooks).toContain("useSocialRealtime(!isCommercialDemoClient)");
+    expect(hooks).toContain("useSocialRealtime(!isCommercialDemoViewer)");
 
     for (const name of ["useInfiniteSocialFeed", "useSearchActualitesPosts", "useSocialPostById", "useSocialComments"]) {
       const source = exportedFunctionSource(hooks, name);
-      expect(source).toContain('commercialDemoFrame?.surface === "client"');
-      expect(source.indexOf("if (isCommercialDemoClient)")).toBeGreaterThan(-1);
+      expect(source).toContain('commercialDemoFrame != null');
+      expect(source.indexOf("if (isCommercialDemoViewer)")).toBeGreaterThan(-1);
       const firstSupabaseCall = Math.min(
         ...[source.indexOf("supabase.rpc"), source.indexOf("supabase.from")].filter((index) => index >= 0),
       );
-      expect(source.indexOf("if (isCommercialDemoClient)")).toBeLessThan(firstSupabaseCall);
+      expect(source.indexOf("if (isCommercialDemoViewer)")).toBeLessThan(firstSupabaseCall);
     }
   });
 
@@ -54,13 +54,13 @@ describe("commercial demo Actualites isolation", () => {
 
     for (const name of interactionHooks) {
       const source = exportedFunctionSource(hooks, name);
-      expect(source).toContain('commercialDemoFrame?.surface === "client"');
-      expect(source.indexOf("if (isCommercialDemoClient)")).toBeGreaterThan(-1);
+      expect(source).toContain('commercialDemoFrame != null');
+      expect(source.indexOf("if (isCommercialDemoViewer)")).toBeGreaterThan(-1);
       const firstSupabaseCall = Math.min(
         ...[source.indexOf("supabase.rpc"), source.indexOf("supabase.from")].filter((index) => index >= 0),
       );
       if (Number.isFinite(firstSupabaseCall)) {
-        expect(source.indexOf("if (isCommercialDemoClient)")).toBeLessThan(firstSupabaseCall);
+        expect(source.indexOf("if (isCommercialDemoViewer)")).toBeLessThan(firstSupabaseCall);
       }
     }
   });
@@ -72,9 +72,13 @@ describe("commercial demo Actualites isolation", () => {
     const detail = readProjectFile("src/pages/ActualitePost.tsx");
 
     expect(page).toContain("const canManage = !isCommercialDemoClient");
-    expect(page).toContain("if (isCommercialDemoClient || !user?.id)");
+    expect(page).toContain("if (isCommercialDemo || !user?.id)");
     expect(card).toContain("const canDeletePost = !isCommercialDemoClient");
-    expect(trackedCard).toContain("if (!productionTrackingEnabled) return");
+    expect(trackedCard).toContain("const productionTrackingEnabled = commercialDemoFrame == null");
+    const clickHandler = trackedCard.slice(trackedCard.indexOf("const handleClickCapture"));
+    expect(clickHandler.indexOf("if (!productionTrackingEnabled) return")).toBeLessThan(clickHandler.indexOf("rememberActualitesPostSignal(post)"));
+    expect(page).toContain("useState(() => isCommercialDemo ? [] : readActualitesPostSignals())");
+    expect(page).toContain("if (isCommercialDemo) { setLocalClickSignals([]); return; }");
     expect(detail).toContain('? "noindex,nofollow"');
   });
 });

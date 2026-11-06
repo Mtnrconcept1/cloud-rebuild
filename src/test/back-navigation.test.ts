@@ -32,6 +32,8 @@ describe("route back navigation", () => {
     expect(shouldShowFloatingBackButton("/mes-avis")).toBe(false);
     expect(shouldShowFloatingBackButton("/memoire-tok/")).toBe(false);
     expect(shouldShowFloatingBackButton("/restaurant/example")).toBe(true);
+    expect(shouldShowFloatingBackButton("/actualites/")).toBe(false);
+    expect(shouldShowFloatingBackButton("/actualites/example")).toBe(true);
   });
 
   it("provides one shared back button with history fallback handling", () => {

@@ -153,7 +153,6 @@ describe("dashboard 3D illustrations", () => {
       ["src/pages/dashboard/DashboardPromotions.tsx", "restaurantPromotions"],
       ["src/pages/dashboard/DashboardAvis.tsx", "restaurantReviews"],
       ["src/pages/dashboard/DashboardReseauxSociaux.tsx", "restaurantSocial"],
-      ["src/pages/dashboard/DashboardActualites.tsx", "restaurantNews"],
       ["src/pages/dashboard/DashboardFormules.tsx", "restaurantFormulas"],
       ["src/pages/dashboard/DashboardTokConnect.tsx", "restaurantTokConnect"],
       ["src/pages/dashboard/DashboardAccountBilling.tsx", "restaurantBilling"],
@@ -173,6 +172,7 @@ describe("dashboard 3D illustrations", () => {
         .toContain("illustration={DASHBOARD_ILLUSTRATIONS." + key + "}");
     }
 
+    expect(read("src/pages/dashboard/DashboardActualites.tsx")).toContain('chrome="social"');
     expect(read("src/pages/admin/AdminHome.tsx")).toContain("src={category.image}");
     const targetedStates = [
       ["src/pages/dashboard/DashboardPlanSalle.tsx", "restaurantFloorPlan"],

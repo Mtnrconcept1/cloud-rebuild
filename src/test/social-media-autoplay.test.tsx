@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import SocialMediaCarousel from "@/components/social/SocialMediaCarousel";
@@ -180,5 +180,61 @@ describe("SocialMediaCarousel video autoplay", () => {
     expect(image).not.toHaveClass("w-full");
     expect(image.parentElement).toHaveClass("max-h-[min(62dvh,36rem)]");
     expect(image.parentElement).toHaveClass("items-center", "justify-center");
+  });
+
+  it("keeps the reserved image space and removes zoom when a post image is unavailable", () => {
+    render(<SocialMediaCarousel media={[{ ...imageMedia[0] }]} variant="side" />);
+
+    const image = screen.getByAltText("Logo TOK");
+    const frame = image.parentElement?.parentElement;
+    expect(frame).toHaveStyle({ aspectRatio: "4 / 3" });
+
+    fireEvent.error(image);
+
+    const fallback = screen.getByRole("img", { name: "Image indisponible : Logo TOK" });
+    expect(fallback).toHaveTextContent("Image indisponible");
+    expect(frame).toHaveStyle({ aspectRatio: "4 / 3" });
+    expect(frame).not.toHaveClass("cursor-zoom-in");
+    expect(screen.queryByAltText("Logo TOK")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Agrandir l’image/ })).not.toBeInTheDocument();
+    fireEvent.click(fallback);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("loads a replacement source for the same media after an image error", () => {
+    const { rerender } = render(<SocialMediaCarousel media={[{ ...imageMedia[0] }]} />);
+    fireEvent.error(screen.getByAltText("Logo TOK"));
+
+    rerender(<SocialMediaCarousel media={[{
+      ...imageMedia[0],
+      mediaUrl: "https://example.com/replacement.jpg",
+    }]} />);
+
+    expect(screen.queryByRole("img", { name: "Image indisponible : Logo TOK" })).not.toBeInTheDocument();
+    expect(screen.getByAltText("Logo TOK")).toHaveAttribute("src", "https://example.com/replacement.jpg");
+    fireEvent.click(screen.getByRole("button", { name: "Agrandir l’image : Logo TOK" }));
+    expect(within(screen.getByRole("dialog")).getByAltText("Logo TOK")).toBeInTheDocument();
+  });
+
+  it("shows an accessible fallback in the lightbox while preserving close and the loaded image ratio", () => {
+    render(<SocialMediaCarousel media={[{ ...imageMedia[0] }]} variant="side" />);
+    const image = screen.getByAltText("Logo TOK");
+    Object.defineProperties(image, {
+      naturalWidth: { value: 1200 },
+      naturalHeight: { value: 800 },
+    });
+    fireEvent.load(image);
+    const frame = image.parentElement?.parentElement;
+    fireEvent.click(screen.getByRole("button", { name: "Agrandir l’image : Logo TOK" }));
+
+    const dialog = screen.getByRole("dialog");
+    fireEvent.error(within(dialog).getByAltText("Logo TOK"));
+
+    expect(within(dialog).getByRole("img", { name: "Image indisponible : Logo TOK" })).toBeInTheDocument();
+    expect(within(dialog).queryByAltText("Logo TOK")).not.toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Fermer le média" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(frame).toHaveStyle({ aspectRatio: "1.5" });
+    expect(screen.queryByRole("button", { name: /Agrandir l’image/ })).not.toBeInTheDocument();
   });
 });

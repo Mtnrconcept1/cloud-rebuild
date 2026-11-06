@@ -1,50 +1,21 @@
-import PageHeading from "@/components/editorial/PageHeading";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import {
-  BellRing,
-  Bookmark,
-  ChevronRight,
-  Flame,
-  Megaphone,
-  RefreshCw,
-  Rocket,
-  Search,
-  Sparkles,
-  Store,
-  TrendingUp,
-  X,
-} from "lucide-react";
-
+import { BellRing, Bookmark, ChevronRight, RefreshCw, Search } from "lucide-react";
 import SocialComposer from "@/components/social/SocialComposer";
+import SocialEditorialLayout from "@/components/social/SocialEditorialLayout";
 import TrackedSocialPostCard from "@/components/social/TrackedSocialPostCard";
 import { useCommercialDemoFrame } from "@/components/commercial/CommercialDemoFrameProvider";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  useInfiniteSocialFeed,
-  useSearchActualitesPosts,
-  useRestaurantActualitesAccess,
-  useToggleRestaurantFollow,
-} from "@/hooks/useSocialFeed";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useInfiniteSocialFeed, useSearchActualitesPosts, useRestaurantActualitesAccess, useToggleRestaurantFollow } from "@/hooks/useSocialFeed";
 import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { getSupabase } from "@/integrations/supabase/client";
 import { createActualitesFeedOrderSeed, orderActualitesFeedPosts } from "@/lib/actualitesFeedOrdering";
-import {
-  ACTUALITES_CLICK_SIGNAL_EVENT,
-  ACTUALITES_CLICK_SIGNAL_STORAGE_KEY,
-  buildPersonalizedActualitesTrends,
-  readActualitesPostSignals,
-  type ActualitesOrderTrendSignal,
-  type ActualitesPostClickSignal,
-  type ActualitesReservationTrendSignal,
-} from "@/lib/actualitesPersonalizedTrends";
+import { ACTUALITES_CLICK_SIGNAL_EVENT, ACTUALITES_CLICK_SIGNAL_STORAGE_KEY, buildPersonalizedActualitesTrends, readActualitesPostSignals, type ActualitesOrderTrendSignal, type ActualitesPostClickSignal, type ActualitesReservationTrendSignal } from "@/lib/actualitesPersonalizedTrends";
 import { useAuth } from "@/lib/auth-context";
-import { SOCIAL_FEED_SCOPES, normalizeSocialFeedScope, type SocialFeedPost, type SocialFeedScope } from "@/lib/socialFeed";
-import { useOwnerRestaurants } from "@/pages/dashboard/useOwnerRestaurants";
+import { getRoleHomePath } from "@/lib/roleAccess";
+import { normalizeSocialFeedScope, type SocialFeedPost, type SocialFeedScope } from "@/lib/socialFeed";
+import { useOwnerRestaurants, type OwnedRestaurant } from "@/pages/dashboard/useOwnerRestaurants";
 
 type ActualitesUserTrendSignals = {
   orders: ActualitesOrderTrendSignal[];
@@ -176,50 +147,32 @@ async function loadActualitesUserTrendSignals(userId: string): Promise<Actualite
   return { orders, reservations, clickedPosts };
 }
 
-function ActualitesBoostBanner({ onSponsorClick }: { onSponsorClick: () => void }) {
-  return (
-    <section
-      aria-label="Mettre votre restaurant en avant"
-      className="relative isolate min-h-[20rem] overflow-hidden rounded-[1.5rem] border border-orange-100 bg-[#fff8ee] shadow-xl shadow-orange-100/60 sm:min-h-[17rem]"
-    >
-      <img
-        src="/images/tok-refonte/chef-invitation.webp"
-        alt=""
-        loading="lazy"
-        className="absolute inset-0 h-full w-full object-cover object-left"
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#fff8ee]/45 to-[#fff8ee] max-sm:bg-gradient-to-t max-sm:from-[#fff8ee] max-sm:via-[#fff8ee]/75 max-sm:to-transparent" />
-      <div className="relative z-10 flex min-h-[20rem] items-end p-4 sm:min-h-[17rem] sm:items-center sm:justify-end sm:p-5">
-        <div className="w-full rounded-[1.25rem] border border-white/80 bg-white/90 p-4 shadow-lg shadow-orange-950/10 backdrop-blur sm:w-[59%] md:w-[55%]">
-          <Badge className="mb-2 rounded-full bg-orange-100 text-orange-800 hover:bg-orange-100">Visibilité locale</Badge>
-          <h2 className="font-display text-2xl font-bold leading-tight text-slate-950">Votre cuisine mérite d’être remarquée.</h2>
-          <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
-            Présentez votre plat fort aux gourmands proches de votre restaurant, dès CHF 1.–.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1.5"><TrendingUp className="h-3.5 w-3.5 text-primary" /> Plus de visibilité</span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1.5"><BellRing className="h-3.5 w-3.5 text-primary" /> Public local</span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1.5"><Rocket className="h-3.5 w-3.5 text-primary" /> Mise en ligne rapide</span>
-          </div>
-          <Button type="button" className="mt-4 h-10 w-full rounded-full font-bold shadow-lg shadow-orange-500/20" onClick={onSponsorClick}>
-            Mettre mon restaurant en avant
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
-}
+type ActualitesFeedProps = {
+  dashboard?: boolean;
+  managedRestaurant?: OwnedRestaurant | null;
+  restaurantSelector?: ReactNode;
+  statistics?: ReactNode;
+  management?: ReactNode;
+};
 
-export default function Actualites() {
+export function ActualitesFeed({ dashboard = false, managedRestaurant, restaurantSelector, statistics, management }: ActualitesFeedProps = {}) {
   const { role, isSuperAdmin, user } = useAuth();
   const commercialDemoFrame = useCommercialDemoFrame();
   const isCommercialDemoClient = commercialDemoFrame?.surface === "client";
+  const isCommercialDemo = commercialDemoFrame != null;
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [city, setCity] = useState("");
+  const [composerDialogRequests, setComposerDialogRequests] = useState({
+    restaurantId: null as string | null,
+    open: 0,
+    sponsor: 0,
+  });
+  const reels = searchParams.get("view") === "reels";
   const [scope, setScope] = useState<SocialFeedScope>(() => normalizeSocialFeedScope(searchParams.get("scope")));
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [localClickSignals, setLocalClickSignals] = useState(() => readActualitesPostSignals());
+  const [localClickSignals, setLocalClickSignals] = useState(() => isCommercialDemo ? [] : readActualitesPostSignals());
   const [userTrendSignals, setUserTrendSignals] = useState<ActualitesUserTrendSignals>({
     orders: [],
     reservations: [],
@@ -227,12 +180,11 @@ export default function Actualites() {
   });
   const [feedOrderSeed] = useState(() => createActualitesFeedOrderSeed());
   const [composerRestaurantId, setComposerRestaurantId] = useState<string | null>(null);
-  const [sponsorDialogRequest, setSponsorDialogRequest] = useState(0);
   const highlightedPostId = searchParams.get("post");
   const feed = useInfiniteSocialFeed(scope, 12);
   const globalSearch = useSearchActualitesPosts(debouncedSearchQuery, 20);
   const canManage = !isCommercialDemoClient && (role === "restaurateur" || isSuperAdmin);
-  const ownerRestaurants = useOwnerRestaurants({ enabled: canManage });
+  const ownerRestaurants = useOwnerRestaurants({ enabled: canManage && !dashboard });
   const rawPosts = useMemo(() => (feed.data?.pages.flatMap((page) => page.posts) || []) as SocialFeedPost[], [feed.data]);
   const posts = useMemo(() => orderActualitesFeedPosts(rawPosts, `${feedOrderSeed}:${scope}`), [feedOrderSeed, rawPosts, scope]);
   const fallbackFilteredPosts = useMemo(() => {
@@ -269,23 +221,28 @@ export default function Actualites() {
   const canLoadMore = globalSearchEnabled ? globalSearch.hasNextPage : feed.hasNextPage;
   const isLoadingMore = globalSearchEnabled ? globalSearch.isFetchingNextPage : feed.isFetchingNextPage;
   const restaurants = useMemo(
-    () => canManage ? ownerRestaurants.restaurants : [],
-    [canManage, ownerRestaurants.restaurants],
+    () => canManage ? (dashboard ? (managedRestaurant ? [managedRestaurant] : []) : ownerRestaurants.restaurants) : [],
+    [canManage, dashboard, managedRestaurant, ownerRestaurants.restaurants],
   );
   const composerRestaurant = restaurants.find((restaurant) => restaurant.id === composerRestaurantId) || restaurants[0] || null;
+  const activeComposerRestaurantId = composerRestaurant?.id || null;
+  // A newly mounted restaurant composer must not consume another restaurant's request.
+  const composerOpenRequest = composerDialogRequests.restaurantId === activeComposerRestaurantId ? composerDialogRequests.open : 0;
+  const sponsorDialogRequest = composerDialogRequests.restaurantId === activeComposerRestaurantId ? composerDialogRequests.sponsor : 0;
   const composerAccess = useRestaurantActualitesAccess(composerRestaurant?.id || null);
   const toggleFollow = useToggleRestaurantFollow();
   const suggestedRestaurants = useMemo(() => {
     const seen = new Set<string>();
     return filteredPosts
       .filter((post) => !post.followedByMe)
+      .filter((post) => !city || normalizeActualitesSearch(post.restaurant.city || "") === normalizeActualitesSearch(city))
       .filter((post) => {
         if (seen.has(post.restaurantId)) return false;
         seen.add(post.restaurantId);
         return true;
       })
       .slice(0, 4);
-  }, [filteredPosts]);
+  }, [city, filteredPosts]);
   const storyPosts = useMemo(() => {
     const seenRestaurants = new Set<string>();
 
@@ -313,12 +270,15 @@ export default function Actualites() {
     max: 4,
   }), [localClickSignals, posts, userTrendSignals]);
 
-  useSeoMeta({
-    title: "Actualités des restaurants à Genève et en Suisse romande | TOK",
-    description: "Découvrez les plats, nouveautés, offres et événements publiés par les restaurants locaux sur TOK, sans avoir besoin de connaître un hashtag.",
-    path: "/actualites",
-    jsonLd: ACTUALITES_SEO_JSON_LD,
-  });
+
+
+  useEffect(() => {
+    setComposerDialogRequests({ restaurantId: activeComposerRestaurantId, open: 0, sponsor: 0 });
+  }, [activeComposerRestaurantId]);
+
+  useEffect(() => {
+    setScope(normalizeSocialFeedScope(searchParams.get("scope")));
+  }, [searchParams]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => setDebouncedSearchQuery(searchQuery), 300);
@@ -343,7 +303,7 @@ export default function Actualites() {
 
   useEffect(() => {
     let active = true;
-    if (isCommercialDemoClient || !user?.id) {
+    if (isCommercialDemo || !user?.id) {
       setUserTrendSignals({ orders: [], reservations: [], clickedPosts: [] });
       return () => {
         active = false;
@@ -362,9 +322,10 @@ export default function Actualites() {
     return () => {
       active = false;
     };
-  }, [isCommercialDemoClient, user?.id]);
+  }, [isCommercialDemo, user?.id]);
 
   useEffect(() => {
+    if (isCommercialDemo) { setLocalClickSignals([]); return; }
     const syncClickSignals = () => setLocalClickSignals(readActualitesPostSignals());
     syncClickSignals();
 
@@ -379,13 +340,14 @@ export default function Actualites() {
       window.removeEventListener(ACTUALITES_CLICK_SIGNAL_EVENT, syncClickSignals);
       window.removeEventListener("storage", handleStorage);
     };
-  }, []);
+  }, [isCommercialDemo]);
 
   const changeScope = (value: string) => {
     const nextScope = normalizeSocialFeedScope(value);
     setScope(nextScope);
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("scope", nextScope);
+    nextParams.delete("view");
     setSearchParams(nextParams, { replace: true });
   };
 
@@ -393,374 +355,127 @@ export default function Actualites() {
     setSearchQuery(`#${trend}`);
   };
 
-  return (
-    <main className="min-h-screen overflow-x-clip bg-[#fffaf4] py-3 md:py-6">
-      <div className="tok-feed-grid container min-w-0">
-        <aside className="tok-feed-menu">
-          <nav className="grid gap-1 rounded-2xl border bg-card p-3 shadow-soft" aria-label="Votre espace actualités">
-            <h2 className="mb-1 font-display text-lg font-bold">Votre espace</h2>
-            {SOCIAL_FEED_SCOPES.map((item) => (
-              <Button key={item.value} variant={scope === item.value ? "secondary" : "ghost"}
-                aria-pressed={scope === item.value} className="min-h-11 justify-start"
-                onClick={() => { setSearchQuery(""); changeScope(item.value); }}>
-                {item.label}
-              </Button>
-            ))}
-          </nav>
-          <section className="tok-chef-invitation">
-            <div><h2>Faites parler de votre resto</h2>
-              <Link className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold underline" to="/restaurateurs/geneve">Découvrir TOK Pro</Link>
-            </div>
-          </section>
-        </aside>
-        <section className="min-w-0 max-w-full space-y-2 md:space-y-3">
-          <div data-testid="actualites-hero">
-            <PageHeading title="Le rendez-vous des gourmands." description="Les bonnes adresses se partagent." mascot="megaphone" />
-          </div>
-          <div className="relative overflow-hidden rounded-[1.5rem] border border-orange-100/80 bg-background/95 p-2 shadow-lg shadow-orange-100/35 backdrop-blur md:p-3">
-            <div className="relative z-10 flex min-w-0 flex-col gap-2">
-              <div className="relative min-w-0 flex-1">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="actualites-search"
-                  type="search"
-                  value={searchQuery}
-                  aria-label="Rechercher dans les actualités"
-                  aria-describedby="actualites-search-status"
-                  data-testid="actualites-search"
-                  placeholder="Rechercher un plat, ingrédient, restaurant, cuisine, ville..."
-                  className="h-10 rounded-2xl border-orange-100 bg-white pl-10 pr-10 text-sm shadow-sm"
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                />
-                {searchQuery ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-orange-50 hover:text-primary"
-                    aria-label="Effacer la recherche"
-                    onClick={() => setSearchQuery("")}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                ) : null}
-              </div>
+  const requestComposer = (sponsored = false) => {
+    if (!activeComposerRestaurantId) return;
+    setComposerDialogRequests((current) => {
+      const sameRestaurant = current.restaurantId === activeComposerRestaurantId;
+      return {
+        restaurantId: activeComposerRestaurantId,
+        open: (sameRestaurant ? current.open : 0) + 1,
+        sponsor: (sameRestaurant ? current.sponsor : 0) + (sponsored ? 1 : 0),
+      };
+    });
+  };
 
-              {normalizedSearchQuery.length >= 2 ? (
-                <Badge variant="outline" className="h-10 justify-center gap-2 rounded-2xl border-orange-200 bg-orange-50 px-4 text-orange-800 w-full">
-                  <Search className="h-4 w-4" aria-hidden="true" />
-                  Recherche globale dans tout le fil
-                </Badge>
-              ) : (
-                <Tabs value={scope} onValueChange={changeScope} className="min-w-0 w-full">
-                  <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-muted/50 p-1 sm:grid-cols-5">
-                    {SOCIAL_FEED_SCOPES.map((item) => (
-                      <TabsTrigger
-                        key={item.value}
-                        value={item.value}
-                        className="min-w-0 whitespace-normal rounded-xl px-1.5 py-2 text-center text-[11px] font-semibold leading-tight data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm sm:text-xs"
-                      >
-                        {item.label}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
-              )}
-            </div>
-            <p
-              id="actualites-search-status"
-              role="status"
-              aria-live="polite"
-              className="px-2 pt-1 text-xs text-muted-foreground"
-            >
-              {searchLoading
-                ? "Recherche dans toutes les actualités…"
-                : globalSearchEnabled && !globalSearch.isError
-                  ? `${globalSearchTotal} publication${globalSearchTotal > 1 ? "s" : ""} trouvée${globalSearchTotal > 1 ? "s" : ""} dans tout le fil.`
-                  : normalizedSearchQuery.length === 1
-                    ? "Saisissez au moins deux caractères pour lancer la recherche globale."
-                    : normalizedSearchQuery
-                      ? `${filteredPosts.length} résultat${filteredPosts.length > 1 ? "s" : ""} visible${filteredPosts.length > 1 ? "s" : ""}.`
-                      : "La recherche porte aussi sur les plats, ingrédients et descriptions d’images, sans hashtag."
-              }
-            </p>
-          </div>
-
-        {storyPosts.length > 0 || canManage ? (
-          <section aria-labelledby="actualites-stories-title" className="rounded-[1.5rem] border border-orange-100 bg-white/90 p-3 shadow-sm sm:p-4">
-            <div className="mb-3 flex items-center justify-between gap-3 px-1">
-              <div>
-                <h2 id="actualites-stories-title" className="font-display text-lg font-bold text-slate-950">À découvrir aujourd’hui</h2>
-                <p className="text-xs text-slate-500">Un aperçu des dernières tables qui font parler d’elles.</p>
-              </div>
-              <Badge variant="outline" className="hidden rounded-full border-orange-200 text-orange-800 sm:inline-flex">En direct</Badge>
-            </div>
-            <div className="flex min-w-0 gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-testid="actualites-stories">
-              {canManage ? (
-                <button
-                  type="button"
-                  className="group flex w-[4.75rem] shrink-0 flex-col items-center gap-1.5 text-center"
-                  onClick={() => document.getElementById("actualites-composer")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                >
-                  <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-dashed border-orange-300 bg-orange-50 text-2xl font-light text-primary transition group-hover:border-primary group-hover:bg-orange-100">+</span>
-                  <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-slate-700">Votre actualité</span>
-                </button>
-              ) : null}
-              {storyPosts.map((post) => {
-                const storyImage = post.media.find((media) => media.mediaType === "image")?.mediaUrl || post.restaurant.imageUrl;
-
-                return (
-                  <button
-                    key={post.restaurantId}
-                    type="button"
-                    className="group flex w-[4.75rem] shrink-0 flex-col items-center gap-1.5 text-center"
-                    aria-label={`Voir l’actualité de ${post.restaurant.name}`}
-                    onClick={() => navigate(`/actualites/${encodeURIComponent(post.id)}`)}
-                  >
-                    <span className="rounded-full bg-gradient-to-br from-orange-400 via-primary to-amber-300 p-[2px] shadow-sm transition group-hover:scale-[1.04]">
-                      <span className="flex h-[3.75rem] w-[3.75rem] items-center justify-center overflow-hidden rounded-full border-2 border-white bg-orange-50">
-                        {storyImage ? (
-                          <img src={storyImage} alt="" loading="lazy" className="h-full w-full object-cover" />
-                        ) : (
-                          <Store className="h-5 w-5 text-primary" aria-hidden="true" />
-                        )}
-                      </span>
-                    </span>
-                    <span className="line-clamp-2 text-[11px] font-semibold leading-tight text-slate-700 group-hover:text-primary">{post.restaurant.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        ) : null}
-
-
-          {canManage ? <ActualitesBoostBanner onSponsorClick={() => setSponsorDialogRequest((request) => request + 1)} /> : null}
-
-          {canManage ? (
-            <div id="actualites-composer" className="min-w-0 scroll-mt-24 space-y-2">
-              {ownerRestaurants.loading ? (
-                <div className="rounded-2xl border bg-background/90 p-4 text-sm text-muted-foreground shadow-sm">
-                  Chargement de vos restaurants...
-                </div>
-              ) : ownerRestaurants.error ? (
-                <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive shadow-sm">
-                  Impossible de charger vos restaurants : {ownerRestaurants.error}
-                </div>
-              ) : restaurants.length > 0 ? (
-                <>
-                  <SocialComposer
-                    key={composerRestaurant?.id || "no-restaurant"}
-                    restaurantId={composerRestaurant?.id || null}
-                    restaurantName={composerRestaurant?.name || null}
-                    socialLinks={composerRestaurant?.socialLinks || null}
-                    sponsorDialogRequest={sponsorDialogRequest}
-                    actualitesAccess={composerAccess.data || null}
-                    actualitesAccessLoading={composerAccess.isLoading}
-                    compact
-                  />
-                </>
-              ) : (
-                <div className="rounded-2xl border bg-background/90 p-4 text-sm text-muted-foreground shadow-sm">
-                  Aucun restaurant rattaché à ce compte.
-                </div>
-              )}
-            </div>
-          ) : null}
-
-          {globalSearchEnabled && globalSearch.isError ? (
-            <div className="flex flex-col gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 shadow-sm sm:flex-row sm:items-center sm:justify-between" role="alert">
-              <p>
-                La recherche globale est momentanément indisponible. Les résultats déjà chargés restent affichés.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="shrink-0 rounded-full bg-white"
-                onClick={() => globalSearch.refetch()}
-                disabled={globalSearch.isFetching}
-              >
-                <RefreshCw className={`mr-2 h-3.5 w-3.5 ${globalSearch.isFetching ? "animate-spin" : ""}`} />
-                Réessayer
-              </Button>
-            </div>
-          ) : null}
-
-          {contentLoading ? (
-            <div className="space-y-3">
-              {[0, 1, 2].map((item) => (
-                <div key={item} className="overflow-hidden rounded-2xl border bg-background/90 p-5 shadow-sm">
-                  <div className="flex animate-pulse gap-4">
-                    <div className="h-14 w-14 rounded-2xl bg-muted" />
-                    <div className="flex-1 space-y-3">
-                      <div className="h-4 w-40 rounded bg-muted" />
-                      <div className="h-3 w-full rounded bg-muted" />
-                      <div className="h-3 w-3/4 rounded bg-muted" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : contentError ? (
-            <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive shadow-sm">
-              {(contentError as Error).message}
-            </div>
-          ) : filteredPosts.length > 0 ? (
-            <div className="space-y-4" data-testid="actualites-feed">
-              {filteredPosts.map((post: SocialFeedPost) => (
-                <TrackedSocialPostCard
-                  key={post.activityId}
-                  post={post}
-                  highlighted={post.id === highlightedPostId}
-                  source={`actualites:${scope}`}
-                />
-              ))}
-              <div className="flex justify-center pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => globalSearchEnabled ? globalSearch.fetchNextPage() : feed.fetchNextPage()}
-                  disabled={!canLoadMore || isLoadingMore}
-                  className="min-w-44 rounded-full"
-                >
-                  {isLoadingMore ? "Chargement..." : canLoadMore ? "Charger plus" : globalSearchEnabled ? "Tous les résultats sont affichés" : "Fin du fil"}
-                </Button>
-              </div>
-            </div>
-          ) : searchQuery.trim() ? (
-            <div className="rounded-[2rem] border bg-background/90 p-10 text-center shadow-sm" data-testid="actualites-feed">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <Search className="h-7 w-7" />
-              </div>
-              <h2 className="font-display text-xl font-bold">Aucun résultat</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Essayez un autre #, une ville, un type de cuisine ou le nom d'un restaurant.
-              </p>
-            </div>
-          ) : (
-            <div className="rounded-[2rem] border bg-background/90 p-10 text-center shadow-sm" data-testid="actualites-feed">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <BellRing className="h-7 w-7" />
-              </div>
-              <h2 className="font-display text-xl font-bold">
-                {scope === "saved" ? "Aucun post sauvegardé" : "Aucune actualité pour le moment"}
-              </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {scope === "saved"
-                  ? user?.id
-                    ? "Les posts enregistrés avec le bouton Sauver apparaîtront ici."
-                    : "Connectez-vous pour retrouver les posts que vous sauvegardez."
-                  : "Les publications des restaurants apparaîtront ici dès leur mise en ligne."}
-              </p>
-            </div>
-          )}
-        </section>
-
-        <aside className="min-w-0 space-y-4 xl:sticky xl:top-28 xl:self-start">
-          <Card className="overflow-hidden rounded-[2rem] border-orange-100 bg-background/95 shadow-xl shadow-orange-100/40">
-            <CardContent className="space-y-4 p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                    <TrendingUp className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <h2 className="font-semibold">Signal du fil</h2>
-                    <p className="text-xs text-muted-foreground">Aperçu de l'activité visible</p>
-                  </div>
-                </div>
-                <Badge variant="outline" className="rounded-full">Live</Badge>
-              </div>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="rounded-2xl bg-gradient-to-br from-orange-50 to-white p-3 ring-1 ring-orange-100">
-                  <Megaphone className="mb-2 h-4 w-4 text-primary" />
-                  <p className="text-xs text-muted-foreground">Posts</p>
-                  <p className="text-2xl font-black">{globalSearchEnabled ? globalSearchTotal : posts.length}</p>
-                </div>
-                <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-white p-3 ring-1 ring-violet-100">
-                  <Store className="mb-2 h-4 w-4 text-violet-600" />
-                  <p className="text-xs text-muted-foreground">Restaurants</p>
-                  <p className="text-2xl font-black">{feedStats.restaurantsCount}</p>
-                </div>
-                <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white p-3 ring-1 ring-emerald-100">
-                  <Bookmark className="mb-2 h-4 w-4 text-emerald-600" />
-                  <p className="text-xs text-muted-foreground">Sauvegardes</p>
-                  <p className="text-2xl font-black">{feedStats.savedCount}</p>
-                </div>
-                <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-white p-3 ring-1 ring-amber-100">
-                  <Flame className="mb-2 h-4 w-4 text-amber-600" />
-                  <p className="text-xs text-muted-foreground">Offres</p>
-                  <p className="text-2xl font-black">{feedStats.offersCount}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="overflow-hidden rounded-[2rem] border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50 shadow-sm">
-            <CardContent className="space-y-4 p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="font-display text-lg font-bold">Boostez votre visibilité</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">Publiez un plat fort, ajoutez un média et déclenchez une action claire.</p>
-                </div>
-                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30">
-                  <Rocket className="h-5 w-5" />
-                </span>
-              </div>
-              <div className="rounded-2xl bg-white/80 p-3 text-xs text-muted-foreground ring-1 ring-orange-100">
-                {feedStats.mediaCount > 0 ? `${feedStats.mediaCount} médias enrichissent déjà le fil.` : "Les posts avec photo ou vidéo retiennent mieux l'attention."}
-              </div>
-            </CardContent>
-          </Card>
-
-          {suggestedRestaurants.length > 0 ? (
-            <Card className="rounded-[2rem] bg-background/95 shadow-sm">
-              <CardContent className="space-y-3 p-5">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <h2 className="font-semibold">À suivre</h2>
-                </div>
-                <div className="space-y-2">
-                  {suggestedRestaurants.map((post) => (
-                    <div key={post.restaurantId} className="flex items-center justify-between gap-2 rounded-2xl bg-muted/60 p-3">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold">{post.restaurant.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {[post.restaurant.cuisineType, post.restaurant.city].filter(Boolean).join(" · ") || "Restaurant TOK"}
-                        </p>
-                      </div>
-                      <Button size="sm" variant="outline" className="rounded-full" onClick={() => toggleFollow.mutate(post)} disabled={toggleFollow.isPending}>
-                        Suivre
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ) : null}
-
-          <Card className="rounded-[2rem] bg-background/95 shadow-sm">
-            <CardContent className="space-y-3 p-5">
-              <div className="flex items-center gap-2">
-                <Flame className="h-4 w-4 text-primary" />
-                <h2 className="font-semibold">Tendances</h2>
-              </div>
-              {personalizedTrends.map((trend) => (
-                <button
-                  key={trend}
-                  type="button"
-                  className="flex w-full items-center justify-between rounded-2xl bg-muted/50 px-3 py-2 text-left text-sm transition hover:bg-orange-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                  aria-label={`Rechercher #${trend}`}
-                  onClick={() => startTrendSearch(trend)}
-                >
-                  <span>#{trend}</span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </button>
-              ))}
-            </CardContent>
-          </Card>
-        </aside>
-      </div>
-    </main>
+  const visiblePosts = filteredPosts.filter((post) =>
+    (!city || normalizeActualitesSearch(post.restaurant.city || "") === normalizeActualitesSearch(city))
+    && (!reels || post.media.some((media) => media.mediaType === "video")),
   );
+  const cities = [...new Set([
+    city,
+    ...posts.map((post) => post.restaurant.city),
+    ...globallyMatchedPosts.map((post) => post.restaurant.city),
+  ].filter((value): value is string => Boolean(value)))].sort((a, b) => a.localeCompare(b, "fr"));
+  const restaurantImage = posts.find((post) => post.restaurantId === composerRestaurant?.id)?.restaurant.imageUrl;
+  const showReels = () => {
+    setSearchQuery("");
+    setScope("for_you");
+    const next = new URLSearchParams(searchParams);
+    next.set("view", "reels");
+    next.set("scope", "for_you");
+    setSearchParams(next, { replace: true });
+  };
+
+  return (
+    <SocialEditorialLayout
+      dashboard={dashboard}
+      canCreate={canManage && Boolean(composerRestaurant)}
+      restaurantName={composerRestaurant?.name}
+      restaurantImage={restaurantImage}
+      restaurantSelector={restaurantSelector || (composerRestaurant ? <label className="tok-social-identity">
+        <Avatar className="tok-social-account"><AvatarImage src={restaurantImage || undefined} alt="" /><AvatarFallback>{composerRestaurant.name.slice(0, 2)}</AvatarFallback></Avatar>
+        <span className="sr-only">Restaurant actif</span>
+        <select value={composerRestaurant.id} onChange={(event) => setComposerRestaurantId(event.target.value)} aria-label="Restaurant actif" className="min-w-0 w-full bg-transparent py-2 text-sm font-semibold">
+          {restaurants.map((restaurant) => <option key={restaurant.id} value={restaurant.id}>{restaurant.name}</option>)}
+        </select>
+      </label> : null)}
+      profileHref={!user ? "/auth" : role === "restaurateur" ? "/dashboard/mon-compte-facturation" : role === "client" ? "/profil" : getRoleHomePath(role)}
+      scope={scope}
+      onScopeChange={changeScope}
+      search={searchQuery}
+      onSearchChange={setSearchQuery}
+      city={city}
+      cities={cities}
+      onCityChange={setCity}
+      reels={reels}
+      onReels={showReels}
+      onCreate={() => requestComposer()}
+      stories={storyPosts}
+      suggestions={suggestedRestaurants.filter((post) => post.restaurantId !== composerRestaurant?.id)}
+      onFollow={(post) => toggleFollow.mutate(post)}
+      following={toggleFollow.isPending}
+      statistics={statistics}
+      secondary={
+        <details className="mt-5 border-t pt-4 text-sm">
+          <summary className="cursor-pointer text-muted-foreground">Explorer le fil</summary>
+          <div className="mt-3 grid gap-2">
+            <button type="button" className="min-h-10 text-left" onClick={() => changeScope("offers")}>Les offres des restaurants</button>
+            {personalizedTrends.map((trend) => <button key={trend} type="button" aria-label={`Rechercher #${trend}`} onClick={() => startTrendSearch(trend)} className="flex min-h-10 items-center justify-between text-left">#{trend}<ChevronRight size={14} /></button>)}
+            <p className="text-xs text-muted-foreground">{feedStats.restaurantsCount} restaurants · {feedStats.offersCount} offres</p>
+            {canManage ? <button type="button" className="min-h-10 text-left text-primary" onClick={() => requestComposer(true)}>Sponsoriser une publication</button> : null}
+          </div>
+        </details>
+      }
+    >
+      <p id="actualites-search-status" role="status" aria-live="polite" className={normalizedSearchQuery ? "tok-social-search-status" : "sr-only"}>
+        {searchLoading ? "Recherche dans toutes les actualités…" : globalSearchEnabled && !globalSearch.isError
+          ? `${globalSearchTotal} publication${globalSearchTotal > 1 ? "s" : ""} trouvée${globalSearchTotal > 1 ? "s" : ""} dans tout le fil.`
+          : normalizedSearchQuery.length === 1 ? "Saisissez au moins deux caractères pour lancer la recherche globale."
+          : "Recherchez un plat, un ingrédient, un restaurant ou une ville, sans hashtag."}
+      </p>
+      {city || normalizedSearchQuery ? <div className="tok-social-active-filters" aria-label="Filtres actifs">
+        <p>{city ? `Ville : ${city}` : "Toutes les villes"}{normalizedSearchQuery ? ` · « ${normalizedSearchQuery} »` : ""}</p>
+        <button type="button" onClick={() => { setCity(""); setSearchQuery(""); setDebouncedSearchQuery(""); }}>Effacer les filtres</button>
+      </div> : null}
+      {canManage ? (
+        <div id="actualites-composer" className="min-w-0 scroll-mt-24">
+          {!dashboard && ownerRestaurants.loading ? <p role="status" className="mb-4 text-sm text-muted-foreground">Chargement de vos restaurants…</p>
+            : !dashboard && ownerRestaurants.error ? <p role="alert" className="mb-4 text-sm text-destructive">Impossible de charger vos restaurants : {ownerRestaurants.error}</p>
+            : composerRestaurant ? <SocialComposer
+              key={composerRestaurant.id}
+              restaurantId={composerRestaurant.id}
+              restaurantName={composerRestaurant.name}
+              restaurantImage={restaurantImage}
+              socialLinks={composerRestaurant.socialLinks || null}
+              sponsorDialogRequest={sponsorDialogRequest}
+              actualitesAccess={composerAccess.data || null}
+              actualitesAccessLoading={composerAccess.isLoading}
+              editorial compact openRequest={composerOpenRequest}
+            /> : <p className="mb-4 text-sm text-muted-foreground">Aucun restaurant rattaché à ce compte.</p>}
+        </div>
+      ) : null}
+      {management ? <div className="mb-3 flex flex-wrap items-center justify-end gap-2">{management}<span className="md:hidden">{statistics}</span></div> : null}
+      {globalSearchEnabled && globalSearch.isError ? <div role="alert" className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"><p>La recherche globale est momentanément indisponible. Les résultats déjà chargés restent affichés.</p><Button variant="outline" size="sm" className="mt-2" onClick={() => globalSearch.refetch()} disabled={globalSearch.isFetching}><RefreshCw className="mr-2 h-4 w-4" />Réessayer</Button></div> : null}
+      {contentLoading ? <div role="status" aria-label="Chargement des actualités" className="space-y-4">{[0, 1].map((item) => <div key={item} className="rounded-2xl border bg-card p-4"><div className="mb-4 h-10 w-2/3 animate-pulse rounded-lg bg-muted" /><div className="aspect-[1.8] animate-pulse rounded-xl bg-muted" /></div>)}</div>
+        : contentError ? <div role="alert" className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm"><p>{(contentError as Error).message}</p><Button className="mt-3" variant="outline" onClick={() => feed.refetch()}>Réessayer</Button></div>
+        : visiblePosts.length ? <div className="tok-social-feed-list" data-testid="actualites-feed">{visiblePosts.map((post: SocialFeedPost) => <TrackedSocialPostCard key={post.activityId} post={post} editorial highlighted={post.id === highlightedPostId} source={`actualites:${scope}`} />)}</div>
+        : <div className="rounded-2xl border bg-card px-5 py-9 text-center" data-testid="actualites-feed">
+          {searchQuery.trim() || city ? <Search className="mx-auto mb-3 h-7 w-7 text-primary" /> : scope === "saved" ? <Bookmark className="mx-auto mb-3 h-7 w-7 text-primary" /> : <BellRing className="mx-auto mb-3 h-7 w-7 text-primary" />}
+          <h2 className="font-display text-xl font-bold">{searchQuery.trim() || city ? "Aucun résultat" : reels ? "Aucun Reel dans ces publications" : scope === "saved" ? "Aucun post sauvegardé" : "Aucune actualité pour le moment"}</h2>
+          <p className="mt-2 text-sm text-muted-foreground">{searchQuery.trim() || city ? "Essayez une autre envie, une ville ou le nom d’un restaurant." : reels ? "Les vidéos publiées par les restaurants apparaissent ici. Vous pouvez aussi charger les publications suivantes." : scope === "saved" ? user?.id ? "Les posts enregistrés avec le bouton Sauver apparaîtront ici." : "Connectez-vous pour retrouver les posts que vous sauvegardez." : "Les publications des restaurants apparaîtront ici dès leur mise en ligne."}</p>
+          {!user?.id && scope === "saved" ? <Link className="mt-3 inline-block text-primary underline" to="/auth?next=%2Factualites%3Fscope%3Dsaved">Se connecter</Link> : null}
+        </div>}
+      {!contentLoading && !contentError && (canLoadMore || visiblePosts.length > 0) ? <div className="flex justify-center py-5"><Button variant="outline" onClick={() => globalSearchEnabled ? globalSearch.fetchNextPage() : feed.fetchNextPage()} disabled={!canLoadMore || isLoadingMore} className="min-h-11 min-w-44 rounded-full">{isLoadingMore ? "Chargement…" : canLoadMore ? "Charger plus" : globalSearchEnabled ? "Tous les résultats sont affichés" : "Fin du fil"}</Button></div> : null}
+    </SocialEditorialLayout>
+  );
+}
+
+export default function Actualites() {
+  useSeoMeta({
+    title: "Actualités des restaurants à Genève et en Suisse romande | TOK",
+    description: "Découvrez les plats, nouveautés, offres et événements publiés par les restaurants locaux sur TOK, sans avoir besoin de connaître un hashtag.",
+    path: "/actualites",
+    jsonLd: ACTUALITES_SEO_JSON_LD,
+  });
+  return <ActualitesFeed />;
 }
