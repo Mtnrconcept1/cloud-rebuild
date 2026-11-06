@@ -53,6 +53,14 @@ describe("Marketing Studio exact output targets", () => {
     expect(controls).not.toContain("getPrintCatalog(String(restaurantId))");
     expect(controls).toContain("downloadMarketingOutput");
     expect(shell).toContain("<MarketingOutputControls");
+    expect(shell).toContain('label: "Vidéo"');
+    expect(shell).toContain('label: "Impression"');
+    expect(shell).toContain('label: "Mes impressions"');
+    expect(shell).toContain('forcedDestination="digital"');
+    expect(shell).toContain('forcedDestination="print"');
+    expect(shell).toContain("showVideoEntry={false}");
+    expect(controls).toContain("forcedDestination");
+    expect(core).toContain("showVideoEntry");
     expect(core).not.toContain("getPrintCatalog");
     expect(core).not.toContain("CloudprinterProvider");
     expect(vite).toContain('"@/lib/ai/tokAiClient"');
