@@ -1,0 +1,33 @@
+name: Temporary refresh directory application reference
+on:
+  push:
+    branches:
+      - fix/directory-image-source-priority-20261107
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Remove temporary workflow and regenerate tracked app reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -f -- .github/workflows/temporary-refresh-directory-index-20261107.yml
+          pnpm run docs:application-index
+          git add -- docs/architecture/tok-application-search-index.json docs/architecture/TOK_APPLICATION_REFERENCE.md src/data/tok-user-guide-catalog.generated.ts
+          git diff --cached --check
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "docs(directory): regenerate application index"
+          git push origin HEAD:refs/heads/fix/directory-image-source-priority-20261107
