@@ -17,6 +17,20 @@ describe("restaurant image discovery source repair", () => {
     expect(claim).toContain("TO service_role");
     expect(claim).toContain("Restaurant référencé sur TheFork");
   });
+  it("prefers the repaired claim source over stale legacy image hints", () => {
+    const worker = readFileSync("supabase/functions/enrich-directory-images/index.ts", "utf8");
+    const start = worker.indexOf("async function preferredDiscoverySource(");
+    const end = worker.indexOf("async function terminalDiscoveryCandidateUrls(", start);
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    const selection = worker.slice(start, end);
+    expect(selection.indexOf('String(row.source_url || "").trim()')).toBeLessThan(
+      selection.indexOf('String(data?.source_page_url || "").trim()'),
+    );
+    expect(selection).toContain('isRejectedSiteHost(host)');
+    expect(selection).toContain('normalizeHttpUrl(rawCandidate)');
+  });
+
   it("uses catalogue websites rather than numeric directory identifiers", () => {
     expect(migration).toContain("SELECT source.url INTO v_source_url");
     expect(migration).toContain("image_job.source_page_url AS url");
