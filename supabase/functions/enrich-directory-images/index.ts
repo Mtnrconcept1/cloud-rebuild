@@ -1206,9 +1206,13 @@ async function preferredDiscoverySource(
     .maybeSingle();
   if (error) throw new Error(`discovery_source_lookup_failed:${error.message}`);
 
+  // The claim RPC already prioritizes repaired discovery URLs. Preserve that
+  // priority here; legacy image-page hints can point at stale or wrong sites.
+  // Every selected source is still checked for HTTP(S), host allowlisting and
+  // restaurant identity before any image candidate reaches truth review.
   const rawCandidates = [
-    String(data?.source_page_url || "").trim(),
     String(row.source_url || "").trim(),
+    String(data?.source_page_url || "").trim(),
   ].filter(Boolean);
 
   for (const rawCandidate of rawCandidates) {
