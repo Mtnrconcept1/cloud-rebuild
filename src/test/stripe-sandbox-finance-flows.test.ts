@@ -41,7 +41,7 @@ class HttpError extends Error {
 const route = new Function(
   "HttpError", "normalizeKind", "MARKETPLACE_CHECKOUT_KINDS",
   "calculateMarketplaceSplit", "calculateDeveloperRevenueSplit",
-  "calculateOrderPaymentDistribution", "resolveFairGrowthPricingSnapshot", "TOK_DEVELOPER_SHARE_BPS",
+  "calculateOrderPaymentDistribution", "resolveFairGrowthPricingSnapshot", "TOK_DEVELOPER_SHARE_BPS", "FAIR_GROWTH_PRICING_VERSION",
   transpile(`${routing}
 return resolveMarketplaceRouting;`),
 )(
@@ -56,6 +56,7 @@ return resolveMarketplaceRouting;`),
     pricingVersion: "flat_marketplace_2026_08", pricingRateSource: "runtime_default",
   }),
   1000,
+  "flat_marketplace_2026_08",
 ) as (input: Record<string, unknown>) => Promise<Record<string, unknown>>;
 
 const restaurant = {
